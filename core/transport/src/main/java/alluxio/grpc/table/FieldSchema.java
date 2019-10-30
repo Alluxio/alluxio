@@ -19,7 +19,6 @@ private static final long serialVersionUID = 0L;
     id_ = 0;
     name_ = "";
     type_ = "";
-    optional_ = false;
     comment_ = "";
   }
 
@@ -71,14 +70,9 @@ private static final long serialVersionUID = 0L;
             type_ = bs;
             break;
           }
-          case 32: {
-            bitField0_ |= 0x00000008;
-            optional_ = input.readBool();
-            break;
-          }
-          case 42: {
+          case 34: {
             com.google.protobuf.ByteString bs = input.readBytes();
-            bitField0_ |= 0x00000010;
+            bitField0_ |= 0x00000008;
             comment_ = bs;
             break;
           }
@@ -206,31 +200,16 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int OPTIONAL_FIELD_NUMBER = 4;
-  private boolean optional_;
+  public static final int COMMENT_FIELD_NUMBER = 4;
+  private volatile java.lang.Object comment_;
   /**
-   * <code>optional bool optional = 4;</code>
+   * <code>optional string comment = 4;</code>
    */
-  public boolean hasOptional() {
+  public boolean hasComment() {
     return ((bitField0_ & 0x00000008) == 0x00000008);
   }
   /**
-   * <code>optional bool optional = 4;</code>
-   */
-  public boolean getOptional() {
-    return optional_;
-  }
-
-  public static final int COMMENT_FIELD_NUMBER = 5;
-  private volatile java.lang.Object comment_;
-  /**
-   * <code>optional string comment = 5;</code>
-   */
-  public boolean hasComment() {
-    return ((bitField0_ & 0x00000010) == 0x00000010);
-  }
-  /**
-   * <code>optional string comment = 5;</code>
+   * <code>optional string comment = 4;</code>
    */
   public java.lang.String getComment() {
     java.lang.Object ref = comment_;
@@ -247,7 +226,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>optional string comment = 5;</code>
+   * <code>optional string comment = 4;</code>
    */
   public com.google.protobuf.ByteString
       getCommentBytes() {
@@ -285,10 +264,7 @@ private static final long serialVersionUID = 0L;
       com.google.protobuf.GeneratedMessageV3.writeString(output, 3, type_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      output.writeBool(4, optional_);
-    }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 5, comment_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, comment_);
     }
     unknownFields.writeTo(output);
   }
@@ -309,11 +285,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, type_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(4, optional_);
-    }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, comment_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, comment_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -346,11 +318,6 @@ private static final long serialVersionUID = 0L;
       result = result && getType()
           .equals(other.getType());
     }
-    result = result && (hasOptional() == other.hasOptional());
-    if (hasOptional()) {
-      result = result && (getOptional()
-          == other.getOptional());
-    }
     result = result && (hasComment() == other.hasComment());
     if (hasComment()) {
       result = result && getComment()
@@ -378,11 +345,6 @@ private static final long serialVersionUID = 0L;
     if (hasType()) {
       hash = (37 * hash) + TYPE_FIELD_NUMBER;
       hash = (53 * hash) + getType().hashCode();
-    }
-    if (hasOptional()) {
-      hash = (37 * hash) + OPTIONAL_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-          getOptional());
     }
     if (hasComment()) {
       hash = (37 * hash) + COMMENT_FIELD_NUMBER;
@@ -523,10 +485,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000002);
       type_ = "";
       bitField0_ = (bitField0_ & ~0x00000004);
-      optional_ = false;
-      bitField0_ = (bitField0_ & ~0x00000008);
       comment_ = "";
-      bitField0_ = (bitField0_ & ~0x00000010);
+      bitField0_ = (bitField0_ & ~0x00000008);
       return this;
     }
 
@@ -565,10 +525,6 @@ private static final long serialVersionUID = 0L;
       result.type_ = type_;
       if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
         to_bitField0_ |= 0x00000008;
-      }
-      result.optional_ = optional_;
-      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
-        to_bitField0_ |= 0x00000010;
       }
       result.comment_ = comment_;
       result.bitField0_ = to_bitField0_;
@@ -626,11 +582,8 @@ private static final long serialVersionUID = 0L;
         type_ = other.type_;
         onChanged();
       }
-      if (other.hasOptional()) {
-        setOptional(other.getOptional());
-      }
       if (other.hasComment()) {
-        bitField0_ |= 0x00000010;
+        bitField0_ |= 0x00000008;
         comment_ = other.comment_;
         onChanged();
       }
@@ -846,47 +799,15 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private boolean optional_ ;
+    private java.lang.Object comment_ = "";
     /**
-     * <code>optional bool optional = 4;</code>
+     * <code>optional string comment = 4;</code>
      */
-    public boolean hasOptional() {
+    public boolean hasComment() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional bool optional = 4;</code>
-     */
-    public boolean getOptional() {
-      return optional_;
-    }
-    /**
-     * <code>optional bool optional = 4;</code>
-     */
-    public Builder setOptional(boolean value) {
-      bitField0_ |= 0x00000008;
-      optional_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional bool optional = 4;</code>
-     */
-    public Builder clearOptional() {
-      bitField0_ = (bitField0_ & ~0x00000008);
-      optional_ = false;
-      onChanged();
-      return this;
-    }
-
-    private java.lang.Object comment_ = "";
-    /**
-     * <code>optional string comment = 5;</code>
-     */
-    public boolean hasComment() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
-    }
-    /**
-     * <code>optional string comment = 5;</code>
+     * <code>optional string comment = 4;</code>
      */
     public java.lang.String getComment() {
       java.lang.Object ref = comment_;
@@ -903,7 +824,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string comment = 5;</code>
+     * <code>optional string comment = 4;</code>
      */
     public com.google.protobuf.ByteString
         getCommentBytes() {
@@ -919,36 +840,36 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string comment = 5;</code>
+     * <code>optional string comment = 4;</code>
      */
     public Builder setComment(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000010;
+  bitField0_ |= 0x00000008;
       comment_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string comment = 5;</code>
+     * <code>optional string comment = 4;</code>
      */
     public Builder clearComment() {
-      bitField0_ = (bitField0_ & ~0x00000010);
+      bitField0_ = (bitField0_ & ~0x00000008);
       comment_ = getDefaultInstance().getComment();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string comment = 5;</code>
+     * <code>optional string comment = 4;</code>
      */
     public Builder setCommentBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000010;
+  bitField0_ |= 0x00000008;
       comment_ = value;
       onChanged();
       return this;

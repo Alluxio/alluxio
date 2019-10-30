@@ -86,8 +86,7 @@ public class WriteAction implements TransformAction {
 
     ArrayList<FieldSchema> colList = new ArrayList<>(partitionInfo.getDataColsList().size());
     for (alluxio.grpc.table.FieldSchema col : partitionInfo.getDataColsList()) {
-      colList.add(new FieldSchema(col.getId(), col.getName(), col.getType(),
-          col.getOptional(), col.getComment()));
+      colList.add(new FieldSchema(col.getId(), col.getName(), col.getType(), col.getComment()));
     }
     alluxio.job.transform.PartitionInfo transformPartInfo
         = new alluxio.job.transform.PartitionInfo(serdeClass, inputFormat,
