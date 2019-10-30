@@ -32,16 +32,17 @@ public class CountingLatchTest {
   private static class BlockingThread extends Thread {
     private volatile long mBlockedTimeMillis;
     private final Runnable mRunnable;
+    private final long mStart;
 
     public BlockingThread(Runnable runnable) {
       mBlockedTimeMillis = STILL_BLOCKED;
       mRunnable = runnable;
+      mStart = System.currentTimeMillis();
     }
 
     public void run() {
-      long start = System.currentTimeMillis();
       mRunnable.run();
-      mBlockedTimeMillis = System.currentTimeMillis() - start;
+      mBlockedTimeMillis = System.currentTimeMillis() - mStart;
     }
 
     public long getBlockedTimeMillis() {
@@ -103,7 +104,9 @@ public class CountingLatchTest {
     mLatch.release();
 
     inc.join();
-    Assert.assertTrue(inc.getBlockedTimeMillis() >= SLEEP_MILLIS);
+    Assert.assertTrue(
+        String.format("BlockedTimeMillis: %s", inc.getBlockedTimeMillis()),
+        inc.getBlockedTimeMillis() >= SLEEP_MILLIS);
     Assert.assertEquals(1, mLatch.getState());
   }
 
@@ -136,7 +139,9 @@ public class CountingLatchTest {
 
     for (BlockingThread t : incThreads) {
       t.join();
-      Assert.assertTrue(t.getBlockedTimeMillis() >= SLEEP_MILLIS);
+      Assert.assertTrue(
+          String.format("BlockedTimeMillis: %s", t.getBlockedTimeMillis()),
+          t.getBlockedTimeMillis() >= SLEEP_MILLIS);
     }
     Assert.assertEquals(numThreads, mLatch.getState());
   }
@@ -167,7 +172,8 @@ public class CountingLatchTest {
     Assert.assertEquals(0, mLatch.getState());
 
     await.join();
-    Assert.assertTrue(await.getBlockedTimeMillis() >= 2 * SLEEP_MILLIS);
+    Assert.assertTrue(String.format("BlockedTimeMillis: %s", await.getBlockedTimeMillis()),
+        await.getBlockedTimeMillis() >= 2 * SLEEP_MILLIS);
     Assert.assertEquals(-1, mLatch.getState());
   }
 
