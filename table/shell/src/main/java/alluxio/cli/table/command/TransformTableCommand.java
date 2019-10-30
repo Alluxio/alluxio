@@ -73,10 +73,7 @@ public final class TransformTableCommand extends AbstractTableCommand {
     return "Transform files representing a structured table under an Alluxio directory."
         + "\n\n"
         + "Files are coalesced and converted to parquet format."
-        + "\n\n"
-        + "Definition is in format like 'write(hive).option(hive.num.files, 100)', "
-        + "currently, the only modification you can do to the example definition is "
-        + "the number of files in the option.";
+        + "\n";
   }
 
   @Override
