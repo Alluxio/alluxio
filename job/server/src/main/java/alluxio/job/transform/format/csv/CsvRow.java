@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.util.Base64;
 
 import javax.validation.constraints.NotNull;
 
@@ -95,9 +96,9 @@ public final class CsvRow implements TableRow {
       return decimal.toParquetBytes(v);
     }
     if (type.equals(HiveConstants.Types.BINARY)) {
-      // CSV: text format
-      // Parquet: Binary field values are encoded to string in UTF-8?
-      return v.getBytes(StandardCharsets.UTF_8);
+      // CSV: binary is encoded into base64, then encoded as UTF-8
+      // Parquet: the decoded byte array
+      return Base64.getDecoder().decode(v.getBytes(StandardCharsets.UTF_8));
     }
     if (type.equals(HiveConstants.Types.DATE)) {
       // CSV: 2019-01-02
