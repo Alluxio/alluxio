@@ -20,6 +20,11 @@ public final class HiveLayoutProto {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_table_layout_StorageFormat_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_table_layout_StorageFormat_SerdelibParametersEntry_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_table_layout_StorageFormat_SerdelibParametersEntry_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_grpc_table_layout_HiveBucketProperty_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -60,34 +65,38 @@ public final class HiveLayoutProto {
     java.lang.String[] descriptorData = {
       "\n!grpc/table/layout/hive/hive.proto\022\031all" +
       "uxio.grpc.table.layout\032\021grpc/common.prot" +
-      "o\032\035grpc/table/table_master.proto\"K\n\rStor" +
-      "ageFormat\022\r\n\005serde\030\001 \001(\t\022\024\n\014input_format" +
-      "\030\002 \001(\t\022\025\n\routput_format\030\003 \001(\t\"|\n\022HiveBuc" +
-      "ketProperty\022\023\n\013bucketed_by\030\001 \003(\t\022\024\n\014buck" +
-      "et_count\030\002 \001(\003\022;\n\tsorted_by\030\003 \003(\0132(.allu" +
-      "xio.grpc.table.layout.SortingColumn\"\231\001\n\r" +
-      "SortingColumn\022\023\n\013column_name\030\001 \002(\t\022D\n\005or" +
-      "der\030\002 \002(\01625.alluxio.grpc.table.layout.So" +
-      "rtingColumn.SortingOrder\"-\n\014SortingOrder" +
-      "\022\r\n\tASCENDING\020\000\022\016\n\nDESCENDING\020\001\"\300\002\n\007Stor" +
-      "age\022@\n\016storage_format\030\001 \001(\0132(.alluxio.gr" +
-      "pc.table.layout.StorageFormat\022\020\n\010locatio" +
-      "n\030\002 \001(\t\022F\n\017bucket_property\030\003 \001(\0132-.allux" +
-      "io.grpc.table.layout.HiveBucketProperty\022" +
-      "\016\n\006skewed\030\004 \001(\010\022Q\n\020serde_parameters\030\005 \003(" +
-      "\01327.alluxio.grpc.table.layout.Storage.Se" +
-      "rdeParametersEntry\0326\n\024SerdeParametersEnt" +
-      "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\306\002\n\rP" +
-      "artitionInfo\022\016\n\006values\030\001 \003(\t\022\026\n\016partitio" +
-      "n_name\030\002 \001(\t\022\017\n\007db_name\030\003 \001(\t\022\022\n\ntable_n" +
-      "ame\030\004 \001(\t\0223\n\007storage\030\005 \001(\0132\".alluxio.grp" +
-      "c.table.layout.Storage\0222\n\tdata_cols\030\006 \003(" +
-      "\0132\037.alluxio.grpc.table.FieldSchema\022L\n\npa" +
-      "rameters\030\007 \003(\01328.alluxio.grpc.table.layo" +
-      "ut.PartitionInfo.ParametersEntry\0321\n\017Para" +
-      "metersEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:" +
-      "\0028\001B3\n\036alluxio.grpc.table.layout.hiveB\017H" +
-      "iveLayoutProtoP\001"
+      "o\032\035grpc/table/table_master.proto\"\345\001\n\rSto" +
+      "rageFormat\022\r\n\005serde\030\001 \001(\t\022\024\n\014input_forma" +
+      "t\030\002 \001(\t\022\025\n\routput_format\030\003 \001(\t\022]\n\023serdel" +
+      "ib_parameters\030\004 \003(\0132@.alluxio.grpc.table" +
+      ".layout.StorageFormat.SerdelibParameters" +
+      "Entry\0329\n\027SerdelibParametersEntry\022\013\n\003key\030" +
+      "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"|\n\022HiveBucketPr" +
+      "operty\022\023\n\013bucketed_by\030\001 \003(\t\022\024\n\014bucket_co" +
+      "unt\030\002 \001(\003\022;\n\tsorted_by\030\003 \003(\0132(.alluxio.g" +
+      "rpc.table.layout.SortingColumn\"\231\001\n\rSorti" +
+      "ngColumn\022\023\n\013column_name\030\001 \002(\t\022D\n\005order\030\002" +
+      " \002(\01625.alluxio.grpc.table.layout.Sorting" +
+      "Column.SortingOrder\"-\n\014SortingOrder\022\r\n\tA" +
+      "SCENDING\020\000\022\016\n\nDESCENDING\020\001\"\300\002\n\007Storage\022@" +
+      "\n\016storage_format\030\001 \001(\0132(.alluxio.grpc.ta" +
+      "ble.layout.StorageFormat\022\020\n\010location\030\002 \001" +
+      "(\t\022F\n\017bucket_property\030\003 \001(\0132-.alluxio.gr" +
+      "pc.table.layout.HiveBucketProperty\022\016\n\006sk" +
+      "ewed\030\004 \001(\010\022Q\n\020serde_parameters\030\005 \003(\01327.a" +
+      "lluxio.grpc.table.layout.Storage.SerdePa" +
+      "rametersEntry\0326\n\024SerdeParametersEntry\022\013\n" +
+      "\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\306\002\n\rPartit" +
+      "ionInfo\022\016\n\006values\030\001 \003(\t\022\026\n\016partition_nam" +
+      "e\030\002 \001(\t\022\017\n\007db_name\030\003 \001(\t\022\022\n\ntable_name\030\004" +
+      " \001(\t\0223\n\007storage\030\005 \001(\0132\".alluxio.grpc.tab" +
+      "le.layout.Storage\0222\n\tdata_cols\030\006 \003(\0132\037.a" +
+      "lluxio.grpc.table.FieldSchema\022L\n\nparamet" +
+      "ers\030\007 \003(\01328.alluxio.grpc.table.layout.Pa" +
+      "rtitionInfo.ParametersEntry\0321\n\017Parameter" +
+      "sEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B3" +
+      "\n\036alluxio.grpc.table.layout.hiveB\017HiveLa" +
+      "youtProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -108,7 +117,13 @@ public final class HiveLayoutProto {
     internal_static_alluxio_grpc_table_layout_StorageFormat_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_layout_StorageFormat_descriptor,
-        new java.lang.String[] { "Serde", "InputFormat", "OutputFormat", });
+        new java.lang.String[] { "Serde", "InputFormat", "OutputFormat", "SerdelibParameters", });
+    internal_static_alluxio_grpc_table_layout_StorageFormat_SerdelibParametersEntry_descriptor =
+      internal_static_alluxio_grpc_table_layout_StorageFormat_descriptor.getNestedTypes().get(0);
+    internal_static_alluxio_grpc_table_layout_StorageFormat_SerdelibParametersEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_table_layout_StorageFormat_SerdelibParametersEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_grpc_table_layout_HiveBucketProperty_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_alluxio_grpc_table_layout_HiveBucketProperty_fieldAccessorTable = new
