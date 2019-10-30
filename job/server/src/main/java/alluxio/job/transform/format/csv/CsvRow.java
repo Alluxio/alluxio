@@ -65,13 +65,11 @@ public final class CsvRow implements TableRow {
   }
 
   /**
-   * Converts the value of schema "from", to a value of schema "to".
-   *
-   * @param value the value to be converted
-   * @param name name of the field
+   * @param value the value read based on the read schema
+   * @param name the name of the field
    * @param type the type of the value based on Alluxio table schema
-   * @return the converted value
-   * @throws IOException when the logical type of from is unsupported
+   * @return the value in format of the write schema
+   * @throws IOException when conversion failed
    */
   private Object convert(Object value, String name, String type) throws IOException {
     if (!CsvUtils.isReadWriteTypeInconsistent(type)) {

@@ -128,9 +128,9 @@ public final class CsvSchema implements TableSchema {
         : schema;
   }
 
-  private SchemaBuilder.FieldAssembler<Schema> buildSharedField(
+  private SchemaBuilder.FieldAssembler<Schema> buildConsistentField(
       SchemaBuilder.FieldAssembler<Schema> assembler, SchemaField field) throws IOException {
-    // Builds the fields that are the same for read and write schema.
+    // Builds the fields that are consistent for read and write schema.
     String name = field.getName();
     String type = field.getType();
     boolean optional = field.isOptional();
@@ -164,7 +164,7 @@ public final class CsvSchema implements TableSchema {
   private SchemaBuilder.FieldAssembler<Schema> buildReadField(
       SchemaBuilder.FieldAssembler<Schema> assembler, SchemaField field) throws IOException {
     if (!CsvUtils.isReadWriteTypeInconsistent(field.getType())) {
-      return buildSharedField(assembler, field);
+      return buildConsistentField(assembler, field);
     }
 
     String name = field.getName();
@@ -180,7 +180,7 @@ public final class CsvSchema implements TableSchema {
   private SchemaBuilder.FieldAssembler<Schema> buildWriteField(
       SchemaBuilder.FieldAssembler<Schema> assembler, SchemaField field) throws IOException {
     if (!CsvUtils.isReadWriteTypeInconsistent(field.getType())) {
-      return buildSharedField(assembler, field);
+      return buildConsistentField(assembler, field);
     }
 
     String name = field.getName();

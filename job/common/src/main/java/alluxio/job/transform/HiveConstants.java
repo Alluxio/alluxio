@@ -67,6 +67,7 @@ public class HiveConstants {
     // public static final String INTERVAL_YEAR_MONTH = "interval_year_month";
     // public static final String INTERVAL_DAY_TIME = "interval_day_time";
     // public static final String TIMESTAMP_LOCAL = "timestamp with local time zone";
+    // public static final String DATETIME = "datetime";
 
     /** Hive bool type. */
     public static final String BOOLEAN = "boolean";
@@ -90,8 +91,6 @@ public class HiveConstants {
     public static final String CHAR = "char";
     /** Hive date type. */
     public static final String DATE = "date";
-    /** Hive datetime type. */
-    public static final String DATETIME = "datetime";
     /** Hive timestamp type. */
     public static final String TIMESTAMP = "timestamp";
     /** Hive decimal type. */
