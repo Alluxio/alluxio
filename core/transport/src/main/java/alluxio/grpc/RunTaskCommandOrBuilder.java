@@ -17,13 +17,13 @@ public interface RunTaskCommandOrBuilder extends
   long getJobId();
 
   /**
-   * <code>optional int32 taskId = 2;</code>
+   * <code>optional int64 taskId = 2;</code>
    */
   boolean hasTaskId();
   /**
-   * <code>optional int32 taskId = 2;</code>
+   * <code>optional int64 taskId = 2;</code>
    */
-  int getTaskId();
+  long getTaskId();
 
   /**
    * <code>optional bytes jobConfig = 3;</code>

@@ -18,6 +18,7 @@ import alluxio.job.JobDefinitionRegistry;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.meta.JobInfo;
+import alluxio.job.wire.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.master.job.command.CommandManager;
@@ -61,12 +62,12 @@ public final class JobCoordinator {
    * Map containing the worker info for every task associated with the coordinated job. If this
    * coordinator was created to represent an already-completed job, this map will be empty.
    */
-  private final Map<Integer, WorkerInfo> mTaskIdToWorkerInfo = Maps.newHashMap();
+  private final Map<Long, WorkerInfo> mTaskIdToWorkerInfo = Maps.newHashMap();
   /**
    * Mapping from workers running tasks for this job to the ids of those tasks. If this coordinator
    * was created to represent an already-completed job, this map will be empty.
    */
-  private final Map<Long, Integer> mWorkerIdToTaskId = Maps.newHashMap();
+  private final Map<Long, Long> mWorkerIdToTaskId = Maps.newHashMap();
 
   private JobCoordinator(CommandManager commandManager, JobServerContext jobServerContext,
       List<WorkerInfo> workerInfoList, Long jobId, JobConfig jobConfig,
@@ -133,8 +134,8 @@ public final class JobCoordinator {
       // submit commands
       mCommandManager.submitRunTaskCommand(mJobInfo.getId(), taskId, mJobInfo.getJobConfig(),
           entry.getValue(), entry.getKey().getId());
-      mTaskIdToWorkerInfo.put(taskId, entry.getKey());
-      mWorkerIdToTaskId.put(entry.getKey().getId(), taskId);
+      mTaskIdToWorkerInfo.put((long) taskId, entry.getKey());
+      mWorkerIdToTaskId.put(entry.getKey().getId(), (long) taskId);
     }
   }
 
@@ -142,7 +143,7 @@ public final class JobCoordinator {
    * Cancels the current job.
    */
   public synchronized void cancel() {
-    for (int taskId : mJobInfo.getTaskIdList()) {
+    for (long taskId : mJobInfo.getTaskIdList()) {
       mCommandManager.submitCancelTaskCommand(mJobInfo.getId(), taskId,
           mTaskIdToWorkerInfo.get(taskId).getId());
     }
@@ -197,7 +198,7 @@ public final class JobCoordinator {
    */
   public void failTasksForWorker(long workerId) {
     synchronized (mJobInfo) {
-      Integer taskId = mWorkerIdToTaskId.get(workerId);
+      Long taskId = mWorkerIdToTaskId.get(workerId);
       if (taskId == null) {
         return;
       }
@@ -216,8 +217,8 @@ public final class JobCoordinator {
   /**
    * @return the on the wire job info for the job being coordinated
    */
-  public synchronized alluxio.job.wire.JobInfo getJobInfoWire() {
-    return new alluxio.job.wire.JobInfo(mJobInfo);
+  public synchronized PlanInfo getJobInfoWire() {
+    return new PlanInfo(mJobInfo);
   }
 
   /**

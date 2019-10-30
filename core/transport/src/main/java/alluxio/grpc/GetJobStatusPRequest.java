@@ -16,7 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private GetJobStatusPRequest() {
-    jobId_ = 0L;
+    id_ = 0L;
   }
 
   @java.lang.Override
@@ -52,7 +52,7 @@ private static final long serialVersionUID = 0L;
           }
           case 8: {
             bitField0_ |= 0x00000001;
-            jobId_ = input.readInt64();
+            id_ = input.readInt64();
             break;
           }
           case 18: {
@@ -93,19 +93,19 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int JOBID_FIELD_NUMBER = 1;
-  private long jobId_;
+  public static final int ID_FIELD_NUMBER = 1;
+  private long id_;
   /**
-   * <code>optional int64 jobId = 1;</code>
+   * <code>optional int64 id = 1;</code>
    */
-  public boolean hasJobId() {
+  public boolean hasId() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional int64 jobId = 1;</code>
+   * <code>optional int64 id = 1;</code>
    */
-  public long getJobId() {
-    return jobId_;
+  public long getId() {
+    return id_;
   }
 
   public static final int OPTIONS_FIELD_NUMBER = 2;
@@ -142,7 +142,7 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      output.writeInt64(1, jobId_);
+      output.writeInt64(1, id_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       output.writeMessage(2, getOptions());
@@ -157,7 +157,7 @@ private static final long serialVersionUID = 0L;
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt64Size(1, jobId_);
+        .computeInt64Size(1, id_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += com.google.protobuf.CodedOutputStream
@@ -179,10 +179,10 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.GetJobStatusPRequest other = (alluxio.grpc.GetJobStatusPRequest) obj;
 
     boolean result = true;
-    result = result && (hasJobId() == other.hasJobId());
-    if (hasJobId()) {
-      result = result && (getJobId()
-          == other.getJobId());
+    result = result && (hasId() == other.hasId());
+    if (hasId()) {
+      result = result && (getId()
+          == other.getId());
     }
     result = result && (hasOptions() == other.hasOptions());
     if (hasOptions()) {
@@ -200,10 +200,10 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasJobId()) {
-      hash = (37 * hash) + JOBID_FIELD_NUMBER;
+    if (hasId()) {
+      hash = (37 * hash) + ID_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getJobId());
+          getId());
     }
     if (hasOptions()) {
       hash = (37 * hash) + OPTIONS_FIELD_NUMBER;
@@ -339,7 +339,7 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      jobId_ = 0L;
+      id_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
       if (optionsBuilder_ == null) {
         options_ = null;
@@ -374,7 +374,7 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.jobId_ = jobId_;
+      result.id_ = id_;
       if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
         to_bitField0_ |= 0x00000002;
       }
@@ -425,8 +425,8 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.GetJobStatusPRequest other) {
       if (other == alluxio.grpc.GetJobStatusPRequest.getDefaultInstance()) return this;
-      if (other.hasJobId()) {
-        setJobId(other.getJobId());
+      if (other.hasId()) {
+        setId(other.getId());
       }
       if (other.hasOptions()) {
         mergeOptions(other.getOptions());
@@ -459,34 +459,34 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private long jobId_ ;
+    private long id_ ;
     /**
-     * <code>optional int64 jobId = 1;</code>
+     * <code>optional int64 id = 1;</code>
      */
-    public boolean hasJobId() {
+    public boolean hasId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional int64 jobId = 1;</code>
+     * <code>optional int64 id = 1;</code>
      */
-    public long getJobId() {
-      return jobId_;
+    public long getId() {
+      return id_;
     }
     /**
-     * <code>optional int64 jobId = 1;</code>
+     * <code>optional int64 id = 1;</code>
      */
-    public Builder setJobId(long value) {
+    public Builder setId(long value) {
       bitField0_ |= 0x00000001;
-      jobId_ = value;
+      id_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int64 jobId = 1;</code>
+     * <code>optional int64 id = 1;</code>
      */
-    public Builder clearJobId() {
+    public Builder clearId() {
       bitField0_ = (bitField0_ & ~0x00000001);
-      jobId_ = 0L;
+      id_ = 0L;
       onChanged();
       return this;
     }

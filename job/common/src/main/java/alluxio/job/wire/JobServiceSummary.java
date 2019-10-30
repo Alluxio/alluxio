@@ -40,12 +40,12 @@ public final class JobServiceSummary {
 
   /**
    * Constructs a new instance of {@link JobServiceSummary} from a
-   * collection of {@link JobInfo} it possesses.
+   * collection of {@link PlanInfo} it possesses.
    *
-   * @param jobInfos Collection of {@link JobInfo}
+   * @param jobInfos Collection of {@link PlanInfo}
    */
-  public JobServiceSummary(List<JobInfo> jobInfos) {
-    jobInfos.sort(Comparator.comparing(JobInfo::getLastStatusChangeMs).reversed());
+  public JobServiceSummary(List<PlanInfo> jobInfos) {
+    jobInfos.sort(Comparator.comparing(PlanInfo::getLastUpdated).reversed());
     mSummaryPerStatus = buildSummaryPerStatus(jobInfos);
 
     mRecentActivities = jobInfos.stream().limit(RECENT_LENGTH).collect(Collectors.toList());
@@ -72,25 +72,25 @@ public final class JobServiceSummary {
 
     mRecentActivities = new ArrayList<>();
     for (alluxio.grpc.JobInfo lastActivity : jobServiceSummary.getRecentActivitiesList()) {
-      mRecentActivities.add(new JobInfo(lastActivity));
+      mRecentActivities.add(new PlanInfo(lastActivity));
     }
 
     mRecentFailures = new ArrayList<>();
     for (alluxio.grpc.JobInfo lastFailure : jobServiceSummary.getRecentFailuresList()) {
-      mRecentFailures.add(new JobInfo(lastFailure));
+      mRecentFailures.add(new PlanInfo(lastFailure));
     }
 
     mLongestRunning = new ArrayList<>();
     for (alluxio.grpc.JobInfo longestRunning : jobServiceSummary.getLongestRunningList()) {
-      mLongestRunning.add(new JobInfo(longestRunning));
+      mLongestRunning.add(new PlanInfo(longestRunning));
     }
   }
 
-  private List<StatusSummary> buildSummaryPerStatus(List<JobInfo> jobInfos) {
+  private List<StatusSummary> buildSummaryPerStatus(List<PlanInfo> jobInfos) {
 
     Map<Status, Long> countPerStatus = new HashMap<>();
 
-    for (JobInfo jobInfo : jobInfos) {
+    for (PlanInfo jobInfo : jobInfos) {
       Status status = Status.valueOf(jobInfo.getStatus().name());
       countPerStatus.compute(status, (key, val) -> (val == null) ? 1 : val + 1);
     }
@@ -118,21 +118,21 @@ public final class JobServiceSummary {
   }
 
   /**
-   * @return collection of {@link JobInfo} where the status was most recently updated
+   * @return collection of {@link PlanInfo} where the status was most recently updated
    */
   public List<JobInfo> getRecentActivities() {
     return Collections.unmodifiableList(mRecentActivities);
   }
 
   /**
-   * @return collection of {@link JobInfo} that have most recently failed
+   * @return collection of {@link PlanInfo} that have most recently failed
    */
   public List<JobInfo> getRecentFailures() {
     return Collections.unmodifiableList(mRecentFailures);
   }
 
   /**
-   * @return collection of {@link JobInfo}
+   * @return collection of {@link PlanInfo}
    */
   public List<JobInfo> getLongestRunning() {
     return Collections.unmodifiableList(mLongestRunning);

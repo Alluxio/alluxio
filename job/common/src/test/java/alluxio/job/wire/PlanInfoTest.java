@@ -13,33 +13,20 @@ package alluxio.job.wire;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.util.CommonUtils;
-
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Random;
 
 /**
- * Tests the wire format {@link TaskInfo}.
+ * Tests the wire format of {@link PlanInfo}.
  */
-public final class TaskInfoTest {
+public final class PlanInfoTest {
 
   @Test
   public void testToProto() throws IOException {
-    TaskInfo taskInfo = createRandom();
+    PlanInfo jobInfo = new PlanInfo(1, "test", Status.COMPLETED, 10, null);
+    PlanInfo otherJobInfo = new PlanInfo(jobInfo.toProto());
 
-    assertEquals(taskInfo, new TaskInfo(taskInfo.toProto()));
-  }
-
-  public static TaskInfo createRandom() {
-    TaskInfo result = new TaskInfo();
-    Random random = new Random();
-
-    result.setErrorMessage(CommonUtils.randomAlphaNumString(random.nextInt(10)));
-    result.setStatus(Status.values()[random.nextInt(Status.values().length)]);
-    result.setTaskId(random.nextInt());
-
-    return result;
+    assertEquals(jobInfo, otherJobInfo);
   }
 }

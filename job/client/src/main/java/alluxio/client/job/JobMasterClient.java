@@ -13,8 +13,8 @@ package alluxio.client.job;
 
 import alluxio.Client;
 import alluxio.job.JobConfig;
-import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
+import alluxio.job.wire.JobInfo;
 import alluxio.worker.job.JobMasterClientContext;
 
 import java.io.IOException;
@@ -51,10 +51,10 @@ public interface JobMasterClient extends Client {
   void cancel(long id) throws IOException;
 
   /**
-   * Gets the status of the given job.
+   * Gets the status of the given plan.
    *
-   * @param id the job id
-   * @return the job information
+   * @param id the plan id
+   * @return the plan information
    */
   JobInfo getStatus(long id) throws IOException;
 
@@ -66,15 +66,15 @@ public interface JobMasterClient extends Client {
   JobServiceSummary getJobServiceSummary() throws IOException;
 
   /**
-   * @return the list of ids of all jobs
+   * @return the list of all plan ids
    */
   List<Long> list() throws IOException;
 
   /**
-   * Starts a job based on the given configuration.
+   * Starts a plan based on the given configuration.
    *
    * @param jobConfig the job configuration
-   * @return the job id
+   * @return the plan id
    */
   long run(JobConfig jobConfig) throws IOException;
 }

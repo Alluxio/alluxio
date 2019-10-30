@@ -18,7 +18,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
-import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.PlanInfo;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
@@ -64,7 +64,7 @@ public final class MigrateIntegrationTest extends JobIntegrationTest {
     long jobId = mJobMaster
         .run(new MigrateConfig(source, destination, WriteType.CACHE_THROUGH.toString(), true,
             mDeleteSource));
-    JobInfo info = waitForJobToFinish(jobId);
+    PlanInfo info = waitForJobToFinish(jobId);
     if (mDeleteSource) {
       Assert.assertFalse(mFileSystem.exists(new AlluxioURI(source)));
     } else {
@@ -73,7 +73,7 @@ public final class MigrateIntegrationTest extends JobIntegrationTest {
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI(destination)));
     checkFileContainsTestBytes(destination);
     // One worker task is needed when moving within the same mount point.
-    Assert.assertEquals(1, info.getTaskInfoList().size());
+    Assert.assertEquals(1, info.getChildren().size());
   }
 
   @Test

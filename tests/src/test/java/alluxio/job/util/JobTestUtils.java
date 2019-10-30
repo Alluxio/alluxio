@@ -13,7 +13,7 @@ package alluxio.job.util;
 
 import alluxio.Constants;
 import alluxio.exception.JobDoesNotExistException;
-import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.job.JobMaster;
 import alluxio.util.CommonUtils;
@@ -37,12 +37,12 @@ public final class JobTestUtils {
    * @param status the status to wait for
    * @return the status of the job waited for
    */
-  public static JobInfo waitForJobStatus(final JobMaster jobMaster, final long jobId,
+  public static PlanInfo waitForJobStatus(final JobMaster jobMaster, final long jobId,
       final Status status) throws InterruptedException, TimeoutException {
-    final AtomicReference<JobInfo> singleton = new AtomicReference<>();
+    final AtomicReference<PlanInfo> singleton = new AtomicReference<>();
     CommonUtils.waitFor(String.format("job %d to be in status %s", jobId, status.toString()),
         () -> {
-          JobInfo info;
+          PlanInfo info;
           try {
             info = jobMaster.getStatus(jobId);
             if (info.getStatus().equals(status)) {

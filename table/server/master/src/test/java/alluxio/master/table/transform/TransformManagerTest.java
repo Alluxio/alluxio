@@ -24,7 +24,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.job.JobConfig;
-import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterTestUtils;
@@ -320,12 +320,7 @@ public class TransformManagerTest {
   private void mockJobStatus(long jobId, Status status, @Nullable String error)
       throws Exception {
     // Mock job status.
-    JobInfo jobInfo = new JobInfo();
-    jobInfo.setJobId(jobId);
-    jobInfo.setStatus(status);
-    if (error != null) {
-      jobInfo.setErrorMessage(error);
-    }
+    PlanInfo jobInfo = new PlanInfo(jobId, "test", status, 0, error);
     Mockito.when(mMockJobMasterClient.getStatus(jobId)).thenReturn(jobInfo);
   }
 

@@ -52,12 +52,12 @@ private static final long serialVersionUID = 0L;
           case 10: {
             alluxio.grpc.JobInfo.Builder subBuilder = null;
             if (((bitField0_ & 0x00000001) == 0x00000001)) {
-              subBuilder = jobInfo_.toBuilder();
+              subBuilder = planInfo_.toBuilder();
             }
-            jobInfo_ = input.readMessage(alluxio.grpc.JobInfo.PARSER, extensionRegistry);
+            planInfo_ = input.readMessage(alluxio.grpc.JobInfo.PARSER, extensionRegistry);
             if (subBuilder != null) {
-              subBuilder.mergeFrom(jobInfo_);
-              jobInfo_ = subBuilder.buildPartial();
+              subBuilder.mergeFrom(planInfo_);
+              planInfo_ = subBuilder.buildPartial();
             }
             bitField0_ |= 0x00000001;
             break;
@@ -87,25 +87,25 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int JOBINFO_FIELD_NUMBER = 1;
-  private alluxio.grpc.JobInfo jobInfo_;
+  public static final int PLANINFO_FIELD_NUMBER = 1;
+  private alluxio.grpc.JobInfo planInfo_;
   /**
-   * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
+   * <code>optional .alluxio.grpc.job.JobInfo planInfo = 1;</code>
    */
-  public boolean hasJobInfo() {
+  public boolean hasPlanInfo() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
+   * <code>optional .alluxio.grpc.job.JobInfo planInfo = 1;</code>
    */
-  public alluxio.grpc.JobInfo getJobInfo() {
-    return jobInfo_ == null ? alluxio.grpc.JobInfo.getDefaultInstance() : jobInfo_;
+  public alluxio.grpc.JobInfo getPlanInfo() {
+    return planInfo_ == null ? alluxio.grpc.JobInfo.getDefaultInstance() : planInfo_;
   }
   /**
-   * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
+   * <code>optional .alluxio.grpc.job.JobInfo planInfo = 1;</code>
    */
-  public alluxio.grpc.JobInfoOrBuilder getJobInfoOrBuilder() {
-    return jobInfo_ == null ? alluxio.grpc.JobInfo.getDefaultInstance() : jobInfo_;
+  public alluxio.grpc.JobInfoOrBuilder getPlanInfoOrBuilder() {
+    return planInfo_ == null ? alluxio.grpc.JobInfo.getDefaultInstance() : planInfo_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -121,7 +121,7 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      output.writeMessage(1, getJobInfo());
+      output.writeMessage(1, getPlanInfo());
     }
     unknownFields.writeTo(output);
   }
@@ -133,7 +133,7 @@ private static final long serialVersionUID = 0L;
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(1, getJobInfo());
+        .computeMessageSize(1, getPlanInfo());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -151,10 +151,10 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.GetJobStatusPResponse other = (alluxio.grpc.GetJobStatusPResponse) obj;
 
     boolean result = true;
-    result = result && (hasJobInfo() == other.hasJobInfo());
-    if (hasJobInfo()) {
-      result = result && getJobInfo()
-          .equals(other.getJobInfo());
+    result = result && (hasPlanInfo() == other.hasPlanInfo());
+    if (hasPlanInfo()) {
+      result = result && getPlanInfo()
+          .equals(other.getPlanInfo());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -167,9 +167,9 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasJobInfo()) {
-      hash = (37 * hash) + JOBINFO_FIELD_NUMBER;
-      hash = (53 * hash) + getJobInfo().hashCode();
+    if (hasPlanInfo()) {
+      hash = (37 * hash) + PLANINFO_FIELD_NUMBER;
+      hash = (53 * hash) + getPlanInfo().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -296,15 +296,15 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
-        getJobInfoFieldBuilder();
+        getPlanInfoFieldBuilder();
       }
     }
     public Builder clear() {
       super.clear();
-      if (jobInfoBuilder_ == null) {
-        jobInfo_ = null;
+      if (planInfoBuilder_ == null) {
+        planInfo_ = null;
       } else {
-        jobInfoBuilder_.clear();
+        planInfoBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000001);
       return this;
@@ -334,10 +334,10 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      if (jobInfoBuilder_ == null) {
-        result.jobInfo_ = jobInfo_;
+      if (planInfoBuilder_ == null) {
+        result.planInfo_ = planInfo_;
       } else {
-        result.jobInfo_ = jobInfoBuilder_.build();
+        result.planInfo_ = planInfoBuilder_.build();
       }
       result.bitField0_ = to_bitField0_;
       onBuilt();
@@ -381,8 +381,8 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.GetJobStatusPResponse other) {
       if (other == alluxio.grpc.GetJobStatusPResponse.getDefaultInstance()) return this;
-      if (other.hasJobInfo()) {
-        mergeJobInfo(other.getJobInfo());
+      if (other.hasPlanInfo()) {
+        mergePlanInfo(other.getPlanInfo());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -412,122 +412,122 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private alluxio.grpc.JobInfo jobInfo_ = null;
+    private alluxio.grpc.JobInfo planInfo_ = null;
     private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.JobInfo, alluxio.grpc.JobInfo.Builder, alluxio.grpc.JobInfoOrBuilder> jobInfoBuilder_;
+        alluxio.grpc.JobInfo, alluxio.grpc.JobInfo.Builder, alluxio.grpc.JobInfoOrBuilder> planInfoBuilder_;
     /**
-     * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
+     * <code>optional .alluxio.grpc.job.JobInfo planInfo = 1;</code>
      */
-    public boolean hasJobInfo() {
+    public boolean hasPlanInfo() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
+     * <code>optional .alluxio.grpc.job.JobInfo planInfo = 1;</code>
      */
-    public alluxio.grpc.JobInfo getJobInfo() {
-      if (jobInfoBuilder_ == null) {
-        return jobInfo_ == null ? alluxio.grpc.JobInfo.getDefaultInstance() : jobInfo_;
+    public alluxio.grpc.JobInfo getPlanInfo() {
+      if (planInfoBuilder_ == null) {
+        return planInfo_ == null ? alluxio.grpc.JobInfo.getDefaultInstance() : planInfo_;
       } else {
-        return jobInfoBuilder_.getMessage();
+        return planInfoBuilder_.getMessage();
       }
     }
     /**
-     * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
+     * <code>optional .alluxio.grpc.job.JobInfo planInfo = 1;</code>
      */
-    public Builder setJobInfo(alluxio.grpc.JobInfo value) {
-      if (jobInfoBuilder_ == null) {
+    public Builder setPlanInfo(alluxio.grpc.JobInfo value) {
+      if (planInfoBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        jobInfo_ = value;
+        planInfo_ = value;
         onChanged();
       } else {
-        jobInfoBuilder_.setMessage(value);
+        planInfoBuilder_.setMessage(value);
       }
       bitField0_ |= 0x00000001;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
+     * <code>optional .alluxio.grpc.job.JobInfo planInfo = 1;</code>
      */
-    public Builder setJobInfo(
+    public Builder setPlanInfo(
         alluxio.grpc.JobInfo.Builder builderForValue) {
-      if (jobInfoBuilder_ == null) {
-        jobInfo_ = builderForValue.build();
+      if (planInfoBuilder_ == null) {
+        planInfo_ = builderForValue.build();
         onChanged();
       } else {
-        jobInfoBuilder_.setMessage(builderForValue.build());
+        planInfoBuilder_.setMessage(builderForValue.build());
       }
       bitField0_ |= 0x00000001;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
+     * <code>optional .alluxio.grpc.job.JobInfo planInfo = 1;</code>
      */
-    public Builder mergeJobInfo(alluxio.grpc.JobInfo value) {
-      if (jobInfoBuilder_ == null) {
+    public Builder mergePlanInfo(alluxio.grpc.JobInfo value) {
+      if (planInfoBuilder_ == null) {
         if (((bitField0_ & 0x00000001) == 0x00000001) &&
-            jobInfo_ != null &&
-            jobInfo_ != alluxio.grpc.JobInfo.getDefaultInstance()) {
-          jobInfo_ =
-            alluxio.grpc.JobInfo.newBuilder(jobInfo_).mergeFrom(value).buildPartial();
+            planInfo_ != null &&
+            planInfo_ != alluxio.grpc.JobInfo.getDefaultInstance()) {
+          planInfo_ =
+            alluxio.grpc.JobInfo.newBuilder(planInfo_).mergeFrom(value).buildPartial();
         } else {
-          jobInfo_ = value;
+          planInfo_ = value;
         }
         onChanged();
       } else {
-        jobInfoBuilder_.mergeFrom(value);
+        planInfoBuilder_.mergeFrom(value);
       }
       bitField0_ |= 0x00000001;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
+     * <code>optional .alluxio.grpc.job.JobInfo planInfo = 1;</code>
      */
-    public Builder clearJobInfo() {
-      if (jobInfoBuilder_ == null) {
-        jobInfo_ = null;
+    public Builder clearPlanInfo() {
+      if (planInfoBuilder_ == null) {
+        planInfo_ = null;
         onChanged();
       } else {
-        jobInfoBuilder_.clear();
+        planInfoBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
+     * <code>optional .alluxio.grpc.job.JobInfo planInfo = 1;</code>
      */
-    public alluxio.grpc.JobInfo.Builder getJobInfoBuilder() {
+    public alluxio.grpc.JobInfo.Builder getPlanInfoBuilder() {
       bitField0_ |= 0x00000001;
       onChanged();
-      return getJobInfoFieldBuilder().getBuilder();
+      return getPlanInfoFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
+     * <code>optional .alluxio.grpc.job.JobInfo planInfo = 1;</code>
      */
-    public alluxio.grpc.JobInfoOrBuilder getJobInfoOrBuilder() {
-      if (jobInfoBuilder_ != null) {
-        return jobInfoBuilder_.getMessageOrBuilder();
+    public alluxio.grpc.JobInfoOrBuilder getPlanInfoOrBuilder() {
+      if (planInfoBuilder_ != null) {
+        return planInfoBuilder_.getMessageOrBuilder();
       } else {
-        return jobInfo_ == null ?
-            alluxio.grpc.JobInfo.getDefaultInstance() : jobInfo_;
+        return planInfo_ == null ?
+            alluxio.grpc.JobInfo.getDefaultInstance() : planInfo_;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
+     * <code>optional .alluxio.grpc.job.JobInfo planInfo = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.JobInfo, alluxio.grpc.JobInfo.Builder, alluxio.grpc.JobInfoOrBuilder> 
-        getJobInfoFieldBuilder() {
-      if (jobInfoBuilder_ == null) {
-        jobInfoBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+        getPlanInfoFieldBuilder() {
+      if (planInfoBuilder_ == null) {
+        planInfoBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
             alluxio.grpc.JobInfo, alluxio.grpc.JobInfo.Builder, alluxio.grpc.JobInfoOrBuilder>(
-                getJobInfo(),
+                getPlanInfo(),
                 getParentForChildren(),
                 isClean());
-        jobInfo_ = null;
+        planInfo_ = null;
       }
-      return jobInfoBuilder_;
+      return planInfoBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

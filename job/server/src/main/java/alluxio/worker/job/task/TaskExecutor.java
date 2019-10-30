@@ -36,7 +36,7 @@ public final class TaskExecutor implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(TaskExecutor.class);
 
   private final long mJobId;
-  private final int mTaskId;
+  private final long mTaskId;
   private final JobConfig mJobConfig;
   private final Serializable mTaskArgs;
   private final RunTaskContext mContext;
@@ -52,7 +52,7 @@ public final class TaskExecutor implements Runnable {
    * @param context the context on the worker
    * @param taskExecutorManager the task executor manager
    */
-  public TaskExecutor(long jobId, int taskId, JobConfig jobConfig, Serializable taskArgs,
+  public TaskExecutor(long jobId, long taskId, JobConfig jobConfig, Serializable taskArgs,
       RunTaskContext context, TaskExecutorManager taskExecutorManager) {
     mJobId = jobId;
     mTaskId = taskId;

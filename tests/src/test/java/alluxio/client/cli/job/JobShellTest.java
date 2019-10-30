@@ -19,7 +19,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.persist.PersistConfig;
 import alluxio.job.util.JobTestUtils;
-import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.PlanInfo;
 import alluxio.job.wire.Status;
 
 import java.util.concurrent.TimeoutException;
@@ -39,7 +39,7 @@ public abstract class JobShellTest extends AbstractFileSystemShellTest {
     return mJobMaster.run(new PersistConfig("/test", 1, true, status.getUfsPath()));
   }
 
-  protected JobInfo waitForJobToFinish(final long jobId)
+  protected PlanInfo waitForJobToFinish(final long jobId)
       throws InterruptedException, TimeoutException {
     return JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.COMPLETED);
   }

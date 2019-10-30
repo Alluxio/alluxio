@@ -24,7 +24,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
-import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.PlanInfo;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.job.JobMaster;
 import alluxio.resource.CloseableResource;
@@ -200,7 +200,7 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
 
     CommonUtils.waitFor("Wait for persist job to complete", () -> {
       try {
-        JobInfo jobInfo = jobMaster.getStatus(failId);
+        PlanInfo jobInfo = jobMaster.getStatus(failId);
         Assert.assertNotEquals("Persist should not succeed for incomplete file", COMPLETED,
             jobInfo.getStatus());
         if (jobInfo.getStatus() == FAILED) {
@@ -225,7 +225,7 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
 
     CommonUtils.waitFor("Wait for persist job to complete", () -> {
       try {
-        JobInfo jobInfo = jobMaster.getStatus(successId);
+        PlanInfo jobInfo = jobMaster.getStatus(successId);
         Assert.assertNotEquals("Persist should not fail", FAILED, jobInfo.getStatus());
         return jobInfo.getStatus() == COMPLETED;
       } catch (Exception e) {

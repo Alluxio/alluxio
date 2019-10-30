@@ -48,7 +48,7 @@ public final class TaskExecutorTest {
   @Test
   public void runCompletion() throws Exception {
     long jobId = 1;
-    int taskId = 2;
+    long taskId = 2;
     JobConfig jobConfig = Mockito.mock(JobConfig.class);
     Serializable taskArgs = Lists.newArrayList(1);
     RunTaskContext context = Mockito.mock(RunTaskContext.class);
@@ -71,7 +71,7 @@ public final class TaskExecutorTest {
   @Test
   public void runFailure() throws Exception {
     long jobId = 1;
-    int taskId = 2;
+    long taskId = 2;
     JobConfig jobConfig = Mockito.mock(JobConfig.class);
     Serializable taskArgs = Lists.newArrayList(1);
     RunTaskContext context = Mockito.mock(RunTaskContext.class);
@@ -93,7 +93,7 @@ public final class TaskExecutorTest {
   @Test
   public void runCancelation() throws Exception {
     long jobId = 1;
-    int taskId = 2;
+    long taskId = 2;
     JobConfig jobConfig = Mockito.mock(JobConfig.class);
     Serializable taskArgs = Lists.newArrayList(1);
     RunTaskContext context = Mockito.mock(RunTaskContext.class);

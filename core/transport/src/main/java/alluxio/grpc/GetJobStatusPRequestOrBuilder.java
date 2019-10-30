@@ -8,13 +8,13 @@ public interface GetJobStatusPRequestOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional int64 jobId = 1;</code>
+   * <code>optional int64 id = 1;</code>
    */
-  boolean hasJobId();
+  boolean hasId();
   /**
-   * <code>optional int64 jobId = 1;</code>
+   * <code>optional int64 id = 1;</code>
    */
-  long getJobId();
+  long getId();
 
   /**
    * <code>optional .alluxio.grpc.job.GetJobStatusPOptions options = 2;</code>
