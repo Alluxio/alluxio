@@ -65,8 +65,7 @@ public class PartitionInfo implements Serializable {
       }
       return Format.CSV;
     }
-    return Format.CSV;
-    //throw new IOException("Cannot determine format for " + filename);
+    throw new IOException("Cannot determine format for " + filename);
   }
 
   /**
