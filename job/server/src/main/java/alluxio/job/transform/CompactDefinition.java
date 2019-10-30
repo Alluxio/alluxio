@@ -42,6 +42,8 @@ public final class CompactDefinition
     extends AbstractVoidJobDefinition<CompactConfig, ArrayList<CompactTask>> {
   private static final Logger LOG = LoggerFactory.getLogger(CompactDefinition.class);
   private static final String COMPACTED_FILE_PATTERN = "part-%d.parquet";
+  private static final String SUCCESS_FILENAME = "_SUCCESS";
+  private static final String CRC_FILENAME_SUFFIX = ".crc";
 
   /**
    * Constructs a new {@link CompactDefinition}.
@@ -54,28 +56,32 @@ public final class CompactDefinition
     return CompactConfig.class;
   }
 
-  private String getOutputPath(String outputDir, int outputIndex) {
-    return new AlluxioURI(outputDir).join(String.format(COMPACTED_FILE_PATTERN, outputIndex))
-        .getPath();
+  private String getOutputPath(AlluxioURI outputDir, int outputIndex) {
+    return outputDir.join(String.format(COMPACTED_FILE_PATTERN, outputIndex))
+        .toString();
+  }
+
+  private boolean shouldIgnore(URIStatus status) {
+    return status.isFolder()
+        || status.getName().equals(SUCCESS_FILENAME)
+        || status.getName().endsWith(CRC_FILENAME_SUFFIX);
   }
 
   @Override
   public Map<WorkerInfo, ArrayList<CompactTask>> selectExecutors(CompactConfig config,
       List<WorkerInfo> jobWorkers, SelectExecutorsContext context) throws Exception {
     Preconditions.checkState(!jobWorkers.isEmpty(), "No job worker");
+    AlluxioURI inputDir = new AlluxioURI(config.getInput());
+    AlluxioURI outputDir = new AlluxioURI(config.getOutput());
+
     List<URIStatus> files = Lists.newArrayList();
-    for (URIStatus status : context.getFileSystem().listStatus(new AlluxioURI(config.getInput()))) {
-      if (!status.isFolder()) {
+    for (URIStatus status : context.getFileSystem().listStatus(inputDir)) {
+      if (!shouldIgnore(status)) {
         files.add(status);
       }
     }
     Map<WorkerInfo, ArrayList<CompactTask>> assignments = Maps.newHashMap();
-    int groupSize = (files.size() + 1) / config.getNumFiles();
-    if  (groupSize == 0) {
-      // Number of existing files is less than the expected number of files after compaction,
-      // so there is no need to compact any files.
-      return assignments;
-    }
+    int groupSize = Math.max(1, (files.size() + 1) / config.getNumFiles());
     // Files to be compacted are grouped into different groups,
     // each group of files are compacted to one file,
     // one task is to compact one group of files,
@@ -85,7 +91,7 @@ public final class CompactDefinition
     int outputIndex = 0;
     for (int i = 0; i < files.size(); i++) {
       URIStatus file = files.get(i);
-      group.add(file.getPath());
+      group.add(inputDir.join(file.getName()).toString());
       if (group.size() == groupSize || i == files.size() - 1) {
         WorkerInfo worker = jobWorkers.get(workerIndex++);
         if (workerIndex == jobWorkers.size()) {
@@ -95,7 +101,7 @@ public final class CompactDefinition
           assignments.put(worker, new ArrayList<>());
         }
         ArrayList<CompactTask> tasks = assignments.get(worker);
-        tasks.add(new CompactTask(group, getOutputPath(config.getOutput(), outputIndex++)));
+        tasks.add(new CompactTask(group, getOutputPath(outputDir, outputIndex++)));
         group = new ArrayList<>(groupSize);
       }
     }
@@ -118,7 +124,8 @@ public final class CompactDefinition
       TableWriter writer = null;
       try {
         for (String input : inputs) {
-          readers.add(closer.register(TableReader.create(new AlluxioURI(input))));
+          readers.add(closer.register(TableReader.create(new AlluxioURI(input),
+              config.getPartitionInfo())));
         }
         TableSchema schema = readers.get(0).getSchema();
         writer = closer.register(TableWriter.create(schema, output));

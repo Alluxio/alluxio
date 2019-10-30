@@ -14,11 +14,15 @@ package alluxio.job.transform.format;
 import alluxio.AlluxioURI;
 import alluxio.exception.ExceptionMessage;
 import alluxio.job.JobIntegrationTest;
+import alluxio.job.transform.PartitionInfo;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Unit tests for {@link TableReader}.
@@ -30,12 +34,15 @@ public class TableReaderIntegrationTest extends JobIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  private PartitionInfo mPartitionInfo = new PartitionInfo("serde", "inputformat", new HashMap<>(),
+      new ArrayList<>());
+
   @Test
   public void createReaderWithoutScheme() throws Exception {
     AlluxioURI uri = new AlluxioURI("/CREATE_READER_WITHOUT_SCHEME");
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.TRANSFORM_TABLE_URI_LACKS_SCHEME.getMessage(uri));
-    TableReader.create(uri).close();
+    TableReader.create(uri, mPartitionInfo).close();
   }
 
   @Test
@@ -43,6 +50,6 @@ public class TableReaderIntegrationTest extends JobIntegrationTest {
     AlluxioURI uri = new AlluxioURI("alluxio", null, "/CREATE_ALLUXIO_READER_WITHOUT_AUTHORITY");
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.TRANSFORM_TABLE_URI_LACKS_AUTHORITY.getMessage(uri));
-    TableReader.create(uri).close();
+    TableReader.create(uri, mPartitionInfo).close();
   }
 }

@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -88,9 +89,12 @@ public class HiveUtils {
     }
     String serDe = sd.getSerdeInfo() == null ? ""
         : sd.getSerdeInfo().getSerializationLib();
+    Map<String, String> serdeLibMap = sd.getSerdeInfo() == null ? Collections.emptyMap()
+        : sd.getSerdeInfo().getParameters();
     StorageFormat format = StorageFormat.newBuilder()
         .setInputFormat(sd.getInputFormat())
         .setOutputFormat(sd.getOutputFormat())
+        .putAllSerdelibParameters(serdeLibMap)
         .setSerde(serDe).build(); // Check SerDe info
     Storage.Builder storageBuilder = Storage.newBuilder();
     List<Order> orderList = sd.getSortCols();
@@ -104,6 +108,7 @@ public class HiveUtils {
                   : SortingColumn.SortingOrder.DESCENDING).build())
           .collect(Collectors.toList());
     }
+
     return storageBuilder.setStorageFormat(format)
         .setLocation(translator.toAlluxioPath(sd.getLocation()))
         .setBucketProperty(HiveBucketProperty.newBuilder().setBucketCount(sd.getNumBuckets())
