@@ -321,7 +321,7 @@ The Alluxio master writes journal to the PersistentVolume defined in
 a set of Alluxio workers.
 The Alluxio masters each write to its `alluxio-journal-volume`, which is an `emptyDir` that gets
 wiped out when the Pod is shut down.
-- *singleMaster-hdfsJournal* directory gives you the Kubernetes ConfigMap, 3 Alluxio masters with a
+- *singleMaster-hdfsJournal* directory gives you the Kubernetes ConfigMap, 1 Alluxio master with a
 set of workers.
 The journal is in a shared UFS location. In this template we use HDFS as the UFS.
 
@@ -342,7 +342,7 @@ Add to `ALLUXIO_JAVA_OPTS`:
 
 Note:
 - Replace `<under_storage_address>` with the appropriate URI, for example s3://my-bucket.
-If using an under storage which requires credentials be sure to specify those as well
+If using an under storage which requires credentials be sure to specify those as well.
 - When running Alluxio with host networking, the ports assigned to Alluxio services must
 not be occupied beforehand.
 
@@ -448,14 +448,10 @@ Uninstall Alluxio as follows:
 ```console
 $ kubectl delete -f ./worker/
 $ kubectl delete -f ./master/
-$ kubectl delete configmaps alluxio-config
+$ kubectl delete configmap alluxio-config
 ```
-
-(Optional) If using persistent volumes, execute the following to remove the persistent volume
-storing the Alluxio journal. Note: Alluxio metadata will be lost.
-```console
-$ kubectl delete -f alluxio-master-journal-pv.yaml
-```
+> Note: This will delete all resources under `./master/` and `./worker/`. 
+Be careful if you have persistent volumes or other important resources you want to keep under those directories.  
 
 #### Upgrade
 
@@ -504,11 +500,6 @@ Make sure all the Pods have been terminated before you move on to the next step.
 Check the Alluxio upgrade guide page for whether the Alluxio master journal has to be formatted.
 If no format is needed, you are ready to skip the rest of this section and move on to restart all Alluxio master and worker Pods.
 
-How the journal should be formatted depends on the Alluxio master [journal type]({{ '/en/operation/Journal.html#ufs-journal-vs-embedded-journal' | relativize_url }}).
-
-*UFS Journal*
-
-If you are running UFS journal, there is only one place for the journal.
 There is a single Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
 template that can be used for only formatting the master.
 The Job runs `alluxio formatMasters` and formats the journal for all masters.
@@ -520,18 +511,7 @@ $ kubectl apply -f ./job/alluxio-format-journal-job.yaml
 ```
 
 After the Job completes, it will be deleted by Kubernetes after the defined `ttlSecondsAfterFinished`.
-Then the clean journal will be ready for a new Alluxio master to start with.
-
-*Embedded Journal*
-
-If you are running embedded journal, each Alluxio master will write to its own journal destination defined by `alluxio.master.journal.folder`.
-In order to format the journals you have two options.
-
-1. Format all masters by running the Kubernetes Job:
-```console
-$ cp ./job/alluxio-format-journal-job.yaml.template ./job/alluxio-format-journal-job.yaml
-$ kubectl apply -f ./job/alluxio-format-journal-job.yaml
-```
+Then the clean journal will be ready for a new Alluxio master(s) to start with.
 
 If you are running Alluxio workers with [tiered storage]({{ '/en/advanced/Alluxio-Storage-Management.html#multiple-tier-storage' | relativize_url }}),
 and you have Persistent Volumes configured for Alluxio, the storage should be cleaned up too.
@@ -643,6 +623,12 @@ Check access to the given port from a remote client using a network utility such
 $ nc -zv <IP> 29999
 ```
 
+### Permission Denied
+
+From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio` with UID 1000 and GID 1000 by default.
+Kubernetes [`hostPath`](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath) volumes
+are only writable by root so you need to update the permission accordingly. 
+
 ### Enable Debug Logging
 
 To change the log level for Alluxio servers (master and workers), use the CLI command `logLevel` as
@@ -720,7 +706,7 @@ alluxio.worker.data.server.domain.socket.as.uuid=true
 The exact path of the domain socket on the host is defined in the helm chart at
 `${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/values.yml`.
 On the worker the path where the domain socket is mounted can be found within
-`${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/templates/alluxio-worker.yml`
+`${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/templates/worker/daemonset.yaml`
 
 As part of the Alluxio worker Pod creation, a directory
 is created on the host at `/tmp/alluxio-domain` for the shared domain socket.
