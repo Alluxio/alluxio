@@ -30,10 +30,12 @@ import alluxio.util.WaitForOptions;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
+@Ignore("Flaky test")
 public class MultiMasterJournalTest extends BaseIntegrationTest {
   private MultiMasterLocalAlluxioCluster mCluster;
 
