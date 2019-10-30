@@ -102,7 +102,12 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     @Override
     protected DataBuffer getDataBuffer(BlockReadRequestContext context,
         StreamObserver<ReadResponse> response, long offset, int len) throws Exception {
-      openBlock(context, response);
+      try {
+        openBlock(context, response);
+      } catch (Exception e) {
+        throw new UnavailableException(String.format("Failed to open block id=%s",
+            context.getRequest().getId()), e);
+      }
       BlockReader blockReader = context.getBlockReader();
       Preconditions.checkState(blockReader != null);
       ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
@@ -167,7 +172,8 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
 
         // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
         Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
-        if (mWorker.openUfsBlock(request.getSessionId(), request.getId(),
+        if (openUfsBlockOptions != null &&
+            mWorker.openUfsBlock(request.getSessionId(), request.getId(),
                 Protocol.OpenUfsBlockOptions.parseFrom(openUfsBlockOptions.toByteString()))) {
           try {
             BlockReader reader =
