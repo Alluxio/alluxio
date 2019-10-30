@@ -27,6 +27,7 @@ import alluxio.wire.WorkerInfo;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,28 +111,37 @@ public final class CompactDefinition
   @Override
   public SerializableVoid runTask(CompactConfig config, ArrayList<CompactTask> tasks,
       RunTaskContext context) throws Exception {
+    Closer closer = Closer.create();
+    boolean closed = false;
     Compactor compactor = new SequentialCompactor();
     for (CompactTask task : tasks) {
       ArrayList<String> inputs = task.getInputs();
       if (inputs.isEmpty()) {
         continue;
       }
-      String output = task.getOutput();
+      AlluxioURI output = new AlluxioURI(task.getOutput());
       List<TableReader> readers = Lists.newArrayList();
       TableWriter writer = null;
       try {
         for (String input : inputs) {
-          readers.add(TableReader.create(new AlluxioURI(input), config.getPartitionInfo()));
+          readers.add(closer.register(TableReader.create(new AlluxioURI(input),
+              config.getPartitionInfo())));
         }
         TableSchema schema = readers.get(0).getSchema();
-        writer = TableWriter.create(schema, new AlluxioURI(output));
+        writer = closer.register(TableWriter.create(schema, output));
         compactor.compact(readers, writer);
-      } finally {
-        for (TableReader reader : readers) {
-          reader.close();
+      } catch (Throwable t) {
+        closer.close();
+        closed = true;
+        try {
+          context.getFileSystem().delete(output); // output is the compacted file
+        } catch (Throwable e) {
+          t.addSuppressed(e);
         }
-        if (writer != null) {
-          writer.close();
+        closer.rethrow(t);
+      } finally {
+        if (!closed) {
+          closer.close();
         }
       }
     }
