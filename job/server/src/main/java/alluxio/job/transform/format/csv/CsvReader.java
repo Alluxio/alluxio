@@ -59,7 +59,7 @@ public final class CsvReader implements TableReader {
       Configuration conf = ReadWriterUtils.readNoCacheConf();
       mFs = mCloser.register(inputPath.getFileSystem(conf));
       // TODO(cc): is GZIP_CSV ever returned?
-      boolean isGzipped = pInfo.getFormat().equals(Format.GZIP_CSV);
+      boolean isGzipped = pInfo.getFormat(inputPath.getName()).equals(Format.GZIP_CSV);
       InputStream input = open(mFs, inputPath, isGzipped);
 
       CSVProperties props = buildProperties(pInfo.getProperties());

@@ -80,9 +80,7 @@ public class WriteAction implements TransformAction {
     try {
       partitionInfo = ProtoUtils.toHiveLayout(base.toProto());
     } catch (InvalidProtocolBufferException e) {
-      return new CompactConfig(null, base.getLocation().toString(),
-          transformed.getLocation().toString(),
-          mLayoutType, mNumFiles);
+      throw new IllegalStateException(e);
     }
     String serdeClass = partitionInfo.getStorage().getStorageFormat().getSerde();
     String inputFormat = partitionInfo.getStorage().getStorageFormat().getInputFormat();

@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,20 +49,23 @@ public class PartitionInfo implements Serializable {
   }
 
   /**
+   * @param filename the filename
    * @return the format of the files in the partition
+   * @throws IOException when failed to determine format
    */
   @JsonIgnore
-  public Format getFormat() {
+  public Format getFormat(String filename) throws IOException {
     if (mSerdeClass.equals(HiveConstants.PARQUET_SERDE_CLASS)) {
       return Format.PARQUET;
     } else if (mSerdeClass.equals(HiveConstants.CSV_SERDE_CLASS)
         || (mInputFormatClass.equals(HiveConstants.TEXT_INPUT_FORMAT_CLASS)
         && mProperties.containsKey(HiveConstants.SERIALIZATION_FORMAT))) {
+      if (filename.endsWith(Format.GZIP.getSuffix())) {
+        return Format.GZIP_CSV;
+      }
       return Format.CSV;
     }
-    // Needs to also look at extension to determine if it is Gzipped,
-    // that info is not in hive metadata
-    return Format.CSV;
+    throw new IOException("Cannot determine format for " + filename);
   }
 
   /**

@@ -12,6 +12,7 @@
 package alluxio.job.transform.format;
 
 import alluxio.AlluxioURI;
+import alluxio.job.transform.Format;
 import alluxio.job.transform.PartitionInfo;
 import alluxio.job.transform.format.csv.CsvReader;
 import alluxio.job.transform.format.parquet.ParquetReader;
@@ -31,7 +32,8 @@ public interface TableReader extends Closeable {
    */
   static TableReader create(AlluxioURI uri, PartitionInfo pInfo) throws IOException {
     ReadWriterUtils.checkUri(uri);
-    switch (pInfo.getFormat()) {
+    Format format = pInfo.getFormat(uri.getName());
+    switch (format) {
       case CSV:
         // fall through
       case GZIP_CSV:
@@ -39,7 +41,7 @@ public interface TableReader extends Closeable {
       case PARQUET:
         return ParquetReader.create(uri);
       default:
-        throw new IOException("Unsupported format: " + pInfo.getFormat());
+        throw new IOException("Unsupported format: " + format);
     }
   }
 

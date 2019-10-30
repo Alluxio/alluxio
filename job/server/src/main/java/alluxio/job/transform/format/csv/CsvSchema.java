@@ -54,7 +54,7 @@ public final class CsvSchema implements TableSchema {
    * @param schema the schema from Alluxio table master
    * @throws IOException when failed to initialize schema
    */
-  public CsvSchema(@NotNull ArrayList<SchemaField> schema) throws IOException{
+  public CsvSchema(@NotNull ArrayList<SchemaField> schema) throws IOException {
     mAlluxioSchema = schema;
     mReadSchema = buildReadSchema(Schema.Type.RECORD.getName(), schema);
     mWriteSchema = buildWriteSchema(Schema.Type.RECORD.getName(), schema);
