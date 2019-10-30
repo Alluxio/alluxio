@@ -11,13 +11,21 @@
 
 package alluxio.job.transform.format.csv;
 
+import alluxio.job.transform.HiveConstants;
+import alluxio.job.transform.SchemaField;
 import alluxio.job.transform.format.TableRow;
 import alluxio.job.transform.format.parquet.ParquetRow;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData.Record;
+import org.apache.avro.generic.GenericRecordBuilder;
 
-import java.util.Objects;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
+import java.time.LocalDate;
 
 import javax.validation.constraints.NotNull;
 
@@ -25,12 +33,15 @@ import javax.validation.constraints.NotNull;
  * A row in a CSV table represented in Avro format.
  */
 public final class CsvRow implements TableRow {
+  private final CsvSchema mSchema;
   private final Record mRecord;
 
   /**
+   * @param schema the CSV schema
    * @param record the representation of a row in a Parquet table in the Avro format
    */
-  public CsvRow(@NotNull Record record) {
+  public CsvRow(@NotNull CsvSchema schema, @NotNull Record record) {
+    mSchema = Preconditions.checkNotNull(schema, "schema");
     mRecord = Preconditions.checkNotNull(record, "record");
   }
 
@@ -40,8 +51,67 @@ public final class CsvRow implements TableRow {
   }
 
   @Override
-  public ParquetRow toParquet() {
-    return new ParquetRow(mRecord);
+  public ParquetRow toParquet() throws IOException {
+    Schema writeSchema = mSchema.getWriteSchema();
+    GenericRecordBuilder recordBuilder = new GenericRecordBuilder(writeSchema);
+    for (SchemaField field : mSchema.getAlluxioSchema()) {
+      String name = field.getName();
+      String type = field.getType();
+      Object value = mRecord.get(name);
+      value = convert(value, name, type);
+      recordBuilder.set(writeSchema.getField(name), value);
+    }
+    return new ParquetRow(recordBuilder.build());
+  }
+
+  /**
+   * Converts the value of schema "from", to a value of schema "to".
+   *
+   * @param value the value to be converted
+   * @param name name of the field
+   * @param type the type of the value based on Alluxio table schema
+   * @return the converted value
+   * @throws IOException when the logical type of from is unsupported
+   */
+  private Object convert(Object value, String name, String type) throws IOException {
+    if (!CsvUtils.isReadWriteTypeInconsistent(type)) {
+      return value;
+    }
+
+    // Value is read from CSV as a string.
+    String v = (String) value;
+
+    // Interpretation of the string is based on the following documents:
+    //
+    // cwiki.apache.org/confluence/display/Hive/LanguageManual+Types#LanguageManualTypes-dates
+    // github.com/apache/parquet-format/blob/master/LogicalTypes.md
+
+    if (type.startsWith(HiveConstants.PrimitiveTypes.DECIMAL)) {
+      return v.getBytes();
+    }
+    if (type.equals(HiveConstants.PrimitiveTypes.BINARY)) {
+      // Binary field values are encoded to string in UTF-8.
+      return v.getBytes(StandardCharsets.UTF_8);
+    }
+    if (type.equals(HiveConstants.PrimitiveTypes.DATE)) {
+      // CSV: 2019-01-02
+      // Parquet: days from the Unix epoch
+      try {
+        return LocalDate.parse(v).toEpochDay();
+      } catch (Throwable e) {
+        throw new IOException("Failed to parse '" + v + "' as DATE: " + e);
+      }
+    }
+    if (type.equals(HiveConstants.PrimitiveTypes.TIMESTAMP)) {
+      // CSV: 2019-10-29 10:17:42.338
+      // Parquet: milliseconds from the Unix epoch
+      try {
+        return Timestamp.valueOf(v).getTime();
+      } catch (Throwable e) {
+        throw new IOException("Failed to parse '" + v + "' as TIMESTAMP: " + e);
+      }
+    }
+    throw new IOException("Unsupported type " + type + " for field " + name);
   }
 
   @Override
@@ -53,11 +123,12 @@ public final class CsvRow implements TableRow {
       return false;
     }
     CsvRow that = (CsvRow) o;
-    return Objects.equals(mRecord, that.mRecord);
+    return Objects.equal(mRecord, that.mRecord)
+        && Objects.equal(mSchema, that.mSchema);
   }
 
   @Override
   public int hashCode() {
-    return mRecord.hashCode();
+    return Objects.hashCode(mRecord, mSchema);
   }
 }

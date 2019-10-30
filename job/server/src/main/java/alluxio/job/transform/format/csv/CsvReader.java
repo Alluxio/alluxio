@@ -15,16 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.job.transform.Format;
 import alluxio.job.transform.HiveConstants;
 import alluxio.job.transform.PartitionInfo;
-import alluxio.job.transform.SchemaField;
 import alluxio.job.transform.format.ReadWriterUtils;
 import alluxio.job.transform.format.TableReader;
 import alluxio.job.transform.format.TableRow;
 import alluxio.job.transform.format.TableSchema;
 
 import com.google.common.io.Closer;
-import org.apache.avro.LogicalTypes;
-import org.apache.avro.Schema;
-import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -36,8 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
@@ -52,8 +46,6 @@ public final class CsvReader implements TableReader {
   private final Closer mCloser;
   private final CsvSchema mSchema;
 
-  public static final String JAVA_CLASS_FLAG = "java-class";
-
   /**
    * @param inputPath the input path
    * @param pInfo the partition info
@@ -62,8 +54,7 @@ public final class CsvReader implements TableReader {
   private CsvReader(Path inputPath, PartitionInfo pInfo) throws IOException {
     mCloser = Closer.create();
     try {
-      Schema schema = buildSchema(Schema.Type.RECORD.getName(), pInfo.getFields());
-      mSchema = new CsvSchema(schema);
+      mSchema = new CsvSchema(pInfo.getFields());
 
       Configuration conf = ReadWriterUtils.readNoCacheConf();
       mFs = mCloser.register(inputPath.getFileSystem(conf));
@@ -74,7 +65,8 @@ public final class CsvReader implements TableReader {
       CSVProperties props = buildProperties(pInfo.getProperties());
 
       try {
-        mReader = mCloser.register(new AvroCSVReader<>(input, props, schema, Record.class, false));
+        mReader = mCloser.register(new AvroCSVReader<>(input, props, mSchema.getReadSchema(),
+            Record.class, false));
       } catch (RuntimeException e) {
         throw new IOException("Failed to create CSV reader", e);
       }
@@ -100,74 +92,6 @@ public final class CsvReader implements TableReader {
     return propsBuilder.build();
   }
 
-  private Schema buildSchema(String name, List<SchemaField> fields) {
-    SchemaBuilder.FieldAssembler<Schema> assembler =
-        SchemaBuilder.record(name).fields();
-    for (SchemaField field : fields) {
-      assembler = buildField(assembler, field);
-    }
-    return assembler.endRecord();
-  }
-
-  private Schema makeOptional(Schema schema, boolean optional) {
-    return optional ? Schema.createUnion(Arrays.asList(Schema.create(Schema.Type.NULL), schema))
-        : schema;
-  }
-
-  private SchemaBuilder.FieldAssembler<Schema> buildField(
-      SchemaBuilder.FieldAssembler<Schema> assembler, SchemaField field) {
-    String name = field.getName();
-    String type = field.getType();
-    boolean optional = field.isOptional();
-    if (type.equals(HiveConstants.PrimitiveTypes.BOOLEAN)) {
-      return optional ? assembler.optionalBoolean(name) : assembler.requiredBoolean(name);
-    } else if (type.equals(HiveConstants.PrimitiveTypes.TINYINT)
-        || type.equals(HiveConstants.PrimitiveTypes.SMALLINT)
-        || type.equals(HiveConstants.PrimitiveTypes.INT)) {
-      return optional ? assembler.optionalInt(name) : assembler.requiredInt(name);
-    } else if (type.equals(HiveConstants.PrimitiveTypes.DOUBLE)) {
-      return optional ? assembler.optionalDouble(name) : assembler.requiredDouble(name);
-    } else if (type.equals(HiveConstants.PrimitiveTypes.FLOAT)) {
-      return optional ? assembler.optionalFloat(name) : assembler.requiredFloat(name);
-    } else if (type.equals(HiveConstants.PrimitiveTypes.BIGINT)) {
-      return optional ? assembler.optionalLong(name) : assembler.requiredLong(name);
-    } else if (type.equals(HiveConstants.PrimitiveTypes.STRING)) {
-      return optional ? assembler.optionalString(name) : assembler.requiredString(name);
-    } else if (type.startsWith(HiveConstants.PrimitiveTypes.DECIMAL)) {
-      String param = type.substring(8, type.length() - 1).trim();
-      String[] params = param.split(",");
-      int precision = Integer.parseInt(params[0].trim());
-      int scale = Integer.parseInt(params[1].trim());
-      return assembler.name(name).type(LogicalTypes.decimal(precision, scale)
-          .addToSchema(Schema.create(Schema.Type.BYTES))).noDefault();
-    } else if (type.startsWith(HiveConstants.PrimitiveTypes.CHAR)) {
-      Schema schema = SchemaBuilder.builder().stringBuilder().prop(JAVA_CLASS_FLAG,
-          Character.class.getCanonicalName())
-          .endString();
-      schema = makeOptional(schema, optional);
-      return assembler.name(name).type(schema).noDefault();
-    } else if (type.startsWith(HiveConstants.PrimitiveTypes.VARCHAR)) {
-      // perhaps this will work??
-      return optional ? assembler.optionalString(name) : assembler.requiredString(name);
-    } else if (type.equals(HiveConstants.PrimitiveTypes.BINARY)) {
-      return optional ? assembler.optionalBytes(name) : assembler.requiredBytes(name);
-    } else if (type.equals(HiveConstants.PrimitiveTypes.DATE)) {
-      Schema schema = LogicalTypes.date().addToSchema(Schema.create(Schema.Type.INT));
-      schema = makeOptional(schema, optional);
-      return assembler.name(name).type(schema).noDefault();
-    } else if (type.equals(HiveConstants.PrimitiveTypes.DATETIME)) {
-      Schema schema = LogicalTypes.timeMillis().addToSchema(Schema.create(Schema.Type.INT));
-      schema = makeOptional(schema, optional);
-      return assembler.name(name).type(schema).noDefault();
-    } else if (type.equals(HiveConstants.PrimitiveTypes.TIMESTAMP)) {
-      Schema schema =  LogicalTypes.timestampMillis()
-          .addToSchema(Schema.create(Schema.Type.LONG));
-      schema = makeOptional(schema, optional);
-      return assembler.name(name).type(schema).noDefault();
-    }
-    throw new IllegalArgumentException("Unknown type: " + type + " for field " + name);
-  }
-
   private static InputStream open(FileSystem fs, Path path, boolean isGzipped) throws IOException {
     InputStream stream = fs.open(path);
     if (isGzipped) {
@@ -185,8 +109,8 @@ public final class CsvReader implements TableReader {
    * @throws IOException when failed to create the reader
    */
   public static CsvReader create(AlluxioURI uri, PartitionInfo pInfo) throws IOException {
-    return new CsvReader(new Path(uri.getScheme(), uri.getAuthority().toString(), uri.getPath()),
-        pInfo);
+    Path path = new Path(uri.getScheme(), uri.getAuthority().toString(), uri.getPath());
+    return new CsvReader(path, pInfo);
   }
 
   @Override
@@ -197,7 +121,7 @@ public final class CsvReader implements TableReader {
   @Override
   public TableRow read() throws IOException {
     try {
-      return mReader.hasNext() ? new CsvRow(mReader.next()) : null;
+      return mReader.hasNext() ? new CsvRow(mSchema, mReader.next()) : null;
     } catch (Throwable e) {
       throw new IOException(e.getMessage(), e.getCause());
     }
