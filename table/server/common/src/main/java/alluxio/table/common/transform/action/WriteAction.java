@@ -91,7 +91,8 @@ public class WriteAction implements TransformAction {
     }
     alluxio.job.transform.PartitionInfo transformPartInfo
         = new alluxio.job.transform.PartitionInfo(serdeClass, inputFormat,
-        new HashMap<>(partitionInfo.getStorage().getSerdeParametersMap()), colList);
+        new HashMap<>(partitionInfo.getStorage().getStorageFormat().getSerdelibParametersMap()),
+        colList);
     return new CompactConfig(transformPartInfo, base.getLocation().toString(),
         transformed.getLocation().toString(),
         mLayoutType, mNumFiles);
