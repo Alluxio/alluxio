@@ -73,7 +73,7 @@ public class FieldSchema implements Serializable {
    * @return whether the field is optional
    */
   public boolean isOptional() {
-    return mOptional;
+    return true;
   }
 
   /**
