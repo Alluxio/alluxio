@@ -84,7 +84,7 @@ To report bugs, suggest improvements, or create new feature requests, please ope
 
 ## Depend on Alluxio
 
-Alluxio project provides several different client artifacts:
+Alluxio project provides several different client artifacts for external projects to depend on Alluxio client:
 
 - Artifact `alluxio-core-client-fs` provides a client for
   [Alluxio Java file system API](https://docs.alluxio.io/os/user/stable/en/api/FS-API.html#alluxio-java-api))
@@ -93,10 +93,10 @@ Alluxio project provides several different client artifacts:
   [HDFS-Compatible file system API](https://docs.alluxio.io/os/user/stable/en/api/FS-API.html#hadoop-compatible-java-client).
 - Artifact `alluxio-shaded-client`, available in Alluxio 2.0.1 or later, includes both above
   clients and all their dependencies but in a shaded form to prevent conflicts. This client jar is
-  self-contained but its size is also much bigger than the other two. This artifact is recommended
-  generally for a project to depend on Alluxio.
+  self-contained but the size is also much larger than the other two. This artifact is recommended
+  generally for a project to use Alluxio client.
 
-Here are examples to declare the dependecies on  `alluxio-shaded-client` using Maven or SBT as an example.
+Here are examples to declare the dependecies on  `alluxio-shaded-client` using Maven or SBT:
 
 - Apache Maven
   ```xml
