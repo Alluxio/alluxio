@@ -486,7 +486,7 @@ public final class ConfigurationUtils {
       GetConfigurationPResponse response = client.getConfiguration(
           GetConfigurationPOptions.newBuilder().setRawValue(true)
               .setIgnoreClusterConf(ignoreClusterConf).setIgnorePathConf(ignorePathConf).build());
-      LOG.info("Alluxio client has loaded configuration from meta master {}", address);
+      LOG.debug("Alluxio client has loaded configuration from meta master {}", address);
       return response;
     } catch (io.grpc.StatusRuntimeException e) {
       throw new UnavailableException(String.format(
@@ -541,7 +541,7 @@ public final class ConfigurationUtils {
   public static AlluxioConfiguration getClusterConf(GetConfigurationPResponse response,
       AlluxioConfiguration conf) {
     String clientVersion = conf.get(PropertyKey.VERSION);
-    LOG.info("Alluxio client (version {}) is trying to load cluster level configurations",
+    LOG.debug("Alluxio client (version {}) is trying to load cluster level configurations",
         clientVersion);
     List<alluxio.grpc.ConfigProperty> clusterConfig = response.getClusterConfigsList();
     Properties clusterProps = loadClientProperties(clusterConfig, (key, value) ->
@@ -559,7 +559,7 @@ public final class ConfigurationUtils {
     // Use the constructor to set cluster defaults as being loaded.
     InstancedConfiguration updatedConf = new InstancedConfiguration(props, true);
     updatedConf.validate();
-    LOG.info("Alluxio client has loaded cluster level configurations");
+    LOG.debug("Alluxio client has loaded cluster level configurations");
     return updatedConf;
   }
 
@@ -575,7 +575,7 @@ public final class ConfigurationUtils {
   public static PathConfiguration getPathConf(GetConfigurationPResponse response,
       AlluxioConfiguration clusterConf) {
     String clientVersion = clusterConf.get(PropertyKey.VERSION);
-    LOG.info("Alluxio client (version {}) is trying to load path level configurations",
+    LOG.debug("Alluxio client (version {}) is trying to load path level configurations",
         clientVersion);
     Map<String, AlluxioConfiguration> pathConfs = new HashMap<>();
     response.getPathConfigsMap().forEach((path, conf) -> {
@@ -586,7 +586,7 @@ public final class ConfigurationUtils {
       properties.merge(props, Source.PATH_DEFAULT);
       pathConfs.put(path, new InstancedConfiguration(properties, true));
     });
-    LOG.info("Alluxio client has loaded path level configurations");
+    LOG.debug("Alluxio client has loaded path level configurations");
     return PathConfiguration.create(pathConfs);
   }
 
