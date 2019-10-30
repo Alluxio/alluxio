@@ -45,24 +45,15 @@ public interface FieldSchemaOrBuilder extends
       getTypeBytes();
 
   /**
-   * <code>optional bool optional = 4;</code>
-   */
-  boolean hasOptional();
-  /**
-   * <code>optional bool optional = 4;</code>
-   */
-  boolean getOptional();
-
-  /**
-   * <code>optional string comment = 5;</code>
+   * <code>optional string comment = 4;</code>
    */
   boolean hasComment();
   /**
-   * <code>optional string comment = 5;</code>
+   * <code>optional string comment = 4;</code>
    */
   java.lang.String getComment();
   /**
-   * <code>optional string comment = 5;</code>
+   * <code>optional string comment = 4;</code>
    */
   com.google.protobuf.ByteString
       getCommentBytes();
