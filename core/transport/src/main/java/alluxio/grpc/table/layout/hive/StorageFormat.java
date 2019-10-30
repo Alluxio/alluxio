@@ -70,6 +70,19 @@ private static final long serialVersionUID = 0L;
             outputFormat_ = bs;
             break;
           }
+          case 34: {
+            if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+              serdelibParameters_ = com.google.protobuf.MapField.newMapField(
+                  SerdelibParametersDefaultEntryHolder.defaultEntry);
+              mutable_bitField0_ |= 0x00000008;
+            }
+            com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+            serdelibParameters__ = input.readMessage(
+                SerdelibParametersDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+            serdelibParameters_.getMutableMap().put(
+                serdelibParameters__.getKey(), serdelibParameters__.getValue());
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -87,6 +100,17 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.layout.hive.HiveLayoutProto.internal_static_alluxio_grpc_table_layout_StorageFormat_descriptor;
   }
 
+  @SuppressWarnings({"rawtypes"})
+  protected com.google.protobuf.MapField internalGetMapField(
+      int number) {
+    switch (number) {
+      case 4:
+        return internalGetSerdelibParameters();
+      default:
+        throw new RuntimeException(
+            "Invalid map field number: " + number);
+    }
+  }
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.table.layout.hive.HiveLayoutProto.internal_static_alluxio_grpc_table_layout_StorageFormat_fieldAccessorTable
@@ -221,6 +245,82 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int SERDELIB_PARAMETERS_FIELD_NUMBER = 4;
+  private static final class SerdelibParametersDefaultEntryHolder {
+    static final com.google.protobuf.MapEntry<
+        java.lang.String, java.lang.String> defaultEntry =
+            com.google.protobuf.MapEntry
+            .<java.lang.String, java.lang.String>newDefaultInstance(
+                alluxio.grpc.table.layout.hive.HiveLayoutProto.internal_static_alluxio_grpc_table_layout_StorageFormat_SerdelibParametersEntry_descriptor, 
+                com.google.protobuf.WireFormat.FieldType.STRING,
+                "",
+                com.google.protobuf.WireFormat.FieldType.STRING,
+                "");
+  }
+  private com.google.protobuf.MapField<
+      java.lang.String, java.lang.String> serdelibParameters_;
+  private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+  internalGetSerdelibParameters() {
+    if (serdelibParameters_ == null) {
+      return com.google.protobuf.MapField.emptyMapField(
+          SerdelibParametersDefaultEntryHolder.defaultEntry);
+    }
+    return serdelibParameters_;
+  }
+
+  public int getSerdelibParametersCount() {
+    return internalGetSerdelibParameters().getMap().size();
+  }
+  /**
+   * <code>map&lt;string, string&gt; serdelib_parameters = 4;</code>
+   */
+
+  public boolean containsSerdelibParameters(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    return internalGetSerdelibParameters().getMap().containsKey(key);
+  }
+  /**
+   * Use {@link #getSerdelibParametersMap()} instead.
+   */
+  @java.lang.Deprecated
+  public java.util.Map<java.lang.String, java.lang.String> getSerdelibParameters() {
+    return getSerdelibParametersMap();
+  }
+  /**
+   * <code>map&lt;string, string&gt; serdelib_parameters = 4;</code>
+   */
+
+  public java.util.Map<java.lang.String, java.lang.String> getSerdelibParametersMap() {
+    return internalGetSerdelibParameters().getMap();
+  }
+  /**
+   * <code>map&lt;string, string&gt; serdelib_parameters = 4;</code>
+   */
+
+  public java.lang.String getSerdelibParametersOrDefault(
+      java.lang.String key,
+      java.lang.String defaultValue) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, java.lang.String> map =
+        internalGetSerdelibParameters().getMap();
+    return map.containsKey(key) ? map.get(key) : defaultValue;
+  }
+  /**
+   * <code>map&lt;string, string&gt; serdelib_parameters = 4;</code>
+   */
+
+  public java.lang.String getSerdelibParametersOrThrow(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, java.lang.String> map =
+        internalGetSerdelibParameters().getMap();
+    if (!map.containsKey(key)) {
+      throw new java.lang.IllegalArgumentException();
+    }
+    return map.get(key);
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -242,6 +342,12 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 3, outputFormat_);
     }
+    com.google.protobuf.GeneratedMessageV3
+      .serializeStringMapTo(
+        output,
+        internalGetSerdelibParameters(),
+        SerdelibParametersDefaultEntryHolder.defaultEntry,
+        4);
     unknownFields.writeTo(output);
   }
 
@@ -258,6 +364,16 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, outputFormat_);
+    }
+    for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+         : internalGetSerdelibParameters().getMap().entrySet()) {
+      com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+      serdelibParameters__ = SerdelibParametersDefaultEntryHolder.defaultEntry.newBuilderForType()
+          .setKey(entry.getKey())
+          .setValue(entry.getValue())
+          .build();
+      size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, serdelibParameters__);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -290,6 +406,8 @@ private static final long serialVersionUID = 0L;
       result = result && getOutputFormat()
           .equals(other.getOutputFormat());
     }
+    result = result && internalGetSerdelibParameters().equals(
+        other.internalGetSerdelibParameters());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -312,6 +430,10 @@ private static final long serialVersionUID = 0L;
     if (hasOutputFormat()) {
       hash = (37 * hash) + OUTPUT_FORMAT_FIELD_NUMBER;
       hash = (53 * hash) + getOutputFormat().hashCode();
+    }
+    if (!internalGetSerdelibParameters().getMap().isEmpty()) {
+      hash = (37 * hash) + SERDELIB_PARAMETERS_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetSerdelibParameters().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -418,6 +540,28 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.table.layout.hive.HiveLayoutProto.internal_static_alluxio_grpc_table_layout_StorageFormat_descriptor;
     }
 
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 4:
+          return internalGetSerdelibParameters();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMutableMapField(
+        int number) {
+      switch (number) {
+        case 4:
+          return internalGetMutableSerdelibParameters();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.table.layout.hive.HiveLayoutProto.internal_static_alluxio_grpc_table_layout_StorageFormat_fieldAccessorTable
@@ -448,6 +592,7 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000002);
       outputFormat_ = "";
       bitField0_ = (bitField0_ & ~0x00000004);
+      internalGetMutableSerdelibParameters().clear();
       return this;
     }
 
@@ -484,6 +629,8 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000004;
       }
       result.outputFormat_ = outputFormat_;
+      result.serdelibParameters_ = internalGetSerdelibParameters();
+      result.serdelibParameters_.makeImmutable();
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -541,6 +688,8 @@ private static final long serialVersionUID = 0L;
         outputFormat_ = other.outputFormat_;
         onChanged();
       }
+      internalGetMutableSerdelibParameters().mergeFrom(
+          other.internalGetSerdelibParameters());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -794,6 +943,129 @@ private static final long serialVersionUID = 0L;
   bitField0_ |= 0x00000004;
       outputFormat_ = value;
       onChanged();
+      return this;
+    }
+
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> serdelibParameters_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetSerdelibParameters() {
+      if (serdelibParameters_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            SerdelibParametersDefaultEntryHolder.defaultEntry);
+      }
+      return serdelibParameters_;
+    }
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetMutableSerdelibParameters() {
+      onChanged();;
+      if (serdelibParameters_ == null) {
+        serdelibParameters_ = com.google.protobuf.MapField.newMapField(
+            SerdelibParametersDefaultEntryHolder.defaultEntry);
+      }
+      if (!serdelibParameters_.isMutable()) {
+        serdelibParameters_ = serdelibParameters_.copy();
+      }
+      return serdelibParameters_;
+    }
+
+    public int getSerdelibParametersCount() {
+      return internalGetSerdelibParameters().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, string&gt; serdelib_parameters = 4;</code>
+     */
+
+    public boolean containsSerdelibParameters(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetSerdelibParameters().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getSerdelibParametersMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getSerdelibParameters() {
+      return getSerdelibParametersMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; serdelib_parameters = 4;</code>
+     */
+
+    public java.util.Map<java.lang.String, java.lang.String> getSerdelibParametersMap() {
+      return internalGetSerdelibParameters().getMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; serdelib_parameters = 4;</code>
+     */
+
+    public java.lang.String getSerdelibParametersOrDefault(
+        java.lang.String key,
+        java.lang.String defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetSerdelibParameters().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, string&gt; serdelib_parameters = 4;</code>
+     */
+
+    public java.lang.String getSerdelibParametersOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetSerdelibParameters().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public Builder clearSerdelibParameters() {
+      internalGetMutableSerdelibParameters().getMutableMap()
+          .clear();
+      return this;
+    }
+    /**
+     * <code>map&lt;string, string&gt; serdelib_parameters = 4;</code>
+     */
+
+    public Builder removeSerdelibParameters(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutableSerdelibParameters().getMutableMap()
+          .remove(key);
+      return this;
+    }
+    /**
+     * Use alternate mutation accessors instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String>
+    getMutableSerdelibParameters() {
+      return internalGetMutableSerdelibParameters().getMutableMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; serdelib_parameters = 4;</code>
+     */
+    public Builder putSerdelibParameters(
+        java.lang.String key,
+        java.lang.String value) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      if (value == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutableSerdelibParameters().getMutableMap()
+          .put(key, value);
+      return this;
+    }
+    /**
+     * <code>map&lt;string, string&gt; serdelib_parameters = 4;</code>
+     */
+
+    public Builder putAllSerdelibParameters(
+        java.util.Map<java.lang.String, java.lang.String> values) {
+      internalGetMutableSerdelibParameters().getMutableMap()
+          .putAll(values);
       return this;
     }
     public final Builder setUnknownFields(

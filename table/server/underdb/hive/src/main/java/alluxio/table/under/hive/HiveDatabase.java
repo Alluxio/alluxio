@@ -213,7 +213,6 @@ public class HiveDatabase implements UnderDatabase {
 
       List<ColumnStatisticsInfo> colStats =
           columnStats.stream().map(HiveUtils::toProto).collect(Collectors.toList());
-
       // construct table layout
       PartitionInfo partitionInfo = PartitionInfo.newBuilder()
           .setDbName(getUdbContext().getDbName())
