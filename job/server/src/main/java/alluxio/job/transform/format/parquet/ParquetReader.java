@@ -12,8 +12,8 @@
 package alluxio.job.transform.format.parquet;
 
 import alluxio.AlluxioURI;
-import alluxio.job.transform.format.TableReader;
 import alluxio.job.transform.format.ReadWriterUtils;
+import alluxio.job.transform.format.TableReader;
 import alluxio.job.transform.format.TableRow;
 import alluxio.job.transform.format.TableSchema;
 

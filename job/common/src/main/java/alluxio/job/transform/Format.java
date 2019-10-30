@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job.transform.format;
+package alluxio.job.transform;
 
 /**
  * Supported formats.

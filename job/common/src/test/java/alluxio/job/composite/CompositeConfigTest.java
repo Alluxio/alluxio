@@ -17,6 +17,7 @@ import static org.junit.Assert.assertEquals;
 import alluxio.job.JobConfig;
 import alluxio.job.load.LoadConfig;
 import alluxio.job.transform.CompactConfig;
+import alluxio.job.transform.PartitionInfo;
 import alluxio.job.util.SerializationUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,6 +26,7 @@ import org.junit.Test;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Tests {@link CompositeConfig}.
@@ -33,11 +35,13 @@ public final class CompositeConfigTest {
   private static final CompositeConfig CONFIG;
 
   static {
+    PartitionInfo pInfo = new PartitionInfo("serde", "inputformat", new HashMap<>(),
+        new ArrayList<>());
     ArrayList<JobConfig> jobs = new ArrayList<>();
     jobs.add(new CompositeConfig(new ArrayList<>(), true));
     jobs.add(new CompositeConfig(new ArrayList<>(), false));
     jobs.add(new CompositeConfig(Lists.newArrayList(new LoadConfig("/", 1)), true));
-    jobs.add(new CompactConfig("/input", "/output", "hive", 100));
+    jobs.add(new CompactConfig(pInfo, "/input", "/output", "hive", 100));
     CONFIG = new CompositeConfig(jobs, true);
   }
 
