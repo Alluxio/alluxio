@@ -24,10 +24,9 @@ public class CsvUtils {
    * @return whether the field has different types in read and write schema
    */
   public static boolean isReadWriteTypeInconsistent(String type) {
-    return type.startsWith(HiveConstants.PrimitiveTypes.DECIMAL)
-        || type.equals(HiveConstants.PrimitiveTypes.BINARY)
-        || type.equals(HiveConstants.PrimitiveTypes.DATE)
-        || type.equals(HiveConstants.PrimitiveTypes.DATETIME)
-        || type.equals(HiveConstants.PrimitiveTypes.TIMESTAMP);
+    return type.startsWith(HiveConstants.Types.DECIMAL)
+        || type.equals(HiveConstants.Types.BINARY)
+        || type.equals(HiveConstants.Types.DATE)
+        || type.equals(HiveConstants.Types.TIMESTAMP);
   }
 }

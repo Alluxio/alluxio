@@ -57,10 +57,10 @@ public class HiveConstants {
       "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat";
 
   /**
-   * Primitive types supported by Hive.
+   * Hive Types.
    */
-  public static final class PrimitiveTypes {
-    private PrimitiveTypes() {} // Prevents initialization
+  public static final class Types {
+    private Types() {} // Prevents initialization
 
     // TODO(cc): how to support the following?
     // public static final String VOID = "void";

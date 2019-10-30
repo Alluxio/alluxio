@@ -21,8 +21,10 @@ import com.google.common.base.Preconditions;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.generic.GenericRecordBuilder;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -64,6 +66,18 @@ public final class CsvRow implements TableRow {
     return new ParquetRow(recordBuilder.build());
   }
 
+  // TODO(cc): improve performance since it's called for every row
+  private BigDecimal parseDecimal(String v, int scale) {
+    int pointIndex = v.indexOf('.');
+    int fractionLen = v.length() - pointIndex - 1;
+    if (fractionLen >= scale) {
+      v = v.substring(0, v.length() - (fractionLen - scale));
+    } else {
+      v = StringUtils.rightPad(v, scale - fractionLen, '0');
+    }
+    return new BigDecimal(v);
+  }
+
   /**
    * @param value the value read based on the read schema
    * @param name the name of the field
@@ -84,14 +98,20 @@ public final class CsvRow implements TableRow {
     // cwiki.apache.org/confluence/display/Hive/LanguageManual+Types#LanguageManualTypes-dates
     // github.com/apache/parquet-format/blob/master/LogicalTypes.md
 
-    if (type.startsWith(HiveConstants.PrimitiveTypes.DECIMAL)) {
+    if (type.startsWith(HiveConstants.Types.DECIMAL)) {
       return v.getBytes();
+      // CSV: 12.34, precision=2, scale=4
+      // Parquet: byte[] representation of number 123400
+      // TODO(cc): save cost of this parsing since it's called for every row
+//      Decimal decimal = new Decimal(type);
+//      return parseDecimal(v, decimal.getScale()).unscaledValue().toByteArray();
     }
-    if (type.equals(HiveConstants.PrimitiveTypes.BINARY)) {
-      // Binary field values are encoded to string in UTF-8.
+    if (type.equals(HiveConstants.Types.BINARY)) {
+      // CSV: text format
+      // Parquet: Binary field values are encoded to string in UTF-8?
       return v.getBytes(StandardCharsets.UTF_8);
     }
-    if (type.equals(HiveConstants.PrimitiveTypes.DATE)) {
+    if (type.equals(HiveConstants.Types.DATE)) {
       // CSV: 2019-01-02
       // Parquet: days from the Unix epoch
       try {
@@ -100,7 +120,7 @@ public final class CsvRow implements TableRow {
         throw new IOException("Failed to parse '" + v + "' as DATE: " + e);
       }
     }
-    if (type.equals(HiveConstants.PrimitiveTypes.TIMESTAMP)) {
+    if (type.equals(HiveConstants.Types.TIMESTAMP)) {
       // CSV: 2019-10-29 10:17:42.338
       // Parquet: milliseconds from the Unix epoch
       try {

@@ -134,28 +134,28 @@ public final class CsvSchema implements TableSchema {
     String name = field.getName();
     String type = field.getType();
     boolean optional = field.isOptional();
-    if (type.equals(HiveConstants.PrimitiveTypes.BOOLEAN)) {
+    if (type.equals(HiveConstants.Types.BOOLEAN)) {
       return optional ? assembler.optionalBoolean(name) : assembler.requiredBoolean(name);
-    } else if (type.equals(HiveConstants.PrimitiveTypes.TINYINT)
-        || type.equals(HiveConstants.PrimitiveTypes.SMALLINT)
-        || type.equals(HiveConstants.PrimitiveTypes.INT)
+    } else if (type.equals(HiveConstants.Types.TINYINT)
+        || type.equals(HiveConstants.Types.SMALLINT)
+        || type.equals(HiveConstants.Types.INT)
     ) {
       return optional ? assembler.optionalInt(name) : assembler.requiredInt(name);
-    } else if (type.equals(HiveConstants.PrimitiveTypes.DOUBLE)) {
+    } else if (type.equals(HiveConstants.Types.DOUBLE)) {
       return optional ? assembler.optionalDouble(name) : assembler.requiredDouble(name);
-    } else if (type.equals(HiveConstants.PrimitiveTypes.FLOAT)) {
+    } else if (type.equals(HiveConstants.Types.FLOAT)) {
       return optional ? assembler.optionalFloat(name) : assembler.requiredFloat(name);
-    } else if (type.equals(HiveConstants.PrimitiveTypes.BIGINT)) {
+    } else if (type.equals(HiveConstants.Types.BIGINT)) {
       return optional ? assembler.optionalLong(name) : assembler.requiredLong(name);
-    } else if (type.equals(HiveConstants.PrimitiveTypes.STRING)) {
+    } else if (type.equals(HiveConstants.Types.STRING)) {
       return optional ? assembler.optionalString(name) : assembler.requiredString(name);
-    } else if (type.startsWith(HiveConstants.PrimitiveTypes.CHAR)) {
+    } else if (type.startsWith(HiveConstants.Types.CHAR)) {
       Schema schema = SchemaBuilder.builder().stringBuilder().prop(JAVA_CLASS_FLAG,
           Character.class.getCanonicalName())
           .endString();
       schema = makeOptional(schema, optional);
       return assembler.name(name).type(schema).noDefault();
-    } else if (type.startsWith(HiveConstants.PrimitiveTypes.VARCHAR)) {
+    } else if (type.startsWith(HiveConstants.Types.VARCHAR)) {
       return optional ? assembler.optionalString(name) : assembler.requiredString(name);
     }
     throw new IOException("Unsupported type " + type + " for field " + name);
@@ -186,24 +186,21 @@ public final class CsvSchema implements TableSchema {
     String name = field.getName();
     String type = field.getType();
     boolean optional = field.isOptional();
-    if (type.startsWith(HiveConstants.PrimitiveTypes.DECIMAL)) {
-      String param = type.substring(8, type.length() - 1).trim();
-      String[] params = param.split(",");
-      int precision = Integer.parseInt(params[0].trim());
-      int scale = Integer.parseInt(params[1].trim());
-      Schema schema = LogicalTypes.decimal(precision, scale)
+    if (type.startsWith(HiveConstants.Types.DECIMAL)) {
+      Decimal decimal = new Decimal(type);
+      Schema schema = LogicalTypes.decimal(decimal.getPrecision(), decimal.getScale())
           .addToSchema(Schema.create(Schema.Type.BYTES));
       schema = makeOptional(schema, optional);
       return assembler.name(name).type(schema).noDefault();
     }
-    if (type.equals(HiveConstants.PrimitiveTypes.BINARY)) {
+    if (type.equals(HiveConstants.Types.BINARY)) {
       return optional ? assembler.optionalBytes(name) : assembler.requiredBytes(name);
     }
-    if (type.equals(HiveConstants.PrimitiveTypes.DATE)) {
+    if (type.equals(HiveConstants.Types.DATE)) {
       Schema schema = LogicalTypes.date().addToSchema(Schema.create(Schema.Type.INT));
       schema = makeOptional(schema, optional);
       return assembler.name(name).type(schema).noDefault();
-    } else if (type.equals(HiveConstants.PrimitiveTypes.TIMESTAMP)) {
+    } else if (type.equals(HiveConstants.Types.TIMESTAMP)) {
       Schema schema = LogicalTypes.timestampMillis().addToSchema(Schema.create(Schema.Type.LONG));
       schema = makeOptional(schema, optional);
       return assembler.name(name).type(schema).noDefault();
