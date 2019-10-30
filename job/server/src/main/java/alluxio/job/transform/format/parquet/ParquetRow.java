@@ -16,6 +16,7 @@ import alluxio.job.transform.format.TableRow;
 import com.google.common.base.Preconditions;
 import org.apache.avro.generic.GenericData.Record;
 
+import java.io.IOException;
 import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
@@ -46,7 +47,7 @@ public final class ParquetRow implements TableRow {
   }
 
   @Override
-  public ParquetRow toParquet() {
+  public ParquetRow toParquet() throws IOException  {
     return this;
   }
 

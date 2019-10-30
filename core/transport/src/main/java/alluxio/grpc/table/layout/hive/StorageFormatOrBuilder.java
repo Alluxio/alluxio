@@ -48,4 +48,38 @@ public interface StorageFormatOrBuilder extends
    */
   com.google.protobuf.ByteString
       getOutputFormatBytes();
+
+  /**
+   * <code>map&lt;string, string&gt; serdelib_parameters = 4;</code>
+   */
+  int getSerdelibParametersCount();
+  /**
+   * <code>map&lt;string, string&gt; serdelib_parameters = 4;</code>
+   */
+  boolean containsSerdelibParameters(
+      java.lang.String key);
+  /**
+   * Use {@link #getSerdelibParametersMap()} instead.
+   */
+  @java.lang.Deprecated
+  java.util.Map<java.lang.String, java.lang.String>
+  getSerdelibParameters();
+  /**
+   * <code>map&lt;string, string&gt; serdelib_parameters = 4;</code>
+   */
+  java.util.Map<java.lang.String, java.lang.String>
+  getSerdelibParametersMap();
+  /**
+   * <code>map&lt;string, string&gt; serdelib_parameters = 4;</code>
+   */
+
+  java.lang.String getSerdelibParametersOrDefault(
+      java.lang.String key,
+      java.lang.String defaultValue);
+  /**
+   * <code>map&lt;string, string&gt; serdelib_parameters = 4;</code>
+   */
+
+  java.lang.String getSerdelibParametersOrThrow(
+      java.lang.String key);
 }

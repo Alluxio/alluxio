@@ -13,14 +13,17 @@ package alluxio.job.transform.format;
 
 import alluxio.job.transform.format.parquet.ParquetRow;
 
+import java.io.IOException;
+
 /**
  * A row in a table.
  */
 public interface TableRow {
   /**
    * @return the row in parquet representation
+   * @throws IOException when failed to transform to parquet
    */
-  ParquetRow toParquet();
+  ParquetRow toParquet() throws IOException;
 
   /**
    * @param column the column
