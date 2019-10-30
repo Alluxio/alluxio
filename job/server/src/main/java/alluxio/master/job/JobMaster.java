@@ -32,7 +32,9 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.meta.MasterWorkerInfo;
+import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
+import alluxio.job.wire.PlanInfo;
 import alluxio.job.wire.TaskInfo;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
@@ -236,7 +238,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
    * @return the job information
    * @throws JobDoesNotExistException if the job does not exist
    */
-  public alluxio.job.wire.JobInfo getStatus(long jobId) throws JobDoesNotExistException {
+  public JobInfo getStatus(long jobId) throws JobDoesNotExistException {
     JobCoordinator jobCoordinator = mTracker.getCoordinator(jobId);
     if (jobCoordinator == null) {
       throw new JobDoesNotExistException(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
@@ -252,7 +254,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
   public alluxio.job.wire.JobServiceSummary getSummary() {
     Collection<JobCoordinator> coordinators = mTracker.coordinators();
 
-    List<alluxio.job.wire.JobInfo> jobInfos = new ArrayList<>();
+    List<PlanInfo> jobInfos = new ArrayList<>();
 
     for (JobCoordinator coordinator : coordinators) {
       jobInfos.add(coordinator.getJobInfoWire());

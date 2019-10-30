@@ -54,7 +54,7 @@ public final class JobMasterWorkerServiceHandler
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
       List<alluxio.job.wire.TaskInfo> wireTaskInfoList = Lists.newArrayList();
-      for (alluxio.grpc.TaskInfo taskInfo : request.getTaskInfosList()) {
+      for (alluxio.grpc.JobInfo taskInfo : request.getTaskInfosList()) {
         try {
           wireTaskInfoList.add(new alluxio.job.wire.TaskInfo(taskInfo));
         } catch (IOException e) {

@@ -309,7 +309,7 @@ public class TransformManager implements DelegatingJournaled {
         long jobId = job.getJobId();
         try {
           LOG.debug("Polling for status of transformation job {}", jobId);
-          JobInfo jobInfo = mJobMasterClient.getStatus(jobId);
+          JobInfo jobInfo = mJobMasterClient.getJobStatus(jobId);
           switch (jobInfo.getStatus()) {
             case FAILED: // fall through
             case CANCELED: // fall through

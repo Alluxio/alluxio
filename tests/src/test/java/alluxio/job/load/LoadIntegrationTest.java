@@ -59,7 +59,7 @@ public final class LoadIntegrationTest extends JobIntegrationTest {
 
     // a second load should work too, no worker is selected
     long jobId = mJobMaster.run(new LoadConfig("/test", null));
-    Assert.assertTrue(mJobMaster.getStatus(jobId).getTaskInfoList().isEmpty());
+    Assert.assertTrue(mJobMaster.getStatus(jobId).getChildren().isEmpty());
   }
 
   @Test
@@ -87,6 +87,6 @@ public final class LoadIntegrationTest extends JobIntegrationTest {
 
     // a second load should work too, no worker is selected
     long jobId = mJobMaster.run(new LoadConfig("/test", null));
-    Assert.assertTrue(mJobMaster.getStatus(jobId).getTaskInfoList().isEmpty());
+    Assert.assertTrue(mJobMaster.getStatus(jobId).getChildren().isEmpty());
   }
 }

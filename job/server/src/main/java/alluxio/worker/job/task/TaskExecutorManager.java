@@ -12,8 +12,9 @@
 package alluxio.worker.job.task;
 
 import alluxio.collections.Pair;
+import alluxio.grpc.JobInfo;
+import alluxio.grpc.JobType;
 import alluxio.grpc.Status;
-import alluxio.grpc.TaskInfo;
 import alluxio.job.JobConfig;
 import alluxio.job.RunTaskContext;
 import alluxio.job.util.SerializationUtils;
@@ -46,11 +47,11 @@ public class TaskExecutorManager {
 
   // These maps are all indexed by <Job ID, Task ID> pairs.
   /** Stores the futures for all running tasks. */
-  private final Map<Pair<Long, Integer>, Future<?>> mTaskFutures;
+  private final Map<Pair<Long, Long>, Future<?>> mTaskFutures;
   /** Stores the task info for all running tasks. */
-  private final Map<Pair<Long, Integer>, TaskInfo.Builder> mUnfinishedTasks;
+  private final Map<Pair<Long, Long>, JobInfo.Builder> mUnfinishedTasks;
   /** Stores the updated tasks since the last call to {@link #getAndClearTaskUpdates()}. */
-  private final Map<Pair<Long, Integer>, TaskInfo> mTaskUpdates;
+  private final Map<Pair<Long, Long>, JobInfo> mTaskUpdates;
 
   /**
    * Constructs a new instance of {@link TaskExecutorManager}.
@@ -71,9 +72,9 @@ public class TaskExecutorManager {
    * @param taskId the task id
    * @param result the task execution result
    */
-  public synchronized void notifyTaskCompletion(long jobId, int taskId, Object result) {
-    Pair<Long, Integer> id = new Pair<>(jobId, taskId);
-    TaskInfo.Builder taskInfo = mUnfinishedTasks.get(id);
+  public synchronized void notifyTaskCompletion(long jobId, long taskId, Object result) {
+    Pair<Long, Long> id = new Pair<>(jobId, taskId);
+    JobInfo.Builder taskInfo = mUnfinishedTasks.get(id);
     taskInfo.setStatus(Status.COMPLETED);
     try {
       taskInfo.setResult(ByteString.copyFrom(SerializationUtils.serialize(result)));
@@ -94,9 +95,9 @@ public class TaskExecutorManager {
    * @param taskId the task id
    * @param errorMessage the error message
    */
-  public synchronized void notifyTaskFailure(long jobId, int taskId, String errorMessage) {
-    Pair<Long, Integer> id = new Pair<>(jobId, taskId);
-    TaskInfo.Builder taskInfo = mUnfinishedTasks.get(id);
+  public synchronized void notifyTaskFailure(long jobId, long taskId, String errorMessage) {
+    Pair<Long, Long> id = new Pair<>(jobId, taskId);
+    JobInfo.Builder taskInfo = mUnfinishedTasks.get(id);
     taskInfo.setStatus(Status.FAILED);
     if (errorMessage != null) {
       taskInfo.setErrorMessage(errorMessage);
@@ -111,9 +112,9 @@ public class TaskExecutorManager {
    * @param jobId the job id
    * @param taskId the task id
    */
-  public synchronized void notifyTaskCancellation(long jobId, int taskId) {
-    Pair<Long, Integer> id = new Pair<>(jobId, taskId);
-    TaskInfo.Builder taskInfo = mUnfinishedTasks.get(id);
+  public synchronized void notifyTaskCancellation(long jobId, long taskId) {
+    Pair<Long, Long> id = new Pair<>(jobId, taskId);
+    JobInfo.Builder taskInfo = mUnfinishedTasks.get(id);
     taskInfo.setStatus(Status.CANCELED);
     finishTask(id);
     LOG.info("Task {} for job {} canceled", taskId, jobId);
@@ -128,16 +129,17 @@ public class TaskExecutorManager {
    * @param taskArgs the arguments
    * @param context the context of the worker
    */
-  public synchronized void executeTask(long jobId, int taskId, JobConfig jobConfig,
+  public synchronized void executeTask(long jobId, long taskId, JobConfig jobConfig,
       Serializable taskArgs, RunTaskContext context) {
     Future<?> future = mTaskExecutionService
         .submit(new TaskExecutor(jobId, taskId, jobConfig, taskArgs, context, this));
-    Pair<Long, Integer> id = new Pair<>(jobId, taskId);
+    Pair<Long, Long> id = new Pair<>(jobId, taskId);
     mTaskFutures.put(id, future);
-    TaskInfo.Builder taskInfo = TaskInfo.newBuilder();
-    taskInfo.setJobId(jobId);
-    taskInfo.setTaskId(taskId);
+    JobInfo.Builder taskInfo = JobInfo.newBuilder();
+    taskInfo.setParentId(jobId);
+    taskInfo.setId(taskId);
     taskInfo.setStatus(Status.RUNNING);
+    taskInfo.setType(JobType.TASK);
     mUnfinishedTasks.put(id, taskInfo);
     mTaskUpdates.put(id, taskInfo.build());
     LOG.info("Task {} for job {} started", taskId, jobId);
@@ -149,9 +151,9 @@ public class TaskExecutorManager {
    * @param jobId the job id
    * @param taskId the task id
    */
-  public synchronized void cancelTask(long jobId, int taskId) {
-    Pair<Long, Integer> id = new Pair<>(jobId, taskId);
-    TaskInfo.Builder taskInfo = mUnfinishedTasks.get(id);
+  public synchronized void cancelTask(long jobId, long taskId) {
+    Pair<Long, Long> id = new Pair<>(jobId, taskId);
+    JobInfo.Builder taskInfo = mUnfinishedTasks.get(id);
     if (!mTaskFutures.containsKey(id) || taskInfo.getStatus().equals(Status.CANCELED)) {
       // job has finished, or failed, or canceled
       return;
@@ -168,9 +170,9 @@ public class TaskExecutorManager {
   /**
    * @return the list of task information
    */
-  public synchronized List<TaskInfo> getAndClearTaskUpdates() {
+  public synchronized List<JobInfo> getAndClearTaskUpdates() {
     try {
-      return ImmutableList.<TaskInfo>copyOf(mTaskUpdates.values());
+      return ImmutableList.copyOf(mTaskUpdates.values());
     } finally {
       mTaskUpdates.clear();
     }
@@ -182,17 +184,17 @@ public class TaskExecutorManager {
    *
    * @param tasks the tasks to restore
    */
-  public synchronized void restoreTaskUpdates(List<TaskInfo> tasks) {
-    for (TaskInfo task : tasks) {
-      Pair<Long, Integer> id = new Pair<>(task.getJobId(), task.getTaskId());
+  public synchronized void restoreTaskUpdates(List<JobInfo> tasks) {
+    for (JobInfo task : tasks) {
+      Pair<Long, Long> id = new Pair<>(task.getParentId(), task.getId());
       if (!mTaskUpdates.containsKey(id)) {
         mTaskUpdates.put(id, task);
       }
     }
   }
 
-  private void finishTask(Pair<Long, Integer> id) {
-    TaskInfo.Builder taskInfo = mUnfinishedTasks.get(id);
+  private void finishTask(Pair<Long, Long> id) {
+    JobInfo.Builder taskInfo = mUnfinishedTasks.get(id);
     mTaskFutures.remove(id);
     mUnfinishedTasks.remove(id);
     mTaskUpdates.put(id, taskInfo.build());

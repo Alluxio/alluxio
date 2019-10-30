@@ -17,22 +17,30 @@ enum Status {
   COMPLETED = 5;
 }
 
-message TaskInfo {
-  optional int64 jobId = 1;
-  optional int32 taskId = 2;
-  optional Status status = 3;
-  optional string errorMessage = 4;
-  optional bytes result = 5;
+enum JobType {
+  PLAN = 1;
+  TASK = 2;
 }
 
+message JobUnused {}
+
+// next available id: 12
 message JobInfo {
   optional int64 id = 1;
   optional string errorMessage = 2;
-  repeated TaskInfo taskInfos = 3;
   optional Status status = 4;
-  optional string result = 5;
-  optional int64 lastStatusChangeMs = 6;
+  optional int64 lastUpdated = 6;
+  optional JobType type = 8;
+  optional bytes result = 9;
+
+  // Some jobs don't have these do not have these
   optional string name = 7;
+  optional int64 parentId = 10;
+  repeated JobInfo children = 11;
+
+  // Around for backwards compatibility
+  repeated JobUnused unused0 = 3; // formerly taskInfos
+  optional string unused1 = 5; // formerly result
 }
 
 message StatusSummary {
@@ -55,7 +63,7 @@ message JobCommand {
 
 message RunTaskCommand {
   optional int64 jobId = 1;
-  optional int32 taskId = 2;
+  optional int64 taskId = 2;
   optional bytes jobConfig = 3;
   optional bytes taskArgs = 4;
 }
@@ -64,7 +72,7 @@ message RegisterCommand {}
 
 message CancelTaskCommand {
   optional int64 jobId = 1;
-  optional int32 taskId = 2;
+  optional int64 taskId = 2;
 }
 
 message CancelPOptions {}
@@ -76,11 +84,11 @@ message CancelPResponse {}
 
 message GetJobStatusPOptions {}
 message GetJobStatusPRequest {
-  optional int64 jobId = 1;
+  optional int64 id = 1;
   optional GetJobStatusPOptions options = 2;
 }
 message GetJobStatusPResponse {
-  optional JobInfo jobInfo = 1;
+  optional JobInfo planInfo = 1;
 }
 
 message ListAllPOptions {}
@@ -142,7 +150,7 @@ service JobMasterClientService {
 message JobHeartbeatPOptions {}
 message JobHeartbeatPRequest {
   optional int64 workerId = 1;
-  repeated TaskInfo taskInfos = 2;
+  repeated JobInfo taskInfos = 2;
   optional JobHeartbeatPOptions options = 3;
 }
 message JobHeartbeatPResponse {

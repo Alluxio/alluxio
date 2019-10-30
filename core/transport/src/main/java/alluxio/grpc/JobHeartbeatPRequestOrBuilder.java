@@ -17,27 +17,27 @@ public interface JobHeartbeatPRequestOrBuilder extends
   long getWorkerId();
 
   /**
-   * <code>repeated .alluxio.grpc.job.TaskInfo taskInfos = 2;</code>
+   * <code>repeated .alluxio.grpc.job.JobInfo taskInfos = 2;</code>
    */
-  java.util.List<alluxio.grpc.TaskInfo> 
+  java.util.List<alluxio.grpc.JobInfo> 
       getTaskInfosList();
   /**
-   * <code>repeated .alluxio.grpc.job.TaskInfo taskInfos = 2;</code>
+   * <code>repeated .alluxio.grpc.job.JobInfo taskInfos = 2;</code>
    */
-  alluxio.grpc.TaskInfo getTaskInfos(int index);
+  alluxio.grpc.JobInfo getTaskInfos(int index);
   /**
-   * <code>repeated .alluxio.grpc.job.TaskInfo taskInfos = 2;</code>
+   * <code>repeated .alluxio.grpc.job.JobInfo taskInfos = 2;</code>
    */
   int getTaskInfosCount();
   /**
-   * <code>repeated .alluxio.grpc.job.TaskInfo taskInfos = 2;</code>
+   * <code>repeated .alluxio.grpc.job.JobInfo taskInfos = 2;</code>
    */
-  java.util.List<? extends alluxio.grpc.TaskInfoOrBuilder> 
+  java.util.List<? extends alluxio.grpc.JobInfoOrBuilder> 
       getTaskInfosOrBuilderList();
   /**
-   * <code>repeated .alluxio.grpc.job.TaskInfo taskInfos = 2;</code>
+   * <code>repeated .alluxio.grpc.job.JobInfo taskInfos = 2;</code>
    */
-  alluxio.grpc.TaskInfoOrBuilder getTaskInfosOrBuilder(
+  alluxio.grpc.JobInfoOrBuilder getTaskInfosOrBuilder(
       int index);
 
   /**

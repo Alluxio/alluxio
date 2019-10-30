@@ -15,10 +15,10 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.JobHeartbeatPRequest;
+import alluxio.grpc.JobInfo;
 import alluxio.grpc.JobMasterWorkerServiceGrpc;
 import alluxio.grpc.RegisterJobWorkerPRequest;
 import alluxio.grpc.ServiceType;
-import alluxio.grpc.TaskInfo;
 import alluxio.grpc.GrpcUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -73,7 +73,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
 
   @Override
   public List<JobCommand> heartbeat(final long workerId,
-      final List<TaskInfo> taskInfoList) throws IOException {
+      final List<JobInfo> taskInfoList) throws IOException {
     return retryRPC(new RpcCallable<List<JobCommand>>() {
 
       @Override

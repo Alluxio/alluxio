@@ -33,7 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class JobInfo implements Comparable<JobInfo> {
   private final long mId;
   private final JobConfig mJobConfig;
-  private final ConcurrentHashMap<Integer, TaskInfo> mTaskIdToInfo;
+  private final ConcurrentHashMap<Long, TaskInfo> mTaskIdToInfo;
   private final Consumer<JobInfo> mStatusChangeCallback;
   private volatile Status mStatus;
   private volatile long mLastStatusChangeMs;
@@ -78,7 +78,7 @@ public final class JobInfo implements Comparable<JobInfo> {
    *
    * @param taskId the task id
    */
-  public void addTask(int taskId) {
+  public void addTask(long taskId) {
     TaskInfo oldValue = mTaskIdToInfo.putIfAbsent(taskId,
         new TaskInfo().setJobId(mId).setTaskId(taskId).setStatus(Status.CREATED).setErrorMessage("")
             .setResult(null));
@@ -126,7 +126,7 @@ public final class JobInfo implements Comparable<JobInfo> {
    * @param taskId the task ID to get the task info for
    * @return the task info, or null if the task ID doesn't exist
    */
-  public TaskInfo getTaskInfo(int taskId) {
+  public TaskInfo getTaskInfo(long taskId) {
     return mTaskIdToInfo.get(taskId);
   }
 
@@ -136,14 +136,14 @@ public final class JobInfo implements Comparable<JobInfo> {
    * @param taskId the task id
    * @param taskInfo the task information
    */
-  public void setTaskInfo(int taskId, TaskInfo taskInfo) {
+  public void setTaskInfo(long taskId, TaskInfo taskInfo) {
     mTaskIdToInfo.put(taskId, taskInfo);
   }
 
   /**
    * @return the list of task ids
    */
-  public List<Integer> getTaskIdList() {
+  public List<Long> getTaskIdList() {
     return Lists.newArrayList(mTaskIdToInfo.keySet());
   }
 

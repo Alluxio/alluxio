@@ -60,10 +60,10 @@ public class JobMasterClientServiceHandler
 
   @Override
   public void getJobStatus(GetJobStatusPRequest request,
-      StreamObserver<GetJobStatusPResponse> responseObserver) {
+                           StreamObserver<GetJobStatusPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobStatusPResponse>) () -> {
       return GetJobStatusPResponse.newBuilder()
-          .setJobInfo(mJobMaster.getStatus(request.getJobId()).toProto()).build();
+          .setPlanInfo(mJobMaster.getStatus(request.getId()).toProto()).build();
     }, "getJobStatus", "request=%s", responseObserver, request);
   }
 

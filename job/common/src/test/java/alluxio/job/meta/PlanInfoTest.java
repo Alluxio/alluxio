@@ -19,7 +19,7 @@ import alluxio.util.CommonUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-public final class JobInfoTest {
+public final class PlanInfoTest {
   @Test
   public void compare() {
     JobConfig jobConfig = new TestJobConfig("unused");

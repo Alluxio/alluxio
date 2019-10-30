@@ -21,7 +21,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.wire.JobInfo;
-import alluxio.job.wire.TaskInfo;
 import alluxio.resource.CloseableResource;
 
 import org.apache.commons.cli.CommandLine;
@@ -73,7 +72,7 @@ public final class StatCommand extends AbstractFileSystemCommand {
     try (CloseableResource<JobMasterClient> client =
         JobContext.create(mFsContext.getClusterConf(), mFsContext.getClientContext().getUserState())
             .acquireMasterClientResource()) {
-      JobInfo info = client.get().getStatus(id);
+      JobInfo info = client.get().getJobStatus(id);
       System.out.print(formatOutput(cl, info));
     } catch (Exception e) {
       LOG.error("Failed to get status of the job", e);
@@ -85,19 +84,19 @@ public final class StatCommand extends AbstractFileSystemCommand {
 
   private String formatOutput(CommandLine cl, JobInfo info) {
     StringBuilder output = new StringBuilder();
-    output.append("ID: ").append(info.getJobId()).append("\n");
+    output.append("ID: ").append(info.getId()).append("\n");
     output.append("Name: ").append(info.getName()).append("\n");
     output.append("Status: ").append(info.getStatus()).append("\n");
     if (info.getErrorMessage() != null && !info.getErrorMessage().isEmpty()) {
       output.append("Error: ").append(info.getErrorMessage()).append("\n");
     }
-    if (info.getResult() != null && !info.getResult().isEmpty()) {
-      output.append("Result: ").append(info.getResult()).append("\n");
+    if (info.getResult() != null && !info.getResult().toString().isEmpty()) {
+      output.append("Result: ").append(info.getResult().toString()).append("\n");
     }
 
     if (cl.hasOption("v")) {
-      for (TaskInfo taskInfo : info.getTaskInfoList()) {
-        output.append("Task ").append(taskInfo.getTaskId()).append("\n");
+      for (JobInfo taskInfo : info.getChildren()) {
+        output.append("Task ").append(taskInfo.getId()).append("\n");
         output.append("\t").append("Status: ").append(taskInfo.getStatus()).append("\n");
         if (taskInfo.getErrorMessage() != null && !taskInfo.getErrorMessage().isEmpty()) {
           output.append("\t").append("Error: ").append(taskInfo.getErrorMessage()).append("\n");
