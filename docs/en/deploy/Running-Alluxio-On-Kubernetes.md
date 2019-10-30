@@ -321,7 +321,7 @@ The Alluxio master writes journal to the PersistentVolume defined in
 a set of Alluxio workers.
 The Alluxio masters each write to its `alluxio-journal-volume`, which is an `emptyDir` that gets
 wiped out when the Pod is shut down.
-- *singleMaster-hdfsJournal* directory gives you the Kubernetes ConfigMap, 3 Alluxio masters with a
+- *singleMaster-hdfsJournal* directory gives you the Kubernetes ConfigMap, 1 Alluxio master with a
 set of workers.
 The journal is in a shared UFS location. In this template we use HDFS as the UFS.
 
@@ -342,7 +342,7 @@ Add to `ALLUXIO_JAVA_OPTS`:
 
 Note:
 - Replace `<under_storage_address>` with the appropriate URI, for example s3://my-bucket.
-If using an under storage which requires credentials be sure to specify those as well
+If using an under storage which requires credentials be sure to specify those as well.
 - When running Alluxio with host networking, the ports assigned to Alluxio services must
 not be occupied beforehand.
 
