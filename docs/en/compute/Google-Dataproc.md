@@ -45,8 +45,8 @@ GCS location **gs://alluxio-public/dataproc/{{site.ALLUXIO_RELEASED_VERSION}}/al
 using `;`
 ```console
 $ gcloud dataproc clusters create <cluster_name> \
-  ...
-  --metadata alluxio_root_ufs_uri=<gs://my_bucket>,site_properties="alluxio.master.mount.table.root.option.fs.gcs.accessKeyId=<gcs_access_key_id>;alluxio.master.mount.table.root.option.fs.gcs.secretAccessKey=<gcs_secret_access_key>"
+  --initialization-actions gs://alluxio-public/dataproc/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-dataproc.sh \
+  --metadata alluxio_root_ufs_uri=<gs://my_bucket>,alluxio_site_properties="alluxio.master.mount.table.root.option.fs.gcs.accessKeyId=<gcs_access_key_id>;alluxio.master.mount.table.root.option.fs.gcs.secretAccessKey=<gcs_secret_access_key>"
 ```
 * Additional files can be downloaded into `/opt/alluxio/conf` using the metadata key `alluxio_download_files_list` by specifying `http(s)` or `gs` uris delimited using `;`
 ```console
