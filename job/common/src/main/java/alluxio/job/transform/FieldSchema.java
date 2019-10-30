@@ -20,7 +20,7 @@ import java.io.Serializable;
 /**
  * Metadata of a field in the schema.
  */
-public class SchemaField implements Serializable {
+public class FieldSchema implements Serializable {
   private static final long serialVersionUID = 4573336558464588151L;
 
   private final int mId;
@@ -36,7 +36,7 @@ public class SchemaField implements Serializable {
    * @param optional whether optional
    * @param comment the comment
    */
-  public SchemaField(@JsonProperty("id") int id,
+  public FieldSchema(@JsonProperty("id") int id,
       @JsonProperty("name") String name,
       @JsonProperty("type") String type,
       @JsonProperty("optional") boolean optional,
@@ -91,10 +91,10 @@ public class SchemaField implements Serializable {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof SchemaField)) {
+    if (!(obj instanceof FieldSchema)) {
       return false;
     }
-    SchemaField that = (SchemaField) obj;
+    FieldSchema that = (FieldSchema) obj;
     return mId == that.mId
         && mName.equals(that.mName)
         && mType.equals(that.mType)

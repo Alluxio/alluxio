@@ -30,7 +30,7 @@ public class PartitionInfo implements Serializable {
   private final String mSerdeClass;
   private final String mInputFormatClass;
   private final HashMap<String, String> mProperties;
-  private final ArrayList<SchemaField> mFields;
+  private final ArrayList<FieldSchema> mFields;
 
   /**
    * @param serdeClass the full serde class name
@@ -41,7 +41,7 @@ public class PartitionInfo implements Serializable {
   public PartitionInfo(@JsonProperty("serdeClass") String serdeClass,
       @JsonProperty("inputFormatClass") String inputFormatClass,
       @JsonProperty("properties") HashMap<String, String> properties,
-      @JsonProperty("fields") ArrayList<SchemaField> fields) {
+      @JsonProperty("fields") ArrayList<FieldSchema> fields) {
     mSerdeClass = serdeClass;
     mInputFormatClass = inputFormatClass;
     mProperties = properties;
@@ -93,7 +93,7 @@ public class PartitionInfo implements Serializable {
   /**
    * @return the fields
    */
-  public ArrayList<SchemaField> getFields() {
+  public ArrayList<FieldSchema> getFields() {
     return mFields;
   }
 

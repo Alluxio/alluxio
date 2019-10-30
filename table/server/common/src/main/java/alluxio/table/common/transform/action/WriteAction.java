@@ -12,11 +12,10 @@
 package alluxio.table.common.transform.action;
 
 import alluxio.exception.ExceptionMessage;
-import alluxio.grpc.table.FieldSchema;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
 import alluxio.job.JobConfig;
 import alluxio.job.transform.CompactConfig;
-import alluxio.job.transform.SchemaField;
+import alluxio.job.transform.FieldSchema;
 import alluxio.table.ProtoUtils;
 import alluxio.table.common.Layout;
 
@@ -85,9 +84,9 @@ public class WriteAction implements TransformAction {
     String serdeClass = partitionInfo.getStorage().getStorageFormat().getSerde();
     String inputFormat = partitionInfo.getStorage().getStorageFormat().getInputFormat();
 
-    ArrayList<SchemaField> colList = new ArrayList<>(partitionInfo.getDataColsList().size());
-    for (FieldSchema col : partitionInfo.getDataColsList()) {
-      colList.add(new SchemaField(col.getId(), col.getName(), col.getType(),
+    ArrayList<FieldSchema> colList = new ArrayList<>(partitionInfo.getDataColsList().size());
+    for (alluxio.grpc.table.FieldSchema col : partitionInfo.getDataColsList()) {
+      colList.add(new FieldSchema(col.getId(), col.getName(), col.getType(),
           col.getOptional(), col.getComment()));
     }
     alluxio.job.transform.PartitionInfo transformPartInfo

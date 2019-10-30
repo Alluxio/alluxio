@@ -12,7 +12,7 @@
 package alluxio.job.transform.format.csv;
 
 import alluxio.job.transform.HiveConstants;
-import alluxio.job.transform.SchemaField;
+import alluxio.job.transform.FieldSchema;
 import alluxio.job.transform.format.TableRow;
 import alluxio.job.transform.format.parquet.ParquetRow;
 
@@ -56,7 +56,7 @@ public final class CsvRow implements TableRow {
   public ParquetRow toParquet() throws IOException {
     Schema writeSchema = mSchema.getWriteSchema();
     GenericRecordBuilder recordBuilder = new GenericRecordBuilder(writeSchema);
-    for (SchemaField field : mSchema.getAlluxioSchema()) {
+    for (FieldSchema field : mSchema.getAlluxioSchema()) {
       String name = field.getName();
       String type = field.getType();
       Object value = mRecord.get(name);
@@ -68,6 +68,7 @@ public final class CsvRow implements TableRow {
 
   // TODO(cc): improve performance since it's called for every row
   private BigDecimal parseDecimal(String v, int scale) {
+    int scale = decimalSpec.getScale();
     int pointIndex = v.indexOf('.');
     int fractionLen = v.length() - pointIndex - 1;
     if (fractionLen >= scale) {

@@ -12,7 +12,7 @@
 package alluxio.job.transform.format.csv;
 
 import alluxio.job.transform.HiveConstants;
-import alluxio.job.transform.SchemaField;
+import alluxio.job.transform.FieldSchema;
 import alluxio.job.transform.format.TableSchema;
 import alluxio.job.transform.format.parquet.ParquetSchema;
 
@@ -34,7 +34,7 @@ public final class CsvSchema implements TableSchema {
   private static final String JAVA_CLASS_FLAG = "java-class";
 
   /** The schema from Alluxio table master. */
-  private final ArrayList<SchemaField> mAlluxioSchema;
+  private final ArrayList<FieldSchema> mAlluxioSchema;
   /** The schema for reading from CSV. */
   private final Schema mReadSchema;
   /** The schema for writing. */
@@ -54,7 +54,7 @@ public final class CsvSchema implements TableSchema {
    * @param schema the schema from Alluxio table master
    * @throws IOException when failed to initialize schema
    */
-  public CsvSchema(@NotNull ArrayList<SchemaField> schema) throws IOException {
+  public CsvSchema(@NotNull ArrayList<FieldSchema> schema) throws IOException {
     mAlluxioSchema = schema;
     mReadSchema = buildReadSchema(Schema.Type.RECORD.getName(), schema);
     mWriteSchema = buildWriteSchema(Schema.Type.RECORD.getName(), schema);
@@ -63,7 +63,7 @@ public final class CsvSchema implements TableSchema {
   /**
    * @return the schema from Alluxio table master
    */
-  public ArrayList<SchemaField> getAlluxioSchema() {
+  public ArrayList<FieldSchema> getAlluxioSchema() {
     return mAlluxioSchema;
   }
 
@@ -105,19 +105,19 @@ public final class CsvSchema implements TableSchema {
         && Objects.equal(mWriteSchema, that.mWriteSchema);
   }
 
-  private Schema buildReadSchema(String name, ArrayList<SchemaField> fields) throws IOException {
+  private Schema buildReadSchema(String name, ArrayList<FieldSchema> fields) throws IOException {
     SchemaBuilder.FieldAssembler<Schema> assembler =
         SchemaBuilder.record(name).fields();
-    for (SchemaField field : fields) {
+    for (FieldSchema field : fields) {
       assembler = buildReadField(assembler, field);
     }
     return assembler.endRecord();
   }
 
-  private Schema buildWriteSchema(String name, ArrayList<SchemaField> fields) throws IOException {
+  private Schema buildWriteSchema(String name, ArrayList<FieldSchema> fields) throws IOException {
     SchemaBuilder.FieldAssembler<Schema> assembler =
         SchemaBuilder.record(name).fields();
-    for (SchemaField field : fields) {
+    for (FieldSchema field : fields) {
       assembler = buildWriteField(assembler, field);
     }
     return assembler.endRecord();
@@ -129,7 +129,7 @@ public final class CsvSchema implements TableSchema {
   }
 
   private SchemaBuilder.FieldAssembler<Schema> buildConsistentField(
-      SchemaBuilder.FieldAssembler<Schema> assembler, SchemaField field) throws IOException {
+      SchemaBuilder.FieldAssembler<Schema> assembler, FieldSchema field) throws IOException {
     // Builds the fields that are consistent for read and write schema.
     String name = field.getName();
     String type = field.getType();
@@ -162,7 +162,7 @@ public final class CsvSchema implements TableSchema {
   }
 
   private SchemaBuilder.FieldAssembler<Schema> buildReadField(
-      SchemaBuilder.FieldAssembler<Schema> assembler, SchemaField field) throws IOException {
+      SchemaBuilder.FieldAssembler<Schema> assembler, FieldSchema field) throws IOException {
     if (!CsvUtils.isReadWriteTypeInconsistent(field.getType())) {
       return buildConsistentField(assembler, field);
     }
@@ -178,7 +178,7 @@ public final class CsvSchema implements TableSchema {
   }
 
   private SchemaBuilder.FieldAssembler<Schema> buildWriteField(
-      SchemaBuilder.FieldAssembler<Schema> assembler, SchemaField field) throws IOException {
+      SchemaBuilder.FieldAssembler<Schema> assembler, FieldSchema field) throws IOException {
     if (!CsvUtils.isReadWriteTypeInconsistent(field.getType())) {
       return buildConsistentField(assembler, field);
     }
