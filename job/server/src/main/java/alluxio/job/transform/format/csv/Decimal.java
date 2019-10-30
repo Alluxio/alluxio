@@ -11,10 +11,18 @@
 
 package alluxio.job.transform.format.csv;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+
 /**
  * Logical decimal type in Parquet.
  */
 public class Decimal {
+  private static final Logger LOG = LoggerFactory.getLogger(Decimal.class);
+
   private final int mPrecision;
   private final int mScale;
 
@@ -40,5 +48,34 @@ public class Decimal {
    */
   public int getScale() {
     return mScale;
+  }
+
+  /**
+   * @param v the string value
+   * @return the decimal with the expected scale
+   */
+  private BigDecimal toBigDecimal(String v) {
+    int pointIndex = v.indexOf('.');
+    int fractionLen = 0;
+    if (pointIndex != -1) {
+      fractionLen = v.length() - pointIndex - 1;
+    } else {
+      v += ".";
+    }
+
+    if (fractionLen >= mScale) {
+      v = v.substring(0, v.length() - (fractionLen - mScale));
+    } else {
+      v = StringUtils.rightPad(v, v.length() + (mScale - fractionLen), '0');
+    }
+    return new BigDecimal(v);
+  }
+
+  /**
+   * @param v the string value
+   * @return the encoded bytes to write to parquet
+   */
+  public byte[] toParquetBytes(String v) {
+    return toBigDecimal(v).unscaledValue().toByteArray();
   }
 }

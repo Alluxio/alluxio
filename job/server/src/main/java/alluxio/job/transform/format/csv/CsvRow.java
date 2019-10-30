@@ -11,8 +11,8 @@
 
 package alluxio.job.transform.format.csv;
 
-import alluxio.job.transform.HiveConstants;
 import alluxio.job.transform.FieldSchema;
+import alluxio.job.transform.HiveConstants;
 import alluxio.job.transform.format.TableRow;
 import alluxio.job.transform.format.parquet.ParquetRow;
 
@@ -21,10 +21,10 @@ import com.google.common.base.Preconditions;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.generic.GenericRecordBuilder;
-import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -35,6 +35,8 @@ import javax.validation.constraints.NotNull;
  * A row in a CSV table represented in Avro format.
  */
 public final class CsvRow implements TableRow {
+  private static final Logger LOG = LoggerFactory.getLogger(CsvRow.class);
+
   private final CsvSchema mSchema;
   private final Record mRecord;
 
@@ -66,19 +68,6 @@ public final class CsvRow implements TableRow {
     return new ParquetRow(recordBuilder.build());
   }
 
-  // TODO(cc): improve performance since it's called for every row
-  private BigDecimal parseDecimal(String v, int scale) {
-    int scale = decimalSpec.getScale();
-    int pointIndex = v.indexOf('.');
-    int fractionLen = v.length() - pointIndex - 1;
-    if (fractionLen >= scale) {
-      v = v.substring(0, v.length() - (fractionLen - scale));
-    } else {
-      v = StringUtils.rightPad(v, scale - fractionLen, '0');
-    }
-    return new BigDecimal(v);
-  }
-
   /**
    * @param value the value read based on the read schema
    * @param name the name of the field
@@ -100,12 +89,10 @@ public final class CsvRow implements TableRow {
     // github.com/apache/parquet-format/blob/master/LogicalTypes.md
 
     if (type.startsWith(HiveConstants.Types.DECIMAL)) {
-      return v.getBytes();
       // CSV: 12.34, precision=2, scale=4
       // Parquet: byte[] representation of number 123400
-      // TODO(cc): save cost of this parsing since it's called for every row
-//      Decimal decimal = new Decimal(type);
-//      return parseDecimal(v, decimal.getScale()).unscaledValue().toByteArray();
+      Decimal decimal = new Decimal(type);
+      return decimal.toParquetBytes(v);
     }
     if (type.equals(HiveConstants.Types.BINARY)) {
       // CSV: text format
