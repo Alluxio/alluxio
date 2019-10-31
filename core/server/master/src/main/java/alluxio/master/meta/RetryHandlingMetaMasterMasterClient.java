@@ -48,6 +48,11 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
     super(conf);
   }
 
+  /**
+   * Creates a instance of {@link RetryHandlingMetaMasterMasterClient}.
+   * @param conf master client configuration
+   * @param retryPolicySupplier retry policy
+   */
   public RetryHandlingMetaMasterMasterClient(MasterClientContext conf,
       Supplier<RetryPolicy> retryPolicySupplier) {
     super(conf, null, retryPolicySupplier);

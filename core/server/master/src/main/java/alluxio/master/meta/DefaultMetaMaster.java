@@ -50,6 +50,7 @@ import alluxio.proto.journal.Meta;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.retry.CountingRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -86,6 +87,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -334,8 +336,9 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         // Standby master should setup MetaMasterSync to communicate with the leader master
         MasterClientContext masterClientContext = MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build();
+        Supplier<RetryPolicy> retryPolicySupplier = () -> new CountingRetry(1);
         RetryHandlingMetaMasterMasterClient metaMasterClient =
-            new RetryHandlingMetaMasterMasterClient(masterClientContext, () -> new CountingRetry(1));
+            new RetryHandlingMetaMasterMasterClient(masterClientContext, retryPolicySupplier);
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
             new MetaMasterSync(mMasterAddress, metaMasterClient),
             (int) ServerConfiguration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
