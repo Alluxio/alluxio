@@ -269,9 +269,9 @@ $ docker exec ${container_id} cat /opt/alluxio/conf/alluxio-env.sh
 A lone Alluxio master is a single point of failure. To guard against this, a production
 cluster should run multiple Alluxio masters in [High Availability mode]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}).
 
-#### Option A: Embedded Journal
+#### Option A: Internal Leader Election
 
-Alluxio uses embedded journal by default.
+Alluxio uses internal leader election by default.
 
 Provide the master embedded journal addresses and set the hostname of the current master:
 
