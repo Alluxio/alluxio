@@ -361,7 +361,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         Collections.addAll(ret, names);
       }
     } catch (IOException e) {
-      LOG.warn("Unable to get file location for {} : {}", path, e.getMessage());
+      LOG.debug("Unable to get file location for {} : {}", path, e.getMessage());
     }
     return ret;
   }
