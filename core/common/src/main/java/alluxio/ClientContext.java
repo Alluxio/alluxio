@@ -89,6 +89,7 @@ public class ClientContext {
     mUserState = ctx.getUserState();
     mClusterConfHash = ctx.getClusterConfHash();
     mPathConfHash = ctx.getPathConfHash();
+    mUriValidationEnabled = ctx.getUriValidationEnabled();
   }
 
   private ClientContext(@Nullable Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
