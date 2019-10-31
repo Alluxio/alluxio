@@ -84,27 +84,33 @@ To report bugs, suggest improvements, or create new feature requests, please ope
 
 ## Depend on Alluxio
 
-For Alluxio versions 1.4 or earlier, use the `alluxio-core-client` artifact.
+Alluxio project provides several different client artifacts for external projects to depend on Alluxio client:
 
-For Alluxio versions 1.5 or later, Alluxio provides several different client artifacts. The Alluxio
-file system interface provided by the `alluxio-core-client-fs` artifact is recommended for the best
-performance and access to Alluxio-specific functionality. If you want to use other interfaces,
-include the appropriate client artifact. For example, `alluxio-core-client-hdfs` provides a client
-implementing HDFS's file system API.
+- Artifact `alluxio-core-client-fs` provides a client for
+  [Alluxio Java file system API](https://docs.alluxio.io/os/user/stable/en/api/FS-API.html#alluxio-java-api))
+  to access all Alluxio-specific functionalities.
+- Artifact `alluxio-core-client-hdfs` provides a client for
+  [HDFS-Compatible file system API](https://docs.alluxio.io/os/user/stable/en/api/FS-API.html#hadoop-compatible-java-client).
+- Artifact `alluxio-shaded-client`, available in Alluxio 2.0.1 or later, includes both above
+  clients and all their dependencies but in a shaded form to prevent conflicts. This client jar is
+  self-contained but the size is also much larger than the other two. This artifact is recommended
+  generally for a project to use Alluxio client.
 
-### Apache Maven
-```xml
-<dependency>
-  <groupId>org.alluxio</groupId>
-  <artifactId>alluxio-core-client-fs</artifactId>
-  <version>2.0.1</version>
-</dependency>
-```
+Here are examples to declare the dependecies on  `alluxio-shaded-client` using Maven or SBT:
 
-### SBT
-```
-libraryDependencies += "org.alluxio" % "alluxio-core-client-fs" % "2.0.1"
-```
+- Apache Maven
+  ```xml
+  <dependency>
+    <groupId>org.alluxio</groupId>
+    <artifactId>alluxio-shaded-client</artifactId>
+    <version>2.0.1</version>
+  </dependency>
+  ```
+
+- SBT
+  ```
+  libraryDependencies += "org.alluxio" % "alluxio-shaded-client" % "2.0.1"
+  ```
 
 ## Contributing
 
