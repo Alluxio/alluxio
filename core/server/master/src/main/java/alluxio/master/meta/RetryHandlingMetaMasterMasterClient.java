@@ -22,10 +22,12 @@ import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.RegisterMasterPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
+import alluxio.retry.RetryPolicy;
 import alluxio.wire.Address;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -44,6 +46,11 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    */
   public RetryHandlingMetaMasterMasterClient(MasterClientContext conf) {
     super(conf);
+  }
+
+  public RetryHandlingMetaMasterMasterClient(MasterClientContext conf,
+      Supplier<RetryPolicy> retryPolicySupplier) {
+    super(conf, null, retryPolicySupplier);
   }
 
   @Override

@@ -49,6 +49,7 @@ import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Meta;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
+import alluxio.retry.CountingRetry;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -331,9 +332,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     } else {
       if (ConfigurationUtils.isHaMode(ServerConfiguration.global())) {
         // Standby master should setup MetaMasterSync to communicate with the leader master
+        MasterClientContext masterClientContext = MasterClientContext
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build();
         RetryHandlingMetaMasterMasterClient metaMasterClient =
-            new RetryHandlingMetaMasterMasterClient(MasterClientContext
-                .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+            new RetryHandlingMetaMasterMasterClient(masterClientContext, () -> new CountingRetry(1));
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
             new MetaMasterSync(mMasterAddress, metaMasterClient),
             (int) ServerConfiguration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
