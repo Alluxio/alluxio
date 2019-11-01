@@ -30,9 +30,9 @@ const (
 )
 var (
 	hadoopDistributionFlag = defaultHadoopClient
-	targetFlag             string
-	mvnArgsFlag            string
-	skipUIFlag             bool
+	targetFlag	       string
+	mvnArgsFlag	       string
+	skipUIFlag	       bool
 )
 
 func Single(args []string) error {
