@@ -63,7 +63,7 @@ public final class NoopJournalSystem implements JournalSystem {
   }
 
   @Override
-  public Map<String, Long> getCurrentSequences() {
+  public Map<String, Long> getCurrentSequenceNumbers() {
     return Collections.emptyMap();
   }
 

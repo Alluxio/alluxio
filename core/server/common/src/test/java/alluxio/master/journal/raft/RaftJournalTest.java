@@ -317,7 +317,7 @@ public class RaftJournalTest {
     // Can't use countingMaster because Raft stops applying entries for primary journals.
     // Using JournalSystem#getCurrentSequences() API instead.
     CommonUtils.waitFor("full state acquired after resume",
-        () -> mFollowerJournalSystem.getCurrentSequences().values().stream().distinct()
+        () -> mFollowerJournalSystem.getCurrentSequenceNumbers().values().stream().distinct()
             .collect(Collectors.toList()).get(0) == entryCount - 1);
 
     // Resuming should fail after becoming primary.

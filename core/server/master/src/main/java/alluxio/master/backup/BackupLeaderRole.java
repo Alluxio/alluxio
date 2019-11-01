@@ -259,7 +259,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
         // Get consistent journal sequences.
         Map<String, Long> journalSequences;
         try (LockResource stateLock = new LockResource(mStatePauseLock)) {
-          journalSequences = mJournalSystem.getCurrentSequences();
+          journalSequences = mJournalSystem.getCurrentSequenceNumbers();
         }
         // Send backup request along with consistent journal sequences.
         LOG.info("Sending backup request to backup-worker: {}", workerEntry.getValue());

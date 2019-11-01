@@ -132,7 +132,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public Map<String, Long> getCurrentSequences() {
+  public Map<String, Long> getCurrentSequenceNumbers() {
     Map<String, Long> sequenceMap = new HashMap<>();
     for (String master : mJournals.keySet()) {
       sequenceMap.put(master, mJournals.get(master).getNextSequenceNumberToWrite() - 1);

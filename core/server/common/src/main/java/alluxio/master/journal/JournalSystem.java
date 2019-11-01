@@ -171,7 +171,7 @@ public interface JournalSystem {
    *
    * @return the current map of sequences for each master
    */
-  Map<String, Long> getCurrentSequences();
+  Map<String, Long> getCurrentSequenceNumbers();
 
   /**
    * Formats the journal system.
