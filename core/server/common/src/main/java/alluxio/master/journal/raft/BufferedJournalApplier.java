@@ -200,8 +200,9 @@ public class BufferedJournalApplier {
       Preconditions.checkState(!mResumeInProgress, "Resume in progress");
       Preconditions.checkState(mAdvanceTask == null || !mAdvanceTask.isAlive(),
           "Advance task in progress.");
-      Preconditions.checkState(sequence >= 0, "Invalid sequence");
-      Preconditions.checkState(mLastAppliedSequence <= sequence, "Can't advance to past.");
+      Preconditions.checkState(sequence >= 0, String.format("Invalid sequence: %d", sequence));
+      Preconditions.checkState(mLastAppliedSequence <= sequence, String.format(
+          "Can't advance to past. Current: %d, Requested: %d", mLastAppliedSequence, sequence));
       LOG.info("Advancing state machine to sequence: {}", sequence);
 
       // Complete the request if already at target sequence.

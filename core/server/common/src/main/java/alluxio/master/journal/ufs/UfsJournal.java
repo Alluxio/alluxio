@@ -106,7 +106,7 @@ public class UfsJournal implements Journal {
    */
   private UfsJournalCheckpointThread mTailerThread;
 
-  /** Whether the journal was suspended. */
+  /** Whether the journal is suspended. */
   private volatile boolean mSuspended = false;
   /** Store where the journal was suspended. */
   private volatile long mSuspendSequence = -1;

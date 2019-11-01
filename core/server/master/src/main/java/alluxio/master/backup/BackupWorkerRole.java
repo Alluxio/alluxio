@@ -259,7 +259,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
     }
     // Submit new heartbeat task.
     mBackupProgressFuture = mExecutorService.submit(() -> {
-      do {
+      while (true) {
         // No need to check result because heartbeat will be sent regardless.
         mBackupTracker.waitUntilFinished(mBackupHeartbeatIntervalMs, TimeUnit.MILLISECONDS);
         try {
@@ -273,7 +273,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
         if (mBackupTracker.isFinished()) {
           break;
         }
-      } while (true);
+      }
     });
   }
 
