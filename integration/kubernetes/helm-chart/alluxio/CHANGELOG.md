@@ -32,3 +32,6 @@
 - Fix tiered store issue
 - Fix the issue of the user group of worker is not configurable
 
+0.5.2
+
+- Fix apiVersion key in Chart.yaml
