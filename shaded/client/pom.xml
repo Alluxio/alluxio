@@ -151,6 +151,8 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <createSourcesJar>true</createSourcesJar>
+              <shadeSourcesContent>true</shadeSourcesContent>
               <artifactSet>
                 <excludes>
                   <!-- Leave slf4j unshaded so downstream users can configure logging -->
@@ -162,9 +164,9 @@
                 </excludes>
               </artifactSet>
               <filters>
-                <!-- Make sure no source code included -->
+                <!-- Exclude source code included in non-source jar -->
                 <filter>
-                  <artifact>*:*</artifact>
+                  <artifact>org.apache.zookeeper:zookeeper-jute</artifact>
                   <excludes>
                     <exclude>**/*.java</exclude>
                   </excludes>
