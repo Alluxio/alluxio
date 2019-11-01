@@ -16,18 +16,26 @@ alluxio.master.daily.backup.time:
   'Default UTC time for writing daily master metadata backups. The accepted time format is hour:minute which is based on a 24-hour clock (E.g., 05:30, 06:00, and 22:04). Backing up metadata requires a pause in master metadata changes, so please set this value to an off-peak time to avoid interfering with other users of the system.'
 alluxio.master.embedded.journal.addresses:
   'A comma-separated list of journal addresses for all masters in the cluster. The format is ''hostname1:port1,hostname2:port2,...''. When left unset, Alluxio uses ${alluxio.master.hostname}:${alluxio.master.embedded.journal.port} by default'
+alluxio.master.embedded.journal.appender.batch.size:
+  'Amount of data that is appended from leader to followers in a single heartbeat. Setting higher values might require increasing election timeout due to increased network delay. Setting lower values might stall knowledge propagation between the leader and followers.'
 alluxio.master.embedded.journal.election.timeout:
-  'The election timeout for the embedded journal. When this period elapses without a master receiving any messages, the master will attempt to become the primary.'
+  'The election timeout for the embedded journal. When this period elapses without a master receiving any messages, the master will attempt to become the primary.Election timeout will be waited initially when the cluster is forming. So larger values for election timeout will cause longer start-up time. Smaller values might introduce instability to leadership.'
 alluxio.master.embedded.journal.heartbeat.interval:
-  'The period between sending heartbeats from the embedded journal primary to followers. This should be less than half of the election timeout (alluxio.master.embedded.journal.election.timeout).'
+  'The period between sending heartbeats from the embedded journal primary to followers. This should be less than half of the election timeout {alluxio.master.embedded.journal.election.timeout}, because the election is driven by heart beats.'
 alluxio.master.embedded.journal.port:
   'The port to use for embedded journal communication with other masters.'
 alluxio.master.embedded.journal.shutdown.timeout:
   'Maximum time to wait for embedded journal to stop on shutdown.'
 alluxio.master.embedded.journal.storage.level:
   'The storage level for storing embedded journal logs. Use DISK for maximum durability. Use MAPPED for better performance, but some risk of losing state in case of power loss or host failure. Use MEMORY for optimal performance, but no state persistence across cluster restarts.'
+alluxio.master.embedded.journal.transport.max.inbound.message.size:
+  'The max inbound message size used by copycat client/server.'
+alluxio.master.embedded.journal.transport.request.timeout.ms:
+  'Timeout for requests between embedded journal masters.'
 alluxio.master.embedded.journal.triggered.snapshot.wait.timeout:
   'Maximum time to wait for the triggered snapshot to finish.'
+alluxio.master.embedded.journal.write.timeout:
+  'Maximum time to wait for a write/flush on embedded journal.'
 alluxio.master.file.access.time.journal.flush.interval:
   'The minimum interval between files access time update journal entries get flushed asynchronously. Setting it to a non-positive value will make the the journal update synchronous. Asynchronous update reduces the performance impact of tracking access time but can lose some access time update when master stops unexpectedly.'
 alluxio.master.file.access.time.update.precision:
@@ -118,6 +126,8 @@ alluxio.master.periodic.block.integrity.check.interval:
   'The period for the block integrity check, disabled if &lt;= 0.'
 alluxio.master.periodic.block.integrity.check.repair:
   'Whether the system should delete orphaned blocks found during the periodic integrity check. This is an experimental feature.'
+alluxio.master.persistence.blacklist:
+  'Patterns to blacklist persist, comma separated, string match, no regex. This affects any async persist call (including ASYNC_THROUGH writes and CLI persist) but does not affect CACHE_THROUGH writes. Users may want to specify temporary files in the blacklist to avoid unnecessary I/O and errors. Some examples are `.staging` and `.tmp`.'
 alluxio.master.persistence.checker.interval:
   'How often the master checks persistence status for files written using ASYNC_THROUGH'
 alluxio.master.persistence.initial.interval:
@@ -180,6 +190,10 @@ alluxio.master.ufs.path.cache.capacity:
   'The capacity of the UFS path cache. This cache is used to approximate the `ONCE` metadata load behavior (see `alluxio.user.file.metadata.load.type`). Larger caches will consume more memory, but will better approximate the `ONCE` behavior.'
 alluxio.master.ufs.path.cache.threads:
   'The maximum size of the thread pool for asynchronously processing paths for the UFS path cache. Greater number of threads will decrease the amount of staleness in the async cache, but may impact performance. If this is set to 0, the cache will be disabled, and `alluxio.user.file.metadata.load.type=ONCE` will behave like `ALWAYS`.'
+alluxio.master.unsafe.direct.persist.object.enabled:
+  'When set to false, writing files using ASYNC_THROUGH or persist CLI with object stores as the UFS will first create temporary objects suffixed by &quot;.alluxio.TIMESTAMP.tmp&quot; in the object store before committed to the final UFS path. When set to true, files will be put to the destination path directly in the object store without staging with a temp suffix. Enabling this optimization by directly persisting files can significantly improve the efficiency writing to object store by making less data copy as rename in object store can be slow, but leaving a short vulnerability window for undefined behavior if a file is written using ASYNC_THROUGH but renamed or removed before the async persist operation completes, while this same file path was reused for other new files in Alluxio.'
+alluxio.master.update.check.enabled:
+  'Whether to check for update availability.'
 alluxio.master.web.bind.host:
   'The hostname Alluxio master web UI binds to.'
 alluxio.master.web.hostname:
