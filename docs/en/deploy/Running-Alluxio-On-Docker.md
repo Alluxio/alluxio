@@ -46,7 +46,7 @@ $ sudo usermod -a -G docker $(id -u -n)
 $ exit
 ```
 
-## Prepare Docker Volume to Presist Data
+## Prepare Docker Volume to Persist Data
 
 By default all files created inside a container are stored on a writable container layer.
 The data doesn’t persist when that container no longer exists. [Docker volumes](https://docs.docker.com/storage/volumes/)
@@ -79,24 +79,25 @@ Alluxio UFS root mount point in the Alluxio docker image:
   ```console
   $ docker run -v /alluxio_ufs:/opt/alluxio/underFSStorage   ...
   ```
-  Of course, you can choose different path `/alluxio_ufs` you like to mount but please make sure it
-  is writable.
+Of course, you can choose to mount a different path instead of `/alluxio_ufs`.
+Please make sure it is writable by the user the Docker image is run as.
+> Note: Alluxio v2.1 Docker image runs as user `alluxio` by default. It has UID 1000 and GID 1000.  
 
 ## Launch Alluxio Containers for Master and Worker
 
-According to Alluxio architecture, the Alluxio clients (local or remote) need to communicate with
-both Alluxio master and Workers. Therefore it is important to make sure the client can reach out
+The Alluxio clients (local or remote) need to communicate with
+both Alluxio master and workers. Therefore it is important to make sure clients can reach
 both of the following services:
 
 + Master RPC on port 19998
 + Worker RPC on port 29999
 
 We are going to launch Alluxio master and worker containers on the same Docker host machine.
-In order to make sure it works for the either local or remote clients, we have to set up the
-docker network and expose the required ports correctly.
+In order to make sure this works for either local or remote clients, we have to set up the
+Docker network and expose the required ports correctly.
 
 There are two ways to launch Alluxio Docker containers on the Docker host:
- + A. Use host network, or
+ + A. Use host network
  + B. Use user-defined bridge network
 
 ### A. Launch Docker Alluxio Containers Using Host Network
@@ -107,6 +108,7 @@ $ docker run -d --rm \
     --net=host \
     --name=alluxio-master \
     -v /alluxio_ufs:/opt/alluxio/underFSStorage \
+    -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.hostname=$(hostname -i) -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage" \
     alluxio/alluxio master
 
 #Launch the Alluxio Worker
@@ -127,9 +129,9 @@ Notes:
     ports `19999, 19998, 29999, 30000` are available for the clients via the Docker host.
   1. The argument  `-e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=$(hostname -i)"`
     allocates the worker's memory capacity and bind the master address. In host network,
-	  the master can't be referenceed  by the master container name `alluxio-master` or
+	the master can't be referenced to by the master container name `alluxio-master` or
     it will throw `"No Alluxio worker available" ` error.
-    Instead, it can be referenceed by the host IP address.
+    Instead, it should be referenced to by the host IP address.
     The substitution `$(hostname -i)` does the trick.
   1. The argument  `--shm-size=1G` will allocate a `1G` tmpfs for the worker to store Alluxio data.
   1. The argument `-v /alluxio_ufs:/opt/alluxio/underFSStorage` tells Docker to use the host volume
@@ -156,6 +158,7 @@ $ docker run -d  --rm \
     -p 19998:19998 \
     --net=alluxio_network \
     --name=alluxio-master \
+    -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.hostname=alluxio-master -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage" \
     -v /alluxio_ufs:/opt/alluxio/underFSStorage \
     alluxio/alluxio master
 
@@ -167,7 +170,7 @@ $ docker run -d --rm \
     --name=alluxio-worker \
     --shm-size=1G \
     -v /alluxio_ufs:/opt/alluxio/underFSStorage \
-    -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G  -Dalluxio.master.hostname=$(hostname -i)  -Dalluxio.worker.hostname=$(hostname -i)" \
+    -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G  -Dalluxio.master.hostname=alluxio-master  -Dalluxio.worker.hostname=alluxio-worker" \
     alluxio/alluxio worker
 ```
 
@@ -186,9 +189,9 @@ Notes:
      This is required for the external communication between master/worker and
      clients outside the docker network. Otherwise, clients but can't connect to worker, since
      clients do not recognize the worker's container Id. It will throw error like below:
-      ```
-      Target: 5a1a840d2a98:29999, Error: alluxio.exception.status.UnavailableException: Unable to resolve host 5a1a840d2a98
-      ```
+     ```
+     Target: 5a1a840d2a98:29999, Error: alluxio.exception.status.UnavailableException: Unable to resolve host 5a1a840d2a98
+     ```
 
 ## Verify the Cluster
 
@@ -238,7 +241,7 @@ Congratulations, you've deployed a basic Dockerized Alluxio cluster! Read on to 
 Configuration changes require stopping the Alluxio Docker images, then re-launching
 them with the new configuration.
 
-To set an Alluxio configuration property, add it to the alluxio java options environment variable with
+To set an Alluxio configuration property, add it to the Alluxio java options environment variable with
 
 ```
 -e ALLUXIO_JAVA_OPTS="-Dalluxio.property.name=value"
@@ -253,7 +256,7 @@ If a property value contains spaces, you must escape it using single quotes.
 ```
 
 Alluxio environment variables will be copied to `conf/alluxio-env.sh`
-when the image starts. If you aren't seeing a property take effect, make sure the property in
+when the image starts. If you are not seeing a property take effect, make sure the property in
 `conf/alluxio-env.sh` within the container is spelled correctly. You can check the
 contents with
 
@@ -264,11 +267,9 @@ $ docker exec ${container_id} cat /opt/alluxio/conf/alluxio-env.sh
 ### Run in High-Availability Mode
 
 A lone Alluxio master is a single point of failure. To guard against this, a production
-cluster should run multiple Alluxio masters and use internal leader election or Zookeeper-based leader election.
-One of the masters will be elected leader and serve client requests.
-If it dies, one of the remaining masters will become leader and pick up where the previous master left off.
+cluster should run multiple Alluxio masters in [High Availability mode]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}).
 
-#### Internal leader election
+#### Option A: Internal Leader Election
 
 Alluxio uses internal leader election by default.
 
@@ -290,7 +291,9 @@ $ docker run -d \
   alluxio worker
 ```
 
-#### Zookeeper-based leader election
+You can find more on Embedded Journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#option1-raft-based-embedded-journal' | relativize_url }}).
+
+#### Option B: Zookeeper and Shared Journal Storage
 
 To run in HA mode with Zookeeper, Alluxio needs a shared journal directory
 that all masters have access to, usually either NFS or HDFS.
@@ -313,6 +316,8 @@ $ docker run -d \
   -e ALLUXIO_JAVA_OPTS="-Dalluxio.zookeeper.enabled=true -Dalluxio.zookeeper.address=zkhost1:2181,zkhost2:2181,zkhost3:2181" \
   alluxio worker
 ```
+
+You can find more on ZooKeeper and shared journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#option2-zookeeper-and-shared-journal-storage' | relativize_url }}).
 
 ### Enable short-circuit reads and writes
 
