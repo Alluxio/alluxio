@@ -4856,6 +4856,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     DEFAULT_ALIAS_MAP.remove(name);
   }
 
+  /**
+   * @param name name of the property
+   * @return the registered property key if found, or else create a new one and return
+   */
+  public static PropertyKey getOrBuildCustom(String name) {
+    return DEFAULT_KEYS_MAP.computeIfAbsent(name,
+        (key) -> new Builder(key).setIsBuiltIn(false).buildUnregistered());
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
