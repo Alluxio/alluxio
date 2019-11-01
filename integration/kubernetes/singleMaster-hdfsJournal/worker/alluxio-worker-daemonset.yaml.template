@@ -45,14 +45,14 @@ spec:
       - name: socket-chown
         securityContext:
           runAsUser: 0
-        image: alluxio/alluxio:2.1.0
+        image: alluxio/alluxio:2.1.1-SNAPSHOT
         command: ["/bin/chown","-R", "1000:1000", "/opt/domain"]
         volumeMounts:
         - name: alluxio-domain
           mountPath: /opt/domain
       containers:
         - name: alluxio-worker
-          image: alluxio/alluxio:2.1.0
+          image: alluxio/alluxio:2.1.1-SNAPSHOT
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
@@ -90,7 +90,7 @@ spec:
             - mountPath: /dev/shm
               name: mem
         - name: alluxio-job-worker
-          image: alluxio/alluxio:2.1.0
+          image: alluxio/alluxio:2.1.1-SNAPSHOT
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
