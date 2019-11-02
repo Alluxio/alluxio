@@ -63,7 +63,7 @@ public class DailyMetadataBackupTest {
 
     mMetaMaster = Mockito.mock(MetaMaster.class);
     when(mMetaMaster.backup(any())).thenReturn(
-        BackupStatus.fromProto(BackupPStatus.newBuilder().setBackupState(BackupState.COMPLETED)
+        BackupStatus.fromProto(BackupPStatus.newBuilder().setBackupState(BackupState.Completed)
             .setBackupUri(PathUtils.concatPath(mBackupDir, generateBackupFileName()))
             .setBackupHost("localhost").build()));
 

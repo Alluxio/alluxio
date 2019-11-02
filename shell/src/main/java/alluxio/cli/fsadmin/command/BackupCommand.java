@@ -86,20 +86,20 @@ public class BackupCommand extends AbstractFsAdminCommand {
     BackupStatus status = mMetaClient.backup(opts.build());
     do {
       // Backup could be after a fail-over.
-      if (status.getState() == BackupState.EMPTY) {
+      if (status.getState() == BackupState.None) {
         clearProgressLine();
         mPrintStream.printf("Backup lost. Check Alluxio logs.%n");
         return -1;
       }
-      if (status.getState() == BackupState.COMPLETED) {
+      if (status.getState() == BackupState.Completed) {
         break;
-      } else if (status.getState() == BackupState.FAULTED) {
+      } else if (status.getState() == BackupState.Failed) {
         throw AlluxioStatusException.fromAlluxioException(status.getError());
       } else {
         // Generate progress line that will be replaced until backup is finished.
         String progressMessage = String.format(" Backup state: %s", status.getState());
         // Start showing entry count once backup started running.
-        if (status.getState() == BackupState.RUNNING) {
+        if (status.getState() == BackupState.Running) {
           progressMessage += String.format(" | Entries processed: %d", status.getEntryCount());
         }
         clearProgressLine();

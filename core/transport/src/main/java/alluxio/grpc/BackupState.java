@@ -9,55 +9,55 @@ package alluxio.grpc;
 public enum BackupState
     implements com.google.protobuf.ProtocolMessageEnum {
   /**
-   * <code>EMPTY = 1;</code>
+   * <code>None = 1;</code>
    */
-  EMPTY(1),
+  None(1),
   /**
-   * <code>INITIATING = 2;</code>
+   * <code>Initiating = 2;</code>
    */
-  INITIATING(2),
+  Initiating(2),
   /**
-   * <code>TRANSITIONING = 3;</code>
+   * <code>Transitioning = 3;</code>
    */
-  TRANSITIONING(3),
+  Transitioning(3),
   /**
-   * <code>RUNNING = 4;</code>
+   * <code>Running = 4;</code>
    */
-  RUNNING(4),
+  Running(4),
   /**
-   * <code>COMPLETED = 5;</code>
+   * <code>Completed = 5;</code>
    */
-  COMPLETED(5),
+  Completed(5),
   /**
-   * <code>FAULTED = 6;</code>
+   * <code>Failed = 6;</code>
    */
-  FAULTED(6),
+  Failed(6),
   ;
 
   /**
-   * <code>EMPTY = 1;</code>
+   * <code>None = 1;</code>
    */
-  public static final int EMPTY_VALUE = 1;
+  public static final int None_VALUE = 1;
   /**
-   * <code>INITIATING = 2;</code>
+   * <code>Initiating = 2;</code>
    */
-  public static final int INITIATING_VALUE = 2;
+  public static final int Initiating_VALUE = 2;
   /**
-   * <code>TRANSITIONING = 3;</code>
+   * <code>Transitioning = 3;</code>
    */
-  public static final int TRANSITIONING_VALUE = 3;
+  public static final int Transitioning_VALUE = 3;
   /**
-   * <code>RUNNING = 4;</code>
+   * <code>Running = 4;</code>
    */
-  public static final int RUNNING_VALUE = 4;
+  public static final int Running_VALUE = 4;
   /**
-   * <code>COMPLETED = 5;</code>
+   * <code>Completed = 5;</code>
    */
-  public static final int COMPLETED_VALUE = 5;
+  public static final int Completed_VALUE = 5;
   /**
-   * <code>FAULTED = 6;</code>
+   * <code>Failed = 6;</code>
    */
-  public static final int FAULTED_VALUE = 6;
+  public static final int Failed_VALUE = 6;
 
 
   public final int getNumber() {
@@ -74,12 +74,12 @@ public enum BackupState
 
   public static BackupState forNumber(int value) {
     switch (value) {
-      case 1: return EMPTY;
-      case 2: return INITIATING;
-      case 3: return TRANSITIONING;
-      case 4: return RUNNING;
-      case 5: return COMPLETED;
-      case 6: return FAULTED;
+      case 1: return None;
+      case 2: return Initiating;
+      case 3: return Transitioning;
+      case 4: return Running;
+      case 5: return Completed;
+      case 6: return Failed;
       default: return null;
     }
   }

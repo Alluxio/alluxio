@@ -125,7 +125,7 @@ private static final long serialVersionUID = 0L;
    */
   public alluxio.grpc.BackupState getBackupState() {
     alluxio.grpc.BackupState result = alluxio.grpc.BackupState.valueOf(backupState_);
-    return result == null ? alluxio.grpc.BackupState.EMPTY : result;
+    return result == null ? alluxio.grpc.BackupState.None : result;
   }
 
   public static final int BACKUPHOST_FIELD_NUMBER = 2;
@@ -651,7 +651,7 @@ private static final long serialVersionUID = 0L;
      */
     public alluxio.grpc.BackupState getBackupState() {
       alluxio.grpc.BackupState result = alluxio.grpc.BackupState.valueOf(backupState_);
-      return result == null ? alluxio.grpc.BackupState.EMPTY : result;
+      return result == null ? alluxio.grpc.BackupState.None : result;
     }
     /**
      * <code>optional .alluxio.grpc.meta.BackupState backupState = 1;</code>

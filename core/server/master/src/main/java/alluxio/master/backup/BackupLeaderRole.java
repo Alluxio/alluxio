@@ -154,7 +154,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
     }
     // Initialize backup status.
     mBackupTracker.reset();
-    mBackupTracker.updateState(BackupState.INITIATING);
+    mBackupTracker.updateState(BackupState.Initiating);
     mBackupTracker.updateHostname(NetworkAddressUtils.getLocalHostName(
         (int) ServerConfiguration.global().getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
     // Initiate the backup.
@@ -229,10 +229,10 @@ public class BackupLeaderRole extends AbstractBackupRole {
     mLocalBackupFuture = mExecutorService.submit(() -> {
       try (LockResource lr = new LockResource(mStatePauseLock)) {
         try {
-          mBackupTracker.updateState(BackupState.RUNNING);
+          mBackupTracker.updateState(BackupState.Running);
           AlluxioURI backupUri = takeBackup(request, mBackupTracker.getEntryCounter());
           mBackupTracker.updateBackupUri(backupUri);
-          mBackupTracker.updateState(BackupState.COMPLETED);
+          mBackupTracker.updateState(BackupState.Completed);
         } catch (IOException e) {
           mBackupTracker.updateError(new BackupException("Local backup failed.", e));
         }

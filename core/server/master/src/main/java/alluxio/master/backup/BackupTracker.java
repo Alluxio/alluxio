@@ -46,7 +46,7 @@ public class BackupTracker {
    * Resets this tracker.
    */
   public void reset() {
-    mBackupStatus = new BackupStatus(BackupState.EMPTY);
+    mBackupStatus = new BackupStatus(BackupState.None);
     mEntryCounter = new AtomicLong(0);
     // Fail potentials waiters before resetting the future.
     if (mCompletion != null && !mCompletion.isDone()) {
@@ -172,7 +172,7 @@ public class BackupTracker {
    * @return {@code true} if a backup is in progress
    */
   public boolean inProgress() {
-    return mBackupStatus.getState() != BackupState.EMPTY && !isFinished();
+    return mBackupStatus.getState() != BackupState.None && !isFinished();
   }
 
   /**

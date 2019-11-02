@@ -106,14 +106,14 @@ public class BackupStatus {
    * @return {@code true} if the backup is completed successfully
    */
   public boolean isCompleted() {
-    return mState == BackupState.COMPLETED;
+    return mState == BackupState.Completed;
   }
 
   /**
    * @return {@code true} if the backup is failed
    */
   public boolean isFailed() {
-    return mState == BackupState.FAULTED;
+    return mState == BackupState.Failed;
   }
 
   /**
@@ -143,14 +143,14 @@ public class BackupStatus {
 
   /**
    * Fails the backup with given error.
-   * Adjusts the backup state to {@link BackupState#FAULTED}.
+   * Adjusts the backup state to {@link BackupState#Failed}.
    *
    * @param error the backup error
    * @return the updated instance
    */
   public BackupStatus setError(AlluxioException error) {
     mError = error;
-    mState = BackupState.FAULTED;
+    mState = BackupState.Failed;
     return this;
   }
 

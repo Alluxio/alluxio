@@ -114,12 +114,12 @@ message CheckpointPResponse {
 }
 
 enum BackupState {
-    EMPTY = 1;
-    INITIATING = 2;
-    TRANSITIONING = 3;
-    RUNNING = 4;
-    COMPLETED = 5;
-    FAULTED = 6;
+    None = 1;
+    Initiating = 2;
+    Transitioning = 3;
+    Running = 4;
+    Completed = 5;
+    Failed = 6;
 }
 
 message BackupPRequest {

@@ -184,7 +184,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
 
     // Reset backup tracker.
     mBackupTracker.reset();
-    mBackupTracker.updateState(BackupState.INITIATING);
+    mBackupTracker.updateState(BackupState.Initiating);
     mBackupTracker.updateHostname(NetworkAddressUtils.getLocalHostName(
         (int) ServerConfiguration.global().getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
 
@@ -200,7 +200,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
     // Spawn a task for advancing journals to target sequences, then taking the backup.
     mBackupFuture = mExecutorService.submit(() -> {
       // Mark state as transitioning.
-      mBackupTracker.updateState(BackupState.TRANSITIONING);
+      mBackupTracker.updateState(BackupState.Transitioning);
       try {
         LOG.info("Advancing journals to consistent sequences before starting backup. {}",
             requestMsg.getJournalSequences());
@@ -218,11 +218,11 @@ public class BackupWorkerRole extends AbstractBackupRole {
       }
       LOG.info("Journal transition completed. Taking a backup.");
       try {
-        mBackupTracker.updateState(BackupState.RUNNING);
+        mBackupTracker.updateState(BackupState.Running);
         AlluxioURI backupUri =
             takeBackup(requestMsg.getBackupRequest(), mBackupTracker.getEntryCounter());
         mBackupTracker.updateBackupUri(backupUri);
-        mBackupTracker.updateState(BackupState.COMPLETED);
+        mBackupTracker.updateState(BackupState.Completed);
         // Wait until backup heartbeats are completed.
         try {
           mBackupProgressFuture.get();
