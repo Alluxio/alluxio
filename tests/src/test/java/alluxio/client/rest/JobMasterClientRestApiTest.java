@@ -24,6 +24,7 @@ import alluxio.master.job.JobMasterClientRestServiceHandler;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
@@ -33,6 +34,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -112,9 +115,10 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
     TestCaseOptions options = TestCaseOptions.defaults().setPrettyPrint(true);
     String result = new TestCase(mHostname, mPort, getEndpoint(ServiceConstants.GET_STATUS),
         params, HttpMethod.GET, null, options).call();
-    PlanInfo jobInfo = new ObjectMapper().readValue(result, PlanInfo.class);
-    Assert.assertEquals(jobId, jobInfo.getId());
-    Assert.assertEquals(1, jobInfo.getChildren().size());
+    TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {};
+    HashMap<String, Object> jobInfo = new ObjectMapper().readValue(result, typeRef);
+    Assert.assertEquals(jobId, jobInfo.get("id"));
+    Assert.assertEquals(1, ((Collection)jobInfo.get("children")).size());
   }
 
   private long startJob(JobConfig config) throws Exception {
