@@ -172,8 +172,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
 
         // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
         Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
-        if (openUfsBlockOptions != null &&
-            mWorker.openUfsBlock(request.getSessionId(), request.getId(),
+        if (mWorker.openUfsBlock(request.getSessionId(), request.getId(),
                 Protocol.OpenUfsBlockOptions.parseFrom(openUfsBlockOptions.toByteString()))) {
           try {
             BlockReader reader =
