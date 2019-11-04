@@ -16,6 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private BackupPStatus() {
+    backupId_ = "";
     backupState_ = 1;
     backupHost_ = "";
     backupUri_ = "";
@@ -54,36 +55,42 @@ private static final long serialVersionUID = 0L;
             }
             break;
           }
-          case 8: {
+          case 10: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000001;
+            backupId_ = bs;
+            break;
+          }
+          case 16: {
             int rawValue = input.readEnum();
             alluxio.grpc.BackupState value = alluxio.grpc.BackupState.valueOf(rawValue);
             if (value == null) {
-              unknownFields.mergeVarintField(1, rawValue);
+              unknownFields.mergeVarintField(2, rawValue);
             } else {
-              bitField0_ |= 0x00000001;
+              bitField0_ |= 0x00000002;
               backupState_ = rawValue;
             }
-            break;
-          }
-          case 18: {
-            com.google.protobuf.ByteString bs = input.readBytes();
-            bitField0_ |= 0x00000002;
-            backupHost_ = bs;
             break;
           }
           case 26: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000004;
+            backupHost_ = bs;
+            break;
+          }
+          case 34: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000008;
             backupUri_ = bs;
             break;
           }
-          case 32: {
-            bitField0_ |= 0x00000008;
+          case 40: {
+            bitField0_ |= 0x00000010;
             entryCount_ = input.readInt64();
             break;
           }
-          case 42: {
-            bitField0_ |= 0x00000010;
+          case 50: {
+            bitField0_ |= 0x00000020;
             backupError_ = input.readBytes();
             break;
           }
@@ -112,32 +119,74 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int BACKUPSTATE_FIELD_NUMBER = 1;
-  private int backupState_;
+  public static final int BACKUPID_FIELD_NUMBER = 1;
+  private volatile java.lang.Object backupId_;
   /**
-   * <code>optional .alluxio.grpc.meta.BackupState backupState = 1;</code>
+   * <code>optional string backupId = 1;</code>
    */
-  public boolean hasBackupState() {
+  public boolean hasBackupId() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional .alluxio.grpc.meta.BackupState backupState = 1;</code>
+   * <code>optional string backupId = 1;</code>
+   */
+  public java.lang.String getBackupId() {
+    java.lang.Object ref = backupId_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        backupId_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string backupId = 1;</code>
+   */
+  public com.google.protobuf.ByteString
+      getBackupIdBytes() {
+    java.lang.Object ref = backupId_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      backupId_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int BACKUPSTATE_FIELD_NUMBER = 2;
+  private int backupState_;
+  /**
+   * <code>optional .alluxio.grpc.meta.BackupState backupState = 2;</code>
+   */
+  public boolean hasBackupState() {
+    return ((bitField0_ & 0x00000002) == 0x00000002);
+  }
+  /**
+   * <code>optional .alluxio.grpc.meta.BackupState backupState = 2;</code>
    */
   public alluxio.grpc.BackupState getBackupState() {
     alluxio.grpc.BackupState result = alluxio.grpc.BackupState.valueOf(backupState_);
     return result == null ? alluxio.grpc.BackupState.None : result;
   }
 
-  public static final int BACKUPHOST_FIELD_NUMBER = 2;
+  public static final int BACKUPHOST_FIELD_NUMBER = 3;
   private volatile java.lang.Object backupHost_;
   /**
-   * <code>optional string backupHost = 2;</code>
+   * <code>optional string backupHost = 3;</code>
    */
   public boolean hasBackupHost() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000004) == 0x00000004);
   }
   /**
-   * <code>optional string backupHost = 2;</code>
+   * <code>optional string backupHost = 3;</code>
    */
   public java.lang.String getBackupHost() {
     java.lang.Object ref = backupHost_;
@@ -154,7 +203,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>optional string backupHost = 2;</code>
+   * <code>optional string backupHost = 3;</code>
    */
   public com.google.protobuf.ByteString
       getBackupHostBytes() {
@@ -170,16 +219,16 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int BACKUPURI_FIELD_NUMBER = 3;
+  public static final int BACKUPURI_FIELD_NUMBER = 4;
   private volatile java.lang.Object backupUri_;
   /**
-   * <code>optional string backupUri = 3;</code>
+   * <code>optional string backupUri = 4;</code>
    */
   public boolean hasBackupUri() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000008) == 0x00000008);
   }
   /**
-   * <code>optional string backupUri = 3;</code>
+   * <code>optional string backupUri = 4;</code>
    */
   public java.lang.String getBackupUri() {
     java.lang.Object ref = backupUri_;
@@ -196,7 +245,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>optional string backupUri = 3;</code>
+   * <code>optional string backupUri = 4;</code>
    */
   public com.google.protobuf.ByteString
       getBackupUriBytes() {
@@ -212,31 +261,31 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int ENTRYCOUNT_FIELD_NUMBER = 4;
+  public static final int ENTRYCOUNT_FIELD_NUMBER = 5;
   private long entryCount_;
   /**
-   * <code>optional int64 entryCount = 4;</code>
+   * <code>optional int64 entryCount = 5;</code>
    */
   public boolean hasEntryCount() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000010) == 0x00000010);
   }
   /**
-   * <code>optional int64 entryCount = 4;</code>
+   * <code>optional int64 entryCount = 5;</code>
    */
   public long getEntryCount() {
     return entryCount_;
   }
 
-  public static final int BACKUPERROR_FIELD_NUMBER = 5;
+  public static final int BACKUPERROR_FIELD_NUMBER = 6;
   private com.google.protobuf.ByteString backupError_;
   /**
-   * <code>optional bytes backupError = 5;</code>
+   * <code>optional bytes backupError = 6;</code>
    */
   public boolean hasBackupError() {
-    return ((bitField0_ & 0x00000010) == 0x00000010);
+    return ((bitField0_ & 0x00000020) == 0x00000020);
   }
   /**
-   * <code>optional bytes backupError = 5;</code>
+   * <code>optional bytes backupError = 6;</code>
    */
   public com.google.protobuf.ByteString getBackupError() {
     return backupError_;
@@ -255,19 +304,22 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      output.writeEnum(1, backupState_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, backupId_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, backupHost_);
+      output.writeEnum(2, backupState_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, backupUri_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, backupHost_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      output.writeInt64(4, entryCount_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, backupUri_);
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
-      output.writeBytes(5, backupError_);
+      output.writeInt64(5, entryCount_);
+    }
+    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      output.writeBytes(6, backupError_);
     }
     unknownFields.writeTo(output);
   }
@@ -278,22 +330,25 @@ private static final long serialVersionUID = 0L;
 
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeEnumSize(1, backupState_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, backupId_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, backupHost_);
+      size += com.google.protobuf.CodedOutputStream
+        .computeEnumSize(2, backupState_);
     }
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, backupUri_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, backupHost_);
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeInt64Size(4, entryCount_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, backupUri_);
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeBytesSize(5, backupError_);
+        .computeInt64Size(5, entryCount_);
+    }
+    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBytesSize(6, backupError_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -311,6 +366,11 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.BackupPStatus other = (alluxio.grpc.BackupPStatus) obj;
 
     boolean result = true;
+    result = result && (hasBackupId() == other.hasBackupId());
+    if (hasBackupId()) {
+      result = result && getBackupId()
+          .equals(other.getBackupId());
+    }
     result = result && (hasBackupState() == other.hasBackupState());
     if (hasBackupState()) {
       result = result && backupState_ == other.backupState_;
@@ -346,6 +406,10 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
+    if (hasBackupId()) {
+      hash = (37 * hash) + BACKUPID_FIELD_NUMBER;
+      hash = (53 * hash) + getBackupId().hashCode();
+    }
     if (hasBackupState()) {
       hash = (37 * hash) + BACKUPSTATE_FIELD_NUMBER;
       hash = (53 * hash) + backupState_;
@@ -496,16 +560,18 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      backupState_ = 1;
+      backupId_ = "";
       bitField0_ = (bitField0_ & ~0x00000001);
-      backupHost_ = "";
+      backupState_ = 1;
       bitField0_ = (bitField0_ & ~0x00000002);
-      backupUri_ = "";
+      backupHost_ = "";
       bitField0_ = (bitField0_ & ~0x00000004);
-      entryCount_ = 0L;
+      backupUri_ = "";
       bitField0_ = (bitField0_ & ~0x00000008);
-      backupError_ = com.google.protobuf.ByteString.EMPTY;
+      entryCount_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000010);
+      backupError_ = com.google.protobuf.ByteString.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000020);
       return this;
     }
 
@@ -533,21 +599,25 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.backupState_ = backupState_;
+      result.backupId_ = backupId_;
       if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
         to_bitField0_ |= 0x00000002;
       }
-      result.backupHost_ = backupHost_;
+      result.backupState_ = backupState_;
       if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
         to_bitField0_ |= 0x00000004;
       }
-      result.backupUri_ = backupUri_;
+      result.backupHost_ = backupHost_;
       if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
         to_bitField0_ |= 0x00000008;
       }
-      result.entryCount_ = entryCount_;
+      result.backupUri_ = backupUri_;
       if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
         to_bitField0_ |= 0x00000010;
+      }
+      result.entryCount_ = entryCount_;
+      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+        to_bitField0_ |= 0x00000020;
       }
       result.backupError_ = backupError_;
       result.bitField0_ = to_bitField0_;
@@ -592,16 +662,21 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.BackupPStatus other) {
       if (other == alluxio.grpc.BackupPStatus.getDefaultInstance()) return this;
+      if (other.hasBackupId()) {
+        bitField0_ |= 0x00000001;
+        backupId_ = other.backupId_;
+        onChanged();
+      }
       if (other.hasBackupState()) {
         setBackupState(other.getBackupState());
       }
       if (other.hasBackupHost()) {
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000004;
         backupHost_ = other.backupHost_;
         onChanged();
       }
       if (other.hasBackupUri()) {
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000008;
         backupUri_ = other.backupUri_;
         onChanged();
       }
@@ -639,37 +714,113 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private int backupState_ = 1;
+    private java.lang.Object backupId_ = "";
     /**
-     * <code>optional .alluxio.grpc.meta.BackupState backupState = 1;</code>
+     * <code>optional string backupId = 1;</code>
      */
-    public boolean hasBackupState() {
+    public boolean hasBackupId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional .alluxio.grpc.meta.BackupState backupState = 1;</code>
+     * <code>optional string backupId = 1;</code>
+     */
+    public java.lang.String getBackupId() {
+      java.lang.Object ref = backupId_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          backupId_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string backupId = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getBackupIdBytes() {
+      java.lang.Object ref = backupId_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        backupId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string backupId = 1;</code>
+     */
+    public Builder setBackupId(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+      backupId_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string backupId = 1;</code>
+     */
+    public Builder clearBackupId() {
+      bitField0_ = (bitField0_ & ~0x00000001);
+      backupId_ = getDefaultInstance().getBackupId();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string backupId = 1;</code>
+     */
+    public Builder setBackupIdBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+      backupId_ = value;
+      onChanged();
+      return this;
+    }
+
+    private int backupState_ = 1;
+    /**
+     * <code>optional .alluxio.grpc.meta.BackupState backupState = 2;</code>
+     */
+    public boolean hasBackupState() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional .alluxio.grpc.meta.BackupState backupState = 2;</code>
      */
     public alluxio.grpc.BackupState getBackupState() {
       alluxio.grpc.BackupState result = alluxio.grpc.BackupState.valueOf(backupState_);
       return result == null ? alluxio.grpc.BackupState.None : result;
     }
     /**
-     * <code>optional .alluxio.grpc.meta.BackupState backupState = 1;</code>
+     * <code>optional .alluxio.grpc.meta.BackupState backupState = 2;</code>
      */
     public Builder setBackupState(alluxio.grpc.BackupState value) {
       if (value == null) {
         throw new NullPointerException();
       }
-      bitField0_ |= 0x00000001;
+      bitField0_ |= 0x00000002;
       backupState_ = value.getNumber();
       onChanged();
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.meta.BackupState backupState = 1;</code>
+     * <code>optional .alluxio.grpc.meta.BackupState backupState = 2;</code>
      */
     public Builder clearBackupState() {
-      bitField0_ = (bitField0_ & ~0x00000001);
+      bitField0_ = (bitField0_ & ~0x00000002);
       backupState_ = 1;
       onChanged();
       return this;
@@ -677,13 +828,13 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object backupHost_ = "";
     /**
-     * <code>optional string backupHost = 2;</code>
+     * <code>optional string backupHost = 3;</code>
      */
     public boolean hasBackupHost() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
-     * <code>optional string backupHost = 2;</code>
+     * <code>optional string backupHost = 3;</code>
      */
     public java.lang.String getBackupHost() {
       java.lang.Object ref = backupHost_;
@@ -700,7 +851,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string backupHost = 2;</code>
+     * <code>optional string backupHost = 3;</code>
      */
     public com.google.protobuf.ByteString
         getBackupHostBytes() {
@@ -716,36 +867,36 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string backupHost = 2;</code>
+     * <code>optional string backupHost = 3;</code>
      */
     public Builder setBackupHost(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000002;
+  bitField0_ |= 0x00000004;
       backupHost_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string backupHost = 2;</code>
+     * <code>optional string backupHost = 3;</code>
      */
     public Builder clearBackupHost() {
-      bitField0_ = (bitField0_ & ~0x00000002);
+      bitField0_ = (bitField0_ & ~0x00000004);
       backupHost_ = getDefaultInstance().getBackupHost();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string backupHost = 2;</code>
+     * <code>optional string backupHost = 3;</code>
      */
     public Builder setBackupHostBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000002;
+  bitField0_ |= 0x00000004;
       backupHost_ = value;
       onChanged();
       return this;
@@ -753,13 +904,13 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object backupUri_ = "";
     /**
-     * <code>optional string backupUri = 3;</code>
+     * <code>optional string backupUri = 4;</code>
      */
     public boolean hasBackupUri() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>optional string backupUri = 3;</code>
+     * <code>optional string backupUri = 4;</code>
      */
     public java.lang.String getBackupUri() {
       java.lang.Object ref = backupUri_;
@@ -776,7 +927,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string backupUri = 3;</code>
+     * <code>optional string backupUri = 4;</code>
      */
     public com.google.protobuf.ByteString
         getBackupUriBytes() {
@@ -792,36 +943,36 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string backupUri = 3;</code>
+     * <code>optional string backupUri = 4;</code>
      */
     public Builder setBackupUri(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000004;
+  bitField0_ |= 0x00000008;
       backupUri_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string backupUri = 3;</code>
+     * <code>optional string backupUri = 4;</code>
      */
     public Builder clearBackupUri() {
-      bitField0_ = (bitField0_ & ~0x00000004);
+      bitField0_ = (bitField0_ & ~0x00000008);
       backupUri_ = getDefaultInstance().getBackupUri();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string backupUri = 3;</code>
+     * <code>optional string backupUri = 4;</code>
      */
     public Builder setBackupUriBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000004;
+  bitField0_ |= 0x00000008;
       backupUri_ = value;
       onChanged();
       return this;
@@ -829,31 +980,31 @@ private static final long serialVersionUID = 0L;
 
     private long entryCount_ ;
     /**
-     * <code>optional int64 entryCount = 4;</code>
+     * <code>optional int64 entryCount = 5;</code>
      */
     public boolean hasEntryCount() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
-     * <code>optional int64 entryCount = 4;</code>
+     * <code>optional int64 entryCount = 5;</code>
      */
     public long getEntryCount() {
       return entryCount_;
     }
     /**
-     * <code>optional int64 entryCount = 4;</code>
+     * <code>optional int64 entryCount = 5;</code>
      */
     public Builder setEntryCount(long value) {
-      bitField0_ |= 0x00000008;
+      bitField0_ |= 0x00000010;
       entryCount_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int64 entryCount = 4;</code>
+     * <code>optional int64 entryCount = 5;</code>
      */
     public Builder clearEntryCount() {
-      bitField0_ = (bitField0_ & ~0x00000008);
+      bitField0_ = (bitField0_ & ~0x00000010);
       entryCount_ = 0L;
       onChanged();
       return this;
@@ -861,34 +1012,34 @@ private static final long serialVersionUID = 0L;
 
     private com.google.protobuf.ByteString backupError_ = com.google.protobuf.ByteString.EMPTY;
     /**
-     * <code>optional bytes backupError = 5;</code>
+     * <code>optional bytes backupError = 6;</code>
      */
     public boolean hasBackupError() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000020) == 0x00000020);
     }
     /**
-     * <code>optional bytes backupError = 5;</code>
+     * <code>optional bytes backupError = 6;</code>
      */
     public com.google.protobuf.ByteString getBackupError() {
       return backupError_;
     }
     /**
-     * <code>optional bytes backupError = 5;</code>
+     * <code>optional bytes backupError = 6;</code>
      */
     public Builder setBackupError(com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000010;
+  bitField0_ |= 0x00000020;
       backupError_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional bytes backupError = 5;</code>
+     * <code>optional bytes backupError = 6;</code>
      */
     public Builder clearBackupError() {
-      bitField0_ = (bitField0_ & ~0x00000010);
+      bitField0_ = (bitField0_ & ~0x00000020);
       backupError_ = getDefaultInstance().getBackupError();
       onChanged();
       return this;

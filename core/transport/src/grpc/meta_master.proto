@@ -132,14 +132,16 @@ message BackupPOptions {
     optional bool allowLeader = 3;
 }
 message BackupPStatus {
-    optional BackupState backupState = 1;
-    optional string backupHost = 2;
-    optional string backupUri = 3;
-    optional int64 entryCount = 4;
-    optional bytes backupError = 5;
+    optional string backupId = 1;
+    optional BackupState backupState = 2;
+    optional string backupHost = 3;
+    optional string backupUri = 4;
+    optional int64 entryCount = 5;
+    optional bytes backupError = 6;
 }
 
 message BackupStatusPRequest {
+    optional string backupId = 1;
 }
 
  /**

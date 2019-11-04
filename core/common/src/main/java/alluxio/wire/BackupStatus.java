@@ -20,10 +20,14 @@ import com.google.common.base.MoreObjects;
 import com.google.protobuf.ByteString;
 import org.apache.commons.lang.SerializationUtils;
 
+import java.util.UUID;
+
 /**
  * Defines the status of a backup.
  */
 public class BackupStatus {
+  /** Unique identifier for the backup.  */
+  private UUID mBackupId;
   /** State of backup. */
   private BackupState mState;
   /** Host that is taking the backup. */
@@ -36,11 +40,23 @@ public class BackupStatus {
   private AlluxioException mError;
 
   /**
-   * Creates a new backup status.
+   * Creates a new backup status with new Id.
    *
    * @param state state of the backup
    */
   public BackupStatus(BackupState state) {
+    mBackupId = UUID.randomUUID();
+    mState = state;
+  }
+
+  /**
+   * Creates a new backup status with existing Id.
+   *
+   * @param backupId the backup id
+   * @param state state of the backup
+   */
+  public BackupStatus(UUID backupId, BackupState state) {
+    mBackupId = backupId;
     mState = state;
   }
 
@@ -50,6 +66,7 @@ public class BackupStatus {
    * @param status backup status to clone
    */
   public BackupStatus(BackupStatus status) {
+    mBackupId = status.mBackupId;
     mState = status.mState;
     mBackupHost = status.mBackupHost;
     mBackupUri = status.mBackupUri;
@@ -63,6 +80,7 @@ public class BackupStatus {
    */
   public static BackupStatus fromProto(BackupPStatus pStatus) {
     BackupStatus status = new BackupStatus(pStatus.getBackupState());
+    status.setBackupId(UUID.fromString(pStatus.getBackupId()));
     if (pStatus.hasBackupHost()) {
       status.setHostname(pStatus.getBackupHost());
     }
@@ -75,6 +93,22 @@ public class BackupStatus {
     }
     status.setEntryCount(pStatus.getEntryCount());
     return status;
+  }
+
+  /**
+   * @return the unique backup id
+   */
+  public UUID getBackupId() {
+    return mBackupId;
+  }
+
+  /**
+   * Sets the unique backup id.
+   *
+   * @param backupUuid backup id
+   */
+  public void setBackupId(UUID backupUuid) {
+    mBackupId = backupUuid;
   }
 
   /**
@@ -195,6 +229,7 @@ public class BackupStatus {
    */
   public BackupPStatus toProto() {
     BackupPStatus.Builder builder = BackupPStatus.newBuilder()
+        .setBackupId(mBackupId.toString())
         .setBackupState(mState)
         .setEntryCount(mEntryCount);
 

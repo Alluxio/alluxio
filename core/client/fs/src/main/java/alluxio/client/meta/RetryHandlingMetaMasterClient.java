@@ -32,6 +32,7 @@ import alluxio.wire.ConfigCheckReport;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -78,9 +79,9 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public BackupStatus getBackupStatus() throws IOException {
-    return retryRPC(() -> BackupStatus
-        .fromProto(mClient.getBackupStatus(BackupStatusPRequest.getDefaultInstance())));
+  public BackupStatus getBackupStatus(UUID backupId) throws IOException {
+    return retryRPC(() -> BackupStatus.fromProto(mClient.getBackupStatus(
+        BackupStatusPRequest.newBuilder().setBackupId(backupId.toString()).build())));
   }
 
   @Override

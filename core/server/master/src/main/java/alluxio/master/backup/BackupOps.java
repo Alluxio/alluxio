@@ -13,6 +13,7 @@ package alluxio.master.backup;
 
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.BackupPRequest;
+import alluxio.grpc.BackupStatusPRequest;
 import alluxio.wire.BackupStatus;
 
 import java.io.IOException;
@@ -38,8 +39,11 @@ public interface BackupOps {
   BackupStatus backup(BackupPRequest request) throws AlluxioException;
 
   /**
+   * Used to query the status of a backup.
+   *
+   * @param statusPRequest status request
    * @return the status of the latest backup
    * @throws IOException
    */
-  BackupStatus getBackupStatus() throws AlluxioException;
+  BackupStatus getBackupStatus(BackupStatusPRequest statusPRequest) throws AlluxioException;
 }

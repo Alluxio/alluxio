@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -181,16 +182,17 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false)).build());
 
     // Schedule async backup.
-    mCluster.getMetaMasterClient()
+    UUID backupId = mCluster.getMetaMasterClient()
         .backup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
             .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false).setRunAsync(true))
-            .build());
+            .build())
+        .getBackupId();
     // Kill follower immediately before it sends the next heartbeat to leader.
     mCluster.stopMaster(followerIdx);
     // Wait until backup is abandoned.
     CommonUtils.waitFor("Backup abandoned.", () -> {
       try {
-        return mCluster.getMetaMasterClient().getBackupStatus()
+        return mCluster.getMetaMasterClient().getBackupStatus(backupId)
             .getError() instanceof BackupAbortedException;
       } catch (Exception e) {
         throw new RuntimeException(

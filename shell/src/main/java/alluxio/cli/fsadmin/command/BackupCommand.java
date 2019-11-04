@@ -27,6 +27,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
+import java.util.UUID;
 
 /**
  * Command for backing up Alluxio master metadata.
@@ -84,11 +85,12 @@ public class BackupCommand extends AbstractFsAdminCommand {
             .setAllowLeader(cl.hasOption(ALLOW_LEADER_OPTION.getLongOpt())));
     // Take backup in async mode.
     BackupStatus status = mMetaClient.backup(opts.build());
+    UUID backupId = status.getBackupId();
     do {
+      clearProgressLine();
       // Backup could be after a fail-over.
       if (status.getState() == BackupState.None) {
-        clearProgressLine();
-        mPrintStream.printf("Backup lost. Check Alluxio logs.%n");
+        mPrintStream.printf("Backup lost. Please check Alluxio logs.%n");
         return -1;
       }
       if (status.getState() == BackupState.Completed) {
@@ -102,17 +104,19 @@ public class BackupCommand extends AbstractFsAdminCommand {
         if (status.getState() == BackupState.Running) {
           progressMessage += String.format(" | Entries processed: %d", status.getEntryCount());
         }
-        clearProgressLine();
         mPrintStream.write(progressMessage.getBytes());
         mPrintStream.write("\r".getBytes());
         mPrintStream.flush();
       }
-      // Sleep 1sec before querying status again.
+      // Sleep half a sec before querying status again.
       try {
-        Thread.sleep(1000);
-        status = mMetaClient.getBackupStatus();
+        Thread.sleep(500);
+        status = mMetaClient.getBackupStatus(backupId);
       } catch (InterruptedException ie) {
         throw new RuntimeException("Interrupted while waiting for backup completion.");
+      } finally {
+        // In case exception is thrown.
+        clearProgressLine();
       }
     } while (true);
     clearProgressLine();

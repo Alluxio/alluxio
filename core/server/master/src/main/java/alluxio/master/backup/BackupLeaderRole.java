@@ -21,6 +21,7 @@ import alluxio.exception.BackupDelegationException;
 import alluxio.exception.BackupException;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupState;
+import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.master.CoreMasterContext;
@@ -43,11 +44,13 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 /**
@@ -78,6 +81,9 @@ public class BackupLeaderRole extends AbstractBackupRole {
 
   /** Used to store host names for backup-worker connections. */
   private Map<Connection, String> mBackupWorkerHostNames = new ConcurrentHashMap<>();
+
+  /** Used to prevent concurrent scheduling of backups. */
+  private Lock mBackupInitiateLock = new ReentrantLock(true);
 
   /**
    * Creates a new backup leader.
@@ -135,28 +141,32 @@ public class BackupLeaderRole extends AbstractBackupRole {
 
   @Override
   public BackupStatus backup(BackupPRequest request) throws AlluxioException {
-    if (mBackupTracker.inProgress()) {
-      throw new BackupException("Backup in progress");
-    }
-
-    // Whether to attempt to delegate backup to a backup worker.
-    boolean delegateBackup =
-        ServerConfiguration.getBoolean(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED)
-            && ConfigurationUtils.isHaMode(ServerConfiguration.global());
-    // Fail, if in HA mode and no masters available to delegate,
-    // unless `AllowLeader` flag in the backup request is set.
-    if (delegateBackup && mBackupWorkerHostNames.size() == 0) {
-      if (request.getOptions().getAllowLeader()) {
-        delegateBackup = false;
-      } else {
-        throw new BackupDelegationException("No master found to delegate backup.");
+    // Whether to delegate remote to a standby master.
+    boolean delegateBackup;
+    // Initiate new backup status under lock.
+    try (LockResource initiateLock = new LockResource(mBackupInitiateLock)) {
+      if (mBackupTracker.inProgress()) {
+        throw new BackupException("Backup in progress");
       }
+
+      // Whether to attempt to delegate backup to a backup worker.
+      delegateBackup = ServerConfiguration.getBoolean(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED)
+          && ConfigurationUtils.isHaMode(ServerConfiguration.global());
+      // Fail, if in HA mode and no masters available to delegate,
+      // unless `AllowLeader` flag in the backup request is set.
+      if (delegateBackup && mBackupWorkerHostNames.size() == 0) {
+        if (request.getOptions().getAllowLeader()) {
+          delegateBackup = false;
+        } else {
+          throw new BackupDelegationException("No master found to delegate backup.");
+        }
+      }
+      // Initialize backup status.
+      mBackupTracker.reset();
+      mBackupTracker.updateState(BackupState.Initiating);
+      mBackupTracker.updateHostname(NetworkAddressUtils.getLocalHostName((int) ServerConfiguration
+          .global().getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
     }
-    // Initialize backup status.
-    mBackupTracker.reset();
-    mBackupTracker.updateState(BackupState.Initiating);
-    mBackupTracker.updateHostname(NetworkAddressUtils.getLocalHostName(
-        (int) ServerConfiguration.global().getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
     // Initiate the backup.
     if (delegateBackup) {
       // Fail the backup if delegation failed.
@@ -181,8 +191,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
   }
 
   @Override
-  public BackupStatus getBackupStatus() throws AlluxioException {
-    return mBackupTracker.getCurrentStatus();
+  public BackupStatus getBackupStatus(BackupStatusPRequest statusPRequest) throws AlluxioException {
+    return mBackupTracker.getStatus(UUID.fromString(statusPRequest.getBackupId()));
   }
 
   /**
@@ -263,8 +273,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
         }
         // Send backup request along with consistent journal sequences.
         LOG.info("Sending backup request to backup-worker: {}", workerEntry.getValue());
-        sendMessageBlocking(workerEntry.getKey(),
-            new BackupRequestMessage(request, journalSequences));
+        sendMessageBlocking(workerEntry.getKey(), new BackupRequestMessage(
+            mBackupTracker.getCurrentStatus().getBackupId(), request, journalSequences));
         // Delegation successful.
         mRemoteBackupConnection = workerEntry.getKey();
         // Start abandon timer.

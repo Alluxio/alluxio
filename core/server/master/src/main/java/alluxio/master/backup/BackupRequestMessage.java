@@ -22,6 +22,7 @@ import io.atomix.catalyst.serializer.Serializer;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * The backup message used for signaling follower to start taking the backup.
@@ -29,6 +30,8 @@ import java.util.Map;
 public class BackupRequestMessage implements CatalystSerializable {
   /** Client supplied backup request. */
   private BackupPRequest mBackupRequest;
+  /** Unique backup id. */
+  private UUID mBackupId;
   /** Consistent sequences of leader journals. */
   private Map<String, Long> mJournalSequences;
 
@@ -40,12 +43,22 @@ public class BackupRequestMessage implements CatalystSerializable {
   /**
    * Creates a backup request message.
    *
+   * @param backupId the unique backup id
    * @param request client backup request
    * @param journalSequences consistent journal sequences
    */
-  public BackupRequestMessage(BackupPRequest request, Map<String, Long> journalSequences) {
+  public BackupRequestMessage(UUID backupId, BackupPRequest request,
+      Map<String, Long> journalSequences) {
+    mBackupId = backupId;
     mBackupRequest = request;
     mJournalSequences = journalSequences;
+  }
+
+  /**
+   * @return the unique backup id
+   */
+  public UUID getBackupId() {
+    return mBackupId;
   }
 
   /**
@@ -64,6 +77,7 @@ public class BackupRequestMessage implements CatalystSerializable {
 
   @Override
   public void writeObject(BufferOutput<?> bufferOutput, Serializer serializer) {
+    bufferOutput.writeString(mBackupId.toString());
     byte[] serializedReq = mBackupRequest.toByteArray();
     bufferOutput.writeInt(serializedReq.length);
     bufferOutput.write(serializedReq);
@@ -77,6 +91,7 @@ public class BackupRequestMessage implements CatalystSerializable {
 
   @Override
   public void readObject(BufferInput<?> bufferInput, Serializer serializer) {
+    mBackupId = UUID.fromString(bufferInput.readString());
     int serializedReqLen = bufferInput.readInt();
     byte[] serializedReq = bufferInput.readBytes(serializedReqLen);
     try {
@@ -95,6 +110,7 @@ public class BackupRequestMessage implements CatalystSerializable {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
+        .add("BackupId", mBackupId)
         .add("BackupRequest", mBackupRequest)
         .add("JournalSequences", mJournalSequences)
         .toString();

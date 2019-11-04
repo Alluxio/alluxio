@@ -69,7 +69,7 @@ public final class MetaMasterClientServiceHandler
   @Override
   public void getBackupStatus(BackupStatusPRequest request,
       StreamObserver<BackupPStatus> responseObserver) {
-    RpcUtils.call(LOG, () -> mMetaMaster.getBackupStatus().toProto(),
+    RpcUtils.call(LOG, () -> mMetaMaster.getBackupStatus(request).toProto(),
         "getBackupStatus", "request=%s", responseObserver, request);
   }
 

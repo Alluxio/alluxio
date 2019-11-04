@@ -23,6 +23,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Interface for a meta master client.
@@ -46,10 +47,13 @@ public interface MetaMasterClient extends Closeable {
   BackupStatus backup(BackupPRequest backupRequest) throws IOException;
 
   /**
+   * Queries the status of a backup.
+   *
+   * @param backupId backup id
    * @return the status of the latest backup
    * @throws IOException
    */
-  BackupStatus getBackupStatus() throws IOException;
+  BackupStatus getBackupStatus(UUID backupId) throws IOException;
 
   /**
    * Gets the server-side configuration check report.

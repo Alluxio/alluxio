@@ -27,6 +27,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.BackupPRequest;
+import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.MetaCommand;
@@ -372,8 +373,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public BackupStatus getBackupStatus() throws AlluxioException {
-    return mBackupRole.getBackupStatus();
+  public BackupStatus getBackupStatus(BackupStatusPRequest statusPRequest) throws AlluxioException {
+    return mBackupRole.getBackupStatus(statusPRequest);
   }
 
   @Override

@@ -16,6 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private BackupStatusPRequest() {
+    backupId_ = "";
   }
 
   @java.lang.Override
@@ -31,6 +32,7 @@ private static final long serialVersionUID = 0L;
     if (extensionRegistry == null) {
       throw new java.lang.NullPointerException();
     }
+    int mutable_bitField0_ = 0;
     com.google.protobuf.UnknownFieldSet.Builder unknownFields =
         com.google.protobuf.UnknownFieldSet.newBuilder();
     try {
@@ -46,6 +48,12 @@ private static final long serialVersionUID = 0L;
                 input, unknownFields, extensionRegistry, tag)) {
               done = true;
             }
+            break;
+          }
+          case 10: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000001;
+            backupId_ = bs;
             break;
           }
         }
@@ -72,6 +80,49 @@ private static final long serialVersionUID = 0L;
             alluxio.grpc.BackupStatusPRequest.class, alluxio.grpc.BackupStatusPRequest.Builder.class);
   }
 
+  private int bitField0_;
+  public static final int BACKUPID_FIELD_NUMBER = 1;
+  private volatile java.lang.Object backupId_;
+  /**
+   * <code>optional string backupId = 1;</code>
+   */
+  public boolean hasBackupId() {
+    return ((bitField0_ & 0x00000001) == 0x00000001);
+  }
+  /**
+   * <code>optional string backupId = 1;</code>
+   */
+  public java.lang.String getBackupId() {
+    java.lang.Object ref = backupId_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        backupId_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string backupId = 1;</code>
+   */
+  public com.google.protobuf.ByteString
+      getBackupIdBytes() {
+    java.lang.Object ref = backupId_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      backupId_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -84,6 +135,9 @@ private static final long serialVersionUID = 0L;
 
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
+    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, backupId_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -92,6 +146,9 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
+    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, backupId_);
+    }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
     return size;
@@ -108,6 +165,11 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.BackupStatusPRequest other = (alluxio.grpc.BackupStatusPRequest) obj;
 
     boolean result = true;
+    result = result && (hasBackupId() == other.hasBackupId());
+    if (hasBackupId()) {
+      result = result && getBackupId()
+          .equals(other.getBackupId());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -119,6 +181,10 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
+    if (hasBackupId()) {
+      hash = (37 * hash) + BACKUPID_FIELD_NUMBER;
+      hash = (53 * hash) + getBackupId().hashCode();
+    }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -248,6 +314,8 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
+      backupId_ = "";
+      bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
 
@@ -270,6 +338,13 @@ private static final long serialVersionUID = 0L;
 
     public alluxio.grpc.BackupStatusPRequest buildPartial() {
       alluxio.grpc.BackupStatusPRequest result = new alluxio.grpc.BackupStatusPRequest(this);
+      int from_bitField0_ = bitField0_;
+      int to_bitField0_ = 0;
+      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        to_bitField0_ |= 0x00000001;
+      }
+      result.backupId_ = backupId_;
+      result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
@@ -311,6 +386,11 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.BackupStatusPRequest other) {
       if (other == alluxio.grpc.BackupStatusPRequest.getDefaultInstance()) return this;
+      if (other.hasBackupId()) {
+        bitField0_ |= 0x00000001;
+        backupId_ = other.backupId_;
+        onChanged();
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -335,6 +415,83 @@ private static final long serialVersionUID = 0L;
           mergeFrom(parsedMessage);
         }
       }
+      return this;
+    }
+    private int bitField0_;
+
+    private java.lang.Object backupId_ = "";
+    /**
+     * <code>optional string backupId = 1;</code>
+     */
+    public boolean hasBackupId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional string backupId = 1;</code>
+     */
+    public java.lang.String getBackupId() {
+      java.lang.Object ref = backupId_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          backupId_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string backupId = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getBackupIdBytes() {
+      java.lang.Object ref = backupId_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        backupId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string backupId = 1;</code>
+     */
+    public Builder setBackupId(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+      backupId_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string backupId = 1;</code>
+     */
+    public Builder clearBackupId() {
+      bitField0_ = (bitField0_ & ~0x00000001);
+      backupId_ = getDefaultInstance().getBackupId();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string backupId = 1;</code>
+     */
+    public Builder setBackupIdBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+      backupId_ = value;
+      onChanged();
       return this;
     }
     public final Builder setUnknownFields(

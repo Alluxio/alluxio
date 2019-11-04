@@ -20,6 +20,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BackupException;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupState;
+import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.CopycatMessageServerGrpc;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
@@ -149,7 +150,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
   }
 
   @Override
-  public BackupStatus getBackupStatus() throws AlluxioException {
+  public BackupStatus getBackupStatus(BackupStatusPRequest statusPRequest) throws AlluxioException {
     throw new IllegalStateException("Backup-worker role can't serve RPCs");
   }
 
@@ -184,7 +185,8 @@ public class BackupWorkerRole extends AbstractBackupRole {
 
     // Reset backup tracker.
     mBackupTracker.reset();
-    mBackupTracker.updateState(BackupState.Initiating);
+    // Update current backup status with given backup id.
+    mBackupTracker.update(new BackupStatus(requestMsg.getBackupId(), BackupState.Initiating));
     mBackupTracker.updateHostname(NetworkAddressUtils.getLocalHostName(
         (int) ServerConfiguration.global().getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
 
