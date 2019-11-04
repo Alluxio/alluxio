@@ -18,7 +18,7 @@ import java.io.Serializable;
 import java.util.Collection;
 
 /**
- * The Plan Description. Plan can currently be either a Task or a Job.
+ * The Job Info. {@link JobInfo} can currently be either a {@link TaskInfo} or a {@link PlanInfo}.
  */
 public interface JobInfo {
 
