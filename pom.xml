@@ -1,4 +1,4 @@
-<!--
+e!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
     (the "License"). You may not use this work except in compliance with the License, which is
@@ -920,7 +920,7 @@
             <forkCount>${surefire.forkCount}</forkCount>
             <rerunFailingTestsCount>${surefire.rerunFailingTestsCount}</rerunFailingTestsCount>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
-            <reuseForks>false</reuseForks>
+            <reuseForks>true</reuseForks>
             <runOrder>alphabetical</runOrder>
             <systemPropertyVariables>
               <alluxio.test.mode>true</alluxio.test.mode>
