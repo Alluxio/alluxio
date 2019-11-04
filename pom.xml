@@ -1050,10 +1050,10 @@
         </executions>
       </plugin>
 
-      <!-- FindBugs -->
+      <!-- SpotBugs -->
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>findbugs-maven-plugin</artifactId>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
         <configuration>
           <excludeFilterFile>${build.path}/findbugs/findbugs-exclude.xml</excludeFilterFile>
           <!--
@@ -1064,7 +1064,7 @@
           <effort>Max</effort>
           <failOnError>true</failOnError>
           <threshold>Low</threshold>
-          <findbugsXmlOutput>true</findbugsXmlOutput>
+          <spotbugsXmlOutput>true</spotbugsXmlOutput>
           <xmlOutput>true</xmlOutput>
         </configuration>
         <executions>
