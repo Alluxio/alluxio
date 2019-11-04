@@ -187,8 +187,7 @@ public final class PlanInfo implements JobInfo {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mId, mErrorMessage, mChildren, mStatus, mResult,
-        mLastUpdated);
+    return Objects.hashCode(mId, mErrorMessage, mChildren, mStatus, mResult, mLastUpdated);
   }
 
   @Override
