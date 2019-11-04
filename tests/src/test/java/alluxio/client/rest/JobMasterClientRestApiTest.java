@@ -16,7 +16,6 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
 import alluxio.job.SleepJobConfig;
-import alluxio.job.wire.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
@@ -115,10 +114,10 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
     TestCaseOptions options = TestCaseOptions.defaults().setPrettyPrint(true);
     String result = new TestCase(mHostname, mPort, getEndpoint(ServiceConstants.GET_STATUS),
         params, HttpMethod.GET, null, options).call();
-    TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {};
+    TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>(){};
     HashMap<String, Object> jobInfo = new ObjectMapper().readValue(result, typeRef);
     Assert.assertEquals(jobId, jobInfo.get("id"));
-    Assert.assertEquals(1, ((Collection)jobInfo.get("children")).size());
+    Assert.assertEquals(1, ((Collection) jobInfo.get("children")).size());
   }
 
   private long startJob(JobConfig config) throws Exception {
