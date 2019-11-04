@@ -65,24 +65,24 @@ public class JobServiceMetricsCommand {
         JobServiceSummary.RECENT_LENGTH));
 
     List<JobInfo> lastActivities = jobServiceSummary.getRecentActivities();
-    printPlanInfos(lastActivities);
+    printJobInfos(lastActivities);
 
     mPrintStream.println(String.format("%s Most Recently Failed Jobs:",
         JobServiceSummary.RECENT_LENGTH));
 
     List<JobInfo> lastFailures = jobServiceSummary.getRecentFailures();
-    printPlanInfos(lastFailures);
+    printJobInfos(lastFailures);
 
     mPrintStream.println(String.format("%s Longest Running Jobs:",
         JobServiceSummary.RECENT_LENGTH));
 
     List<JobInfo> longestRunning = jobServiceSummary.getLongestRunning();
-    printPlanInfos(longestRunning);
+    printJobInfos(longestRunning);
 
     return 0;
   }
 
-  private void printPlanInfos(List<JobInfo> jobInfos) {
+  private void printJobInfos(List<JobInfo> jobInfos) {
     for (JobInfo jobInfo : jobInfos) {
       mPrintStream.print(String.format("Timestamp: %-30s",
           CommonUtils.convertMsToDate(jobInfo.getLastUpdated(), mDateFormatPattern)));

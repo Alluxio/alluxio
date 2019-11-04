@@ -69,7 +69,7 @@ public interface JobInfo {
   String getErrorMessage();
 
   /**
-   * @return proto representation of the plan info
+   * @return proto representation of the job info
    * @throws IOException if serialization fails
    */
   @Nonnull

@@ -16,7 +16,7 @@ import alluxio.RestUtils;
 import alluxio.conf.ServerConfiguration;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
-import alluxio.job.wire.PlanInfo;
+import alluxio.job.wire.JobInfo;
 import alluxio.master.AlluxioJobMasterProcess;
 import alluxio.web.JobMasterWebServer;
 
@@ -112,9 +112,9 @@ public final class JobMasterClientRestServiceHandler {
   @Path(ServiceConstants.GET_STATUS)
   @JacksonFeatures(serializationEnable = {SerializationFeature.INDENT_OUTPUT})
   public Response getStatus(@QueryParam("jobId") final long jobId) {
-    return RestUtils.call(new RestUtils.RestCallable<PlanInfo>() {
+    return RestUtils.call(new RestUtils.RestCallable<JobInfo>() {
       @Override
-      public PlanInfo call() throws Exception {
+      public JobInfo call() throws Exception {
         return mJobMaster.getStatus(jobId);
       }
     }, ServerConfiguration.global());

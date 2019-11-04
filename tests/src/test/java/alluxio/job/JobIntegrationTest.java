@@ -17,7 +17,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.job.util.JobTestUtils;
-import alluxio.job.wire.PlanInfo;
+import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
@@ -72,22 +72,22 @@ public abstract class JobIntegrationTest extends BaseIntegrationTest {
     mLocalAlluxioJobCluster.stop();
   }
 
-  protected PlanInfo waitForJobToFinish(final long jobId)
+  protected JobInfo waitForJobToFinish(final long jobId)
       throws InterruptedException, TimeoutException {
     return JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.COMPLETED);
   }
 
-  protected PlanInfo waitForJobFailure(final long jobId)
+  protected JobInfo waitForJobFailure(final long jobId)
       throws InterruptedException, TimeoutException {
     return JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.FAILED);
   }
 
-  protected PlanInfo waitForJobCancelled(final long jobId)
+  protected JobInfo waitForJobCancelled(final long jobId)
       throws InterruptedException, TimeoutException {
     return JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.CANCELED);
   }
 
-  protected PlanInfo waitForJobRunning(final long jobId)
+  protected JobInfo waitForJobRunning(final long jobId)
       throws InterruptedException, TimeoutException {
     return JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.RUNNING);
   }

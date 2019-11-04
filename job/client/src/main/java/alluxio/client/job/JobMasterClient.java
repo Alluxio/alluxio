@@ -51,12 +51,12 @@ public interface JobMasterClient extends Client {
   void cancel(long id) throws IOException;
 
   /**
-   * Gets the status of the given plan.
+   * Gets the status of the given job id.
    *
-   * @param id the plan id
-   * @return the plan information
+   * @param id the job id
+   * @return the job information
    */
-  JobInfo getStatus(long id) throws IOException;
+  JobInfo getJobStatus(long id) throws IOException;
 
   /**
    * Gets the job service summary.

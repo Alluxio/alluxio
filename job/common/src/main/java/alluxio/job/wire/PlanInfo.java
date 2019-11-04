@@ -61,7 +61,7 @@ public final class PlanInfo implements JobInfo {
   }
 
   /**
-   * Constructs the job info from the job master's internal representation of job info.
+   * Constructs the plan info from the job master's internal representation of job info.
    *
    * @param jobInfo the job master's internal job info
    */

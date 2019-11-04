@@ -118,21 +118,21 @@ public final class JobServiceSummary {
   }
 
   /**
-   * @return collection of {@link PlanInfo} where the status was most recently updated
+   * @return collection of {@link JobInfo} where the status was most recently updated
    */
   public List<JobInfo> getRecentActivities() {
     return Collections.unmodifiableList(mRecentActivities);
   }
 
   /**
-   * @return collection of {@link PlanInfo} that have most recently failed
+   * @return collection of {@link JobInfo} that have most recently failed
    */
   public List<JobInfo> getRecentFailures() {
     return Collections.unmodifiableList(mRecentFailures);
   }
 
   /**
-   * @return collection of {@link PlanInfo}
+   * @return collection of {@link JobInfo}
    */
   public List<JobInfo> getLongestRunning() {
     return Collections.unmodifiableList(mLongestRunning);

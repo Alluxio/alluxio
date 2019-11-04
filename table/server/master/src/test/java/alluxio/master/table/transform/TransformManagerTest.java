@@ -234,7 +234,7 @@ public class TransformManagerTest {
   @Test
   public void jobMasterRestart() throws Exception {
     long jobId = transform(TABLE1, DEFINITION1);
-    Mockito.when(mMockJobMasterClient.getStatus(jobId)).thenThrow(new NotFoundException("none"));
+    Mockito.when(mMockJobMasterClient.getJobStatus(jobId)).thenThrow(new NotFoundException("none"));
     heartbeat();
     assertEquals(1, mTableMaster.getAllTransformJobInfo().size());
     checkTransformJobInfo(mTableMaster.getTransformJobInfo(jobId), TABLE1, DEFINITION1, jobId,
@@ -321,7 +321,7 @@ public class TransformManagerTest {
       throws Exception {
     // Mock job status.
     PlanInfo jobInfo = new PlanInfo(jobId, "test", status, 0, error);
-    Mockito.when(mMockJobMasterClient.getStatus(jobId)).thenReturn(jobInfo);
+    Mockito.when(mMockJobMasterClient.getJobStatus(jobId)).thenReturn(jobInfo);
   }
 
   private void heartbeat() throws Exception {

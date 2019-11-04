@@ -129,7 +129,7 @@ service JobMasterClientService {
   /**
    * Gets the status of the given job.
    */
-  rpc GetStatus(GetJobStatusPRequest) returns (GetJobStatusPResponse);
+  rpc GetJobStatus(GetJobStatusPRequest) returns (GetJobStatusPResponse);
 
   /**
    * Gets the summary of the job service.

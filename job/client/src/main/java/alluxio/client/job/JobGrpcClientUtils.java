@@ -76,10 +76,10 @@ public final class JobGrpcClientUtils {
   }
 
   /**
-   * @param planId the ID of the plan to wait for
-   * @return the plan info once it finishes or null if the status cannot be fetched
+   * @param jobId the ID of the job to wait for
+   * @return the job info once it finishes or null if the status cannot be fetched
    */
-  private static JobInfo waitFor(final long planId, AlluxioConfiguration alluxioConf)
+  private static JobInfo waitFor(final long jobId, AlluxioConfiguration alluxioConf)
       throws InterruptedException {
     final AtomicReference<JobInfo> finishedPlanInfo = new AtomicReference<>();
     try (final JobMasterClient client =
@@ -88,9 +88,9 @@ public final class JobGrpcClientUtils {
       CommonUtils.waitFor("Job to finish", ()-> {
         JobInfo jobInfo;
         try {
-          jobInfo = client.getStatus(planId);
+          jobInfo = client.getJobStatus(jobId);
         } catch (Exception e) {
-          LOG.warn("Failed to get status for job (jobId={})", planId, e);
+          LOG.warn("Failed to get status for job (jobId={})", jobId, e);
           return true;
         }
         switch (jobInfo.getStatus()) {

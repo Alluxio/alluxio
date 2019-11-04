@@ -4287,7 +4287,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         long jobId = job.getId();
         JobMasterClient client = mJobMasterClientPool.acquire();
         try {
-          JobInfo jobInfo = client.getStatus(jobId);
+          JobInfo jobInfo = client.getJobStatus(jobId);
           switch (jobInfo.getStatus()) {
             case RUNNING:
               // fall through

@@ -1,18 +1,11 @@
 package alluxio.grpc;
 
 import static io.grpc.MethodDescriptor.generateFullMethodName;
-import static io.grpc.stub.ClientCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ClientCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ClientCalls.asyncUnaryCall;
 import static io.grpc.stub.ClientCalls.blockingServerStreamingCall;
 import static io.grpc.stub.ClientCalls.blockingUnaryCall;
 import static io.grpc.stub.ClientCalls.futureUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncBidiStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncClientStreamingCall;
-import static io.grpc.stub.ServerCalls.asyncServerStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnaryCall;
-import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
 import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
 /**
@@ -239,8 +232,8 @@ public final class JobMasterClientServiceGrpc {
      * Gets the status of the given job.
      * </pre>
      */
-    public void getStatus(alluxio.grpc.GetJobStatusPRequest request,
-        io.grpc.stub.StreamObserver<alluxio.grpc.GetJobStatusPResponse> responseObserver) {
+    public void getJobStatus(alluxio.grpc.GetJobStatusPRequest request,
+                             io.grpc.stub.StreamObserver<alluxio.grpc.GetJobStatusPResponse> responseObserver) {
       asyncUnimplementedUnaryCall(getGetStatusMethod(), responseObserver);
     }
 
@@ -440,7 +433,7 @@ public final class JobMasterClientServiceGrpc {
      * Gets the status of the given job.
      * </pre>
      */
-    public alluxio.grpc.GetJobStatusPResponse getStatus(alluxio.grpc.GetJobStatusPRequest request) {
+    public alluxio.grpc.GetJobStatusPResponse getJobStatus(alluxio.grpc.GetJobStatusPRequest request) {
       return blockingUnaryCall(
           getChannel(), getGetStatusMethod(), getCallOptions(), request);
     }
@@ -590,7 +583,7 @@ public final class JobMasterClientServiceGrpc {
               (io.grpc.stub.StreamObserver<alluxio.grpc.CancelPResponse>) responseObserver);
           break;
         case METHODID_GET_STATUS:
-          serviceImpl.getStatus((alluxio.grpc.GetJobStatusPRequest) request,
+          serviceImpl.getJobStatus((alluxio.grpc.GetJobStatusPRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.GetJobStatusPResponse>) responseObserver);
           break;
         case METHODID_GET_JOB_SERVICE_SUMMARY:

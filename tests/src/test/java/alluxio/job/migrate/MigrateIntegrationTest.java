@@ -18,6 +18,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
+import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.PlanInfo;
 
 import org.apache.commons.io.IOUtils;
@@ -64,7 +65,7 @@ public final class MigrateIntegrationTest extends JobIntegrationTest {
     long jobId = mJobMaster
         .run(new MigrateConfig(source, destination, WriteType.CACHE_THROUGH.toString(), true,
             mDeleteSource));
-    PlanInfo info = waitForJobToFinish(jobId);
+    JobInfo info = waitForJobToFinish(jobId);
     if (mDeleteSource) {
       Assert.assertFalse(mFileSystem.exists(new AlluxioURI(source)));
     } else {

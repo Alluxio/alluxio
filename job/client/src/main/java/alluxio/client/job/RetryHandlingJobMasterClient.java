@@ -82,10 +82,10 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public JobInfo getStatus(final long id) throws IOException {
+  public JobInfo getJobStatus(final long id) throws IOException {
     return new PlanInfo(retryRPC(new RpcCallable<alluxio.grpc.JobInfo>() {
       public alluxio.grpc.JobInfo call() throws StatusRuntimeException {
-        return mClient.getStatus(GetJobStatusPRequest.newBuilder().setId(id).build())
+        return mClient.getJobStatus(GetJobStatusPRequest.newBuilder().setId(id).build())
             .getPlanInfo();
       }
     }));
