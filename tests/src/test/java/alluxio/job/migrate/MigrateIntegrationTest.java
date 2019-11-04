@@ -19,7 +19,6 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
 import alluxio.job.wire.JobInfo;
-import alluxio.job.wire.PlanInfo;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;

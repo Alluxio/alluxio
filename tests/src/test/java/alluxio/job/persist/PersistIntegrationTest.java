@@ -25,7 +25,6 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
 import alluxio.job.wire.JobInfo;
-import alluxio.job.wire.PlanInfo;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.job.JobMaster;
 import alluxio.resource.CloseableResource;
