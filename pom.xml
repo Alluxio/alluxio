@@ -925,6 +925,7 @@
             <systemPropertyVariables>
               <alluxio.test.mode>true</alluxio.test.mode>
             </systemPropertyVariables>
+            <trimStackTrace>false</trimStackTrace>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
         </plugin>
