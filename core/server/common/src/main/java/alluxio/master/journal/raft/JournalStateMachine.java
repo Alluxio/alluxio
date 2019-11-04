@@ -14,7 +14,7 @@ package alluxio.master.journal.raft;
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.master.journal.AdvanceFuture;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
@@ -243,13 +243,13 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
   }
 
   /**
-   * Advances masters to given sequence.
+   * Initiates catching up of masters to given sequence.
    *
    * @param sequence the target sequence
-   * @return the future to track when applying is done
+   * @return the future to track when catching up is done
    */
-  public AdvanceFuture advance(long sequence) {
-    return mJournalApplier.advance(sequence);
+  public CatchupFuture catchup(long sequence) {
+    return mJournalApplier.catchup(sequence);
   }
 
   private List<Journaled> getStateMachines() {

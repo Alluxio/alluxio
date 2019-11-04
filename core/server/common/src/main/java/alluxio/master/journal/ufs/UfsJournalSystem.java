@@ -14,7 +14,7 @@ package alluxio.master.journal.ufs;
 import alluxio.Constants;
 import alluxio.master.Master;
 import alluxio.master.journal.AbstractJournalSystem;
-import alluxio.master.journal.AdvanceFuture;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.sink.JournalSink;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
@@ -121,14 +121,14 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public AdvanceFuture advance(Map<String, Long> masterStateMap) throws IOException {
-    List<AdvanceFuture> futures = new ArrayList<>(masterStateMap.size());
+  public CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) throws IOException {
+    List<CatchupFuture> futures = new ArrayList<>(journalSequenceNumbers.size());
     for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
-      long resumeSequence = masterStateMap.get(journalEntry.getKey());
+      long resumeSequence = journalSequenceNumbers.get(journalEntry.getKey());
       LOG.info("Advancing journal :{} to sequence: {}", journalEntry.getKey(), resumeSequence);
-      futures.add(journalEntry.getValue().advance(resumeSequence));
+      futures.add(journalEntry.getValue().catchup(resumeSequence));
     }
-    return AdvanceFuture.allOf(futures);
+    return CatchupFuture.allOf(futures);
   }
 
   @Override

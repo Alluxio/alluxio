@@ -14,7 +14,7 @@ package alluxio.master.journal.raft;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.NoopMaster;
-import alluxio.master.journal.AdvanceFuture;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.proto.journal.File;
@@ -89,7 +89,7 @@ public class RaftJournalTest {
     final long advanceIndex = 5;
     Map<String, Long> backupSequences = new HashMap<>();
     backupSequences.put("FileSystemMaster", advanceIndex);
-    AdvanceFuture advanceFuture = mFollowerJournalSystem.advance(backupSequences);
+    CatchupFuture advanceFuture = mFollowerJournalSystem.catchup(backupSequences);
 
     // Create entries on the leader journal context.
     // These will be replicated to follower journal context.
@@ -152,7 +152,7 @@ public class RaftJournalTest {
     // Advance follower journal system to target-index:(fileCount * 2) - 1.
     Map<String, Long> backupSequences = new HashMap<>();
     backupSequences.put("FileSystemMaster", (long) (entryBatchCount * 2) - 1);
-    AdvanceFuture advanceFuture = mFollowerJournalSystem.advance(backupSequences);
+    CatchupFuture advanceFuture = mFollowerJournalSystem.catchup(backupSequences);
 
     // Create next batch of entries on the leader journal context.
     try (JournalContext journalContext =
@@ -192,10 +192,10 @@ public class RaftJournalTest {
     Map<String, Long> backupSequences = new HashMap<>();
     // Advance follower journal system to first batch of entries.
     backupSequences.put("FileSystemMaster", (long) entryBatchCount - 1);
-    mFollowerJournalSystem.advance(backupSequences).waitTermination();
+    mFollowerJournalSystem.catchup(backupSequences).waitTermination();
     // Advance follower journal system to second batch of entries.
     backupSequences.put("FileSystemMaster", (long) (2 * entryBatchCount) - 1);
-    mFollowerJournalSystem.advance(backupSequences).waitTermination();
+    mFollowerJournalSystem.catchup(backupSequences).waitTermination();
 
     // Verify master has caught up after advancing.
     Assert.assertEquals(entryBatchCount * 2, countingMaster.getApplyCount());
@@ -246,7 +246,7 @@ public class RaftJournalTest {
     final long advanceIndex = 5;
     Map<String, Long> backupSequences = new HashMap<>();
     backupSequences.put("FileSystemMaster", advanceIndex);
-    AdvanceFuture advanceFuture = mFollowerJournalSystem.advance(backupSequences);
+    CatchupFuture advanceFuture = mFollowerJournalSystem.catchup(backupSequences);
 
     // Create entries on the leader journal context.
     // These will be replicated to follower journal context.
@@ -289,7 +289,7 @@ public class RaftJournalTest {
     final long advanceIndex = entryCount - 5;
     Map<String, Long> backupSequences = new HashMap<>();
     backupSequences.put("FileSystemMaster", advanceIndex);
-    AdvanceFuture advanceFuture = mFollowerJournalSystem.advance(backupSequences);
+    CatchupFuture advanceFuture = mFollowerJournalSystem.catchup(backupSequences);
 
     // Create entries in parallel on the leader journal context.
     // These will be replicated to follower journal context.

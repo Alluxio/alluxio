@@ -23,7 +23,7 @@ import alluxio.grpc.QuorumServerState;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;
-import alluxio.master.journal.AdvanceFuture;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.raft.transport.CopycatGrpcTransport;
@@ -395,12 +395,12 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public synchronized AdvanceFuture advance(Map<String, Long> journalSequences) {
+  public synchronized CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) {
     // Given sequences should be the same for each master for embedded journal.
     List<Long> distinctSequences =
-        journalSequences.values().stream().distinct().collect(Collectors.toList());
-    Preconditions.checkState(distinctSequences.size() == 1, "incorrect state map");
-    return mStateMachine.advance(distinctSequences.get(0));
+        journalSequenceNumbers.values().stream().distinct().collect(Collectors.toList());
+    Preconditions.checkState(distinctSequences.size() == 1, "incorrect journal sequences");
+    return mStateMachine.catchup(distinctSequences.get(0));
   }
 
   @Override

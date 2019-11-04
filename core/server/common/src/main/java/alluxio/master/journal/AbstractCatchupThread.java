@@ -17,39 +17,39 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Abstract helper for tracking and terminating a thread for journal advance task.
+ * Abstract helper for tracking and terminating a thread for journal catch-up task.
  */
-public abstract class AbstractAdvanceThread extends Thread {
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractAdvanceThread.class);
+public abstract class AbstractCatchupThread extends Thread {
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractCatchupThread.class);
 
   @Override
   public void run() {
     try {
-      runAdvance();
+      runCatchup();
     } catch (Exception e) {
-      ProcessUtils.fatalError(LOG, e, "Advance thread is failed.");
+      ProcessUtils.fatalError(LOG, e, "Catch-up thread is failed.");
     }
   }
 
   /**
-   * Cancels advancing gracefully.
+   * Cancels catching up gracefully.
    */
   public abstract void cancel();
 
   /**
-   * Waits until advancing is finished (completed/cancelled).
+   * Waits until catching up is finished (completed/cancelled).
    */
   public void waitTermination() {
     try {
       // Wait until thread terminates or timeout elapses.
       join(0);
     } catch (Exception e) {
-      ProcessUtils.fatalError(LOG, e, "Advance task failed.");
+      ProcessUtils.fatalError(LOG, e, "Catch-up task failed.");
     }
   }
 
   /**
-   * Does the work of advancing.
+   * Does the work of catching up.
    */
-  protected abstract void runAdvance();
+  protected abstract void runCatchup();
 }

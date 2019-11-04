@@ -122,7 +122,7 @@ public final class UfsJournalTest {
     mJournal.write(Journal.JournalEntry.getDefaultInstance()); // seq-4
     mJournal.flush();
     // Resume until sequence-1.
-    secondaryJournal.advance(1).waitTermination();
+    secondaryJournal.catchup(1).waitTermination();
     // Entries still reside in an incomplete journal file.
     // After backup, we should have read only up to sequence-1.
     Assert.assertEquals(2, countingMaster.getApplyCount());
@@ -196,10 +196,10 @@ public final class UfsJournalTest {
     Assert.assertEquals(0, countingMaster.getApplyCount());
 
     // Advance follower journal system to first batch of entries.
-    secondaryJournal.advance(entryBatchCount - 1).waitTermination();
+    secondaryJournal.catchup(entryBatchCount - 1).waitTermination();
     Assert.assertEquals(entryBatchCount, countingMaster.getApplyCount());
     // Advance follower journal system to second batch of entries.
-    secondaryJournal.advance((2 * entryBatchCount) - 1).waitTermination();
+    secondaryJournal.catchup((2 * entryBatchCount) - 1).waitTermination();
     Assert.assertEquals(2 * entryBatchCount, countingMaster.getApplyCount());
   }
 
@@ -230,7 +230,7 @@ public final class UfsJournalTest {
     Assert.assertEquals(0, countingMaster.getApplyCount());
 
     // Initiate advance.
-    secondaryJournal.advance(entryCount - 2);
+    secondaryJournal.catchup(entryCount - 2);
 
     // Gain primacy.
     secondaryJournal.gainPrimacy();
@@ -265,7 +265,7 @@ public final class UfsJournalTest {
     Assert.assertEquals(0, countingMaster.getApplyCount());
 
     // Initiate and wait for advance.
-    secondaryJournal.advance(entryCount - 2).waitTermination();
+    secondaryJournal.catchup(entryCount - 2).waitTermination();
     Assert.assertEquals(entryCount - 1, countingMaster.getApplyCount());
 
     // Gain primacy.

@@ -29,7 +29,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
-import alluxio.master.journal.AdvanceFuture;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.raft.transport.CopycatGrpcClientConnection;
 import alluxio.master.journal.raft.transport.CopycatGrpcConnection;
 import alluxio.retry.ExponentialBackoffRetry;
@@ -202,15 +202,16 @@ public class BackupWorkerRole extends AbstractBackupRole {
       // Mark state as transitioning.
       mBackupTracker.updateState(BackupState.Transitioning);
       try {
-        LOG.info("Advancing journals to consistent sequences before starting backup. {}",
+        LOG.info(
+            "Initiating catching up of journals to consistent sequences before starting backup. {}",
             requestMsg.getJournalSequences());
-        AdvanceFuture advanceFuture = mJournalSystem.advance(requestMsg.getJournalSequences());
-        CompletableFuture.runAsync(() -> advanceFuture.waitTermination())
+        CatchupFuture catchupFuture = mJournalSystem.catchup(requestMsg.getJournalSequences());
+        CompletableFuture.runAsync(() -> catchupFuture.waitTermination())
             .get(BACKUP_ABORT_AFTER_TRANSITION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
-        mBackupTracker.updateError(new BackupException("Failed to advance journals.", e));
+        mBackupTracker.updateError(new BackupException("Failed to catch-up journals.", e));
         // Don't resume journals if interrupted.
-        // Advance future can be interrupted only when master becomes primary during backup.
+        // Catch-up future can be interrupted only when master becomes primary during backup.
         if (!(e instanceof InterruptedException)) {
           enforceResumeJournals();
         }

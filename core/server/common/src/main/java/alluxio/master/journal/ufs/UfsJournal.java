@@ -17,8 +17,8 @@ import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
-import alluxio.master.journal.AbstractAdvanceThread;
-import alluxio.master.journal.AdvanceFuture;
+import alluxio.master.journal.AbstractCatchupThread;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
@@ -110,9 +110,9 @@ public class UfsJournal implements Journal {
   private volatile boolean mSuspended = false;
   /** Store where the journal was suspended. */
   private volatile long mSuspendSequence = -1;
-  /** Used to store latest advance task. */
-  private volatile AbstractAdvanceThread mAdvanceTask;
-  /** Used to stop catching up when advance is cancelled.  */
+  /** Used to store latest catch-up task. */
+  private volatile AbstractCatchupThread mCatchupThread;
+  /** Used to stop catching up when cancellation requested.  */
   private volatile boolean mStopCatchingUp = false;
 
   private enum State {
@@ -281,30 +281,30 @@ public class UfsJournal implements Journal {
   }
 
   /**
-   * Advances the journal up to given sequence.
+   * Initiates catching up of the journal up to given sequence.
    * Note: Journal should have been suspended prior to calling this.
    *
-   * @param sequence sequence to advance
-   * @return the advance task
+   * @param sequence sequence to catch up
+   * @return the catch-up task
    * @throws IOException
    */
-  public synchronized AdvanceFuture advance(long sequence) throws IOException {
+  public synchronized CatchupFuture catchup(long sequence) throws IOException {
     Preconditions.checkState(mSuspended, "journal is not suspended");
     Preconditions.checkState(mState == State.SECONDARY, "unexpected state " + mState);
     Preconditions.checkState(mTailerThread == null, "tailer is not null");
-    Preconditions.checkState(sequence >= mSuspendSequence, "can't advance before suspend");
-    Preconditions.checkState(mAdvanceTask == null || !mAdvanceTask.isAlive(),
-        "Advance task active");
+    Preconditions.checkState(sequence >= mSuspendSequence, "can't catch-up before suspend");
+    Preconditions.checkState(mCatchupThread == null || !mCatchupThread.isAlive(),
+        "Catch-up thread active");
 
     // Return completed if already at target.
     if (sequence == mSuspendSequence) {
-      return AdvanceFuture.completed();
+      return CatchupFuture.completed();
     }
 
     // Create an async task to catch up to target sequence.
-    mAdvanceTask = new UfsJournalAdvanceThread(mSuspendSequence + 1, sequence);
-    mAdvanceTask.start();
-    return new AdvanceFuture(mAdvanceTask);
+    mCatchupThread = new UfsJournalCatchupThread(mSuspendSequence + 1, sequence);
+    mCatchupThread.start();
+    return new CatchupFuture(mCatchupThread);
   }
 
   /**
@@ -318,10 +318,10 @@ public class UfsJournal implements Journal {
     Preconditions.checkState(mState == State.SECONDARY, "unexpected state " + mState);
     Preconditions.checkState(mTailerThread == null, "tailer is not null");
 
-    // Cancel and wait for active advance task.
-    if (mAdvanceTask != null && mAdvanceTask.isAlive()) {
-      mAdvanceTask.cancel();
-      mAdvanceTask.waitTermination();
+    // Cancel and wait for active catch-up thread.
+    if (mCatchupThread != null && mCatchupThread.isAlive()) {
+      mCatchupThread.cancel();
+      mCatchupThread.waitTermination();
       mStopCatchingUp = false;
     }
 
@@ -566,24 +566,24 @@ public class UfsJournal implements Journal {
   }
 
   /**
-   * UFS implementation for {@link AbstractAdvanceThread}.
+   * UFS implementation for {@link AbstractCatchupThread}.
    */
-  class UfsJournalAdvanceThread extends AbstractAdvanceThread {
+  class UfsJournalCatchupThread extends AbstractCatchupThread {
     /** Where to start catching up. */
     private long mCatchUpStartSequence;
     /** Where to end catching up. */
     private long mCatchUpEndSequence;
 
     /**
-     * Creates UFS advance thread for given range.
+     * Creates UFS catch-up thread for given range.
      *
      * @param start start sequence (inclusive)
      * @param end end sequence (inclusive)
      */
-    public UfsJournalAdvanceThread(long start, long end) {
+    public UfsJournalCatchupThread(long start, long end) {
       mCatchUpStartSequence = start;
       mCatchUpEndSequence = end;
-      setName(String.format("ufs-advancer-%s", mMaster.getName()));
+      setName(String.format("ufs-catchup-thread-%s", mMaster.getName()));
     }
 
     @Override
@@ -592,7 +592,7 @@ public class UfsJournal implements Journal {
       mStopCatchingUp = true;
     }
 
-    protected void runAdvance() {
+    protected void runCatchup() {
       // Update suspended sequence after catch-up is finished.
       mSuspendSequence = catchUp(mCatchUpStartSequence, mCatchUpEndSequence) - 1;
     }

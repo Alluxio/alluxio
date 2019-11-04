@@ -155,14 +155,14 @@ public interface JournalSystem {
   void resume() throws IOException;
 
   /**
-   * Advances journals to given sequences.
+   * Initiates a catching up of journals to given sequences.
    * Note: Journal system should have been suspended prior to calling this.
    *
-   * @param journalSequences sequence to advance per each journal
-   * @return the future to track when applying is completed
+   * @param journalSequenceNumbers sequence to advance per each journal
+   * @return the future to track when catching up is completed
    * @throws IOException
    */
-  AdvanceFuture advance(Map<String, Long> journalSequences) throws IOException;
+  CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) throws IOException;
 
   /**
    * Used to get the current state from a leader journal system.

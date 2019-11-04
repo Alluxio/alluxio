@@ -12,8 +12,8 @@
 package alluxio.master.journal.raft;
 
 import alluxio.ProcessUtils;
-import alluxio.master.journal.AbstractAdvanceThread;
-import alluxio.master.journal.AdvanceFuture;
+import alluxio.master.journal.AbstractCatchupThread;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
@@ -69,8 +69,8 @@ public class BufferedJournalApplier {
   /** Buffer to use during suspend period. */
   private Queue<Journal.JournalEntry> mSuspendBuffer = new ConcurrentLinkedQueue();
 
-  /** Used to store latest advance task. */
-  private AbstractAdvanceThread mAdvanceTask;
+  /** Used to store latest catch-up thread. */
+  private AbstractCatchupThread mCatchupThread;
 
   /** Used to synchronize buffer state. */
   private ReentrantLock mStateLock = new ReentrantLock(true);
@@ -96,7 +96,7 @@ public class BufferedJournalApplier {
   public void processJournalEntry(Journal.JournalEntry journalEntry) {
     try (LockResource stateLock = new LockResource(mStateLock)) {
       if (mSuspended) {
-        // New entry submissions are monitored by advancer tasks.
+        // New entry submissions are monitored by catch-up threads.
         synchronized (mSuspendBuffer) {
           mSuspendBuffer.offer(journalEntry);
           mSuspendBuffer.notifyAll();
@@ -120,7 +120,7 @@ public class BufferedJournalApplier {
    * Suspend the applier.
    *
    * After this call, journal entries will be buffered until {@link #resume()} or
-   * {@link #advance(long)} is called.
+   * {@link #catchup(long)} is called.
    *
    * @throws IOException
    */
@@ -146,10 +146,10 @@ public class BufferedJournalApplier {
       LOG.info("Resuming state machine.");
     }
 
-    // Cancel advance task if active.
-    if (mAdvanceTask != null && mAdvanceTask.isAlive()) {
-      mAdvanceTask.cancel();
-      mAdvanceTask.waitTermination();
+    // Cancel catching up thread if active.
+    if (mCatchupThread != null && mCatchupThread.isAlive()) {
+      mCatchupThread.cancel();
+      mCatchupThread.waitTermination();
     }
 
     /**
@@ -183,37 +183,38 @@ public class BufferedJournalApplier {
     } finally {
       mSuspended = false;
       mResumeInProgress = false;
-      mAdvanceTask = null;
+      mCatchupThread = null;
       mStateLock.unlock();
     }
   }
 
   /**
-   * Advances the applier to a target sequence. This method leaves the applier in suspended state.
+   * Initiates catching up of the applier to a target sequence.
+   * This method leaves the applier in suspended state.
    *
    * @param sequence target sequence
    * @return the future to track when applier reaches the target sequence
    */
-  public AdvanceFuture advance(long sequence) {
+  public CatchupFuture catchup(long sequence) {
     try (LockResource stateLock = new LockResource(mStateLock)) {
       Preconditions.checkState(mSuspended, "Not suspended");
       Preconditions.checkState(!mResumeInProgress, "Resume in progress");
-      Preconditions.checkState(mAdvanceTask == null || !mAdvanceTask.isAlive(),
-          "Advance task in progress.");
+      Preconditions.checkState(mCatchupThread == null || !mCatchupThread.isAlive(),
+          "Catch-up task in progress.");
       Preconditions.checkState(sequence >= 0, String.format("Invalid sequence: %d", sequence));
       Preconditions.checkState(mLastAppliedSequence <= sequence, String.format(
-          "Can't advance to past. Current: %d, Requested: %d", mLastAppliedSequence, sequence));
-      LOG.info("Advancing state machine to sequence: {}", sequence);
+          "Can't catchup to past. Current: %d, Requested: %d", mLastAppliedSequence, sequence));
+      LOG.info("Catching up state machine to sequence: {}", sequence);
 
       // Complete the request if already at target sequence.
       if (mLastAppliedSequence == sequence) {
-        return AdvanceFuture.completed();
+        return CatchupFuture.completed();
       }
 
-      // Create an async task for advancing to target sequence.
-      mAdvanceTask = new RaftJournalAdvanceThread(sequence);
-      mAdvanceTask.start();
-      return new AdvanceFuture(mAdvanceTask);
+      // Create an async task for catching up to target sequence.
+      mCatchupThread = new RaftJournalCatchupThread(sequence);
+      mCatchupThread.start();
+      return new CatchupFuture(mCatchupThread);
     }
   }
 
@@ -243,22 +244,22 @@ public class BufferedJournalApplier {
   }
 
   /**
-   * RAFT implementation for {@link AbstractAdvanceThread}.
+   * RAFT implementation for {@link AbstractCatchupThread}.
    */
-  class RaftJournalAdvanceThread extends AbstractAdvanceThread {
+  class RaftJournalCatchupThread extends AbstractCatchupThread {
     /** Where to stop catching up. */
     private long mCatchUpEndSequence;
     /** Used to stop catching up early. */
     private boolean mStopCatchingUp = false;
 
     /**
-     * Creates RAFT journal advance thread.
+     * Creates RAFT journal catch-up thread.
      *
      * @param sequence end sequence(inclusive)
      */
-    public RaftJournalAdvanceThread(long sequence) {
+    public RaftJournalCatchupThread(long sequence) {
       mCatchUpEndSequence = sequence;
-      setName(String.format("raft-advancer"));
+      setName(String.format("raft-catchup-thread"));
     }
 
     @Override
@@ -270,7 +271,7 @@ public class BufferedJournalApplier {
       }
     }
 
-    protected void runAdvance() {
+    protected void runCatchup() {
       // Spin for catching up until cancelled.
       while (!mStopCatchingUp && mLastAppliedSequence < mCatchUpEndSequence) {
         // Wait until notified for cancellation or more entries.
@@ -279,7 +280,7 @@ public class BufferedJournalApplier {
             try {
               mSuspendBuffer.wait();
             } catch (InterruptedException e) {
-              throw new RuntimeException("Interrupted while advancing.");
+              throw new RuntimeException("Interrupted while catching up.");
             }
           }
 

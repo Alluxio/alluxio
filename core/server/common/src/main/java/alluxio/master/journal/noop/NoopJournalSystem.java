@@ -12,7 +12,7 @@
 package alluxio.master.journal.noop;
 
 import alluxio.master.Master;
-import alluxio.master.journal.AdvanceFuture;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.sink.JournalSink;
@@ -58,8 +58,8 @@ public final class NoopJournalSystem implements JournalSystem {
   }
 
   @Override
-  public AdvanceFuture advance(Map<String, Long> masterStateMap) {
-    return AdvanceFuture.completed();
+  public CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) {
+    return CatchupFuture.completed();
   }
 
   @Override
