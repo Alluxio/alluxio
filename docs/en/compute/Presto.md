@@ -77,13 +77,14 @@ Create an external Hive table from existing files in Alluxio.
 
 ```
 hive> CREATE TABLE u_user (
-userid INT,
-age INT,
-gender CHAR(1),
-occupation STRING,
-zipcode STRING)
+  userid INT,
+  age INT,
+  gender CHAR(1),
+  occupation STRING,
+  zipcode STRING)
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '|'
+STORED AS TEXTFILE
 LOCATION 'alluxio://master_hostname:port/ml-100k';
 ```
 
