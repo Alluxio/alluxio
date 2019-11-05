@@ -18,7 +18,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class BackupAbortedException extends AlluxioException {
-  private static final long serialVersionUID = 7147533331335543932L;
+  private static final long serialVersionUID = 1391926888728709739L;
 
   /**
    * Constructs a new exception with the specified detail message.
