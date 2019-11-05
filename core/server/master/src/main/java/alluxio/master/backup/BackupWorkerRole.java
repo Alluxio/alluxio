@@ -195,7 +195,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
 
     // Cancel timeout task created by suspend message handler.
     if (!mBackupTimeoutTask.cancel(true)) {
-      mBackupTracker.updateError(new BackupException("Journal has ben resumed due to time-out."));
+      mBackupTracker.updateError(new BackupException("Journal has ben resumed due to a time-out"));
       return;
     }
 
@@ -211,7 +211,8 @@ public class BackupWorkerRole extends AbstractBackupRole {
         CompletableFuture.runAsync(() -> catchupFuture.waitTermination())
             .get(BACKUP_ABORT_AFTER_TRANSITION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
-        mBackupTracker.updateError(new BackupException("Failed to catch-up journals.", e));
+        mBackupTracker.updateError(new BackupException(
+            String.format("Failed to catch-up journals: %s", e.getMessage()), e));
         // Don't resume journals if interrupted.
         // Catch-up future can be interrupted only when master becomes primary during backup.
         if (!(e instanceof InterruptedException)) {
@@ -233,7 +234,8 @@ public class BackupWorkerRole extends AbstractBackupRole {
           LOG.warn("Failed to wait for backup heartbeat completion. ", e);
         }
       } catch (IOException e) {
-        mBackupTracker.updateError(new BackupException("Backup failed at worker.", e));
+        mBackupTracker.updateError(
+            new BackupException(String.format("Backup failed at worker: %s", e.getMessage()), e));
       } finally {
         enforceResumeJournals();
       }

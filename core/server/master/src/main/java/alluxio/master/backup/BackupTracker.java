@@ -62,7 +62,7 @@ public class BackupTracker {
     try (LockResource statusLock = new LockResource(mStatusLock)) {
       // Set error for backup in-progress.
       if (inProgress()) {
-        updateError(new BackupException("Backup reset by tracker."));
+        updateError(new BackupException("Backup reset by tracker"));
       }
       // Reset current backup status.
       mBackupStatus = new BackupStatus(BackupState.None);

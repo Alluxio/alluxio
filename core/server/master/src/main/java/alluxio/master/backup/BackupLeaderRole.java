@@ -250,7 +250,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
           mBackupTracker.updateBackupUri(backupUri);
           mBackupTracker.updateState(BackupState.Completed);
         } catch (IOException e) {
-          mBackupTracker.updateError(new BackupException("Local backup failed.", e));
+          mBackupTracker.updateError(
+              new BackupException(String.format("Local backup failed: %s", e.getMessage()), e));
         }
       }
     });
