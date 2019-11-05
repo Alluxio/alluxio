@@ -145,8 +145,8 @@ public class BackupCommand extends AbstractFsAdminCommand {
         + " directory to back up to can be overridden by specifying a directory here. The directory"
         + " path is relative to the root UFS. To write the backup to the local disk of the primary"
         + " master, use --local and specify a filesystem path. Backing up metadata"
-        + " will be delegated to secondary masters in HA cluster. Use --allow-leader for"
-        + " leader to take the backup when there are no secondaries.(This will pause"
+        + " will be delegated to stand-by masters in HA cluster. Use --allow-leader for"
+        + " leader to take the backup when there are no stand-by masters.(This will pause"
         + " metadata changes during the backup.";
   }
 
