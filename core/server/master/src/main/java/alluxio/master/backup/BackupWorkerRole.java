@@ -92,6 +92,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
    */
   public BackupWorkerRole(CoreMasterContext masterContext) {
     super(masterContext);
+    LOG.info("Creating backup-worker role.");
     // Read properties.
     mBackupHeartbeatIntervalMs =
         ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_HEARTBEAT_INTERVAL);
@@ -99,11 +100,6 @@ public class BackupWorkerRole extends AbstractBackupRole {
         ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MIN);
     mLeaderConnectionIntervalMax =
         ServerConfiguration.getMs(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX);
-  }
-
-  @Override
-  public void start() {
-    LOG.info("Starting backup-worker role.");
     // Submit a task to establish and maintain connection with the leader.
     mExecutorService.submit(() -> {
       establishConnectionToLeader();
@@ -111,8 +107,12 @@ public class BackupWorkerRole extends AbstractBackupRole {
   }
 
   @Override
-  public void stop() throws IOException {
-    LOG.info("Stopping backup-worker role.");
+  public void close() throws IOException {
+    if (mRoleClosed) {
+      return;
+    }
+
+    LOG.info("Closing backup-worker role.");
     // Cancel suspend timeout.
     if (mBackupTimeoutTask != null && !mBackupTimeoutTask.isDone()) {
       mBackupTimeoutTask.cancel(true);
@@ -140,7 +140,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
       mLeaderConnection = null;
     }
     // Stopping the base after because closing connection uses the base executor.
-    super.stop();
+    super.close();
   }
 
   @Override

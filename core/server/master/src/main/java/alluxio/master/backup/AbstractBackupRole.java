@@ -79,6 +79,9 @@ public abstract class AbstractBackupRole implements BackupRole {
   /** Used to track backup status. */
   protected BackupTracker mBackupTracker;
 
+  /** Whether the role is active. */
+  protected boolean mRoleClosed = false;
+
   /**
    * Creates a BackupMaster.
    *
@@ -194,7 +197,7 @@ public abstract class AbstractBackupRole implements BackupRole {
   }
 
   @Override
-  public void stop() throws IOException {
+  public void close() throws IOException {
     // Stop task scheduler.
     if (mTaskScheduler != null) {
       mTaskScheduler.shutdownNow();
@@ -205,5 +208,7 @@ public abstract class AbstractBackupRole implements BackupRole {
     mExecutorService.shutdownNow();
     // Reset backup tracker.
     mBackupTracker.reset();
+    // Mark the role as closed.
+    mRoleClosed = true;
   }
 }

@@ -349,9 +349,6 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         mBackupRole = new BackupWorkerRole(mCoreMasterContext);
       }
     }
-    if (mBackupRole != null) {
-      mBackupRole.start();
-    }
   }
 
   @Override
@@ -361,7 +358,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       mDailyBackup = null;
     }
     if (mBackupRole != null) {
-      mBackupRole.stop();
+      mBackupRole.close();
       mBackupRole = null;
     }
     super.stop();

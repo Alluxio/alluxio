@@ -95,6 +95,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
    */
   public BackupLeaderRole(CoreMasterContext masterContext) {
     super(masterContext);
+    LOG.info("Creating backup-leader role.");
     // Store state lock for pausing state change when necessary.
     mStatePauseLock = masterContext.pauseStateLock();
     // Read properties.
@@ -103,13 +104,12 @@ public class BackupLeaderRole extends AbstractBackupRole {
   }
 
   @Override
-  public void start() throws IOException {
-    LOG.info("Starting backup-leader role.");
-  }
+  public void close() throws IOException {
+    if (mRoleClosed) {
+      return;
+    }
 
-  @Override
-  public void stop() throws IOException {
-    LOG.info("Stopping backup-leader role.");
+    LOG.info("Closing backup-leader role.");
     // Close each backup-worker connection.
     List<CompletableFuture<Void>> closeFutures = new ArrayList<>(mBackupWorkerConnections.size());
     for (Connection conn : mBackupWorkerConnections) {
@@ -129,7 +129,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
       mLocalBackupFuture.cancel(true);
     }
     // Stopping the base after because closing connection uses the base executor.
-    super.stop();
+    super.close();
   }
 
   @Override

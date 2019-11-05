@@ -14,27 +14,13 @@ package alluxio.master.backup;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 
-import java.io.IOException;
+import java.io.Closeable;
 import java.util.Map;
 
 /**
  * Interface for interacting with backup roles.
  */
-public interface BackupRole extends BackupOps {
-
-  /**
-   * Starts the role.
-   *
-   * @throws IOException
-   */
-  void start() throws IOException;
-
-  /**
-   * Stops the role.
-   *
-   * @throws IOException
-   */
-  void stop() throws IOException;
+public interface BackupRole extends BackupOps, Closeable {
 
   /**
    * @return services for the role
