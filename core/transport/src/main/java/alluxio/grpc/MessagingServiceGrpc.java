@@ -17,44 +17,44 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
 /**
  * <pre>
- * The copycat message server service.
+ * The messaging transport service.
  * </pre>
  */
 @javax.annotation.Generated(
     value = "by gRPC proto compiler (version 1.17.1)",
-    comments = "Source: grpc/copycat.proto")
-public final class CopycatMessageServerGrpc {
+    comments = "Source: grpc/messaging_transport.proto")
+public final class MessagingServiceGrpc {
 
-  private CopycatMessageServerGrpc() {}
+  private MessagingServiceGrpc() {}
 
-  public static final String SERVICE_NAME = "alluxio.grpc.copycat.CopycatMessageServer";
+  public static final String SERVICE_NAME = "alluxio.grpc.messaging.MessagingService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CopycatMessage,
-      alluxio.grpc.CopycatMessage> getConnectMethod;
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.TransportMessage,
+      alluxio.grpc.TransportMessage> getConnectMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "connect",
-      requestType = alluxio.grpc.CopycatMessage.class,
-      responseType = alluxio.grpc.CopycatMessage.class,
+      requestType = alluxio.grpc.TransportMessage.class,
+      responseType = alluxio.grpc.TransportMessage.class,
       methodType = io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING)
-  public static io.grpc.MethodDescriptor<alluxio.grpc.CopycatMessage,
-      alluxio.grpc.CopycatMessage> getConnectMethod() {
-    io.grpc.MethodDescriptor<alluxio.grpc.CopycatMessage, alluxio.grpc.CopycatMessage> getConnectMethod;
-    if ((getConnectMethod = CopycatMessageServerGrpc.getConnectMethod) == null) {
-      synchronized (CopycatMessageServerGrpc.class) {
-        if ((getConnectMethod = CopycatMessageServerGrpc.getConnectMethod) == null) {
-          CopycatMessageServerGrpc.getConnectMethod = getConnectMethod = 
-              io.grpc.MethodDescriptor.<alluxio.grpc.CopycatMessage, alluxio.grpc.CopycatMessage>newBuilder()
+  public static io.grpc.MethodDescriptor<alluxio.grpc.TransportMessage,
+      alluxio.grpc.TransportMessage> getConnectMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.TransportMessage, alluxio.grpc.TransportMessage> getConnectMethod;
+    if ((getConnectMethod = MessagingServiceGrpc.getConnectMethod) == null) {
+      synchronized (MessagingServiceGrpc.class) {
+        if ((getConnectMethod = MessagingServiceGrpc.getConnectMethod) == null) {
+          MessagingServiceGrpc.getConnectMethod = getConnectMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.TransportMessage, alluxio.grpc.TransportMessage>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING)
               .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.copycat.CopycatMessageServer", "connect"))
+                  "alluxio.grpc.messaging.MessagingService", "connect"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  alluxio.grpc.CopycatMessage.getDefaultInstance()))
+                  alluxio.grpc.TransportMessage.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  alluxio.grpc.CopycatMessage.getDefaultInstance()))
-                  .setSchemaDescriptor(new CopycatMessageServerMethodDescriptorSupplier("connect"))
+                  alluxio.grpc.TransportMessage.getDefaultInstance()))
+                  .setSchemaDescriptor(new MessagingServiceMethodDescriptorSupplier("connect"))
                   .build();
           }
         }
@@ -65,37 +65,37 @@ public final class CopycatMessageServerGrpc {
   /**
    * Creates a new async stub that supports all call types for the service
    */
-  public static CopycatMessageServerStub newStub(io.grpc.Channel channel) {
-    return new CopycatMessageServerStub(channel);
+  public static MessagingServiceStub newStub(io.grpc.Channel channel) {
+    return new MessagingServiceStub(channel);
   }
 
   /**
    * Creates a new blocking-style stub that supports unary and streaming output calls on the service
    */
-  public static CopycatMessageServerBlockingStub newBlockingStub(
+  public static MessagingServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new CopycatMessageServerBlockingStub(channel);
+    return new MessagingServiceBlockingStub(channel);
   }
 
   /**
    * Creates a new ListenableFuture-style stub that supports unary calls on the service
    */
-  public static CopycatMessageServerFutureStub newFutureStub(
+  public static MessagingServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new CopycatMessageServerFutureStub(channel);
+    return new MessagingServiceFutureStub(channel);
   }
 
   /**
    * <pre>
-   * The copycat message server service.
+   * The messaging transport service.
    * </pre>
    */
-  public static abstract class CopycatMessageServerImplBase implements io.grpc.BindableService {
+  public static abstract class MessagingServiceImplBase implements io.grpc.BindableService {
 
     /**
      */
-    public io.grpc.stub.StreamObserver<alluxio.grpc.CopycatMessage> connect(
-        io.grpc.stub.StreamObserver<alluxio.grpc.CopycatMessage> responseObserver) {
+    public io.grpc.stub.StreamObserver<alluxio.grpc.TransportMessage> connect(
+        io.grpc.stub.StreamObserver<alluxio.grpc.TransportMessage> responseObserver) {
       return asyncUnimplementedStreamingCall(getConnectMethod(), responseObserver);
     }
 
@@ -105,8 +105,8 @@ public final class CopycatMessageServerGrpc {
             getConnectMethod(),
             asyncBidiStreamingCall(
               new MethodHandlers<
-                alluxio.grpc.CopycatMessage,
-                alluxio.grpc.CopycatMessage>(
+                alluxio.grpc.TransportMessage,
+                alluxio.grpc.TransportMessage>(
                   this, METHODID_CONNECT)))
           .build();
     }
@@ -114,29 +114,29 @@ public final class CopycatMessageServerGrpc {
 
   /**
    * <pre>
-   * The copycat message server service.
+   * The messaging transport service.
    * </pre>
    */
-  public static final class CopycatMessageServerStub extends io.grpc.stub.AbstractStub<CopycatMessageServerStub> {
-    private CopycatMessageServerStub(io.grpc.Channel channel) {
+  public static final class MessagingServiceStub extends io.grpc.stub.AbstractStub<MessagingServiceStub> {
+    private MessagingServiceStub(io.grpc.Channel channel) {
       super(channel);
     }
 
-    private CopycatMessageServerStub(io.grpc.Channel channel,
+    private MessagingServiceStub(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected CopycatMessageServerStub build(io.grpc.Channel channel,
+    protected MessagingServiceStub build(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
-      return new CopycatMessageServerStub(channel, callOptions);
+      return new MessagingServiceStub(channel, callOptions);
     }
 
     /**
      */
-    public io.grpc.stub.StreamObserver<alluxio.grpc.CopycatMessage> connect(
-        io.grpc.stub.StreamObserver<alluxio.grpc.CopycatMessage> responseObserver) {
+    public io.grpc.stub.StreamObserver<alluxio.grpc.TransportMessage> connect(
+        io.grpc.stub.StreamObserver<alluxio.grpc.TransportMessage> responseObserver) {
       return asyncBidiStreamingCall(
           getChannel().newCall(getConnectMethod(), getCallOptions()), responseObserver);
     }
@@ -144,45 +144,45 @@ public final class CopycatMessageServerGrpc {
 
   /**
    * <pre>
-   * The copycat message server service.
+   * The messaging transport service.
    * </pre>
    */
-  public static final class CopycatMessageServerBlockingStub extends io.grpc.stub.AbstractStub<CopycatMessageServerBlockingStub> {
-    private CopycatMessageServerBlockingStub(io.grpc.Channel channel) {
+  public static final class MessagingServiceBlockingStub extends io.grpc.stub.AbstractStub<MessagingServiceBlockingStub> {
+    private MessagingServiceBlockingStub(io.grpc.Channel channel) {
       super(channel);
     }
 
-    private CopycatMessageServerBlockingStub(io.grpc.Channel channel,
+    private MessagingServiceBlockingStub(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected CopycatMessageServerBlockingStub build(io.grpc.Channel channel,
+    protected MessagingServiceBlockingStub build(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
-      return new CopycatMessageServerBlockingStub(channel, callOptions);
+      return new MessagingServiceBlockingStub(channel, callOptions);
     }
   }
 
   /**
    * <pre>
-   * The copycat message server service.
+   * The messaging transport service.
    * </pre>
    */
-  public static final class CopycatMessageServerFutureStub extends io.grpc.stub.AbstractStub<CopycatMessageServerFutureStub> {
-    private CopycatMessageServerFutureStub(io.grpc.Channel channel) {
+  public static final class MessagingServiceFutureStub extends io.grpc.stub.AbstractStub<MessagingServiceFutureStub> {
+    private MessagingServiceFutureStub(io.grpc.Channel channel) {
       super(channel);
     }
 
-    private CopycatMessageServerFutureStub(io.grpc.Channel channel,
+    private MessagingServiceFutureStub(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected CopycatMessageServerFutureStub build(io.grpc.Channel channel,
+    protected MessagingServiceFutureStub build(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
-      return new CopycatMessageServerFutureStub(channel, callOptions);
+      return new MessagingServiceFutureStub(channel, callOptions);
     }
   }
 
@@ -193,10 +193,10 @@ public final class CopycatMessageServerGrpc {
       io.grpc.stub.ServerCalls.ServerStreamingMethod<Req, Resp>,
       io.grpc.stub.ServerCalls.ClientStreamingMethod<Req, Resp>,
       io.grpc.stub.ServerCalls.BidiStreamingMethod<Req, Resp> {
-    private final CopycatMessageServerImplBase serviceImpl;
+    private final MessagingServiceImplBase serviceImpl;
     private final int methodId;
 
-    MethodHandlers(CopycatMessageServerImplBase serviceImpl, int methodId) {
+    MethodHandlers(MessagingServiceImplBase serviceImpl, int methodId) {
       this.serviceImpl = serviceImpl;
       this.methodId = methodId;
     }
@@ -217,39 +217,39 @@ public final class CopycatMessageServerGrpc {
       switch (methodId) {
         case METHODID_CONNECT:
           return (io.grpc.stub.StreamObserver<Req>) serviceImpl.connect(
-              (io.grpc.stub.StreamObserver<alluxio.grpc.CopycatMessage>) responseObserver);
+              (io.grpc.stub.StreamObserver<alluxio.grpc.TransportMessage>) responseObserver);
         default:
           throw new AssertionError();
       }
     }
   }
 
-  private static abstract class CopycatMessageServerBaseDescriptorSupplier
+  private static abstract class MessagingServiceBaseDescriptorSupplier
       implements io.grpc.protobuf.ProtoFileDescriptorSupplier, io.grpc.protobuf.ProtoServiceDescriptorSupplier {
-    CopycatMessageServerBaseDescriptorSupplier() {}
+    MessagingServiceBaseDescriptorSupplier() {}
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.FileDescriptor getFileDescriptor() {
-      return alluxio.grpc.CopycatProto.getDescriptor();
+      return alluxio.grpc.MessagingTransportProto.getDescriptor();
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.ServiceDescriptor getServiceDescriptor() {
-      return getFileDescriptor().findServiceByName("CopycatMessageServer");
+      return getFileDescriptor().findServiceByName("MessagingService");
     }
   }
 
-  private static final class CopycatMessageServerFileDescriptorSupplier
-      extends CopycatMessageServerBaseDescriptorSupplier {
-    CopycatMessageServerFileDescriptorSupplier() {}
+  private static final class MessagingServiceFileDescriptorSupplier
+      extends MessagingServiceBaseDescriptorSupplier {
+    MessagingServiceFileDescriptorSupplier() {}
   }
 
-  private static final class CopycatMessageServerMethodDescriptorSupplier
-      extends CopycatMessageServerBaseDescriptorSupplier
+  private static final class MessagingServiceMethodDescriptorSupplier
+      extends MessagingServiceBaseDescriptorSupplier
       implements io.grpc.protobuf.ProtoMethodDescriptorSupplier {
     private final String methodName;
 
-    CopycatMessageServerMethodDescriptorSupplier(String methodName) {
+    MessagingServiceMethodDescriptorSupplier(String methodName) {
       this.methodName = methodName;
     }
 
@@ -264,11 +264,11 @@ public final class CopycatMessageServerGrpc {
   public static io.grpc.ServiceDescriptor getServiceDescriptor() {
     io.grpc.ServiceDescriptor result = serviceDescriptor;
     if (result == null) {
-      synchronized (CopycatMessageServerGrpc.class) {
+      synchronized (MessagingServiceGrpc.class) {
         result = serviceDescriptor;
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
-              .setSchemaDescriptor(new CopycatMessageServerFileDescriptorSupplier())
+              .setSchemaDescriptor(new MessagingServiceFileDescriptorSupplier())
               .addMethod(getConnectMethod())
               .build();
         }

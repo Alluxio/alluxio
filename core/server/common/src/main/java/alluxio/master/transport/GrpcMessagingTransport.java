@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal.raft.transport;
+package alluxio.master.transport;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.security.user.UserState;
@@ -29,10 +29,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Copycat {@link Transport} implementation that uses Alluxio gRPC.
+ * {@link Transport} implementation based on Alluxio gRPC messaging.
  */
-public class CopycatGrpcTransport implements Transport {
-  private static final Logger LOG = LoggerFactory.getLogger(CopycatGrpcTransport.class);
+public class GrpcMessagingTransport implements Transport {
+  private static final Logger LOG = LoggerFactory.getLogger(GrpcMessagingTransport.class);
 
   /** Alluxio configuration for clients. */
   private final AlluxioConfiguration mClientConf;
@@ -42,11 +42,13 @@ public class CopycatGrpcTransport implements Transport {
   private final UserState mClientUser;
   /** User for servers. */
   private final UserState mServerUser;
+  /** Used to distinguish between multiple users of the transport. */
+  private final String mClientType;
 
   /** List of created clients. */
-  private final List<CopycatGrpcClient> mClients;
+  private final List<GrpcMessagingClient> mClients;
   /** List of created servers. */
-  private final List<CopycatGrpcServer> mServers;
+  private final List<GrpcMessagingServer> mServers;
 
   /** Executor that is used by clients/servers for building connections. */
   private final ExecutorService mExecutor;
@@ -55,42 +57,46 @@ public class CopycatGrpcTransport implements Transport {
   private boolean mClosed;
 
   /**
-   * Creates {@link Transport} for CopyCat that uses Alluxio gRPC.
+   * Creates {@link Transport} based on Alluxio gRPC messaging.
    *
    * @param conf Alluxio configuration
    * @param user Alluxio user
+   * @param clientType Transport client type
    */
-  public CopycatGrpcTransport(AlluxioConfiguration conf, UserState user) {
-    this(conf, conf, user, user);
+  public GrpcMessagingTransport(AlluxioConfiguration conf, UserState user, String clientType) {
+    this(conf, conf, user, user, clientType);
   }
 
   /**
-   * Creates {@link Transport} for CopyCat that uses Alluxio gRPC.
+   * Creates {@link Transport} based on Alluxio gRPC messaging.
    *
    * @param clientConf Alluxio configuration for clients
    * @param serverConf Alluxio configuration for servers
    * @param clientUser User for clients
    * @param serverUser User for servers
+   * @param clientType Transport client type
    */
-  public CopycatGrpcTransport(AlluxioConfiguration clientConf, AlluxioConfiguration serverConf,
-      UserState clientUser, UserState serverUser) {
+  public GrpcMessagingTransport(AlluxioConfiguration clientConf, AlluxioConfiguration serverConf,
+      UserState clientUser, UserState serverUser, String clientType) {
     mClientConf = clientConf;
     mServerConf = serverConf;
     mClientUser = clientUser;
     mServerUser = serverUser;
+    mClientType = clientType;
 
     mClients = new LinkedList<>();
     mServers = new LinkedList<>();
     mExecutor = Executors
-        .newCachedThreadPool(ThreadFactoryUtils.build("copycat-transport-worker-%d", true));
+        .newCachedThreadPool(ThreadFactoryUtils.build("grpc-messaging-transport-worker-%d", true));
   }
 
   @Override
   public synchronized Client client() {
     if (mClosed) {
-      throw new RuntimeException("Transport closed");
+      throw new RuntimeException("Messaging transport closed");
     }
-    CopycatGrpcClient client = new CopycatGrpcClient(mClientConf, mClientUser, mExecutor);
+    GrpcMessagingClient client =
+        new GrpcMessagingClient(mClientConf, mClientUser, mExecutor, mClientType);
     mClients.add(client);
     return client;
   }
@@ -98,9 +104,9 @@ public class CopycatGrpcTransport implements Transport {
   @Override
   public synchronized Server server() {
     if (mClosed) {
-      throw new RuntimeException("Transport closed");
+      throw new RuntimeException("Messaging transport closed");
     }
-    CopycatGrpcServer server = new CopycatGrpcServer(mServerConf, mServerUser, mExecutor);
+    GrpcMessagingServer server = new GrpcMessagingServer(mServerConf, mServerUser, mExecutor);
     mServers.add(server);
     return server;
   }
@@ -112,26 +118,26 @@ public class CopycatGrpcTransport implements Transport {
 
       // Close created clients.
       List<CompletableFuture<Void>> clientCloseFutures = new ArrayList<>(mClients.size());
-      for (CopycatGrpcClient client : mClients) {
+      for (GrpcMessagingClient client : mClients) {
         clientCloseFutures.add(client.close());
       }
       mClients.clear();
       try {
         CompletableFuture.allOf(clientCloseFutures.toArray(new CompletableFuture[0])).get();
       } catch (Exception e) {
-        LOG.warn("Failed to close copycat transport clients.", e);
+        LOG.warn("Failed to close messaging transport clients.", e);
       }
 
       // Close created servers.
       List<CompletableFuture<Void>> serverCloseFutures = new ArrayList<>(mServers.size());
-      for (CopycatGrpcServer server : mServers) {
+      for (GrpcMessagingServer server : mServers) {
         serverCloseFutures.add(server.close());
       }
       mServers.clear();
       try {
         CompletableFuture.allOf(serverCloseFutures.toArray(new CompletableFuture[0])).get();
       } catch (Exception e) {
-        LOG.warn("Failed to close copycat transport servers.", e);
+        LOG.warn("Failed to close messaging transport servers.", e);
       }
 
       // Shut down transport executor.

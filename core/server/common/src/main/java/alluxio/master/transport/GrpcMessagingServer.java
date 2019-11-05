@@ -9,11 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal.raft.transport;
+package alluxio.master.transport;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
@@ -39,13 +38,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 /**
- * Copycat transport {@link Server} implementation that uses Alluxio gRPC.
+ * {@link Server} implementation based on Alluxio gRPC messaging.
  *
- * Copycat guarantees each server will be used for listening only one address and won't be
- * recycled. It also guarantees that active listen future will be completed before calling close.
+ * Each server should listen only one address.
+ * Outstanding listen futures should be completed before calling {@link #close()}.
  */
-public class CopycatGrpcServer implements Server {
-  private static final Logger LOG = LoggerFactory.getLogger(CopycatGrpcServer.class);
+public class GrpcMessagingServer implements Server {
+  private static final Logger LOG = LoggerFactory.getLogger(GrpcMessagingServer.class);
 
   /** Alluxio configuration. */
   private final AlluxioConfiguration mConf;
@@ -53,7 +52,7 @@ public class CopycatGrpcServer implements Server {
   private final UserState mUserState;
 
   /** Underlying gRPC server. */
-  private GrpcServer mGrpcServer;
+  private alluxio.grpc.GrpcServer mGrpcServer;
   /** Listen future. */
   private CompletableFuture<Void> mListenFuture;
 
@@ -64,14 +63,13 @@ public class CopycatGrpcServer implements Server {
   private final ExecutorService mExecutor;
 
   /**
-   * Creates copycat transport server that can be used to accept connections from remote copycat
-   * clients.
+   * Creates a transport server that can be used to accept connections from remote clients.
    *
    * @param conf Alluxio configuration
    * @param userState authentication user
    * @param executor transport executor
    */
-  public CopycatGrpcServer(AlluxioConfiguration conf, UserState userState,
+  public GrpcMessagingServer(AlluxioConfiguration conf, UserState userState,
       ExecutorService executor) {
     mConf = conf;
     mUserState = userState;
@@ -87,7 +85,7 @@ public class CopycatGrpcServer implements Server {
       return mListenFuture;
     }
 
-    LOG.debug("Copycat transport server binding to: {}", address);
+    LOG.debug("Messaging server binding to: {}", address);
     final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
     mListenFuture = CompletableFuture.runAsync(() -> {
       // Listener that notifies both this server instance and given listener.
@@ -103,7 +101,7 @@ public class CopycatGrpcServer implements Server {
           .maxInboundMessageSize((int) mConf
               .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
           .addService(new GrpcService(ServerInterceptors.intercept(
-              new CopycatMessageServiceClientHandler(address, forkListener, threadContext,
+              new GrpcMessagingServiceClientHandler(address, forkListener, threadContext,
                   mExecutor, mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)),
               new ClientIpAddressInjector())))
           .build();
@@ -111,10 +109,10 @@ public class CopycatGrpcServer implements Server {
       try {
         mGrpcServer.start();
 
-        LOG.info("Successfully started gRPC server for copycat transport at: {}", address);
+        LOG.info("Successfully started messaging server at: {}", address);
       } catch (IOException e) {
         mGrpcServer = null;
-        LOG.debug("Failed to create gRPC server for copycat transport at: {}.", address, e);
+        LOG.debug("Failed to create messaging server for at: {}.", address, e);
         throw new RuntimeException(e);
       }
     }, mExecutor);
@@ -128,7 +126,7 @@ public class CopycatGrpcServer implements Server {
       return CompletableFuture.completedFuture(null);
     }
 
-    LOG.debug("Closing copycat transport server: {}", mGrpcServer);
+    LOG.debug("Closing messaging server: {}", mGrpcServer);
     // Close created connections.
     List<CompletableFuture<Void>> connectionCloseFutures = new ArrayList<>(mConnections.size());
     for (Connection connection : mConnections) {
@@ -143,7 +141,7 @@ public class CopycatGrpcServer implements Server {
           try {
             mGrpcServer.shutdown();
           } catch (Exception e) {
-            LOG.warn("Failed to close copycat transport server: {}", mGrpcServer);
+            LOG.warn("Failed to close messaging gRPC server: {}", mGrpcServer);
           } finally {
             mGrpcServer = null;
           }

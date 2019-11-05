@@ -9,14 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal.raft.transport;
+package alluxio.master.transport;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.CopycatMessageServerGrpc;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.MessagingServiceGrpc;
 import alluxio.security.user.UserState;
 
 import io.atomix.catalyst.concurrent.ThreadContext;
@@ -34,13 +34,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 /**
- * Copycat transport {@link Client} implementation that uses Alluxio gRPC.
+ * {@link Client} implementation based on Alluxio gRPC messaging.
  *
- * Copycat guarantees that listen will be called once for each distinct address.
- * It also guarantees pending futures will all be closed prior to calling close.
+ * Listen should be called once for each distinct address.
+ * Pending futures should all be closed prior to calling {@link #close()}.
  */
-public class CopycatGrpcClient implements Client {
-  private static final Logger LOG = LoggerFactory.getLogger(CopycatGrpcClient.class);
+public class GrpcMessagingClient implements Client {
+  private static final Logger LOG = LoggerFactory.getLogger(GrpcMessagingClient.class);
 
   /** Alluxio configuration. */
   private final AlluxioConfiguration mConf;
@@ -53,24 +53,29 @@ public class CopycatGrpcClient implements Client {
   /** Executor for building client connections. */
   private final ExecutorService mExecutor;
 
+  /** Client type of transport. */
+  private final String mClientType;
+
   /**
-   * Creates copycat transport client that can be used to connect to remote copycat servers.
+   * Creates messaging client that can be used to connect to remote messaging servers.
    *
    * @param conf Alluxio configuration
    * @param userState authentication user
-   * @param executor transport executor
+   * @param executor messaging executor
+   * @param clientType transport client type
    */
-  public CopycatGrpcClient(AlluxioConfiguration conf, UserState userState,
-      ExecutorService executor) {
+  public GrpcMessagingClient(AlluxioConfiguration conf, UserState userState,
+      ExecutorService executor, String clientType) {
     mConf = conf;
     mUserState = userState;
     mExecutor = executor;
+    mClientType = clientType;
     mConnections = Collections.synchronizedList(new LinkedList<>());
   }
 
   @Override
   public CompletableFuture<Connection> connect(Address address) {
-    LOG.debug("Creating a copycat client connection to: {}", address);
+    LOG.debug("Creating a messaging client connection to: {}", address);
     final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
     // Future for this connection.
     final CompletableFuture<Connection> connectionFuture = new CompletableFuture<>();
@@ -80,22 +85,22 @@ public class CopycatGrpcClient implements Client {
         // Create a new gRPC channel for requested connection.
         GrpcChannel channel = GrpcChannelBuilder
             .newBuilder(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf)
-            .setClientType("CopycatClient").setSubject(mUserState.getSubject())
+            .setClientType(mClientType).setSubject(mUserState.getSubject())
             .setMaxInboundMessageSize((int) mConf
                 .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
             .build();
 
         // Create stub for receiving stream from server.
-        CopycatMessageServerGrpc.CopycatMessageServerStub messageClientStub =
-            CopycatMessageServerGrpc.newStub(channel);
+        MessagingServiceGrpc.MessagingServiceStub messageClientStub =
+                MessagingServiceGrpc.newStub(channel);
 
         // Create client connection that is bound to remote server stream.
-        CopycatGrpcConnection clientConnection =
-            new CopycatGrpcClientConnection(threadContext, mExecutor, channel,
+        GrpcMessagingConnection clientConnection =
+            new GrpcMessagingClientConnection(threadContext, mExecutor, channel,
                 mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS));
         clientConnection.setTargetObserver(messageClientStub.connect(clientConnection));
 
-        LOG.debug("Created a copycat client connection: {}", clientConnection);
+        LOG.debug("Created a messaging client connection: {}", clientConnection);
         mConnections.add(clientConnection);
         return clientConnection;
       } catch (Throwable e) {
@@ -118,7 +123,7 @@ public class CopycatGrpcClient implements Client {
 
   @Override
   public CompletableFuture<Void> close() {
-    LOG.debug("Closing copycat transport client with {} connections.", mConnections.size());
+    LOG.debug("Closing messaging client with {} connections.", mConnections.size());
     // Close created connections.
     List<CompletableFuture<Void>> connectionCloseFutures = new ArrayList<>(mConnections.size());
     for (Connection connection : mConnections) {

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal.raft.transport;
+package alluxio.master.transport;
 
 import alluxio.grpc.GrpcChannel;
 
@@ -21,25 +21,25 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 /**
- * {@link CopycatGrpcConnection} implementation for client.
+ * {@link GrpcMessagingConnection} implementation for clients.
  */
-public class CopycatGrpcClientConnection extends CopycatGrpcConnection {
-  private static final Logger LOG = LoggerFactory.getLogger(CopycatGrpcClientConnection.class);
+public class GrpcMessagingClientConnection extends GrpcMessagingConnection {
+  private static final Logger LOG = LoggerFactory.getLogger(GrpcMessagingClientConnection.class);
 
   /** Underlying gRPC channel. */
   private final GrpcChannel mChannel;
 
   /**
-   * Creates a connection object for client.
+   * Creates a messaging connection for client.
    *
    * Note: {@link #setTargetObserver} should be called explicitly before using the connection.
    *
-   * @param context copycat thread context
+   * @param context catalyst thread context
    * @param executor transport executor
    * @param channel underlying gRPC channel
    * @param requestTimeoutMs timeout in milliseconds for requests
    */
-  public CopycatGrpcClientConnection(ThreadContext context, ExecutorService executor,
+  public GrpcMessagingClientConnection(ThreadContext context, ExecutorService executor,
       GrpcChannel channel, long requestTimeoutMs) {
     super(ConnectionOwner.CLIENT, channel.toStringShort(), context, executor, requestTimeoutMs);
     mChannel = channel;
