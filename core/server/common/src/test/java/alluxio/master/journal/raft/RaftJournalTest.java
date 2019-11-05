@@ -78,18 +78,18 @@ public class RaftJournalTest {
   }
 
   @Test
-  public void suspendAdvanceResume() throws Exception {
+  public void suspendCatchupResume() throws Exception {
     // Create a counting master implementation that counts how many journal entries it processed.
     CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
     mFollowerJournalSystem.createJournal(countingMaster);
 
     // Suspend follower journal system.
     mFollowerJournalSystem.suspend();
-    // Advance follower journal system to target-index:5.
-    final long advanceIndex = 5;
+    // Catch up follower journal system to target-index:5.
+    final long catchupIndex = 5;
     Map<String, Long> backupSequences = new HashMap<>();
-    backupSequences.put("FileSystemMaster", advanceIndex);
-    CatchupFuture advanceFuture = mFollowerJournalSystem.catchup(backupSequences);
+    backupSequences.put("FileSystemMaster", catchupIndex);
+    CatchupFuture catchupFuture = mFollowerJournalSystem.catchup(backupSequences);
 
     // Create entries on the leader journal context.
     // These will be replicated to follower journal context.
@@ -103,13 +103,13 @@ public class RaftJournalTest {
       }
     }
 
-    // Wait for advanced sequence to applied.
-    advanceFuture.waitTermination();
-    Assert.assertEquals(advanceIndex + 1, countingMaster.getApplyCount());
+    // Wait for sequences to be caught up.
+    catchupFuture.waitTermination();
+    Assert.assertEquals(catchupIndex + 1, countingMaster.getApplyCount());
     // Wait for 2 heart-beat period and verify follower master state hasn't changed.
     Thread.sleep(
         2 * ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL));
-    Assert.assertEquals(advanceIndex + 1, countingMaster.getApplyCount());
+    Assert.assertEquals(catchupIndex + 1, countingMaster.getApplyCount());
     // Exit backup mode and wait until follower master acquires the current knowledge.
     mFollowerJournalSystem.resume();
     CommonUtils.waitFor("full state acquired", () -> countingMaster.getApplyCount() == entryCount);
@@ -130,7 +130,7 @@ public class RaftJournalTest {
   // Raft journal receives leader knowledge in chunks.
   // So advancing should take into account seeing partial knowledge.
   @Test
-  public void advanceInSteps() throws Exception {
+  public void catchUpInSteps() throws Exception {
     // Create a counting master implementation that counts how many journal entries it processed.
     CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
     mFollowerJournalSystem.createJournal(countingMaster);
@@ -149,10 +149,10 @@ public class RaftJournalTest {
       }
     }
 
-    // Advance follower journal system to target-index:(fileCount * 2) - 1.
+    // Catch up follower journal system to target-index:(fileCount * 2) - 1.
     Map<String, Long> backupSequences = new HashMap<>();
     backupSequences.put("FileSystemMaster", (long) (entryBatchCount * 2) - 1);
-    CatchupFuture advanceFuture = mFollowerJournalSystem.catchup(backupSequences);
+    CatchupFuture catchupFuture = mFollowerJournalSystem.catchup(backupSequences);
 
     // Create next batch of entries on the leader journal context.
     try (JournalContext journalContext =
@@ -164,13 +164,13 @@ public class RaftJournalTest {
       }
     }
 
-    // Wait for advanced sequence to applied.
-    advanceFuture.waitTermination();
+    // Wait for sequence to be caught up.
+    catchupFuture.waitTermination();
     Assert.assertEquals(entryBatchCount * 2, countingMaster.getApplyCount());
   }
 
   @Test
-  public void subsequentAdvances() throws Exception {
+  public void subsequentCatchups() throws Exception {
     // Create a counting master implementation that counts how many journal entries it processed.
     CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
     mFollowerJournalSystem.createJournal(countingMaster);
@@ -190,10 +190,10 @@ public class RaftJournalTest {
     }
 
     Map<String, Long> backupSequences = new HashMap<>();
-    // Advance follower journal system to first batch of entries.
+    // Catch up follower journal system to first batch of entries.
     backupSequences.put("FileSystemMaster", (long) entryBatchCount - 1);
     mFollowerJournalSystem.catchup(backupSequences).waitTermination();
-    // Advance follower journal system to second batch of entries.
+    // Catch up follower journal system to second batch of entries.
     backupSequences.put("FileSystemMaster", (long) (2 * entryBatchCount) - 1);
     mFollowerJournalSystem.catchup(backupSequences).waitTermination();
 
@@ -235,18 +235,18 @@ public class RaftJournalTest {
   }
 
   @Test
-  public void gainPrimacyAfterAdvance() throws Exception {
+  public void gainPrimacyAfterCatchup() throws Exception {
     // Create a counting master implementation that counts how many journal entries it processed.
     CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
     mFollowerJournalSystem.createJournal(countingMaster);
 
     // Suspend follower journal system.
     mFollowerJournalSystem.suspend();
-    // Advance follower journal system to target-index:5.
-    final long advanceIndex = 5;
+    // Catch up follower journal system to target-index:5.
+    final long catchupIndex = 5;
     Map<String, Long> backupSequences = new HashMap<>();
-    backupSequences.put("FileSystemMaster", advanceIndex);
-    CatchupFuture advanceFuture = mFollowerJournalSystem.catchup(backupSequences);
+    backupSequences.put("FileSystemMaster", catchupIndex);
+    CatchupFuture catchupFuture = mFollowerJournalSystem.catchup(backupSequences);
 
     // Create entries on the leader journal context.
     // These will be replicated to follower journal context.
@@ -260,10 +260,10 @@ public class RaftJournalTest {
       }
     }
 
-    // Wait until advanced.
-    advanceFuture.waitTermination();
+    // Wait until caught up.
+    catchupFuture.waitTermination();
 
-    Assert.assertEquals(advanceIndex + 1, countingMaster.getApplyCount());
+    Assert.assertEquals(catchupIndex + 1, countingMaster.getApplyCount());
     // Gain primacy in follower journal and validate it catches up.
     mFollowerJournalSystem.gainPrimacy();
     CommonUtils.waitFor("full state acquired after resume",
@@ -275,7 +275,7 @@ public class RaftJournalTest {
   }
 
   @Test
-  public void gainPrimacyDuringAdvance() throws Exception {
+  public void gainPrimacyDuringCatchup() throws Exception {
     // Create a counting master implementation that counts how many journal entries it processed.
     CountingDummyFileSystemMaster countingMaster = new CountingDummyFileSystemMaster();
     mFollowerJournalSystem.createJournal(countingMaster);
@@ -285,11 +285,11 @@ public class RaftJournalTest {
 
     // Suspend follower journal system.
     mFollowerJournalSystem.suspend();
-    // Advance follower journal to a large index to be able to transition while in progress.
-    final long advanceIndex = entryCount - 5;
+    // Catch up follower journal to a large index to be able to transition while in progress.
+    final long catchupIndex = entryCount - 5;
     Map<String, Long> backupSequences = new HashMap<>();
-    backupSequences.put("FileSystemMaster", advanceIndex);
-    CatchupFuture advanceFuture = mFollowerJournalSystem.catchup(backupSequences);
+    backupSequences.put("FileSystemMaster", catchupIndex);
+    CatchupFuture catchupFuture = mFollowerJournalSystem.catchup(backupSequences);
 
     // Create entries in parallel on the leader journal context.
     // These will be replicated to follower journal context.

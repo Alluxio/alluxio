@@ -98,7 +98,7 @@ public final class UfsJournalTest {
   }
 
   @Test
-  public void suspendAdvanceResume() throws Exception {
+  public void suspendCatchupResume() throws Exception {
     mJournal.start();
     mJournal.gainPrimacy();
 
@@ -171,7 +171,7 @@ public final class UfsJournalTest {
   }
 
   @Test
-  public void subsequentAdvances() throws Exception {
+  public void subsequentCatchups() throws Exception {
     mJournal.start();
     mJournal.gainPrimacy();
 
@@ -195,16 +195,16 @@ public final class UfsJournalTest {
     // Validate secondary didn't apply any entries yet.
     Assert.assertEquals(0, countingMaster.getApplyCount());
 
-    // Advance follower journal system to first batch of entries.
+    // Catch up follower journal system to first batch of entries.
     secondaryJournal.catchup(entryBatchCount - 1).waitTermination();
     Assert.assertEquals(entryBatchCount, countingMaster.getApplyCount());
-    // Advance follower journal system to second batch of entries.
+    // Catch up follower journal system to second batch of entries.
     secondaryJournal.catchup((2 * entryBatchCount) - 1).waitTermination();
     Assert.assertEquals(2 * entryBatchCount, countingMaster.getApplyCount());
   }
 
   @Test
-  public void gainPrimacyDuringAdvance() throws Exception {
+  public void gainPrimacyDuringCatchup() throws Exception {
     mJournal.start();
     mJournal.gainPrimacy();
 
@@ -229,7 +229,7 @@ public final class UfsJournalTest {
     // Validate secondary didn't apply any entries yet.
     Assert.assertEquals(0, countingMaster.getApplyCount());
 
-    // Initiate advance.
+    // Initiate catching up.
     secondaryJournal.catchup(entryCount - 2);
 
     // Gain primacy.
@@ -239,7 +239,7 @@ public final class UfsJournalTest {
   }
 
   @Test
-  public void gainPrimacyAfterAdvance() throws Exception {
+  public void gainPrimacyAfterCatchup() throws Exception {
     mJournal.start();
     mJournal.gainPrimacy();
 
@@ -264,7 +264,7 @@ public final class UfsJournalTest {
     // Validate secondary didn't apply any entries yet.
     Assert.assertEquals(0, countingMaster.getApplyCount());
 
-    // Initiate and wait for advance.
+    // Initiate and wait for catching up.
     secondaryJournal.catchup(entryCount - 2).waitTermination();
     Assert.assertEquals(entryCount - 1, countingMaster.getApplyCount());
 
