@@ -41,10 +41,13 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
@@ -107,16 +110,23 @@ public class BackupLeaderRole extends AbstractBackupRole {
   @Override
   public void stop() throws IOException {
     LOG.info("Stopping backup-leader role.");
+    // Close each backup-worker connection.
+    List<CompletableFuture<Void>> closeFutures = new ArrayList<>(mBackupWorkerConnections.size());
+    for (Connection conn : mBackupWorkerConnections) {
+      closeFutures.add(conn.close());
+    }
+    // Wait until all backup-worker connection is done closing.
+    try {
+      CompletableFuture.allOf(closeFutures.toArray(new CompletableFuture[0])).get();
+    } catch (Exception e) {
+      LOG.warn("Failed to close {} backup-worker connections. Error: {}", closeFutures.size(), e);
+    }
     // Reset existing stand-by connections.
     mBackupWorkerConnections.clear();
     mBackupWorkerHostNames.clear();
     // Cancel ongoing local backup task.
     if (mLocalBackupFuture != null && !mLocalBackupFuture.isDone()) {
       mLocalBackupFuture.cancel(true);
-    }
-    // Close each backup-worker connection.
-    for (Connection conn : mBackupWorkerConnections) {
-      conn.close();
     }
     // Stopping the base after because closing connection uses the base executor.
     super.stop();
@@ -226,8 +236,9 @@ public class BackupLeaderRole extends AbstractBackupRole {
       // Remove the connection when completed
       mBackupWorkerConnections.remove(conn);
       String backupWorkerHostname = mBackupWorkerHostNames.remove(conn);
-      // Fail current backup if it was driven by the closed connection.
-      if (mRemoteBackupConnection != null && mRemoteBackupConnection.equals(conn)) {
+      // Fail active backup if it was driven by the closed connection.
+      if (mBackupTracker.inProgress() && mRemoteBackupConnection != null
+          && mRemoteBackupConnection.equals(conn)) {
         LOG.warn("Abandoning current backup as backup-worker: {} is lost.", backupWorkerHostname);
         mBackupTracker.updateError(new BackupAbortedException("Backup-worker is lost."));
         mRemoteBackupConnection = null;

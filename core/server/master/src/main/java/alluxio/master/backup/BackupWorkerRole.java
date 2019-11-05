@@ -132,7 +132,11 @@ public class BackupWorkerRole extends AbstractBackupRole {
     }
     // Close the connection with the leader.
     if (mLeaderConnection != null) {
-      mLeaderConnection.close();
+      try {
+        mLeaderConnection.close().get();
+      } catch (Exception e) {
+        LOG.warn("Failed to close backup-leader connection: {}. Error: {}", mLeaderConnection, e);
+      }
       mLeaderConnection = null;
     }
     // Stopping the base after because closing connection uses the base executor.
