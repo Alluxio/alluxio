@@ -273,7 +273,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
               e);
         }
         // Stop heartbeats if backup finished.
-        if (mBackupTracker.isFinished()) {
+        if (!mBackupTracker.inProgress()) {
           break;
         }
       }

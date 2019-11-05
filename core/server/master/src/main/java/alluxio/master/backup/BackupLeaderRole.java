@@ -143,6 +143,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
   public BackupStatus backup(BackupPRequest request) throws AlluxioException {
     // Whether to delegate remote to a standby master.
     boolean delegateBackup;
+    // Will be populated with initiated id if no back-up in progress.
+    UUID backupId;
     // Initiate new backup status under lock.
     try (LockResource initiateLock = new LockResource(mBackupInitiateLock)) {
       if (mBackupTracker.inProgress()) {
@@ -166,11 +168,14 @@ public class BackupLeaderRole extends AbstractBackupRole {
       mBackupTracker.updateState(BackupState.Initiating);
       mBackupTracker.updateHostname(NetworkAddressUtils.getLocalHostName((int) ServerConfiguration
           .global().getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)));
+
+      // Store backup id to query later for async requests.
+      backupId = mBackupTracker.getCurrentStatus().getBackupId();
     }
     // Initiate the backup.
     if (delegateBackup) {
       // Fail the backup if delegation failed.
-      if (!scheduleRemoteBackup(request)) {
+      if (!scheduleRemoteBackup(backupId, request)) {
         AlluxioException err = new BackupDelegationException("Failed to delegate backup.");
         mBackupTracker.updateError(err);
         // Throw here for failing the backup call.
@@ -180,14 +185,15 @@ public class BackupLeaderRole extends AbstractBackupRole {
       scheduleLocalBackup(request);
     }
 
-    // Return current status if async.
+    // Return immediately if async is requested.
     if (request.getOptions().getRunAsync()) {
-      return mBackupTracker.getCurrentStatus();
+      // Client will always see 'Initiating' state first.
+      return new BackupStatus(backupId, BackupState.Initiating);
     }
 
     // Wait until backup is completed.
     mBackupTracker.waitUntilFinished();
-    return mBackupTracker.getCurrentStatus();
+    return mBackupTracker.getStatus(backupId);
   }
 
   @Override
@@ -258,7 +264,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
    *
    * @return {@code true} if delegation successful
    */
-  private boolean scheduleRemoteBackup(BackupPRequest request) {
+  private boolean scheduleRemoteBackup(UUID backupId, BackupPRequest request) {
     // Try to delegate backup to a follower.
     LOG.info("Scheduling backup at remote backup-worker.");
     for (Map.Entry<Connection, String> workerEntry : mBackupWorkerHostNames.entrySet()) {
@@ -273,8 +279,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
         }
         // Send backup request along with consistent journal sequences.
         LOG.info("Sending backup request to backup-worker: {}", workerEntry.getValue());
-        sendMessageBlocking(workerEntry.getKey(), new BackupRequestMessage(
-            mBackupTracker.getCurrentStatus().getBackupId(), request, journalSequences));
+        sendMessageBlocking(workerEntry.getKey(),
+            new BackupRequestMessage(backupId, request, journalSequences));
         // Delegation successful.
         mRemoteBackupConnection = workerEntry.getKey();
         // Start abandon timer.
@@ -307,7 +313,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
       // Process heart-beat.
       mBackupTracker.update(heartbeatMsg.getBackupStatus());
       // Adjust backup timeout.
-      adjustAbandonTimeout(mBackupTracker.isFinished());
+      adjustAbandonTimeout(!mBackupTracker.inProgress());
     }
   }
 

@@ -42,6 +42,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -62,10 +63,10 @@ public class DailyMetadataBackupTest {
     mBackupDir = "/tmp/test/alluxio_backups";
 
     mMetaMaster = Mockito.mock(MetaMaster.class);
-    when(mMetaMaster.backup(any())).thenReturn(
-        BackupStatus.fromProto(BackupPStatus.newBuilder().setBackupState(BackupState.Completed)
-            .setBackupUri(PathUtils.concatPath(mBackupDir, generateBackupFileName()))
-            .setBackupHost("localhost").build()));
+    when(mMetaMaster.backup(any())).thenReturn(BackupStatus.fromProto(BackupPStatus.newBuilder()
+        .setBackupId(UUID.randomUUID().toString()).setBackupState(BackupState.Completed)
+        .setBackupUri(PathUtils.concatPath(mBackupDir, generateBackupFileName()))
+        .setBackupHost("localhost").build()));
 
     mUfs = Mockito.mock(UnderFileSystem.class);
     when(mUfs.getUnderFSType()).thenReturn("local");

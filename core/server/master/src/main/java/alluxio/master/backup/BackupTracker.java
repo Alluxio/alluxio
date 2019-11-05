@@ -16,6 +16,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BackupException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BackupState;
+import alluxio.resource.LockResource;
 import alluxio.wire.BackupStatus;
 
 import com.google.common.util.concurrent.SettableFuture;
@@ -27,6 +28,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Used to track and update status of a backup.
@@ -38,6 +41,9 @@ public class BackupTracker {
   private SettableFuture<Void> mCompletion;
   /** Used to provide counter to backup facility. */
   private AtomicLong mEntryCounter;
+
+  /** Used to replace current backup status safely. */
+  private Lock mStatusLock = new ReentrantLock(true);
 
   /** Stores statuses for finished backups. */
   private Map<UUID, BackupStatus> mFinishedBackups = new ConcurrentHashMap<>();
@@ -53,38 +59,39 @@ public class BackupTracker {
    * Resets this tracker.
    */
   public void reset() {
-    // Set error for backup in-progress.
-    if (inProgress()) {
-      updateError(new BackupException("Backup reset by tracker."));
+    try (LockResource statusLock = new LockResource(mStatusLock)) {
+      // Set error for backup in-progress.
+      if (inProgress()) {
+        updateError(new BackupException("Backup reset by tracker."));
+      }
+      // Reset current backup status.
+      mBackupStatus = new BackupStatus(BackupState.None);
+      mEntryCounter = new AtomicLong(0);
+      mCompletion = SettableFuture.create();
     }
-    mBackupStatus = new BackupStatus(BackupState.None);
-    mEntryCounter = new AtomicLong(0);
-    // Fail potentials waiters before resetting the future.
-    if (mCompletion != null && !mCompletion.isDone()) {
-      mCompletion.setException(new RuntimeException("Backup reset."));
-    }
-    mCompletion = SettableFuture.create();
   }
 
   /**
    * @return the status of the current backup
    */
   public BackupStatus getCurrentStatus() {
-    return new BackupStatus(mBackupStatus).setEntryCount(mEntryCounter.get());
+    try (LockResource statusLock = new LockResource(mStatusLock)) {
+      return new BackupStatus(mBackupStatus).setEntryCount(mEntryCounter.get());
+    }
   }
 
   /**
-   * @param backupId  the backup id
+   * @param backupId the backup id
    * @return the status of a backup
    */
   public BackupStatus getStatus(UUID backupId) {
-    if (mBackupStatus.getBackupId().equals(backupId)) {
-      return mBackupStatus
-          .setEntryCount(mEntryCounter.get());
-    } else {
-      return mFinishedBackups.getOrDefault(backupId, new BackupStatus(backupId, BackupState.None))
-          .setEntryCount(mEntryCounter.get());
+    // Return the current backup status if backup-id matches.
+    BackupStatus currentStatus = getCurrentStatus();
+    if (currentStatus.getBackupId().equals(backupId)) {
+      return currentStatus;
     }
+    // Try to return result from finished backups. Return default if none exists.
+    return mFinishedBackups.getOrDefault(backupId, new BackupStatus(backupId, BackupState.None));
   }
 
   /**
@@ -186,18 +193,11 @@ public class BackupTracker {
   }
 
   /**
-   *
-   * @return {@code true} if backup is finished. (completed | failed)
-   */
-  public boolean isFinished() {
-    return mBackupStatus.isFinished();
-  }
-
-  /**
    * @return {@code true} if a backup is in progress
    */
   public boolean inProgress() {
-    return mBackupStatus != null && mBackupStatus.getState() != BackupState.None && !isFinished();
+    return mBackupStatus != null && mBackupStatus.getState() != BackupState.None
+        && mCompletion != null && !mCompletion.isDone();
   }
 
   /**
