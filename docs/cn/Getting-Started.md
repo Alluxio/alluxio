@@ -291,8 +291,6 @@ Alluxio 可以部署在很多不同的环境下。
 * [本地运行 Alluxio]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
 * [在集群上独立运行 Alluxio]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
 * [在 Docker 上运行 Alluxio]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }})
-* [在 EC2 上使用 Mesos 运行 Alluxio]({{ '/en/deploy/Running-Alluxio-On-Mesos.html' | relativize_url }})
-* [在 YARN 上运行 Alluxio]({{ '/en/deploy/Running-Alluxio-On-Yarn.html' | relativize_url }})
 
 ### 底层存储系统
 
