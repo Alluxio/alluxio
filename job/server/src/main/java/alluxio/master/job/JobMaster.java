@@ -32,6 +32,7 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.meta.JobIdGenerator;
+import alluxio.job.plan.PlanConfig;
 import alluxio.job.plan.meta.MasterWorkerInfo;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
@@ -40,8 +41,8 @@ import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.journal.NoopJournaled;
-import alluxio.master.plan.PlanCoordinator;
-import alluxio.master.plan.PlanTracker;
+import alluxio.master.job.plan.PlanCoordinator;
+import alluxio.master.job.plan.PlanTracker;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -135,9 +136,14 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
   private final CommandManager mCommandManager;
 
   /**
-   * Manager for adding and removing jobs.
+   * Manager for adding and removing plans.
    */
   private final PlanTracker mPlanTracker;
+
+  /**
+   * The job id generator
+   */
+  private final JobIdGenerator mJobIdGenerator;
 
   /**
    * Creates a new instance of {@link JobMaster}.
@@ -153,8 +159,12 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
         ExecutorServiceFactories.cachedThreadPool(Constants.JOB_MASTER_NAME));
     mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
     mCommandManager = new CommandManager();
-    JobIdGenerator jobIdGenerator = new JobIdGenerator();
-    mPlanTracker = new PlanTracker(jobIdGenerator, JOB_CAPACITY, RETENTION_MS, MAX_PURGE_COUNT);
+    mJobIdGenerator = new JobIdGenerator();
+    mPlanTracker = new PlanTracker(this, JOB_CAPACITY, RETENTION_MS, MAX_PURGE_COUNT);
+  }
+
+  public long getNewJobId() {
+    return mJobIdGenerator.getNewJobId();
   }
 
   @Override
@@ -206,8 +216,10 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
     Context forkedCtx = Context.current().fork();
     Context prevCtx = forkedCtx.attach();
     try {
-      return mPlanTracker.addJob(jobConfig, mCommandManager, mJobServerContext,
-          getWorkerInfoList());
+      if (jobConfig instanceof PlanConfig) {
+        return mPlanTracker.addJob(jobConfig, mCommandManager, mJobServerContext,
+            getWorkerInfoList());
+      }
     } finally {
       forkedCtx.detach(prevCtx);
     }

@@ -24,7 +24,7 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.job.JobIntegrationTest;
 import alluxio.job.meta.JobIdGenerator;
-import alluxio.master.plan.PlanTracker;
+import alluxio.master.job.plan.PlanTracker;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockInfo;

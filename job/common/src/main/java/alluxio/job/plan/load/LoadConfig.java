@@ -11,7 +11,7 @@
 
 package alluxio.job.plan.load;
 
-import alluxio.job.JobConfig;
+import alluxio.job.plan.PlanConfig;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The configuration of loading a file.
  */
 @ThreadSafe
-public class LoadConfig implements JobConfig {
+public class LoadConfig implements PlanConfig {
   public static final String NAME = "Load";
 
   private static final long serialVersionUID = -7937106659935180792L;

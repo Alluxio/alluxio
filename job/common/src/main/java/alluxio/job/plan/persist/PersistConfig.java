@@ -11,7 +11,7 @@
 
 package alluxio.job.plan.persist;
 
-import alluxio.job.JobConfig;
+import alluxio.job.plan.PlanConfig;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -27,7 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 @JsonTypeName(PersistConfig.NAME)
-public class PersistConfig implements JobConfig {
+public class PersistConfig implements PlanConfig {
   private static final long serialVersionUID = -404303102995033014L;
 
   public static final String NAME = "Persist";

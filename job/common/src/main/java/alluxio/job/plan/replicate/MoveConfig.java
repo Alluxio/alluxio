@@ -11,7 +11,7 @@
 
 package alluxio.job.plan.replicate;
 
-import alluxio.job.JobConfig;
+import alluxio.job.plan.PlanConfig;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -26,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 @JsonTypeName(MoveConfig.NAME)
-public final class MoveConfig implements JobConfig {
+public final class MoveConfig implements PlanConfig {
   private static final long serialVersionUID = -5198319303173120739L;
 
   public static final String NAME = "Move";

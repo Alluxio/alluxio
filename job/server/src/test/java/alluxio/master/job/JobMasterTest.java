@@ -25,8 +25,8 @@ import alluxio.job.meta.JobIdGenerator;
 import alluxio.master.MasterContext;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.journal.noop.NoopJournalSystem;
-import alluxio.master.plan.PlanCoordinator;
-import alluxio.master.plan.PlanTracker;
+import alluxio.master.job.plan.PlanCoordinator;
+import alluxio.master.job.plan.PlanTracker;
 import alluxio.underfs.UfsManager;
 
 import org.junit.After;

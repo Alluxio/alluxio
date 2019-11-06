@@ -11,7 +11,7 @@
 
 package alluxio.job.plan.migrate;
 
-import alluxio.job.JobConfig;
+import alluxio.job.plan.PlanConfig;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
@@ -25,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * See {@code MigrateDefinition} for detailed semantics.
  */
 @ThreadSafe
-public class MigrateConfig implements JobConfig {
+public class MigrateConfig implements PlanConfig {
   private static final long serialVersionUID = 8014674802258120190L;
   private static final String NAME = "Migrate";
 

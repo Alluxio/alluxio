@@ -22,7 +22,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.JobConfig;
-import alluxio.job.composite.CompositeConfig;
+import alluxio.job.workflow.composite.CompositeConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.journal.DelegatingJournaled;

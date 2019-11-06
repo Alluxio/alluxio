@@ -23,7 +23,6 @@ import alluxio.job.JobServerContext;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.meta.JobIdGenerator;
 import alluxio.master.job.command.CommandManager;
-import alluxio.master.plan.PlanTracker;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
 

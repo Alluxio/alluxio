@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.plan;
+package alluxio.master.job.plan;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -18,9 +18,9 @@ import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
-import alluxio.job.meta.JobIdGenerator;
 import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
+import alluxio.master.job.JobMaster;
 import alluxio.master.job.command.CommandManager;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
@@ -71,8 +71,8 @@ public class PlanTracker {
   /** The minimum amount of time that finished jobs should be retained for. */
   private final long mRetentionMs;
 
-  /** Used to generate Id for new jobs. */
-  private final JobIdGenerator mJobIdGenerator;
+  /** the job master (used to generate job ids) **/
+  private final JobMaster mJobMaster;
 
   /** The main index to track jobs through their Job Id. */
   private final ConcurrentHashMap<Long, PlanCoordinator> mCoordinators;
@@ -83,13 +83,13 @@ public class PlanTracker {
   /**
    * Create a new instance of {@link PlanTracker}.
    *
-   * @param jobIdGenerator the job id generator
+   * @param jobMaster the job master
    * @param capacity the capacity of jobs that can be handled
    * @param retentionMs the minimum amount of time to retain jobs
    * @param maxJobPurgeCount the max amount of jobs to purge when reaching max capacity
    */
-  public PlanTracker(JobIdGenerator jobIdGenerator, long capacity, long retentionMs,
-      long maxJobPurgeCount) {
+  public PlanTracker(JobMaster jobMaster, long capacity, long retentionMs,
+                     long maxJobPurgeCount) {
     Preconditions.checkArgument(capacity >= 0);
     mCapacity = capacity;
     Preconditions.checkArgument(retentionMs >= 0);
@@ -98,7 +98,7 @@ public class PlanTracker {
     mCoordinators = new ConcurrentHashMap<>(0,
         0.95f, ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM));
     mFinished = new LinkedBlockingQueue<>();
-    mJobIdGenerator = jobIdGenerator;
+    mJobMaster = jobMaster;
   }
 
   private void statusChangeCallback(PlanInfo planInfo) {
@@ -155,7 +155,7 @@ public class PlanTracker {
       JobServerContext ctx, List<WorkerInfo> workers) throws
       JobDoesNotExistException, ResourceExhaustedException {
     if (removeFinished()) {
-      long jobId = mJobIdGenerator.getNewJobId();
+      long jobId = mJobMaster.getNewJobId();
       PlanCoordinator planCoordinator = PlanCoordinator.create(manager, ctx,
           workers, jobId, jobConfig, this::statusChangeCallback);
       mCoordinators.put(jobId, planCoordinator);

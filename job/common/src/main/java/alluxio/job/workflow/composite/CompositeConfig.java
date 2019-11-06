@@ -9,9 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job.composite;
+package alluxio.job.workflow.composite;
 
 import alluxio.job.JobConfig;
+import alluxio.job.plan.PlanConfig;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
@@ -29,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * execute a set of jobs concurrently, each job can run run another set of sub jobs sequentially.
  */
 @ThreadSafe
-public final class CompositeConfig implements JobConfig {
+public final class CompositeConfig implements PlanConfig {
   private static final long serialVersionUID = 959533283484491854L;
 
   private static final String NAME = "Composite";

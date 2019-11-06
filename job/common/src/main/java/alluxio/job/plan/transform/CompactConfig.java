@@ -11,7 +11,7 @@
 
 package alluxio.job.plan.transform;
 
-import alluxio.job.JobConfig;
+import alluxio.job.plan.PlanConfig;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The original order of rows is preserved.
  */
 @ThreadSafe
-public final class CompactConfig implements JobConfig {
+public final class CompactConfig implements PlanConfig {
   private static final long serialVersionUID = -3434270994964559796L;
 
   private static final String NAME = "Compact";

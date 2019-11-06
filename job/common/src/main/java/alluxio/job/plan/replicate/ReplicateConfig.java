@@ -11,7 +11,7 @@
 
 package alluxio.job.plan.replicate;
 
-import alluxio.job.JobConfig;
+import alluxio.job.plan.PlanConfig;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -27,7 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 @JsonTypeName(ReplicateConfig.NAME)
-public final class ReplicateConfig implements JobConfig {
+public final class ReplicateConfig implements PlanConfig {
   private static final long serialVersionUID = 1807931900696165058L;
   public static final String NAME = "Replicate";
 

@@ -24,7 +24,6 @@ import alluxio.job.SelectExecutorsContext;
 import alluxio.job.wire.Status;
 import alluxio.job.plan.wire.TaskInfo;
 import alluxio.master.job.command.CommandManager;
-import alluxio.master.plan.PlanCoordinator;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerInfo;
 
