@@ -246,7 +246,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
     if (planCoordinator == null) {
       throw new JobDoesNotExistException(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
     }
-    return planCoordinator.getJobInfoWire();
+    return planCoordinator.getPlanInfoWire();
   }
 
   /**
@@ -260,7 +260,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
     List<PlanInfo> jobInfos = new ArrayList<>();
 
     for (PlanCoordinator coordinator : coordinators) {
-      jobInfos.add(coordinator.getJobInfoWire());
+      jobInfos.add(coordinator.getPlanInfoWire());
     }
 
     return new JobServiceSummary(jobInfos);
