@@ -18,7 +18,7 @@ import alluxio.grpc.RunTaskCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.RunTaskContext;
-import alluxio.job.TestJobConfig;
+import alluxio.job.TestPlanConfig;
 import alluxio.job.util.SerializationUtils;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerNetAddress;
@@ -79,7 +79,7 @@ public final class CommandHandlingExecutorTest {
     runTaskCommand.setJobId(jobId);
     long taskId = 2;
     runTaskCommand.setTaskId(taskId);
-    JobConfig jobConfig = new TestJobConfig("/test");
+    JobConfig jobConfig = new TestPlanConfig("/test");
     runTaskCommand.setJobConfig(ByteString.copyFrom(SerializationUtils.serialize(jobConfig)));
     Serializable taskArgs = Lists.newArrayList(1);
     runTaskCommand.setTaskArgs(ByteString.copyFrom(SerializationUtils.serialize(taskArgs)));

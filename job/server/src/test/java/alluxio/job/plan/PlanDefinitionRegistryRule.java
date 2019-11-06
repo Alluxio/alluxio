@@ -12,8 +12,7 @@
 package alluxio.job.plan;
 
 import alluxio.job.JobConfig;
-import alluxio.job.plan.PlanDefinition;
-import alluxio.job.plan.PlanDefinitionRegistry;
+
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;

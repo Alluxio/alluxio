@@ -11,6 +11,8 @@
 
 package alluxio.job;
 
+import alluxio.job.plan.PlanConfig;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.common.base.MoreObjects;
@@ -23,8 +25,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * The configuration of a dummy job for testing.
  */
 @ThreadSafe
-@JsonTypeName(TestJobConfig.NAME)
-public class TestJobConfig implements JobConfig {
+@JsonTypeName(TestPlanConfig.NAME)
+public class TestPlanConfig implements PlanConfig {
   public static final String NAME = "Test";
 
   private static final long serialVersionUID = -7937106659935180792L;
@@ -33,7 +35,7 @@ public class TestJobConfig implements JobConfig {
   /**
    * @param filePath the file path
    */
-  public TestJobConfig(@JsonProperty("filePath") String filePath) {
+  public TestPlanConfig(@JsonProperty("filePath") String filePath) {
     mFilePath = Preconditions.checkNotNull(filePath, "The file path cannot be null");
   }
 
@@ -52,10 +54,10 @@ public class TestJobConfig implements JobConfig {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof TestJobConfig)) {
+    if (!(obj instanceof TestPlanConfig)) {
       return false;
     }
-    TestJobConfig that = (TestJobConfig) obj;
+    TestPlanConfig that = (TestPlanConfig) obj;
     return mFilePath.equals(that.mFilePath);
   }
 

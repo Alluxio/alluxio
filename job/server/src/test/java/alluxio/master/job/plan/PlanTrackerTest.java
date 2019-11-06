@@ -46,16 +46,18 @@ public class PlanTrackerTest {
   private PlanTracker mTracker;
   private CommandManager mMockCommandManager;
   private JobServerContext mMockJobServerContext;
+  private JobIdGenerator mJobIdGenerator;
 
   @Rule
   public ExpectedException mException = ExpectedException.none();
 
   @Before
   public void before() {
-    mTracker = new PlanTracker(new JobIdGenerator(), CAPACITY, RETENTION_TIME, PURGE_CONUT);
+    mTracker = new PlanTracker(CAPACITY, RETENTION_TIME, PURGE_CONUT);
     mMockCommandManager = new CommandManager();
     mMockJobServerContext = Mockito.mock(JobServerContext.class);
     mWorkers = Lists.newArrayList(new WorkerInfo());
+    mJobIdGenerator = new JobIdGenerator();
   }
 
   @Test
@@ -93,7 +95,7 @@ public class PlanTrackerTest {
 
   @Test
   public void testPurgeCount() throws Exception {
-    PlanTracker tracker = new PlanTracker(new JobIdGenerator(), 10, 0, 5);
+    PlanTracker tracker = new PlanTracker(10, 0, 5);
     assertEquals("tracker should be empty", 0, tracker.coordinators().size());
     fillJobTracker(tracker, 10);
     finishAllJobs(tracker);
@@ -103,9 +105,8 @@ public class PlanTrackerTest {
 
   @Test
   public void testRetentionTime() throws Exception {
-    JobIdGenerator jobIdGenerator = new JobIdGenerator();
     long retentionMs = FormatUtils.parseTimeSize("24h");
-    PlanTracker tracker = new PlanTracker(jobIdGenerator, 10, retentionMs, -1);
+    PlanTracker tracker = new PlanTracker(10, retentionMs, -1);
     assertEquals("tracker should be empty", 0, tracker.coordinators().size());
     fillJobTracker(tracker, 10);
     finishAllJobs(tracker);
@@ -130,8 +131,10 @@ public class PlanTrackerTest {
   }
 
   private long addJob(PlanTracker tracker, int sleepTimeMs) throws Exception {
-    return tracker.addJob(new SleepJobConfig(sleepTimeMs), mMockCommandManager,
-        mMockJobServerContext, mWorkers);
+    long jobId = mJobIdGenerator.getNewJobId();
+    tracker.run(new SleepJobConfig(sleepTimeMs), mMockCommandManager,
+        mMockJobServerContext, mWorkers, jobId);
+    return jobId;
   }
 
   private void fillJobTracker(long nJobs) throws Exception {

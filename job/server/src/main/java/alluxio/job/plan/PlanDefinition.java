@@ -22,10 +22,10 @@ import java.util.Map;
 
 /**
  * A job definition. A definition has two important parts: (1) a
- * {@link PlanDefinition#selectExecutors(JobConfig, List, SelectExecutorsContext)} method runs at the
- * master node and selects the workers to run the executors. (2) a
- * {@link #runTask(JobConfig, Serializable, RunTaskContext)} method runs at each selected executor
- * on the worker node.
+ * {@link PlanDefinition#selectExecutors(JobConfig, List, SelectExecutorsContext)} method runs at
+ * the master node and selects the workers to run the executors.
+ * (2) a {@link #runTask(JobConfig, Serializable, RunTaskContext)} method runs at each selected
+ * executor on the worker node.
  *
  * @param <T> the job configuration
  * @param <P> the parameters to pass to each task

@@ -13,9 +13,8 @@ package alluxio.job.plan;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.job.TestPlanConfig;
 
-import alluxio.job.JobConfig;
-import alluxio.job.TestJobConfig;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,24 +31,24 @@ public final class PlanDefinitionRegistryTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   @Test
-  public void getJobDefinitionTest() throws Exception {
-    PlanDefinition<TestJobConfig, ?, ?> definition = PlanDefinitionRegistry.INSTANCE
-        .getJobDefinition(new TestJobConfig("test"));
+  public void getPlanDefinitionTest() throws Exception {
+    PlanDefinition<TestPlanConfig, ?, ?> definition = PlanDefinitionRegistry.INSTANCE
+        .getJobDefinition(new TestPlanConfig("test"));
     Assert.assertTrue(definition instanceof TestPlanDefinition);
   }
 
   @Test
-  public void getNonexistingJobDefinitionTest() throws Exception {
-    DummyJobConfig jobConfig = new DummyJobConfig();
+  public void getNonexistingPlanDefinitionTest() throws Exception {
+    DummyPlanConfig planConfig = new DummyPlanConfig();
 
     mThrown.expect(JobDoesNotExistException.class);
     mThrown.expectMessage(
-        ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(jobConfig.getName()));
+        ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(planConfig.getName()));
 
-    PlanDefinitionRegistry.INSTANCE.getJobDefinition(jobConfig);
+    PlanDefinitionRegistry.INSTANCE.getJobDefinition(planConfig);
   }
 
-  class DummyJobConfig implements JobConfig {
+  class DummyPlanConfig implements PlanConfig {
     private static final long serialVersionUID = 1L;
 
     @Override

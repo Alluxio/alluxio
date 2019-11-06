@@ -19,9 +19,9 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
-import alluxio.job.TestJobConfig;
+import alluxio.job.TestPlanConfig;
 import alluxio.exception.JobDoesNotExistException;
-import alluxio.job.meta.JobIdGenerator;
+import alluxio.job.plan.PlanConfig;
 import alluxio.master.MasterContext;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.journal.noop.NoopJournalSystem;
@@ -75,7 +75,7 @@ public final class JobMasterTest {
   @Test
   public void runNonExistingJobConfig() throws Exception {
     try {
-      mJobMaster.run(new DummyJobConfig());
+      mJobMaster.run(new DummyPlanConfig());
       Assert.fail("cannot run non-existing job");
     } catch (JobDoesNotExistException e) {
       Assert.assertEquals(ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage("dummy"),
@@ -92,7 +92,7 @@ public final class JobMasterTest {
             Mockito.any(JobServerContext.class), Mockito.anyList(), Mockito.anyLong(),
             Mockito.any(JobConfig.class), Mockito.any(null)))
         .thenReturn(coordinator);
-    TestJobConfig jobConfig = new TestJobConfig("/test");
+    TestPlanConfig jobConfig = new TestPlanConfig("/test");
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
       mJobMaster.run(jobConfig);
     }
@@ -108,7 +108,7 @@ public final class JobMasterTest {
             Mockito.any(JobServerContext.class), Mockito.anyList(), Mockito.anyLong(),
             Mockito.any(JobConfig.class), Mockito.any(null)))
         .thenReturn(coordinator);
-    TestJobConfig jobConfig = new TestJobConfig("/test");
+    TestPlanConfig jobConfig = new TestPlanConfig("/test");
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
       mJobMaster.run(jobConfig);
     }
@@ -136,7 +136,7 @@ public final class JobMasterTest {
   public void cancel() throws Exception {
     PlanCoordinator coordinator = Mockito.mock(PlanCoordinator.class);
     long jobId = 1L;
-    PlanTracker tracker = new PlanTracker(new JobIdGenerator(), 10, 0, -1);
+    PlanTracker tracker = new PlanTracker(10, 0, -1);
     ((Map<Long, PlanCoordinator>) Whitebox.getInternalState(tracker, "mCoordinators"))
         .put(jobId, coordinator);
     Whitebox.setInternalState(mJobMaster, "mTracker", tracker);
@@ -144,7 +144,7 @@ public final class JobMasterTest {
     Mockito.verify(coordinator).cancel();
   }
 
-  private static class DummyJobConfig implements JobConfig {
+  private static class DummyPlanConfig implements PlanConfig {
     private static final long serialVersionUID = 1L;
 
     @Override

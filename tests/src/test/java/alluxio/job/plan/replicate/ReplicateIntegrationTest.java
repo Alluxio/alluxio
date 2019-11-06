@@ -23,7 +23,6 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.job.JobIntegrationTest;
-import alluxio.job.meta.JobIdGenerator;
 import alluxio.master.job.plan.PlanTracker;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
@@ -79,7 +78,7 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
   public void replicateFullBlockFromUFS() throws Exception {
     // run the replicate job for mBlockId1
     // hack - use a job tracker with capacity of 1
-    PlanTracker planTracker = new PlanTracker(new JobIdGenerator(), 1, 0, -1);
+    PlanTracker planTracker = new PlanTracker(1, 0, -1);
     Whitebox.setInternalState(mJobMaster, "mPlanTracker", planTracker);
     waitForJobToFinish(mJobMaster.run(new ReplicateConfig(TEST_URI, mBlockId1, 1)));
 
@@ -97,7 +96,7 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
   public void replicateLastBlockFromUFS() throws Exception {
     // run the replicate job for mBlockId2
     // hack - use a plan tracker with capacity of 1
-    PlanTracker planTracker = new PlanTracker(new JobIdGenerator(), 1, 0, -1);
+    PlanTracker planTracker = new PlanTracker(1, 0, -1);
     Whitebox.setInternalState(mJobMaster, "mPlanTracker", planTracker);
     waitForJobToFinish(mJobMaster.run(new ReplicateConfig(TEST_URI, mBlockId2, 1)));
 

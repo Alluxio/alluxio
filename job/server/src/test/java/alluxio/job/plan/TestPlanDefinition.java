@@ -13,7 +13,7 @@ package alluxio.job.plan;
 
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
-import alluxio.job.TestJobConfig;
+import alluxio.job.TestPlanConfig;
 import alluxio.job.util.SerializableVoid;
 import alluxio.wire.WorkerInfo;
 
@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class TestPlanDefinition
-    extends AbstractVoidPlanDefinition<TestJobConfig, SerializableVoid> {
+    extends AbstractVoidPlanDefinition<TestPlanConfig, SerializableVoid> {
 
   /**
    * Constructs a new {@link TestPlanDefinition}.
@@ -35,18 +35,18 @@ public final class TestPlanDefinition
   public TestPlanDefinition() {}
 
   @Override
-  public Class<TestJobConfig> getJobConfigClass() {
-    return TestJobConfig.class;
+  public Class<TestPlanConfig> getJobConfigClass() {
+    return TestPlanConfig.class;
   }
 
   @Override
-  public SerializableVoid runTask(TestJobConfig config, SerializableVoid args,
-      RunTaskContext jobWorkerContext) throws Exception {
+  public SerializableVoid runTask(TestPlanConfig config, SerializableVoid args,
+                                  RunTaskContext jobWorkerContext) throws Exception {
     return null;
   }
 
   @Override
-  public Map<WorkerInfo, SerializableVoid> selectExecutors(TestJobConfig config,
+  public Map<WorkerInfo, SerializableVoid> selectExecutors(TestPlanConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
       throws Exception {
     return null;

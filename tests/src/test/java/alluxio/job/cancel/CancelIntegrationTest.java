@@ -13,7 +13,7 @@ package alluxio.job.cancel;
 
 import alluxio.Constants;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
-import alluxio.job.JobConfig;
+import alluxio.job.plan.PlanConfig;
 import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.JobIntegrationTest;
 import alluxio.job.RunTaskContext;
@@ -32,7 +32,7 @@ import java.util.Map;
  * Tests the cancellation of a job.
  */
 public final class CancelIntegrationTest extends JobIntegrationTest {
-  static class CancelTestConfig implements JobConfig {
+  static class CancelTestConfig implements PlanConfig {
     private static final long serialVersionUID = 1L;
 
     @Override

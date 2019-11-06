@@ -160,7 +160,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
     mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
     mCommandManager = new CommandManager();
     mJobIdGenerator = new JobIdGenerator();
-    mPlanTracker = new PlanTracker(this, JOB_CAPACITY, RETENTION_MS, MAX_PURGE_COUNT);
+    mPlanTracker = new PlanTracker(JOB_CAPACITY, RETENTION_MS, MAX_PURGE_COUNT);
   }
 
   /**
@@ -219,10 +219,14 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
     Context forkedCtx = Context.current().fork();
     Context prevCtx = forkedCtx.attach();
     try {
+      long jobId = getNewJobId();
       if (jobConfig instanceof PlanConfig) {
-        return mPlanTracker.addJob(jobConfig, mCommandManager, mJobServerContext,
-            getWorkerInfoList());
+        mPlanTracker.run((PlanConfig) jobConfig, mCommandManager, mJobServerContext,
+            getWorkerInfoList(), jobId);
+        return jobId;
       }
+      throw new JobDoesNotExistException(
+          ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(jobConfig.getName()));
     } finally {
       forkedCtx.detach(prevCtx);
     }

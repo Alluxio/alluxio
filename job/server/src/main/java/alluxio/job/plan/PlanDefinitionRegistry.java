@@ -13,8 +13,8 @@ package alluxio.job.plan;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
-
 import alluxio.job.JobConfig;
+
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -13,7 +13,7 @@ package alluxio.master.job.command;
 
 import alluxio.grpc.JobCommand;
 import alluxio.job.JobConfig;
-import alluxio.job.TestJobConfig;
+import alluxio.job.TestPlanConfig;
 import alluxio.job.util.SerializationUtils;
 
 import com.google.common.collect.Lists;
@@ -38,7 +38,7 @@ public final class CommandManagerTest {
   public void submitRunTaskCommand() throws Exception {
     long jobId = 0L;
     int taskId = 1;
-    JobConfig jobConfig = new TestJobConfig("/test");
+    JobConfig jobConfig = new TestPlanConfig("/test");
     long workerId = 2L;
     List<Integer> args = Lists.newArrayList(1);
     mManager.submitRunTaskCommand(jobId, taskId, jobConfig, args, workerId);

@@ -12,7 +12,7 @@
 package alluxio.job.meta;
 
 import alluxio.job.JobConfig;
-import alluxio.job.TestJobConfig;
+import alluxio.job.TestPlanConfig;
 import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.util.CommonUtils;
@@ -23,7 +23,7 @@ import org.junit.Test;
 public final class PlanInfoTest {
   @Test
   public void compare() {
-    JobConfig jobConfig = new TestJobConfig("unused");
+    JobConfig jobConfig = new TestPlanConfig("unused");
     PlanInfo a = new PlanInfo(0L, jobConfig, null);
     CommonUtils.sleepMs(1);
     PlanInfo b = new PlanInfo(0L, jobConfig, null);
@@ -41,7 +41,7 @@ public final class PlanInfoTest {
   @Test
   public void callback() {
     final String result = "I was here!";
-    JobConfig jobConfig = new TestJobConfig("unused");
+    JobConfig jobConfig = new TestPlanConfig("unused");
     PlanInfo a = new PlanInfo(0L, jobConfig, jobInfo -> jobInfo.setResult(result));
     a.setStatus(Status.COMPLETED);
     Assert.assertEquals(result, a.getResult());

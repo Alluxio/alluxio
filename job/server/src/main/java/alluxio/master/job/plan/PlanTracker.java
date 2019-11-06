@@ -18,9 +18,9 @@ import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
+import alluxio.job.plan.PlanConfig;
 import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
-import alluxio.master.job.JobMaster;
 import alluxio.master.job.command.CommandManager;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
@@ -71,9 +71,6 @@ public class PlanTracker {
   /** The minimum amount of time that finished jobs should be retained for. */
   private final long mRetentionMs;
 
-  /** The job master (used to generate job ids). **/
-  private final JobMaster mJobMaster;
-
   /** The main index to track jobs through their Job Id. */
   private final ConcurrentHashMap<Long, PlanCoordinator> mCoordinators;
 
@@ -83,12 +80,11 @@ public class PlanTracker {
   /**
    * Create a new instance of {@link PlanTracker}.
    *
-   * @param jobMaster the job master
    * @param capacity the capacity of jobs that can be handled
    * @param retentionMs the minimum amount of time to retain jobs
    * @param maxJobPurgeCount the max amount of jobs to purge when reaching max capacity
    */
-  public PlanTracker(JobMaster jobMaster, long capacity, long retentionMs,
+  public PlanTracker(long capacity, long retentionMs,
                      long maxJobPurgeCount) {
     Preconditions.checkArgument(capacity >= 0);
     mCapacity = capacity;
@@ -98,7 +94,6 @@ public class PlanTracker {
     mCoordinators = new ConcurrentHashMap<>(0,
         0.95f, ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM));
     mFinished = new LinkedBlockingQueue<>();
-    mJobMaster = jobMaster;
   }
 
   private void statusChangeCallback(PlanInfo planInfo) {
@@ -147,19 +142,17 @@ public class PlanTracker {
    * @param manager command manager for jobs
    * @param ctx the {@link JobServerContext} from the job master
    * @param workers a list of available workers
-   * @return the job id of the newly added job
+   * @param jobId job id of the newly added job
    * @throws JobDoesNotExistException   if the job type does not exist
    * @throws ResourceExhaustedException if there is no more space available in the job master
    */
-  public synchronized long addJob(JobConfig jobConfig, CommandManager manager,
-      JobServerContext ctx, List<WorkerInfo> workers) throws
+  public synchronized void run(PlanConfig jobConfig, CommandManager manager,
+      JobServerContext ctx, List<WorkerInfo> workers, long jobId) throws
       JobDoesNotExistException, ResourceExhaustedException {
     if (removeFinished()) {
-      long jobId = mJobMaster.getNewJobId();
       PlanCoordinator planCoordinator = PlanCoordinator.create(manager, ctx,
           workers, jobId, jobConfig, this::statusChangeCallback);
       mCoordinators.put(jobId, planCoordinator);
-      return jobId;
     } else {
       throw new ResourceExhaustedException(
           ExceptionMessage.JOB_MASTER_FULL_CAPACITY.getMessage(mCapacity));
