@@ -217,29 +217,40 @@ The latest Alluxio distribution contains a presto connector jar which can be dro
 ### Enabling the Alluxio Catalog Service with Presto
 
 Assuming you have Alluxio and Presto installation on your local machine at `${ALLUXIO_HOME}` and
-`${PRESTO_HOME}` respectively:
+`${PRESTO_HOME}` respectively, run the following to copy the Alluxio connector files into the
+Presto installation as a new plugin. This must be done on all Presto nodes.
 
 ```console
-$ cp -R ${ALLUXIO_HOME}/client/presto/plugin/hive-alluxio ${PRESTO_HOME}/plugin
+$ cp -R ${ALLUXIO_HOME}/client/presto/plugins/presto-hive-alluxio-319/ ${PRESTO_HOME}/plugin/hive-alluxio/
 ```
 
-Additionally, you'll need to create a Presto configuration files with the following content:
+Additionally, you'll need to create a new catalog to use the Alluxio connector and
+Alluxio Catalog Service:
 
-`/etc/catalog/hive-alluxio.properties`
+`/etc/catalog/catalog_alluxio.properties`
 ```properties
 connector.name=hive-alluxio
 hive.metastore=alluxio
+hive.metastore.alluxio.master.address=HOSTNAME:PORT
 ```
 
-Once configured on each node, restart all presto coordinators and workers
+Creating the `catalog_alluxio.properties` file means a new catalog named `catalog_alluxio` is added
+to Presto.
+Setting `connector.name=hive-alluxio` sets the connector type to the name of the
+new Alluxio connector for Presto, which is `hive-alluxio`.
+The `hive.metastore=alluxio` means Hive metastore connection will use the `alluxio` type, in order
+to communicate with the Alluxio Catalog service.
+The setting `hive.metastore.alluxio.master.address=HOSTNAME:PORT` defines the host and port of the
+Alluxio catalog service, which is the same host and port as the Alluxio master.
+Once configured on each node, restart all presto coordinators and workers.
 
 ### Using the Alluxio Catalog Service with Presto
 
 In order to utilize the Alluxio Presto plugin start the presto CLI with the following (assuming
-the `/etc/catalog/hive-alluxio.properties` file has been created)
+the `/etc/catalog/catalog_alluxio.properties` file has been created)
 
 ```console
-$ presto --catalog hive-alluxio
+$ presto --catalog catalog_alluxio
 ```
 
 By default, presto will now retrieve database and table information from Alluxio's catalog service
