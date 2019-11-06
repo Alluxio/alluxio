@@ -340,8 +340,6 @@ Alluxio can be deployed in many different environments.
 * [Alluxio on Local Machine]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
 * [Alluxio Standalone on a Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
 * [Alluxio on Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }})
-* [Alluxio with Mesos on EC2]({{ '/en/deploy/Running-Alluxio-On-Mesos.html' | relativize_url }})
-* [Alluxio On YARN]({{ '/en/deploy/Running-Alluxio-On-Yarn.html' | relativize_url }})
 
 ### Under Storage Systems
 
