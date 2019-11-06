@@ -21,7 +21,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class is used to build a string representing a shell command by adding arguments.
  *
  * TODO(binfan): to share this class into util.
+ *
+ * @deprecated since 2.0
  */
+@Deprecated
 @NotThreadSafe
 public class CommandBuilder {
   private String mBase;
