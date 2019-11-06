@@ -1,8 +1,8 @@
 alluxio.job.composite.CompositeDefinition
-alluxio.job.load.LoadDefinition
-alluxio.job.migrate.MigrateDefinition
-alluxio.job.persist.PersistDefinition
-alluxio.job.replicate.EvictDefinition
-alluxio.job.replicate.MoveDefinition
-alluxio.job.replicate.ReplicateDefinition
-alluxio.job.transform.CompactDefinition
+alluxio.job.plan.load.LoadDefinition
+alluxio.job.plan.migrate.MigrateDefinition
+alluxio.job.plan.persist.PersistDefinition
+alluxio.job.plan.replicate.EvictDefinition
+alluxio.job.plan.replicate.MoveDefinition
+alluxio.job.plan.replicate.ReplicateDefinition
+alluxio.job.plan.transform.CompactDefinition

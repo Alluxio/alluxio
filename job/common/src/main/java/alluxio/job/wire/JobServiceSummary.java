@@ -11,6 +11,7 @@
 
 package alluxio.job.wire;
 
+import alluxio.job.plan.wire.PlanInfo;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 

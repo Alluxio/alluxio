@@ -15,9 +15,9 @@ import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.job.JobConfig;
-import alluxio.job.load.LoadConfig;
-import alluxio.job.transform.CompactConfig;
-import alluxio.job.transform.PartitionInfo;
+import alluxio.job.plan.load.LoadConfig;
+import alluxio.job.plan.transform.CompactConfig;
+import alluxio.job.plan.transform.PartitionInfo;
 import alluxio.job.util.SerializationUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

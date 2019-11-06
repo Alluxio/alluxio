@@ -21,7 +21,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
-import alluxio.job.replicate.ReplicationHandler;
+import alluxio.job.plan.replicate.ReplicationHandler;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;

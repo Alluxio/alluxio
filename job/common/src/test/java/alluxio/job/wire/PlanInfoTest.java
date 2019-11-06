@@ -13,6 +13,7 @@ package alluxio.job.wire;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.job.plan.wire.PlanInfo;
 import org.junit.Test;
 
 import java.io.IOException;

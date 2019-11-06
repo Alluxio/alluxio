@@ -19,6 +19,7 @@ import alluxio.grpc.RegisterJobWorkerPRequest;
 import alluxio.grpc.RegisterJobWorkerPResponse;
 import alluxio.grpc.GrpcUtils;
 
+import alluxio.job.plan.wire.TaskInfo;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import io.grpc.stub.StreamObserver;
@@ -53,10 +54,10 @@ public final class JobMasterWorkerServiceHandler
                         StreamObserver<JobHeartbeatPResponse> responseObserver) {
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
-      List<alluxio.job.wire.TaskInfo> wireTaskInfoList = Lists.newArrayList();
+      List<TaskInfo> wireTaskInfoList = Lists.newArrayList();
       for (alluxio.grpc.JobInfo taskInfo : request.getTaskInfosList()) {
         try {
-          wireTaskInfoList.add(new alluxio.job.wire.TaskInfo(taskInfo));
+          wireTaskInfoList.add(new TaskInfo(taskInfo));
         } catch (IOException e) {
           LOG.error("task info deserialization failed " + e);
         }

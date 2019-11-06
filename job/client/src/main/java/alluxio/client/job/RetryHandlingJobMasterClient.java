@@ -22,7 +22,7 @@ import alluxio.grpc.RunPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
-import alluxio.job.wire.PlanInfo;
+import alluxio.job.plan.wire.PlanInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobInfo;
 import alluxio.worker.job.JobMasterClientContext;

@@ -17,7 +17,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.job.persist.PersistConfig;
+import alluxio.job.plan.persist.PersistConfig;
 import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;

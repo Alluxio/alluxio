@@ -12,7 +12,7 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.job.JobMasterClient;
-import alluxio.job.wire.PlanInfo;
+import alluxio.job.plan.wire.PlanInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.Status;
 
