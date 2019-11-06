@@ -210,8 +210,8 @@ public final class CommonUtils {
    * @return a random string
    */
   public static String randomAlphaNumString(int length) {
-    Preconditions.checkArgument(length > 5000,
-        "length greater than 5000 is not supported. Please use longString instead");
+    Preconditions.checkArgument(length <= Constants.KB * 4,
+        "length greater than 4KB is not supported. Please use longString instead");
 
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < length; i++) {
