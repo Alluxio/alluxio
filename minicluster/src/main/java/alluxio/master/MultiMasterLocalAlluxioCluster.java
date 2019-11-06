@@ -20,6 +20,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.journal.JournalType;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
@@ -208,7 +209,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       try {
         getClient().getStatus(new AlluxioURI("/"));
         return true;
-      } catch (AlluxioException e) {
+      } catch (AlluxioException | AlluxioStatusException e) {
         LOG.error("Failed to get status of /:", e);
         return false;
       } catch (Exception e) {
