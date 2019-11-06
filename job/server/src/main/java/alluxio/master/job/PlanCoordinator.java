@@ -17,8 +17,7 @@ import alluxio.job.JobDefinition;
 import alluxio.job.JobDefinitionRegistry;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
-import alluxio.job.meta.JobInfo;
-import alluxio.job.wire.PlanInfo;
+import alluxio.job.meta.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.master.job.command.CommandManager;
@@ -42,12 +41,12 @@ import javax.annotation.concurrent.ThreadSafe;
  * A job coordinator that coordinates the distributed task execution on the worker nodes.
  */
 @ThreadSafe
-public final class JobCoordinator {
-  private static final Logger LOG = LoggerFactory.getLogger(JobCoordinator.class);
+public final class PlanCoordinator {
+  private static final Logger LOG = LoggerFactory.getLogger(PlanCoordinator.class);
   /**
    * Access to mJobInfo should be synchronized in order to avoid inconsistent internal task state.
    */
-  private final JobInfo mJobInfo;
+  private final PlanInfo mPlanInfo;
   private final CommandManager mCommandManager;
 
   /** The context containing containing the necessary references to schedule jobs. */
@@ -69,18 +68,18 @@ public final class JobCoordinator {
    */
   private final Map<Long, Long> mWorkerIdToTaskId = Maps.newHashMap();
 
-  private JobCoordinator(CommandManager commandManager, JobServerContext jobServerContext,
-      List<WorkerInfo> workerInfoList, Long jobId, JobConfig jobConfig,
-      Consumer<JobInfo> statusChangeCallback) {
+  private PlanCoordinator(CommandManager commandManager, JobServerContext jobServerContext,
+                          List<WorkerInfo> workerInfoList, Long jobId, JobConfig jobConfig,
+                          Consumer<PlanInfo> statusChangeCallback) {
     Preconditions.checkNotNull(jobConfig);
     mJobServerContext = jobServerContext;
-    mJobInfo = new JobInfo(jobId, jobConfig, statusChangeCallback);
+    mPlanInfo = new PlanInfo(jobId, jobConfig, statusChangeCallback);
     mCommandManager = commandManager;
     mWorkersInfoList = workerInfoList;
   }
 
   /**
-   * Creates a new instance of the {@link JobCoordinator}.
+   * Creates a new instance of the {@link PlanCoordinator}.
    *
    * @param commandManager the command manager
    * @param jobServerContext the context with information used to select executors
@@ -91,34 +90,34 @@ public final class JobCoordinator {
    * @return the created coordinator
    * @throws JobDoesNotExistException when the job definition doesn't exist
    */
-  public static JobCoordinator create(CommandManager commandManager,
-      JobServerContext jobServerContext, List<WorkerInfo> workerInfoList, Long jobId,
-      JobConfig jobConfig, Consumer<JobInfo> statusChangeCallback)
+  public static PlanCoordinator create(CommandManager commandManager,
+                                       JobServerContext jobServerContext, List<WorkerInfo> workerInfoList, Long jobId,
+                                       JobConfig jobConfig, Consumer<PlanInfo> statusChangeCallback)
       throws JobDoesNotExistException {
     Preconditions.checkNotNull(commandManager, "commandManager");
-    JobCoordinator jobCoordinator = new JobCoordinator(commandManager, jobServerContext,
+    PlanCoordinator planCoordinator = new PlanCoordinator(commandManager, jobServerContext,
         workerInfoList, jobId, jobConfig, statusChangeCallback);
-    jobCoordinator.start();
+    planCoordinator.start();
     // start the coordinator, create the tasks
-    return jobCoordinator;
+    return planCoordinator;
   }
 
   private synchronized void start() throws JobDoesNotExistException {
     // get the job definition
-    LOG.info("Starting job {}", mJobInfo.getJobConfig());
+    LOG.info("Starting job {}", mPlanInfo.getJobConfig());
     JobDefinition<JobConfig, ?, ?> definition =
-        JobDefinitionRegistry.INSTANCE.getJobDefinition(mJobInfo.getJobConfig());
+        JobDefinitionRegistry.INSTANCE.getJobDefinition(mPlanInfo.getJobConfig());
     SelectExecutorsContext context =
-        new SelectExecutorsContext(mJobInfo.getId(), mJobServerContext);
+        new SelectExecutorsContext(mPlanInfo.getId(), mJobServerContext);
     Map<WorkerInfo, ?> taskAddressToArgs;
     try {
       taskAddressToArgs =
-          definition.selectExecutors(mJobInfo.getJobConfig(), mWorkersInfoList, context);
+          definition.selectExecutors(mPlanInfo.getJobConfig(), mWorkersInfoList, context);
     } catch (Exception e) {
       LOG.warn("Failed to select executor. {})", e.getMessage());
       LOG.debug("Exception: ", e);
-      mJobInfo.setStatus(Status.FAILED);
-      mJobInfo.setErrorMessage(e.getMessage());
+      mPlanInfo.setStatus(Status.FAILED);
+      mPlanInfo.setErrorMessage(e.getMessage());
       return;
     }
     if (taskAddressToArgs.isEmpty()) {
@@ -130,9 +129,9 @@ public final class JobCoordinator {
       LOG.debug("Selected executor {} with parameters {}.", entry.getKey(), entry.getValue());
       int taskId = mTaskIdToWorkerInfo.size();
       // create task
-      mJobInfo.addTask(taskId, entry.getKey());
+      mPlanInfo.addTask(taskId, entry.getKey());
       // submit commands
-      mCommandManager.submitRunTaskCommand(mJobInfo.getId(), taskId, mJobInfo.getJobConfig(),
+      mCommandManager.submitRunTaskCommand(mPlanInfo.getId(), taskId, mPlanInfo.getJobConfig(),
           entry.getValue(), entry.getKey().getId());
       mTaskIdToWorkerInfo.put((long) taskId, entry.getKey());
       mWorkerIdToTaskId.put(entry.getKey().getId(), (long) taskId);
@@ -143,8 +142,8 @@ public final class JobCoordinator {
    * Cancels the current job.
    */
   public synchronized void cancel() {
-    for (long taskId : mJobInfo.getTaskIdList()) {
-      mCommandManager.submitCancelTaskCommand(mJobInfo.getId(), taskId,
+    for (long taskId : mPlanInfo.getTaskIdList()) {
+      mCommandManager.submitCancelTaskCommand(mPlanInfo.getId(), taskId,
           mTaskIdToWorkerInfo.get(taskId).getId());
     }
   }
@@ -155,9 +154,9 @@ public final class JobCoordinator {
    * @param taskInfoList List of @TaskInfo instances to update
    */
   public void updateTasks(List<TaskInfo> taskInfoList) {
-    synchronized (mJobInfo) {
+    synchronized (mPlanInfo) {
       for (TaskInfo taskInfo : taskInfoList) {
-        mJobInfo.setTaskInfo(taskInfo.getTaskId(), taskInfo);
+        mPlanInfo.setTaskInfo(taskInfo.getTaskId(), taskInfo);
       }
       updateStatus();
     }
@@ -167,14 +166,14 @@ public final class JobCoordinator {
    * @return true if the job is finished
    */
   public synchronized boolean isJobFinished() {
-    return mJobInfo.getStatus().isFinished();
+    return mPlanInfo.getStatus().isFinished();
   }
 
   /**
    * @return the id corresponding to the job
    */
   public long getJobId() {
-    return mJobInfo.getId();
+    return mPlanInfo.getId();
   }
 
   /**
@@ -183,10 +182,10 @@ public final class JobCoordinator {
    * @param errorMessage Error message to set for failure
    */
   public void setJobAsFailed(String errorMessage) {
-    synchronized (mJobInfo) {
-      if (!mJobInfo.getStatus().isFinished()) {
-        mJobInfo.setStatus(Status.FAILED);
-        mJobInfo.setErrorMessage(errorMessage);
+    synchronized (mPlanInfo) {
+      if (!mPlanInfo.getStatus().isFinished()) {
+        mPlanInfo.setStatus(Status.FAILED);
+        mPlanInfo.setErrorMessage(errorMessage);
       }
     }
   }
@@ -197,16 +196,16 @@ public final class JobCoordinator {
    * @param workerId the id of the worker to fail tasks for
    */
   public void failTasksForWorker(long workerId) {
-    synchronized (mJobInfo) {
+    synchronized (mPlanInfo) {
       Long taskId = mWorkerIdToTaskId.get(workerId);
       if (taskId == null) {
         return;
       }
-      TaskInfo taskInfo = mJobInfo.getTaskInfo(taskId);
+      TaskInfo taskInfo = mPlanInfo.getTaskInfo(taskId);
       if (taskInfo.getStatus().isFinished()) {
         return;
       }
-      if (!mJobInfo.getStatus().isFinished()) {
+      if (!mPlanInfo.getStatus().isFinished()) {
         taskInfo.setStatus(Status.FAILED);
         taskInfo.setErrorMessage("Job worker was lost before the task could complete");
         updateStatus();
@@ -217,8 +216,8 @@ public final class JobCoordinator {
   /**
    * @return the on the wire job info for the job being coordinated
    */
-  public synchronized PlanInfo getJobInfoWire() {
-    return new PlanInfo(mJobInfo);
+  public synchronized alluxio.job.wire.PlanInfo getJobInfoWire() {
+    return new alluxio.job.wire.PlanInfo(mPlanInfo);
   }
 
   /**
@@ -227,23 +226,23 @@ public final class JobCoordinator {
    */
   private synchronized void updateStatus() {
     int completed = 0;
-    List<TaskInfo> taskInfoList = mJobInfo.getTaskInfoList();
+    List<TaskInfo> taskInfoList = mPlanInfo.getTaskInfoList();
     for (TaskInfo info : taskInfoList) {
       switch (info.getStatus()) {
         case FAILED:
-          mJobInfo.setStatus(Status.FAILED);
-          if (mJobInfo.getErrorMessage().isEmpty()) {
-            mJobInfo.setErrorMessage("Task execution failed: " + info.getErrorMessage());
+          mPlanInfo.setStatus(Status.FAILED);
+          if (mPlanInfo.getErrorMessage().isEmpty()) {
+            mPlanInfo.setErrorMessage("Task execution failed: " + info.getErrorMessage());
           }
           return;
         case CANCELED:
-          if (mJobInfo.getStatus() != Status.FAILED) {
-            mJobInfo.setStatus(Status.CANCELED);
+          if (mPlanInfo.getStatus() != Status.FAILED) {
+            mPlanInfo.setStatus(Status.CANCELED);
           }
           return;
         case RUNNING:
-          if (mJobInfo.getStatus() != Status.FAILED && mJobInfo.getStatus() != Status.CANCELED) {
-            mJobInfo.setStatus(Status.RUNNING);
+          if (mPlanInfo.getStatus() != Status.FAILED && mPlanInfo.getStatus() != Status.CANCELED) {
+            mPlanInfo.setStatus(Status.RUNNING);
           }
           break;
         case COMPLETED:
@@ -257,18 +256,18 @@ public final class JobCoordinator {
       }
     }
     if (completed == taskInfoList.size()) {
-      if (mJobInfo.getStatus() == Status.COMPLETED) {
+      if (mPlanInfo.getStatus() == Status.COMPLETED) {
         return;
       }
 
       // all the tasks completed, run join
       try {
         // Try to join first, so that in case of failure we don't move to a completed state yet
-        mJobInfo.setResult(join(taskInfoList));
-        mJobInfo.setStatus(Status.COMPLETED);
+        mPlanInfo.setResult(join(taskInfoList));
+        mPlanInfo.setStatus(Status.COMPLETED);
       } catch (Exception e) {
-        mJobInfo.setStatus(Status.FAILED);
-        mJobInfo.setErrorMessage(e.getMessage());
+        mPlanInfo.setStatus(Status.FAILED);
+        mPlanInfo.setErrorMessage(e.getMessage());
       }
     }
   }
@@ -283,12 +282,12 @@ public final class JobCoordinator {
   private String join(List<TaskInfo> taskInfoList) throws Exception {
     // get the job definition
     JobDefinition<JobConfig, Serializable, Serializable> definition =
-        JobDefinitionRegistry.INSTANCE.getJobDefinition(mJobInfo.getJobConfig());
+        JobDefinitionRegistry.INSTANCE.getJobDefinition(mPlanInfo.getJobConfig());
     Map<WorkerInfo, Serializable> taskResults = Maps.newHashMap();
     for (TaskInfo taskInfo : taskInfoList) {
       taskResults.put(mTaskIdToWorkerInfo.get(taskInfo.getTaskId()), taskInfo.getResult());
     }
-    return definition.join(mJobInfo.getJobConfig(), taskResults);
+    return definition.join(mPlanInfo.getJobConfig(), taskResults);
   }
 
   @Override
@@ -297,16 +296,16 @@ public final class JobCoordinator {
       return true;
     }
 
-    if (!(o instanceof JobCoordinator)) {
+    if (!(o instanceof PlanCoordinator)) {
       return false;
     }
 
-    JobCoordinator other = (JobCoordinator) o;
-    return Objects.equal(mJobInfo, other.mJobInfo);
+    PlanCoordinator other = (PlanCoordinator) o;
+    return Objects.equal(mPlanInfo, other.mPlanInfo);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mJobInfo);
+    return Objects.hashCode(mPlanInfo);
   }
 }

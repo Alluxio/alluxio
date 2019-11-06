@@ -23,7 +23,8 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.job.JobIntegrationTest;
-import alluxio.master.job.JobTracker;
+import alluxio.job.meta.JobIdGenerator;
+import alluxio.master.job.PlanTracker;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockInfo;
@@ -78,7 +79,8 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
   public void replicateFullBlockFromUFS() throws Exception {
     // run the replicate job for mBlockId1
     // hack - use a job tracker with capacity of 1
-    Whitebox.setInternalState(mJobMaster, "mTracker", new JobTracker(1, 0, -1));
+    PlanTracker planTracker = new PlanTracker(new JobIdGenerator(), 1, 0, -1);
+    Whitebox.setInternalState(mJobMaster, "mPlanTracker", planTracker);
     waitForJobToFinish(mJobMaster.run(new ReplicateConfig(TEST_URI, mBlockId1, 1)));
 
     BlockInfo blockInfo1 = AdjustJobTestUtils.getBlock(mBlockId1, mFsContext);
@@ -94,8 +96,9 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
       PropertyKey.Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME, "0"})
   public void replicateLastBlockFromUFS() throws Exception {
     // run the replicate job for mBlockId2
-    // hack - use a job tracker with capacity of 1
-    Whitebox.setInternalState(mJobMaster, "mTracker", new JobTracker(1, 0, -1));
+    // hack - use a plan tracker with capacity of 1
+    PlanTracker planTracker = new PlanTracker(new JobIdGenerator(), 1, 0, -1);
+    Whitebox.setInternalState(mJobMaster, "mPlanTracker", planTracker);
     waitForJobToFinish(mJobMaster.run(new ReplicateConfig(TEST_URI, mBlockId2, 1)));
 
     BlockInfo blockInfo1 = AdjustJobTestUtils.getBlock(mBlockId1, mFsContext);

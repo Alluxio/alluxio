@@ -65,18 +65,18 @@ public final class PlanInfo implements JobInfo {
   /**
    * Constructs the plan info from the job master's internal representation of job info.
    *
-   * @param jobInfo the job master's internal job info
+   * @param planInfo the job master's internal job info
    */
-  public PlanInfo(alluxio.job.meta.JobInfo jobInfo) {
-    mId = jobInfo.getId();
-    mName = jobInfo.getJobConfig().getName();
-    mDescription = jobInfo.getJobConfig().toString();
-    mErrorMessage = jobInfo.getErrorMessage();
+  public PlanInfo(alluxio.job.meta.PlanInfo planInfo) {
+    mId = planInfo.getId();
+    mName = planInfo.getJobConfig().getName();
+    mDescription = planInfo.getJobConfig().toString();
+    mErrorMessage = planInfo.getErrorMessage();
     mChildren = Lists.newArrayList();
-    mStatus = Status.valueOf(jobInfo.getStatus().name());
-    mResult = jobInfo.getResult();
-    mLastUpdated = jobInfo.getLastStatusChangeMs();
-    for (TaskInfo taskInfo : jobInfo.getTaskInfoList()) {
+    mStatus = Status.valueOf(planInfo.getStatus().name());
+    mResult = planInfo.getResult();
+    mLastUpdated = planInfo.getLastStatusChangeMs();
+    for (TaskInfo taskInfo : planInfo.getTaskInfoList()) {
       mChildren.add(taskInfo);
     }
   }

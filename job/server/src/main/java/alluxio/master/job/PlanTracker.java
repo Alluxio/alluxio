@@ -19,7 +19,7 @@ import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.meta.JobIdGenerator;
-import alluxio.job.meta.JobInfo;
+import alluxio.job.meta.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.job.command.CommandManager;
 import alluxio.util.CommonUtils;
@@ -39,14 +39,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.Nullable;
 
 /**
- * The {@link JobTracker} is used to create, remove, and provide access to the set of currently
+ * The {@link PlanTracker} is used to create, remove, and provide access to the set of currently
  * scheduled or finished jobs.
  *
  * All modification of the status of jobs should occur within this class,
  */
 @ThreadSafe
-public class JobTracker {
-  private static final Logger LOG = LoggerFactory.getLogger(JobTracker.class);
+public class PlanTracker {
+  private static final Logger LOG = LoggerFactory.getLogger(PlanTracker.class);
 
   /**
    * The maximum amount of jobs that will get purged when removing jobs from the queue.
@@ -75,19 +75,20 @@ public class JobTracker {
   private final JobIdGenerator mJobIdGenerator;
 
   /** The main index to track jobs through their Job Id. */
-  private final ConcurrentHashMap<Long, JobCoordinator> mCoordinators;
+  private final ConcurrentHashMap<Long, PlanCoordinator> mCoordinators;
 
   /** A FIFO queue used to track jobs which have status {@link Status#isFinished()} as true. */
-  private final LinkedBlockingQueue<JobInfo> mFinished;
+  private final LinkedBlockingQueue<PlanInfo> mFinished;
 
   /**
-   * Create a new instance of {@link JobTracker}.
+   * Create a new instance of {@link PlanTracker}.
    *
+   * @param jobIdGenerator the job id generator
    * @param capacity the capacity of jobs that can be handled
    * @param retentionMs the minimum amount of time to retain jobs
    * @param maxJobPurgeCount the max amount of jobs to purge when reaching max capacity
    */
-  public JobTracker(long capacity, long retentionMs, long maxJobPurgeCount) {
+  public PlanTracker(JobIdGenerator jobIdGenerator, long capacity, long retentionMs, long maxJobPurgeCount) {
     Preconditions.checkArgument(capacity >= 0);
     mCapacity = capacity;
     Preconditions.checkArgument(retentionMs >= 0);
@@ -96,20 +97,20 @@ public class JobTracker {
     mCoordinators = new ConcurrentHashMap<>(0,
         0.95f, ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM));
     mFinished = new LinkedBlockingQueue<>();
-    mJobIdGenerator = new JobIdGenerator();
+    mJobIdGenerator = jobIdGenerator;
   }
 
-  private void statusChangeCallback(JobInfo jobInfo) {
-    if (jobInfo == null) {
+  private void statusChangeCallback(PlanInfo planInfo) {
+    if (planInfo == null) {
       return;
     }
-    Status status = jobInfo.getStatus();
+    Status status = planInfo.getStatus();
     if (!status.isFinished()) {
       return;
     }
     // Retry if offering to mFinished doesn't work
     for (int i = 0; i < 2; i++) {
-      if (mFinished.offer(jobInfo)) {
+      if (mFinished.offer(planInfo)) {
         return;
       }
       if (!removeFinished()) {
@@ -118,23 +119,23 @@ public class JobTracker {
         LOG.warn("Failed to remove any jobs from the finished queue in status change callback");
       }
     }
-    if (mFinished.offer(jobInfo)) {
+    if (mFinished.offer(planInfo)) {
       return;
     }
     //remove from the coordinator map preemptively so that it doesn't get lost forever even if
     // it's still within the retention time
     LOG.warn("Failed to offer job id {} to finished queue, removing from tracking preemptively",
-        jobInfo.getId());
+        planInfo.getId());
   }
 
   /**
-   * Gets a {@link JobCoordinator} associated with the given job Id.
+   * Gets a {@link PlanCoordinator} associated with the given job Id.
    *
-   * @param jobId the job id associated with the {@link JobCoordinator}
-   * @return The {@link JobCoordinator} associated with the id, or null if there is no association
+   * @param jobId the job id associated with the {@link PlanCoordinator}
+   * @return The {@link PlanCoordinator} associated with the id, or null if there is no association
    */
   @Nullable
-  public JobCoordinator getCoordinator(long jobId) {
+  public PlanCoordinator getCoordinator(long jobId) {
     return mCoordinators.get(jobId);
   }
 
@@ -154,9 +155,9 @@ public class JobTracker {
       JobDoesNotExistException, ResourceExhaustedException {
     if (removeFinished()) {
       long jobId = mJobIdGenerator.getNewJobId();
-      JobCoordinator jobCoordinator = JobCoordinator.create(manager, ctx,
+      PlanCoordinator planCoordinator = PlanCoordinator.create(manager, ctx,
           workers, jobId, jobConfig, this::statusChangeCallback);
-      mCoordinators.put(jobId, jobCoordinator);
+      mCoordinators.put(jobId, planCoordinator);
       return jobId;
     } else {
       throw new ResourceExhaustedException(
@@ -184,7 +185,7 @@ public class JobTracker {
     }
     int removeCount = 0;
     while (!mFinished.isEmpty() && removeCount < mMaxJobPurgeCount) {
-      JobInfo oldestJob = mFinished.peek();
+      PlanInfo oldestJob = mFinished.peek();
       if (oldestJob == null) { // no items to remove
         break;
       }
@@ -229,12 +230,12 @@ public class JobTracker {
   }
 
   /**
-   * A collection of all {@link JobCoordinator} currently tracked by the job master. May contain
+   * A collection of all {@link PlanCoordinator} currently tracked by the job master. May contain
    * coordinators for jobs which have finished.
    *
-   * @return An unmodifiable collection of all tracked {@link JobCoordinator}
+   * @return An unmodifiable collection of all tracked {@link PlanCoordinator}
    */
-  public Collection<JobCoordinator> coordinators() {
+  public Collection<PlanCoordinator> coordinators() {
     return Collections.unmodifiableCollection(mCoordinators.values());
   }
 }

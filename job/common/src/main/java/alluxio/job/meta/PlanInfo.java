@@ -31,24 +31,24 @@ import javax.annotation.concurrent.ThreadSafe;
  * The job information used by the job master internally.
  */
 @ThreadSafe
-public final class JobInfo implements Comparable<JobInfo> {
+public final class PlanInfo implements Comparable<PlanInfo> {
   private final long mId;
   private final JobConfig mJobConfig;
   private final ConcurrentHashMap<Long, TaskInfo> mTaskIdToInfo;
-  private final Consumer<JobInfo> mStatusChangeCallback;
+  private final Consumer<PlanInfo> mStatusChangeCallback;
   private volatile Status mStatus;
   private volatile long mLastStatusChangeMs;
   private volatile String mErrorMessage;
   private volatile String mResult;
 
   /**
-   * Creates a new instance of {@link JobInfo}.
+   * Creates a new instance of {@link PlanInfo}.
    *
    * @param id the job id
    * @param jobConfig the job configuration
    * @param statusChangeCallback the callback to invoke upon status change
    */
-  public JobInfo(long id, JobConfig jobConfig, Consumer<JobInfo> statusChangeCallback) {
+  public PlanInfo(long id, JobConfig jobConfig, Consumer<PlanInfo> statusChangeCallback) {
     mId = id;
     mJobConfig = Preconditions.checkNotNull(jobConfig);
     mTaskIdToInfo = new ConcurrentHashMap<>(4, 0.95f);
@@ -65,7 +65,7 @@ public final class JobInfo implements Comparable<JobInfo> {
    * equal, they are compared by jobId
    */
   @Override
-  public int compareTo(JobInfo other) {
+  public int compareTo(PlanInfo other) {
     int res = Long.compare(mLastStatusChangeMs, other.mLastStatusChangeMs);
     if (res != 0) {
       return res;
@@ -204,11 +204,11 @@ public final class JobInfo implements Comparable<JobInfo> {
       return true;
     }
 
-    if (!(o instanceof JobInfo)) {
+    if (!(o instanceof PlanInfo)) {
       return false;
     }
 
-    JobInfo other = (JobInfo) o;
+    PlanInfo other = (PlanInfo) o;
     return Objects.equal(mId, other.mId);
   }
 

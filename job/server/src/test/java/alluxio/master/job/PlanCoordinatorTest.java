@@ -45,11 +45,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Tests {@link JobCoordinator}.
+ * Tests {@link PlanCoordinator}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({JobDefinitionRegistry.class, FileSystemContext.class})
-public final class JobCoordinatorTest {
+public final class PlanCoordinatorTest {
   private WorkerInfo mWorkerInfo;
   private long mJobId;
   private JobConfig mJobconfig;
@@ -91,7 +91,7 @@ public final class JobCoordinatorTest {
   @Test
   public void createJobCoordinator() throws Exception {
     mockSelectExecutors(mWorkerInfo);
-    JobCoordinator.create(
+    PlanCoordinator.create(
         mCommandManager, mJobServerContext, mWorkerInfoList, mJobId, mJobconfig, null);
 
     List<JobCommand> commands = mCommandManager.pollAllPendingCommands(mWorkerInfo.getId());
@@ -103,53 +103,53 @@ public final class JobCoordinatorTest {
   @Test
   public void updateStatusFailure() throws Exception {
     mockSelectExecutors(mWorkerInfo);
-    JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mJobServerContext,
+    PlanCoordinator planCoordinator = PlanCoordinator.create(mCommandManager, mJobServerContext,
         mWorkerInfoList, mJobId, mJobconfig, null);
-    setTasksWithStatuses(jobCoordinator, Status.RUNNING, Status.FAILED, Status.COMPLETED);
+    setTasksWithStatuses(planCoordinator, Status.RUNNING, Status.FAILED, Status.COMPLETED);
 
-    Assert.assertEquals(Status.FAILED, jobCoordinator.getJobInfoWire().getStatus());
+    Assert.assertEquals(Status.FAILED, planCoordinator.getJobInfoWire().getStatus());
     Assert.assertTrue(
-        jobCoordinator.getJobInfoWire().getErrorMessage().contains("Task execution failed"));
+        planCoordinator.getJobInfoWire().getErrorMessage().contains("Task execution failed"));
   }
 
   @Test
   public void updateStatusFailureOverCancel() throws Exception {
     mockSelectExecutors(mWorkerInfo);
-    JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mJobServerContext,
+    PlanCoordinator planCoordinator = PlanCoordinator.create(mCommandManager, mJobServerContext,
         mWorkerInfoList, mJobId, mJobconfig, null);
-    setTasksWithStatuses(jobCoordinator, Status.RUNNING, Status.FAILED, Status.COMPLETED);
+    setTasksWithStatuses(planCoordinator, Status.RUNNING, Status.FAILED, Status.COMPLETED);
 
-    Assert.assertEquals(Status.FAILED, jobCoordinator.getJobInfoWire().getStatus());
+    Assert.assertEquals(Status.FAILED, planCoordinator.getJobInfoWire().getStatus());
   }
 
   @Test
   public void updateStatusCancel() throws Exception {
     mockSelectExecutors(mWorkerInfo);
-    JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mJobServerContext,
+    PlanCoordinator planCoordinator = PlanCoordinator.create(mCommandManager, mJobServerContext,
         mWorkerInfoList, mJobId, mJobconfig, null);
-    setTasksWithStatuses(jobCoordinator, Status.CANCELED, Status.RUNNING, Status.COMPLETED);
+    setTasksWithStatuses(planCoordinator, Status.CANCELED, Status.RUNNING, Status.COMPLETED);
 
-    Assert.assertEquals(Status.CANCELED, jobCoordinator.getJobInfoWire().getStatus());
+    Assert.assertEquals(Status.CANCELED, planCoordinator.getJobInfoWire().getStatus());
   }
 
   @Test
   public void updateStatusRunning() throws Exception {
     mockSelectExecutors(mWorkerInfo);
-    JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mJobServerContext,
+    PlanCoordinator planCoordinator = PlanCoordinator.create(mCommandManager, mJobServerContext,
         mWorkerInfoList, mJobId, mJobconfig, null);
-    setTasksWithStatuses(jobCoordinator, Status.COMPLETED, Status.RUNNING, Status.COMPLETED);
+    setTasksWithStatuses(planCoordinator, Status.COMPLETED, Status.RUNNING, Status.COMPLETED);
 
-    Assert.assertEquals(Status.RUNNING, jobCoordinator.getJobInfoWire().getStatus());
+    Assert.assertEquals(Status.RUNNING, planCoordinator.getJobInfoWire().getStatus());
   }
 
   @Test
   public void updateStatusCompleted() throws Exception {
     mockSelectExecutors(mWorkerInfo);
-    JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mJobServerContext,
+    PlanCoordinator planCoordinator = PlanCoordinator.create(mCommandManager, mJobServerContext,
         mWorkerInfoList, mJobId, mJobconfig, null);
-    setTasksWithStatuses(jobCoordinator, Status.COMPLETED, Status.COMPLETED, Status.COMPLETED);
+    setTasksWithStatuses(planCoordinator, Status.COMPLETED, Status.COMPLETED, Status.COMPLETED);
 
-    Assert.assertEquals(Status.COMPLETED, jobCoordinator.getJobInfoWire().getStatus());
+    Assert.assertEquals(Status.COMPLETED, planCoordinator.getJobInfoWire().getStatus());
   }
 
   @Test
@@ -159,29 +159,29 @@ public final class JobCoordinatorTest {
         .when(mJobDefinition.join(Mockito.eq(mJobconfig),
             Mockito.anyMapOf(WorkerInfo.class, Serializable.class)))
         .thenThrow(new UnsupportedOperationException("test exception"));
-    JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mJobServerContext,
+    PlanCoordinator planCoordinator = PlanCoordinator.create(mCommandManager, mJobServerContext,
         mWorkerInfoList, mJobId, mJobconfig, null);
-    setTasksWithStatuses(jobCoordinator, Status.COMPLETED, Status.COMPLETED, Status.COMPLETED);
+    setTasksWithStatuses(planCoordinator, Status.COMPLETED, Status.COMPLETED, Status.COMPLETED);
 
-    Assert.assertEquals(Status.FAILED, jobCoordinator.getJobInfoWire().getStatus());
-    Assert.assertEquals("test exception", jobCoordinator.getJobInfoWire().getErrorMessage());
+    Assert.assertEquals(Status.FAILED, planCoordinator.getJobInfoWire().getStatus());
+    Assert.assertEquals("test exception", planCoordinator.getJobInfoWire().getErrorMessage());
   }
 
   @Test
   public void noTasks() throws Exception {
     mockSelectExecutors();
-    JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mJobServerContext,
+    PlanCoordinator planCoordinator = PlanCoordinator.create(mCommandManager, mJobServerContext,
         mWorkerInfoList, mJobId, mJobconfig, null);
-    Assert.assertEquals(Status.COMPLETED, jobCoordinator.getJobInfoWire().getStatus());
+    Assert.assertEquals(Status.COMPLETED, planCoordinator.getJobInfoWire().getStatus());
   }
 
   @Test
   public void failWorker() throws Exception {
     mockSelectExecutors(mWorkerInfo);
-    JobCoordinator jobCoordinator = JobCoordinator.create(mCommandManager, mJobServerContext,
+    PlanCoordinator planCoordinator = PlanCoordinator.create(mCommandManager, mJobServerContext,
         mWorkerInfoList, mJobId, mJobconfig, null);
-    jobCoordinator.failTasksForWorker(mWorkerInfo.getId());
-    Assert.assertEquals(Status.FAILED, jobCoordinator.getJobInfoWire().getStatus());
+    planCoordinator.failTasksForWorker(mWorkerInfo.getId());
+    Assert.assertEquals(Status.FAILED, planCoordinator.getJobInfoWire().getStatus());
   }
 
   /**
@@ -198,13 +198,13 @@ public final class JobCoordinatorTest {
         .thenReturn(taskAddressToArgs);
   }
 
-  private void setTasksWithStatuses(JobCoordinator jobCoordinator, Status... statuses)
+  private void setTasksWithStatuses(PlanCoordinator planCoordinator, Status... statuses)
       throws Exception {
     List<TaskInfo> taskInfos = new ArrayList<>();
     int taskId = 0;
     for (Status status : statuses) {
       taskInfos.add(new TaskInfo().setTaskId(taskId++).setJobId(mJobId).setStatus(status));
     }
-    jobCoordinator.updateTasks(taskInfos);
+    planCoordinator.updateTasks(taskInfos);
   }
 }
