@@ -282,7 +282,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     createBucketRestCall(bucketName);
 
     final String objectName = "object";
-    final byte[] object = CommonUtils.randomAlphaNumString(Constants.MB).getBytes();
+    final byte[] object = CommonUtils.longString(Constants.MB, 'a').getBytes();
     putObjectTest(bucketName, objectName, object, null, null);
   }
 
@@ -584,7 +584,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void getLargeObject() throws Exception {
-    getObjectTest(CommonUtils.randomAlphaNumString(Constants.MB).getBytes());
+    getObjectTest(CommonUtils.longString(Constants.MB, 'a').getBytes());
   }
 
   @Test
@@ -748,7 +748,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
 
     final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
-    final byte[] object = CommonUtils.randomAlphaNumString(Constants.MB).getBytes();
+    final byte[] object = CommonUtils.longString(Constants.MB, 'a').getBytes();
     putObjectTest(bucketName, objectName, object, uploadId, 1);
   }
 
@@ -764,7 +764,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
 
     final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
-    final byte[] object = CommonUtils.randomAlphaNumString(Constants.MB).getBytes();
+    final byte[] object = CommonUtils.longString(Constants.MB, 'a').getBytes();
     try {
       putObjectTest(bucketName, objectName, object, uploadId + 1, 1);
     } catch (AssertionError e) {
@@ -781,7 +781,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     try {
       final String objectName = "object";
-      final byte[] object = CommonUtils.randomAlphaNumString(Constants.MB).getBytes();
+      final byte[] object = CommonUtils.longString(Constants.MB, 'a').getBytes();
       putObjectTest(bucketName, objectName, object, 1L, 1);
     } catch (AssertionError e) {
       // Expected because there is no such upload ID.
@@ -814,8 +814,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.assertEquals(0, listPartsResult.getParts().size());
 
     // Upload 2 parts.
-    String object1 = CommonUtils.randomAlphaNumString(Constants.MB);
-    String object2 = CommonUtils.randomAlphaNumString(Constants.MB);
+    String object1 = CommonUtils.longString(Constants.MB, 'a');
+    String object2 = CommonUtils.longString(Constants.MB, 'b');
     createObject(objectKey, object1.getBytes(), uploadId, 1);
     createObject(objectKey, object2.getBytes(), uploadId, 2);
 
@@ -904,8 +904,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
 
     // Upload parts.
-    String object1 = CommonUtils.randomAlphaNumString(Constants.MB);
-    String object2 = CommonUtils.randomAlphaNumString(Constants.MB);
+    String object1 = CommonUtils.longString(Constants.MB, 'a');
+    String object2 = CommonUtils.longString(Constants.MB, 'b');
     createObject(objectKey, object1.getBytes(), uploadId, 1);
     createObject(objectKey, object2.getBytes(), uploadId, 2);
 

@@ -41,6 +41,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -190,12 +191,28 @@ public final class CommonUtils {
   }
 
   /**
+   * Generates a string of a character repeated of a given length.
+   * @param length length of the output string
+   * @param c character to be repeated
+   * @return character c repeated length number of times
+   */
+  public static String longString(int length, char c) {
+    char[] chars = new char[length];
+    Arrays.fill(chars, c);
+
+    return new String(chars);
+  }
+
+  /**
    * Generates a random alphanumeric string of the given length.
    *
    * @param length the length
    * @return a random string
    */
   public static String randomAlphaNumString(int length) {
+    Preconditions.checkArgument(length > 5000,
+        "length greater than 5000 is not supported. Please use longString instead");
+
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < length; i++) {
       sb.append(ALPHANUM.charAt(RANDOM.nextInt(ALPHANUM.length())));
