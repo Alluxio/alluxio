@@ -18,8 +18,8 @@ import alluxio.grpc.JobMasterWorkerServiceGrpc;
 import alluxio.grpc.RegisterJobWorkerPRequest;
 import alluxio.grpc.RegisterJobWorkerPResponse;
 import alluxio.grpc.GrpcUtils;
-
 import alluxio.job.plan.wire.TaskInfo;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import io.grpc.stub.StreamObserver;

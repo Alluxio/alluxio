@@ -17,7 +17,7 @@ import alluxio.job.JobDefinition;
 import alluxio.job.JobDefinitionRegistry;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
-import alluxio.job.plan.PlanInfo;
+import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.plan.wire.TaskInfo;
 import alluxio.master.job.command.CommandManager;
@@ -91,8 +91,8 @@ public final class PlanCoordinator {
    * @throws JobDoesNotExistException when the job definition doesn't exist
    */
   public static PlanCoordinator create(CommandManager commandManager,
-                                       JobServerContext jobServerContext, List<WorkerInfo> workerInfoList, Long jobId,
-                                       JobConfig jobConfig, Consumer<PlanInfo> statusChangeCallback)
+      JobServerContext jobServerContext, List<WorkerInfo> workerInfoList, Long jobId,
+      JobConfig jobConfig, Consumer<PlanInfo> statusChangeCallback)
       throws JobDoesNotExistException {
     Preconditions.checkNotNull(commandManager, "commandManager");
     PlanCoordinator planCoordinator = new PlanCoordinator(commandManager, jobServerContext,

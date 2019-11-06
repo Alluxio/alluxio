@@ -14,9 +14,9 @@ package alluxio.job.plan.wire;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.JobType;
 import alluxio.job.util.SerializationUtils;
-
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -69,7 +69,7 @@ public final class PlanInfo implements JobInfo {
    *
    * @param planInfo the job master's internal job info
    */
-  public PlanInfo(alluxio.job.plan.PlanInfo planInfo) {
+  public PlanInfo(alluxio.job.plan.meta.PlanInfo planInfo) {
     mId = planInfo.getId();
     mName = planInfo.getJobConfig().getName();
     mDescription = planInfo.getJobConfig().toString();

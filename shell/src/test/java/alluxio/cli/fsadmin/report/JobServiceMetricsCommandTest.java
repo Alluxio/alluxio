@@ -13,6 +13,7 @@ package alluxio.cli.fsadmin.report;
 
 import alluxio.client.job.JobMasterClient;
 import alluxio.job.plan.wire.PlanInfo;
+import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.Status;
 
@@ -53,7 +54,7 @@ public class JobServiceMetricsCommandTest {
   @Test
   public void testBasic() throws IOException, ParseException {
 
-    List<PlanInfo> jobInfos = new ArrayList<>();
+    List<JobInfo> jobInfos = new ArrayList<>();
 
     jobInfos.add(createJobInfo(1, "Test1", Status.RUNNING, "2019-10-17 12:00:00"));
     jobInfos.add(createJobInfo(2, "Test2", Status.FAILED, "2019-10-17 12:30:15"));
@@ -96,7 +97,7 @@ public class JobServiceMetricsCommandTest {
         lineByLine[14]);
   }
 
-  private PlanInfo createJobInfo(int id, String name, Status status, String datetime)
+  private JobInfo createJobInfo(int id, String name, Status status, String datetime)
       throws ParseException {
     long timeMillis = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss").parse(datetime).getTime();
     PlanInfo jobInfo = new PlanInfo(id, name, status, timeMillis, null);

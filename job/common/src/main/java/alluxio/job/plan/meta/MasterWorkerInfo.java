@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job.plan;
+package alluxio.job.plan.meta;
 
 import alluxio.Constants;
 import alluxio.util.CommonUtils;

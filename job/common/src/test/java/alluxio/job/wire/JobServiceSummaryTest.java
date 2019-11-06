@@ -12,6 +12,7 @@
 package alluxio.job.wire;
 
 import alluxio.job.plan.wire.PlanInfo;
+
 import com.google.common.collect.Maps;
 
 import org.junit.Assert;
@@ -32,7 +33,7 @@ public class JobServiceSummaryTest {
 
   @Before
   public void before() {
-    List<PlanInfo> jobInfos = new ArrayList<>();
+    List<JobInfo> jobInfos = new ArrayList<>();
 
     jobInfos.add(createJobInfo(1, Status.FAILED, 10003L));
     jobInfos.add(createJobInfo(2, Status.COMPLETED, 9998L));
@@ -113,7 +114,7 @@ public class JobServiceSummaryTest {
     Assert.assertEquals(4, recentFailuresArray[2].getId());
   }
 
-  private PlanInfo createJobInfo(int id, Status status, long lastStatusChangeMs) {
+  private JobInfo createJobInfo(int id, Status status, long lastStatusChangeMs) {
     return new PlanInfo(id, "test", status, lastStatusChangeMs, null);
   }
 }

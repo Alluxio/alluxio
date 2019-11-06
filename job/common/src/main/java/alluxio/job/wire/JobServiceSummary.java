@@ -12,6 +12,7 @@
 package alluxio.job.wire;
 
 import alluxio.job.plan.wire.PlanInfo;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
@@ -41,12 +42,12 @@ public final class JobServiceSummary {
 
   /**
    * Constructs a new instance of {@link JobServiceSummary} from a
-   * collection of {@link PlanInfo} it possesses.
+   * collection of {@link JobInfo} it possesses.
    *
-   * @param jobInfos Collection of {@link PlanInfo}
+   * @param jobInfos Collection of {@link JobInfo}
    */
-  public JobServiceSummary(List<PlanInfo> jobInfos) {
-    jobInfos.sort(Comparator.comparing(PlanInfo::getLastUpdated).reversed());
+  public JobServiceSummary(List<JobInfo> jobInfos) {
+    jobInfos.sort(Comparator.comparing(JobInfo::getLastUpdated).reversed());
     mSummaryPerStatus = buildSummaryPerStatus(jobInfos);
 
     mRecentActivities = jobInfos.stream().limit(RECENT_LENGTH).collect(Collectors.toList());
@@ -87,11 +88,11 @@ public final class JobServiceSummary {
     }
   }
 
-  private List<StatusSummary> buildSummaryPerStatus(List<PlanInfo> jobInfos) {
+  private List<StatusSummary> buildSummaryPerStatus(List<JobInfo> jobInfos) {
 
     Map<Status, Long> countPerStatus = new HashMap<>();
 
-    for (PlanInfo jobInfo : jobInfos) {
+    for (JobInfo jobInfo : jobInfos) {
       Status status = Status.valueOf(jobInfo.getStatus().name());
       countPerStatus.compute(status, (key, val) -> (val == null) ? 1 : val + 1);
     }

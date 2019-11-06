@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.job;
+package alluxio.master.job.plan;
 
 import static org.mockito.Mockito.mock;
 

@@ -14,6 +14,7 @@ package alluxio.job.wire;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.job.plan.wire.PlanInfo;
+
 import org.junit.Test;
 
 import java.io.IOException;
@@ -25,9 +26,9 @@ public final class PlanInfoTest {
 
   @Test
   public void testToProto() throws IOException {
-    PlanInfo jobInfo = new PlanInfo(1, "test", Status.COMPLETED, 10, null);
-    PlanInfo otherJobInfo = new PlanInfo(jobInfo.toProto());
+    PlanInfo planInfo = new PlanInfo(1, "test", Status.COMPLETED, 10, null);
+    PlanInfo otherPlanInfo = new PlanInfo(planInfo.toProto());
 
-    assertEquals(jobInfo, otherJobInfo);
+    assertEquals(planInfo, otherPlanInfo);
   }
 }

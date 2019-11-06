@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.job;
+package alluxio.master.job.plan;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -104,7 +104,9 @@ public class PlanTrackerTest {
 
   @Test
   public void testRetentionTime() throws Exception {
-    PlanTracker tracker = new PlanTracker(new JobIdGenerator(), 10, FormatUtils.parseTimeSize("24h"), -1);
+    JobIdGenerator jobIdGenerator = new JobIdGenerator();
+    long retentionMs = FormatUtils.parseTimeSize("24h");
+    PlanTracker tracker = new PlanTracker(jobIdGenerator, 10, retentionMs, -1);
     assertEquals("tracker should be empty", 0, tracker.coordinators().size());
     fillJobTracker(tracker, 10);
     finishAllJobs(tracker);

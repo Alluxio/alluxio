@@ -19,7 +19,7 @@ import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.meta.JobIdGenerator;
-import alluxio.job.plan.PlanInfo;
+import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.job.command.CommandManager;
 import alluxio.util.CommonUtils;
@@ -88,7 +88,8 @@ public class PlanTracker {
    * @param retentionMs the minimum amount of time to retain jobs
    * @param maxJobPurgeCount the max amount of jobs to purge when reaching max capacity
    */
-  public PlanTracker(JobIdGenerator jobIdGenerator, long capacity, long retentionMs, long maxJobPurgeCount) {
+  public PlanTracker(JobIdGenerator jobIdGenerator, long capacity, long retentionMs,
+      long maxJobPurgeCount) {
     Preconditions.checkArgument(capacity >= 0);
     mCapacity = capacity;
     Preconditions.checkArgument(retentionMs >= 0);

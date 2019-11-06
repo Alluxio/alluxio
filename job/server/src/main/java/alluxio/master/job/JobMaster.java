@@ -32,10 +32,9 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.meta.JobIdGenerator;
-import alluxio.job.plan.MasterWorkerInfo;
+import alluxio.job.plan.meta.MasterWorkerInfo;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
-import alluxio.job.plan.wire.PlanInfo;
 import alluxio.job.plan.wire.TaskInfo;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
@@ -154,7 +153,8 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
         ExecutorServiceFactories.cachedThreadPool(Constants.JOB_MASTER_NAME));
     mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
     mCommandManager = new CommandManager();
-    mPlanTracker = new PlanTracker(new JobIdGenerator(), JOB_CAPACITY, RETENTION_MS, MAX_PURGE_COUNT);
+    JobIdGenerator jobIdGenerator = new JobIdGenerator();
+    mPlanTracker = new PlanTracker(jobIdGenerator, JOB_CAPACITY, RETENTION_MS, MAX_PURGE_COUNT);
   }
 
   @Override
@@ -257,7 +257,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
   public alluxio.job.wire.JobServiceSummary getSummary() {
     Collection<PlanCoordinator> coordinators = mPlanTracker.coordinators();
 
-    List<PlanInfo> jobInfos = new ArrayList<>();
+    List<JobInfo> jobInfos = new ArrayList<>();
 
     for (PlanCoordinator coordinator : coordinators) {
       jobInfos.add(coordinator.getPlanInfoWire());
