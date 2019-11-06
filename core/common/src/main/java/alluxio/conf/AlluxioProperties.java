@@ -62,7 +62,7 @@ public class AlluxioProperties {
   private Hash mHash = new Hash(() -> keySet().stream()
       .filter(key -> get(key) != null)
       .sorted(Comparator.comparing(PropertyKey::getName))
-      .map(key -> String.format("%s:%s:%s", key.getName(), get(key), getSource(key)).getBytes()));
+      .map(key -> (key.getName() + ":" + get(key) + ":" + getSource(key)).getBytes()));
 
   /**
    * Constructs a new instance of Alluxio properties.

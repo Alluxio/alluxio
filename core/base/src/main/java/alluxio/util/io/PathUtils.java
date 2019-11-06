@@ -18,6 +18,7 @@ import alluxio.util.OSUtils;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import org.apache.commons.io.FilenameUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -27,11 +28,18 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class PathUtils {
-  private static final String TEMPORARY_SUFFIX_FORMAT = ".alluxio.0x%016X.tmp";
   private static final int TEMPORARY_SUFFIX_LENGTH =
-      String.format(TEMPORARY_SUFFIX_FORMAT, 0).length();
+      getTempSuffix(0).length();
   private static final CharMatcher SEPARATOR_MATCHER =
       CharMatcher.is(AlluxioURI.SEPARATOR.charAt(0));
+
+  private static String getHexPadded(long num) {
+    return Strings.padStart(Long.toHexString(num).toUpperCase(), 16, '0');
+  }
+
+  private static String getTempSuffix(long num) {
+    return ".alluxio.0x" + getHexPadded(num) + ".tmp";
+  }
 
   /**
    * Checks and normalizes the given path.
@@ -243,7 +251,7 @@ public final class PathUtils {
    * @return a deterministic temporary file name
    */
   public static String temporaryFileName(long nonce, String path) {
-    return path + String.format(TEMPORARY_SUFFIX_FORMAT, nonce);
+    return path + getTempSuffix(nonce);
   }
 
   /**

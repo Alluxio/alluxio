@@ -270,6 +270,7 @@ public final class PathUtilsTest {
 
   @Test
   public void getPermanentFileName() {
+    System.out.println(PathUtils.TEMPORARY_SUFFIX_LENGTH);
     assertEquals("/", PathUtils.getPermanentFileName(PathUtils.temporaryFileName(1, "/")));
     assertEquals("/",
         PathUtils.getPermanentFileName(PathUtils.temporaryFileName(0xFFFFFFFFFFFFFFFFL, "/")));

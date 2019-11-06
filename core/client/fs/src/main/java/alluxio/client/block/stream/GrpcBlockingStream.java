@@ -266,7 +266,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
   private String formatErrorMessage(String format, Object... args) {
     StringBuilder errorMessage = new StringBuilder(
         format == null ? "Unknown error" : String.format(format, args));
-    return new StringBuilder(errorMessage).append(String.format(" (%s)", mDescription)).toString();
+    return errorMessage + " (" + mDescription + ")";
   }
 
   private final class ResponseStreamObserver

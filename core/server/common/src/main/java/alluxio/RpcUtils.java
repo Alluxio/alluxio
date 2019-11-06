@@ -107,7 +107,12 @@ public final class RpcUtils {
       String methodName, boolean failureOk, String description, Object... args)
       throws StatusException {
     // avoid string format for better performance if debug is off
-    String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+    String debugDesc;
+    if (logger.isDebugEnabled()) {
+      debugDesc = String.format(description, args);
+    } else {
+      debugDesc = null;
+    }
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       logger.debug("Enter: {}: {}", methodName, debugDesc);
       T res = callable.call();
@@ -157,7 +162,12 @@ public final class RpcUtils {
       String methodName, boolean sendResponse, boolean completeResponse,
       StreamObserver<T> responseObserver, String description, Object... args) {
     // avoid string format for better performance if debug is off
-    String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+    String debugDesc;
+    if (logger.isDebugEnabled()) {
+      debugDesc = String.format(description, args);
+    } else {
+      debugDesc = null;
+    }
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       logger.debug("Enter(stream): {}: {}", methodName, debugDesc);
       T result = callable.call();
