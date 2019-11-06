@@ -17,7 +17,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.RemoveBlockRequest;
-import alluxio.job.AbstractVoidJobDefinition;
+import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
@@ -47,7 +47,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class EvictDefinition
-    extends AbstractVoidJobDefinition<EvictConfig, SerializableVoid> {
+    extends AbstractVoidPlanDefinition<EvictConfig, SerializableVoid> {
   private static final Logger LOG = LoggerFactory.getLogger(EvictDefinition.class);
 
   /**

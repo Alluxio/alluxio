@@ -17,7 +17,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.MoveBlockRequest;
-import alluxio.job.AbstractVoidJobDefinition;
+import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
@@ -43,7 +43,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MoveDefinition
-    extends AbstractVoidJobDefinition<MoveConfig, SerializableVoid> {
+    extends AbstractVoidPlanDefinition<MoveConfig, SerializableVoid> {
   private static final Logger LOG = LoggerFactory.getLogger(MoveDefinition.class);
 
   /**

@@ -16,7 +16,7 @@ import alluxio.Constants;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.exception.status.FailedPreconditionException;
-import alluxio.job.AbstractVoidJobDefinition;
+import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.load.LoadDefinition.LoadTask;
@@ -46,7 +46,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LoadDefinition
-    extends AbstractVoidJobDefinition<LoadConfig, ArrayList<LoadTask>> {
+    extends AbstractVoidPlanDefinition<LoadConfig, ArrayList<LoadTask>> {
   private static final Logger LOG = LoggerFactory.getLogger(LoadDefinition.class);
   private static final int MAX_BUFFER_SIZE = 500 * Constants.MB;
 

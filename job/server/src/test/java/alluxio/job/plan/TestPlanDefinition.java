@@ -9,8 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job;
+package alluxio.job.plan;
 
+import alluxio.job.RunTaskContext;
+import alluxio.job.SelectExecutorsContext;
+import alluxio.job.TestJobConfig;
 import alluxio.job.util.SerializableVoid;
 import alluxio.wire.WorkerInfo;
 
@@ -23,13 +26,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A simple dummy job for testing.
  */
 @NotThreadSafe
-public final class TestJobDefinition
-    extends AbstractVoidJobDefinition<TestJobConfig, SerializableVoid> {
+public final class TestPlanDefinition
+    extends AbstractVoidPlanDefinition<TestJobConfig, SerializableVoid> {
 
   /**
-   * Constructs a new {@link TestJobDefinition}.
+   * Constructs a new {@link TestPlanDefinition}.
    */
-  public TestJobDefinition() {}
+  public TestPlanDefinition() {}
 
   @Override
   public Class<TestJobConfig> getJobConfigClass() {

@@ -21,7 +21,7 @@ import alluxio.collections.Pair;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
-import alluxio.job.AbstractVoidJobDefinition;
+import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.JobUtils;
@@ -58,7 +58,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class PersistDefinition
-    extends AbstractVoidJobDefinition<PersistConfig, SerializableVoid> {
+    extends AbstractVoidPlanDefinition<PersistConfig, SerializableVoid> {
   private static final Logger LOG = LoggerFactory.getLogger(PersistDefinition.class);
 
   /**

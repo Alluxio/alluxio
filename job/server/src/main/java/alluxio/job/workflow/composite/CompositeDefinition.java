@@ -13,7 +13,7 @@ package alluxio.job.workflow.composite;
 
 import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.conf.ServerConfiguration;
-import alluxio.job.AbstractVoidJobDefinition;
+import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.JobConfig;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
@@ -35,7 +35,7 @@ import java.util.Random;
  * The job definition for {@link CompositeConfig}.
  */
 public final class CompositeDefinition
-    extends AbstractVoidJobDefinition<CompositeConfig, ArrayList<CompositeTask>> {
+    extends AbstractVoidPlanDefinition<CompositeConfig, ArrayList<CompositeTask>> {
   private static final Logger LOG = LoggerFactory.getLogger(CompositeDefinition.class);
 
   /**

@@ -9,8 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job;
+package alluxio.job.plan;
 
+import alluxio.job.JobConfig;
 import alluxio.job.util.SerializableVoid;
 import alluxio.wire.WorkerInfo;
 
@@ -23,8 +24,8 @@ import java.util.Map;
  * @param <T> the job configuration type
  * @param <P> the argument type
  */
-public abstract class AbstractVoidJobDefinition<T extends JobConfig, P extends Serializable>
-    implements JobDefinition<T, P, SerializableVoid> {
+public abstract class AbstractVoidPlanDefinition<T extends JobConfig, P extends Serializable>
+    implements PlanDefinition<T, P, SerializableVoid> {
 
   @Override
   public String join(T config, Map<WorkerInfo, SerializableVoid> taskResults) throws Exception {

@@ -17,8 +17,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.JobCommand;
 import alluxio.job.JobConfig;
-import alluxio.job.JobDefinition;
-import alluxio.job.JobDefinitionRegistry;
+import alluxio.job.plan.PlanDefinition;
+import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.wire.Status;
@@ -48,14 +48,14 @@ import java.util.Map;
  * Tests {@link PlanCoordinator}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({JobDefinitionRegistry.class, FileSystemContext.class})
+@PrepareForTest({PlanDefinitionRegistry.class, FileSystemContext.class})
 public final class PlanCoordinatorTest {
   private WorkerInfo mWorkerInfo;
   private long mJobId;
   private JobConfig mJobconfig;
   private JobServerContext mJobServerContext;
   private CommandManager mCommandManager;
-  private JobDefinition<JobConfig, Serializable, Serializable> mJobDefinition;
+  private PlanDefinition<JobConfig, Serializable, Serializable> mPlanDefinition;
   private List<WorkerInfo> mWorkerInfoList;
 
   @Before
@@ -75,12 +75,12 @@ public final class PlanCoordinatorTest {
 
     // Create mock job definition.
     @SuppressWarnings("unchecked")
-    JobDefinition<JobConfig, Serializable, Serializable> mockJobDefinition =
-        Mockito.mock(JobDefinition.class);
-    JobDefinitionRegistry singleton = PowerMockito.mock(JobDefinitionRegistry.class);
-    Whitebox.setInternalState(JobDefinitionRegistry.class, "INSTANCE", singleton);
-    Mockito.when(singleton.getJobDefinition(mJobconfig)).thenReturn(mockJobDefinition);
-    mJobDefinition = mockJobDefinition;
+    PlanDefinition<JobConfig, Serializable, Serializable> mockPlanDefinition =
+        Mockito.mock(PlanDefinition.class);
+    PlanDefinitionRegistry singleton = PowerMockito.mock(PlanDefinitionRegistry.class);
+    Whitebox.setInternalState(PlanDefinitionRegistry.class, "INSTANCE", singleton);
+    Mockito.when(singleton.getJobDefinition(mJobconfig)).thenReturn(mockPlanDefinition);
+    mPlanDefinition = mockPlanDefinition;
 
     // Create test worker.
     mWorkerInfo = new WorkerInfo();
@@ -156,7 +156,7 @@ public final class PlanCoordinatorTest {
   public void updateStatusJoinFailure() throws Exception {
     mockSelectExecutors(mWorkerInfo);
     Mockito
-        .when(mJobDefinition.join(Mockito.eq(mJobconfig),
+        .when(mPlanDefinition.join(Mockito.eq(mJobconfig),
             Mockito.anyMapOf(WorkerInfo.class, Serializable.class)))
         .thenThrow(new UnsupportedOperationException("test exception"));
     PlanCoordinator planCoordinator = PlanCoordinator.create(mCommandManager, mJobServerContext,
@@ -193,7 +193,7 @@ public final class PlanCoordinatorTest {
       taskAddressToArgs.put(workerInfo, null);
     }
     Mockito
-        .when(mJobDefinition.selectExecutors(Mockito.eq(mJobconfig),
+        .when(mPlanDefinition.selectExecutors(Mockito.eq(mJobconfig),
             Mockito.eq(Lists.newArrayList(mWorkerInfo)), Mockito.any(SelectExecutorsContext.class)))
         .thenReturn(taskAddressToArgs);
   }

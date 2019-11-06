@@ -9,8 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job;
+package alluxio.job.plan;
 
+import alluxio.job.RunTaskContext;
+import alluxio.job.SelectExecutorsContext;
+import alluxio.job.SleepJobConfig;
 import alluxio.job.util.SerializableVoid;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
@@ -22,13 +25,13 @@ import java.util.Map;
 /**
  * The definition for a job which sleeps for the specified number of milliseconds on each worker.
  */
-public final class SleepJobDefinition
-    extends AbstractVoidJobDefinition<SleepJobConfig, SerializableVoid> {
+public final class SleepPlanDefinition
+    extends AbstractVoidPlanDefinition<SleepJobConfig, SerializableVoid> {
 
   /**
-   * Constructs a new {@link SleepJobDefinition}.
+   * Constructs a new {@link SleepPlanDefinition}.
    */
-  public SleepJobDefinition() {}
+  public SleepPlanDefinition() {}
 
   @Override
   public Class<SleepJobConfig> getJobConfigClass() {

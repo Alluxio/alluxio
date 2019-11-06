@@ -9,8 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job;
+package alluxio.job.plan;
 
+import alluxio.job.JobConfig;
+import alluxio.job.plan.PlanDefinition;
+import alluxio.job.plan.PlanDefinitionRegistry;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -21,15 +24,15 @@ import java.util.Map;
 /**
  * Rule for adding to the job registry and then cleaning up the change.
  */
-public final class JobDefinitionRegistryRule implements TestRule {
+public final class PlanDefinitionRegistryRule implements TestRule {
   private Class<? extends JobConfig> mConfig;
-  private JobDefinition<?, ?, ?> mDefinition;
+  private PlanDefinition<?, ?, ?> mDefinition;
 
   /**
    * @param keyValuePairs map from configuration keys to the values to set them to
    */
-  public JobDefinitionRegistryRule(Class<? extends JobConfig> config,
-      JobDefinition<?, ?, ?> definition) {
+  public PlanDefinitionRegistryRule(Class<? extends JobConfig> config,
+                                    PlanDefinition<?, ?, ?> definition) {
     mConfig = config;
     mDefinition = definition;
   }
@@ -40,8 +43,8 @@ public final class JobDefinitionRegistryRule implements TestRule {
       @Override
       public void evaluate() throws Throwable {
         @SuppressWarnings("unchecked")
-        Map<Class<?>, JobDefinition<?, ?, ?>> registry =
-            Whitebox.getInternalState(JobDefinitionRegistry.INSTANCE, Map.class);
+        Map<Class<?>, PlanDefinition<?, ?, ?>> registry =
+            Whitebox.getInternalState(PlanDefinitionRegistry.INSTANCE, Map.class);
         registry.put(mConfig, mDefinition);
         try {
           statement.evaluate();

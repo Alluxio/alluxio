@@ -12,7 +12,7 @@
 package alluxio.job.plan.replicate;
 
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.job.AbstractVoidJobDefinition;
+import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.JobUtils;
@@ -40,7 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class ReplicateDefinition
-    extends AbstractVoidJobDefinition<ReplicateConfig, SerializableVoid> {
+    extends AbstractVoidPlanDefinition<ReplicateConfig, SerializableVoid> {
   private static final Logger LOG = LoggerFactory.getLogger(ReplicateDefinition.class);
 
   /**

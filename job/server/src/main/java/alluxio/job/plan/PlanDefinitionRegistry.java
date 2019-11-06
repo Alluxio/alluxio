@@ -9,11 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job;
+package alluxio.job.plan;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
 
+import alluxio.job.JobConfig;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +30,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * The central registry of all the job definitions.
  */
 @ThreadSafe
-public enum JobDefinitionRegistry {
+public enum PlanDefinitionRegistry {
   INSTANCE;
-  private static final Logger LOG = LoggerFactory.getLogger(JobDefinitionRegistry.class);
-  private final Map<Class<?>, JobDefinition<?, ?, ?>> mDefinitions = new HashMap<>();
+  private static final Logger LOG = LoggerFactory.getLogger(PlanDefinitionRegistry.class);
+  private final Map<Class<?>, PlanDefinition<?, ?, ?>> mDefinitions = new HashMap<>();
 
   // all the static fields must be defined before the static initialization
   static {
@@ -43,23 +44,23 @@ public enum JobDefinitionRegistry {
   @SuppressWarnings("unchecked")
   private void discoverJobDefinitions() {
     @SuppressWarnings({"rawtypes"})
-    ServiceLoader<JobDefinition> discoveredDefinitions =
-        ServiceLoader.load(JobDefinition.class, JobDefinition.class.getClassLoader());
+    ServiceLoader<PlanDefinition> discoveredDefinitions =
+        ServiceLoader.load(PlanDefinition.class, PlanDefinition.class.getClassLoader());
 
-    for (@SuppressWarnings("rawtypes") JobDefinition definition : discoveredDefinitions) {
+    for (@SuppressWarnings("rawtypes") PlanDefinition definition : discoveredDefinitions) {
       add(definition.getJobConfigClass(), definition);
       LOG.info("Loaded job definition " + definition.getClass().getSimpleName() + " for config "
           + definition.getJobConfigClass().getName());
     }
   }
 
-  private JobDefinitionRegistry() {}
+  private PlanDefinitionRegistry() {}
 
   /**
    * Adds a mapping from the job configuration to the definition.
    */
   private <T extends JobConfig> void add(Class<T> jobConfig,
-      JobDefinition<T, ?, ?> definition) {
+                                         PlanDefinition<T, ?, ?> definition) {
     mDefinitions.put(jobConfig, definition);
   }
 
@@ -72,7 +73,7 @@ public enum JobDefinitionRegistry {
    * @throws JobDoesNotExistException when the job definition does not exist
    */
   @SuppressWarnings("unchecked")
-  public synchronized <T extends JobConfig> JobDefinition<T, Serializable, Serializable>
+  public synchronized <T extends JobConfig> PlanDefinition<T, Serializable, Serializable>
         getJobDefinition(T jobConfig) throws JobDoesNotExistException {
     if (!mDefinitions.containsKey(jobConfig.getClass())) {
       throw new JobDoesNotExistException(

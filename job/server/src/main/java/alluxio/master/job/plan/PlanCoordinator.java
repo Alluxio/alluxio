@@ -13,8 +13,8 @@ package alluxio.master.job.plan;
 
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.JobConfig;
-import alluxio.job.JobDefinition;
-import alluxio.job.JobDefinitionRegistry;
+import alluxio.job.plan.PlanDefinition;
+import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.meta.PlanInfo;
@@ -105,8 +105,8 @@ public final class PlanCoordinator {
   private synchronized void start() throws JobDoesNotExistException {
     // get the job definition
     LOG.info("Starting job {}", mPlanInfo.getJobConfig());
-    JobDefinition<JobConfig, ?, ?> definition =
-        JobDefinitionRegistry.INSTANCE.getJobDefinition(mPlanInfo.getJobConfig());
+    PlanDefinition<JobConfig, ?, ?> definition =
+        PlanDefinitionRegistry.INSTANCE.getJobDefinition(mPlanInfo.getJobConfig());
     SelectExecutorsContext context =
         new SelectExecutorsContext(mPlanInfo.getId(), mJobServerContext);
     Map<WorkerInfo, ?> taskAddressToArgs;
@@ -281,8 +281,8 @@ public final class PlanCoordinator {
    */
   private String join(List<TaskInfo> taskInfoList) throws Exception {
     // get the job definition
-    JobDefinition<JobConfig, Serializable, Serializable> definition =
-        JobDefinitionRegistry.INSTANCE.getJobDefinition(mPlanInfo.getJobConfig());
+    PlanDefinition<JobConfig, Serializable, Serializable> definition =
+        PlanDefinitionRegistry.INSTANCE.getJobDefinition(mPlanInfo.getJobConfig());
     Map<WorkerInfo, Serializable> taskResults = Maps.newHashMap();
     for (TaskInfo taskInfo : taskInfoList) {
       taskResults.put(mTaskIdToWorkerInfo.get(taskInfo.getTaskId()), taskInfo.getResult());

@@ -30,7 +30,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
-import alluxio.job.AbstractVoidJobDefinition;
+import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.JobUtils;
@@ -103,7 +103,7 @@ import java.util.concurrent.ConcurrentMap;
  *     └── f1
  */
 public final class MigrateDefinition
-    extends AbstractVoidJobDefinition<MigrateConfig, ArrayList<MigrateCommand>> {
+    extends AbstractVoidPlanDefinition<MigrateConfig, ArrayList<MigrateCommand>> {
   private static final Logger LOG = LoggerFactory.getLogger(MigrateDefinition.class);
   private final Random mRandom = new Random();
 

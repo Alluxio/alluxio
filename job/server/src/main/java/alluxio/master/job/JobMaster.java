@@ -141,7 +141,7 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
   private final PlanTracker mPlanTracker;
 
   /**
-   * The job id generator
+   * The job id generator.
    */
   private final JobIdGenerator mJobIdGenerator;
 
@@ -163,6 +163,9 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
     mPlanTracker = new PlanTracker(this, JOB_CAPACITY, RETENTION_MS, MAX_PURGE_COUNT);
   }
 
+  /**
+   * @return new job id
+   */
   public long getNewJobId() {
     return mJobIdGenerator.getNewJobId();
   }

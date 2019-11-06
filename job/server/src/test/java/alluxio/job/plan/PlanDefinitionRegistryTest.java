@@ -9,20 +9,22 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job;
+package alluxio.job.plan;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
 
+import alluxio.job.JobConfig;
+import alluxio.job.TestJobConfig;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 /**
- * Unit tests for {@link JobDefinitionRegistry}.
+ * Unit tests for {@link PlanDefinitionRegistry}.
  */
-public final class JobDefinitionRegistryTest {
+public final class PlanDefinitionRegistryTest {
   /**
    * The exception expected to be thrown.
    */
@@ -31,9 +33,9 @@ public final class JobDefinitionRegistryTest {
 
   @Test
   public void getJobDefinitionTest() throws Exception {
-    JobDefinition<TestJobConfig, ?, ?> definition = JobDefinitionRegistry.INSTANCE
+    PlanDefinition<TestJobConfig, ?, ?> definition = PlanDefinitionRegistry.INSTANCE
         .getJobDefinition(new TestJobConfig("test"));
-    Assert.assertTrue(definition instanceof TestJobDefinition);
+    Assert.assertTrue(definition instanceof TestPlanDefinition);
   }
 
   @Test
@@ -44,7 +46,7 @@ public final class JobDefinitionRegistryTest {
     mThrown.expectMessage(
         ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage(jobConfig.getName()));
 
-    JobDefinitionRegistry.INSTANCE.getJobDefinition(jobConfig);
+    PlanDefinitionRegistry.INSTANCE.getJobDefinition(jobConfig);
   }
 
   class DummyJobConfig implements JobConfig {

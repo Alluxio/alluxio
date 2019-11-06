@@ -13,7 +13,7 @@ package alluxio.job.plan.transform;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
-import alluxio.job.AbstractVoidJobDefinition;
+import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.transform.compact.Compactor;
@@ -39,7 +39,7 @@ import java.util.Map;
  * The job definition for compacting files representing a structured table under a directory.
  */
 public final class CompactDefinition
-    extends AbstractVoidJobDefinition<CompactConfig, ArrayList<CompactTask>> {
+    extends AbstractVoidPlanDefinition<CompactConfig, ArrayList<CompactTask>> {
   private static final Logger LOG = LoggerFactory.getLogger(CompactDefinition.class);
   private static final String COMPACTED_FILE_PATTERN = "part-%d.parquet";
   private static final String SUCCESS_FILENAME = "_SUCCESS";

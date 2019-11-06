@@ -9,8 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job;
+package alluxio.job.plan;
 
+import alluxio.job.JobConfig;
+import alluxio.job.RunTaskContext;
+import alluxio.job.SelectExecutorsContext;
 import alluxio.wire.WorkerInfo;
 
 import java.io.Serializable;
@@ -19,7 +22,7 @@ import java.util.Map;
 
 /**
  * A job definition. A definition has two important parts: (1) a
- * {@link JobDefinition#selectExecutors(JobConfig, List, SelectExecutorsContext)} method runs at the
+ * {@link PlanDefinition#selectExecutors(JobConfig, List, SelectExecutorsContext)} method runs at the
  * master node and selects the workers to run the executors. (2) a
  * {@link #runTask(JobConfig, Serializable, RunTaskContext)} method runs at each selected executor
  * on the worker node.
@@ -28,7 +31,7 @@ import java.util.Map;
  * @param <P> the parameters to pass to each task
  * @param <R> the return type from the task
  */
-public interface JobDefinition<T extends JobConfig, P extends Serializable,
+public interface PlanDefinition<T extends JobConfig, P extends Serializable,
     R extends Serializable> {
   /**
    * @return the class of the associated {@link JobConfig}

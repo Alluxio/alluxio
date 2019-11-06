@@ -71,7 +71,7 @@ public class PlanTracker {
   /** The minimum amount of time that finished jobs should be retained for. */
   private final long mRetentionMs;
 
-  /** the job master (used to generate job ids) **/
+  /** The job master (used to generate job ids). **/
   private final JobMaster mJobMaster;
 
   /** The main index to track jobs through their Job Id. */
