@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
 import alluxio.collections.Pair;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.PropertyKey;
@@ -695,7 +696,7 @@ public class InodeTree implements DelegatingJournaled {
     CreateDirectoryContext missingDirContext = CreateDirectoryContext.defaults();
     missingDirContext.getOptions().setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
         .setTtl(context.getTtl()).setTtlAction(context.getTtlAction()));
-    missingDirContext.setPersisted(context.isPersisted());
+    missingDirContext.setWriteType(context.getWriteType());
     missingDirContext.setOperationTimeMs(context.getOperationTimeMs());
     missingDirContext.setMountPoint(false);
     missingDirContext.setOwner(context.getOwner());
@@ -802,10 +803,13 @@ public class InodeTree implements DelegatingJournaled {
         AccessControlList acl = dAcl.generateChildFileACL(mode);
         newFile.setInternalAcl(acl);
       }
-
       if (fileContext.isCacheable()) {
         newFile.setCacheable(true);
       }
+      if (fileContext.getWriteType() == WriteType.ASYNC_THROUGH) {
+        newFile.setPersistenceState(PersistenceState.TO_BE_PERSISTED);
+      }
+
       newInode = newFile;
     } else {
       throw new IllegalStateException(String.format("Unrecognized create options: %s", context));

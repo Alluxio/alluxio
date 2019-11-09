@@ -1323,7 +1323,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE)
-          .setDefaultValue("4MB")
+          .setDefaultValue("100MB")
           .setDescription("The max inbound message size used by copycat client/server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -1695,6 +1695,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("How often the master schedules persistence jobs "
               + "for files written using ASYNC_THROUGH")
           .build();
+  public static final PropertyKey MASTER_PERSISTENCE_BLACKLIST =
+      new Builder(Name.MASTER_PERSISTENCE_BLACKLIST)
+          .setDescription("Patterns to blacklist persist, comma separated, string match, no regex."
+            + " This affects any async persist call (including ASYNC_THROUGH writes and CLI "
+            + "persist) but does not affect CACHE_THROUGH writes. Users may want to specify "
+            + "temporary files in the blacklist to avoid unnecessary I/O and errors. Some "
+            + "examples are `.staging` and `.tmp`.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   public static final PropertyKey MASTER_REPLICATION_CHECK_INTERVAL_MS =
       new Builder(Name.MASTER_REPLICATION_CHECK_INTERVAL_MS)
           .setDefaultValue("1min")
@@ -1722,6 +1732,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "the server")
           .setIsHidden(true)
           .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SKIP_ROOT_ACL_CHECK =
+      new Builder(Name.MASTER_SKIP_ROOT_ACL_CHECK)
+          .setDefaultValue(false)
+          .setDescription("Skip root directory ACL check when restarting either from journal or "
+              + "backup. This is to allow users to restore a backup from a different cluster onto "
+              + "their current one without having to recreate the different clusters owner user.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .setIsHidden(true)
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
@@ -1876,6 +1897,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(true)
           .setDescription("Whether to check for update availability.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED =
+      new Builder(Name.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("When set to false, writing files using ASYNC_THROUGH or persist CLI "
+              + "with object stores as the UFS will first create temporary objects "
+              + "suffixed by \".alluxio.TIMESTAMP.tmp\" in the object store before "
+              + "committed to the final UFS path. When set to true, files will be "
+              + "put to the destination path directly in the object store without staging "
+              + "with a temp suffix. Enabling this optimization by directly persisting files "
+              + "can significantly improve the efficiency writing to object store by making less "
+              + "data copy as rename in object store can be slow, "
+              + "but leaving a short vulnerability window for undefined behavior if a file "
+              + "is written using ASYNC_THROUGH but renamed or removed before the async "
+              + "persist operation completes, while this same file path was reused for other new "
+              + "files in Alluxio.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_WEB_BIND_HOST =
@@ -2789,7 +2828,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CONF_SYNC_INTERVAL =
       new Builder(Name.USER_CONF_SYNC_INTERVAL)
-          .setDefaultValue("3sec")
+          .setDefaultValue("1min")
           .setDescription("The time period of client master heartbeat to "
               + "update the configuration if necessary from meta master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3598,6 +3637,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The port for Alluxio job worker's RPC service.")
           .setDefaultValue(30001)
           .build();
+  public static final PropertyKey JOB_WORKER_THREADPOOL_SIZE =
+          new Builder(Name.JOB_WORKER_THREADPOOL_SIZE)
+                  .setDescription("Number of threads in the thread pool for job worker. "
+                          + "This may be adjusted to a lower value to alleviate resource "
+                          + "saturation on the job worker nodes (CPU + IO).")
+                  .setDefaultValue(10)
+                  .build();
   public static final PropertyKey JOB_WORKER_WEB_BIND_HOST =
       new Builder(Name.JOB_WORKER_WEB_BIND_HOST)
           .setDescription("The host the job worker web server binds to.")
@@ -3674,6 +3720,42 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether to enable start JVM monitor thread on worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
+          .build();
+
+  //
+  // Table service properties
+  //
+  public static final PropertyKey TABLE_ENABLED =
+      new Builder(Name.TABLE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("(Experimental) Enables the table service.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey TABLE_CATALOG_PATH =
+      new Builder(Name.TABLE_CATALOG_PATH)
+          .setDefaultValue("/catalog")
+          .setDescription("The Alluxio file path for the table catalog metadata.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
+      new Builder(Name.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL)
+          .setDefaultValue(10 * Constants.SECOND_MS)
+          .setDescription("Job monitor is a heartbeat thread in the transform manager, "
+              + "this is the time interval in milliseconds the job monitor heartbeat is run to "
+              + "check the status of the transformation jobs and update table and partition "
+              + "locations after transformation.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
+      new Builder(Name.TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME)
+          .setDefaultValue("300sec")
+          .setDescription("The length of time the Alluxio Table Master should keep information "
+              + "about finished transformation jobs before they are discarded.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
           .build();
 
   /**
@@ -3990,6 +4072,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.persistence.max.interval";
     public static final String MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS =
         "alluxio.master.persistence.scheduler.interval";
+    public static final String MASTER_PERSISTENCE_BLACKLIST =
+        "alluxio.master.persistence.blacklist";
     public static final String MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
         "alluxio.master.log.config.report.heartbeat.interval";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
@@ -4012,6 +4096,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.rpc.executor.keepalive";
     public static final String MASTER_SERVING_THREAD_TIMEOUT =
         "alluxio.master.serving.thread.timeout";
+    public static final String MASTER_SKIP_ROOT_ACL_CHECK =
+        "alluxio.master.skip.root.acl.check";
     public static final String MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
         "alluxio.master.startup.block.integrity.check.enabled";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
@@ -4048,6 +4134,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.ufs.path.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_THREADS =
         "alluxio.master.ufs.path.cache.threads";
+    public static final String MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED =
+        "alluxio.master.unsafe.direct.persist.object.enabled";
     public static final String MASTER_UPDATE_CHECK_ENABLED =
         "alluxio.master.update.check.enabled";
     public static final String MASTER_WEB_BIND_HOST = "alluxio.master.web.bind.host";
@@ -4382,6 +4470,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String JOB_WORKER_DATA_PORT = "alluxio.job.worker.data.port";
     public static final String JOB_WORKER_HOSTNAME = "alluxio.job.worker.hostname";
     public static final String JOB_WORKER_RPC_PORT = "alluxio.job.worker.rpc.port";
+    public static final String JOB_WORKER_THREADPOOL_SIZE = "alluxio.job.worker.threadpool.size";
     public static final String JOB_WORKER_WEB_BIND_HOST = "alluxio.job.worker.web.bind.host";
     public static final String JOB_WORKER_WEB_PORT = "alluxio.job.worker.web.port";
 
@@ -4399,6 +4488,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.jvm.monitor.sleep.interval";
     public static final String MASTER_JVM_MONITOR_ENABLED = "alluxio.master.jvm.monitor.enabled";
     public static final String WORKER_JVM_MONITOR_ENABLED = "alluxio.worker.jvm.monitor.enabled";
+
+    //
+    // Table service properties
+    //
+    public static final String TABLE_ENABLED = "alluxio.table.enabled";
+    public static final String TABLE_CATALOG_PATH = "alluxio.table.catalog.path";
+    public static final String TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
+        "alluxio.table.transform.manager.job.monitor.interval";
+    public static final String TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
+        "alluxio.table.transform.manager.job.history.retention.time";
 
     private Name() {} // prevent instantiation
   }
@@ -4755,6 +4854,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     String name = key.getName();
     DEFAULT_KEYS_MAP.remove(name);
     DEFAULT_ALIAS_MAP.remove(name);
+  }
+
+  /**
+   * @param name name of the property
+   * @return the registered property key if found, or else create a new one and return
+   */
+  public static PropertyKey getOrBuildCustom(String name) {
+    return DEFAULT_KEYS_MAP.computeIfAbsent(name,
+        (key) -> new Builder(key).setIsBuiltIn(false).buildUnregistered());
   }
 
   @Override

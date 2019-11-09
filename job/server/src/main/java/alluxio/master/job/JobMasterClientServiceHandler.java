@@ -15,6 +15,8 @@ import alluxio.RpcUtils;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.CancelPResponse;
+import alluxio.grpc.GetJobServiceSummaryPRequest;
+import alluxio.grpc.GetJobServiceSummaryPResponse;
 import alluxio.grpc.GetJobStatusPRequest;
 import alluxio.grpc.GetJobStatusPResponse;
 import alluxio.grpc.JobMasterClientServiceGrpc;
@@ -63,6 +65,16 @@ public class JobMasterClientServiceHandler
       return GetJobStatusPResponse.newBuilder()
           .setJobInfo(mJobMaster.getStatus(request.getJobId()).toProto()).build();
     }, "getJobStatus", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getJobServiceSummary(GetJobServiceSummaryPRequest request,
+      StreamObserver<GetJobServiceSummaryPResponse> responseObserver) {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetJobServiceSummaryPResponse>) () -> {
+          return GetJobServiceSummaryPResponse.newBuilder()
+                .setSummary(mJobMaster.getSummary().toProto()).build();
+        }, "getJobServiceSummary", "request=%s", responseObserver, request);
   }
 
   @Override

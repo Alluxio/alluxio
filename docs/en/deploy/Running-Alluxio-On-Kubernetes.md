@@ -63,7 +63,7 @@ multiple Alluxio master nodes to access the shared volume. When deploying a sing
 can be changed to `ReadWriteOnce`.
 
 ```console
-$ cp alluxio-journal-volume.yaml.template alluxio-journal-volume.yaml
+$ cp alluxio-master-journal-pv.yaml.template alluxio-master-journal-pv.yaml
 ```
 
 Note: the spec provided uses a `hostPath` volume for demonstration on a single-node deployment. For a
@@ -72,7 +72,7 @@ persistent volume plugins.
 
 Create the persistent volume.
 ```console
-$ kubectl create -f alluxio-journal-volume.yaml
+$ kubectl create -f alluxio-master-journal-pv.yaml
 ```
 
 ### Deploy Using `helm`
@@ -80,42 +80,107 @@ $ kubectl create -f alluxio-journal-volume.yaml
 #### Prerequisites
 
 A helm repo with the Alluxio helm chart must be available.
-The offical public helm repo can install Alluxio from [stable/alluxio](https://github.com/helm/charts/tree/master/stable/alluxio).
 
 (Optional) To prepare a local helm repository:
 ```console
 $ helm init
-$ helm package helm/alluxio/
-$ mkdir -p helm/charts/
-$ cp alluxio-{{site.ALLUXIO_VERSION_STRING}}.tgz helm/charts/
-$ helm repo index helm/charts/
-$ helm serve --repo-path helm/charts
+$ helm package helm-chart/alluxio/
+$ mkdir -p helm-chart/charts/
+$ cp alluxio-{{site.ALLUXIO_HELM_VERSION_STRING}}.tgz helm-chart/charts/
+$ helm repo index helm-chart/charts/
+$ helm serve --repo-path helm-chart/charts
 $ helm repo add alluxio-local http://127.0.0.1:8879
 $ helm repo update alluxio-local
 ```
 
 #### Configuration
 
-Once the helm repository is available, prepare the Alluxio configuration:
-```console
-$ cat << EOF > config.yaml
+Once the helm repository is available, prepare the Alluxio configuration.
+The minimal configuration must contain the under storage address:
+```properties
 properties:
   alluxio.master.mount.table.root.ufs: "<under_storage_address>"
-EOF
 ```
-Note: The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
+> Note: The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
 
-***Example: Amazon S3 as the under store***
+To view the complete list of supported properties run the `helm inspect` command:
 ```console
-$ cat << EOF > config.yaml
-properties:
-  alluxio.master.mount.table.root.ufs: "s3a://<bucket>"
-  aws.accessKeyId: "<accessKey>"
-  aws.secretKey: "<secretKey>"
-EOF
+$ helm inspect values alluxio-local/alluxio
 ```
 
 The remainder of this section describes various configuration options with examples.
+
+***Example: Amazon S3 as the under store***
+
+To [mount S3]({{ '/en/ufs/S3.html' | relativize_url }}#root-mount-point}}) at the root of Alluxio
+namespace specify all required properties as a key-value pair under `properties`.
+
+```properties
+properties:
+  alluxio.master.mount.table.root.ufs: "s3a://<bucket>"
+  alluxio.master.mount.table.root.option.aws.accessKeyId: "<accessKey>"
+  alluxio.master.mount.table.root.option.aws.secretKey: "<secretKey>"
+```
+
+***Example: Single Master and Journal in a Persistent Volume***
+
+The following configures [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration}})
+with a persistent volume claim `alluxio-pv-claim` mounted locally to the master Pod at location
+`/journal`.
+
+```properties
+master:
+  count: 1 # For multiMaster mode increase this to >1
+
+journal:
+  type: "UFS"
+  ufsType: "local"
+  folder: "/journal"
+  pvcName: alluxio-pv-claim
+  storageClass: "standard"
+  size: 1Gi
+```
+
+***Example: HDFS as Journal***
+
+First create secrets for any configuration required by an HDFS client. These are mounted under `/secrets`.
+```console
+$ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DIR}/core-site.xml --from-file=${HADOOP_CONF_DIR}/hdfs-site.xml
+```
+
+```properties
+journal:
+  type: "UFS"
+  ufsType: "HDFS"
+  folder: "hdfs://{$hostname}:{$hostport}/journal"
+
+properties:
+  alluxio.master.mount.table.root.ufs: "hdfs://<ns>"
+  alluxio.master.journal.ufs.option.alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
+
+secrets:
+  master:
+    alluxio-hdfs-config: hdfsConfig
+  worker:
+    alluxio-hdfs-config: hdfsConfig
+```
+
+***Example: Multi-master with Embedded Journal***
+
+```properties
+master:
+  count: 3
+
+journal:
+  type: "EMBEDDED"
+  folder: "/journal"
+```
+
+> Limitation: [Embedded Journal]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
+configuration using `helm` uses `emptyDir` volumes by default.
+This type of volume is lost on Pod restart.
+To prevent meta-data loss, [local persistent volumes](https://kubernetes.io/docs/concepts/storage/volumes/#local)
+must be configured manually.
 
 ***Example: HDFS as the under store***
 
@@ -123,60 +188,112 @@ First create secrets for any configuration required by an HDFS client. These are
 ```console
 $ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DIR}/core-site.xml --from-file=${HADOOP_CONF_DIR}/hdfs-site.xml
 ```
-Then mount these secrets to the Alluxio master and worker containers as follows:
-```console
-$ cat << EOF > config.yaml
+
+```properties
 properties:
   alluxio.master.mount.table.root.ufs: "hdfs://<ns>"
-  alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
+  alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
 secrets:
   master:
     alluxio-hdfs-config: hdfsConfig
   worker:
     alluxio-hdfs-config: hdfsConfig
-EOF
-```
-Note: Multiple secrets can be mounted by adding more rows to the configuration such as:
-```console
-$ cat << EOF > config.yaml
-...
-secrets:
-  master:
-    alluxio-hdfs-config: hdfsConfig
-    alluxio-ceph-config: cephConfig
-    ...
-  worker:
-    alluxio-hdfs-config: hdfsConfig
-    alluxio-ceph-config: cephConfig
-    ...
-EOF
 ```
 
 ***Example: Off-heap Metastore Management***
 
-The following configuration provisions an emptyDir volume with the specified configuration and
-configures the Alluxio master to use the mounted directory for the RocksDB metastore.
-```console
-$ cat << EOF > config.yaml
+The following configuration provisions an `emptyDir` volume with the specified configuration and
+configures the Alluxio master to use the mounted directory for an on-disk RocksDB-based metastore.
+```properties
 properties:
-  ...
   alluxio.master.metastore: ROCKS
   alluxio.master.metastore.dir: /metastore
 
-volumes:
+master:
+  metastore:
+    medium: ""
+    size: 1Gi
+    mountPath: /metastore
+```
+
+> Limitation: Limits for the disk usage are not configurable as of now.
+
+***Example: Multiple Secrets***
+
+Multiple secrets can be mounted to both master and worker Pods.
+The format for the section for each Pod is `<secretName>: <mountPath>`
+```properties
+secrets:
   master:
-    metastore:
-      medium: ""
-      size: 1Gi
-      mountPath: /metastore
-EOF
+    alluxio-hdfs-config: hdfsConfig
+    alluxio-ceph-config: cephConfig
+  worker:
+    alluxio-hdfs-config: hdfsConfig
+    alluxio-ceph-config: cephConfig
+```
+
+***Examples: Alluxio Storage Management***
+
+Alluxio manages local storage, including memory, on the worker Pods.
+[Multiple-Tier Storage]({{ '/en/advanced/Alluxio-Storage-Management.html#multiple-tier-storage' | relativize_url }})
+can be configured using the following reference configurations.
+
+**Memory Tier Only**
+
+```properties
+tieredstore:
+  levels:
+  - level: 0
+    mediumtype: MEM
+    path: /dev/shm
+    type: emptyDir
+    high: 0.95
+    low: 0.7
+```
+
+**Memory and SSD Storage in Multiple-Tiers**
+
+```properties
+tieredstore:
+  levels:
+  - level: 0
+    mediumtype: MEM
+    path: /dev/shm
+    type: hostPath
+    high: 0.95
+    low: 0.7
+  - level: 1
+    mediumtype: SSD
+    path: /ssd-disk
+    type: hostPath
+    high: 0.95
+    low: 0.7
+```
+
+> There 2 supported volume `type`: [hostPath](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath) and [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir)
+`hostPath` volumes can only be used by the `root` user without resource limits.
+[Local persistent volumes](https://kubernetes.io/docs/concepts/storage/volumes/#local) instead of
+`hostPath` must be configured manually as of now.
+
+**Memory and SSD Storage in a Single-Tier**
+
+```properties
+tieredstore:
+  levels:
+  - level: 0
+    mediumtype: MEM,SSD
+    path: /dev/shm,/alluxio-ssd
+    type: hostPath
+    quota: 1GB,10GB
+    high: 0.95
+    low: 0.7
 ```
 
 #### Install
 
-Once the configuration is finalized, install as follows:
+Once the configuration is finalized in a file named `config.yaml`, install as follows:
 ```console
-helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_VERSION_STRING}}
+helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_HELM_VERSION_STRING}}
 ```
 
 #### Uninstall
@@ -193,56 +310,76 @@ $ helm delete alluxio
 The specification directory contains a set of YAML templates for common deployment scenarios in
 the sub-directories: *singleMaster-localJournal*, *singleMaster-hdfsJournal* and
 *multiMaster-embeddedJournal*.
-- *singleMaster* means the templates generate 1 Alluxio master process, while *multiMaster* means 3.
+> *singleMaster* means the templates generate 1 Alluxio master process, while *multiMaster* means 3.
 *embedded* and *ufs* are the 2 [journal modes]({{ '/en/operation/Journal.html' | relativize_url }}) that Alluxio supports.
-- *singleMaster-localJournal* directory gives you the necessary Kubernetes ConfigMap, 1 Alluxio master process and a set of Alluxio workers.
-The Alluxio master writes journal to the PersistentVolume defined in *alluxio-journal-volume.yaml.template*.
-- *multiMaster-EmbeddedJournal* directory gives you the Kubernetes ConfigMap, 3 Alluxio masters and a set of Alluxio workers.
-The Alluxio masters each write to its `alluxio-journal-volume`, which is an `emptyDir` that gets wiped out when the Pod is shut down.
-- *singleMaster-hdfsJournal* directory gives you the Kubernetes ConfigMap, 3 Alluxio masters with a set of workers.
+
+- *singleMaster-localJournal* directory gives you the necessary Kubernetes ConfigMap, 1 Alluxio
+master process and a set of Alluxio workers.
+The Alluxio master writes journal to the PersistentVolume defined in
+*alluxio-master-journal-pv.yaml.template*.
+- *multiMaster-EmbeddedJournal* directory gives you the Kubernetes ConfigMap, 3 Alluxio masters and
+a set of Alluxio workers.
+The Alluxio masters each write to its `alluxio-journal-volume`, which is an `emptyDir` that gets
+wiped out when the Pod is shut down.
+- *singleMaster-hdfsJournal* directory gives you the Kubernetes ConfigMap, 1 Alluxio master with a
+set of workers.
 The journal is in a shared UFS location. In this template we use HDFS as the UFS.
 
-Note: The default templates (one-level above the mentioned sub-directories) are just symbolic links
-to the specifications found in *singleMaster-localJournal*.
 
 #### Configuration
 
-Once the deployment option is chosen, copy the template:
+Once the deployment option is chosen, copy the template from the desired sub-directory:
 ```console
-$ cp alluxio-configMap.yaml.template alluxio-configMap.yaml
+$ cp alluxio-configmap.yaml.template alluxio-configmap.yaml
 ```
 
 Modify or add any configuration properties as required.
 The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
-
-```
-# Replace <under_storage_address> with the appropriate URI, for example s3://my-bucket
-# If using an under storage which requires credentials be sure to specify those as well
-ALLUXIO_JAVA_OPTS=-Dalluxio.master.mount.table.root.ufs=<under_storage_address>
+Add to `ALLUXIO_JAVA_OPTS`:
+```properties
+-Dalluxio.master.mount.table.root.ufs=<under_storage_address>
 ```
 
-Note that when running Alluxio with host networking, the ports assigned to Alluxio services must
+Note:
+- Replace `<under_storage_address>` with the appropriate URI, for example s3://my-bucket.
+If using an under storage which requires credentials be sure to specify those as well.
+- When running Alluxio with host networking, the ports assigned to Alluxio services must
 not be occupied beforehand.
 
 Create a ConfigMap.
 ```console
-$ kubectl create -f alluxio-configMap.yaml
+$ kubectl create -f alluxio-configmap.yaml
 ```
 
 #### Install
 
+***Prepare the Specification***
+
 Prepare the Alluxio deployment specs from the templates. Modify any parameters required, such as
-location of the **Docker image**, and CPU and memory requirements for pods.
+location of the **Docker image**, and CPU and memory requirements for Pods.
+
+If using a persistent volume for the journal, create the claim:
 ```console
-$ cp alluxio-master.yaml.template alluxio-master.yaml
-$ cp alluxio-worker.yaml.template alluxio-worker.yaml
+$ mv master/alluxio-master-journal-pvc.yaml.template master/alluxio-master-journal-pvc.yaml
 ```
+
+For the master(s), create the `Service` and `StatefulSet`:
+```console
+$ mv master/alluxio-master-service.yaml.template master/alluxio-master-service.yaml
+$ mv master/alluxio-master-statefulset.yaml.template master/alluxio-master-statefulset.yaml
+```
+
+For the workers, create the `DaemonSet`:
+```console
+$ mv worker/alluxio-worker-daemonset.yaml.template worker/alluxio-worker-daemonset.yaml
+```
+
 Note: Please make sure that the version of the Kubernetes specification matches the version of the
 Alluxio Docker image being used.
 
-***Remote Storage Access***
+***(Optional) Remote Storage Access***
 
-(Optional) Additional steps are required when Alluxio is connecting to storage hosts outside the
+Additional steps may be required when Alluxio is connecting to storage hosts outside the
 Kubernetes cluster it is deployed on. The remainder of this section explains how to configure the
 connection to a remote HDFS accessible but not managed by Kubernetes.
 
@@ -262,8 +399,8 @@ spec:
     - "<namenode>"
 ```
 
-For the case of a StatefulSet or DaemonSet as used in `alluxio-master.yaml.template` and
-`alluxio-worker.yaml.template`, `hostAliases` section should be added to each section of
+For the case of a StatefulSet or DaemonSet as used in `alluxio-master-statefulset.yaml.template` and
+`alluxio-worker-daemonset.yaml.template`, `hostAliases` section should be added to each section of
 `spec.template.spec` like below.
 
 ```yaml
@@ -291,41 +428,37 @@ create a Kubernetes Secret for the HDFS client configuration.
 ```console
 kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DIR}/core-site.xml --from-file=${HADOOP_CONF_DIR}/hdfs-site.xml
 ```
-These two configuration files are referred in `alluxio-master.yaml` and `alluxio-worker.yaml`.
+These two configuration files are referred in `alluxio-master-statefulset.yaml` and `alluxio-worker-daemonset.yaml`.
 Alluxio processes need the HDFS configuration files to connect, and the location of these files in
 the container is controlled by property `alluxio.underfs.hdfs.configuration`.
 
-**Step 3: Modify `alluxio-configMap.yaml.template`.** Now that your pods know how to talk to your
+**Step 3: Modify `alluxio-configmap.yaml.template`.** Now that your Pods know how to talk to your
 HDFS service, update `alluxio.master.journal.folder` and `alluxio.master.mount.table.root.ufs` to
 point to the desired HDFS destination.
 
 Once all the pre-requisites and configuration have been setup, deploy Alluxio.
 ```console
-$ kubectl create -f alluxio-master.yaml
-$ kubectl create -f alluxio-worker.yaml
+$ kubectl create -f ./master/
+$ kubectl create -f ./worker/
 ```
 
 #### Uninstall
 
 Uninstall Alluxio as follows:
 ```console
-$ kubectl delete -f alluxio-worker.yaml
-$ kubectl delete -f alluxio-master.yaml
-$ kubectl delete configmaps alluxio-config
+$ kubectl delete -f ./worker/
+$ kubectl delete -f ./master/
+$ kubectl delete configmap alluxio-config
 ```
+> Note: This will delete all resources under `./master/` and `./worker/`. 
+Be careful if you have persistent volumes or other important resources you want to keep under those directories.  
 
-Execute the following to remove the persistent volume storing the Alluxio journal. Note: Alluxio metadata
-will be lost.
-```console
-$ kubectl delete -f alluxio-journal-volume.yaml
-```
-
-#### Upgrade Alluxio
+#### Upgrade
 
 This section will go over how to upgrade Alluxio in your Kubernetes cluster with `kubectl`.
 
 **Step 1: Upgrade the docker image version tag**
- 
+
 Each released Alluxio version will have the corresponding docker image released on [dockerhub](https://hub.docker.com/r/alluxio/alluxio).
 
 You should update the `image` field of all the Alluxio containers to use the target version tag. Tag `latest` will point to the latest stable version.
@@ -360,9 +493,6 @@ $ kubectl delete service -l app=alluxio
 $ kubectl delete statefulset -l app=alluxio
 ```
 
-The reason why you don't do `kubectl delete -f alluxio-master.yaml` is that will delete the Persistent Volume Claim in the `alluxio-master.yaml` if any.
-And that will result in your Persistent Volume getting released and the journal in it will be lost. The same logic applies to `alluxio-worker.yaml`.
-
 Make sure all the Pods have been terminated before you move on to the next step.
 
 **Step 3: Format journal and Alluxio storage if necessary**
@@ -370,35 +500,22 @@ Make sure all the Pods have been terminated before you move on to the next step.
 Check the Alluxio upgrade guide page for whether the Alluxio master journal has to be formatted.
 If no format is needed, you are ready to skip the rest of this section and move on to restart all Alluxio master and worker Pods.
 
-How the journal should be formatted depends on the Alluxio master [journal type]({{ '/en/operation/Journal.html#ufs-journal-vs-embedded-journal' | relativize_url }}).
-
-*UFS Journal*
-
-If you are running UFS journal, there is only one place for the journal.
 There is a single Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
 template that can be used for only formatting the master.
 The Job runs `alluxio formatMasters` and formats the journal for all masters.
-You should make sure the Job runs with the same configMap with all your other Alluxio masters so it's able to find the journal persistent storage and format it.  
+You should make sure the Job runs with the same configMap with all your other Alluxio masters so it's able to find the journal persistent storage and format it.
 
 ```console
-$ kubectl apply -f alluxio-format-master.yaml
+$ cp ./job/alluxio-format-journal-job.yaml.template ./job/alluxio-format-journal-job.yaml
+$ kubectl apply -f ./job/alluxio-format-journal-job.yaml
 ```
 
 After the Job completes, it will be deleted by Kubernetes after the defined `ttlSecondsAfterFinished`.
-Then the clean journal will be ready for a new Alluxio master to start with.
-
-*Emedded Journal*
-
-If you are running embedded journal, each Alluxio master will write to its own journal destination defined by `alluxio.master.journal.folder`.
-In order to format the journals you have two options.
-
-1. Format all masters by running the Kubernetes Job in `alluxio-format-master.yaml`.
-
-1. Clean up the journal Persistent Volume for each master. You can do that by deleting and recreating the Persistent Volume for each master.
+Then the clean journal will be ready for a new Alluxio master(s) to start with.
 
 If you are running Alluxio workers with [tiered storage]({{ '/en/advanced/Alluxio-Storage-Management.html#multiple-tier-storage' | relativize_url }}),
 and you have Persistent Volumes configured for Alluxio, the storage should be cleaned up too.
-You should delete and recreate the Persistent Volumes. 
+You should delete and recreate the Persistent Volumes.
 
 Once all the journals and Alluxio storage have been formatted, you are ready to restart the Alluxio master and worker Pods.
 
@@ -409,8 +526,8 @@ Now that Alluxio masters and worker containers all use your desired version. Res
 Now restart the Alluxio master and worker Pods from the YAML files.
 
 ```console
-$ kubectl create -f alluxio-master.yaml
-$ kubectl create -f alluxio-worker.yaml
+$ kubectl create -f ./master/
+$ kubectl create -f ./worker/
 ```
 
 **Step 5: Verify the Alluxio master and worker Pods are back up**
@@ -428,23 +545,24 @@ You can do more comprehensive verification following [Verify Alluxio]({{ '/en/de
 
 The Alluxio UI can be accessed from outside the kubernetes cluster using port forwarding.
 ```console
-$ kubectl port-forward alluxio-master-0 19999:19999
+$ kubectl port-forward alluxio-master-$i-0 19999:19999
 ```
+Note: `i=0` for the the first master Pod. When running multiple masters, forward port for each
+master. Only the primary master serves the Web UI.
 
 ### Verify
 
-Once ready, access the Alluxio CLI from the master pod and run basic I/O tests.
+Once ready, access the Alluxio CLI from the master Pod and run basic I/O tests.
 ```console
-$ kubectl exec -ti alluxio-master-0 /bin/bash
+$ kubectl exec -ti alluxio-master-0-0 /bin/bash
 ```
 
-From the master pod, execute the following:
+From the master Pod, execute the following:
 ```console
-$ cd /opt/alluxio
-$ ./bin/alluxio runTests
+$ alluxio runTests
 ```
 
-(Optional) If using peristent volumes for Alluxio master, the status of the volume should change to
+(Optional) If using persistent volumes for Alluxio master, the status of the volume should change to
 `CLAIMED`.
 ```console
 $ kubectl get pv alluxio-journal-volume
@@ -459,13 +577,16 @@ connect to it. For applications using the [POSIX API]({{ '/en/api/POSIX-API.html
 application containers can simply mount the Alluxio FileSystem.
 
 In order to use the POSIX API, first deploy the Alluxio FUSE daemon.
+
+***Using `kubectl`***
 ```console
 $ cp alluxio-fuse.yaml.template alluxio-fuse.yaml
 $ kubectl create -f alluxio-fuse.yaml
 ```
 Note:
 - The container running the Alluxio FUSE daemon must have the `securityContext.privileged=true` with
-SYS_ADMIN capabilities. Application containers that require Alluxio access do not need this privilege.
+`SYS_ADMIN` capabilities.
+Application containers that require Alluxio access do not need this privilege.
 - A different Docker image [alluxio/alluxio-fuse](https://hub.docker.com/r/alluxio/alluxio-fuse/) based
 on `ubuntu` instead of `alpine` is needed to run the FUSE daemon. Application containers can run on
 any Docker image.
@@ -502,31 +623,36 @@ Check access to the given port from a remote client using a network utility such
 $ nc -zv <IP> 29999
 ```
 
+### Permission Denied
+
+From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio` with UID 1000 and GID 1000 by default.
+Kubernetes [`hostPath`](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath) volumes
+are only writable by root so you need to update the permission accordingly. 
+
 ### Enable Debug Logging
 
 To change the log level for Alluxio servers (master and workers), use the CLI command `logLevel` as
 follows:
 
-Access the Alluxio CLI from the master pod.
+Access the Alluxio CLI from the master Pod.
 ```console
-$ kubectl exec -ti alluxio-master-0 /bin/bash
+$ kubectl exec -ti alluxio-master-0-0 /bin/bash
 ```
 
-From the master pod, execute the following:
+From the master Pod, execute the following:
 ```console
-$ cd /opt/alluxio
-$ ./bin/alluxio logLevel --level DEBUG --logName alluxio
+$ alluxio logLevel --level DEBUG --logName alluxio
 ```
 
 ### Accessing Logs
 
-The Alluxio master and job master run as separate containers of the master pod. Similarly, the
-Alluxio worker and job worker run as separate containers of a worker pod. Logs can be accessed for
+The Alluxio master and job master run as separate containers of the master Pod. Similarly, the
+Alluxio worker and job worker run as separate containers of a worker Pod. Logs can be accessed for
 the individual containers as follows.
 
 Master:
 ```console
-$ kubectl logs -f alluxio-master-0 -c alluxio-master
+$ kubectl logs -f alluxio-master-0-0 -c alluxio-master
 ```
 
 Worker:
@@ -552,16 +678,14 @@ For performance-critical applications it is recommended to enable short-circuit 
 against Alluxio because it can increase a client's read and write throughput when co-located with
 an Alluxio worker.
 
-#### Properties to Enable Short-Circuit Operations
+***Properties to Enable Short-Circuit Operations***
 
 This feature is enabled by default, however requires extra configuration to work properly in
 Kubernetes environments.
 To disable short-circuit operations, set the property `alluxio.user.short.circuit.enabled=false`.
 
-***Hostname Introspection***
-
-Short-circuit operations between the Alluxio client and worker are enabled if the client hostname
-matches the worker hostname.
+**Hostname Introspection:** Short-circuit operations between the Alluxio client and worker are
+enabled if the client hostname matches the worker hostname.
 This may not be true if the client is running as part of a container with virtual networking.
 In such a scenario, set the following property to use filesystem inspection to enable short-circuit
 operations and **make sure the client container mounts the directory specified as the domain socket
@@ -574,9 +698,7 @@ Short-circuit writes are then enabled if the worker UUID is located on the clien
 alluxio.worker.data.server.domain.socket.as.uuid=true
 ```
 
-***Domain Socket Path***
-
-The domain socket is a volume which should be mounted on:
+**Domain Socket Path:** The domain socket is a volume which should be mounted on:
 
 - All Alluxio workers
 - All application containers which intend to read/write through Alluxio
@@ -584,9 +706,9 @@ The domain socket is a volume which should be mounted on:
 The exact path of the domain socket on the host is defined in the helm chart at
 `${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/values.yml`.
 On the worker the path where the domain socket is mounted can be found within
-`${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/templates/alluxio-worker.yml`
+`${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/templates/worker/daemonset.yaml`
 
-As part of the Alluxio worker pod creation, a directory
+As part of the Alluxio worker Pod creation, a directory
 is created on the host at `/tmp/alluxio-domain` for the shared domain socket.
 The workers then mount `/tmp/alluxio-domain` to `/opt/domain` within the
 container.
@@ -598,7 +720,7 @@ alluxio.worker.data.server.domain.socket.address=/opt/domain
 Compute application containers **must** mount the domain socket volume to the same path
 (`/opt/domain`) as configured for the Alluxio workers.
 
-#### Verify
+***Verify***
 
 To verify short-circuit reads and writes monitor the metrics displayed under:
 1. the metrics tab of the web UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`
@@ -617,6 +739,6 @@ If there are issues accessing Alluxio using the POSIX API:
 1. First identify which node the application container ran on using the command
 `kubectl describe pods` or the dashboard.
 1. After the node is identified, the command `kubectl describe nodes <node>` can be used to identify
-the `alluxio-fuse` pod running on that node.
-1. Then tail the logs for the identified pod to see if there were any errors encountered using
+the `alluxio-fuse` Pod running on that node.
+1. Then tail the logs for the identified Pod to see if there were any errors encountered using
 `kubectl logs -f alluxio-fuse-<id>`.

@@ -9,16 +9,23 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-
+{{ $masterCount := int .Values.master.count }}
+{{- $release := .Release }}
+{{- $name := include "alluxio.name" . }}
+{{- $fullName := include "alluxio.fullname" . }}
+{{- $chart := include "alluxio.chart" . }}
+{{- range $i := until $masterCount }}
+  {{- $masterName := printf "master-%v" $i }}
+  {{- $masterJavaOpts := printf " -Dalluxio.master.hostname=%v-%v " $fullName $masterName }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "alluxio.fullname" . }}-master
+  name: {{ $fullName }}-{{ $masterName }}
   labels:
-    app: {{ template "alluxio.name" . }}
-    chart: {{ template "alluxio.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    app: {{ $name }}
+    chart: {{ $chart }}
+    release: {{ $release.Name }}
+    heritage: {{ $release.Service }}
     role: alluxio-master
 spec:
   ports:
@@ -33,5 +40,8 @@ spec:
   clusterIP: None
   selector:
     role: alluxio-master
-    app: {{ template "alluxio.name" . }}
-    release: {{ .Release.Name }}
+    app: {{ $name }}
+    release: {{ $release.Name }}
+    name: {{ $fullName }}-{{ $masterName }}
+---
+{{- end }}

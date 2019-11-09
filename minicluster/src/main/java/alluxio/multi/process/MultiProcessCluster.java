@@ -41,6 +41,7 @@ import alluxio.master.ZkMasterInquireClient;
 import alluxio.master.journal.JournalType;
 import alluxio.multi.process.PortCoordination.ReservedPort;
 import alluxio.network.PortUtils;
+import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
@@ -96,7 +97,7 @@ public final class MultiProcessCluster {
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
   private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
   private static final File TESTS_LOG = new File(Constants.TESTS_LOG);
-  private static final int WAIT_MASTER_SERVING_TIMEOUT_MS = 5000;
+  private static final int WAIT_MASTER_SERVING_TIMEOUT_MS = 10000;
 
   private final Map<PropertyKey, String> mProperties;
   private final Map<Integer, Map<PropertyKey, String>> mMasterProperties;
@@ -673,7 +674,8 @@ public final class MultiProcessCluster {
             addresses.add(
                 InetSocketAddress.createUnresolved(address.getHostname(), address.getRpcPort()));
           }
-          return new PollingMasterInquireClient(addresses, ServerConfiguration.global());
+          return new PollingMasterInquireClient(addresses, ServerConfiguration.global(),
+              ServerUserState.global());
         } else {
           return new SingleMasterInquireClient(InetSocketAddress.createUnresolved(
               mMasterAddresses.get(0).getHostname(), mMasterAddresses.get(0).getRpcPort()));

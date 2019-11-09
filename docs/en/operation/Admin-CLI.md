@@ -144,6 +144,25 @@ Alluxio under storage system information:
 hdfs://localhost:9000/ on / (hdfs, capacity=-1B, used=-1B, not read-only, not shared, properties={})
 ```
 
+`report jobservice` will report a summary of the job service.
+
+```console
+$ ./bin/alluxio fsadmin report jobservice
+Status: CREATED   Count: 0
+Status: CANCELED  Count: 0
+Status: FAILED    Count: 1
+Status: RUNNING   Count: 118
+Status: COMPLETED Count: 223
+
+10 Most Recently Modified Jobs:
+Timestamp: 10-24-2019 17:15:25:014       Id: 1571936656844       Name: Persist             Status: COMPLETED
+Timestamp: 10-24-2019 17:15:24:340       Id: 1571936656957       Name: Persist             Status: RUNNING
+(only a subset of the results is shown)
+
+10 Most Recently Failed Jobs:
+Timestamp: 10-24-2019 17:15:22:946       Id: 1571936656839       Name: Persist             Status: FAILED
+```
+
 ### ufs
 
 The `ufs` command provides options to update attributes of a mounted under storage. The option `mode` can be used

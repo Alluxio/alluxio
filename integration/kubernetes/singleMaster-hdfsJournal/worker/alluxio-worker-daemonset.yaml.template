@@ -1,0 +1,145 @@
+---
+# Source: alluxio/templates/worker/daemonset.yaml
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: alluxio-worker
+  labels:
+    app: alluxio
+    chart: alluxio-0.5.2
+    release: alluxio
+    heritage: Tiller
+    role: alluxio-worker
+spec:
+  selector:
+    matchLabels:
+      app: alluxio
+      release: alluxio
+      role: alluxio-worker
+  template:
+    metadata:
+      labels:
+        app: alluxio
+        chart: alluxio-0.5.2
+        release: alluxio
+        heritage: Tiller
+        role: alluxio-worker
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      securityContext:
+        fsGroup: 1000
+      nodeSelector:
+      initContainers:
+      - name: socket-chown
+        securityContext:
+          runAsUser: 0
+        image: alluxio/alluxio:2.2.0-SNAPSHOT
+        command: ["/bin/chown","-R", "1000:1000", "/opt/domain"]
+        volumeMounts:
+        - name: alluxio-domain
+          mountPath: /opt/domain
+      containers:
+        - name: alluxio-worker
+          image: alluxio/alluxio:2.2.0-SNAPSHOT
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          resources:
+            limits:
+              cpu: 1
+              memory: 2G
+            requests:
+              cpu: 1
+              memory: 2G
+          command: ["/entrypoint.sh"]
+          args:
+            - worker-only
+            - --no-format
+          env:
+          - name: ALLUXIO_WORKER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          envFrom:
+          - configMapRef:
+              name: alluxio-config
+          ports:
+          - containerPort: 29999
+            name: rpc
+          - containerPort: 30000
+            name: web
+          volumeMounts:
+            - name: alluxio-domain
+              mountPath: /opt/domain
+            - name: secret-alluxio-hdfs-config-volume
+              mountPath: /secrets/hdfsConfig
+              readOnly: true
+            - mountPath: /dev/shm
+              name: mem
+        - name: alluxio-job-worker
+          image: alluxio/alluxio:2.2.0-SNAPSHOT
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: 1
+              memory: 1G
+            requests:
+              cpu: 1
+              memory: 1G
+          command: ["/entrypoint.sh"]
+          args:
+            - job-worker
+          env:
+          - name: ALLUXIO_WORKER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          envFrom:
+          - configMapRef:
+              name: alluxio-config
+          ports:
+          - containerPort: 30001
+            name: job-rpc
+          - containerPort: 30002
+            name: job-data
+          - containerPort: 30003
+            name: job-web
+          volumeMounts:
+            - name: alluxio-domain
+              mountPath: /opt/domain
+            - name: secret-alluxio-hdfs-config-volume
+              mountPath: /secrets/hdfsConfig
+              readOnly: true
+            - mountPath: /dev/shm
+              name: mem
+      restartPolicy: Always
+      volumes:
+        - name: alluxio-domain
+          hostPath:
+            path: /tmp/alluxio-domain
+            type: DirectoryOrCreate
+        - name: secret-alluxio-hdfs-config-volume
+          secret:
+            secretName: alluxio-hdfs-config
+            defaultMode: 256
+        - name: mem
+          emptyDir:
+            medium: "Memory"
+            sizeLimit: 1G
+

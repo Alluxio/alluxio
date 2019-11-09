@@ -1,3 +1,5 @@
+---
+# Source: alluxio/templates/fuse/client-daemonset.yaml
 #
 # The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
 # (the "License"). You may not use this work except in compliance with the License, which is
@@ -13,15 +15,28 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: alluxio-fuse-client
+  labels:
+    app: alluxio
+    chart: alluxio-0.5.2
+    release: alluxio
+    heritage: Tiller
+    role: alluxio-fuse-client
 spec:
   selector:
     matchLabels:
-      name: alluxio-fuse-client
+      app: alluxio
+      chart: alluxio-0.5.2
+      release: alluxio
+      heritage: Tiller
+      role: alluxio-fuse-client
   template:
     metadata:
       labels:
-        name: alluxio-fuse-client
         app: alluxio
+        chart: alluxio-0.5.2
+        release: alluxio
+        heritage: Tiller
+        role: alluxio-fuse-client
     spec:
       containers:
         - name: alluxio-fuse-client
@@ -44,3 +59,4 @@ spec:
           hostPath:
             path: /alluxio-fuse
             type: Directory
+

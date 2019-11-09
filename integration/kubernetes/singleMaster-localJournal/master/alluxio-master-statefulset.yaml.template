@@ -1,0 +1,119 @@
+---
+# Source: alluxio/templates/master/statefulset.yaml
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: alluxio-master-0
+  labels:
+    name: alluxio-master-0
+    app: alluxio
+    chart: alluxio-0.5.2
+    release: alluxio
+    heritage: Tiller
+    role: alluxio-master
+spec:
+  selector:
+    matchLabels:
+      app: alluxio
+      role: alluxio-master
+      name: alluxio-master-0
+  serviceName: "master-0"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: alluxio-master-0
+        app: alluxio
+        chart: alluxio-0.5.2
+        release: alluxio
+        heritage: Tiller
+        role: alluxio-master
+    spec:
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+      - name: journal-chown
+        image: alluxio/alluxio:2.2.0-SNAPSHOT
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 0
+        command: ["/bin/chown","-R", "1000:1000", "/journal"]
+        volumeMounts:
+        - name: alluxio-journal
+          mountPath: /journal
+      containers:
+        - name: alluxio-master
+          image: alluxio/alluxio:2.2.0-SNAPSHOT
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          resources:
+            limits:
+              cpu: 1
+              memory: 1G
+            requests:
+              cpu: 1
+              memory: 1G
+          command: ["/entrypoint.sh"]
+          args:
+            - master-only
+            - --no-format
+          envFrom:
+          - configMapRef:
+              name: alluxio-config
+          ports:
+          - containerPort: 19998
+            name: rpc
+          - containerPort: 19999
+            name: web
+          volumeMounts:
+            - name: alluxio-journal
+              mountPath: /journal
+        - name: alluxio-job-master
+          image: alluxio/alluxio:2.2.0-SNAPSHOT
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          resources:
+            limits:
+              cpu: 1
+              memory: 1G
+            requests:
+              cpu: 1
+              memory: 1G
+          command: ["/entrypoint.sh"]
+          args:
+            - job-master
+          envFrom:
+          - configMapRef:
+              name: alluxio-config
+          ports:
+          - containerPort: 20001
+            name: job-rpc
+          - containerPort: 20002
+            name: job-web
+          volumeMounts:
+      restartPolicy: Always
+      volumes:
+        - name: alluxio-journal
+          persistentVolumeClaim:
+            claimName: alluxio-pv-claim
+---
+

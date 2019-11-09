@@ -71,7 +71,7 @@ public final class StatCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     long id = Long.parseLong(cl.getArgs()[0]);
     try (CloseableResource<JobMasterClient> client =
-        JobContext.create(mFsContext.getClusterConf())
+        JobContext.create(mFsContext.getClusterConf(), mFsContext.getClientContext().getUserState())
             .acquireMasterClientResource()) {
       JobInfo info = client.get().getStatus(id);
       System.out.print(formatOutput(cl, info));
@@ -86,9 +86,7 @@ public final class StatCommand extends AbstractFileSystemCommand {
   private String formatOutput(CommandLine cl, JobInfo info) {
     StringBuilder output = new StringBuilder();
     output.append("ID: ").append(info.getJobId()).append("\n");
-    if (info.getJobConfig() != null) {
-      output.append("Config: ").append(info.getJobConfig()).append("\n");
-    }
+    output.append("Name: ").append(info.getName()).append("\n");
     output.append("Status: ").append(info.getStatus()).append("\n");
     if (info.getErrorMessage() != null && !info.getErrorMessage().isEmpty()) {
       output.append("Error: ").append(info.getErrorMessage()).append("\n");

@@ -18,6 +18,7 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -267,7 +268,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void concurrentFree() throws Exception {
     ConcurrentCreator concurrentCreator = new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH,
-        CreateFileContext.defaults().setPersisted(true));
+        CreateFileContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
     concurrentCreator.call();
 
     ConcurrentFreer concurrentFreer = new ConcurrentFreer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
@@ -356,9 +357,9 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void deleteUnsyncedDirectory() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"),
-        CreateDirectoryContext.defaults().setPersisted(true));
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
     mFsMaster.createDirectory(new AlluxioURI("/testFolder/child"),
-        CreateDirectoryContext.defaults().setPersisted(true));
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
     String ufs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Files.createDirectory(Paths.get(ufs, "testFolder", "ufsOnlyDir"));
     try {
@@ -472,13 +473,13 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void deleteDirectoryWithPersistedAndNotPersistedSubfolders() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"),
-        CreateDirectoryContext.defaults().setPersisted(true));
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
     mFsMaster.createDirectory(new AlluxioURI("/testFolder/persisted"),
-        CreateDirectoryContext.defaults().setPersisted(true));
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
     mFsMaster.createDirectory(new AlluxioURI("/testFolder/inAlluxio1"),
-        CreateDirectoryContext.defaults().setPersisted(true));
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
     mFsMaster.createDirectory(new AlluxioURI("/testFolder/inAlluxio1/inAlluxio2"),
-        CreateDirectoryContext.defaults().setPersisted(true));
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
     mFsMaster.delete(new AlluxioURI("/testFolder"),
         DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
@@ -728,7 +729,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     CreateFileContext context = CreateFileContext
         .mergeFrom(CreateFilePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
             .newBuilder().setTtl(ttl).setTtlAction(alluxio.grpc.TtlAction.FREE)))
-        .setPersisted(true);
+        .setWriteType(WriteType.CACHE_THROUGH);
     long fileId =
         mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), context).getFileId();
     FileInfo folderInfo =
@@ -822,7 +823,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
 
     // Create a persisted Alluxio file (but no ufs file).
-    mFsMaster.createFile(alluxioFile, CreateFileContext.defaults().setPersisted(true));
+    mFsMaster.createFile(alluxioFile, CreateFileContext.defaults()
+        .setWriteType(WriteType.CACHE_THROUGH));
     mFsMaster.completeFile(alluxioFile,
         CompleteFileContext.mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(0))
             .setOperationTimeMs(TEST_TIME_MS));
@@ -959,7 +961,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     // Create a persisted Alluxio file (but no ufs file).
     try {
       mFsMaster.createFile(alluxioFile, CreateFileContext
-          .mergeFrom(CreateFilePOptions.newBuilder().setRecursive(true)).setPersisted(true));
+          .mergeFrom(CreateFilePOptions.newBuilder().setRecursive(true))
+          .setWriteType(WriteType.CACHE_THROUGH));
       Assert.fail("persisted create should fail, when UFS is unavailable");
     } catch (Exception e) {
       // expected, ignore
@@ -1061,11 +1064,11 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     // Alluxio only should not be affected
     mFsMaster.createFile(new AlluxioURI("/in_alluxio"),
-        CreateFileContext.defaults().setPersisted(false));
+        CreateFileContext.defaults().setWriteType(WriteType.MUST_CACHE));
     // Ufs file creation should throw an exception
     mThrown.expect(AccessControlException.class);
     mFsMaster.createFile(new AlluxioURI("/in_ufs"),
-        CreateFileContext.defaults().setPersisted(true));
+        CreateFileContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
   }
 
   @Test
@@ -1075,17 +1078,18 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     // Alluxio only should not be affected
     mFsMaster.createDirectory(new AlluxioURI("/in_alluxio"),
-        CreateDirectoryContext.defaults().setPersisted(false));
+        CreateDirectoryContext.defaults().setWriteType(WriteType.MUST_CACHE));
     // Ufs file creation should throw an exception
     mThrown.expect(AccessControlException.class);
     mFsMaster.createDirectory(new AlluxioURI("/in_ufs"),
-        CreateDirectoryContext.defaults().setPersisted(true));
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
   }
 
   @Test
   public void ufsModeDeleteFile() throws Exception {
     AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
-    mFsMaster.createFile(alluxioFile, CreateFileContext.defaults().setPersisted(true));
+    mFsMaster.createFile(alluxioFile, CreateFileContext.defaults()
+        .setWriteType(WriteType.CACHE_THROUGH));
 
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
         UfsMode.READ_ONLY);
@@ -1098,9 +1102,10 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public void ufsModeDeleteDirectory() throws Exception {
     AlluxioURI alluxioDirectory = new AlluxioURI("/in_ufs_dir");
     mFsMaster.createDirectory(alluxioDirectory,
-        CreateDirectoryContext.defaults().setPersisted(true));
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
     AlluxioURI alluxioFile = new AlluxioURI("/in_ufs_dir/in_ufs_file");
-    mFsMaster.createFile(alluxioFile, CreateFileContext.defaults().setPersisted(true));
+    mFsMaster.createFile(alluxioFile, CreateFileContext.defaults()
+        .setWriteType(WriteType.CACHE_THROUGH));
 
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
         UfsMode.READ_ONLY);
@@ -1119,7 +1124,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void ufsModeRenameFile() throws Exception {
     mFsMaster.createFile(new AlluxioURI("/in_ufs_src"),
-        CreateFileContext.defaults().setPersisted(true));
+        CreateFileContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
 
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
         UfsMode.READ_ONLY);
@@ -1133,9 +1138,10 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public void ufsModeRenameDirectory() throws Exception {
     AlluxioURI alluxioDirectory = new AlluxioURI("/in_ufs_dir");
     mFsMaster.createDirectory(alluxioDirectory,
-        CreateDirectoryContext.defaults().setPersisted(true));
+        CreateDirectoryContext.defaults().setWriteType(WriteType.CACHE_THROUGH));
     AlluxioURI alluxioFile = new AlluxioURI("/in_ufs_dir/in_ufs_file");
-    mFsMaster.createFile(alluxioFile, CreateFileContext.defaults().setPersisted(true));
+    mFsMaster.createFile(alluxioFile, CreateFileContext.defaults()
+        .setWriteType(WriteType.CACHE_THROUGH));
 
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
         UfsMode.READ_ONLY);
@@ -1153,7 +1159,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void ufsModeSetAttribute() throws Exception {
     AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
-    mFsMaster.createFile(alluxioFile, CreateFileContext.defaults().setPersisted(true));
+    mFsMaster.createFile(alluxioFile, CreateFileContext.defaults()
+        .setWriteType(WriteType.CACHE_THROUGH));
 
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
         UfsMode.READ_ONLY);
@@ -1181,7 +1188,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
       AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
       // Create file should throw an Exception even after restart
       mThrown.expect(AccessControlException.class);
-      fsMaster.createFile(alluxioFile, CreateFileContext.defaults().setPersisted(true));
+      fsMaster.createFile(alluxioFile, CreateFileContext.defaults()
+          .setWriteType(WriteType.CACHE_THROUGH));
     }
   }
 
@@ -1249,7 +1257,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     mFsMaster.createDirectory(path,
         CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)
-            .setMode(new Mode((short) 0755).toProto())).setPersisted(true));
+            .setMode(new Mode((short) 0755).toProto())).setWriteType(WriteType.CACHE_THROUGH));
 
     long fileId = mFsMaster.getFileId(new AlluxioURI("/d1"));
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
@@ -1296,7 +1304,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     String ufsPath = Paths.get(ufs, "d1", "d2", "d3", "d4").toString();
     mFsMaster.createDirectory(path,
         CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)
-            .setMode(new Mode((short) 0700).toProto())).setPersisted(true));
+            .setMode(new Mode((short) 0700).toProto())).setWriteType(WriteType.CACHE_THROUGH));
     long fileId = mFsMaster.getFileId(path);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals("d4", fileInfo.getName());
@@ -1324,7 +1332,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     // this should fail
     mFsMaster.createDirectory(path,
         CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)
-            .setMode(new Mode((short) 0755).toProto())).setPersisted(true));
+            .setMode(new Mode((short) 0755).toProto())).setWriteType(WriteType.CACHE_THROUGH));
   }
 
   /**
@@ -1392,7 +1400,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     AlluxioURI path = new AlluxioURI("/" + Paths.get(parentName, childName));
     mFsMaster.createDirectory(path,
         CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)
-            .setMode(new Mode((short) 0700).toProto())).setPersisted(true));
+            .setMode(new Mode((short) 0700).toProto())).setWriteType(WriteType.CACHE_THROUGH));
     long fileId = mFsMaster.getFileId(path);
 
     // calls getFileInfo on child to load metadata of parent

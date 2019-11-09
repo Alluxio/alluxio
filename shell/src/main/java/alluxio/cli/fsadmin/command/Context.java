@@ -11,6 +11,7 @@
 
 package alluxio.cli.fsadmin.command;
 
+import alluxio.client.job.JobMasterClient;
 import alluxio.client.journal.JournalMasterClient;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
@@ -34,6 +35,7 @@ public final class Context implements Closeable {
   private final MetaMasterConfigClient mMetaConfigClient;
   private JournalMasterClient mMasterJournalMasterClient;
   private JournalMasterClient mJobMasterJournalMasterClient;
+  private final JobMasterClient mJobMasterClient;
   private final PrintStream mPrintStream;
   private final Closer mCloser;
 
@@ -44,12 +46,14 @@ public final class Context implements Closeable {
    * @param metaConfigClient meta configuration master client
    * @param masterJournalMasterClient journal master client for master
    * @param jobMasterJournalMasterClient journal master client for job_master
+   * @param jobMasterClient job master client
    * @param printStream print stream to write to
    */
   public Context(FileSystemMasterClient fsClient, BlockMasterClient blockClient,
       MetaMasterClient metaClient, MetaMasterConfigClient metaConfigClient,
       JournalMasterClient masterJournalMasterClient,
-      JournalMasterClient jobMasterJournalMasterClient, PrintStream printStream) {
+      JournalMasterClient jobMasterJournalMasterClient, JobMasterClient jobMasterClient,
+      PrintStream printStream) {
     mCloser = Closer.create();
     mCloser.register(
         mFsClient = Preconditions.checkNotNull(fsClient, "fsClient"));
@@ -63,6 +67,8 @@ public final class Context implements Closeable {
         Preconditions.checkNotNull(masterJournalMasterClient, "masterJournalMasterClient"));
     mCloser.register(mJobMasterJournalMasterClient =
         Preconditions.checkNotNull(jobMasterJournalMasterClient, "jobMasterJournalMasterClient"));
+    mCloser.register(mJobMasterClient =
+        Preconditions.checkNotNull(jobMasterClient, "jobMasterClient"));
     mCloser.register(
         mPrintStream = Preconditions.checkNotNull(printStream, "printStream"));
   }
@@ -107,6 +113,13 @@ public final class Context implements Closeable {
    */
   public JournalMasterClient getJournalMasterClientForJobMaster() {
     return mJobMasterJournalMasterClient;
+  }
+
+  /**
+   * @return the job master client
+   */
+  public JobMasterClient getJobMasterClient() {
+    return mJobMasterClient;
   }
 
   /**

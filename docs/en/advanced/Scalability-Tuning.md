@@ -18,15 +18,17 @@ This page details the parameters to tune when scaling a cluster.
 ### Heap Size
 
 The Alluxio master heap size controls the total number of files that can fit into the master memory.
+If using the ROCKS off-heap metastore, the master heap size must be large enough to fit the inode cache.
+Provision roughly 1 KB of space for each inode.
 The following JVM options, set in `alluxio-env.sh`, determine the respective maximum heap sizes for the
 Alluxio master and standby master processes to `256 GB`:
 
 ```properties
-ALLUXIO_MASTER_JAVA_OPTS+=" -Xms128g -Xmx256g "
-ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xms128g -Xmx256g "
+ALLUXIO_MASTER_JAVA_OPTS+=" -Xms256g -Xmx256g "
+ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xms256g -Xmx256g "
 ```
 
-* As a rule of thumb set the min heap size to half the max heap size.
+* As a rule of thumb set the min and max heap size equal to avoid heap resizing.
 * Each thread spawned by the master JVM requires off heap space determined by the thread stack size.
 When setting the heap size, ensure that there is enough memory allocated for off heap storage.
 For example, spawning `4000` threads with a default thread stack size of `1 MB` requires at least
@@ -39,9 +41,11 @@ indicates that operating system limits may need tuning.
 
 Several parameters limit the number of threads that a process can spawn:
 - `kernel.pid_max`: Run `sysctl -w kernel.pid_max=<new value>` as root
+- `kernel.thread_max`: Run `sysctl -w kernel.thread_max=<new value>` as root
 - `vm.max_map_count`: Run command `sysctl -w vm.max_map_count=<new value>` as root
 - Max user process limit: Run `ulimit -u <new value>`
 - Max open files limit: Run `ulimit -n <new value>`
+- User specific pid_max limit: Run command `sudo echo <new value> > /sys/fs/cgroup/pids/user.slice/user-<userid>.slice/pids.max` as root
 
 These limits are often set for the particular user that launch the Alluxio process.
 As a rule of thumb, `vm.max_map_count` should be at least twice the limit for master threads
@@ -54,6 +58,15 @@ The frequency in which the master checks for lost workers is set by the
 Increase the interval to reduce the number of heartbeat checks.
 
 ## Alluxio Worker Configuration
+
+### Heap Size
+
+Alluxio workers require modest amounts of memory because off-heap storage is used for data storage.
+Therefore, a 4 GB heap is sufficient for Alluxio workers.
+
+```properties
+ALLUXIO_WORKER_JAVA_OPTS+=" -Xms4g -Xmx4g"
+```
 
 ### Heartbeat Intervals and Timeouts
 

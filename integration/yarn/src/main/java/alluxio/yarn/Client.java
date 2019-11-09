@@ -88,7 +88,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  *     alluxio-integration-yarn-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
  *     alluxio.yarn.Client -help
  * }
+ *
+ * @deprecated since 2.0
  */
+@Deprecated
 @NotThreadSafe
 public final class Client {
   private static final Logger LOG = LoggerFactory.getLogger(Client.class);

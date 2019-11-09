@@ -37,8 +37,8 @@ spec:
         heritage: {{ .Release.Service }}
         role: alluxio-fuse
     spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: {{ .Values.fuse.hostNetwork }}
+      dnsPolicy: {{ .Values.fuse.dnsPolicy }}
       nodeSelector:
       {{- if .Values.fuse.nodeSelector }}
 {{ toYaml .Values.fuse.nodeSelector | trim | indent 8  }}
@@ -46,9 +46,9 @@ spec:
 {{ toYaml .Values.nodeSelector | trim | indent 8  }}
       {{- end }}
       securityContext:
-        runAsUser: {{ .Values.user }}
-        runAsGroup: {{ .Values.group }}
-        fsGroup: {{ .Values.fsGroup }}
+        runAsUser: {{ .Values.fuse.user }}
+        runAsGroup: {{ .Values.fuse.group }}
+        fsGroup: {{ .Values.fuse.fsGroup }}
       affinity:
         podAffinity:
           RequiredDuringSchedulingIgnoredDuringExecution:
@@ -66,38 +66,31 @@ spec:
         - name: alluxio-fuse
           image: {{ .Values.fuse.image }}:{{ .Values.fuse.imageTag }}
           imagePullPolicy: {{ .Values.fuse.imagePullPolicy }}
+          {{- if .Values.fuse.resources  }}
           resources:
+            {{- if .Values.fuse.resources.limits }}
             limits:
-              {{- if .Values.fuse.resources  }}
-                {{- if .Values.fuse.resources.limits }}
-                  {{- if .Values.fuse.resources.limits.cpu  }}
               cpu: {{ .Values.fuse.resources.limits.cpu }}
-                  {{- end }}
-                  {{- if .Values.fuse.resources.limits.memory  }}
               memory: {{ .Values.fuse.resources.limits.memory }}
-                  {{- end }}
-                {{- end }}
+            {{- end }}
+            {{- if .Values.fuse.resources.requests }}
             requests:
-                {{- if .Values.fuse.resources.requests }}
-                  {{- if .Values.fuse.resources.requests.cpu  }}
               cpu: {{ .Values.fuse.resources.requests.cpu }}
-                  {{- end }}
-                  {{- if .Values.fuse.resources.requests.memory  }}
               memory: {{ .Values.fuse.resources.requests.memory }}
-                  {{- end }}
-                {{- end }}
-              {{- end }}
+            {{- end }}
+          {{- end }}
           command: ["/entrypoint.sh"]
-          # args: ["fuse", "--fuse-opts=allow_other"]
           {{- if .Values.fuse.args }}
-          args: 
-{{ toYaml .Values.fuse.args | indent 12 }}
+          args:
+{{ toYaml .Values.fuse.args | trim | indent 12 }}
           {{- end }}
           env:
           - name: ALLUXIO_CLIENT_HOSTNAME
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
+          - name: ALLUXIO_CLIENT_JAVA_OPTS
+            value: " -Dalluxio.user.hostname=$(ALLUXIO_CLIENT_HOSTNAME) "
           securityContext:
             privileged: true
             capabilities:
@@ -109,18 +102,18 @@ spec:
                 command: ["/opt/alluxio/integration/fuse/bin/alluxio-fuse", "unmount", "/alluxio-fuse"]
           envFrom:
           - configMapRef:
-              name: {{ template "alluxio.name" . }}-config
+              name: {{ template "alluxio.fullname" . }}-config
           volumeMounts:
             - name: alluxio-fuse-device
               mountPath: /dev/fuse
             - name: alluxio-fuse-mount
               mountPath: /alluxio-fuse
               mountPropagation: Bidirectional
-            {{- if eq .Values.fuse.shortCircuitPolicy "uuid" }}
+            {{- if eq .Values.worker.shortCircuitPolicy "uuid" }}
             - name: alluxio-domain
               mountPath: /opt/domain
             {{- end }}
-            {{- if eq .Values.fuse.shortCircuitPolicy "local" }}
+            {{- if eq .Values.worker.shortCircuitPolicy "local" }}
               {{- if .Values.tieredstore }} 
                 {{- if .Values.tieredstore.levels }} 
                   {{- range .Values.tieredstore.levels }}
@@ -135,16 +128,16 @@ spec:
               name: {{ $val | lower }}-{{ $key | replace "_" "" }}
                           {{- end}}
                         {{- end}}
-                      {{- end}}
                       {{- else}}
-                      {{- if eq .type "hostPath"}}
-            - name: {{ .alias | lower }}
+                        {{- if eq .type "hostPath"}}
+            - name: {{ .mediumtype | replace "," "-" | lower }}
               mountPath: {{ .path }}
-                      {{- else }}
+                        {{- else }}
             # report error and exit
             {{ .name }} with {{ .type }} is not supported in shortCircuitPolicy local
-                      {{- end }} 
-                    {{- end }} 
+                        {{- end }} 
+                      {{- end }}
+                    {{- end}} 
                   {{- end }} 
                 {{- end }} 
               {{- end }} 
@@ -159,13 +152,13 @@ spec:
           hostPath:
             path: /alluxio-fuse
             type: DirectoryOrCreate
-        {{- if eq .Values.fuse.shortCircuitPolicy "uuid" }}
+        {{- if eq .Values.worker.shortCircuitPolicy "uuid" }}
         - name: alluxio-domain
           hostPath:
             path: {{ .Values.domainHostPath }}
             type: "Directory"
         {{- end }}
-        {{- if eq .Values.fuse.shortCircuitPolicy "local" }}
+        {{- if eq .Values.worker.shortCircuitPolicy "local" }}
           {{- if .Values.tieredstore }} 
             {{- if .Values.tieredstore.levels }} 
               {{- range .Values.tieredstore.levels }}
@@ -189,16 +182,16 @@ spec:
                         {{- end}} 
                       {{- end}}
                     {{- end}}
-                  {{- end}}
                   {{- else}}
                     {{- if eq .type "hostPath"}}
         - hostPath:
             path: {{ .path }}
             type: DirectoryOrCreate
-          name: {{ .alias | lower }}
+          name: {{ .mediumtype | replace "," "-" | lower }}
                     {{- end }}
-                  {{- end }} 
-                {{- end }} 
+                  {{- end }}
+                {{- end}}
               {{- end }} 
             {{- end }} 
+          {{- end }} 
         {{- end }}

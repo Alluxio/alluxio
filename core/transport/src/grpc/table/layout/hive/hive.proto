@@ -1,0 +1,51 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc.table.layout.hive";
+option java_outer_classname = "HiveLayoutProto";
+
+package alluxio.grpc.table.layout;
+
+import "grpc/common.proto";
+import "grpc/table/table_master.proto";
+
+message StorageFormat {
+    optional string serde = 1;
+    optional string input_format = 2;
+    optional string output_format = 3;
+    map<string, string> serdelib_parameters = 4;
+}
+
+message HiveBucketProperty {
+    repeated string bucketed_by = 1;
+    optional int64 bucket_count = 2;
+    repeated SortingColumn sorted_by = 3;
+}
+
+message SortingColumn {
+    required string column_name = 1;
+    enum SortingOrder {
+        ASCENDING = 0;
+        DESCENDING = 1;
+    }
+    required SortingOrder order = 2;
+}
+
+message Storage {
+    optional StorageFormat storage_format = 1;
+    optional string location = 2;
+    optional HiveBucketProperty bucket_property = 3;
+    optional bool skewed = 4;
+    map<string, string> serde_parameters = 5;
+}
+
+message PartitionInfo {
+  repeated string values = 1; // list of string values for each partition column
+  optional string partition_name = 2; // partition name in the form of "key=value"
+
+  optional string db_name = 3;
+  optional string table_name = 4;
+  optional Storage storage = 5;
+  repeated FieldSchema data_cols = 6;
+  map<string, string> parameters = 7;
+}

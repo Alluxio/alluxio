@@ -11,8 +11,6 @@
 
 package alluxio.job.wire;
 
-import alluxio.job.JobConfig;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -30,11 +28,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class JobInfo {
   private long mJobId;
-  private JobConfig mJobConfig;
+  private String mName;
   private String mErrorMessage;
   private List<TaskInfo> mTaskInfoList;
   private Status mStatus;
   private String mResult;
+  private long mLastStatusChangeMs;
 
   /**
    * Default constructor.
@@ -48,11 +47,12 @@ public final class JobInfo {
    */
   public JobInfo(alluxio.job.meta.JobInfo jobInfo) {
     mJobId = jobInfo.getId();
-    mJobConfig = jobInfo.getJobConfig();
+    mName = jobInfo.getJobConfig().getName();
     mErrorMessage = jobInfo.getErrorMessage();
     mTaskInfoList = Lists.newArrayList();
     mStatus = Status.valueOf(jobInfo.getStatus().name());
     mResult = jobInfo.getResult();
+    mLastStatusChangeMs = jobInfo.getLastStatusChangeMs();
     for (TaskInfo taskInfo : jobInfo.getTaskInfoList()) {
       mTaskInfoList.add(taskInfo);
     }
@@ -66,6 +66,7 @@ public final class JobInfo {
    */
   public JobInfo(alluxio.grpc.JobInfo jobInfo) throws IOException {
     mJobId = jobInfo.getId();
+    mName = jobInfo.getName();
     mErrorMessage = jobInfo.getErrorMessage();
     mTaskInfoList = new ArrayList<>();
     for (alluxio.grpc.TaskInfo taskInfo : jobInfo.getTaskInfosList()) {
@@ -73,6 +74,7 @@ public final class JobInfo {
     }
     mStatus = Status.valueOf(jobInfo.getStatus().name());
     mResult = jobInfo.getResult();
+    mLastStatusChangeMs = jobInfo.getLastStatusChangeMs();
   }
 
   /**
@@ -90,17 +92,17 @@ public final class JobInfo {
   }
 
   /**
-   * @param jobConfig the job config
+   * @param name the job name
    */
-  public void setJobConfig(JobConfig jobConfig) {
-    mJobConfig = jobConfig;
+  public void setName(String name) {
+    mName = name;
   }
 
   /**
-   * @return the job config
+   * @return the job name
    */
-  public JobConfig getJobConfig() {
-    return mJobConfig;
+  public String getName() {
+    return mName;
   }
 
   /**
@@ -164,6 +166,20 @@ public final class JobInfo {
   }
 
   /**
+   * @param lastStatusChangeMs the time when status last changed in milliseconds
+   */
+  public void setLastStatusChangeMs(long lastStatusChangeMs) {
+    mLastStatusChangeMs = lastStatusChangeMs;
+  }
+
+  /**
+   * @return the time when status last changed in milliseconds
+   */
+  public long getLastStatusChangeMs() {
+    return mLastStatusChangeMs;
+  }
+
+  /**
    * @return proto representation of the job info
    * @throws IOException if serialization fails
    */
@@ -173,10 +189,12 @@ public final class JobInfo {
       taskInfos.add(taskInfo.toProto());
     }
     alluxio.grpc.JobInfo.Builder jobInfoBuilder = alluxio.grpc.JobInfo.newBuilder().setId(mJobId)
-        .setErrorMessage(mErrorMessage).addAllTaskInfos(taskInfos).setStatus(mStatus.toProto());
+        .setErrorMessage(mErrorMessage).addAllTaskInfos(taskInfos).setStatus(mStatus.toProto())
+        .setName(mName);
     if (mResult != null) {
       jobInfoBuilder.setResult(mResult);
     }
+    jobInfoBuilder.setLastStatusChangeMs(mLastStatusChangeMs);
     return jobInfoBuilder.build();
   }
 
@@ -193,27 +211,28 @@ public final class JobInfo {
     }
     JobInfo that = (JobInfo) o;
     return Objects.equal(mJobId, that.mJobId)
-        && Objects.equal(mJobConfig, that.mJobConfig)
         && Objects.equal(mErrorMessage, that.mErrorMessage)
         && Objects.equal(mTaskInfoList, that.mTaskInfoList)
         && Objects.equal(mStatus, that.mStatus)
-        && Objects.equal(mResult, that.mResult);
+        && Objects.equal(mResult, that.mResult)
+        && Objects.equal(mLastStatusChangeMs, that.mLastStatusChangeMs);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mJobId, mJobConfig, mErrorMessage, mTaskInfoList, mStatus, mResult);
+    return Objects.hashCode(mJobId, mErrorMessage, mTaskInfoList, mStatus, mResult,
+        mLastStatusChangeMs);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("jobId", mJobId)
-        .add("jobConfig", mJobConfig)
         .add("errorMessage", mErrorMessage)
         .add("taskInfoList", mTaskInfoList)
         .add("status", mStatus)
         .add("result", mResult)
+        .add("lastStatusChangeMs", mLastStatusChangeMs)
         .toString();
   }
 }

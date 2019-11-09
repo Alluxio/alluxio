@@ -10,6 +10,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+readonly RELEASE_NAME='alluxio'
+
 function printUsage {
   echo "Usage: MODE [UFS]"
   echo
@@ -23,14 +25,7 @@ function printUsage {
   echo -e " hdfs              \t Use HDFS for UFS journal"
 }
 
-function generatePodTemplates {
-  echo "Generating templates into $dir"
-  helm template helm/alluxio/ -x templates/alluxio-master.yaml > "$dir/alluxio-master.yaml.template"
-  helm template helm/alluxio/ -x templates/alluxio-worker.yaml > "$dir/alluxio-worker.yaml.template"
-  helm template helm/alluxio/ -x templates/alluxio-configMap.yaml > "$dir/alluxio-configMap.yaml.template"
-}
-
-function generatePodTemplatesWithConfig {
+function generateTemplates {
   echo "Generating templates into $dir"
   config=./$dir/config.yaml
   if [[ ! -f "$config" ]]; then
@@ -39,19 +34,49 @@ function generatePodTemplatesWithConfig {
     echo "for the format of config.yaml."
     exit 1
   fi
-  helm template helm/alluxio/ -x templates/alluxio-master.yaml -f ./$dir/config.yaml > "$dir/alluxio-master.yaml.template"
-  helm template helm/alluxio/ -x templates/alluxio-worker.yaml -f ./$dir/config.yaml > "$dir/alluxio-worker.yaml.template"
-  helm template helm/alluxio/ -x templates/alluxio-configMap.yaml -f ./$dir/config.yaml > "$dir/alluxio-configMap.yaml.template"
+
+  generateConfigTemplates
+  generateMasterTemplates
+  generateWorkerTemplates
+  generateFormatJournalJobTemplates
+  generateFuseTemplates
 }
 
-function generateVolumeTemplatesWithConfig {
-  echo "Generating persistent volume templates into $dir"
-  helm template helm/alluxio/ -x templates/alluxio-journal-volume.yaml -f ./$dir/config.yaml > "$dir/alluxio-journal-volume.yaml.template"
+function generateConfigTemplates {
+  echo "Generating configmap templates into $dir"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/config/alluxio-conf.yaml -f $dir/config.yaml > "$dir/alluxio-configmap.yaml.template"
 }
 
-function generateJobTemplatesWithConfig {
-  echo "Generating job templates into $dir"
-  helm template helm/alluxio/ -x templates/alluxio-format-master.yaml -f ./$dir/config.yaml > "$dir/alluxio-format-master.yaml.template"
+function generateMasterTemplates {
+  echo "Generating master templates into $dir"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/statefulset.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-statefulset.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/service.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-service.yaml.template"
+}
+
+function generateFormatJournalJobTemplates {
+  echo "Generating format journal job templates into $dir"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/job/format-journal-job.yaml -f $dir/config.yaml > "$dir/job/alluxio-format-journal-job.yaml.template"
+
+}
+
+function generateJournalTemplates {
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/journal-pv.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-journal-pv.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/journal-pvc.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-journal-pvc.yaml.template"
+}
+
+function generateWorkerTemplates {
+  echo "Generating worker templates into $dir"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-daemonset.yaml.template"
+}
+
+function generateFuseTemplates {
+  echo "Generating fuse templates"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/fuse/daemonset.yaml -f $dir/config.yaml > "alluxio-fuse.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/fuse/client-daemonset.yaml -f $dir/config.yaml > "alluxio-fuse-client.yaml.template"
+}
+
+function generateMasterServiceTemplates {
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/service.yaml -f $dir/config.yaml > "$dir/alluxio-master-service.yaml.template"
 }
 
 function generateSingleUfsTemplates {
@@ -61,15 +86,13 @@ function generateSingleUfsTemplates {
     "local")
       echo "Using local journal"
       dir="singleMaster-localJournal"
-      generateVolumeTemplatesWithConfig
-      generatePodTemplatesWithConfig
-      generateJobTemplatesWithConfig
+      generateJournalTemplates
+      generateTemplates
       ;;
     "hdfs")
       echo "Journal UFS $ufs"
       dir="singleMaster-hdfsJournal"
-      generatePodTemplatesWithConfig
-      generateJobTemplatesWithConfig
+      generateTemplates
       ;;
     *)
       echo "Unknown Journal UFS type $ufs"
@@ -80,8 +103,7 @@ function generateSingleUfsTemplates {
 
 function generateMultiEmbeddedTemplates {
   dir="multiMaster-embeddedJournal"
-  generatePodTemplatesWithConfig
-  generateJobTemplatesWithConfig
+  generateTemplates
 }
 
 function generateAllTemplates {

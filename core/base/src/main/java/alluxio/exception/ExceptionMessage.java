@@ -170,6 +170,19 @@ public enum ExceptionMessage {
   // block master
   NO_WORKER_FOUND("No worker with workerId {0,number,#} is found"),
 
+  // table master
+  DATABASE_DOES_NOT_EXIST("Database {0} does not exist"),
+  TABLE_DOES_NOT_EXIST("Table {0} does not exist in database {1}"),
+  TRANSFORM_ACTION_PARSE_FAILED("Failed to parse transform action at: {0}"),
+  TRANSFORM_WRITE_ACTION_INVALID_ARGS("Write action must have exactly one argument"),
+  TRANSFORM_WRITE_ACTION_INVALID_NUM_FILES("Write action must have positive number of files"),
+  TABLE_BEING_TRANSFORMED("Existing job {0} is transforming table {1} in database {2}"),
+  TABLE_ALREADY_TRANSFORMED("Database {0} table {1} has been transformed by definition {2}"),
+  TRANSFORM_JOB_DOES_NOT_EXIST("No transformation information for job ID {0}"),
+  TRANSFORM_MANAGER_HEARTBEAT_INTERRUPTED("TransformManager's heartbeat was interrupted"),
+  TRANSFORM_JOB_ID_NOT_FOUND_IN_JOB_SERVICE("Transformation job {0} for database {1} table {2} "
+      + "was not found in job master, maybe the job master was restarted: {3}"),
+
   // safe mode
   MASTER_IN_SAFEMODE("Alluxio master is in safe mode. Please try again later."),
 
@@ -217,16 +230,16 @@ public enum ExceptionMessage {
   DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Alluxio properties file does not exist"),
   INVALID_CONFIGURATION_KEY("Invalid property key {0}"),
   INVALID_CONFIGURATION_VALUE("Invalid value {0} for configuration key {1}"),
-  KEY_NOT_BOOLEAN("Configuration cannot evaluate key {0} as boolean"),
-  KEY_NOT_BYTES("Configuration cannot evaluate key {0} as bytes"),
-  KEY_NOT_DOUBLE("Configuration cannot evaluate key {0} as double"),
-  KEY_NOT_FLOAT("Configuration cannot evaluate key {0} as float"),
-  KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
-  KEY_NOT_LONG("Configuration cannot evaluate key {0} as long"),
-  KEY_NOT_MS("Configuration cannot evaluate key {0} as milliseconds"),
+  KEY_NOT_BOOLEAN("Configuration cannot evaluate value {0} as boolean for key {1}"),
+  KEY_NOT_BYTES("Configuration cannot evaluate value {0} as bytes for key {1}"),
+  KEY_NOT_DOUBLE("Configuration cannot evaluate value {0} as double for key {1}"),
+  KEY_NOT_FLOAT("Configuration cannot evaluate value {0} as float for key {1}"),
+  KEY_NOT_INTEGER("Configuration cannot evaluate value {0} as integer for key {1}"),
+  KEY_NOT_LONG("Configuration cannot evaluate value {0} as long for key {1}"),
+  KEY_NOT_MS("Configuration cannot evaluate value {0} as milliseconds for key {1}"),
   KEY_CIRCULAR_DEPENDENCY("Circular dependency found while resolving {0}"),
   UNDEFINED_CONFIGURATION_KEY("No value set for configuration key {0}"),
-  UNKNOWN_ENUM("Unrecognized configuration value <{0}>. Acceptable values: {1}"),
+  UNKNOWN_ENUM("Unrecognized configuration enum value <{0}> for key {1}. Acceptable values: {2}"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security
@@ -274,6 +287,10 @@ public enum ExceptionMessage {
   MIGRATE_OVERWRITE_DIRECTORY(
       "{0} already exists. The overwrite flag cannot be used to overwrite directories"),
   MIGRATE_TO_FILE_AS_DIRECTORY("Cannot migrate to {0}. {1} is a file, not a directory"),
+
+  // transform job
+  TRANSFORM_TABLE_URI_LACKS_SCHEME("URI {0} lacks scheme"),
+  TRANSFORM_TABLE_URI_LACKS_AUTHORITY("URI {0} lacks authority"),
 
   // job service
   NO_LOCAL_BLOCK_WORKER_REPLICATE_TASK(
