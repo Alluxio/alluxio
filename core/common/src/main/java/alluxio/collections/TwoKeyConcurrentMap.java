@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
  * @param <M> the type for the inner map
  */
 public class TwoKeyConcurrentMap<K1, K2, V, M extends Map<K2, V>> extends ConcurrentHashMap<K1, M> {
-  private static final long serialVersionUID = 0L;
+  private static final long serialVersionUID = 1L;
 
   private final Supplier<M> mInnerMapFn;
 
@@ -102,5 +102,21 @@ public class TwoKeyConcurrentMap<K1, K2, V, M extends Map<K2, V>> extends Concur
      * @return the result
      */
     R apply(A a, B b, C c);
+  }
+
+  /**
+   * The equals implementation for this map simply uses the superclass's equals
+   */
+  @Override
+  public boolean equals(Object o) {
+    return super.equals(o);
+  }
+
+  /**
+   * The hashCode implementation for this map simply uses the superclass's
+   */
+  @Override
+  public int hashCode() {
+    return super.hashCode();
   }
 }

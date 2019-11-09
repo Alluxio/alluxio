@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -99,7 +101,7 @@ public final class MetricsConfig {
   private void loadConfigFile(String configFile) {
     try (InputStream is = new FileInputStream(configFile)) {
       mProperties.load(is);
-    } catch (Exception e) {
+    } catch (IOException e) {
       LOG.error("Error loading metrics configuration file.", e);
     }
   }

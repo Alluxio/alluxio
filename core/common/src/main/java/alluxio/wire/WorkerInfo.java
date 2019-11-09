@@ -220,7 +220,10 @@ public final class WorkerInfo implements Serializable {
   /**
    * Determine order from most recently contacted to least recently contacted.
    */
-  public static final class LastContactSecComparator implements Comparator<WorkerInfo> {
+  public static final class LastContactSecComparator implements Comparator<WorkerInfo>,
+      Serializable {
+    private final static long serialVersionUID = 0L;
+
     @Override
     public int compare(WorkerInfo o1, WorkerInfo o2) {
       return o1.getLastContactSec() - o2.getLastContactSec();

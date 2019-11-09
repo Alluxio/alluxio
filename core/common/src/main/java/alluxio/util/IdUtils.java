@@ -74,10 +74,12 @@ public final class IdUtils {
   }
 
   /**
+   * Generates a positive random number by zero-ing the sign bit
+   *
    * @return a random long which is guaranteed to be non negative (zero is allowed)
    */
   public static synchronized long getRandomNonNegativeLong() {
-    return Math.abs(sRandom.nextLong());
+    return sRandom.nextLong() & Long.MAX_VALUE;
   }
 
   /**
@@ -98,7 +100,7 @@ public final class IdUtils {
    * @return app suffixed by a positive random long
    */
   public static String createFileSystemContextId() {
-    return "app-" + Math.abs(sRandom.nextLong());
+    return "app-" + getRandomNonNegativeLong();
   }
 
   /**
@@ -113,4 +115,5 @@ public final class IdUtils {
       return IdUtils.createFileSystemContextId();
     }
   }
+
 }

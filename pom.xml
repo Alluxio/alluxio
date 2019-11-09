@@ -167,6 +167,7 @@
     <surefire.rerunFailingTestsCount>1</surefire.rerunFailingTestsCount>
     <test.output.redirect>true</test.output.redirect>
     <update.check.enabled>false</update.check.enabled>
+    <findbugs.skip>false</findbugs.skip>
   </properties>
 
   <modules>
@@ -1062,6 +1063,7 @@
               to 'Low'.
             -->
           <effort>Max</effort>
+<!--          <skip>${findbugs.skip}</skip>-->
           <failOnError>true</failOnError>
           <threshold>Low</threshold>
           <spotbugsXmlOutput>true</spotbugsXmlOutput>

@@ -204,7 +204,12 @@ public class DefaultAccessControlList extends AccessControlList {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof DefaultAccessControlList)) {
+
+    if (o == null) {
+      return false;
+    }
+
+    if (this.getClass() != o.getClass()) {
       return false;
     }
     DefaultAccessControlList that = (DefaultAccessControlList) o;

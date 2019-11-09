@@ -14,11 +14,15 @@ package alluxio.conf;
 import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * The source of a configuration property.
+ *
+ * The natural ordering of this class is not consistent with the {@link #equals(Object)} method.
  */
 @PublicApi
+@SuppressFBWarnings("EQ_COMPARETO_USE_OBJECT_EQUALS")
 public class Source implements Comparable<Source> {
   public static final Source UNKNOWN = new Source(Type.UNKNOWN);
   public static final Source DEFAULT = new Source(Type.DEFAULT);
