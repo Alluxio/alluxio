@@ -60,6 +60,7 @@ public final class JobGrpcClientUtils {
         LOG.warn("Exception encountered when starting a job.", e);
         continue;
       }
+      LOG.info(String.format("JobId: %s", jobId));
       JobInfo jobInfo = waitFor(jobId, alluxioConf);
       if (jobInfo == null) {
         // job status could not be fetched, give up

@@ -20,9 +20,12 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.job.JobConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
+import alluxio.job.workflow.composite.CompositeConfig;
 import alluxio.util.CommonUtils;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
@@ -65,9 +68,11 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
     thread.start();
     try {
       AlluxioConfiguration conf = mFsContext.getPathConf(dstPath);
-      JobGrpcClientUtils.run(new MigrateConfig(srcPath.getPath(), dstPath.getPath(),
+      JobConfig config = new MigrateConfig(srcPath.getPath(), dstPath.getPath(),
           conf.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT), true,
-          true), 3, mFsContext.getPathConf(dstPath));
+          true);
+      config = new CompositeConfig(Lists.newArrayList(config), true);
+      JobGrpcClientUtils.run(config, 3, mFsContext.getPathConf(dstPath));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return -1;

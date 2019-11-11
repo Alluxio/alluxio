@@ -30,7 +30,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * The job descriptor.
+ * The plan description.
  */
 public final class PlanInfo implements JobInfo {
   private final long mId;

@@ -149,7 +149,7 @@ public class PlanTrackerTest {
       assertEquals(String.format("tracker should have %d job(s)", expectedCount), expectedCount,
           tracker.coordinators().size());
       assertEquals(String.format("tracker should have %d job ids", expectedCount), expectedCount,
-          tracker.jobs().size());
+          tracker.list().size());
     }
   }
 

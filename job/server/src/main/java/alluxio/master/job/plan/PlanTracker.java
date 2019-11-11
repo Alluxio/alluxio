@@ -219,7 +219,7 @@ public class PlanTracker {
    *
    * @return An unmodifiable collection of all tracked Job Ids
    */
-  public Collection<Long> jobs() {
+  public Collection<Long> list() {
     return Collections.unmodifiableCollection(mCoordinators.keySet());
   }
 

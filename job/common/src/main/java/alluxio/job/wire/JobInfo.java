@@ -18,9 +18,11 @@ import java.io.Serializable;
 import java.util.Collection;
 
 /**
- * The Job Info. {@link JobInfo} can currently be either a {@link TaskInfo} or a {@link PlanInfo}.
+ * The Job Info. {@link JobInfo} can currently be either {@link TaskInfo}, {@link PlanInfo},
+ * or {@link WorkflowInfo}.
  */
 public interface JobInfo {
+
   /**
    * @return job id
    */

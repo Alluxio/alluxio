@@ -231,7 +231,7 @@ public final class PlanCoordinator {
       switch (info.getStatus()) {
         case FAILED:
           mPlanInfo.setStatus(Status.FAILED);
-          if (mPlanInfo.getErrorMessage().isEmpty()) {
+          if (!mPlanInfo.getErrorMessage().isEmpty()) {
             mPlanInfo.setErrorMessage("Task execution failed: " + info.getErrorMessage());
           }
           return;
