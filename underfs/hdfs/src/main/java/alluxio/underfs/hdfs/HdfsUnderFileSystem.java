@@ -52,14 +52,17 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.checkerframework.checker.units.qual.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.tools.java.ClassNotFound;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -130,7 +133,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
             "SupportedHdfsAclProvider is not instance of HdfsAclProvider. HDFS ACLs will not be "
                 + "supported.");
       }
-    } catch (Exception e) {
+    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
       // ignore
       LOG.warn("Cannot create SupportedHdfsAclProvider. HDFS ACLs will not be supported.");
     }
@@ -186,7 +189,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
             "SupportedHdfsActiveSyncProvider is not instance of HdfsActiveSyncProvider. "
                 + "HDFS ActiveSync will not be supported.");
       }
-    } catch (Exception e) {
+    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+        | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
+        | SecurityException e) {
       // ignore
       LOG.warn("Cannot create SupportedHdfsActiveSyncProvider."
           + "HDFS ActiveSync will not be supported.");

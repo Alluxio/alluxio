@@ -107,7 +107,7 @@ public abstract class AbstractUfsManager implements UfsManager {
 
   /**
    * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
-   * return this.
+   * return it.
    *
    * @param ufsUri the UFS path
    * @param ufsConf the UFS configuration
@@ -137,7 +137,10 @@ public abstract class AbstractUfsManager implements UfsManager {
         fs = new ManagedBlockingUfsForwarder(fs);
       }
 
-      mUnderFileSystemMap.putIfAbsent(key, fs);
+      if (mUnderFileSystemMap.putIfAbsent(key, fs) != null) {
+        // This shouldn't occur, warn if it
+        LOG.warn("UFS already existed in UFS manager");
+      }
       mCloser.register(fs);
       try {
         connectUfs(fs);

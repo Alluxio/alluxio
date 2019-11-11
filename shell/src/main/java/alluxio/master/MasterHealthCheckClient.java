@@ -26,8 +26,10 @@ import alluxio.util.network.NetworkAddressUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -290,7 +292,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
         masterServingFuture.get();
         return masterRpcCheck.serving();
       }
-    } catch (Exception e) {
+    } catch (RuntimeException | InterruptedException | ExecutionException e) {
       LOG.error("Exception thrown in master health check client {}", e);
     } finally {
       mExecutorService.shutdown();

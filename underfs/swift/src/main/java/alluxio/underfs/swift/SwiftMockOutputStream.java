@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -68,7 +69,7 @@ public class SwiftMockOutputStream extends OutputStream {
       mObjectName = objectName;
       mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(tmpDirs), UUID.randomUUID()));
       mOutputStream  = new BufferedOutputStream(new FileOutputStream(mFile));
-    } catch (Exception e) {
+    } catch (FileNotFoundException e) {
       LOG.error(e.getMessage());
       throw new IOException(e);
     }

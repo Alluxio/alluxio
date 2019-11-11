@@ -114,7 +114,7 @@ public final class ConfigurationDocGenerator {
       }
 
       LOG.info("Property Key CSV files were created successfully.");
-    } catch (Exception e) {
+    } catch (RuntimeException | IOException e) {
       throw closer.rethrow(e);
     } finally {
       try {
@@ -192,7 +192,7 @@ public final class ConfigurationDocGenerator {
       }
 
       LOG.info("YML files for description of Property Keys were created successfully.");
-    } catch (Exception e) {
+    } catch (RuntimeException | IOException e) {
       throw closer.rethrow(e);
     } finally {
       try {

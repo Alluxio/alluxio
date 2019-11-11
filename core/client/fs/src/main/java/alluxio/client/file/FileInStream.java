@@ -377,9 +377,10 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         } finally {
           mContext.releaseBlockWorkerClient(worker, blockWorker);
         }
-      } catch (Exception e) {
+      } catch (RuntimeException e) {
         LOG.warn("Failed to complete async cache request for block {} at worker {}: {}", blockId,
             worker, e.getMessage());
+        throw e;
       }
     }
   }

@@ -153,7 +153,7 @@ public class S3AOutputStream extends OutputStream {
       if (!mFile.delete()) {
         LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
       }
-    } catch (Exception e) {
+    } catch (InterruptedException e) {
       LOG.error("Failed to upload {}: {}", path, e.toString());
       throw new IOException(e);
     }

@@ -17,11 +17,14 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
 
 /**
  * Example program that demonstrates Alluxio's ability to read and write data across different
@@ -125,7 +128,7 @@ public final class MultiMount {
       System.out.print("closing " + outputPath + " ... ");
       os.close();
       System.out.println("done");
-    } catch (Exception e) {
+    } catch (IOException | AlluxioException e) {
       System.out.println("fail");
       e.printStackTrace();
     } finally {
@@ -136,7 +139,7 @@ public final class MultiMount {
           fileSystem.unmount(s3Mount);
           System.out.println("done");
         }
-      } catch (Exception e) {
+      } catch (IOException | AlluxioException e) {
         System.out.println("fail");
         e.printStackTrace();
       }
@@ -148,7 +151,7 @@ public final class MultiMount {
           fileSystem.unmount(hdfsMount);
           System.out.println("done");
         }
-      } catch (Exception e) {
+      } catch (IOException | AlluxioException e) {
         System.out.println("fail");
         e.printStackTrace();
       }

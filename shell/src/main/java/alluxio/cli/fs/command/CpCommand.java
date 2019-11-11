@@ -609,7 +609,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         buf.flip();
         os.write(buf.array(), 0, buf.limit());
       }
-    } catch (Exception e) {
+    } catch (RuntimeException | IOException e) {
       // Close the out stream and delete the file, so we don't have an incomplete file lying
       // around.
       if (os != null) {

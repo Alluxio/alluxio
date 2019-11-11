@@ -397,7 +397,8 @@ public class TieredBlockStore implements BlockStore {
         LOG.warn("Clean up expired temporary block {} from session {}.", tempBlockMeta.getBlockId(),
             sessionId);
         abortBlockInternal(sessionId, tempBlockMeta.getBlockId());
-      } catch (Exception e) {
+      } catch (IOException | BlockAlreadyExistsException | BlockDoesNotExistException
+          | InvalidWorkerStateException e) {
         LOG.error("Failed to cleanup tempBlock {} due to {}", tempBlockMeta.getBlockId(),
             e.getMessage());
       }

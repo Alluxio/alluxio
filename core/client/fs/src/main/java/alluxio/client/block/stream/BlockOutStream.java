@@ -15,6 +15,7 @@ import alluxio.client.BoundedStream;
 import alluxio.client.Cancelable;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.exception.AggregateException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.wire.WorkerNetAddress;
 
@@ -28,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -214,18 +216,18 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
     }
     releaseCurrentChunk();
 
-    IOException exception = null;
+    List<Exception> exceptions = new LinkedList<>();
     for (DataWriter dataWriter : mDataWriters) {
       try {
         dataWriter.cancel();
       } catch (IOException e) {
-        if (exception != null) {
-          exception.addSuppressed(e);
-        }
+        exceptions.add(e);
       }
     }
-    if (exception != null) {
-      throw exception;
+    if (exceptions.size() > 0) {
+      IOException ex = new IOException("Failed to cancel all block write attempts");
+      exceptions.forEach(ex::addSuppressed);
+      throw ex;
     }
 
     close();
