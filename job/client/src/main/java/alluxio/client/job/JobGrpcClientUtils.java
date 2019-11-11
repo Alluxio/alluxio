@@ -81,7 +81,7 @@ public final class JobGrpcClientUtils {
    */
   private static JobInfo waitFor(final long jobId, AlluxioConfiguration alluxioConf)
       throws InterruptedException {
-    final AtomicReference<JobInfo> finishedPlanInfo = new AtomicReference<>();
+    final AtomicReference<JobInfo> finishedJobInfo = new AtomicReference<>();
     try (final JobMasterClient client =
         JobMasterClient.Factory.create(JobMasterClientContext
             .newBuilder(ClientContext.create(alluxioConf)).build())) {
@@ -97,7 +97,7 @@ public final class JobGrpcClientUtils {
           case FAILED: // fall through
           case CANCELED: // fall through
           case COMPLETED:
-            finishedPlanInfo.set(jobInfo);
+            finishedJobInfo.set(jobInfo);
             return true;
           case RUNNING: // fall through
           case CREATED:
@@ -113,7 +113,7 @@ public final class JobGrpcClientUtils {
       throw new IllegalStateException(e);
     }
 
-    return finishedPlanInfo.get();
+    return finishedJobInfo.get();
   }
 
   private JobGrpcClientUtils() {} // prevent instantiation
