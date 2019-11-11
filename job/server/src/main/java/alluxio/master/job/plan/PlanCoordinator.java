@@ -19,7 +19,7 @@ import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
-import alluxio.job.plan.wire.TaskInfo;
+import alluxio.job.wire.TaskInfo;
 import alluxio.master.job.command.CommandManager;
 import alluxio.wire.WorkerInfo;
 
@@ -216,8 +216,8 @@ public final class PlanCoordinator {
   /**
    * @return the on the wire job info for the job being coordinated
    */
-  public synchronized alluxio.job.plan.wire.PlanInfo getPlanInfoWire() {
-    return new alluxio.job.plan.wire.PlanInfo(mPlanInfo);
+  public synchronized alluxio.job.wire.PlanInfo getPlanInfoWire() {
+    return new alluxio.job.wire.PlanInfo(mPlanInfo);
   }
 
   /**

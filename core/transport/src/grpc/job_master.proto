@@ -24,7 +24,7 @@ enum JobType {
 
 message JobUnused {}
 
-// next available id: 12
+// next available id: 14
 message JobInfo {
   optional int64 id = 1;
   optional string errorMessage = 2;

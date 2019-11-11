@@ -13,8 +13,8 @@ package alluxio.client.job;
 
 import alluxio.Client;
 import alluxio.job.JobConfig;
-import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.JobServiceSummary;
 import alluxio.worker.job.JobMasterClientContext;
 
 import java.io.IOException;
@@ -66,7 +66,7 @@ public interface JobMasterClient extends Client {
   JobServiceSummary getJobServiceSummary() throws IOException;
 
   /**
-   * @return the list of all plan ids
+   * @return the list of ids of all jobs
    */
   List<Long> list() throws IOException;
 

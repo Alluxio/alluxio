@@ -18,7 +18,7 @@ import alluxio.grpc.JobMasterWorkerServiceGrpc;
 import alluxio.grpc.RegisterJobWorkerPRequest;
 import alluxio.grpc.RegisterJobWorkerPResponse;
 import alluxio.grpc.GrpcUtils;
-import alluxio.job.plan.wire.TaskInfo;
+import alluxio.job.wire.TaskInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;

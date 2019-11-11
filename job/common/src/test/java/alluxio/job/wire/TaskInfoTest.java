@@ -13,7 +13,6 @@ package alluxio.job.wire;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.job.plan.wire.TaskInfo;
 import alluxio.util.CommonUtils;
 
 import org.junit.Test;

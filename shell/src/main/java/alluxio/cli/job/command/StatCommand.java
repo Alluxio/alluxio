@@ -21,7 +21,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.wire.JobInfo;
-import alluxio.job.plan.wire.TaskInfo;
+import alluxio.job.wire.TaskInfo;
 import alluxio.resource.CloseableResource;
 
 import org.apache.commons.cli.CommandLine;

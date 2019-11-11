@@ -15,7 +15,7 @@ import alluxio.collections.Pair;
 import alluxio.job.JobConfig;
 import alluxio.job.RunTaskContext;
 import alluxio.job.wire.Status;
-import alluxio.job.plan.wire.TaskInfo;
+import alluxio.job.wire.TaskInfo;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.collect.ImmutableList;

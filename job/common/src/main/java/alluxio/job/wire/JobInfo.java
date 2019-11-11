@@ -11,9 +11,6 @@
 
 package alluxio.job.wire;
 
-import alluxio.job.plan.wire.PlanInfo;
-import alluxio.job.plan.wire.TaskInfo;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;

@@ -13,7 +13,7 @@ package alluxio.job.plan.meta;
 
 import alluxio.job.JobConfig;
 import alluxio.job.wire.Status;
-import alluxio.job.plan.wire.TaskInfo;
+import alluxio.job.wire.TaskInfo;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 

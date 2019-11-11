@@ -9,13 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job.plan.wire;
+package alluxio.job.wire;
 
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.JobType;
 import alluxio.job.util.SerializationUtils;
-import alluxio.job.wire.JobInfo;
-import alluxio.job.wire.Status;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
