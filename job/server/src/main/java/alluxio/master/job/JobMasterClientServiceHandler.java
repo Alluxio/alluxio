@@ -63,7 +63,7 @@ public class JobMasterClientServiceHandler
                            StreamObserver<GetJobStatusPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobStatusPResponse>) () -> {
       return GetJobStatusPResponse.newBuilder()
-          .setPlanInfo(mJobMaster.getStatus(request.getId()).toProto()).build();
+          .setJobInfo(mJobMaster.getStatus(request.getJobId()).toProto()).build();
     }, "getJobStatus", "request=%s", responseObserver, request);
   }
 

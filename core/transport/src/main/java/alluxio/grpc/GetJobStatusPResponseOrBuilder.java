@@ -8,15 +8,15 @@ public interface GetJobStatusPResponseOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional .alluxio.grpc.job.JobInfo planInfo = 1;</code>
+   * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
    */
-  boolean hasPlanInfo();
+  boolean hasJobInfo();
   /**
-   * <code>optional .alluxio.grpc.job.JobInfo planInfo = 1;</code>
+   * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
    */
-  alluxio.grpc.JobInfo getPlanInfo();
+  alluxio.grpc.JobInfo getJobInfo();
   /**
-   * <code>optional .alluxio.grpc.job.JobInfo planInfo = 1;</code>
+   * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
    */
-  alluxio.grpc.JobInfoOrBuilder getPlanInfoOrBuilder();
+  alluxio.grpc.JobInfoOrBuilder getJobInfoOrBuilder();
 }

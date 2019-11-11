@@ -86,11 +86,11 @@ message CancelPResponse {}
 
 message GetJobStatusPOptions {}
 message GetJobStatusPRequest {
-  optional int64 id = 1;
+  optional int64 jobId = 1;
   optional GetJobStatusPOptions options = 2;
 }
 message GetJobStatusPResponse {
-  optional JobInfo planInfo = 1;
+  optional JobInfo jobInfo = 1;
 }
 
 message ListAllPOptions {}
