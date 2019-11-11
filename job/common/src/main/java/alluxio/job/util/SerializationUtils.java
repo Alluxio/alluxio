@@ -11,7 +11,6 @@
 
 package alluxio.job.util;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 
 import java.io.ByteArrayInputStream;

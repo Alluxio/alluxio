@@ -222,7 +222,7 @@ public final class WorkerInfo implements Serializable {
    */
   public static final class LastContactSecComparator implements Comparator<WorkerInfo>,
       Serializable {
-    private final static long serialVersionUID = 0L;
+    private static final long serialVersionUID = 0L;
 
     @Override
     public int compare(WorkerInfo o1, WorkerInfo o2) {

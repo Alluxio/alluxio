@@ -194,7 +194,8 @@ public class GrpcSerializationUtils {
         sCurrent.set(stream, nettyBuffer);
       }
       return true;
-    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+        | InvocationTargetException e) {
       LOG.warn("Failed to add data buffer to stream: {}.", e.getMessage());
       return false;
     }

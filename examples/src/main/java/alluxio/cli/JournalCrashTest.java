@@ -18,7 +18,6 @@ import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.util.CommonUtils;

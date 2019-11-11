@@ -74,7 +74,7 @@ public final class IdUtils {
   }
 
   /**
-   * Generates a positive random number by zero-ing the sign bit
+   * Generates a positive random number by zero-ing the sign bit.
    *
    * @return a random long which is guaranteed to be non negative (zero is allowed)
    */
@@ -115,5 +115,4 @@ public final class IdUtils {
       return IdUtils.createFileSystemContextId();
     }
   }
-
 }

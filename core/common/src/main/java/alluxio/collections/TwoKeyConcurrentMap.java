@@ -105,7 +105,7 @@ public class TwoKeyConcurrentMap<K1, K2, V, M extends Map<K2, V>> extends Concur
   }
 
   /**
-   * The equals implementation for this map simply uses the superclass's equals
+   * The equals implementation for this map simply uses the superclass's equals.
    */
   @Override
   public boolean equals(Object o) {
@@ -113,7 +113,7 @@ public class TwoKeyConcurrentMap<K1, K2, V, M extends Map<K2, V>> extends Concur
   }
 
   /**
-   * The hashCode implementation for this map simply uses the superclass's
+   * The hashCode implementation for this map simply uses the superclass's.
    */
   @Override
   public int hashCode() {
