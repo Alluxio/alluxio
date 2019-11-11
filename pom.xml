@@ -134,6 +134,7 @@
   </repositories>
 
   <properties>
+    <argLine></argLine>
     <apache.curator.version>4.2.0</apache.curator.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
@@ -915,7 +916,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.19.1</version>
           <configuration>
-            <argLine>-Djava.net.preferIPv4Stack=true</argLine>
+            <argLine>@{argLine} -Djava.net.preferIPv4Stack=true</argLine>
             <excludesFile>${build.path}/surefire/${surefire.excludesFile}</excludesFile>
             <forkCount>${surefire.forkCount}</forkCount>
             <rerunFailingTestsCount>${surefire.rerunFailingTestsCount}</rerunFailingTestsCount>
@@ -1305,6 +1306,33 @@
                     <argument>docs/_site</argument>
                   </arguments>
                 </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>jacoco</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.5</version>
+            <executions>
+              <execution>
+                <id>jacoco-initialize</id>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>jacoco-report</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
               </execution>
             </executions>
           </plugin>
