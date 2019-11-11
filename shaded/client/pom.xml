@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-shaded</artifactId>
-    <version>2.1.0-SNAPSHOT</version>
+    <version>1.8.3-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-shaded-client</artifactId>
   <packaging>jar</packaging>
@@ -25,7 +25,9 @@
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
-    <build.path>${project.parent.parent.basedir}/build</build.path>
+    <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
+    <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
     <failIfNoTests>false</failIfNoTests>
     <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
     <shading.prefix>alluxio.shaded.client</shading.prefix>

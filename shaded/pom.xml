@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-parent</artifactId>
-    <version>2.1.0-SNAPSHOT</version>
+    <version>1.8.3-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-shaded</artifactId>
   <packaging>pom</packaging>
@@ -24,12 +24,13 @@
 
   <modules>
     <module>client</module>
-    <module>hadoop</module>
   </modules>
 
   <properties>
-    <!-- These need to be defined here as well as in the parent pom so that mvn can run
-         properly from sub-project directories -->
-    <build.path>${project.parent.basedir}/build</build.path>
+    <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
+    <!-- run properly from sub-project directories -->
+    <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
+    <checkstyle.path>${project.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.basedir}/build/findbugs/</findbugs.path>
   </properties>
 </project>
