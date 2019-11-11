@@ -72,6 +72,7 @@ public abstract class WebServer {
     mServerConnector = new ServerConnector(mServer);
     mServerConnector.setPort(mAddress.getPort());
     mServerConnector.setHost(mAddress.getAddress().getHostAddress());
+    mServerConnector.setReuseAddress(true);
 
     mServer.addConnector(mServerConnector);
 
@@ -79,7 +80,9 @@ public abstract class WebServer {
     try {
       mServerConnector.open();
     } catch (IOException e) {
-      throw new RuntimeException(String.format("Failed to listen on address %s", mAddress), e);
+      throw new RuntimeException(
+          String.format("Failed to listen on address %s for web server %s", mAddress, mServiceName),
+          e);
     }
 
     System.setProperty("org.apache.jasper.compiler.disablejsr199", "false");
