@@ -139,7 +139,7 @@ public final class JobMasterTest {
     PlanTracker tracker = new PlanTracker(10, 0, -1);
     ((Map<Long, PlanCoordinator>) Whitebox.getInternalState(tracker, "mCoordinators"))
         .put(jobId, coordinator);
-    Whitebox.setInternalState(mJobMaster, "mTracker", tracker);
+    Whitebox.setInternalState(mJobMaster, "mPlanTracker", tracker);
     mJobMaster.cancel(jobId);
     Mockito.verify(coordinator).cancel();
   }
