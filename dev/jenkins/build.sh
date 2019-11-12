@@ -30,3 +30,8 @@ then
   git clean -fdx
 fi
 mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} $@
+
+if [ -n "${ALLUXIO_SONAR_ARGS}" ]
+then
+  mvn $(echo "${ALLUXIO_SONAR_ARGS}") sonar:sonar
+fi
