@@ -58,6 +58,8 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.job.plan.persist.PersistConfig;
+import alluxio.job.wire.JobInfo;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.ProtobufUtils;
@@ -4011,9 +4013,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
         }
       }
 
-      alluxio.job.persist.PersistConfig config =
-          new alluxio.job.persist.PersistConfig(uri.getPath(), resolution.getMountId(), false,
-              tempUfsPath);
+      PersistConfig config =
+          new PersistConfig(uri.getPath(), resolution.getMountId(), false, tempUfsPath);
 
       // Schedule the persist job.
       long jobId;
@@ -4286,7 +4287,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         long jobId = job.getId();
         JobMasterClient client = mJobMasterClientPool.acquire();
         try {
-          alluxio.job.wire.JobInfo jobInfo = client.getStatus(jobId);
+          JobInfo jobInfo = client.getJobStatus(jobId);
           switch (jobInfo.getStatus()) {
             case RUNNING:
               // fall through

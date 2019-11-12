@@ -20,7 +20,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.job.load.LoadConfig;
+import alluxio.job.plan.load.LoadConfig;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;

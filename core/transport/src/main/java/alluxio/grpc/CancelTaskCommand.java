@@ -17,7 +17,7 @@ private static final long serialVersionUID = 0L;
   }
   private CancelTaskCommand() {
     jobId_ = 0L;
-    taskId_ = 0;
+    taskId_ = 0L;
   }
 
   @java.lang.Override
@@ -58,7 +58,7 @@ private static final long serialVersionUID = 0L;
           }
           case 16: {
             bitField0_ |= 0x00000002;
-            taskId_ = input.readInt32();
+            taskId_ = input.readInt64();
             break;
           }
         }
@@ -102,17 +102,17 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int TASKID_FIELD_NUMBER = 2;
-  private int taskId_;
+  private long taskId_;
   /**
-   * <code>optional int32 taskId = 2;</code>
+   * <code>optional int64 taskId = 2;</code>
    */
   public boolean hasTaskId() {
     return ((bitField0_ & 0x00000002) == 0x00000002);
   }
   /**
-   * <code>optional int32 taskId = 2;</code>
+   * <code>optional int64 taskId = 2;</code>
    */
-  public int getTaskId() {
+  public long getTaskId() {
     return taskId_;
   }
 
@@ -132,7 +132,7 @@ private static final long serialVersionUID = 0L;
       output.writeInt64(1, jobId_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      output.writeInt32(2, taskId_);
+      output.writeInt64(2, taskId_);
     }
     unknownFields.writeTo(output);
   }
@@ -148,7 +148,7 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(2, taskId_);
+        .computeInt64Size(2, taskId_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -194,7 +194,8 @@ private static final long serialVersionUID = 0L;
     }
     if (hasTaskId()) {
       hash = (37 * hash) + TASKID_FIELD_NUMBER;
-      hash = (53 * hash) + getTaskId();
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getTaskId());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -327,7 +328,7 @@ private static final long serialVersionUID = 0L;
       super.clear();
       jobId_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
-      taskId_ = 0;
+      taskId_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000002);
       return this;
     }
@@ -469,34 +470,34 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private int taskId_ ;
+    private long taskId_ ;
     /**
-     * <code>optional int32 taskId = 2;</code>
+     * <code>optional int64 taskId = 2;</code>
      */
     public boolean hasTaskId() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional int32 taskId = 2;</code>
+     * <code>optional int64 taskId = 2;</code>
      */
-    public int getTaskId() {
+    public long getTaskId() {
       return taskId_;
     }
     /**
-     * <code>optional int32 taskId = 2;</code>
+     * <code>optional int64 taskId = 2;</code>
      */
-    public Builder setTaskId(int value) {
+    public Builder setTaskId(long value) {
       bitField0_ |= 0x00000002;
       taskId_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional int32 taskId = 2;</code>
+     * <code>optional int64 taskId = 2;</code>
      */
     public Builder clearTaskId() {
       bitField0_ = (bitField0_ & ~0x00000002);
-      taskId_ = 0;
+      taskId_ = 0L;
       onChanged();
       return this;
     }

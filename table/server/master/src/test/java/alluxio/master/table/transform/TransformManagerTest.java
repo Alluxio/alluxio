@@ -24,7 +24,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.job.JobConfig;
-import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterTestUtils;
@@ -234,7 +234,7 @@ public class TransformManagerTest {
   @Test
   public void jobMasterRestart() throws Exception {
     long jobId = transform(TABLE1, DEFINITION1);
-    Mockito.when(mMockJobMasterClient.getStatus(jobId)).thenThrow(new NotFoundException("none"));
+    Mockito.when(mMockJobMasterClient.getJobStatus(jobId)).thenThrow(new NotFoundException("none"));
     heartbeat();
     assertEquals(1, mTableMaster.getAllTransformJobInfo().size());
     checkTransformJobInfo(mTableMaster.getTransformJobInfo(jobId), TABLE1, DEFINITION1, jobId,
@@ -320,13 +320,8 @@ public class TransformManagerTest {
   private void mockJobStatus(long jobId, Status status, @Nullable String error)
       throws Exception {
     // Mock job status.
-    JobInfo jobInfo = new JobInfo();
-    jobInfo.setJobId(jobId);
-    jobInfo.setStatus(status);
-    if (error != null) {
-      jobInfo.setErrorMessage(error);
-    }
-    Mockito.when(mMockJobMasterClient.getStatus(jobId)).thenReturn(jobInfo);
+    PlanInfo jobInfo = new PlanInfo(jobId, "test", status, 0, error);
+    Mockito.when(mMockJobMasterClient.getJobStatus(jobId)).thenReturn(jobInfo);
   }
 
   private void heartbeat() throws Exception {

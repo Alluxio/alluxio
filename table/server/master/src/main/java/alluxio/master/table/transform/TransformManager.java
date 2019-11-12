@@ -22,7 +22,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.JobConfig;
-import alluxio.job.composite.CompositeConfig;
+import alluxio.job.workflow.composite.CompositeConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.journal.DelegatingJournaled;
@@ -309,7 +309,7 @@ public class TransformManager implements DelegatingJournaled {
         long jobId = job.getJobId();
         try {
           LOG.debug("Polling for status of transformation job {}", jobId);
-          JobInfo jobInfo = mJobMasterClient.getStatus(jobId);
+          JobInfo jobInfo = mJobMasterClient.getJobStatus(jobId);
           switch (jobInfo.getStatus()) {
             case FAILED: // fall through
             case CANCELED: // fall through

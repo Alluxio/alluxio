@@ -45,7 +45,7 @@ public final class JobServiceSummary {
    * @param jobInfos Collection of {@link JobInfo}
    */
   public JobServiceSummary(List<JobInfo> jobInfos) {
-    jobInfos.sort(Comparator.comparing(JobInfo::getLastStatusChangeMs).reversed());
+    jobInfos.sort(Comparator.comparing(JobInfo::getLastUpdated).reversed());
     mSummaryPerStatus = buildSummaryPerStatus(jobInfos);
 
     mRecentActivities = jobInfos.stream().limit(RECENT_LENGTH).collect(Collectors.toList());
@@ -72,17 +72,17 @@ public final class JobServiceSummary {
 
     mRecentActivities = new ArrayList<>();
     for (alluxio.grpc.JobInfo lastActivity : jobServiceSummary.getRecentActivitiesList()) {
-      mRecentActivities.add(new JobInfo(lastActivity));
+      mRecentActivities.add(new PlanInfo(lastActivity));
     }
 
     mRecentFailures = new ArrayList<>();
     for (alluxio.grpc.JobInfo lastFailure : jobServiceSummary.getRecentFailuresList()) {
-      mRecentFailures.add(new JobInfo(lastFailure));
+      mRecentFailures.add(new PlanInfo(lastFailure));
     }
 
     mLongestRunning = new ArrayList<>();
     for (alluxio.grpc.JobInfo longestRunning : jobServiceSummary.getLongestRunningList()) {
-      mLongestRunning.add(new JobInfo(longestRunning));
+      mLongestRunning.add(new PlanInfo(longestRunning));
     }
   }
 

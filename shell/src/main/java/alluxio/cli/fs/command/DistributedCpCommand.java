@@ -21,7 +21,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.job.migrate.MigrateConfig;
+import alluxio.job.plan.migrate.MigrateConfig;
 import alluxio.util.CommonUtils;
 
 import org.apache.commons.cli.CommandLine;
