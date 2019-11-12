@@ -34,6 +34,7 @@ public abstract class RestApiTest extends BaseIntegrationTest {
   public LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource.Builder()
       .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
       .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
+      .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
       .build();
 
   protected String getEndpoint(String suffix) {
