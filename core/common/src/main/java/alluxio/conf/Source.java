@@ -14,7 +14,6 @@ package alluxio.conf;
 import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * The source of a configuration property.
@@ -22,7 +21,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * The natural ordering of this class is not consistent with the {@link #equals(Object)} method.
  */
 @PublicApi
-@SuppressFBWarnings("EQ_COMPARETO_USE_OBJECT_EQUALS")
 public class Source implements Comparable<Source> {
   public static final Source UNKNOWN = new Source(Type.UNKNOWN);
   public static final Source DEFAULT = new Source(Type.DEFAULT);
@@ -98,6 +96,26 @@ public class Source implements Comparable<Source> {
   @Override
   public int compareTo(Source other) {
     return mType.compareTo(other.mType);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null) {
+      return false;
+    }
+
+    if (!(o instanceof Source)) {
+      return false;
+    }
+
+    Source other = (Source) o;
+
+    return compareTo(other) == 0;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mType);
   }
 
   @Override
