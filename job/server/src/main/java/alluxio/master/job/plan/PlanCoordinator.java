@@ -104,7 +104,7 @@ public final class PlanCoordinator {
 
   private synchronized void start() throws JobDoesNotExistException {
     // get the job definition
-    LOG.info("Starting job {}", mPlanInfo.getJobConfig());
+    LOG.info("Starting job Id={} Config={}", mPlanInfo.getId(), mPlanInfo.getJobConfig());
     PlanDefinition<JobConfig, ?, ?> definition =
         PlanDefinitionRegistry.INSTANCE.getJobDefinition(mPlanInfo.getJobConfig());
     SelectExecutorsContext context =
