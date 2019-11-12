@@ -64,7 +64,6 @@ If you are running HBase version greater than 2.0, add the following property:
 ```
 
 > This will disable HBase new stream capabilities (hflush/hsync) used for WAL.
-HBASE-14790, HBASE-15536
 
 ### Distribute the Alluxio Client jar
 
@@ -182,3 +181,4 @@ $ cp `{{site.ALLUXIO_CLIENT_JAR_PATH}}` /path/to/hbase-regionserver/lib/
 
 In order to change the logging configuration for HBase, you can [modify your installation's
 `log4j.properties` file.](http://hbase.apache.org/0.94/book/trouble.client.html#trouble.client.scarylogs)
+
