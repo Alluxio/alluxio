@@ -11,9 +11,9 @@
 
 package alluxio.job;
 
-import alluxio.job.plan.wire.PlanInfo;
-import alluxio.job.plan.wire.TaskInfo;
 import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.PlanInfo;
+import alluxio.job.wire.TaskInfo;
 import alluxio.job.wire.WorkflowInfo;
 
 import java.io.IOException;

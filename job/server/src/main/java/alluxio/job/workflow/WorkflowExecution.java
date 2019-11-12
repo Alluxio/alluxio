@@ -12,6 +12,10 @@
 package alluxio.job.workflow;
 
 import alluxio.job.JobConfig;
+import alluxio.job.wire.Status;
+import alluxio.job.wire.WorkflowInfo;
+import alluxio.util.CommonUtils;
+import com.google.common.base.Preconditions;
 
 import java.util.Set;
 
@@ -19,12 +23,49 @@ import java.util.Set;
  * TODO(bradley).
  *
  */
-public interface WorkflowExecution {
+public abstract class WorkflowExecution {
+
+  private Status mStatus;
+  private long mLastUpdated;
+
+  public WorkflowExecution() {
+    setStatus(Status.RUNNING);
+  }
+
+  public final Set<JobConfig> next() {
+    Preconditions.checkArgument(!mStatus.isFinished());
+    Set<JobConfig> jobConfigs = nextJobs();
+    if (jobConfigs.isEmpty()) {
+      setStatus(Status.COMPLETED);
+    }
+    return jobConfigs;
+  }
+
+  public final boolean isDone() {
+    return mStatus.equals(Status.COMPLETED);
+  }
+
+  public final void fail(Status status) {
+    Preconditions.checkArgument(status.equals(Status.CANCELED) || status.equals(Status.FAILED));
+    setStatus(status);
+  }
+
+  public final Status getStatus() {
+    return mStatus;
+  }
+
+  public final long getLastUpdated() {
+    return mLastUpdated;
+  }
+
+  private void setStatus(Status status) {
+    mStatus = status;
+    mLastUpdated = CommonUtils.getCurrentMs();
+  }
 
   /**
    * @return list of {@link JobConfig} to run
    */
-  Set<JobConfig> nextJobs();
+  protected abstract Set<JobConfig> nextJobs();
 
-  boolean isDone();
 }

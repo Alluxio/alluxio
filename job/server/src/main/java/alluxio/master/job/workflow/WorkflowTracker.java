@@ -15,9 +15,9 @@ import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
-import alluxio.job.plan.wire.TaskInfo;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
+import alluxio.job.wire.TaskInfo;
 import alluxio.job.workflow.WorkflowConfig;
 import alluxio.job.workflow.WorkflowExecution;
 import alluxio.job.workflow.WorkflowExecutionFactory;
@@ -25,6 +25,7 @@ import alluxio.job.workflow.WorkflowExecutionFactoryRegistry;
 import alluxio.job.wire.WorkflowInfo;
 import alluxio.master.job.JobMaster;
 
+import org.apache.commons.compress.utils.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,7 @@ public class WorkflowTracker {
 
   private final ConcurrentHashMap<Long, WorkflowExecution> mWorkflows;
   private final ConcurrentHashMap<Long, ConcurrentHashSet<Long>> mWaitingOn;
+  private final ConcurrentHashMap<Long, ConcurrentHashSet<Long>> mChildren;
   private final ConcurrentHashMap<Long, Long> mParentWorkflow;
 
   /**
@@ -55,6 +57,7 @@ public class WorkflowTracker {
     mJobMaster = jobMaster;
     mWorkflows = new ConcurrentHashMap<>();
     mWaitingOn = new ConcurrentHashMap<>();
+    mChildren = new ConcurrentHashMap<>();
     mParentWorkflow = new ConcurrentHashMap<>();
   }
 
@@ -75,22 +78,27 @@ public class WorkflowTracker {
     next(jobId);
   }
 
-  public WorkflowInfo getStatus(long jobId) {
+  public WorkflowInfo getStatus(long jobId) throws JobDoesNotExistException {
     WorkflowExecution workflowExecution = mWorkflows.get(jobId);
 
     if (workflowExecution == null) {
       return null;
     }
 
-    boolean done = workflowExecution.isDone();
+    ConcurrentHashSet<Long> children = mChildren.get(jobId);
 
-    Status status = Status.RUNNING;
+    List<JobInfo> jobInfos = Lists.newArrayList();
 
-    if (done) {
-      status = Status.COMPLETED;
+    for (long child : children) {
+      jobInfos.add(mJobMaster.getStatus(child));
     }
 
-    return new WorkflowInfo(jobId, null, status);
+    WorkflowInfo workflowInfo = new WorkflowInfo(jobId, null, workflowExecution.getStatus(),
+        workflowExecution.getLastUpdated(), jobInfos);
+
+    LOG.info(workflowInfo.toString());
+
+    return workflowInfo;
   }
 
   /**
@@ -116,10 +124,25 @@ public class WorkflowTracker {
     }
   }
 
+  private void fail(long jobId, Status status) {
+    Long parentJobId = mParentWorkflow.get(jobId);
+
+    if (parentJobId == null) {
+      return;
+    }
+
+    WorkflowExecution workflowExecution = mWorkflows.get(parentJobId);
+
+    workflowExecution.fail(status);
+
+    fail(parentJobId, status);
+    return;
+  }
+
   private void next(long jobId) throws ResourceExhaustedException, JobDoesNotExistException {
     WorkflowExecution workflowExecution = mWorkflows.get(jobId);
 
-    Set<JobConfig> childJobConfigs = workflowExecution.nextJobs();
+    Set<JobConfig> childJobConfigs = workflowExecution.next();
 
     if (childJobConfigs.isEmpty()) {
       done(jobId);
@@ -132,6 +155,11 @@ public class WorkflowTracker {
     }
 
     mWaitingOn.put(jobId, childJobIds);
+
+    if (mChildren.get(jobId) == null) {
+      mChildren.put(jobId, new ConcurrentHashSet<>());
+    }
+    mChildren.get(jobId).addAll(childJobIds);
 
     for (Long childJobId : childJobIds) {
       mParentWorkflow.put(childJobId, jobId);
@@ -159,8 +187,11 @@ public class WorkflowTracker {
     for (TaskInfo taskInfo : taskInfoList) {
       Long planId = taskInfo.getParentId();
       JobInfo jobInfo = mJobMaster.getStatus(planId);
-      if (jobInfo.getStatus().isFinished()) {
+      Status status = jobInfo.getStatus();
+      if (status.equals(Status.COMPLETED)) {
         done(planId);
+      } else if (status.equals(Status.CANCELED) || status.equals(Status.FAILED)) {
+        fail(planId, status);
       }
     }
   }

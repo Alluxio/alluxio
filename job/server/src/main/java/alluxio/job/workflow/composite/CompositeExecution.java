@@ -22,7 +22,7 @@ import java.util.Set;
 /**
  * TODO(bradley).
  */
-public class CompositeExecution implements WorkflowExecution {
+public class CompositeExecution extends WorkflowExecution {
 
   private final ArrayList<JobConfig> mJobs;
   private final boolean mSequential;
@@ -43,7 +43,7 @@ public class CompositeExecution implements WorkflowExecution {
   }
 
   @Override
-  public Set<JobConfig> nextJobs() {
+  protected Set<JobConfig> nextJobs() {
     if (mPosition >= mJobs.size()) {
       mDone = true;
       return Sets.newHashSet();
@@ -55,10 +55,5 @@ public class CompositeExecution implements WorkflowExecution {
 
     mPosition = mJobs.size();
     return Sets.newHashSet(mJobs);
-  }
-
-  @Override
-  public boolean isDone() {
-    return mDone;
   }
 }
