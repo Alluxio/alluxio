@@ -104,7 +104,7 @@ public final class JobCoordinator {
 
   private synchronized void start() throws JobDoesNotExistException {
     // get the job definition
-    LOG.info("Starting job {}", mJobInfo.getJobConfig());
+    LOG.info("Starting job Id={} Config={}", mJobInfo.getId(), mJobInfo.getJobConfig());
     JobDefinition<JobConfig, ?, ?> definition =
         JobDefinitionRegistry.INSTANCE.getJobDefinition(mJobInfo.getJobConfig());
     SelectExecutorsContext context =
