@@ -25,7 +25,6 @@
   <modules>
     <module>fs</module>
     <module>hdfs</module>
-    <module>runtime</module>
   </modules>
 
   <properties>
