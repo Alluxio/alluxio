@@ -30,9 +30,10 @@ Therefore, the configuration of Alluxio is done mostly in HBase configuration fi
 
 ### Set property in `hbase-site.xml`
 
-Change the `hbase.rootdir` property in `conf/hbase-site.xml`:
-> You do not need to create the `/hbase` directory in Alluxio, HBase will do this for you.
+Set the following properties in `conf/hbase-site.xml` and make sure all HBase cluster nodes
+have the configuration.
 
+Set the `hbase.rootdir` property as follows: 
 ```xml
 <property>
   <name>hbase.rootdir</name>
@@ -40,9 +41,9 @@ Change the `hbase.rootdir` property in `conf/hbase-site.xml`:
 </property>
 ```
 
-Add the following property to the same file `hbase-site.xml`.
-(make sure it is configured in all HBase cluster nodes):
+> You do not need to create the `/hbase` directory in Alluxio, HBase will do this for you.
 
+Add the following property to the same file `hbase-site.xml`:
 ```xml
 <property>
   <name>hbase.regionserver.hlog.syncer.count</name>
@@ -50,8 +51,20 @@ Add the following property to the same file `hbase-site.xml`.
 </property>
 ```
 
-This property is required to prevent HBase from flushing Alluxio file stream in a thread unsafe
+> This property is required to prevent HBase from flushing Alluxio file stream in a thread unsafe
 way.
+
+If you are running HBase version greater than 2.0, add the following property:
+
+```xml
+<property>
+  <name>hbase.unsafe.stream.capability.enforce</name>
+  <value>false</value>
+</property>
+```
+
+> This will disable HBase new stream capabilities (hflush/hsync) used for WAL.
+HBASE-14790, HBASE-15536
 
 ### Distribute the Alluxio Client jar
 
@@ -157,10 +170,15 @@ Instead of specifying the location of the jar file in the `$HBASE_CLASSPATH` env
 users could copy the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `lib` directory of HBase
 (make sure it's available on all cluster nodes).
 
+```console
+$ cp `{{site.ALLUXIO_CLIENT_JAR_PATH}}` /path/to/hbase-master/lib/
+$ cp `{{site.ALLUXIO_CLIENT_JAR_PATH}}` /path/to/current/hbase-client/lib/
+$ cp `{{site.ALLUXIO_CLIENT_JAR_PATH}}` /path/to/hbase-regionserver/lib/
+```
+
 ## Troubleshooting
 
 ### Logging Configuration
 
 In order to change the logging configuration for HBase, you can [modify your installation's
 `log4j.properties` file.](http://hbase.apache.org/0.94/book/trouble.client.html#trouble.client.scarylogs)
-
