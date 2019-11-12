@@ -102,12 +102,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     @Override
     protected DataBuffer getDataBuffer(BlockReadRequestContext context,
         StreamObserver<ReadResponse> response, long offset, int len) throws Exception {
-      try {
-        openBlock(context, response);
-      } catch (Exception e) {
-        throw new UnavailableException(String.format("Failed to open block id=%s",
-            context.getRequest().getId()), e);
-      }
+      openBlock(context, response);
       BlockReader blockReader = context.getBlockReader();
       Preconditions.checkState(blockReader != null);
       ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
@@ -172,9 +167,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
 
         // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
         Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
-        if (mWorker.openUfsBlock(request.getSessionId(), request.getId(),
+        try {
+          if (mWorker.openUfsBlock(request.getSessionId(), request.getId(),
                 Protocol.OpenUfsBlockOptions.parseFrom(openUfsBlockOptions.toByteString()))) {
-          try {
             BlockReader reader =
                 mWorker.readUfsBlock(request.getSessionId(), request.getId(), request.getStart());
             AlluxioURI ufsMountPointUri =
@@ -188,14 +183,16 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
                 WorkerMetrics.TAG_UFS, ufsString);
             context.setMeter(MetricsSystem.meter(meterName));
             return;
-          } catch (Exception e) {
-            // TODO(binfan): remove the closeUfsBlock here as the exception will be handled in
-            // AbstractReadHandler. Current approach to use context.blockReader as a flag is a
-            // workaround.
-            mWorker.closeUfsBlock(request.getSessionId(), request.getId());
-            context.setBlockReader(null);
-            throw e;
           }
+        } catch (Exception e) {
+          // TODO(binfan): remove the closeUfsBlock here as the exception will be handled in
+          // AbstractReadHandler. Current approach to use context.blockReader as a flag is a
+          // workaround.
+          mWorker.closeUfsBlock(request.getSessionId(), request.getId());
+          context.setBlockReader(null);
+          throw new UnavailableException(String.format("Failed to read block id=%s at "
+                  + "neither tiered storage nor potential UFS tier: %s",
+              request.getId(), e.getMessage()));
         }
       }
       throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
