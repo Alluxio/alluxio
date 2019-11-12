@@ -190,9 +190,8 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
           // workaround.
           mWorker.closeUfsBlock(request.getSessionId(), request.getId());
           context.setBlockReader(null);
-          throw new UnavailableException(String.format("Failed to read block id=%s at "
-                  + "neither tiered storage nor potential UFS tier: %s",
-              request.getId(), e.getMessage()));
+          throw new UnavailableException(String.format("Failed to read block ID=%s from tiered "
+              + "storage and UFS tier: %s", request.getId(), e.getMessage()));
         }
       }
       throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
