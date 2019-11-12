@@ -64,8 +64,9 @@ public final class BlockMasterClientServiceHandler
       StreamObserver<GetBlockInfoPResponse> responseObserver) {
     long blockId = request.getBlockId();
     GetBlockInfoPOptions options = request.getOptions();
-    RpcUtils.call(LOG, () -> GetBlockInfoPResponse.newBuilder()
-        .setBlockInfo(GrpcUtils.toProto(mBlockMaster.getBlockInfo(blockId))).build(),
+    RpcUtils.call(LOG,
+        () -> GetBlockInfoPResponse.newBuilder()
+            .setBlockInfo(GrpcUtils.toProto(mBlockMaster.getBlockInfo(blockId))).build(),
         "GetBlockInfo", "blockId=%s, options=%s", responseObserver, blockId, options);
   }
 
@@ -111,8 +112,9 @@ public final class BlockMasterClientServiceHandler
   public void getCapacityBytes(GetCapacityBytesPOptions options,
       StreamObserver<GetCapacityBytesPResponse> responseObserver) {
     RpcUtils.call(LOG,
-        () -> GetCapacityBytesPResponse.newBuilder().setBytes(mBlockMaster.getCapacityBytes())
-            .build(), "getCapacityBytes", "options=%s", responseObserver, options);
+        () -> GetCapacityBytesPResponse.newBuilder()
+            .setBytes(mBlockMaster.getCapacityBytes()).build(),
+        "getCapacityBytes", "options=%s", responseObserver, options);
   }
 
   @Override
@@ -126,25 +128,28 @@ public final class BlockMasterClientServiceHandler
   @Override
   public void getWorkerInfoList(GetWorkerInfoListPOptions options,
       StreamObserver<GetWorkerInfoListPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetWorkerInfoListPResponse.newBuilder().addAllWorkerInfos(
-        mBlockMaster.getWorkerInfoList().stream().map(GrpcUtils::toProto)
-            .collect(Collectors.toList())).build(), "getWorkerInfoList", "options=%s",
-        responseObserver, options);
+    RpcUtils.call(LOG,
+        () -> GetWorkerInfoListPResponse.newBuilder()
+            .addAllWorkerInfos(mBlockMaster.getWorkerInfoList().stream().map(GrpcUtils::toProto)
+            .collect(Collectors.toList())).build(),
+        "getWorkerInfoList", "options=%s", responseObserver, options);
   }
 
   @Override
   public void getWorkerReport(GetWorkerReportPOptions options,
       StreamObserver<GetWorkerInfoListPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetWorkerInfoListPResponse.newBuilder().addAllWorkerInfos(
-        mBlockMaster.getWorkerReport(new GetWorkerReportOptions(options)).stream()
-            .map(GrpcUtils::toProto).collect(Collectors.toList())).build(), "getWorkerReport",
-        "options=%s", responseObserver, options);
+    RpcUtils.call(LOG,
+        () -> GetWorkerInfoListPResponse.newBuilder()
+            .addAllWorkerInfos(mBlockMaster.getWorkerReport(new GetWorkerReportOptions(options))
+                .stream().map(GrpcUtils::toProto).collect(Collectors.toList())).build(),
+        "getWorkerReport", "options=%s", responseObserver, options);
   }
 
   @Override
   public void getWorkerLostStorage(GetWorkerLostStoragePOptions options,
       StreamObserver<GetWorkerLostStoragePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetWorkerLostStoragePResponse.newBuilder()
+    RpcUtils.call(LOG,
+        () -> GetWorkerLostStoragePResponse.newBuilder()
             .addAllWorkerLostStorageInfo(mBlockMaster.getWorkerLostStorage()).build(),
         "getWorkerLostStorage", "options=%s", responseObserver, options);
   }
