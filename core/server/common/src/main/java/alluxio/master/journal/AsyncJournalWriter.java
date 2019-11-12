@@ -24,6 +24,7 @@ import alluxio.resource.LockResource;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.SettableFuture;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.Status;
 
 import java.io.IOException;
@@ -46,6 +47,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This enables async journal writing, as well as some batched journal flushing.
  */
 @ThreadSafe
+@SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
 public final class AsyncJournalWriter {
   /**
    * Used to manage and keep track of pending callers of ::flush.
