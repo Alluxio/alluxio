@@ -43,7 +43,24 @@ Set the `hbase.rootdir` property as follows:
 
 > You do not need to create the `/hbase` directory in Alluxio, HBase will do this for you.
 
-Add the following property to the same file `hbase-site.xml`:
+You also need to add the FS implementation classes to HBase configuration. These classes are provided in Alluxio Client jar.
+
+```xml
+<property>
+  <name>fs.alluxio.impl</name>
+  <value>alluxio.hadoop.FileSystem</value>
+</property>
+<property>
+  <name>fs.alluxio-ft.impl</name>
+  <value>alluxio.hadoop.FaultTolerantFileSystem</value>
+</property>
+<property>
+  <name>fs.AbstractFileSystem.alluxio.impl</name>
+  <value>alluxio.hadoop.AlluxioFileSystem</value>
+</property>
+```
+
+Also add the following property to the same file `hbase-site.xml`:
 ```xml
 <property>
   <name>hbase.regionserver.hlog.syncer.count</name>
