@@ -51,12 +51,12 @@ public interface JobMasterClient extends Client {
   void cancel(long id) throws IOException;
 
   /**
-   * Gets the status of the given job.
+   * Gets the status of the given job id.
    *
    * @param id the job id
    * @return the job information
    */
-  JobInfo getStatus(long id) throws IOException;
+  JobInfo getJobStatus(long id) throws IOException;
 
   /**
    * Gets the job service summary.
@@ -71,10 +71,10 @@ public interface JobMasterClient extends Client {
   List<Long> list() throws IOException;
 
   /**
-   * Starts a job based on the given configuration.
+   * Starts a plan based on the given configuration.
    *
    * @param jobConfig the job configuration
-   * @return the job id
+   * @return the plan id
    */
   long run(JobConfig jobConfig) throws IOException;
 }

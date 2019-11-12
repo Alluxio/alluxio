@@ -14,7 +14,7 @@ package alluxio.table.common.transform;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.job.JobConfig;
-import alluxio.job.transform.CompactConfig;
+import alluxio.job.plan.transform.CompactConfig;
 import alluxio.table.common.TableTestUtils;
 import alluxio.table.common.layout.HiveLayout;
 

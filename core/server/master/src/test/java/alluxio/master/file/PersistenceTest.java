@@ -29,6 +29,7 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.job.JobConfig;
 import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.DefaultSafeModeManager;
@@ -168,9 +169,8 @@ public final class PersistenceTest {
     }
 
     // Mock the job service interaction.
-    JobInfo jobInfo = new JobInfo();
-    jobInfo.setStatus(Status.CREATED);
-    Mockito.when(mMockJobMasterClient.getStatus(Mockito.anyLong())).thenReturn(jobInfo);
+    JobInfo jobInfo = createJobInfo(Status.CREATED);
+    Mockito.when(mMockJobMasterClient.getJobStatus(Mockito.anyLong())).thenReturn(jobInfo);
 
     // Repeatedly execute the persistence checker heartbeat, checking the internal state.
     {
@@ -181,8 +181,8 @@ public final class PersistenceTest {
     }
 
     // Mock the job service interaction.
-    jobInfo.setStatus(Status.RUNNING);
-    Mockito.when(mMockJobMasterClient.getStatus(Mockito.anyLong())).thenReturn(jobInfo);
+    jobInfo = createJobInfo(Status.RUNNING);
+    Mockito.when(mMockJobMasterClient.getJobStatus(Mockito.anyLong())).thenReturn(jobInfo);
 
     // Repeatedly execute the persistence checker heartbeat, checking the internal state.
     {
@@ -193,8 +193,8 @@ public final class PersistenceTest {
     }
 
     // Mock the job service interaction.
-    jobInfo.setStatus(Status.COMPLETED);
-    Mockito.when(mMockJobMasterClient.getStatus(Mockito.anyLong())).thenReturn(jobInfo);
+    jobInfo = createJobInfo(Status.COMPLETED);
+    Mockito.when(mMockJobMasterClient.getJobStatus(Mockito.anyLong())).thenReturn(jobInfo);
 
     {
       // Create the temporary UFS file.
@@ -244,9 +244,8 @@ public final class PersistenceTest {
     }
 
     // Mock the job service interaction.
-    JobInfo jobInfo = new JobInfo();
-    jobInfo.setStatus(Status.CANCELED);
-    Mockito.when(mMockJobMasterClient.getStatus(Mockito.anyLong())).thenReturn(jobInfo);
+    JobInfo jobInfo = createJobInfo(Status.CANCELED);
+    Mockito.when(mMockJobMasterClient.getJobStatus(Mockito.anyLong())).thenReturn(jobInfo);
 
     // Execute the persistence checker heartbeat, checking the internal state.
     {
@@ -284,9 +283,8 @@ public final class PersistenceTest {
     }
 
     // Mock the job service interaction.
-    JobInfo jobInfo = new JobInfo();
-    jobInfo.setStatus(Status.FAILED);
-    Mockito.when(mMockJobMasterClient.getStatus(Mockito.anyLong())).thenReturn(jobInfo);
+    JobInfo jobInfo = createJobInfo(Status.FAILED);
+    Mockito.when(mMockJobMasterClient.getJobStatus(Mockito.anyLong())).thenReturn(jobInfo);
 
     // Repeatedly execute the persistence checker and scheduler heartbeats, checking the internal
     // state. After the internal timeout associated with the operation expires, check the operation
@@ -341,9 +339,8 @@ public final class PersistenceTest {
     checkPersistenceInProgress(alluxioFileSrc, jobId);
 
     // Mock the job service interaction.
-    JobInfo jobInfo = new JobInfo();
-    jobInfo.setStatus(Status.CREATED);
-    Mockito.when(mMockJobMasterClient.getStatus(Mockito.anyLong())).thenReturn(jobInfo);
+    JobInfo jobInfo = createJobInfo(Status.CREATED);
+    Mockito.when(mMockJobMasterClient.getJobStatus(Mockito.anyLong())).thenReturn(jobInfo);
 
     // Execute the persistence checker heartbeat, checking the internal state.
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_PERSISTENCE_CHECKER);
@@ -351,8 +348,8 @@ public final class PersistenceTest {
     checkPersistenceInProgress(alluxioFileSrc, jobId);
 
     // Mock the job service interaction.
-    jobInfo.setStatus(Status.COMPLETED);
-    Mockito.when(mMockJobMasterClient.getStatus(Mockito.anyLong())).thenReturn(jobInfo);
+    jobInfo = createJobInfo(Status.COMPLETED);
+    Mockito.when(mMockJobMasterClient.getJobStatus(Mockito.anyLong())).thenReturn(jobInfo);
 
     // Create the temporary UFS file.
     {
@@ -444,6 +441,10 @@ public final class PersistenceTest {
     startServices();
 
     checkPersistenceInProgress(testFile, jobId);
+  }
+
+  private JobInfo createJobInfo(Status status) {
+    return new PlanInfo(1, "test", status, 0, null);
   }
 
   private AlluxioURI createTestFile() throws Exception {

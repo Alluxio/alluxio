@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
-import alluxio.job.transform.HiveConstants;
+import alluxio.job.plan.transform.HiveConstants;
 import alluxio.table.common.Layout;
 import alluxio.table.common.LayoutFactory;
 import alluxio.table.common.transform.TransformContext;

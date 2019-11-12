@@ -12,16 +12,23 @@
 package alluxio.job.wire;
 
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.JobType;
 import alluxio.job.util.SerializationUtils;
+import alluxio.util.CommonUtils;
+import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.protobuf.ByteString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.util.Collection;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -29,12 +36,16 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The task description.
  */
 @NotThreadSafe
-public class TaskInfo {
+public class TaskInfo implements JobInfo {
+  private static final Logger LOG = LoggerFactory.getLogger(TaskInfo.class);
+
   private long mJobId;
-  private int mTaskId;
+  private long mTaskId;
   private Status mStatus;
   private String mErrorMessage;
   private Serializable mResult;
+  private long mLastUpdated;
+  private String mWorkerHost;
 
   /**
    * Default constructor.
@@ -42,16 +53,50 @@ public class TaskInfo {
   public TaskInfo() {}
 
   /**
+   * Constructor for TaskInfo.
+   * @param jobId the job id
+   * @param taskId the task id
+   * @param workerInfo the worker info
+   */
+  public TaskInfo(long jobId, long taskId, WorkerInfo workerInfo) {
+    mJobId = jobId;
+    mTaskId = taskId;
+    mStatus = Status.CREATED;
+    mErrorMessage = "";
+    mResult = null;
+    mLastUpdated = CommonUtils.getCurrentMs();
+    mWorkerHost = workerInfo.getAddress().getHost();
+  }
+
+  /**
+   * Constructs a new TaskInfo from jobId, taskId, and Status.
+   * @param jobId the job id
+   * @param taskId the task id
+   * @param status the status
+   */
+  public TaskInfo(long jobId, long taskId, Status status) {
+    mJobId = jobId;
+    mTaskId = taskId;
+    mStatus = status;
+    mErrorMessage = "";
+    mResult = null;
+    mWorkerHost = "";
+  }
+
+  /**
    * Constructs from the proto format.
    *
    * @param taskInfo the task info in proto format
    * @throws IOException if the deserialization fails
    */
-  public TaskInfo(alluxio.grpc.TaskInfo taskInfo) throws IOException {
-    mJobId = taskInfo.getJobId();
-    mTaskId = taskInfo.getTaskId();
+  public TaskInfo(alluxio.grpc.JobInfo taskInfo) throws IOException {
+    Preconditions.checkArgument(taskInfo.getType().equals(JobType.TASK), "Invalid type");
+
+    mJobId = taskInfo.getParentId();
+    mTaskId = taskInfo.getId();
     mStatus = Status.valueOf(taskInfo.getStatus().name());
     mErrorMessage = taskInfo.getErrorMessage();
+    mWorkerHost = taskInfo.getWorkerHost();
     mResult = null;
     if (taskInfo.hasResult()) {
       try {
@@ -60,6 +105,33 @@ public class TaskInfo {
         throw new InvalidArgumentException(e);
       }
     }
+    mLastUpdated = taskInfo.getLastUpdated();
+  }
+
+  @Override
+  public long getId() {
+    return getTaskId();
+  }
+
+  /**
+   * @return the task id
+   */
+  public long getTaskId() {
+    return mTaskId;
+  }
+
+  /**
+   * @param taskId the task id
+   * @return the updated task info object
+   */
+  public TaskInfo setTaskId(long taskId) {
+    mTaskId = taskId;
+    return this;
+  }
+
+  @Override
+  public Long getParentId() {
+    return getJobId();
   }
 
   /**
@@ -70,31 +142,10 @@ public class TaskInfo {
   }
 
   /**
-   * @return the task id
+   * @return the worker host
    */
-  public int getTaskId() {
-    return mTaskId;
-  }
-
-  /**
-   * @return the task status
-   */
-  public Status getStatus() {
-    return mStatus;
-  }
-
-  /**
-   * @return the error message
-   */
-  public String getErrorMessage() {
-    return mErrorMessage;
-  }
-
-  /**
-   * @return the result
-   */
-  public Serializable getResult() {
-    return mResult;
+  public Object getWorkerHost() {
+    return mWorkerHost;
   }
 
   /**
@@ -106,13 +157,19 @@ public class TaskInfo {
     return this;
   }
 
-  /**
-   * @param taskId the task id
-   * @return the updated task info object
-   */
-  public TaskInfo setTaskId(int taskId) {
-    mTaskId = taskId;
-    return this;
+  @Override
+  public String getName() {
+    return String.format("Task %s", mTaskId);
+  }
+
+  @Override
+  public String getDescription() {
+    return "";
+  }
+
+  @Override
+  public Status getStatus() {
+    return mStatus;
   }
 
   /**
@@ -121,7 +178,29 @@ public class TaskInfo {
    */
   public TaskInfo setStatus(Status status) {
     mStatus = status;
+    updateLastUpdated();
     return this;
+  }
+
+  @Override
+  public long getLastUpdated() {
+    return mLastUpdated;
+  }
+
+  private void updateLastUpdated() {
+    mLastUpdated = CommonUtils.getCurrentMs();
+  }
+
+  @Override
+  public Collection<JobInfo> getChildren() {
+    return ImmutableList.of();
+  }
+
+  /**
+   * @return the error message
+   */
+  public String getErrorMessage() {
+    return mErrorMessage;
   }
 
   /**
@@ -134,11 +213,27 @@ public class TaskInfo {
   }
 
   /**
+   * @return the result
+   */
+  public Serializable getResult() {
+    return mResult;
+  }
+
+  /**
    * @param result the result
    * @return the updated task info object
    */
-  public TaskInfo setResult(byte[] result) {
-    mResult = result == null ? null : Arrays.copyOf(result, result.length);
+  public TaskInfo setResult(Serializable result) {
+    mResult = result;
+    return this;
+  }
+
+  /**
+   * @param workerHost the worker host
+   * @return the updated task info object
+   */
+  public TaskInfo setWorkerHost(String workerHost) {
+    mWorkerHost = workerHost;
     return this;
   }
 
@@ -146,13 +241,20 @@ public class TaskInfo {
    * @return proto representation of the task info
    * @throws IOException if serialization fails
    */
-  public alluxio.grpc.TaskInfo toProto() throws IOException {
-    ByteBuffer result =
-        mResult == null ? null : ByteBuffer.wrap(SerializationUtils.serialize(mResult));
+  public alluxio.grpc.JobInfo toProto() {
+    ByteBuffer result = null;
+    try {
+      result = mResult == null ? null : ByteBuffer.wrap(SerializationUtils.serialize(mResult));
+    } catch (IOException e) {
+      // TODO(bradley) better error handling
+      LOG.warn("Failed to serialize {} : {}", mResult, e.getMessage());
+      LOG.warn("Exception: ", e);
+    }
 
-    alluxio.grpc.TaskInfo.Builder taskInfoBuilder =
-        alluxio.grpc.TaskInfo.newBuilder().setJobId(mJobId).setTaskId(mTaskId)
-            .setStatus(mStatus.toProto()).setErrorMessage(mErrorMessage);
+    alluxio.grpc.JobInfo.Builder taskInfoBuilder =
+        alluxio.grpc.JobInfo.newBuilder().setParentId(mJobId).setId(mTaskId)
+            .setStatus(mStatus.toProto()).setErrorMessage(mErrorMessage)
+            .setLastUpdated(mLastUpdated).setWorkerHost(mWorkerHost).setType(JobType.TASK);
     if (result != null) {
       taskInfoBuilder.setResult(ByteString.copyFrom(result));
     }
@@ -170,18 +272,20 @@ public class TaskInfo {
     TaskInfo that = (TaskInfo) o;
     return Objects.equal(mJobId, that.mJobId) && Objects.equal(mTaskId, that.mTaskId)
         && Objects.equal(mStatus, that.mStatus) && Objects.equal(mErrorMessage, that.mErrorMessage)
-        && Objects.equal(mResult, that.mResult);
+        && Objects.equal(mResult, that.mResult) && Objects.equal(mLastUpdated, that.mLastUpdated)
+        && Objects.equal(mWorkerHost, that.mWorkerHost);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mJobId, mTaskId, mStatus, mErrorMessage, mResult);
+    return Objects.hashCode(mJobId, mTaskId, mStatus, mErrorMessage, mResult, mLastUpdated,
+        mWorkerHost);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("jobId", mJobId).add("taskId", mTaskId)
         .add("status", mStatus).add("errorMessage", mErrorMessage).add("result", mResult)
-        .toString();
+        .add("lastUpdated", mLastUpdated).add("workerHost", mWorkerHost).toString();
   }
 }

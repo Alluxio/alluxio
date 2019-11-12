@@ -12,8 +12,8 @@
 package alluxio.worker.job.task;
 
 import alluxio.job.JobConfig;
-import alluxio.job.JobDefinition;
-import alluxio.job.JobDefinitionRegistry;
+import alluxio.job.plan.PlanDefinition;
+import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.JobServerContext;
 import alluxio.job.RunTaskContext;
 
@@ -33,53 +33,53 @@ import java.io.Serializable;
  * Tests {@link TaskExecutor}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TaskExecutorManager.class, JobDefinitionRegistry.class, JobServerContext.class})
+@PrepareForTest({TaskExecutorManager.class, PlanDefinitionRegistry.class, JobServerContext.class})
 public final class TaskExecutorTest {
   private TaskExecutorManager mTaskExecutorManager;
-  private JobDefinitionRegistry mRegistry;
+  private PlanDefinitionRegistry mRegistry;
 
   @Before
   public void before() {
     mTaskExecutorManager = PowerMockito.mock(TaskExecutorManager.class);
-    mRegistry = PowerMockito.mock(JobDefinitionRegistry.class);
-    Whitebox.setInternalState(JobDefinitionRegistry.class, "INSTANCE", mRegistry);
+    mRegistry = PowerMockito.mock(PlanDefinitionRegistry.class);
+    Whitebox.setInternalState(PlanDefinitionRegistry.class, "INSTANCE", mRegistry);
   }
 
   @Test
   public void runCompletion() throws Exception {
     long jobId = 1;
-    int taskId = 2;
+    long taskId = 2;
     JobConfig jobConfig = Mockito.mock(JobConfig.class);
     Serializable taskArgs = Lists.newArrayList(1);
     RunTaskContext context = Mockito.mock(RunTaskContext.class);
     Integer taskResult = 1;
     @SuppressWarnings("unchecked")
-    JobDefinition<JobConfig, Serializable, Serializable> jobDefinition =
-        Mockito.mock(JobDefinition.class);
-    Mockito.when(mRegistry.getJobDefinition(jobConfig)).thenReturn(jobDefinition);
-    Mockito.when(jobDefinition.runTask(Mockito.eq(jobConfig), Mockito.eq(taskArgs),
+    PlanDefinition<JobConfig, Serializable, Serializable> planDefinition =
+        Mockito.mock(PlanDefinition.class);
+    Mockito.when(mRegistry.getJobDefinition(jobConfig)).thenReturn(planDefinition);
+    Mockito.when(planDefinition.runTask(Mockito.eq(jobConfig), Mockito.eq(taskArgs),
         Mockito.any(RunTaskContext.class))).thenReturn(taskResult);
 
     TaskExecutor executor =
         new TaskExecutor(jobId, taskId, jobConfig, taskArgs, context, mTaskExecutorManager);
     executor.run();
 
-    Mockito.verify(jobDefinition).runTask(jobConfig, taskArgs, context);
+    Mockito.verify(planDefinition).runTask(jobConfig, taskArgs, context);
     Mockito.verify(mTaskExecutorManager).notifyTaskCompletion(jobId, taskId, taskResult);
   }
 
   @Test
   public void runFailure() throws Exception {
     long jobId = 1;
-    int taskId = 2;
+    long taskId = 2;
     JobConfig jobConfig = Mockito.mock(JobConfig.class);
     Serializable taskArgs = Lists.newArrayList(1);
     RunTaskContext context = Mockito.mock(RunTaskContext.class);
     @SuppressWarnings("unchecked")
-    JobDefinition<JobConfig, Serializable, Serializable> jobDefinition =
-        Mockito.mock(JobDefinition.class);
-    Mockito.when(mRegistry.getJobDefinition(jobConfig)).thenReturn(jobDefinition);
-    Mockito.doThrow(new UnsupportedOperationException("failure")).when(jobDefinition)
+    PlanDefinition<JobConfig, Serializable, Serializable> planDefinition =
+        Mockito.mock(PlanDefinition.class);
+    Mockito.when(mRegistry.getJobDefinition(jobConfig)).thenReturn(planDefinition);
+    Mockito.doThrow(new UnsupportedOperationException("failure")).when(planDefinition)
         .runTask(jobConfig, taskArgs, context);
 
     TaskExecutor executor =
@@ -93,15 +93,15 @@ public final class TaskExecutorTest {
   @Test
   public void runCancelation() throws Exception {
     long jobId = 1;
-    int taskId = 2;
+    long taskId = 2;
     JobConfig jobConfig = Mockito.mock(JobConfig.class);
     Serializable taskArgs = Lists.newArrayList(1);
     RunTaskContext context = Mockito.mock(RunTaskContext.class);
     @SuppressWarnings("unchecked")
-    JobDefinition<JobConfig, Serializable, Serializable> jobDefinition =
-        Mockito.mock(JobDefinition.class);
-    Mockito.when(mRegistry.getJobDefinition(jobConfig)).thenReturn(jobDefinition);
-    Mockito.doThrow(new InterruptedException("interupt")).when(jobDefinition).runTask(jobConfig,
+    PlanDefinition<JobConfig, Serializable, Serializable> planDefinition =
+        Mockito.mock(PlanDefinition.class);
+    Mockito.when(mRegistry.getJobDefinition(jobConfig)).thenReturn(planDefinition);
+    Mockito.doThrow(new InterruptedException("interupt")).when(planDefinition).runTask(jobConfig,
         taskArgs, context);
 
     TaskExecutor executor =

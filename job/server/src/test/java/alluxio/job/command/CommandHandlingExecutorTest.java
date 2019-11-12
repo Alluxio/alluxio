@@ -15,11 +15,10 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.RunTaskCommand;
-import alluxio.grpc.TaskInfo;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.RunTaskContext;
-import alluxio.job.TestJobConfig;
+import alluxio.job.TestPlanConfig;
 import alluxio.job.util.SerializationUtils;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerNetAddress;
@@ -78,15 +77,15 @@ public final class CommandHandlingExecutorTest {
     RunTaskCommand.Builder runTaskCommand = RunTaskCommand.newBuilder();
     long jobId = 1;
     runTaskCommand.setJobId(jobId);
-    int taskId = 2;
+    long taskId = 2;
     runTaskCommand.setTaskId(taskId);
-    JobConfig jobConfig = new TestJobConfig("/test");
+    JobConfig jobConfig = new TestPlanConfig("/test");
     runTaskCommand.setJobConfig(ByteString.copyFrom(SerializationUtils.serialize(jobConfig)));
     Serializable taskArgs = Lists.newArrayList(1);
     runTaskCommand.setTaskArgs(ByteString.copyFrom(SerializationUtils.serialize(taskArgs)));
 
     command.setRunTaskCommand(runTaskCommand);
-    Mockito.when(mJobMasterClient.heartbeat(mWorkerId, Lists.<TaskInfo>newArrayList()))
+    Mockito.when(mJobMasterClient.heartbeat(mWorkerId, Lists.newArrayList()))
         .thenReturn(Lists.newArrayList(command.build()));
 
     mCommandHandlingExecutor.heartbeat();

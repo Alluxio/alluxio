@@ -54,7 +54,7 @@ public final class CommandManager {
    * @param taskArgs the arguments passed to the executor on the worker
    * @param workerId the id of the worker
    */
-  public synchronized void submitRunTaskCommand(long jobId, int taskId, JobConfig jobConfig,
+  public synchronized void submitRunTaskCommand(long jobId, long taskId, JobConfig jobConfig,
       Object taskArgs, long workerId) {
     RunTaskCommand.Builder runTaskCommand = RunTaskCommand.newBuilder();
     runTaskCommand.setJobId(jobId);
@@ -84,7 +84,7 @@ public final class CommandManager {
    * @param taskId the task id
    * @param workerId the worker id
    */
-  public synchronized void submitCancelTaskCommand(long jobId, int taskId, long workerId) {
+  public synchronized void submitCancelTaskCommand(long jobId, long taskId, long workerId) {
     CancelTaskCommand.Builder cancelTaskCommand = CancelTaskCommand.newBuilder();
     cancelTaskCommand.setJobId(jobId);
     cancelTaskCommand.setTaskId(taskId);

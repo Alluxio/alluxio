@@ -15,8 +15,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.CancelTaskCommand;
 import alluxio.grpc.JobCommand;
+import alluxio.grpc.JobInfo;
 import alluxio.grpc.RunTaskCommand;
-import alluxio.grpc.TaskInfo;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
@@ -78,7 +78,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
-    List<TaskInfo> taskStatusList = mTaskExecutorManager.getAndClearTaskUpdates();
+    List<JobInfo> taskStatusList = mTaskExecutorManager.getAndClearTaskUpdates();
 
     List<alluxio.grpc.JobCommand> commands;
     try {
@@ -114,7 +114,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
       if (mCommand.hasRunTaskCommand()) {
         RunTaskCommand command = mCommand.getRunTaskCommand();
         long jobId = command.getJobId();
-        int taskId = command.getTaskId();
+        long taskId = command.getTaskId();
         JobConfig jobConfig;
         try {
           jobConfig =
@@ -134,7 +134,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
       } else if (mCommand.hasCancelTaskCommand()) {
         CancelTaskCommand command = mCommand.getCancelTaskCommand();
         long jobId = command.getJobId();
-        int taskId = command.getTaskId();
+        long taskId = command.getTaskId();
         mTaskExecutorManager.cancelTask(jobId, taskId);
       } else if (mCommand.hasRegisterCommand()) {
         try {
