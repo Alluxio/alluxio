@@ -15,7 +15,6 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 
 import com.google.common.base.Preconditions;
 
-import java.io.IOException;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -25,7 +24,6 @@ import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
-import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.sasl.AuthorizeCallback;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
@@ -104,7 +102,7 @@ public final class PlainSaslServer implements SaslServer {
         throw new SaslException("AuthorizeCallback authorized failure");
       }
       mAuthorizationId = authCallback.getAuthorizedID();
-    } catch (IOException | UnsupportedCallbackException e) {
+    } catch (Exception e) {
       throw new SaslException("Plain authentication failed: " + e.getMessage(), e);
     }
     mCompleted = true;

@@ -171,7 +171,7 @@ public final class HttpUtils {
       } else {
         LOG.error("Failed to perform HEAD request. Status code: {}", statusCode);
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       LOG.error("Failed to execute URL request: {}", url, e);
     } finally {
       headMethod.releaseConnection();

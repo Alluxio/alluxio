@@ -33,7 +33,6 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -170,8 +169,7 @@ public final class MetricsSystem {
                   .newInstance(entry.getValue(), METRIC_REGISTRY);
           sink.start();
           sSinks.add(sink);
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException
-            | InvocationTargetException | InstantiationException e) {
+        } catch (Exception e) {
           LOG.error("Sink class {} cannot be instantiated", classPath, e);
         }
       }

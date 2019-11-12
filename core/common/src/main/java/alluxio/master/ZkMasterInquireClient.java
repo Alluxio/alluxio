@@ -19,7 +19,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -45,7 +44,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * Utility to get leader from zookeeper.
  */
 @ThreadSafe
-@SuppressFBWarnings("REC_CATCH_EXCEPTION")
 public final class ZkMasterInquireClient implements MasterInquireClient, Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(ZkMasterInquireClient.class);
 

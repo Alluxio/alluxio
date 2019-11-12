@@ -181,7 +181,6 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -217,7 +216,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The master that handles all file system metadata management.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
-@SuppressFBWarnings("REC_CATCH_EXCEPTION")
 public final class DefaultFileSystemMaster extends CoreMaster
     implements FileSystemMaster, DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);

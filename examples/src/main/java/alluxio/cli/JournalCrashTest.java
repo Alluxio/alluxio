@@ -33,7 +33,6 @@ import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -148,7 +147,7 @@ public final class JournalCrashTest {
             }
             sFileSystem.rename(testURI, new AlluxioURI(testURI + "-rename"));
           }
-        } catch (IOException | AlluxioException e) {
+        } catch (Exception e) {
           // Since master may crash/restart for several times, so this exception is expected.
           // Ignore the exception and still keep requesting to master.
           continue;

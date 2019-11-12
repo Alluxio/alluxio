@@ -39,7 +39,6 @@ import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -47,7 +46,6 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -166,7 +164,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         // Share domain socket so that clients can access it.
         FileUtils.changeLocalFileToFullPermission(domainSocketPath);
       }
-    } catch (IOException | TimeoutException | ExecutionException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }

@@ -61,7 +61,7 @@ public final class IdUtilsTest {
   @Test
   public void testPositiveLong() {
     SecureRandom sr = new SecureRandom();
-    for (int i = 0; i < 50_000_000; i++) {
+    for (int i = 0; i < 1000; i++) {
       long r = sr.nextLong() & Long.MAX_VALUE;
       assertTrue(String.format("Long should be > 0; got %d", r), r >= 0);
     }

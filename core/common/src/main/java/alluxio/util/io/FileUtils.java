@@ -14,7 +14,6 @@ package alluxio.util.io;
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -282,7 +281,6 @@ public final class FileUtils {
    *
    * @param filePath pathname string of the file to create
    */
-  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   public static void createFile(String filePath) throws IOException {
     Path storagePath = Paths.get(filePath);
     Path parent = storagePath.getParent();

@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
@@ -81,7 +80,7 @@ public final class BufferUtils {
         sCleanerCleanMethod = cleaner.getClass().getMethod("clean");
       }
       sCleanerCleanMethod.invoke(cleaner);
-    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+    } catch (Exception e) {
       LOG.warn("Failed to unmap direct ByteBuffer: {}, error message: {}",
                 buffer.getClass().getName(), e.getMessage());
     } finally {

@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -192,7 +191,7 @@ public final class S3RestServiceHandler {
           objects = listObjects(new AlluxioURI(bucketPath), listBucketOptions);
           ListBucketResult response = new ListBucketResult(bucketPath, objects, listBucketOptions);
           return response;
-        } catch (RuntimeException | IOException | AlluxioException e) {
+        } catch (Exception e) {
           throw toBucketS3Exception(e, bucketPath);
         }
       }
@@ -270,7 +269,7 @@ public final class S3RestServiceHandler {
 
           String entityTag = Hex.encodeHexString(digest);
           return Response.ok().tag(entityTag).build();
-        } catch (RuntimeException | IOException | AlluxioException | NoSuchAlgorithmException e) {
+        } catch (Exception e) {
           throw toObjectS3Exception(e, objectPath);
         }
       }
@@ -364,7 +363,7 @@ public final class S3RestServiceHandler {
 
           String entityTag = Hex.encodeHexString(md5.digest());
           return new CompleteMultipartUploadResult(objectPath, bucket, object, entityTag);
-        } catch (RuntimeException | IOException | AlluxioException | NoSuchAlgorithmException e) {
+        } catch (Exception e) {
           throw toObjectS3Exception(e, objectPath);
         }
       }

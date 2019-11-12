@@ -28,7 +28,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +69,7 @@ public class GrpcSerializationUtils {
   static {
     try {
       sReadableBufferField = getPrivateField(BUFFER_INPUT_STREAM_CLASS_NAME, BUFFER_FIELD_NAME);
-    } catch (NoSuchFieldException | ClassNotFoundException e) {
+    } catch (Exception e) {
       LOG.warn("Cannot get gRPC input stream buffer, zero copy send will be disabled.", e);
       sZeroCopySendSupported = false;
     }
@@ -82,7 +81,7 @@ public class GrpcSerializationUtils {
       sCompositeBuffers =
           getPrivateField(CompositeReadableBuffer.class.getName(), BUFFERS_FIELD_NAME);
       sReadableByteBuf = getPrivateField(NETTY_READABLE_BUFFER_CLASS_NAME, BUFFER_FIELD_NAME);
-    } catch (ClassNotFoundException | NoSuchFieldException | NoSuchMethodException e) {
+    } catch (Exception e) {
       LOG.warn("Cannot get gRPC output stream buffer, zero copy receive will be disabled.", e);
       sZeroCopyReceiveSupported = false;
     }
@@ -129,7 +128,7 @@ public class GrpcSerializationUtils {
     }
     try {
       return (ReadableBuffer) sReadableBufferField.get(stream);
-    } catch (IllegalArgumentException | IllegalAccessException e) {
+    } catch (Exception e) {
       LOG.warn("Failed to get data buffer from stream.", e);
       return null;
     }
@@ -164,7 +163,7 @@ public class GrpcSerializationUtils {
       } else if (buffer.getClass().equals(sReadableByteBuf.getDeclaringClass())) {
         return (ByteBuf) sReadableByteBuf.get(buffer);
       }
-    } catch (IllegalArgumentException | IllegalAccessException e) {
+    } catch (Exception e) {
       LOG.warn("Failed to get data buffer from stream: {}.", e.getMessage());
       return null;
     }
@@ -194,8 +193,7 @@ public class GrpcSerializationUtils {
         sCurrent.set(stream, nettyBuffer);
       }
       return true;
-    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-        | InvocationTargetException e) {
+    } catch (Exception e) {
       LOG.warn("Failed to add data buffer to stream: {}.", e.getMessage());
       return false;
     }

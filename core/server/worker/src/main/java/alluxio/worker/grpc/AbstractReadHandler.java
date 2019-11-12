@@ -126,7 +126,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       mContext.setPosReceived(mContext.getRequest().getStart());
       mDataReaderExecutor.submit(createDataReader(mContext, mResponseObserver));
       mContext.setDataReaderActive(true);
-    } catch (RuntimeException | InvalidArgumentException e) {
+    } catch (Exception e) {
       LogUtils.warnWithException(LOG, "Exception occurred while processing read request {}.",
           request, e);
       mSerializingExecutor.execute(() -> mResponseObserver

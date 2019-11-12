@@ -192,7 +192,7 @@ public final class ConfigurationDocGenerator {
       }
 
       LOG.info("YML files for description of Property Keys were created successfully.");
-    } catch (RuntimeException | IOException e) {
+    } catch (Exception  e) {
       throw closer.rethrow(e);
     } finally {
       try {

@@ -74,7 +74,7 @@ public class QuorumRemoveCommand extends AbstractFsAdminCommand {
     try {
       hostName = serverAddress.substring(0, serverAddress.indexOf(":"));
       port = Integer.parseInt(serverAddress.substring(serverAddress.indexOf(":") + 1));
-    } catch (RuntimeException e) {
+    } catch (Exception e) {
       throw new InvalidArgumentException(ExceptionMessage.INVALID_ADDRESS_VALUE.getMessage());
     }
 

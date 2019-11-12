@@ -60,7 +60,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -131,7 +130,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
             "SupportedHdfsAclProvider is not instance of HdfsAclProvider. HDFS ACLs will not be "
                 + "supported.");
       }
-    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+    } catch (Exception e) {
       // ignore
       LOG.warn("Cannot create SupportedHdfsAclProvider. HDFS ACLs will not be supported.");
     }
@@ -187,9 +186,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
             "SupportedHdfsActiveSyncProvider is not instance of HdfsActiveSyncProvider. "
                 + "HDFS ActiveSync will not be supported.");
       }
-    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
-        | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
-        | SecurityException e) {
+    } catch (Exception e) {
       // ignore
       LOG.warn("Cannot create SupportedHdfsActiveSyncProvider."
           + "HDFS ActiveSync will not be supported.");

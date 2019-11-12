@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -291,7 +290,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
         masterServingFuture.get();
         return masterRpcCheck.serving();
       }
-    } catch (RuntimeException | InterruptedException | ExecutionException e) {
+    } catch (Exception e) {
       LOG.error("Exception thrown in master health check client {}", e);
     } finally {
       mExecutorService.shutdown();

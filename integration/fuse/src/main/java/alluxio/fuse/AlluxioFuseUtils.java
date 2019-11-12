@@ -138,7 +138,7 @@ public final class AlluxioFuseUtils {
             "pkgutil --pkgs | grep -i com.github.osxfuse.pkg.Core");
         return !result.isEmpty();
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       return false;
     }
     return false;
