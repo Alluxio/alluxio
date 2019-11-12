@@ -41,9 +41,11 @@ indicates that operating system limits may need tuning.
 
 Several parameters limit the number of threads that a process can spawn:
 - `kernel.pid_max`: Run `sysctl -w kernel.pid_max=<new value>` as root
+- `kernel.thread_max`: Run `sysctl -w kernel.thread_max=<new value>` as root
 - `vm.max_map_count`: Run command `sysctl -w vm.max_map_count=<new value>` as root
 - Max user process limit: Run `ulimit -u <new value>`
 - Max open files limit: Run `ulimit -n <new value>`
+- User specific pid_max limit: Run command `sudo echo <new value> > /sys/fs/cgroup/pids/user.slice/user-<userid>.slice/pids.max` as root
 
 These limits are often set for the particular user that launch the Alluxio process.
 As a rule of thumb, `vm.max_map_count` should be at least twice the limit for master threads

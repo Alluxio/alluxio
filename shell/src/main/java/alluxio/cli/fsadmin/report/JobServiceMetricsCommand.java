@@ -12,8 +12,8 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.job.JobMasterClient;
-import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
+import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.StatusSummary;
 import alluxio.util.CommonUtils;
 
@@ -85,8 +85,8 @@ public class JobServiceMetricsCommand {
   private void printJobInfos(List<JobInfo> jobInfos) {
     for (JobInfo jobInfo : jobInfos) {
       mPrintStream.print(String.format("Timestamp: %-30s",
-          CommonUtils.convertMsToDate(jobInfo.getLastStatusChangeMs(), mDateFormatPattern)));
-      mPrintStream.print(String.format("Id: %-20s", jobInfo.getJobId()));
+          CommonUtils.convertMsToDate(jobInfo.getLastUpdated(), mDateFormatPattern)));
+      mPrintStream.print(String.format("Id: %-20s", jobInfo.getId()));
       mPrintStream.print(String.format("Name: %-20s", jobInfo.getName()));
       mPrintStream.println(String.format("Status: %s", jobInfo.getStatus()));
     }

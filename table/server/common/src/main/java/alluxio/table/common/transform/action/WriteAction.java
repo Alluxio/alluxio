@@ -13,7 +13,7 @@ package alluxio.table.common.transform.action;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.job.JobConfig;
-import alluxio.job.transform.CompactConfig;
+import alluxio.job.plan.transform.CompactConfig;
 import alluxio.table.common.Layout;
 
 import com.google.common.base.Preconditions;
@@ -69,7 +69,10 @@ public class WriteAction implements TransformAction {
 
   @Override
   public JobConfig generateJobConfig(Layout base, Layout transformed) {
-    return new CompactConfig(base.getLocation().toString(), transformed.getLocation().toString(),
+    alluxio.job.plan.transform.PartitionInfo basePartitionInfo =
+        TransformActionUtils.generatePartitionInfo(base);
+    return new CompactConfig(basePartitionInfo, base.getLocation().toString(),
+        transformed.getLocation().toString(),
         mLayoutType, mNumFiles);
   }
 }

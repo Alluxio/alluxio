@@ -149,7 +149,7 @@ public class AlluxioProperties {
         // This will register the key as a valid PropertyKey
         // TODO(adit): Do not add properties unrecognized by Ufs extensions when Configuration
         // is made dynamic
-        propertyKey = new PropertyKey.Builder(key).setIsBuiltIn(false).build();
+        propertyKey = PropertyKey.getOrBuildCustom(key);
       }
       put(propertyKey, value, source);
     }

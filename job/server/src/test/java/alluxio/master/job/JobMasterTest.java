@@ -19,11 +19,14 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
-import alluxio.job.TestJobConfig;
+import alluxio.job.TestPlanConfig;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.job.plan.PlanConfig;
 import alluxio.master.MasterContext;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.master.job.plan.PlanCoordinator;
+import alluxio.master.job.plan.PlanTracker;
 import alluxio.underfs.UfsManager;
 
 import org.junit.After;
@@ -45,7 +48,7 @@ import java.util.Map;
  * Tests {@link JobMaster}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({JobCoordinator.class, FileSystemContext.class})
+@PrepareForTest({PlanCoordinator.class, FileSystemContext.class})
 public final class JobMasterTest {
   private static final int TEST_JOB_MASTER_JOB_CAPACITY = 100;
   private JobMaster mJobMaster;
@@ -72,7 +75,7 @@ public final class JobMasterTest {
   @Test
   public void runNonExistingJobConfig() throws Exception {
     try {
-      mJobMaster.run(new DummyJobConfig());
+      mJobMaster.run(new DummyPlanConfig());
       Assert.fail("cannot run non-existing job");
     } catch (JobDoesNotExistException e) {
       Assert.assertEquals(ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage("dummy"),
@@ -82,14 +85,14 @@ public final class JobMasterTest {
 
   @Test
   public void run() throws Exception {
-    JobCoordinator coordinator = PowerMockito.mock(JobCoordinator.class);
-    PowerMockito.mockStatic(JobCoordinator.class);
+    PlanCoordinator coordinator = PowerMockito.mock(PlanCoordinator.class);
+    PowerMockito.mockStatic(PlanCoordinator.class);
     Mockito.when(
-        JobCoordinator.create(Mockito.any(CommandManager.class),
+        PlanCoordinator.create(Mockito.any(CommandManager.class),
             Mockito.any(JobServerContext.class), Mockito.anyList(), Mockito.anyLong(),
             Mockito.any(JobConfig.class), Mockito.any(null)))
         .thenReturn(coordinator);
-    TestJobConfig jobConfig = new TestJobConfig("/test");
+    TestPlanConfig jobConfig = new TestPlanConfig("/test");
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
       mJobMaster.run(jobConfig);
     }
@@ -98,14 +101,14 @@ public final class JobMasterTest {
 
   @Test
   public void flowControl() throws Exception {
-    JobCoordinator coordinator = PowerMockito.mock(JobCoordinator.class);
-    PowerMockito.mockStatic(JobCoordinator.class);
+    PlanCoordinator coordinator = PowerMockito.mock(PlanCoordinator.class);
+    PowerMockito.mockStatic(PlanCoordinator.class);
     Mockito.when(
-        JobCoordinator.create(Mockito.any(CommandManager.class),
+        PlanCoordinator.create(Mockito.any(CommandManager.class),
             Mockito.any(JobServerContext.class), Mockito.anyList(), Mockito.anyLong(),
             Mockito.any(JobConfig.class), Mockito.any(null)))
         .thenReturn(coordinator);
-    TestJobConfig jobConfig = new TestJobConfig("/test");
+    TestPlanConfig jobConfig = new TestPlanConfig("/test");
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
       mJobMaster.run(jobConfig);
     }
@@ -131,17 +134,17 @@ public final class JobMasterTest {
 
   @Test
   public void cancel() throws Exception {
-    JobCoordinator coordinator = Mockito.mock(JobCoordinator.class);
+    PlanCoordinator coordinator = Mockito.mock(PlanCoordinator.class);
     long jobId = 1L;
-    JobTracker tracker = new JobTracker(10, 0, -1);
-    ((Map<Long, JobCoordinator>) Whitebox.getInternalState(tracker, "mCoordinators"))
+    PlanTracker tracker = new PlanTracker(10, 0, -1);
+    ((Map<Long, PlanCoordinator>) Whitebox.getInternalState(tracker, "mCoordinators"))
         .put(jobId, coordinator);
-    Whitebox.setInternalState(mJobMaster, "mTracker", tracker);
+    Whitebox.setInternalState(mJobMaster, "mPlanTracker", tracker);
     mJobMaster.cancel(jobId);
     Mockito.verify(coordinator).cancel();
   }
 
-  private static class DummyJobConfig implements JobConfig {
+  private static class DummyPlanConfig implements PlanConfig {
     private static final long serialVersionUID = 1L;
 
     @Override

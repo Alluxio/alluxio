@@ -11,7 +11,9 @@ priority: 1
 
 ## Data Transformations
 
-With job service and catalog service, Alluxio can transform a table to a new table at partition level.
+With job service and catalog service, Alluxio can transform a table to a new table.
+If the table is not partitioned, then the transformation is run at table level.
+If the table is partitioned, then the transformation is run at partition level.
 The data of the original table is not modified, and the data of the new table is persisted in a new location managed by Alluxio.
 Once the transformation is done, Presto users can transparently query against the new data.
 
@@ -32,7 +34,7 @@ $ ${ALLUXIO_HOME}/bin/alluxio table attachdb hive thrift://localhost:9083 defaul
 The following command coalesce files under each partition of table "test" to one file.
 
 ```console
-$ ${ALLUXIO_HOME}/bin/alluxio table transform default test -d "write(hive).option(hive.num.files, 1)"
+$ ${ALLUXIO_HOME}/bin/alluxio table transform default test
 ```
 
 After running the above command, you'll see output like:

@@ -17,9 +17,9 @@ import static org.junit.Assert.assertTrue;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.ResourceExhaustedException;
-import alluxio.job.JobDefinitionRegistryRule;
+import alluxio.job.plan.PlanDefinitionRegistryRule;
 import alluxio.job.SleepJobConfig;
-import alluxio.job.SleepJobDefinition;
+import alluxio.job.plan.SleepPlanDefinition;
 import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioJobCluster;
@@ -57,8 +57,8 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
           .build();
 
   @Rule
-  public JobDefinitionRegistryRule mJobRule =
-      new JobDefinitionRegistryRule(SleepJobConfig.class, new SleepJobDefinition());
+  public PlanDefinitionRegistryRule mJobRule =
+      new PlanDefinitionRegistryRule(SleepJobConfig.class, new SleepPlanDefinition());
 
   @Before
   public void before() throws Exception {

@@ -380,35 +380,37 @@ public abstract class CopycatGrpcConnection
 
   @Override
   public CompletableFuture<Void> close() {
+    if (mClosed) {
+      return CompletableFuture.completedFuture(null);
+    }
+
     return CompletableFuture.runAsync(() -> {
-      if (!mClosed) {
-        LOG.debug("Closing connection: {}", mConnectionId);
+      LOG.debug("Closing connection: {}", mConnectionId);
 
-        // Connection can't be used after this.
-        // Lock and set the state.
-        try (LockResource lock = new LockResource(mStateLock.writeLock())) {
-          mClosed = true;
+      // Connection can't be used after this.
+      // Lock and set the state.
+      try (LockResource lock = new LockResource(mStateLock.writeLock())) {
+        mClosed = true;
+      }
+
+      // Stop timeout timer.
+      mTimeoutScheduler.cancel();
+
+      // Complete underlying gRPC stream.
+      if (!mStreamCompleted) {
+        try {
+          mTargetObserver.onCompleted();
+        } catch (Exception e) {
+          LOG.debug("Completing underlying gRPC stream failed.", e);
         }
+      }
 
-        // Stop timeout timer.
-        mTimeoutScheduler.cancel();
+      // Close pending requests.
+      failPendingRequests(new ConnectException("Connection closed."));
 
-        // Complete underlying gRPC stream.
-        if (!mStreamCompleted) {
-          try {
-            mTargetObserver.onCompleted();
-          } catch (Exception e) {
-            LOG.debug("Completing underlying gRPC stream failed.", e);
-          }
-        }
-
-        // Close pending requests.
-        failPendingRequests(new ConnectException("Connection closed."));
-
-        // Call close listeners.
-        for (Listener<Connection> listener : mCloseListeners) {
-          listener.accept(this);
-        }
+      // Call close listeners.
+      for (Listener<Connection> listener : mCloseListeners) {
+        listener.accept(this);
       }
     }, mExecutor);
   }

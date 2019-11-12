@@ -14,8 +14,8 @@ package alluxio.worker.job.task;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.job.JobConfig;
-import alluxio.job.JobDefinition;
-import alluxio.job.JobDefinitionRegistry;
+import alluxio.job.plan.PlanDefinition;
+import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.RunTaskContext;
 
@@ -36,7 +36,7 @@ public final class TaskExecutor implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(TaskExecutor.class);
 
   private final long mJobId;
-  private final int mTaskId;
+  private final long mTaskId;
   private final JobConfig mJobConfig;
   private final Serializable mTaskArgs;
   private final RunTaskContext mContext;
@@ -52,7 +52,7 @@ public final class TaskExecutor implements Runnable {
    * @param context the context on the worker
    * @param taskExecutorManager the task executor manager
    */
-  public TaskExecutor(long jobId, int taskId, JobConfig jobConfig, Serializable taskArgs,
+  public TaskExecutor(long jobId, long taskId, JobConfig jobConfig, Serializable taskArgs,
       RunTaskContext context, TaskExecutorManager taskExecutorManager) {
     mJobId = jobId;
     mTaskId = taskId;
@@ -65,14 +65,14 @@ public final class TaskExecutor implements Runnable {
   @Override
   public void run() {
     // TODO(yupeng) set other logger
-    JobDefinition<JobConfig, Serializable, Serializable> definition;
+    PlanDefinition<JobConfig, Serializable, Serializable> definition;
     try {
-      definition = JobDefinitionRegistry.INSTANCE.getJobDefinition(mJobConfig);
+      definition = PlanDefinitionRegistry.INSTANCE.getJobDefinition(mJobConfig);
     } catch (JobDoesNotExistException e) {
       LOG.error("The job definition for config {} does not exist.", mJobConfig.getName());
       return;
     }
-    Object result;
+    Serializable result;
     try {
       result = definition.runTask(mJobConfig, mTaskArgs, mContext);
       if (Thread.interrupted()) {

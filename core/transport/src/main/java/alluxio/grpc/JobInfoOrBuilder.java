@@ -31,30 +31,6 @@ public interface JobInfoOrBuilder extends
       getErrorMessageBytes();
 
   /**
-   * <code>repeated .alluxio.grpc.job.TaskInfo taskInfos = 3;</code>
-   */
-  java.util.List<alluxio.grpc.TaskInfo> 
-      getTaskInfosList();
-  /**
-   * <code>repeated .alluxio.grpc.job.TaskInfo taskInfos = 3;</code>
-   */
-  alluxio.grpc.TaskInfo getTaskInfos(int index);
-  /**
-   * <code>repeated .alluxio.grpc.job.TaskInfo taskInfos = 3;</code>
-   */
-  int getTaskInfosCount();
-  /**
-   * <code>repeated .alluxio.grpc.job.TaskInfo taskInfos = 3;</code>
-   */
-  java.util.List<? extends alluxio.grpc.TaskInfoOrBuilder> 
-      getTaskInfosOrBuilderList();
-  /**
-   * <code>repeated .alluxio.grpc.job.TaskInfo taskInfos = 3;</code>
-   */
-  alluxio.grpc.TaskInfoOrBuilder getTaskInfosOrBuilder(
-      int index);
-
-  /**
    * <code>optional .alluxio.grpc.job.Status status = 4;</code>
    */
   boolean hasStatus();
@@ -64,39 +40,186 @@ public interface JobInfoOrBuilder extends
   alluxio.grpc.Status getStatus();
 
   /**
-   * <code>optional string result = 5;</code>
+   * <code>optional int64 lastUpdated = 6;</code>
+   */
+  boolean hasLastUpdated();
+  /**
+   * <code>optional int64 lastUpdated = 6;</code>
+   */
+  long getLastUpdated();
+
+  /**
+   * <code>optional .alluxio.grpc.job.JobType type = 8;</code>
+   */
+  boolean hasType();
+  /**
+   * <code>optional .alluxio.grpc.job.JobType type = 8;</code>
+   */
+  alluxio.grpc.JobType getType();
+
+  /**
+   * <code>optional bytes result = 9;</code>
    */
   boolean hasResult();
   /**
-   * <code>optional string result = 5;</code>
+   * <code>optional bytes result = 9;</code>
    */
-  java.lang.String getResult();
-  /**
-   * <code>optional string result = 5;</code>
-   */
-  com.google.protobuf.ByteString
-      getResultBytes();
+  com.google.protobuf.ByteString getResult();
 
   /**
-   * <code>optional int64 lastStatusChangeMs = 6;</code>
-   */
-  boolean hasLastStatusChangeMs();
-  /**
-   * <code>optional int64 lastStatusChangeMs = 6;</code>
-   */
-  long getLastStatusChangeMs();
-
-  /**
+   * <pre>
+   * Some jobs don't have these do not have these
+   * </pre>
+   *
    * <code>optional string name = 7;</code>
    */
   boolean hasName();
   /**
+   * <pre>
+   * Some jobs don't have these do not have these
+   * </pre>
+   *
    * <code>optional string name = 7;</code>
    */
   java.lang.String getName();
   /**
+   * <pre>
+   * Some jobs don't have these do not have these
+   * </pre>
+   *
    * <code>optional string name = 7;</code>
    */
   com.google.protobuf.ByteString
       getNameBytes();
+
+  /**
+   * <code>optional int64 parentId = 10;</code>
+   */
+  boolean hasParentId();
+  /**
+   * <code>optional int64 parentId = 10;</code>
+   */
+  long getParentId();
+
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo children = 11;</code>
+   */
+  java.util.List<alluxio.grpc.JobInfo> 
+      getChildrenList();
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo children = 11;</code>
+   */
+  alluxio.grpc.JobInfo getChildren(int index);
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo children = 11;</code>
+   */
+  int getChildrenCount();
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo children = 11;</code>
+   */
+  java.util.List<? extends alluxio.grpc.JobInfoOrBuilder> 
+      getChildrenOrBuilderList();
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo children = 11;</code>
+   */
+  alluxio.grpc.JobInfoOrBuilder getChildrenOrBuilder(
+      int index);
+
+  /**
+   * <code>optional string workerHost = 12;</code>
+   */
+  boolean hasWorkerHost();
+  /**
+   * <code>optional string workerHost = 12;</code>
+   */
+  java.lang.String getWorkerHost();
+  /**
+   * <code>optional string workerHost = 12;</code>
+   */
+  com.google.protobuf.ByteString
+      getWorkerHostBytes();
+
+  /**
+   * <code>optional string description = 13;</code>
+   */
+  boolean hasDescription();
+  /**
+   * <code>optional string description = 13;</code>
+   */
+  java.lang.String getDescription();
+  /**
+   * <code>optional string description = 13;</code>
+   */
+  com.google.protobuf.ByteString
+      getDescriptionBytes();
+
+  /**
+   * <pre>
+   * Around for backwards compatibility
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.job.JobUnused unused0 = 3;</code>
+   */
+  java.util.List<alluxio.grpc.JobUnused> 
+      getUnused0List();
+  /**
+   * <pre>
+   * Around for backwards compatibility
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.job.JobUnused unused0 = 3;</code>
+   */
+  alluxio.grpc.JobUnused getUnused0(int index);
+  /**
+   * <pre>
+   * Around for backwards compatibility
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.job.JobUnused unused0 = 3;</code>
+   */
+  int getUnused0Count();
+  /**
+   * <pre>
+   * Around for backwards compatibility
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.job.JobUnused unused0 = 3;</code>
+   */
+  java.util.List<? extends alluxio.grpc.JobUnusedOrBuilder> 
+      getUnused0OrBuilderList();
+  /**
+   * <pre>
+   * Around for backwards compatibility
+   * </pre>
+   *
+   * <code>repeated .alluxio.grpc.job.JobUnused unused0 = 3;</code>
+   */
+  alluxio.grpc.JobUnusedOrBuilder getUnused0OrBuilder(
+      int index);
+
+  /**
+   * <pre>
+   * formerly result
+   * </pre>
+   *
+   * <code>optional string unused1 = 5;</code>
+   */
+  boolean hasUnused1();
+  /**
+   * <pre>
+   * formerly result
+   * </pre>
+   *
+   * <code>optional string unused1 = 5;</code>
+   */
+  java.lang.String getUnused1();
+  /**
+   * <pre>
+   * formerly result
+   * </pre>
+   *
+   * <code>optional string unused1 = 5;</code>
+   */
+  com.google.protobuf.ByteString
+      getUnused1Bytes();
 }

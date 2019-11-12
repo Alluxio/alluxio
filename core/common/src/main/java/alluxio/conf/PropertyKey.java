@@ -2056,7 +2056,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)
           .setAlias("alluxio.worker.block.heartbeat.interval.ms")
-          .setDefaultValue("1sec")
+          .setDefaultValue("10sec")
           .setDescription("The interval between block workers' heartbeats.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
@@ -4854,6 +4854,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     String name = key.getName();
     DEFAULT_KEYS_MAP.remove(name);
     DEFAULT_ALIAS_MAP.remove(name);
+  }
+
+  /**
+   * @param name name of the property
+   * @return the registered property key if found, or else create a new one and return
+   */
+  public static PropertyKey getOrBuildCustom(String name) {
+    return DEFAULT_KEYS_MAP.computeIfAbsent(name,
+        (key) -> new Builder(key).setIsBuiltIn(false).buildUnregistered());
   }
 
   @Override

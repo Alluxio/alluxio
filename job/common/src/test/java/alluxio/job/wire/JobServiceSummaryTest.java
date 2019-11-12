@@ -12,6 +12,7 @@
 package alluxio.job.wire;
 
 import com.google.common.collect.Maps;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -88,12 +89,12 @@ public class JobServiceSummaryTest {
 
     recentActivities.toArray(recentActvitiesArray);
 
-    Assert.assertEquals(1, recentActvitiesArray[0].getJobId());
-    Assert.assertEquals(6, recentActvitiesArray[1].getJobId());
-    Assert.assertEquals(5, recentActvitiesArray[2].getJobId());
-    Assert.assertEquals(3, recentActvitiesArray[3].getJobId());
-    Assert.assertEquals(2, recentActvitiesArray[4].getJobId());
-    Assert.assertEquals(4, recentActvitiesArray[5].getJobId());
+    Assert.assertEquals(1, recentActvitiesArray[0].getId());
+    Assert.assertEquals(6, recentActvitiesArray[1].getId());
+    Assert.assertEquals(5, recentActvitiesArray[2].getId());
+    Assert.assertEquals(3, recentActvitiesArray[3].getId());
+    Assert.assertEquals(2, recentActvitiesArray[4].getId());
+    Assert.assertEquals(4, recentActvitiesArray[5].getId());
   }
 
   @Test
@@ -106,19 +107,12 @@ public class JobServiceSummaryTest {
 
     recentFailures.toArray(recentFailuresArray);
 
-    Assert.assertEquals(1, recentFailuresArray[0].getJobId());
-    Assert.assertEquals(6, recentFailuresArray[1].getJobId());
-    Assert.assertEquals(4, recentFailuresArray[2].getJobId());
+    Assert.assertEquals(1, recentFailuresArray[0].getId());
+    Assert.assertEquals(6, recentFailuresArray[1].getId());
+    Assert.assertEquals(4, recentFailuresArray[2].getId());
   }
 
   private JobInfo createJobInfo(int id, Status status, long lastStatusChangeMs) {
-    JobInfo jobInfo = new JobInfo();
-
-    jobInfo.setJobId(id);
-    jobInfo.setStatus(status);
-
-    jobInfo.setLastStatusChangeMs(lastStatusChangeMs);
-
-    return jobInfo;
+    return new PlanInfo(id, "test", status, lastStatusChangeMs, null);
   }
 }

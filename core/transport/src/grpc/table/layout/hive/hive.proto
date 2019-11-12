@@ -13,6 +13,7 @@ message StorageFormat {
     optional string serde = 1;
     optional string input_format = 2;
     optional string output_format = 3;
+    map<string, string> serdelib_parameters = 4;
 }
 
 message HiveBucketProperty {

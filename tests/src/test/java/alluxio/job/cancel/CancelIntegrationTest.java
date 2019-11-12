@@ -12,9 +12,9 @@
 package alluxio.job.cancel;
 
 import alluxio.Constants;
-import alluxio.job.AbstractVoidJobDefinition;
-import alluxio.job.JobConfig;
-import alluxio.job.JobDefinitionRegistry;
+import alluxio.job.plan.AbstractVoidPlanDefinition;
+import alluxio.job.plan.PlanConfig;
+import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.JobIntegrationTest;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
@@ -32,7 +32,7 @@ import java.util.Map;
  * Tests the cancellation of a job.
  */
 public final class CancelIntegrationTest extends JobIntegrationTest {
-  static class CancelTestConfig implements JobConfig {
+  static class CancelTestConfig implements PlanConfig {
     private static final long serialVersionUID = 1L;
 
     @Override
@@ -42,7 +42,7 @@ public final class CancelIntegrationTest extends JobIntegrationTest {
   }
 
   public static class CancelTestDefinition
-      extends AbstractVoidJobDefinition<CancelTestConfig, Integer> {
+      extends AbstractVoidPlanDefinition<CancelTestConfig, Integer> {
     @Override
     public Map<WorkerInfo, Integer> selectExecutors(CancelTestConfig config,
         List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
@@ -71,7 +71,7 @@ public final class CancelIntegrationTest extends JobIntegrationTest {
   @Test(timeout = 10000)
   public void cancelTest() throws Exception {
     // register the job
-    Whitebox.invokeMethod(JobDefinitionRegistry.INSTANCE, "add", CancelTestConfig.class,
+    Whitebox.invokeMethod(PlanDefinitionRegistry.INSTANCE, "add", CancelTestConfig.class,
         new CancelTestDefinition());
     long jobId = mJobMaster.run(new CancelTestConfig());
     waitForJobRunning(jobId);
