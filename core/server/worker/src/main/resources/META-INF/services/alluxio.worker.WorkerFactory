@@ -10,4 +10,3 @@
 #
 
 alluxio.worker.block.BlockWorkerFactory
-alluxio.worker.file.FileSystemWorkerFactory

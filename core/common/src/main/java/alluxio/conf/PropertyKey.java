@@ -2159,41 +2159,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_FILE_PERSIST_POOL_SIZE =
-      new Builder(Name.WORKER_FILE_PERSIST_POOL_SIZE)
-          .setDefaultValue(64)
-          .setDescription("The size of the thread pool per worker, in which the thread "
-              + "persists an ASYNC_THROUGH file to under storage.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_FILE_PERSIST_RATE_LIMIT =
-      new Builder(Name.WORKER_FILE_PERSIST_RATE_LIMIT)
-          .setDefaultValue("2GB")
-          .setDescription("The rate limit of asynchronous persistence per second.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED =
-      new Builder(Name.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Whether to enable rate limiting when performing asynchronous "
-              + "persistence.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
   public static final PropertyKey WORKER_FILE_BUFFER_SIZE =
       new Builder(Name.WORKER_FILE_BUFFER_SIZE)
           .setDefaultValue("1MB")
           .setDescription("The buffer size for worker to write data into the tiered storage.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
-      new Builder(Name.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)
-          .setAlias("alluxio.worker.filesystem.heartbeat.interval.ms")
-          .setDefaultValue("1sec")
-          .setDescription("The heartbeat interval between the worker and file system master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -4189,14 +4158,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.evictor.lrfu.attenuation.factor";
     public static final String WORKER_EVICTOR_LRFU_STEP_FACTOR =
         "alluxio.worker.evictor.lrfu.step.factor";
-    public static final String WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
-        "alluxio.worker.filesystem.heartbeat.interval";
-    public static final String WORKER_FILE_PERSIST_POOL_SIZE =
-        "alluxio.worker.file.persist.pool.size";
-    public static final String WORKER_FILE_PERSIST_RATE_LIMIT =
-        "alluxio.worker.file.persist.rate.limit";
-    public static final String WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED =
-        "alluxio.worker.file.persist.rate.limit.enabled";
     public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
     public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
