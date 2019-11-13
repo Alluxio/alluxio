@@ -101,11 +101,7 @@ public final class MultiPartSchemeURI extends StandardURI {
       return true;
     }
 
-    if (o == null) {
-      return false;
-    }
-
-    if (this.getClass() != o.getClass()) {
+    if (o == null || this.getClass() != o.getClass()) {
       return false;
     }
 

@@ -100,8 +100,8 @@ public class Source implements Comparable<Source> {
 
   @Override
   public boolean equals(Object o) {
-    if (o == null) {
-      return false;
+    if (this == o) {
+      return true;
     }
 
     if (!(o instanceof Source)) {
@@ -133,14 +133,11 @@ public class Source implements Comparable<Source> {
 
     @Override
     public boolean equals(Object o) {
-      if (o == null) {
-        return false;
-      }
-
       if (this == o) {
         return true;
       }
-      if (!(this.getClass().equals(o.getClass()))) {
+
+      if (o == null || this.getClass() != o.getClass()) {
         return false;
       }
       SitePropertySource that = (SitePropertySource) o;

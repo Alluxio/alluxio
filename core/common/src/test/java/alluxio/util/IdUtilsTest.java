@@ -16,8 +16,6 @@ import static org.junit.Assert.assertNotEquals;
 
 import org.junit.Test;
 
-import java.security.SecureRandom;
-
 /**
  * Tests {@link IdUtils}.
  */
@@ -56,14 +54,5 @@ public final class IdUtilsTest {
     String second = IdUtils.createRpcId();
     assertTrue(!second.isEmpty());
     assertNotEquals(first, second);
-  }
-
-  @Test
-  public void testPositiveLong() {
-    SecureRandom sr = new SecureRandom();
-    for (int i = 0; i < 1000; i++) {
-      long r = sr.nextLong() & Long.MAX_VALUE;
-      assertTrue(String.format("Long should be > 0; got %d", r), r >= 0);
-    }
   }
 }
