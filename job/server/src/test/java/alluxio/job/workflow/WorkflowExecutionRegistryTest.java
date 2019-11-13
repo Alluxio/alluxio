@@ -19,7 +19,6 @@ import alluxio.job.workflow.composite.CompositeConfig;
 import alluxio.job.workflow.composite.CompositeExecution;
 
 import com.google.common.collect.Lists;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
