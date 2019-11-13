@@ -292,16 +292,16 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
           count = 0;
         }
       } catch (IOException e) {
-        LOG.warn("IOException occured during polling inotify {}", e);
+        LOG.warn("IOException occured during polling inotify {}", e.getMessage());
         if (e.getCause() instanceof InterruptedException) {
           return;
         }
       } catch (MissingEventsException e) {
-        LOG.warn("MissingEventException during polling {}", e);
+        LOG.warn("MissingEventException during polling {}", e.getMessage());
         mEventMissed = true;
         // need to sync all syncpoints at this point
       } catch (InterruptedException e) {
-        LOG.warn("InterruptedException during polling {}", e);
+        LOG.warn("InterruptedException during polling {}", e.getMessage());
         return;
       }
     }

@@ -543,7 +543,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
         ufsClient = mUfsManager.get(options.getMountId());
       } catch (alluxio.exception.status.NotFoundException
           | alluxio.exception.status.UnavailableException e) {
-        LOG.warn("Can not open UFS block: mount id {} not found",
+        LOG.warn("Can not open UFS block: mount id {} not found {}",
             options.getMountId(), e.getMessage());
         return false;
       }
@@ -648,7 +648,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
           mSpaceReserver.updateStorageInfo();
         }
       } catch (Exception e) {
-        LOG.warn("Failed to check storage", e.getMessage());
+        LOG.warn("Failed to check storage: {}", e.getMessage());
         LOG.debug("Exception: ", e);
       }
     }

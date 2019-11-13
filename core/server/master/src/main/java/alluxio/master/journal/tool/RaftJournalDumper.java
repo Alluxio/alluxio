@@ -138,7 +138,7 @@ public class RaftJournalDumper extends AbstractJournalDumper {
     String checkpointPath = String.format("%s-%s-%s", mCheckpointsDir, currentSnapshot.index(),
         currentSnapshot.timestamp());
 
-    LOG.debug("Reading snapshot-Id:", snapshotReader.readLong());
+    LOG.debug("Reading snapshot-Id: {}", snapshotReader.readLong());
     try (CheckpointInputStream checkpointStream =
         new CheckpointInputStream(new SnapshotReaderStream(snapshotReader))) {
       readCheckpoint(checkpointStream, Paths.get(checkpointPath));
