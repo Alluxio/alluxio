@@ -284,7 +284,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
             } else {
               resetCluster(fsm);
             }
-
           }
         }
       };
