@@ -38,6 +38,13 @@ function main {
     run_args+=" -e ALLUXIO_GIT_CLEAN=true"
   fi
 
+  if [ -n "${ALLUXIO_SONAR_ARGS}" ]
+  then
+    # write out to a file, in case there are spaces in the args
+    echo "ALLUXIO_SONAR_ARGS=${ALLUXIO_SONAR_ARGS}" > /tmp/.env
+    run_args+=" --env-file /tmp/.env"
+  fi
+
   local home="/home/jenkins"
   # Needed to run fuse tests:
   run_args+=" --cap-add SYS_ADMIN"
