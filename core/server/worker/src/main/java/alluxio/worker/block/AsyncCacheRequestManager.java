@@ -212,8 +212,8 @@ public class AsyncCacheRequestManager {
     }
     try (BlockReader reader =
         new RemoteBlockReader(mFsContext, blockId, blockSize, sourceAddress, openUfsBlockOptions);
-        BlockWriter writer =
-            mBlockWorker.getTempBlockWriterRemote(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId)) {
+         BlockWriter writer = mBlockWorker
+             .getTempBlockWriterRemote(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId)) {
       BufferUtils.fastCopy(reader.getChannel(), writer.getChannel());
       mBlockWorker.commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, false);
       return true;
