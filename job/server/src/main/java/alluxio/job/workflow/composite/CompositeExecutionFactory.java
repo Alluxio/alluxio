@@ -15,7 +15,7 @@ import alluxio.job.workflow.WorkflowExecution;
 import alluxio.job.workflow.WorkflowExecutionFactory;
 
 /**
- * TODO(bradley).
+ * The factory for generating {@link CompositeExecution} from {@link CompositeConfig}.
  */
 public class CompositeExecutionFactory implements WorkflowExecutionFactory<CompositeConfig> {
 

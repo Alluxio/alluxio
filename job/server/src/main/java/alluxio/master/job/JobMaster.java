@@ -76,7 +76,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The master that handles all job managing operations.
  */
 @ThreadSafe
-public final class JobMaster extends AbstractMaster implements NoopJournaled {
+public class JobMaster extends AbstractMaster implements NoopJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(JobMaster.class);
 
   /**
@@ -309,13 +309,13 @@ public final class JobMaster extends AbstractMaster implements NoopJournaled {
    * @return {@link JobServiceSummary}
    */
   public alluxio.job.wire.JobServiceSummary getSummary() {
-    Collection<PlanCoordinator> coordinators = mPlanTracker.coordinators();
-
     List<JobInfo> jobInfos = new ArrayList<>();
 
-    for (PlanCoordinator coordinator : coordinators) {
+    for (PlanCoordinator coordinator : mPlanTracker.coordinators()) {
       jobInfos.add(coordinator.getPlanInfoWire());
     }
+
+    //jobInfos.addAll(mWorkflowTracker.getAllInfo());
 
     return new JobServiceSummary(jobInfos);
   }

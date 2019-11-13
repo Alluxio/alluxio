@@ -22,11 +22,11 @@ import java.util.Map;
 import java.util.ServiceLoader;
 
 /**
- * TODO(bradley).
+ * Registry for {@link WorkflowExecution}.
  */
-public enum WorkflowExecutionFactoryRegistry {
+public enum WorkflowExecutionRegistry {
   INSTANCE;
-  private static final Logger LOG = LoggerFactory.getLogger(WorkflowExecutionFactoryRegistry.class);
+  private static final Logger LOG = LoggerFactory.getLogger(WorkflowExecutionRegistry.class);
   private final Map<Class<?>, WorkflowExecutionFactory<?>> mExecutionFactories = new HashMap<>();
 
   static {
@@ -46,18 +46,29 @@ public enum WorkflowExecutionFactoryRegistry {
   }
 
   /**
-   * TODO(bradley).
-   * @param workflowConfig TO DO(bradley)
-   * @param <T> TODO(bradley)
-   * @return TODO(bradley)
-   * @throws JobDoesNotExistException TODO(bradley)
+   * Gets the {@link WorkflowExecutionFactory} from workflow config.
+   *
+   * @param workflowConfig the workflow configuration
+   * @return the workflow execution factory corresponding to the configuration
+   * @throws JobDoesNotExistException when the job execution factory does not exist
    */
-  public synchronized <T extends WorkflowConfig> WorkflowExecutionFactory<T> getExecutionFactory(
-      T workflowConfig) throws JobDoesNotExistException {
+  private synchronized WorkflowExecutionFactory getExecutionFactory(WorkflowConfig workflowConfig)
+      throws JobDoesNotExistException {
     if (!mExecutionFactories.containsKey(workflowConfig.getClass())) {
       throw new JobDoesNotExistException(ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST
           .getMessage(workflowConfig.getClass().getName()));
     }
-    return (WorkflowExecutionFactory<T>) mExecutionFactories.get(workflowConfig.getClass());
+    return mExecutionFactories.get(workflowConfig.getClass());
   }
+
+  /**
+   *
+   * @param config
+   * @return
+   * @throws JobDoesNotExistException
+   */
+  public WorkflowExecution getExecution(WorkflowConfig config) throws JobDoesNotExistException {
+    return getExecutionFactory(config).create(config);
+  }
+
 }

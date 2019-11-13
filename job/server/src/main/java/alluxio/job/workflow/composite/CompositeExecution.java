@@ -20,14 +20,13 @@ import java.util.ArrayList;
 import java.util.Set;
 
 /**
- * TODO(bradley).
+ * Job execution for {@link CompositeConfig}.
  */
 public class CompositeExecution extends WorkflowExecution {
 
   private final ArrayList<JobConfig> mJobs;
   private final boolean mSequential;
 
-  private boolean mDone;
   private int mPosition;
 
   /**
@@ -38,14 +37,12 @@ public class CompositeExecution extends WorkflowExecution {
     mJobs = compositeConfig.getJobs();
     mSequential = compositeConfig.isSequential();
 
-    mDone = false;
     mPosition = 0;
   }
 
   @Override
   protected Set<JobConfig> nextJobs() {
     if (mPosition >= mJobs.size()) {
-      mDone = true;
       return Sets.newHashSet();
     }
 

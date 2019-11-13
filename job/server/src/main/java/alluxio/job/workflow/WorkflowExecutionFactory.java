@@ -12,21 +12,20 @@
 package alluxio.job.workflow;
 
 /**
- * TODO(bradley).
- * @param <T> TODO(bradley)
+ * The workflow execution factory.
+ * @param <T> The workflow configuration class this workflow execution factory corresponds to
  */
 public interface WorkflowExecutionFactory<T extends WorkflowConfig> {
 
   /**
-   * TODO(bradley).
-   * @return TODO(bradley)
+   * @return the class of the associated workflow config
    */
   Class<T> getWorkflowConfigClass();
 
   /**
-   * TODO(bradley).
-   * @param config TODO(bradley)
-   * @return TODO(bradley)
+   * Creates a new {@link WorkflowExecution} based on the workflow configuration.
+   * @param config the workflow configuration
+   * @return new {@link WorkflowExecution}
    */
   WorkflowExecution create(T config);
 }

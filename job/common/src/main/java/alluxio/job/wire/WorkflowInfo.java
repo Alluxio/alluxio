@@ -14,6 +14,7 @@ package alluxio.job.wire;
 import alluxio.grpc.JobType;
 
 import alluxio.job.ProtoUtils;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -33,7 +34,6 @@ import java.util.List;
 public class WorkflowInfo implements JobInfo {
 
   private final long mId;
-  private final Long mParentId;
   private final Status mStatus;
   private final long mLastUpdated;
   private final List<JobInfo> mChildren;
@@ -41,13 +41,13 @@ public class WorkflowInfo implements JobInfo {
   /**
    * Default constructor.
    * @param id id of the workflow
-   * @param parentId parent id of the workflow
    * @param status {@link Status} of the workflow
+   * @param lastUpdated lastUpdated time in milliseconds
+   * @param children list of child job infos
    */
-  public WorkflowInfo(long id, Long parentId, Status status, long lastUpdated,
+  public WorkflowInfo(long id, Status status, long lastUpdated,
       List<JobInfo> children) {
     mId = id;
-    mParentId = parentId;
     mStatus = status;
     mChildren = children;
     mLastUpdated = lastUpdated;
@@ -61,7 +61,6 @@ public class WorkflowInfo implements JobInfo {
     Preconditions.checkArgument(jobInfo.getType().equals(JobType.WORKFLOW), "Invalid type");
 
     mId = jobInfo.getId();
-    mParentId = jobInfo.getParentId();
     mStatus = Status.valueOf(jobInfo.getStatus().name());
     mLastUpdated = jobInfo.getLastUpdated();
     mChildren = Lists.newArrayList();
@@ -78,7 +77,7 @@ public class WorkflowInfo implements JobInfo {
   @Nullable
   @Override
   public Long getParentId() {
-    return mParentId;
+    return null;
   }
 
   @Nonnull
@@ -125,8 +124,8 @@ public class WorkflowInfo implements JobInfo {
   @Nonnull
   @Override
   public alluxio.grpc.JobInfo toProto() throws IOException {
-    alluxio.grpc.JobInfo.Builder builder = alluxio.grpc.JobInfo.newBuilder().setId(mId).setStatus(mStatus.toProto()).
-        setLastUpdated(mLastUpdated).setType(JobType.WORKFLOW);
+    alluxio.grpc.JobInfo.Builder builder = alluxio.grpc.JobInfo.newBuilder().setId(mId)
+        .setStatus(mStatus.toProto()).setLastUpdated(mLastUpdated).setType(JobType.WORKFLOW);
 
     for (JobInfo child : mChildren) {
       builder.addChildren(child.toProto());
@@ -137,17 +136,16 @@ public class WorkflowInfo implements JobInfo {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mId, mChildren, mStatus, mLastUpdated);
+    return Objects.hashCode(mId, mStatus, mLastUpdated, mChildren);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("id", mId)
-        .add("children", mChildren)
         .add("status", mStatus)
         .add("lastUpdated", mLastUpdated)
+        .add("children", mChildren)
         .toString();
   }
-
 }

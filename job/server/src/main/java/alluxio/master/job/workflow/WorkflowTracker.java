@@ -21,7 +21,7 @@ import alluxio.job.wire.TaskInfo;
 import alluxio.job.workflow.WorkflowConfig;
 import alluxio.job.workflow.WorkflowExecution;
 import alluxio.job.workflow.WorkflowExecutionFactory;
-import alluxio.job.workflow.WorkflowExecutionFactoryRegistry;
+import alluxio.job.workflow.WorkflowExecutionRegistry;
 import alluxio.job.wire.WorkflowInfo;
 import alluxio.master.job.JobMaster;
 
@@ -29,6 +29,7 @@ import org.apache.commons.compress.utils.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -62,23 +63,28 @@ public class WorkflowTracker {
   }
 
   /**
-   * TO DO.
-   * @param workflowConfig TODO(bradley)
-   * @param jobId TODO(bradley)
+   * Runs a workflow with the given configuration and job id.
+   *
+   * @param workflowConfig the workflow configuration
+   * @param jobId the job id
    */
   public void run(WorkflowConfig workflowConfig, long jobId)
       throws JobDoesNotExistException, ResourceExhaustedException {
-    WorkflowExecutionFactory<WorkflowConfig> executionFactory =
-        WorkflowExecutionFactoryRegistry.INSTANCE.getExecutionFactory(workflowConfig);
-
-    WorkflowExecution workflowExecution = executionFactory.create(workflowConfig);
+    WorkflowExecution workflowExecution =
+        WorkflowExecutionRegistry.INSTANCE.getExecution(workflowConfig);
 
     mWorkflows.put(jobId, workflowExecution);
 
     next(jobId);
   }
 
-  public WorkflowInfo getStatus(long jobId) throws JobDoesNotExistException {
+  /**
+   * Gets information of the given job id.
+   *
+   * @param jobId the id of the job
+   * @return null if the job id isn't know by the workflow tracker. WorkflowInfo otherwise
+   */
+  public WorkflowInfo getStatus(long jobId) {
     WorkflowExecution workflowExecution = mWorkflows.get(jobId);
 
     if (workflowExecution == null) {
@@ -90,25 +96,38 @@ public class WorkflowTracker {
     List<JobInfo> jobInfos = Lists.newArrayList();
 
     for (long child : children) {
-      jobInfos.add(mJobMaster.getStatus(child));
+      try {
+        jobInfos.add(mJobMaster.getStatus(child));
+      } catch (JobDoesNotExistException e) {
+        LOG.info(String.format("No job info on child job id %s. Skipping", child));
+      }
     }
 
-    WorkflowInfo workflowInfo = new WorkflowInfo(jobId, null, workflowExecution.getStatus(),
+    WorkflowInfo workflowInfo = new WorkflowInfo(jobId, workflowExecution.getStatus(),
         workflowExecution.getLastUpdated(), jobInfos);
-
-    LOG.info(workflowInfo.toString());
-
     return workflowInfo;
   }
 
   /**
-   * @return a list of workflow ids
+   * @return all workflow infos
+   */
+  public Collection<WorkflowInfo> getAllInfo() {
+    ArrayList<WorkflowInfo> res = Lists.newArrayList();
+
+    for (Long workflowId : mWorkflows.keySet()) {
+      res.add(getStatus(workflowId));
+    }
+    return res;
+  }
+
+  /**
+   * @return a list of all workflow ids
    */
   public Collection<Long> list() {
     return Collections.unmodifiableCollection(mWorkflows.keySet());
   }
 
-  private void done(long jobId) throws ResourceExhaustedException, JobDoesNotExistException {
+  private void done(long jobId) throws ResourceExhaustedException {
     Long parentJobId = mParentWorkflow.get(jobId);
 
     if (parentJobId == null) {
@@ -139,7 +158,7 @@ public class WorkflowTracker {
     return;
   }
 
-  private void next(long jobId) throws ResourceExhaustedException, JobDoesNotExistException {
+  private void next(long jobId) throws ResourceExhaustedException {
     WorkflowExecution workflowExecution = mWorkflows.get(jobId);
 
     Set<JobConfig> childJobConfigs = workflowExecution.next();
@@ -171,22 +190,32 @@ public class WorkflowTracker {
     while (childJobIdsIter.hasNext() && childJobConfigsIter.hasNext()) {
       Long childJobId = childJobIdsIter.next();
       JobConfig childJobConfig = childJobConfigsIter.next();
-      mJobMaster.run(childJobConfig, childJobId);
+      try {
+        mJobMaster.run(childJobConfig, childJobId);
+      } catch (JobDoesNotExistException e) {
+        LOG.warn(e.getMessage());
+        fail(jobId, Status.FAILED);
+      }
     }
   }
 
   /**
-   * TODO(bradley).
-   * @param taskInfoList TODO(bradley)
-   * @throws JobDoesNotExistException TODO(bradley)
-   * @throws ResourceExhaustedException TODO(bradley)
+   * Updates internal state of the workflows based on the updated state of the tasks.
+   * @param taskInfoList list of tasks that have been updated
+   * @throws ResourceExhaustedException if new jobs can't be scheduled
    */
   public synchronized void workerHeartbeat(List<TaskInfo> taskInfoList)
-      throws JobDoesNotExistException, ResourceExhaustedException {
+      throws ResourceExhaustedException {
 
     for (TaskInfo taskInfo : taskInfoList) {
       Long planId = taskInfo.getParentId();
-      JobInfo jobInfo = mJobMaster.getStatus(planId);
+      JobInfo jobInfo = null;
+      try {
+        jobInfo = mJobMaster.getStatus(planId);
+      } catch (JobDoesNotExistException e) {
+        LOG.info("Received heartbeat for a task with an unknown parent. Skipping", planId);
+        continue;
+      }
       Status status = jobInfo.getStatus();
       if (status.equals(Status.COMPLETED)) {
         done(planId);

@@ -25,7 +25,6 @@ import alluxio.job.ProtoUtils;
 import alluxio.job.util.SerializationUtils;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobInfo;
-import alluxio.job.wire.PlanInfo;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.google.protobuf.ByteString;

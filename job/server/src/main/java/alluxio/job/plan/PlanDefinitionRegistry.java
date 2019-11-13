@@ -65,7 +65,7 @@ public enum PlanDefinitionRegistry {
   }
 
   /**
-   * Gets the job definition from the jTob configuration.
+   * Gets the job definition from the job configuration.
    *
    * @param jobConfig the job configuration
    * @param <T> the job configuration class

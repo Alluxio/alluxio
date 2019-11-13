@@ -13,47 +13,61 @@ package alluxio.job.workflow;
 
 import alluxio.job.JobConfig;
 import alluxio.job.wire.Status;
-import alluxio.job.wire.WorkflowInfo;
 import alluxio.util.CommonUtils;
+
 import com.google.common.base.Preconditions;
 
 import java.util.Set;
 
 /**
- * TODO(bradley).
- *
+ * Execution details of a workflow.
  */
 public abstract class WorkflowExecution {
 
   private Status mStatus;
   private long mLastUpdated;
 
+  /**
+   * Default constructor.
+   */
   public WorkflowExecution() {
     setStatus(Status.RUNNING);
   }
 
+  /**
+   * Given the previous set of jobs were completed successfully,
+   * returns a list of jobs to execute next. Updating status accordingly.
+   * @return list of {@link JobConfig} to execute next, empty when there is no more work
+   */
   public final Set<JobConfig> next() {
     Preconditions.checkArgument(!mStatus.isFinished());
     Set<JobConfig> jobConfigs = nextJobs();
     if (jobConfigs.isEmpty()) {
       setStatus(Status.COMPLETED);
     }
+    mLastUpdated = CommonUtils.getCurrentMs();
     return jobConfigs;
   }
 
-  public final boolean isDone() {
-    return mStatus.equals(Status.COMPLETED);
-  }
-
+  /**
+   * fails the workflow and stops future execution.
+   * @param status status of the failure: either CANCELLED or FAILED
+   */
   public final void fail(Status status) {
     Preconditions.checkArgument(status.equals(Status.CANCELED) || status.equals(Status.FAILED));
     setStatus(status);
   }
 
+  /**
+   * @return status of the workflow
+   */
   public final Status getStatus() {
     return mStatus;
   }
 
+  /**
+   * @return the last time status was updated in milliseconds
+   */
   public final long getLastUpdated() {
     return mLastUpdated;
   }
@@ -64,8 +78,9 @@ public abstract class WorkflowExecution {
   }
 
   /**
-   * @return list of {@link JobConfig} to run
+   * Given the previous set of jobs were completed successfully,
+   * returns a list of jobs to execute next.
+   * @return list of {@link JobConfig} to execute next, empty when there is no more work
    */
   protected abstract Set<JobConfig> nextJobs();
-
 }
