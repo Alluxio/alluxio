@@ -16,6 +16,8 @@ import static alluxio.uri.URI.Factory.getSchemeComponents;
 import alluxio.collections.Pair;
 import alluxio.util.URIUtils;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -24,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MultiPartSchemeURI extends StandardURI {
-  private static final long serialVersionUID = 8172074724822918501L;
+  private static final long serialVersionUID = 8172074724822918502L;
 
   /**
    * {@link java.net.URI} does not handle a sub-component in the scheme. This variable will hold
@@ -91,5 +93,26 @@ public final class MultiPartSchemeURI extends StandardURI {
       return uriScheme;
     }
     return schemePrefix + ":" + uriScheme;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || this.getClass() != o.getClass()) {
+      return false;
+    }
+
+    MultiPartSchemeURI other = (MultiPartSchemeURI) o;
+
+    return super.equals(o)
+        && mFullScheme.equals(other.mFullScheme);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(super.hashCode(), mFullScheme);
   }
 }

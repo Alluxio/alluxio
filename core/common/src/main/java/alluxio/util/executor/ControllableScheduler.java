@@ -11,6 +11,8 @@
 
 package alluxio.util.executor;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -196,6 +198,7 @@ public class ControllableScheduler implements ScheduledExecutorService {
    * {@link ScheduledTask} is a {@link ScheduledFuture} with extra supports for
    * repeated tasks.
    */
+  @SuppressFBWarnings("EQ_COMPARETO_USE_OBJECT_EQUALS")
   private final class ScheduledTask<T> implements ScheduledFuture<T>, Runnable {
     private final long mRepeatDelay;
     private final Callable<T> mCommand;

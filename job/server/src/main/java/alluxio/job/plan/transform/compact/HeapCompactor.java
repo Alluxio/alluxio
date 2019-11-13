@@ -15,6 +15,8 @@ import alluxio.job.plan.transform.format.TableReader;
 import alluxio.job.plan.transform.format.TableRow;
 import alluxio.job.plan.transform.format.TableWriter;
 
+import com.google.common.base.Objects;
+
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
@@ -50,6 +52,26 @@ public class HeapCompactor implements Compactor {
     @Override
     public int compareTo(Input o) {
       return mComparator.compare(mRow, o.mRow);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (o == null) {
+        return false;
+      }
+
+      if (!(o instanceof Input)) {
+        return false;
+      }
+
+      Input other = (Input) o;
+
+      return compareTo(other) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(mComparator, mReader, mRow);
     }
   }
 

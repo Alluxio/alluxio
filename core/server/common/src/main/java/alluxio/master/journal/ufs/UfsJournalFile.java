@@ -15,6 +15,7 @@ import alluxio.util.URIUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,9 @@ import javax.annotation.Nullable;
  *
  * This data structure implements {@link Comparable} such that journal files can be sorted by the
  * end SNs.
+ *
+ * Note that the natural ordering of the class may not necessarily imply equality of objects. The
+ * {@link #compareTo(UfsJournalFile)} implementation should not be used to determine equality.
  */
 @ThreadSafe
 @VisibleForTesting
@@ -280,6 +284,29 @@ public final class UfsJournalFile implements Comparable<UfsJournalFile> {
     } else {
       return 1;
     }
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null) {
+      return false;
+    }
+
+    if (!(o instanceof UfsJournalFile)) {
+      return false;
+    }
+
+    UfsJournalFile other = (UfsJournalFile) o;
+
+    return mLocation.equals(other.mLocation)
+        && mIsCheckpoint == other.mIsCheckpoint
+        && mStart == other.mStart
+        && mEnd == other.mEnd;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mLocation, mIsCheckpoint, mStart, mEnd);
   }
 }
 
