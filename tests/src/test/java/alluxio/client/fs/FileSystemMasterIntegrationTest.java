@@ -145,7 +145,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER).build();
 
   @Rule
-  public TestRule resetRule = sLocalAlluxioClusterResource.getResetResource();
+  public TestRule mResetRule = sLocalAlluxioClusterResource.getResetResource();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
