@@ -1063,7 +1063,7 @@
               to 'Low'.
             -->
           <effort>Max</effort>
-<!--          <skip>${findbugs.skip}</skip>-->
+          <skip>${findbugs.skip}</skip>
           <failOnError>true</failOnError>
           <threshold>Low</threshold>
           <spotbugsXmlOutput>true</spotbugsXmlOutput>
