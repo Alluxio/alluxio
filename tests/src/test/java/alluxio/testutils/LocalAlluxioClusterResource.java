@@ -23,6 +23,7 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UfsMode;
+import alluxio.util.SecurityUtils;
 import alluxio.wire.FileInfo;
 
 import org.junit.rules.TestRule;
@@ -193,6 +194,14 @@ public final class LocalAlluxioClusterResource implements TestRule {
     };
   }
 
+  /**
+   * Returns a resource which will reset the cluster without restarting it. The rule will perform
+   * operations on the running cluster to get back to a clean state. This is primarily useful for
+   * when the {@link LocalAlluxioCluster} is a {@code @ClassRule}, so this reset rule can reset
+   * the cluster between tests.
+   *
+   * @return a {@link TestRule} for resetting the cluster
+   */
   public TestRule getResetResource() {
     return new ResetRule(this);
   }
@@ -266,18 +275,35 @@ public final class LocalAlluxioClusterResource implements TestRule {
                 mCluster.mLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
                     .getMaster(FileSystemMaster.class);
 
-            try (AuthenticatedClientUserResource r = new AuthenticatedClientUserResource(
-                fsm.getRootUserName(), ServerConfiguration.global())) {
-              fsm.updateUfsMode(new AlluxioURI(fsm.getUfsAddress()), UfsMode.READ_WRITE);
-              for (FileInfo fileInfo : fsm
-                  .listStatus(new AlluxioURI("/"), ListStatusContext.defaults())) {
-                fsm.delete(new AlluxioURI(fileInfo.getPath()), DeleteContext
-                    .create(DeletePOptions.newBuilder().setUnchecked(true).setRecursive(true)));
+            if (SecurityUtils.isAuthenticationEnabled(ServerConfiguration.global())) {
+              // Reset the state as the root inode user (superuser).
+              try (AuthenticatedClientUserResource r = new AuthenticatedClientUserResource(
+                  fsm.getRootUserName(), ServerConfiguration.global())) {
+                resetCluster(fsm);
               }
+            } else {
+              resetCluster(fsm);
             }
+
           }
         }
       };
+    }
+
+    private void resetCluster(FileSystemMaster fsm) throws Exception {
+      if (!mCluster.mLocalAlluxioCluster.getLocalAlluxioMaster().isServing()) {
+        // Restart the cluster if the cluster was stopped.
+        mCluster.mLocalAlluxioCluster.start();
+        fsm = mCluster.mLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
+            .getMaster(FileSystemMaster.class);
+      }
+
+      fsm.updateUfsMode(new AlluxioURI(fsm.getUfsAddress()), UfsMode.READ_WRITE);
+      for (FileInfo fileInfo : fsm
+          .listStatus(new AlluxioURI("/"), ListStatusContext.defaults())) {
+        fsm.delete(new AlluxioURI(fileInfo.getPath()), DeleteContext
+            .create(DeletePOptions.newBuilder().setUnchecked(true).setRecursive(true)));
+      }
     }
   }
 

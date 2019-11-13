@@ -107,7 +107,7 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Configures and starts the proxy.
    */
-  private void startProxy() throws Exception {
+  public void startProxy() throws Exception {
     mProxyProcess = ProxyProcess.Factory.create();
     Runnable runProxy = () -> {
       try {

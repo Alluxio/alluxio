@@ -27,7 +27,6 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -54,7 +53,6 @@ import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.FreeContext;
-import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.SetAttributeContext;
@@ -91,15 +89,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
-import java.util.Stack;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 
@@ -119,8 +113,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   private static final long TEST_TIME_MS = Long.MAX_VALUE;
   private static final long TTL_CHECKER_INTERVAL_MS = 100;
   private static final String TEST_USER = "test";
-  // Time to wait for shutting down thread pool.
-  private static final long SHUTDOWN_TIME_MS = 15 * Constants.SECOND_MS;
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =
@@ -140,7 +132,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
               String.valueOf(TTL_CHECKER_INTERVAL_MS))
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, "10mb")
           .setProperty(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, 0)
-          .setProperty(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 250)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1kb")
           .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER).build();
 
@@ -742,23 +733,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile2")));
     Assert.assertEquals(ttl, folderInfo.getTtl());
-  }
-
-  private long countPaths() throws Exception {
-    long count = 1;
-    Stack<AlluxioURI> dirs = new Stack();
-    dirs.push(new AlluxioURI("/"));
-    while (!dirs.isEmpty()) {
-      AlluxioURI uri = dirs.pop();
-      for (FileInfo child : mFsMaster.listStatus(uri, ListStatusContext.defaults())) {
-        count++;
-        AlluxioURI childUri = new AlluxioURI(PathUtils.concatPath(uri, child.getName()));
-        if (mFsMaster.getFileInfo(childUri, GetStatusContext.defaults()).isFolder()) {
-          dirs.push(childUri);
-        }
-      }
-    }
-    return count;
   }
 
   @Test
@@ -1437,59 +1411,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
           exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
         }
       }
-    }
-  }
-
-  /**
-   * A class to start a thread that creates a file, completes the file and then deletes the file.
-   */
-  private class ConcurrentCreateDelete implements Callable<Void> {
-    private final CyclicBarrier mStartBarrier;
-    private final AtomicBoolean mStopThread;
-    private final AlluxioURI[] mFiles;
-
-    /**
-     * Concurrent create and delete of file.
-     * @param barrier cyclic barrier
-     * @param stopThread stop Thread
-     * @param files files to create or delete
-     */
-    public ConcurrentCreateDelete(CyclicBarrier barrier, AtomicBoolean stopThread,
-        AlluxioURI[] files) {
-      mStartBarrier = barrier;
-      mStopThread = stopThread;
-      mFiles = files;
-    }
-
-    @Override
-    @Nullable
-    public Void call() throws Exception {
-      AuthenticatedClientUser.set(TEST_USER);
-      mStartBarrier.await();
-      Random random = new Random();
-      while (!mStopThread.get()) {
-        int id = random.nextInt(mFiles.length);
-        try {
-          // Create and complete a random file.
-          mFsMaster.createFile(mFiles[id], CreateFileContext.defaults());
-          mFsMaster.completeFile(mFiles[id], CompleteFileContext.defaults());
-        } catch (FileAlreadyExistsException | FileDoesNotExistException
-            | FileAlreadyCompletedException | InvalidPathException e) {
-          // Ignore
-        } catch (Exception e) {
-          throw e;
-        }
-        id = random.nextInt(mFiles.length);
-        try {
-          // Delete a random file.
-          mFsMaster.delete(mFiles[id], DeleteContext.defaults());
-        } catch (FileDoesNotExistException | InvalidPathException e) {
-          // Ignore
-        } catch (Exception e) {
-          throw e;
-        }
-      }
-      return null;
     }
   }
 }
