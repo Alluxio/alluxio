@@ -140,6 +140,24 @@ public class WorkflowInfo implements JobInfo {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (o == null) {
+      return false;
+    }
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof WorkflowInfo)) {
+      return false;
+    }
+    WorkflowInfo that = (WorkflowInfo) o;
+    return Objects.equal(mId, that.mId)
+        && Objects.equal(mChildren, that.mChildren)
+        && Objects.equal(mStatus, that.mStatus)
+        && Objects.equal(mLastUpdated, that.mLastUpdated);
+  }
+
+  @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("id", mId)

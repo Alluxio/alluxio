@@ -67,7 +67,7 @@ public class WorkflowTracker {
    * @param workflowConfig the workflow configuration
    * @param jobId the job id
    */
-  public void run(WorkflowConfig workflowConfig, long jobId)
+  public synchronized void run(WorkflowConfig workflowConfig, long jobId)
       throws JobDoesNotExistException, ResourceExhaustedException {
     WorkflowExecution workflowExecution =
         WorkflowExecutionRegistry.INSTANCE.getExecution(workflowConfig);
@@ -126,7 +126,7 @@ public class WorkflowTracker {
     return Collections.unmodifiableCollection(mWorkflows.keySet());
   }
 
-  private void done(long jobId) throws ResourceExhaustedException {
+  private synchronized void done(long jobId) throws ResourceExhaustedException {
     Long parentJobId = mParentWorkflow.get(jobId);
 
     if (parentJobId == null) {
@@ -142,7 +142,7 @@ public class WorkflowTracker {
     }
   }
 
-  private void fail(long jobId, Status status) {
+  private synchronized void fail(long jobId, Status status) {
     Long parentJobId = mParentWorkflow.get(jobId);
 
     if (parentJobId == null) {
@@ -157,7 +157,7 @@ public class WorkflowTracker {
     return;
   }
 
-  private void next(long jobId) throws ResourceExhaustedException {
+  private synchronized void next(long jobId) throws ResourceExhaustedException {
     WorkflowExecution workflowExecution = mWorkflows.get(jobId);
 
     Set<JobConfig> childJobConfigs = workflowExecution.next();
@@ -174,9 +174,7 @@ public class WorkflowTracker {
 
     mWaitingOn.put(jobId, childJobIds);
 
-    if (mChildren.get(jobId) == null) {
-      mChildren.put(jobId, new ConcurrentHashSet<>());
-    }
+    mChildren.putIfAbsent(jobId, new ConcurrentHashSet<>());
     mChildren.get(jobId).addAll(childJobIds);
 
     for (Long childJobId : childJobIds) {
