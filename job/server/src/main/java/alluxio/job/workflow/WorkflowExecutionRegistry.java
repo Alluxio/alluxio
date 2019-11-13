@@ -49,7 +49,7 @@ public enum WorkflowExecutionRegistry {
       throws JobDoesNotExistException {
     if (!mExecutionFactories.containsKey(workflowConfig.getClass())) {
       throw new JobDoesNotExistException(ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST
-          .getMessage(workflowConfig.getClass().getName()));
+          .getMessage(workflowConfig.getName()));
     }
     return mExecutionFactories.get(workflowConfig.getClass());
   }

@@ -29,12 +29,7 @@ public class WorkflowExecutionRegistryTest {
    * The exception expected to be thrown.
    */
   @Rule
-  public ExpectedException mThrown;
-
-  @Before
-  public void before() {
-    mThrown = ExpectedException.none();
-  }
+  public ExpectedException mThrown = ExpectedException.none();
 
   @Test
   public void getExecutionFactoryTest() throws Exception {
