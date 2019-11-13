@@ -153,6 +153,7 @@
     <log4j.version>1.2.17</log4j.version>
     <maven.version>3.3.9</maven.version>
     <metrics.version>3.1.2</metrics.version>
+    <oshi.version>4.2.0</oshi.version>
     <powermock.version>1.6.1</powermock.version>
     <prometheus.version>0.3.0</prometheus.version>
     <guava.version>27.0.1-jre</guava.version>
