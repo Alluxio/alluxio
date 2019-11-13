@@ -105,7 +105,7 @@ public final class BlockMasterClientServiceHandler
         }
       }
       return GetBlockMasterInfoPResponse.newBuilder().setBlockMasterInfo(infoBuilder).build();
-    }, "getBlockMasterInfo", "options=%s", responseObserver, options);
+    }, "GetBlockMasterInfo", "options=%s", responseObserver, options);
   }
 
   @Override
@@ -114,7 +114,7 @@ public final class BlockMasterClientServiceHandler
     RpcUtils.call(LOG,
         () -> GetCapacityBytesPResponse.newBuilder()
             .setBytes(mBlockMaster.getCapacityBytes()).build(),
-        "getCapacityBytes", "options=%s", responseObserver, options);
+        "GetCapacityBytes", "options=%s", responseObserver, options);
   }
 
   @Override
@@ -122,7 +122,7 @@ public final class BlockMasterClientServiceHandler
       StreamObserver<GetUsedBytesPResponse> responseObserver) {
     RpcUtils.call(LOG,
         () -> GetUsedBytesPResponse.newBuilder().setBytes(mBlockMaster.getUsedBytes()).build(),
-        "getUsedBytes", "options=%s", responseObserver, options);
+        "GetUsedBytes", "options=%s", responseObserver, options);
   }
 
   @Override
@@ -132,7 +132,7 @@ public final class BlockMasterClientServiceHandler
         () -> GetWorkerInfoListPResponse.newBuilder()
             .addAllWorkerInfos(mBlockMaster.getWorkerInfoList().stream().map(GrpcUtils::toProto)
             .collect(Collectors.toList())).build(),
-        "getWorkerInfoList", "options=%s", responseObserver, options);
+        "GetWorkerInfoList", "options=%s", responseObserver, options);
   }
 
   @Override
@@ -142,7 +142,7 @@ public final class BlockMasterClientServiceHandler
         () -> GetWorkerInfoListPResponse.newBuilder()
             .addAllWorkerInfos(mBlockMaster.getWorkerReport(new GetWorkerReportOptions(options))
                 .stream().map(GrpcUtils::toProto).collect(Collectors.toList())).build(),
-        "getWorkerReport", "options=%s", responseObserver, options);
+        "GetWorkerReport", "options=%s", responseObserver, options);
   }
 
   @Override
@@ -151,6 +151,6 @@ public final class BlockMasterClientServiceHandler
     RpcUtils.call(LOG,
         () -> GetWorkerLostStoragePResponse.newBuilder()
             .addAllWorkerLostStorageInfo(mBlockMaster.getWorkerLostStorage()).build(),
-        "getWorkerLostStorage", "options=%s", responseObserver, options);
+        "GetWorkerLostStorage", "options=%s", responseObserver, options);
   }
 }
