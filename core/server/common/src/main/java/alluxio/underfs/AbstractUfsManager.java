@@ -138,7 +138,7 @@ public abstract class AbstractUfsManager implements UfsManager {
       }
 
       if (mUnderFileSystemMap.putIfAbsent(key, fs) != null) {
-        // This shouldn't occur, warn if it
+        // This shouldn't occur unless our synchronization is incorrect
         LOG.warn("UFS already existed in UFS manager");
       }
       mCloser.register(fs);
