@@ -89,5 +89,4 @@ public class WorkflowTrackerTest {
 
     assertEquals(Status.COMPLETED, mTracker.getStatus(0).getStatus());
   }
-
 }

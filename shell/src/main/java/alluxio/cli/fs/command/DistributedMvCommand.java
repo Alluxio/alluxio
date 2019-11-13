@@ -71,7 +71,6 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
       JobConfig config = new MigrateConfig(srcPath.getPath(), dstPath.getPath(),
           conf.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT), true,
           true);
-      config = new CompositeConfig(Lists.newArrayList(config), true);
       JobGrpcClientUtils.run(config, 3, mFsContext.getPathConf(dstPath));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();

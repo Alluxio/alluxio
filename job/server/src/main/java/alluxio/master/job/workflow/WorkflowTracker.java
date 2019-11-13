@@ -20,7 +20,6 @@ import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.job.workflow.WorkflowConfig;
 import alluxio.job.workflow.WorkflowExecution;
-import alluxio.job.workflow.WorkflowExecutionFactory;
 import alluxio.job.workflow.WorkflowExecutionRegistry;
 import alluxio.job.wire.WorkflowInfo;
 import alluxio.master.job.JobMaster;

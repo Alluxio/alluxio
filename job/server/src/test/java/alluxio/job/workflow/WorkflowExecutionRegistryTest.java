@@ -62,5 +62,4 @@ public class WorkflowExecutionRegistryTest {
       return "dummy";
     }
   }
-
 }

@@ -45,13 +45,6 @@ public enum WorkflowExecutionRegistry {
     }
   }
 
-  /**
-   * Gets the {@link WorkflowExecutionFactory} from workflow config.
-   *
-   * @param workflowConfig the workflow configuration
-   * @return the workflow execution factory corresponding to the configuration
-   * @throws JobDoesNotExistException when the job execution factory does not exist
-   */
   private synchronized WorkflowExecutionFactory getExecutionFactory(WorkflowConfig workflowConfig)
       throws JobDoesNotExistException {
     if (!mExecutionFactories.containsKey(workflowConfig.getClass())) {
@@ -62,13 +55,13 @@ public enum WorkflowExecutionRegistry {
   }
 
   /**
+   * Gets the {@link WorkflowExecution} from workflow config.
    *
-   * @param config
-   * @return
-   * @throws JobDoesNotExistException
+   * @param config the workflow configuration
+   * @return the workflow execution corresponding to the configuration
+   * @throws JobDoesNotExistException when the job execution for this config does not exist
    */
   public WorkflowExecution getExecution(WorkflowConfig config) throws JobDoesNotExistException {
     return getExecutionFactory(config).create(config);
   }
-
 }
