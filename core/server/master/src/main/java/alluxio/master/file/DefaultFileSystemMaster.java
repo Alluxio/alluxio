@@ -3241,9 +3241,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
         executorService.invokeAll(callables);
       }
     } catch (InvalidPathException e) {
-      LOG.warn("InvalidPathException during active sync {}", e.getMessage());
+      LOG.warn("InvalidPathException during active sync: {}", e.toString());
     } catch (InterruptedException e) {
-      LOG.warn("InterruptedException during active sync {}", e.getMessage());
+      LOG.warn("InterruptedException during active sync: {}", e.toString());
       Thread.currentThread().interrupt();
       return;
     }
@@ -4232,7 +4232,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             alluxio.util.UnderFileSystemUtils.deleteFileIfExists(ufsResource.get(), ufsBlockPath);
           } catch (Exception e) {
             LOG.warn("Failed to clean up staging UFS block file {}: {}",
-                ufsBlockPath, e.getMessage());
+                ufsBlockPath, e.toString());
           }
         }
       }

@@ -285,7 +285,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     try {
       mBlockMasterClientPool.close();
     } catch (IOException e) {
-      LOG.warn("Failed to close the block master client pool with error {}.", e.getMessage());
+      LOG.warn("Failed to close the block master client pool: {}.", e.toString());
     }
     mFileSystemMasterClient.close();
   }
@@ -544,7 +544,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       } catch (alluxio.exception.status.NotFoundException
           | alluxio.exception.status.UnavailableException e) {
         LOG.warn("Can not open UFS block: mount id {} not found {}",
-            options.getMountId(), e.getMessage());
+            options.getMountId(), e.toString());
         return false;
       }
       options = options.toBuilder().setUfsPath(
@@ -648,7 +648,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
           mSpaceReserver.updateStorageInfo();
         }
       } catch (Exception e) {
-        LOG.warn("Failed to check storage: {}", e.getMessage());
+        LOG.warn("Failed to check storage: {}", e.toString());
         LOG.debug("Exception: ", e);
       }
     }

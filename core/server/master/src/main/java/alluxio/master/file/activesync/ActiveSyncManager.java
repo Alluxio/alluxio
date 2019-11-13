@@ -191,14 +191,14 @@ public class ActiveSyncManager implements Journaled {
                           RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
                               .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT)));
                     } catch (IOException e) {
-                      LOG.warn("IOException encountered during active sync while starting {}",
-                          e.getMessage());
+                      LOG.warn("IOException encountered during active sync while starting: {}",
+                          e.toString());
                     }
                   }
           ));
         }
       } catch (Exception e) {
-        LOG.warn("exception encountered during initial sync {}", e.getMessage());
+        LOG.warn("exception encountered during initial sync: {}", e.toString());
       }
     }
   }
@@ -220,7 +220,7 @@ public class ActiveSyncManager implements Journaled {
       try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
         ufsResource.get().startActiveSyncPolling(txId);
       } catch (IOException e) {
-        LOG.warn("IO Exception trying to launch Polling thread {}", e.getMessage());
+        LOG.warn("IO Exception trying to launch Polling thread: {}", e.toString());
       }
       ActiveSyncer syncer = new ActiveSyncer(mFileSystemMaster, this, mMountTable, mountId);
       Future<?> future = getExecutor().submit(
@@ -484,7 +484,7 @@ public class ActiveSyncManager implements Journaled {
       try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
         ufs.get().stopActiveSyncPolling();
       } catch (IOException e) {
-        LOG.warn("Encountered IOException when trying to stop polling thread {}", e.getMessage());
+        LOG.warn("Encountered IOException when trying to stop polling thread: {}", e.toString());
       }
     }
   }
@@ -589,7 +589,7 @@ public class ActiveSyncManager implements Journaled {
       try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
         ufs.get().stopActiveSyncPolling();
       } catch (IOException e) {
-        LOG.warn("Encountered IOException when trying to stop polling thread {}", e.getMessage());
+        LOG.warn("Encountered IOException when trying to stop polling thread: {}", e.toString());
       }
     }
   }
@@ -644,7 +644,7 @@ public class ActiveSyncManager implements Journaled {
       startInitSync(uri, resolution);
       launchPollingThread(resolution.getMountId(), SyncInfo.INVALID_TXID);
     } catch (Throwable t) {
-      LOG.warn("Recovering from stop syncing failed {}", t.getMessage());
+      LOG.warn("Recovering from stop syncing failed: {}", t.toString());
     }
   }
 
