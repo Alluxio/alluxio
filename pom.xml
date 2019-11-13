@@ -167,6 +167,7 @@
     <surefire.rerunFailingTestsCount>1</surefire.rerunFailingTestsCount>
     <test.output.redirect>true</test.output.redirect>
     <update.check.enabled>false</update.check.enabled>
+    <findbugs.skip>false</findbugs.skip>
   </properties>
 
   <modules>
@@ -945,9 +946,9 @@
           <version>1.4.0</version>
         </plugin>
         <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>findbugs-maven-plugin</artifactId>
-          <version>3.0.5</version>
+          <groupId>com.github.spotbugs</groupId>
+          <artifactId>spotbugs-maven-plugin</artifactId>
+          <version>3.1.12.2</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -1050,10 +1051,10 @@
         </executions>
       </plugin>
 
-      <!-- FindBugs -->
+      <!-- SpotBugs -->
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>findbugs-maven-plugin</artifactId>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
         <configuration>
           <excludeFilterFile>${build.path}/findbugs/findbugs-exclude.xml</excludeFilterFile>
           <!--
@@ -1062,9 +1063,10 @@
               to 'Low'.
             -->
           <effort>Max</effort>
+          <skip>${findbugs.skip}</skip>
           <failOnError>true</failOnError>
           <threshold>Low</threshold>
-          <findbugsXmlOutput>true</findbugsXmlOutput>
+          <spotbugsXmlOutput>true</spotbugsXmlOutput>
           <xmlOutput>true</xmlOutput>
         </configuration>
         <executions>

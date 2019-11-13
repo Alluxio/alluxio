@@ -204,9 +204,11 @@ public class DefaultAccessControlList extends AccessControlList {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof DefaultAccessControlList)) {
+
+    if (o == null || getClass() != o.getClass()) {
       return false;
     }
+
     DefaultAccessControlList that = (DefaultAccessControlList) o;
     // If the extended acl object is empty (does not have any extended entries), it is equivalent
     // to a null object.
@@ -223,7 +225,7 @@ public class DefaultAccessControlList extends AccessControlList {
         && mOwningGroup.equals(that.mOwningGroup)
         && mMode == that.mMode
         && extendedEquals
-        && mEmpty == (that.mEmpty);
+        && mEmpty == that.mEmpty;
   }
 
   @Override

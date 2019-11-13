@@ -25,6 +25,7 @@ import alluxio.uri.UnknownAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.util.OSUtils;
 
+import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -483,6 +484,12 @@ public class AlluxioURITest {
         .equals(new AlluxioURI("scheme:part1:part2://127.0.0.1:3306/a.txt")));
     assertFalse(new AlluxioURI("scheme:part1:part2://127.0.0.1:3306/a.txt")
         .equals(new AlluxioURI("part2://127.0.0.1:3306/a.txt")));
+
+    new EqualsTester()
+        .addEqualityGroup(new AlluxioURI("sch:p1:p2://aaaabbbb:12345/"),
+            new AlluxioURI("sch:p1:p2://aaaabbbb:12345/"))
+        .addEqualityGroup(new AlluxioURI("standard://host:12345/"))
+        .testEquals();
   }
 
   /**

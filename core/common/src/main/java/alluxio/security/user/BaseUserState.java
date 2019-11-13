@@ -101,6 +101,11 @@ public abstract class BaseUserState implements UserState {
     if (this == o) {
       return true;
     }
+
+    if (o == null) {
+      return false;
+    }
+
     if (this.getClass() != o.getClass()) {
       return false;
     }

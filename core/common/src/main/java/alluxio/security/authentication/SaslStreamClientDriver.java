@@ -155,7 +155,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
       throw new UnavailableException(ie.getMessage(), ie);
     } catch (ExecutionException e) {
       Throwable cause = (e.getCause() != null) ? e.getCause() : e;
-      if (cause != null && cause instanceof StatusRuntimeException) {
+      if (cause instanceof StatusRuntimeException) {
         StatusRuntimeException sre = (StatusRuntimeException) cause;
         // If caught unimplemented, that means server does not support authentication.
         if (sre.getStatus().getCode() == Status.Code.UNIMPLEMENTED) {

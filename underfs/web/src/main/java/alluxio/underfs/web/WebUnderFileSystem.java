@@ -180,7 +180,7 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
           mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     }
     // Return directory status.
-    return new UfsDirectoryStatus(path == null ? path : fileName, "", "", (short) 800,
+    return new UfsDirectoryStatus(fileName == null ? path : fileName, "", "", (short) 800,
         lastModified);
   }
 

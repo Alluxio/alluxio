@@ -37,6 +37,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nonnull;
+
 /**
  * Alluxio configuration.
  */
@@ -199,7 +201,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param value the value for the key
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
-  public void set(PropertyKey key, Object value, Source source) {
+  public void set(@Nonnull PropertyKey key, @Nonnull Object value, @Nonnull Source source) {
     Preconditions.checkArgument(key != null && value != null && !value.equals(""),
         String.format("The key value pair (%s, %s) cannot be null", key, value));
     Preconditions.checkArgument(!value.equals(""),
