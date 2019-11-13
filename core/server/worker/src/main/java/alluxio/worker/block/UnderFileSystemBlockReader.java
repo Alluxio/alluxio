@@ -12,8 +12,6 @@
 package alluxio.worker.block;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
@@ -54,8 +52,6 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
-  /** The initial size of the block allocated in Alluxio storage when the block is cached. */
-  private final long mInitialBlockSize;
   /** The block metadata for the UFS block. */
   private final UnderFileSystemBlockMeta mBlockMeta;
   /** The Local block store. It is used to interact with Alluxio. */
@@ -114,7 +110,6 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    */
   private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, BlockStore localBlockStore,
       UfsManager ufsManager, UfsInputStreamManager ufsInstreamManager) throws IOException {
-    mInitialBlockSize = ServerConfiguration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
     mBlockMeta = blockMeta;
     mLocalBlockStore = localBlockStore;
     mInStreamPos = -1;
@@ -343,7 +338,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       if (mBlockWriter == null && offset == 0 && !mBlockMeta.isNoCache()) {
         BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(0));
         mLocalBlockStore.createBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(), loc,
-            mInitialBlockSize);
+            mBlockMeta.getBlockSize());
         mBlockWriter = mLocalBlockStore.getBlockWriter(
             mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
       }
