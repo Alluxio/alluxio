@@ -132,7 +132,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public Timeout mGlobalTimeout = Timeout.seconds(60);
 
   @ClassRule
-  public static LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+  public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false)
           .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS,
@@ -154,7 +154,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mFsMaster = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+    mFsMaster = sLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class);
 
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
@@ -478,7 +478,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public void deleteDirectoryRecursive() throws Exception {
     AlluxioURI dir = new AlluxioURI("/testFolder");
     mFsMaster.createDirectory(dir, CreateDirectoryContext.defaults());
-    FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
+    FileSystem fs = sLocalAlluxioClusterResource.get().getClient();
     for (int i = 0; i < 3; i++) {
       FileSystemTestUtils.createByteFile(fs, PathUtils.concatPath(dir, "file" + i), 100,
           CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
@@ -519,7 +519,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void getCapacityBytes() {
     BlockMaster blockMaster =
-        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+        sLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
             .getMaster(BlockMaster.class);
     Assert.assertEquals(10 * Constants.MB, blockMaster.getCapacityBytes());
   }
