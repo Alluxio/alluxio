@@ -81,6 +81,7 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
 
 import java.io.File;
@@ -116,7 +117,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   // Modify current time so that implementations can't accidentally pass unit tests by ignoring
   // this specified time and always using System.currentTimeMillis()
   private static final long TEST_TIME_MS = Long.MAX_VALUE;
-  private static final long TTL_CHECKER_INTERVAL_MS = 1000;
+  private static final long TTL_CHECKER_INTERVAL_MS = 100;
   private static final String TEST_USER = "test";
   // Time to wait for shutting down thread pool.
   private static final long SHUTDOWN_TIME_MS = 15 * Constants.SECOND_MS;
@@ -144,6 +145,9 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER).build();
 
   @Rule
+  public TestRule resetRule = sLocalAlluxioClusterResource.getResetResource();
+
+  @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Rule
@@ -156,14 +160,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public final void before() throws Exception {
     mFsMaster = sLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class);
-
-    mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
-        UfsMode.READ_WRITE);
-    for (FileInfo fileInfo : mFsMaster
-        .listStatus(new AlluxioURI("/"), ListStatusContext.defaults())) {
-      mFsMaster.delete(new AlluxioURI(fileInfo.getPath()),
-          DeleteContext.create(DeletePOptions.newBuilder().setUnchecked(true).setRecursive(true)));
-    }
   }
 
   /**

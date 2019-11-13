@@ -105,9 +105,9 @@ import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.DelegatingJournaled;
-import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
+import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
@@ -4645,5 +4645,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throw new InvalidPathException(ufsUri.toString() + " is not a valid ufs uri");
     }
     return resolution.getUri();
+  }
+
+  /**
+   * @return username of root of inode tree, null if the inode tree is not initialized
+   */
+  @Nullable
+  public String getRootUserName() {
+    return mInodeTree.getRootUserName();
   }
 }
