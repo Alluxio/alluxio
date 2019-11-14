@@ -46,7 +46,6 @@ public final class PersistMultipleMountsIntegrationTest
   private UnderFileSystem mMountedUfs;
 
   @Before
-  @Override
   public void before() throws Exception {
     super.before();
 
@@ -55,7 +54,7 @@ public final class PersistMultipleMountsIntegrationTest
     mUfs = UnderFileSystem.Factory.create(mUfsRoot, ServerConfiguration.global());
 
     mMountedUfsRoot = mTempFolder.getRoot().getAbsolutePath();
-    mFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(mMountedUfsRoot));
+    sFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(mMountedUfsRoot));
     mMountedUfs = UnderFileSystem.Factory.create(mMountedUfsRoot, ServerConfiguration.global());
   }
 
@@ -66,14 +65,14 @@ public final class PersistMultipleMountsIntegrationTest
 
     String path = PathUtils.uniqPath();
     AlluxioURI filePath = new AlluxioURI(path);
-    FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
+    FileOutStream os = sFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setWriteType(WritePType.CACHE_THROUGH).setRecursive(true).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
 
     // Check the file is persisted
-    URIStatus status = mFileSystem.getStatus(filePath);
+    URIStatus status = sFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
     Assert.assertTrue(status.isCompleted());
     Assert.assertTrue(mUfs.exists(PathUtils.concatPath(mUfsRoot, path)));
@@ -87,14 +86,14 @@ public final class PersistMultipleMountsIntegrationTest
 
     String path = PathUtils.uniqPath();
     AlluxioURI filePath = new AlluxioURI(MOUNT_PATH + path);
-    FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
+    FileOutStream os = sFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setWriteType(WritePType.CACHE_THROUGH).setRecursive(true).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
 
     // Check the file is persisted
-    URIStatus status = mFileSystem.getStatus(filePath);
+    URIStatus status = sFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
     Assert.assertTrue(status.isCompleted());
     Assert.assertFalse(mUfs.exists(PathUtils.concatPath(mUfsRoot, path)));

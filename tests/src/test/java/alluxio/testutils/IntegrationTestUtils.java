@@ -18,6 +18,7 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.heartbeat.HeartbeatContext;
@@ -76,8 +77,9 @@ public final class IntegrationTestUtils {
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
       CommonUtils.waitFor(uri + " to be persisted", () -> {
         try {
-          return client.getStatus(uri,
-              FileSystemOptions.getStatusDefaults(ServerConfiguration.global())).isPersisted();
+          URIStatus stat = client.getStatus(uri,
+              FileSystemOptions.getStatusDefaults(ServerConfiguration.global()));
+          return stat.isPersisted();
         } catch (Exception e) {
           throw Throwables.propagate(e);
         }
@@ -118,6 +120,7 @@ public final class IntegrationTestUtils {
     try {
       // Execute 1st heartbeat from worker.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+//      Whitebox.getInternalState(bw, BlockMasterSync.class).heartbeat();
 
       // Waiting for the blocks to be added into the heartbeat reportor, so that they will be
       // removed from master in the next heartbeat.
@@ -129,6 +132,7 @@ public final class IntegrationTestUtils {
 
       // Execute 2nd heartbeat from worker.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+//      Whitebox.getInternalState(bw, BlockMasterSync.class).heartbeat();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);

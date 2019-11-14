@@ -23,6 +23,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.security.authorization.Mode;
@@ -35,6 +36,7 @@ import alluxio.worker.block.BlockWorker;
 
 import org.junit.Assert;
 import org.junit.Assume;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -55,7 +57,18 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
           .setCommonOptions(COMMON_OPTIONS)
           .build();
 
-  private AlluxioURI mUri = new AlluxioURI(PathUtils.uniqPath());
+  private AlluxioURI mUri;
+
+  @ClassRule
+  public ManuallyScheduleHeartbeat mManuallySchedule =
+      new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
+
+  @Override
+  @Before
+  public void before() throws Exception {
+    super.before();
+    mUri = new AlluxioURI(PathUtils.uniqPath());
+  }
 
   /**
    * Helper function to create a file of length LEN with {@link WriteType#ASYNC_THROUGH}.
@@ -63,73 +76,70 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
    * @return ths URIStatus of this file after creation
    */
   private URIStatus createAsyncFile() throws Exception {
-    writeIncreasingByteArrayToFile(mUri, LEN, CreateFilePOptions.newBuilder()
+    FileOutStreamTestUtils.writeIncreasingByteArrayToFile(sFileSystem, mUri, LEN,
+        CreateFilePOptions.newBuilder()
         .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build());
-    return mFileSystem.getStatus(mUri);
+    return sFileSystem.getStatus(mUri);
   }
-
-  @ClassRule
-  public static ManuallyScheduleHeartbeat sManuallySchedule =
-      new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
 
   @Test
   public void simpleDurableWrite() throws Exception {
-    PersistenceTestUtils.pauseScheduler(mLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseScheduler(sLocalAlluxioClusterResource);
 
     URIStatus status = createAsyncFile();
     // check the file is completed but not persisted
     Assert.assertEquals(PersistenceState.TO_BE_PERSISTED.toString(), status.getPersistenceState());
     Assert.assertTrue(status.isCompleted());
 
-    PersistenceTestUtils.resumeScheduler(mLocalAlluxioClusterResource);
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, mUri);
-    status = mFileSystem.getStatus(mUri);
+    PersistenceTestUtils.resumeScheduler(sLocalAlluxioClusterResource);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, mUri);
+    status = sFileSystem.getStatus(mUri);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
-    checkFileInAlluxio(mUri, LEN);
-    checkFileInUnderStorage(mUri, LEN);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, mUri, LEN);
+    FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, mUri, LEN);
   }
 
   @Test
   public void exists() throws Exception {
-    PersistenceTestUtils.pauseScheduler(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.pauseChecker(mLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseScheduler(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseChecker(sLocalAlluxioClusterResource);
     URIStatus status = createAsyncFile();
-    Assert.assertTrue(mFileSystem.exists(mUri));
+    Assert.assertTrue(sFileSystem.exists(mUri));
 
-    PersistenceTestUtils.resumeScheduler(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.waitForJobScheduled(mLocalAlluxioClusterResource, status.getFileId());
-    Assert.assertTrue(mFileSystem.exists(mUri));
+    PersistenceTestUtils.resumeScheduler(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.waitForJobScheduled(sLocalAlluxioClusterResource, status.getFileId());
+    Assert.assertTrue(sFileSystem.exists(mUri));
 
-    PersistenceTestUtils.resumeChecker(mLocalAlluxioClusterResource);
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, mUri);
-    Assert.assertTrue(mFileSystem.exists(mUri));
+    PersistenceTestUtils.resumeChecker(sLocalAlluxioClusterResource);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, mUri);
+    Assert.assertTrue(sFileSystem.exists(mUri));
   }
 
   @Test
   public void deleteBeforeJobScheduled() throws Exception {
-    PersistenceTestUtils.pauseScheduler(mLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseScheduler(sLocalAlluxioClusterResource);
     URIStatus status = createAsyncFile();
-    mFileSystem.delete(mUri);
+    sFileSystem.delete(mUri);
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(status.getUfsPath());
 
-    PersistenceTestUtils.resumeScheduler(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.waitForJobComplete(mLocalAlluxioClusterResource, status.getFileId());
+    PersistenceTestUtils.resumeScheduler(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.waitForJobComplete(sLocalAlluxioClusterResource, status.getFileId());
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(status.getUfsPath());
   }
 
   @Test
   public void deleteAfterJobScheduled() throws Exception {
-    PersistenceTestUtils.pauseChecker(mLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseChecker(sLocalAlluxioClusterResource);
     URIStatus status = createAsyncFile();
-    PersistenceTestUtils.waitForJobScheduled(mLocalAlluxioClusterResource, status.getFileId());
-    mFileSystem.delete(mUri);
+    PersistenceTestUtils.waitForJobScheduled(sLocalAlluxioClusterResource, status.getFileId());
+    sFileSystem.delete(mUri);
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(status.getUfsPath());
 
-    PersistenceTestUtils.resumeChecker(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.waitForJobComplete(mLocalAlluxioClusterResource, status.getFileId());
+    PersistenceTestUtils.resumeChecker(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.waitForJobComplete(sLocalAlluxioClusterResource, status.getFileId());
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(status.getUfsPath());
   }
@@ -137,61 +147,61 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
   @Test
   public void deleteAfterPersist() throws Exception {
     URIStatus status = createAsyncFile();
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, mUri);
-    mFileSystem.delete(mUri);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, mUri);
+    sFileSystem.delete(mUri);
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(status.getUfsPath());
   }
 
   @Test
   public void freeBeforeJobScheduled() throws Exception {
-    PersistenceTestUtils.pauseScheduler(mLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseScheduler(sLocalAlluxioClusterResource);
     createAsyncFile();
     try {
-      mFileSystem.free(mUri);
+      sFileSystem.free(mUri);
       Assert.fail("Expect free to fail before file is persisted");
     } catch (AlluxioException e) {
       // Expected
     }
     IntegrationTestUtils.waitForBlocksToBeFreed(
-        mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class));
-    URIStatus status = mFileSystem.getStatus(mUri);
+        sLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class));
+    URIStatus status = sFileSystem.getStatus(mUri);
     // free for non-persisted file is no-op
     Assert.assertEquals(100, status.getInMemoryPercentage());
-    checkFileInAlluxio(mUri, LEN);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, mUri, LEN);
     checkFileNotInUnderStorage(status.getUfsPath());
 
-    PersistenceTestUtils.resumeScheduler(mLocalAlluxioClusterResource);
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, mUri);
-    status = mFileSystem.getStatus(mUri);
+    PersistenceTestUtils.resumeScheduler(sLocalAlluxioClusterResource);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, mUri);
+    status = sFileSystem.getStatus(mUri);
     // free for non-persisted file is no-op
     Assert.assertEquals(100, status.getInMemoryPercentage());
-    checkFileInAlluxio(mUri, LEN);
-    checkFileInUnderStorage(mUri, LEN);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, mUri, LEN);
+    FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, mUri, LEN);
   }
 
   @Test
   public void freeAfterJobScheduled() throws Exception {
-    PersistenceTestUtils.pauseChecker(mLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseChecker(sLocalAlluxioClusterResource);
     URIStatus status = createAsyncFile();
-    PersistenceTestUtils.waitForJobScheduled(mLocalAlluxioClusterResource, status.getFileId());
+    PersistenceTestUtils.waitForJobScheduled(sLocalAlluxioClusterResource, status.getFileId());
     try {
-      mFileSystem.free(mUri);
+      sFileSystem.free(mUri);
       Assert.fail("Expect free to fail before file is persisted");
     } catch (AlluxioException e) {
       // Expected
     }
     IntegrationTestUtils.waitForBlocksToBeFreed(
-        mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class));
-    status = mFileSystem.getStatus(mUri);
+        sLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class));
+    status = sFileSystem.getStatus(mUri);
     // free for non-persisted file is no-op
     Assert.assertEquals(100, status.getInMemoryPercentage());
 
-    PersistenceTestUtils.resumeChecker(mLocalAlluxioClusterResource);
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, mUri);
-    checkFileInAlluxio(mUri, LEN);
-    checkFileInUnderStorage(mUri, LEN);
-    status = mFileSystem.getStatus(mUri);
+    PersistenceTestUtils.resumeChecker(sLocalAlluxioClusterResource);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, mUri);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, mUri, LEN);
+    FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, mUri, LEN);
+    status = sFileSystem.getStatus(mUri);
     // free for non-persisted file is no-op
     Assert.assertEquals(100, status.getInMemoryPercentage());
   }
@@ -199,89 +209,92 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
   @Test
   public void freeAfterFilePersisted() throws Exception {
     URIStatus status = createAsyncFile();
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, mUri);
-    mFileSystem.free(mUri);
+    System.out.println(status);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, mUri);
+    System.out.println("Finished waiting for persist");
+    sFileSystem.free(mUri);
+    System.out.println("Freed file");
     IntegrationTestUtils.waitForBlocksToBeFreed(
-        mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class),
+        sLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class),
         status.getBlockIds().toArray(new Long[status.getBlockIds().size()]));
-    status = mFileSystem.getStatus(mUri);
+    status = sFileSystem.getStatus(mUri);
     // file persisted, free is no more a no-op
     Assert.assertEquals(0, status.getInMemoryPercentage());
-    checkFileInAlluxio(mUri, LEN);
-    checkFileInUnderStorage(mUri, LEN);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, mUri, LEN);
+    FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, mUri, LEN);
   }
 
   @Test
   public void getStatus() throws Exception {
-    PersistenceTestUtils.pauseScheduler(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.pauseChecker(mLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseScheduler(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseChecker(sLocalAlluxioClusterResource);
     URIStatus status = createAsyncFile();
     Assert.assertEquals(PersistenceState.TO_BE_PERSISTED.toString(), status.getPersistenceState());
 
-    PersistenceTestUtils.resumeScheduler(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.waitForJobScheduled(mLocalAlluxioClusterResource, status.getFileId());
+    PersistenceTestUtils.resumeScheduler(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.waitForJobScheduled(sLocalAlluxioClusterResource, status.getFileId());
     Assert.assertEquals(PersistenceState.TO_BE_PERSISTED.toString(), status.getPersistenceState());
 
-    PersistenceTestUtils.resumeChecker(mLocalAlluxioClusterResource);
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, mUri);
-    URIStatus statusAfter = mFileSystem.getStatus(mUri);
+    PersistenceTestUtils.resumeChecker(sLocalAlluxioClusterResource);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, mUri);
+    URIStatus statusAfter = sFileSystem.getStatus(mUri);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), statusAfter.getPersistenceState());
   }
 
   @Test
   public void openFile() throws Exception {
-    PersistenceTestUtils.pauseScheduler(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.pauseChecker(mLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseScheduler(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseChecker(sLocalAlluxioClusterResource);
     URIStatus status = createAsyncFile();
-    checkFileInAlluxio(mUri, LEN);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, mUri, LEN);
 
-    PersistenceTestUtils.resumeScheduler(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.waitForJobScheduled(mLocalAlluxioClusterResource, status.getFileId());
-    checkFileInAlluxio(mUri, LEN);
+    PersistenceTestUtils.resumeScheduler(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.waitForJobScheduled(sLocalAlluxioClusterResource, status.getFileId());
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, mUri, LEN);
 
-    PersistenceTestUtils.resumeChecker(mLocalAlluxioClusterResource);
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, mUri);
-    checkFileInAlluxio(mUri, LEN);
-    checkFileInUnderStorage(mUri, LEN);
+    PersistenceTestUtils.resumeChecker(sLocalAlluxioClusterResource);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, mUri);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, mUri, LEN);
+    FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, mUri, LEN);
   }
 
   @Test
   public void renameBeforeJobScheduled() throws Exception {
-    PersistenceTestUtils.pauseScheduler(mLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseScheduler(sLocalAlluxioClusterResource);
     URIStatus status = createAsyncFile();
     AlluxioURI newUri = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem.createDirectory(newUri.getParent());
-    mFileSystem.rename(mUri, newUri);
-    checkFileInAlluxio(newUri, LEN);
+    sFileSystem.createDirectory(newUri.getParent());
+    sFileSystem.rename(mUri, newUri);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, newUri, LEN);
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(status.getUfsPath());
-    checkFileNotInUnderStorage(mFileSystem.getStatus(newUri).getUfsPath());
+    checkFileNotInUnderStorage(sFileSystem.getStatus(newUri).getUfsPath());
 
-    PersistenceTestUtils.resumeScheduler(mLocalAlluxioClusterResource);
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, newUri);
-    checkFileInAlluxio(newUri, LEN);
-    checkFileInUnderStorage(newUri, LEN);
+    PersistenceTestUtils.resumeScheduler(sLocalAlluxioClusterResource);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, newUri);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, newUri, LEN);
+    FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, newUri, LEN);
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(status.getUfsPath());
   }
 
   @Test
   public void renameAfterJobScheduled() throws Exception {
-    PersistenceTestUtils.pauseChecker(mLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseChecker(sLocalAlluxioClusterResource);
     URIStatus status = createAsyncFile();
-    PersistenceTestUtils.waitForJobScheduled(mLocalAlluxioClusterResource, status.getFileId());
+    PersistenceTestUtils.waitForJobScheduled(sLocalAlluxioClusterResource, status.getFileId());
     AlluxioURI newUri = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem.createDirectory(newUri.getParent());
-    mFileSystem.rename(mUri, newUri);
-    checkFileInAlluxio(newUri, LEN);
+    sFileSystem.createDirectory(newUri.getParent());
+    sFileSystem.rename(mUri, newUri);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, newUri, LEN);
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(status.getUfsPath());
-    checkFileNotInUnderStorage(mFileSystem.getStatus(newUri).getUfsPath());
+    checkFileNotInUnderStorage(sFileSystem.getStatus(newUri).getUfsPath());
 
-    PersistenceTestUtils.resumeChecker(mLocalAlluxioClusterResource);
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, newUri);
-    checkFileInAlluxio(newUri, LEN);
-    checkFileInUnderStorage(newUri, LEN);
+    PersistenceTestUtils.resumeChecker(sLocalAlluxioClusterResource);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, newUri);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, newUri, LEN);
+    FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, newUri, LEN);
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(status.getUfsPath());
   }
@@ -289,35 +302,35 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
   @Test
   public void renameAfterFilePersisted() throws Exception {
     URIStatus status = createAsyncFile();
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, mUri);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, mUri);
     AlluxioURI newUri = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem.createDirectory(newUri.getParent());
-    mFileSystem.rename(mUri, newUri);
-    checkFileInAlluxio(newUri, LEN);
-    checkFileInUnderStorage(newUri, LEN);
+    sFileSystem.createDirectory(newUri.getParent());
+    sFileSystem.rename(mUri, newUri);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, newUri, LEN);
+    FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, newUri, LEN);
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(status.getUfsPath());
   }
 
   @Test
   public void setAttributeBeforeJobScheduled() throws Exception {
-    PersistenceTestUtils.pauseScheduler(mLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseScheduler(sLocalAlluxioClusterResource);
     URIStatus status = createAsyncFile();
     String ufsPath = status.getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
-    mFileSystem.setAttribute(mUri, TEST_OPTIONS);
-    checkFileInAlluxio(mUri, LEN);
+    sFileSystem.setAttribute(mUri, TEST_OPTIONS);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, mUri, LEN);
     checkFileNotInUnderStorage(status.getUfsPath());
-    status = mFileSystem.getStatus(mUri);
+    status = sFileSystem.getStatus(mUri);
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()), status.getMode());
     Assert.assertEquals(COMMON_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(COMMON_OPTIONS.getTtlAction(), status.getTtlAction());
 
-    PersistenceTestUtils.resumeScheduler(mLocalAlluxioClusterResource);
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, mUri);
-    checkFileInAlluxio(mUri, LEN);
-    checkFileInUnderStorage(mUri, LEN);
-    status = mFileSystem.getStatus(mUri);
+    PersistenceTestUtils.resumeScheduler(sLocalAlluxioClusterResource);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, mUri);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, mUri, LEN);
+    FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, mUri, LEN);
+    status = sFileSystem.getStatus(mUri);
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()), status.getMode());
     Assert.assertEquals(COMMON_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(COMMON_OPTIONS.getTtlAction(), status.getTtlAction());
@@ -329,24 +342,24 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
 
   @Test
   public void setAttributeAfterJobScheduled() throws Exception {
-    PersistenceTestUtils.pauseChecker(mLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseChecker(sLocalAlluxioClusterResource);
     URIStatus status = createAsyncFile();
-    PersistenceTestUtils.waitForJobScheduled(mLocalAlluxioClusterResource, status.getFileId());
+    PersistenceTestUtils.waitForJobScheduled(sLocalAlluxioClusterResource, status.getFileId());
     String ufsPath = status.getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
-    mFileSystem.setAttribute(mUri, TEST_OPTIONS);
-    checkFileInAlluxio(mUri, LEN);
+    sFileSystem.setAttribute(mUri, TEST_OPTIONS);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, mUri, LEN);
     checkFileNotInUnderStorage(status.getUfsPath());
-    status = mFileSystem.getStatus(mUri);
+    status = sFileSystem.getStatus(mUri);
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()), status.getMode());
     Assert.assertEquals(COMMON_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(COMMON_OPTIONS.getTtlAction(), status.getTtlAction());
 
-    PersistenceTestUtils.resumeChecker(mLocalAlluxioClusterResource);
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, mUri);
-    checkFileInAlluxio(mUri, LEN);
-    checkFileInUnderStorage(mUri, LEN);
-    status = mFileSystem.getStatus(mUri);
+    PersistenceTestUtils.resumeChecker(sLocalAlluxioClusterResource);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, mUri);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, mUri, LEN);
+    FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, mUri, LEN);
+    status = sFileSystem.getStatus(mUri);
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()), status.getMode());
     Assert.assertEquals(COMMON_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(COMMON_OPTIONS.getTtlAction(), status.getTtlAction());
@@ -359,11 +372,11 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
   @Test
   public void setAttributeAfterFilePersisted() throws Exception {
     createAsyncFile();
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, mUri);
-    mFileSystem.setAttribute(mUri, TEST_OPTIONS);
-    checkFileInAlluxio(mUri, LEN);
-    checkFileInUnderStorage(mUri, LEN);
-    URIStatus status = mFileSystem.getStatus(mUri);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, mUri);
+    sFileSystem.setAttribute(mUri, TEST_OPTIONS);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, mUri, LEN);
+    FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, mUri, LEN);
+    URIStatus status = sFileSystem.getStatus(mUri);
     String ufsPath = status.getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()), status.getMode());
@@ -377,118 +390,121 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
 
   @Test
   public void renameScheduleRename() throws Exception {
-    PersistenceTestUtils.pauseScheduler(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.pauseChecker(mLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseScheduler(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseChecker(sLocalAlluxioClusterResource);
     URIStatus status = createAsyncFile();
     String ufsPath = status.getUfsPath();
     AlluxioURI newUri1 = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem.createDirectory(newUri1.getParent());
-    mFileSystem.rename(mUri, newUri1);
-    String ufsPath1 = mFileSystem.getStatus(newUri1).getUfsPath();
+    sFileSystem.createDirectory(newUri1.getParent());
+    sFileSystem.rename(mUri, newUri1);
+    String ufsPath1 = sFileSystem.getStatus(newUri1).getUfsPath();
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(ufsPath);
-    checkFileInAlluxio(newUri1, LEN);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, newUri1, LEN);
     checkFileNotInUnderStorage(ufsPath1);
 
-    PersistenceTestUtils.resumeScheduler(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.waitForJobScheduled(mLocalAlluxioClusterResource, status.getFileId());
+    PersistenceTestUtils.resumeScheduler(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.waitForJobScheduled(sLocalAlluxioClusterResource, status.getFileId());
     AlluxioURI newUri2 = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem.rename(newUri1, newUri2);
-    String ufsPath2 = mFileSystem.getStatus(newUri2).getUfsPath();
+    sFileSystem.rename(newUri1, newUri2);
+    String ufsPath2 = sFileSystem.getStatus(newUri2).getUfsPath();
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(ufsPath);
     checkFileNotInAlluxio(newUri1);
     checkFileNotInUnderStorage(ufsPath1);
-    checkFileInAlluxio(newUri2, LEN);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, newUri2, LEN);
     checkFileNotInUnderStorage(ufsPath2);
 
-    PersistenceTestUtils.resumeChecker(mLocalAlluxioClusterResource);
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, newUri2);
+    PersistenceTestUtils.resumeChecker(sLocalAlluxioClusterResource);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, newUri2);
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(ufsPath);
     checkFileNotInAlluxio(newUri1);
     checkFileNotInUnderStorage(ufsPath1);
-    checkFileInAlluxio(newUri2, LEN);
-    checkFileInUnderStorage(newUri2, LEN);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, newUri2, LEN);
+    FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, newUri2, LEN);
   }
 
   @Test
   public void renameScheduleFree() throws Exception {
-    PersistenceTestUtils.pauseScheduler(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.pauseChecker(mLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseScheduler(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseChecker(sLocalAlluxioClusterResource);
     URIStatus status = createAsyncFile();
     String ufsPath = status.getUfsPath();
     AlluxioURI newUri = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem.createDirectory(newUri.getParent());
-    mFileSystem.rename(mUri, newUri);
-    String newUfsPath = mFileSystem.getStatus(newUri).getUfsPath();
+    sFileSystem.createDirectory(newUri.getParent());
+    sFileSystem.rename(mUri, newUri);
+    String newUfsPath = sFileSystem.getStatus(newUri).getUfsPath();
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(ufsPath);
-    checkFileInAlluxio(newUri, LEN);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, newUri, LEN);
     checkFileNotInUnderStorage(newUfsPath);
 
-    PersistenceTestUtils.resumeScheduler(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.waitForJobScheduled(mLocalAlluxioClusterResource, status.getFileId());
+    PersistenceTestUtils.resumeScheduler(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.waitForJobScheduled(sLocalAlluxioClusterResource, status.getFileId());
     try {
-      mFileSystem.free(newUri);
+      sFileSystem.free(newUri);
       Assert.fail("Expect free to fail before file is persisted");
     } catch (AlluxioException e) {
       // Expected
     }
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     IntegrationTestUtils.waitForBlocksToBeFreed(
-        mLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class));
+        sLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class));
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(ufsPath);
-    checkFileInAlluxio(newUri, LEN);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, newUri, LEN);
     checkFileNotInUnderStorage(newUfsPath);
     // free for non-persisted file is no-op
-    Assert.assertEquals(100, mFileSystem.getStatus(newUri).getInMemoryPercentage());
+    Assert.assertEquals(100, sFileSystem.getStatus(newUri).getInMemoryPercentage());
 
-    PersistenceTestUtils.resumeChecker(mLocalAlluxioClusterResource);
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, newUri);
+    PersistenceTestUtils.resumeChecker(sLocalAlluxioClusterResource);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, newUri);
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(ufsPath);
-    checkFileInAlluxio(newUri, LEN);
-    checkFileInUnderStorage(newUri, LEN);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, newUri, LEN);
+    FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, newUri, LEN);
     // free for non-persisted file is no-op
-    Assert.assertEquals(100, mFileSystem.getStatus(newUri).getInMemoryPercentage());
+    Assert.assertEquals(100, sFileSystem.getStatus(newUri).getInMemoryPercentage());
   }
 
   @Test
   public void renameScheduleSetAttribute() throws Exception {
-    PersistenceTestUtils.pauseScheduler(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.pauseChecker(mLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseScheduler(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseChecker(sLocalAlluxioClusterResource);
     URIStatus status = createAsyncFile();
     String ufsPath = status.getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
     AlluxioURI newUri = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem.createDirectory(newUri.getParent());
-    mFileSystem.rename(mUri, newUri);
-    String newUfsPath = mFileSystem.getStatus(newUri).getUfsPath();
+    sFileSystem.createDirectory(newUri.getParent());
+    sFileSystem.rename(mUri, newUri);
+    String newUfsPath = sFileSystem.getStatus(newUri).getUfsPath();
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(ufsPath);
-    checkFileInAlluxio(newUri, LEN);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, newUri, LEN);
     checkFileNotInUnderStorage(newUfsPath);
 
-    PersistenceTestUtils.resumeScheduler(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.waitForJobScheduled(mLocalAlluxioClusterResource, status.getFileId());
-    mFileSystem.setAttribute(newUri, TEST_OPTIONS);
+    PersistenceTestUtils.resumeScheduler(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.waitForJobScheduled(sLocalAlluxioClusterResource, status.getFileId());
+    sFileSystem.setAttribute(newUri, TEST_OPTIONS);
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(ufsPath);
-    checkFileInAlluxio(newUri, LEN);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, newUri, LEN);
     checkFileNotInUnderStorage(newUfsPath);
-    status = mFileSystem.getStatus(newUri);
+    status = sFileSystem.getStatus(newUri);
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()), status.getMode());
     Assert.assertEquals(COMMON_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(COMMON_OPTIONS.getTtlAction(), status.getTtlAction());
 
-    PersistenceTestUtils.resumeChecker(mLocalAlluxioClusterResource);
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, newUri);
+    PersistenceTestUtils.resumeChecker(sLocalAlluxioClusterResource);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, newUri);
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(ufsPath);
-    checkFileInAlluxio(newUri, LEN);
-    checkFileInUnderStorage(newUri, LEN);
-    status = mFileSystem.getStatus(newUri);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, newUri, LEN);
+    FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, newUri, LEN);
+    status = sFileSystem.getStatus(newUri);
     Assert.assertEquals(ModeUtils.protoToShort(TEST_OPTIONS.getMode()), status.getMode());
     Assert.assertEquals(COMMON_OPTIONS.getTtl(), status.getTtl());
     Assert.assertEquals(COMMON_OPTIONS.getTtlAction(), status.getTtlAction());
@@ -500,29 +516,29 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
 
   @Test
   public void renameScheduleDelete() throws Exception {
-    PersistenceTestUtils.pauseScheduler(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.pauseChecker(mLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseScheduler(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.pauseChecker(sLocalAlluxioClusterResource);
     URIStatus status = createAsyncFile();
     String ufsPath = status.getUfsPath();
     AlluxioURI newUri = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem.createDirectory(newUri.getParent());
-    mFileSystem.rename(mUri, newUri);
-    String newUfsPath = mFileSystem.getStatus(newUri).getUfsPath();
+    sFileSystem.createDirectory(newUri.getParent());
+    sFileSystem.rename(mUri, newUri);
+    String newUfsPath = sFileSystem.getStatus(newUri).getUfsPath();
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(ufsPath);
-    checkFileInAlluxio(newUri, LEN);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, newUri, LEN);
     checkFileNotInUnderStorage(newUfsPath);
 
-    PersistenceTestUtils.resumeScheduler(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.waitForJobScheduled(mLocalAlluxioClusterResource, status.getFileId());
-    mFileSystem.delete(newUri);
+    PersistenceTestUtils.resumeScheduler(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.waitForJobScheduled(sLocalAlluxioClusterResource, status.getFileId());
+    sFileSystem.delete(newUri);
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(ufsPath);
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(newUfsPath);
 
-    PersistenceTestUtils.resumeChecker(mLocalAlluxioClusterResource);
-    PersistenceTestUtils.waitForJobComplete(mLocalAlluxioClusterResource, status.getFileId());
+    PersistenceTestUtils.resumeChecker(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.waitForJobComplete(sLocalAlluxioClusterResource, status.getFileId());
     checkFileNotInAlluxio(mUri);
     checkFileNotInUnderStorage(ufsPath);
     checkFileNotInAlluxio(newUri);
@@ -536,7 +552,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
    * @param filePath path of the tmp file
    */
   private void checkFileNotInAlluxio(AlluxioURI filePath) throws Exception {
-    Assert.assertFalse(mFileSystem.exists(filePath));
+    Assert.assertFalse(sFileSystem.exists(filePath));
   }
 
   /**

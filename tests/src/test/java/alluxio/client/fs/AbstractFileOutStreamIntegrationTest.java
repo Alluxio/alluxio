@@ -11,28 +11,19 @@
 
 package alluxio.client.fs;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.OpenFilePOptions;
-import alluxio.grpc.ReadPType;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.util.io.BufferUtils;
 
 import org.junit.After;
-import org.junit.Assert;
+import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.Rule;
-
-import java.io.InputStream;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.rules.TestRule;
 
 /**
  * Abstract classes for all integration tests of {@link FileOutStream}.
@@ -41,27 +32,44 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   protected static final int MIN_LEN = 0;
   protected static final int MAX_LEN = 255;
   protected static final int DELTA = 32;
-  protected static final int BUFFER_BYTES = 100;
-  protected LocalAlluxioJobCluster mLocalAlluxioJobCluster;
-  protected static final int BLOCK_SIZE_BYTES = 1000;
+  protected static final int BUFFER_BYTES = 512;
+  protected static final int BLOCK_SIZE_BYTES = 1024;
+  protected static LocalAlluxioJobCluster sLocalAlluxioJobCluster;
 
-  @Rule
-  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+  @ClassRule
+  public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       buildLocalAlluxioClusterResource();
 
-  protected FileSystem mFileSystem = null;
+  @ClassRule
+  public static TestRule sResetRule = sLocalAlluxioClusterResource.getResetResource();
+
+  protected static FileSystem sFileSystem = null;
+
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    sLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
+    sLocalAlluxioJobCluster.setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "25ms");
+    sLocalAlluxioJobCluster.start();
+    sFileSystem = sLocalAlluxioClusterResource.get().getClient();
+  }
+
+  @AfterClass
+  public static void afterClass() throws Exception {
+    if (sLocalAlluxioJobCluster != null) {
+      sLocalAlluxioJobCluster.stop();
+    }
+    sFileSystem.close();
+  }
 
   @Before
   public void before() throws Exception {
-    mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
-    mLocalAlluxioJobCluster.start();
-    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+    sFileSystem = sLocalAlluxioClusterResource.get().getClient();
   }
 
   @After
   public void after() throws Exception {
-    if (mLocalAlluxioJobCluster != null) {
-      mLocalAlluxioJobCluster.stop();
+    if (sFileSystem != null) {
+      sFileSystem.close();
     }
   }
 
@@ -69,124 +77,18 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
    * Override this method in a test in order to customize the {@link LocalAlluxioClusterResource}.
    * @param resource an AlluxioClusterResource builder
    */
-  protected void customizeClusterResource(LocalAlluxioClusterResource.Builder resource) {
+  protected static void customizeClusterResource(LocalAlluxioClusterResource.Builder resource) {
     resource.setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BUFFER_BYTES)
         .setProperty(PropertyKey.USER_FILE_REPLICATION_DURABLE, 1)
+        .setProperty(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "100ms")
+        .setProperty(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "100ms")
+        .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, "100ms")
         .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES);
   }
 
-  private LocalAlluxioClusterResource buildLocalAlluxioClusterResource() {
+  private static LocalAlluxioClusterResource buildLocalAlluxioClusterResource() {
     LocalAlluxioClusterResource.Builder resource = new LocalAlluxioClusterResource.Builder();
     customizeClusterResource(resource);
     return resource.build();
-  }
-
-  /**
-   * Helper to write an Alluxio file with stream of bytes of increasing byte value.
-   *
-   * @param filePath path of the tmp file
-   * @param fileLen length of the file
-   * @param op options to create file
-   */
-  protected void writeIncreasingBytesToFile(AlluxioURI filePath, int fileLen, CreateFilePOptions op)
-      throws Exception {
-    writeIncreasingBytesToFile(mFileSystem, filePath, fileLen, op);
-  }
-
-  /**
-   * Helper to write an Alluxio file with stream of bytes of increasing byte value.
-   *
-   * @param fs the FileSystemClient to use
-   * @param filePath path of the tmp file
-   * @param fileLen length of the file
-   * @param op options to create file
-   */
-  protected void writeIncreasingBytesToFile(FileSystem fs, AlluxioURI filePath, int fileLen,
-      CreateFilePOptions op)
-      throws Exception {
-    try (FileOutStream os = fs.createFile(filePath, op)) {
-      for (int k = 0; k < fileLen; k++) {
-        os.write((byte) k);
-      }
-    }
-  }
-
-  /**
-   * Helper to write an Alluxio file with one increasing byte array, using a single
-   * {@link FileOutStream#write(byte[], int, int)} invocation.
-   *
-   * @param filePath path of the tmp file
-   * @param fileLen length of the file
-   * @param op options to create file
-   */
-  protected void writeIncreasingByteArrayToFile(AlluxioURI filePath, int fileLen,
-      CreateFilePOptions op) throws Exception {
-    try (FileOutStream os = mFileSystem.createFile(filePath, op)) {
-      os.write(BufferUtils.getIncreasingByteArray(fileLen));
-    }
-  }
-
-  /**
-   * Helper to write an Alluxio file with one increasing byte array, but using two separate
-   * {@link FileOutStream#write(byte[], int, int)} invocations.
-   *
-   * @param filePath path of the tmp file
-   * @param fileLen length of the file
-   * @param op options to create file
-   */
-  protected void writeTwoIncreasingByteArraysToFile(AlluxioURI filePath, int fileLen,
-      CreateFilePOptions op) throws Exception {
-    try (FileOutStream os = mFileSystem.createFile(filePath, op)) {
-      int len1 = fileLen / 2;
-      int len2 = fileLen - len1;
-      os.write(BufferUtils.getIncreasingByteArray(0, len1), 0, len1);
-      os.write(BufferUtils.getIncreasingByteArray(len1, len2), 0, len2);
-    }
-  }
-
-  /**
-   * Checks the given file exists in Alluxio storage and expects its content to be an increasing
-   * array of the given length.
-   *
-   * @param filePath path of the tmp file
-   * @param fileLen length of the file
-   */
-  protected void checkFileInAlluxio(AlluxioURI filePath, int fileLen) throws Exception {
-    URIStatus status = mFileSystem.getStatus(filePath);
-    Assert.assertEquals(fileLen, status.getLength());
-    try (FileInStream is = mFileSystem.openFile(filePath,
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build())) {
-      byte[] res = new byte[(int) status.getLength()];
-      Assert.assertEquals((int) status.getLength(), is.read(res));
-      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(fileLen, res));
-    }
-  }
-
-  /**
-   * Checks the given file exists in under storage and expects its content to be an increasing
-   * array of the given length.
-   *
-   * @param filePath path of the tmp file
-   * @param fileLen length of the file
-   */
-  protected void checkFileInUnderStorage(AlluxioURI filePath, int fileLen) throws Exception {
-    URIStatus status = mFileSystem.getStatus(filePath);
-    String checkpointPath = status.getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(checkpointPath,
-        ServerConfiguration.global());
-
-    try (InputStream is = ufs.open(checkpointPath)) {
-      byte[] res = new byte[(int) status.getLength()];
-      int totalBytesRead = 0;
-      while (true) {
-        int bytesRead = is.read(res, totalBytesRead, res.length - totalBytesRead);
-        if (bytesRead <= 0) {
-          break;
-        }
-        totalBytesRead += bytesRead;
-      }
-      Assert.assertEquals((int) status.getLength(), totalBytesRead);
-      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(fileLen, res));
-    }
   }
 }

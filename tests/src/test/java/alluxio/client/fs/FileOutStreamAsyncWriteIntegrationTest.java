@@ -61,7 +61,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   @Test
   public void asyncWrite() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    FileOutStream os = mFileSystem.createFile(filePath,
+    FileOutStream os = sFileSystem.createFile(filePath,
         CreateFilePOptions.newBuilder().setWriteType(WritePType.ASYNC_THROUGH)
         .setRecursive(true).build());
     os.write((byte) 0);
@@ -91,11 +91,11 @@ public final class FileOutStreamAsyncWriteIntegrationTest
 
     CommonUtils.sleepMs(1);
     // check the file is completed but not persisted
-    URIStatus srcStatus = mFileSystem.getStatus(srcPath);
+    URIStatus srcStatus = sFileSystem.getStatus(srcPath);
     assertEquals(PersistenceState.TO_BE_PERSISTED.toString(), srcStatus.getPersistenceState());
     Assert.assertTrue(srcStatus.isCompleted());
 
-    mFileSystem.rename(srcPath, dstPath);
+    sFileSystem.rename(srcPath, dstPath);
     CommonUtils.sleepMs(1);
     checkPersistStateAndWaitForPersist(dstPath, 2);
   }
@@ -107,11 +107,11 @@ public final class FileOutStreamAsyncWriteIntegrationTest
 
     CommonUtils.sleepMs(1);
     // check the file is completed but not persisted
-    URIStatus srcStatus = mFileSystem.getStatus(filePath);
+    URIStatus srcStatus = sFileSystem.getStatus(filePath);
     assertEquals(PersistenceState.TO_BE_PERSISTED.toString(), srcStatus.getPersistenceState());
     Assert.assertTrue(srcStatus.isCompleted());
 
-    mFileSystem.persist(filePath);
+    sFileSystem.persist(filePath);
     CommonUtils.sleepMs(1);
     checkPersistStateAndWaitForPersist(filePath, 2);
   }
@@ -128,13 +128,13 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   @Test
   public void asyncWriteTemporaryPin() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.ASYNC_THROUGH, 100);
-    URIStatus status = mFileSystem.getStatus(filePath);
+    FileSystemTestUtils.createByteFile(sFileSystem, filePath, WritePType.ASYNC_THROUGH, 100);
+    URIStatus status = sFileSystem.getStatus(filePath);
     alluxio.worker.file.FileSystemMasterClient fsMasterClient = new
         alluxio.worker.file.FileSystemMasterClient(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
     Assert.assertTrue(fsMasterClient.getPinList().contains(status.getFileId()));
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, filePath);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, filePath);
     Assert.assertFalse(fsMasterClient.getPinList().contains(status.getFileId()));
   }
 
@@ -152,7 +152,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   public void asyncWriteNoEvictBeforeBlockCommit() throws Exception {
     long writeSize =
         FormatUtils.parseSpaceSize(TINY_WORKER_MEM) - FormatUtils.parseSpaceSize(TINY_BLOCK_SIZE);
-    FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
+    FileSystem fs = sLocalAlluxioClusterResource.get().getClient();
     AlluxioURI p1 = new AlluxioURI("/p1");
     FileOutStream fos = fs.createFile(p1, CreateFilePOptions.newBuilder()
         .setWriteType(WritePType.ASYNC_THROUGH)
@@ -204,12 +204,12 @@ public final class FileOutStreamAsyncWriteIntegrationTest
    */
   private void testLostAsyncBlocks() throws Exception {
     long cap = FormatUtils.parseSpaceSize(TINY_WORKER_MEM);
-    FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
+    FileSystem fs = sLocalAlluxioClusterResource.get().getClient();
     // Create a large-ish file in the UFS (relative to memory size)
     String p1 = "/test";
     FileSystemTestUtils.createByteFile(fs, p1, WritePType.ASYNC_THROUGH, (int) cap);
 
-    BlockWorker blkWorker = mLocalAlluxioClusterResource.get().getWorkerProcess()
+    BlockWorker blkWorker = sLocalAlluxioClusterResource.get().getWorkerProcess()
         .getWorker(BlockWorker.class);
     SpaceReserver reserver = Whitebox.getInternalState(blkWorker, SpaceReserver.class);
 
@@ -231,7 +231,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     fstat = fs.listStatus(new AlluxioURI(p1)).get(0);
 
     assertTrue(fstat.isPersisted());
-    assertEquals(0, mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+    assertEquals(0, sLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class)
         .getPinIdList().size());
     assertTrue(getUsedWorkerSpace() < getClusterCapacity());
@@ -240,7 +240,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   @Test
   public void asyncWriteEmptyFile() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
+    sFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build()).close();
 
     checkPersistStateAndWaitForPersist(filePath, 0);
@@ -248,7 +248,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
 
   private long getClusterCapacity() throws UnavailableException {
     // This value shouldn't ever change, so we don't need to trigger eviction or heartbeats
-    return mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+    return sLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(BlockMaster.class)
         .getWorkerInfoList()
         .stream()
@@ -263,7 +263,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
    * @return the amount of space used in the cluster
    */
   private long getUsedWorkerSpace() throws UnavailableException {
-    BlockWorker blkWorker = mLocalAlluxioClusterResource.get().getWorkerProcess()
+    BlockWorker blkWorker = sLocalAlluxioClusterResource.get().getWorkerProcess()
         .getWorker(BlockWorker.class);
     Whitebox.getInternalState(blkWorker, BlockMasterSync.class).heartbeat(); // heartbeat before
     SpaceReserver reserver = Whitebox.getInternalState(blkWorker, SpaceReserver.class);
@@ -271,7 +271,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     reserver.heartbeat();
     reserver.updateStorageInfo();
     Whitebox.getInternalState(blkWorker, BlockMasterSync.class).heartbeat(); // heartbeat before
-    return mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
+    return sLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
         .getMasterProcess().getMaster(BlockMaster.class)
         .getWorkerInfoList()
         .stream()
@@ -280,7 +280,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   }
 
   private void createTwoBytesFile(AlluxioURI path, long persistenceWaitTime) throws Exception {
-    FileOutStream os = mFileSystem.createFile(path, CreateFilePOptions.newBuilder()
+    FileOutStream os = sFileSystem.createFile(path, CreateFilePOptions.newBuilder()
         .setWriteType(WritePType.ASYNC_THROUGH).setPersistenceWaitTime(persistenceWaitTime)
         .setRecursive(true).build());
     os.write((byte) 0);
@@ -290,17 +290,17 @@ public final class FileOutStreamAsyncWriteIntegrationTest
 
   private void checkPersistStateAndWaitForPersist(AlluxioURI path, int length) throws Exception {
     // check the file is completed but not persisted
-    URIStatus status = mFileSystem.getStatus(path);
+    URIStatus status = sFileSystem.getStatus(path);
     assertEquals(PersistenceState.TO_BE_PERSISTED.toString(),
         status.getPersistenceState());
     Assert.assertTrue(status.isCompleted());
 
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, path);
+    IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, path);
 
-    status = mFileSystem.getStatus(path);
+    status = sFileSystem.getStatus(path);
     assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
-    checkFileInAlluxio(path, length);
-    checkFileInUnderStorage(path, length);
+    FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, path, length);
+    FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, path, length);
   }
 }
