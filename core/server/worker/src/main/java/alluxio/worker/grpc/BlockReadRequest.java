@@ -13,6 +13,8 @@ package alluxio.worker.grpc;
 
 import alluxio.proto.dataserver.Protocol;
 
+import com.google.common.base.MoreObjects;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -60,5 +62,18 @@ public final class BlockReadRequest extends ReadRequest {
    */
   public boolean isPersisted() {
     return mOpenUfsBlockOptions != null && mOpenUfsBlockOptions.hasUfsPath();
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("chunkSize", getChunkSize())
+        .add("end", getEnd())
+        .add("id", getId())
+        .add("openUfsBlockOptions", mOpenUfsBlockOptions)
+        .add("promote", mPromote)
+        .add("sessionId", getSessionId())
+        .add("start", getStart())
+        .toString();
   }
 }
