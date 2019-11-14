@@ -170,7 +170,7 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
     try {
       return mKodoClinet.listFiles(prefix, null, limit, delimiter);
     } catch (QiniuException e) {
-      LOG.error("list objects failed ,Msg:{}", e);
+      LOG.error("list objects failed:", e);
       return null;
     }
   }
