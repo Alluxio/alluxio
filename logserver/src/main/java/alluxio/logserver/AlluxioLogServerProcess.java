@@ -147,7 +147,7 @@ public class AlluxioLogServerProcess implements Process {
       try {
         mServerSocket.close();
       } catch (IOException e) {
-        LOG.warn("Exception in closing server socket: {}", e);
+        LOG.warn("Exception in closing server socket: {}", e.toString());
       }
     }
     mThreadPool.shutdownNow();
@@ -159,7 +159,7 @@ public class AlluxioLogServerProcess implements Process {
         try {
           socket.close();
         } catch (IOException e) {
-          LOG.warn("Exception in closing client socket: {}", e);
+          LOG.warn("Exception in closing client socket: {}", e.toString());
         }
       }
     }

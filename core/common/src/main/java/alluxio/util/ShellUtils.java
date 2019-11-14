@@ -127,7 +127,7 @@ public final class ShellUtils {
         try {
           builder.setSize(FormatUtils.parseSpaceSize(matcher.group(2)));
         } catch (IllegalArgumentException e) {
-          LOG.debug("Failed to parse mount point size: {}", e);
+          LOG.debug("Failed to parse mount point size", e);
         }
       }
     }

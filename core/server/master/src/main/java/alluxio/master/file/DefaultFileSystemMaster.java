@@ -932,7 +932,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           listStatusInternal(rpcContext, childInodePath, auditContext, nextDescendantType,
               resultStream, depth + 1);
         } catch (InvalidPathException | FileDoesNotExistException e) {
-          LOG.debug("Path \"{0}\" is invalid, has been ignored.",
+          LOG.debug("Path \"{}\" is invalid, has been ignored.",
               PathUtils.concatPath("/", childComponentsHint));
         }
       }
@@ -1039,7 +1039,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         }
       }
     } catch (InvalidPathException e) {
-      LOG.debug("Path \"{0}\" is invalid, has been ignored.",
+      LOG.debug("Path \"{}\" is invalid, has been ignored.",
           PathUtils.concatPath(inodePath.getUri().getPath()));
     }
   }
@@ -3239,9 +3239,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
         executorService.invokeAll(callables);
       }
     } catch (InvalidPathException e) {
-      LOG.warn("InvalidPathException during active sync {}", e);
+      LOG.warn("InvalidPathException during active sync: {}", e.toString());
     } catch (InterruptedException e) {
-      LOG.warn("InterruptedException during active sync {}", e);
+      LOG.warn("InterruptedException during active sync: {}", e.toString());
       Thread.currentThread().interrupt();
       return;
     }
@@ -4230,7 +4230,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
             alluxio.util.UnderFileSystemUtils.deleteFileIfExists(ufsResource.get(), ufsBlockPath);
           } catch (Exception e) {
-            LOG.warn("Failed to clean up staging UFS block file {}", ufsBlockPath, e.getMessage());
+            LOG.warn("Failed to clean up staging UFS block file {}: {}",
+                ufsBlockPath, e.toString());
           }
         }
       }
