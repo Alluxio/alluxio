@@ -90,7 +90,8 @@ public class WorkflowTracker {
       return null;
     }
 
-    ConcurrentHashSet<Long> children = mChildren.get(jobId);
+    ArrayList<Long> children = Lists.newArrayList(mChildren.get(jobId).iterator());
+    Collections.sort(children);
 
     List<JobInfo> jobInfos = Lists.newArrayList();
 

@@ -142,7 +142,7 @@ public final class PlanInfo implements JobInfo {
   }
 
   @Override
-  public Collection<JobInfo> getChildren() {
+  public List<JobInfo> getChildren() {
     return mChildren;
   }
 

@@ -105,7 +105,7 @@ public class WorkflowInfo implements JobInfo {
 
   @Nonnull
   @Override
-  public Collection<JobInfo> getChildren() {
+  public List<JobInfo> getChildren() {
     return Collections.unmodifiableList(mChildren);
   }
 
