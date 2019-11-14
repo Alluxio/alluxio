@@ -16,7 +16,6 @@ import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.wire.JobInfo;
-import alluxio.job.wire.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.job.workflow.WorkflowConfig;
@@ -129,7 +128,7 @@ public class WorkflowTracker {
 
   /**
    * Recursively cleanup the parent workflows given plans to be removed from the PlanTracker.
-   * @param removedPlanIds
+   * @param removedPlanIds the plan ids that are being cleaned up by PlanTracker
    */
   public synchronized void cleanup(Collection<Long> removedPlanIds) {
     for (long removedPlanId : removedPlanIds) {
@@ -158,7 +157,6 @@ public class WorkflowTracker {
         clean(parentId);
       }
     }
-
   }
 
   private synchronized void done(long jobId) throws ResourceExhaustedException {

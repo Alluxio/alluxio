@@ -88,6 +88,7 @@ public class PlanTracker {
    * @param capacity the capacity of jobs that can be handled
    * @param retentionMs the minimum amount of time to retain jobs
    * @param maxJobPurgeCount the max amount of jobs to purge when reaching max capacity
+   * @param workflowTracker the workflow tracker instance
    */
   public PlanTracker(long capacity, long retentionMs,
                      long maxJobPurgeCount, WorkflowTracker workflowTracker) {
@@ -228,7 +229,6 @@ public class PlanTracker {
     for (long removedJobId : removedJobIds) {
       mCoordinators.remove(removedJobId);
     }
-
 
     return removedJob;
   }
