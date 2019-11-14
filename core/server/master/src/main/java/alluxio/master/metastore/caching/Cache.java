@@ -22,8 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.lang.Thread.State;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
