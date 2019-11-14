@@ -17,12 +17,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobServerContext;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.meta.JobIdGenerator;
 import alluxio.master.job.command.CommandManager;
+import alluxio.master.job.workflow.WorkflowTracker;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
 
@@ -31,7 +33,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 import org.powermock.reflect.Whitebox;
 
 import java.util.List;
@@ -44,7 +45,8 @@ public class PlanTrackerTest {
   private static final long PURGE_CONUT = -1;
   private List<WorkerInfo> mWorkers;
   private PlanTracker mTracker;
-  private CommandManager mMockCommandManager;
+  private WorkflowTracker mMockWorkflowTracker;
+  private CommandManager mCommandManager;
   private JobServerContext mMockJobServerContext;
   private JobIdGenerator mJobIdGenerator;
 
@@ -53,9 +55,10 @@ public class PlanTrackerTest {
 
   @Before
   public void before() {
-    mTracker = new PlanTracker(CAPACITY, RETENTION_TIME, PURGE_CONUT);
-    mMockCommandManager = new CommandManager();
-    mMockJobServerContext = Mockito.mock(JobServerContext.class);
+    mMockWorkflowTracker = mock(WorkflowTracker.class);
+    mTracker = new PlanTracker(CAPACITY, RETENTION_TIME, PURGE_CONUT, mMockWorkflowTracker);
+    mCommandManager = new CommandManager();
+    mMockJobServerContext = mock(JobServerContext.class);
     mWorkers = Lists.newArrayList(new WorkerInfo());
     mJobIdGenerator = new JobIdGenerator();
   }
@@ -95,7 +98,7 @@ public class PlanTrackerTest {
 
   @Test
   public void testPurgeCount() throws Exception {
-    PlanTracker tracker = new PlanTracker(10, 0, 5);
+    PlanTracker tracker = new PlanTracker(10, 0, 5, mMockWorkflowTracker);
     assertEquals("tracker should be empty", 0, tracker.coordinators().size());
     fillJobTracker(tracker, 10);
     finishAllJobs(tracker);
@@ -106,7 +109,7 @@ public class PlanTrackerTest {
   @Test
   public void testRetentionTime() throws Exception {
     long retentionMs = FormatUtils.parseTimeSize("24h");
-    PlanTracker tracker = new PlanTracker(10, retentionMs, -1);
+    PlanTracker tracker = new PlanTracker(10, retentionMs, -1, mMockWorkflowTracker);
     assertEquals("tracker should be empty", 0, tracker.coordinators().size());
     fillJobTracker(tracker, 10);
     finishAllJobs(tracker);
@@ -132,7 +135,7 @@ public class PlanTrackerTest {
 
   private long addJob(PlanTracker tracker, int sleepTimeMs) throws Exception {
     long jobId = mJobIdGenerator.getNewJobId();
-    tracker.run(new SleepJobConfig(sleepTimeMs), mMockCommandManager,
+    tracker.run(new SleepJobConfig(sleepTimeMs), mCommandManager,
         mMockJobServerContext, mWorkers, jobId);
     return jobId;
   }

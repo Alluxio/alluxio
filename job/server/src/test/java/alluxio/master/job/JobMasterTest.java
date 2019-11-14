@@ -24,10 +24,18 @@ import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.plan.PlanConfig;
 import alluxio.master.MasterContext;
 import alluxio.master.job.command.CommandManager;
+import alluxio.master.job.workflow.WorkflowTracker;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.job.plan.PlanCoordinator;
 import alluxio.master.job.plan.PlanTracker;
 import alluxio.underfs.UfsManager;
+
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -36,7 +44,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -61,8 +68,7 @@ public final class JobMasterTest {
     // Can't use ConfigurationRule due to conflicts with PowerMock.
     ServerConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, TEST_JOB_MASTER_JOB_CAPACITY);
     mJobMaster = new JobMaster(new MasterContext(new NoopJournalSystem()),
-        Mockito.mock(FileSystem.class), Mockito.mock(FileSystemContext.class),
-        Mockito.mock(UfsManager.class));
+        mock(FileSystem.class), mock(FileSystemContext.class), mock(UfsManager.class));
     mJobMaster.start(true);
   }
 
@@ -87,10 +93,9 @@ public final class JobMasterTest {
   public void run() throws Exception {
     PlanCoordinator coordinator = PowerMockito.mock(PlanCoordinator.class);
     PowerMockito.mockStatic(PlanCoordinator.class);
-    Mockito.when(
-        PlanCoordinator.create(Mockito.any(CommandManager.class),
-            Mockito.any(JobServerContext.class), Mockito.anyList(), Mockito.anyLong(),
-            Mockito.any(JobConfig.class), Mockito.any(null)))
+    when(
+        PlanCoordinator.create(any(CommandManager.class),
+            any(JobServerContext.class), anyList(), anyLong(), any(JobConfig.class), any(null)))
         .thenReturn(coordinator);
     TestPlanConfig jobConfig = new TestPlanConfig("/test");
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
@@ -103,10 +108,9 @@ public final class JobMasterTest {
   public void flowControl() throws Exception {
     PlanCoordinator coordinator = PowerMockito.mock(PlanCoordinator.class);
     PowerMockito.mockStatic(PlanCoordinator.class);
-    Mockito.when(
-        PlanCoordinator.create(Mockito.any(CommandManager.class),
-            Mockito.any(JobServerContext.class), Mockito.anyList(), Mockito.anyLong(),
-            Mockito.any(JobConfig.class), Mockito.any(null)))
+    when(
+        PlanCoordinator.create(any(CommandManager.class),
+            any(JobServerContext.class), anyList(), anyLong(), any(JobConfig.class), any(null)))
         .thenReturn(coordinator);
     TestPlanConfig jobConfig = new TestPlanConfig("/test");
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
@@ -134,14 +138,14 @@ public final class JobMasterTest {
 
   @Test
   public void cancel() throws Exception {
-    PlanCoordinator coordinator = Mockito.mock(PlanCoordinator.class);
+    PlanCoordinator coordinator = mock(PlanCoordinator.class);
     long jobId = 1L;
-    PlanTracker tracker = new PlanTracker(10, 0, -1);
+    PlanTracker tracker = new PlanTracker(10, 0, -1, mock(WorkflowTracker.class));
     ((Map<Long, PlanCoordinator>) Whitebox.getInternalState(tracker, "mCoordinators"))
         .put(jobId, coordinator);
     Whitebox.setInternalState(mJobMaster, "mPlanTracker", tracker);
     mJobMaster.cancel(jobId);
-    Mockito.verify(coordinator).cancel();
+    verify(coordinator).cancel();
   }
 
   private static class DummyPlanConfig implements PlanConfig {

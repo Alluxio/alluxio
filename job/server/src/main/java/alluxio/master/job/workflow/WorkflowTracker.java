@@ -16,6 +16,7 @@ import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.job.workflow.WorkflowConfig;
@@ -124,6 +125,40 @@ public class WorkflowTracker {
    */
   public Collection<Long> list() {
     return Collections.unmodifiableCollection(mWorkflows.keySet());
+  }
+
+  /**
+   * Recursively cleanup the parent workflows given plans to be removed from the PlanTracker.
+   * @param removedPlanIds
+   */
+  public synchronized void cleanup(Collection<Long> removedPlanIds) {
+    for (long removedPlanId : removedPlanIds) {
+      clean(removedPlanId);
+    }
+  }
+
+  private synchronized void clean(long jobId) {
+    mWorkflows.remove(jobId);
+    mWaitingOn.remove(jobId);
+    mChildren.remove(jobId);
+
+    Long parentId = mParentWorkflow.remove(jobId);
+
+    if (parentId == null) {
+      return;
+    }
+
+    // TODO(bradley): share details of the child job to the parent workflow before deleting.
+    ConcurrentHashSet<Long> siblings = mChildren.get(parentId);
+    siblings.remove(jobId);
+
+    if (siblings.isEmpty()) {
+      WorkflowExecution parentExecution = mWorkflows.get(parentId);
+      if (parentExecution != null && parentExecution.getStatus().isFinished()) {
+        clean(parentId);
+      }
+    }
+
   }
 
   private synchronized void done(long jobId) throws ResourceExhaustedException {

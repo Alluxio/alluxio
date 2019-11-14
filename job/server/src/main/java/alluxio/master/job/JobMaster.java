@@ -167,8 +167,8 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
     mCommandManager = new CommandManager();
     mJobIdGenerator = new JobIdGenerator();
-    mPlanTracker = new PlanTracker(JOB_CAPACITY, RETENTION_MS, MAX_PURGE_COUNT);
     mWorkflowTracker = new WorkflowTracker(this);
+    mPlanTracker = new PlanTracker(JOB_CAPACITY, RETENTION_MS, MAX_PURGE_COUNT, mWorkflowTracker);
   }
 
   /**
@@ -314,7 +314,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       jobInfos.add(coordinator.getPlanInfoWire());
     }
 
-    //jobInfos.addAll(mWorkflowTracker.getAllInfo());
+    jobInfos.addAll(mWorkflowTracker.getAllInfo());
 
     return new JobServiceSummary(jobInfos);
   }
