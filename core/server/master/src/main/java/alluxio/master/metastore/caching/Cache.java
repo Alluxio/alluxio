@@ -22,8 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.lang.Thread.State;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -322,7 +320,7 @@ public abstract class Cache<K, V> implements Closeable {
     }
 
     private void evictToLowWaterMark() {
-      Instant evictionStart = Instant.now();
+      long evictionStart = System.nanoTime();
       int toEvict = mMap.size() - mLowWaterMark;
       int evictionCount = 0;
       while (evictionCount < toEvict) {
@@ -334,7 +332,7 @@ public abstract class Cache<K, V> implements Closeable {
       }
       if (evictionCount > 0) {
         LOG.debug("{}: Evicted {} entries in {}ms", mName, evictionCount,
-            Duration.between(evictionStart, Instant.now()).toMillis());
+            (System.nanoTime() - evictionStart) / Constants.MS_NANO);
       }
     }
 
