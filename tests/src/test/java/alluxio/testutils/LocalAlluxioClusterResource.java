@@ -11,11 +11,20 @@
 
 package alluxio.testutils;
 
+import alluxio.AlluxioURI;
+import alluxio.AuthenticatedClientUserResource;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.DeletePOptions;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.underfs.UfsMode;
+import alluxio.util.SecurityUtils;
+import alluxio.wire.FileInfo;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -186,6 +195,18 @@ public final class LocalAlluxioClusterResource implements TestRule {
   }
 
   /**
+   * Returns a resource which will reset the cluster without restarting it. The rule will perform
+   * operations on the running cluster to get back to a clean state. This is primarily useful for
+   * when the {@link LocalAlluxioCluster} is a {@code @ClassRule}, so this reset rule can reset
+   * the cluster between tests.
+   *
+   * @return a {@link TestRule} for resetting the cluster
+   */
+  public TestRule getResetResource() {
+    return new ResetRule(this);
+  }
+
+  /**
    * Builder for a {@link LocalAlluxioClusterResource}.
    */
   public static class Builder {
@@ -232,6 +253,49 @@ public final class LocalAlluxioClusterResource implements TestRule {
      */
     public LocalAlluxioClusterResource build() {
       return new LocalAlluxioClusterResource(mStartCluster, mNumWorkers, mConfiguration);
+    }
+  }
+
+  private final class ResetRule implements TestRule {
+    private final LocalAlluxioClusterResource mCluster;
+
+    ResetRule(LocalAlluxioClusterResource cluster) {
+      mCluster = cluster;
+    }
+
+    @Override
+    public Statement apply(Statement statement, Description description) {
+      return new Statement() {
+        @Override
+        public void evaluate() throws Throwable {
+          try {
+            statement.evaluate();
+          } finally {
+            FileSystemMaster fsm =
+                mCluster.mLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
+                    .getMaster(FileSystemMaster.class);
+
+            if (SecurityUtils.isAuthenticationEnabled(ServerConfiguration.global())) {
+              // Reset the state as the root inode user (superuser).
+              try (AuthenticatedClientUserResource r = new AuthenticatedClientUserResource(
+                  fsm.getRootInodeOwner(), ServerConfiguration.global())) {
+                resetCluster(fsm);
+              }
+            } else {
+              resetCluster(fsm);
+            }
+          }
+        }
+      };
+    }
+
+    private void resetCluster(FileSystemMaster fsm) throws Exception {
+      fsm.updateUfsMode(new AlluxioURI(fsm.getUfsAddress()), UfsMode.READ_WRITE);
+      for (FileInfo fileInfo : fsm
+          .listStatus(new AlluxioURI("/"), ListStatusContext.defaults())) {
+        fsm.delete(new AlluxioURI(fileInfo.getPath()), DeleteContext
+            .create(DeletePOptions.newBuilder().setUnchecked(true).setRecursive(true)));
+      }
     }
   }
 
