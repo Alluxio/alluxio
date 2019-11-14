@@ -164,7 +164,7 @@ and Alluxio behavior. Warn level logs are accompanied by an exception message. T
 trace may be found in debug level logs.
 
 ```java
-LOG.warn("Failed to do something due to {}", e.getMessage());
+LOG.warn("Failed to do something: {}", e.toString());
 ```
 
 **When to Use**

@@ -221,7 +221,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
           CommonUtils.sleepMs(Constants.SECOND_MS);
         }
       } catch (Throwable e) {
-        LOG.error("Exception thrown in the master process check {}", e);
+        LOG.error("Exception thrown in the master process check", e);
         throw new RuntimeException(e);
       }
     }
@@ -291,7 +291,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
         return masterRpcCheck.serving();
       }
     } catch (Exception e) {
-      LOG.error("Exception thrown in master health check client {}", e);
+      LOG.error("Exception thrown in master health check client", e);
     } finally {
       mExecutorService.shutdown();
     }
