@@ -14,14 +14,20 @@ package alluxio.client.rest;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
 import alluxio.master.block.BlockMasterClientRestServiceHandler;
+import alluxio.security.authentication.AuthType;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.wire.BlockInfo;
 import alluxio.worker.block.BlockWorker;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 import java.io.FileOutputStream;
 import java.util.HashMap;
@@ -34,10 +40,22 @@ import javax.ws.rs.HttpMethod;
  */
 public final class BlockMasterClientRestApiTest extends RestApiTest {
 
+  // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to
+  // fix the test setup in SIMPLE mode.
+  @ClassRule
+  public static LocalAlluxioClusterResource sResource = new LocalAlluxioClusterResource.Builder()
+      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
+      .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
+      .build();
+
+  @Rule
+  public TestRule mResetRule = sResource.getResetResource();
+
   @Before
   public void before() throws Exception {
-    mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
+    mHostname = sResource.get().getHostname();
+    mPort = sResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
     mServicePrefix = BlockMasterClientRestServiceHandler.SERVICE_PREFIX;
   }
 
@@ -60,7 +78,7 @@ public final class BlockMasterClientRestApiTest extends RestApiTest {
     String tierAlias = "MEM";
     long initialBytes = 3;
 
-    BlockWorker blockWorker = mResource.get().getWorkerProcess().getWorker(BlockWorker.class);
+    BlockWorker blockWorker = sResource.get().getWorkerProcess().getWorker(BlockWorker.class);
     String file = blockWorker.createBlock(sessionId, blockId, tierAlias, "",  initialBytes);
     FileOutputStream outStream = new FileOutputStream(file);
     outStream.write("abc".getBytes());
