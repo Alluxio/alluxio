@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -92,9 +93,13 @@ public final class PersistenceTestUtils {
    */
   public static void resumeScheduler(LocalAlluxioClusterResource resource) {
     FileSystemMaster nestedMaster = getFileSystemMaster(resource);
-    BlackHoleMap<Long, ExponentialTimer> persistRequests =
-        Whitebox.getInternalState(nestedMaster, "mPersistRequests");
-    Whitebox.setInternalState(nestedMaster, "mPersistRequests", persistRequests.getInnerMap());
+    try {
+      BlackHoleMap<Long, ExponentialTimer> persistRequests =
+          Whitebox.getInternalState(nestedMaster, "mPersistRequests");
+      Whitebox.setInternalState(nestedMaster, "mPersistRequests", persistRequests.getInnerMap());
+    } catch (ClassCastException e) {
+      Whitebox.setInternalState(nestedMaster, "mPersistRequests", new ConcurrentHashMap<>());
+    }
   }
 
   /**
@@ -116,9 +121,13 @@ public final class PersistenceTestUtils {
    */
   public static void resumeChecker(LocalAlluxioClusterResource resource) {
     FileSystemMaster nestedMaster = getFileSystemMaster(resource);
-    BlackHoleMap<Long, PersistJob> persistJobs =
-        Whitebox.getInternalState(nestedMaster, "mPersistJobs");
-    Whitebox.setInternalState(nestedMaster, "mPersistJobs", persistJobs.getInnerMap());
+    try {
+      BlackHoleMap<Long, PersistJob> persistJobs =
+          Whitebox.getInternalState(nestedMaster, "mPersistJobs");
+      Whitebox.setInternalState(nestedMaster, "mPersistJobs", persistJobs.getInnerMap());
+    } catch (ClassCastException e) {
+      Whitebox.setInternalState(nestedMaster, "mPersistJobs", new ConcurrentHashMap<>());
+    }
   }
 
   /**

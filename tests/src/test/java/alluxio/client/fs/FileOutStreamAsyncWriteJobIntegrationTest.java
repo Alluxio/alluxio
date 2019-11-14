@@ -23,7 +23,6 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.security.authorization.Mode;
@@ -34,6 +33,7 @@ import alluxio.util.ModeUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockWorker;
 
+import org.datanucleus.util.PersistenceUtils;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
@@ -60,7 +60,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
   private AlluxioURI mUri;
 
   @ClassRule
-  public ManuallyScheduleHeartbeat mManuallySchedule =
+  public static ManuallyScheduleHeartbeat sMnauallySchedule =
       new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
 
   @Override
@@ -68,6 +68,8 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
   public void before() throws Exception {
     super.before();
     mUri = new AlluxioURI(PathUtils.uniqPath());
+    PersistenceTestUtils.resumeScheduler(sLocalAlluxioClusterResource);
+    PersistenceTestUtils.resumeChecker(sLocalAlluxioClusterResource);
   }
 
   /**
@@ -448,9 +450,6 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
     } catch (AlluxioException e) {
       // Expected
     }
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     IntegrationTestUtils.waitForBlocksToBeFreed(
         sLocalAlluxioClusterResource.get().getWorkerProcess().getWorker(BlockWorker.class));
     checkFileNotInAlluxio(mUri);

@@ -34,9 +34,11 @@ import alluxio.util.FileSystemOptions;
 import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockHeartbeatReporter;
+import alluxio.worker.block.BlockMasterSync;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
@@ -44,7 +46,10 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Util methods for writing integration tests.
@@ -119,20 +124,24 @@ public final class IntegrationTestUtils {
       throws TimeoutException {
     try {
       // Execute 1st heartbeat from worker.
-      HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-//      Whitebox.getInternalState(bw, BlockMasterSync.class).heartbeat();
+      Whitebox.getInternalState(bw, BlockMasterSync.class).heartbeat();
 
       // Waiting for the blocks to be added into the heartbeat reportor, so that they will be
       // removed from master in the next heartbeat.
       CommonUtils.waitFor("blocks to be removed", () -> {
-        BlockHeartbeatReporter reporter = Whitebox.getInternalState(bw, "mHeartbeatReporter");
-        List<Long> blocksToRemove = Whitebox.getInternalState(reporter, "mRemovedBlocks");
-        return blocksToRemove.containsAll(Arrays.asList(blockIds));
+        if (blockIds.length == 0) {
+          return true;
+        }
+        Set<Long> blocks = bw.getBlockStore().getBlockStoreMetaFull()
+            .getBlockListByStorageLocation().values().stream().flatMap(List::stream)
+            .collect(Collectors.toSet());
+        List<Long> bids = Lists.newArrayList(blockIds);
+        return bids.stream().map(id -> !blocks.contains(id)).reduce((s1, s2) -> s1 && s2)
+            .orElse(false);
       }, WaitForOptions.defaults().setTimeoutMs(100 * Constants.SECOND_MS));
 
       // Execute 2nd heartbeat from worker.
-      HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-//      Whitebox.getInternalState(bw, BlockMasterSync.class).heartbeat();
+      Whitebox.getInternalState(bw, BlockMasterSync.class).heartbeat();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
