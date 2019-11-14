@@ -164,7 +164,8 @@ public final class FileSystemContext implements Closeable {
       @Nullable AlluxioConfiguration conf) {
     FileSystemContext context = new FileSystemContext();
     ClientContext ctx = ClientContext.create(subject, conf);
-    MasterInquireClient inquireClient = MasterInquireClient.Factory.create(ctx.getClusterConf());
+    MasterInquireClient inquireClient =
+        MasterInquireClient.Factory.create(ctx.getClusterConf(), ctx.getUserState());
     context.init(ctx, inquireClient);
     return context;
   }
@@ -175,7 +176,8 @@ public final class FileSystemContext implements Closeable {
    */
   public static FileSystemContext create(ClientContext clientContext) {
     FileSystemContext ctx = new FileSystemContext();
-    ctx.init(clientContext, MasterInquireClient.Factory.create(clientContext.getClusterConf()));
+    ctx.init(clientContext, MasterInquireClient.Factory.create(clientContext.getClusterConf(),
+        clientContext.getUserState()));
     return ctx;
   }
 
@@ -334,7 +336,8 @@ public final class FileSystemContext implements Closeable {
             + "meta master (%s) during reinitialization", masterAddr), e);
       }
       closeContext();
-      initContext(getClientContext(), MasterInquireClient.Factory.create(getClusterConf()));
+      initContext(getClientContext(), MasterInquireClient.Factory.create(getClusterConf(),
+          getClientContext().getUserState()));
       mReinitializer.onSuccess();
     }
   }

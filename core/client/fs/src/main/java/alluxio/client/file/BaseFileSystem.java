@@ -562,7 +562,8 @@ public class BaseFileSystem implements FileSystem {
        * user passes. If not, throw an exception letting the user know they don't match.
        */
       Authority configured =
-          MasterInquireClient.Factory.create(mFsContext.getClusterConf())
+          MasterInquireClient.Factory
+              .create(mFsContext.getClusterConf(), mFsContext.getClientContext().getUserState())
               .getConnectDetails().toAuthority();
       if (!configured.equals(uri.getAuthority())) {
         throw new IllegalArgumentException(
