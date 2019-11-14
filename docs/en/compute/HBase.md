@@ -51,10 +51,6 @@ You also need to add the FS implementation classes to HBase configuration. These
   <value>alluxio.hadoop.FileSystem</value>
 </property>
 <property>
-  <name>fs.alluxio-ft.impl</name>
-  <value>alluxio.hadoop.FaultTolerantFileSystem</value>
-</property>
-<property>
   <name>fs.AbstractFileSystem.alluxio.impl</name>
   <value>alluxio.hadoop.AlluxioFileSystem</value>
 </property>
