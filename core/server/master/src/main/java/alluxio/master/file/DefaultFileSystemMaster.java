@@ -4647,11 +4647,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
     return resolution.getUri();
   }
 
-  /**
-   * @return username of root of inode tree, null if the inode tree is not initialized
-   */
+  @Override
   @Nullable
-  public String getRootUserName() {
+  public String getRootInodeOwner() {
     return mInodeTree.getRootUserName();
   }
 }

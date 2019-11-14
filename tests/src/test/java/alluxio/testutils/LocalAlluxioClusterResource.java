@@ -278,7 +278,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
             if (SecurityUtils.isAuthenticationEnabled(ServerConfiguration.global())) {
               // Reset the state as the root inode user (superuser).
               try (AuthenticatedClientUserResource r = new AuthenticatedClientUserResource(
-                  fsm.getRootUserName(), ServerConfiguration.global())) {
+                  fsm.getRootInodeOwner(), ServerConfiguration.global())) {
                 resetCluster(fsm);
               }
             } else {
@@ -290,13 +290,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
     }
 
     private void resetCluster(FileSystemMaster fsm) throws Exception {
-      if (!mCluster.mLocalAlluxioCluster.getLocalAlluxioMaster().isServing()) {
-        // Restart the cluster if the cluster was stopped.
-        mCluster.mLocalAlluxioCluster.start();
-        fsm = mCluster.mLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
-            .getMaster(FileSystemMaster.class);
-      }
-
       fsm.updateUfsMode(new AlluxioURI(fsm.getUfsAddress()), UfsMode.READ_WRITE);
       for (FileInfo fileInfo : fsm
           .listStatus(new AlluxioURI("/"), ListStatusContext.defaults())) {
