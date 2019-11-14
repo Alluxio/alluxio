@@ -17,6 +17,7 @@ import alluxio.job.JobIntegrationTest;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
+
 import com.google.common.collect.Lists;
 import org.junit.Test;
 

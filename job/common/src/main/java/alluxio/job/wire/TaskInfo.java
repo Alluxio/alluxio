@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
-import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
