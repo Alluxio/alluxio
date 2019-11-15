@@ -153,6 +153,6 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
         Throwables.propagate(e);
       }
       return null;
-    }, WaitForOptions.defaults().setInterval(10).setTimeoutMs(10 * Constants.SECOND_MS));
+    }, WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
   }
 }
