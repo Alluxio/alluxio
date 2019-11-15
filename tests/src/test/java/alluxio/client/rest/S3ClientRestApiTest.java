@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CreateDirectoryContext;
@@ -30,6 +31,8 @@ import alluxio.proxy.s3.ListBucketResult;
 import alluxio.proxy.s3.ListPartsResult;
 import alluxio.proxy.s3.S3Constants;
 import alluxio.proxy.s3.S3RestUtils;
+import alluxio.security.authentication.AuthType;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 
@@ -39,9 +42,11 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.rules.TestRule;
 
 import java.io.ByteArrayInputStream;
 import java.net.HttpURLConnection;
@@ -73,16 +78,28 @@ public final class S3ClientRestApiTest extends RestApiTest {
   private FileSystem mFileSystem;
   private FileSystemMaster mFileSystemMaster;
 
+  // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to
+  // fix the test setup in SIMPLE mode.
+  @ClassRule
+  public static LocalAlluxioClusterResource sResource = new LocalAlluxioClusterResource.Builder()
+      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
+      .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
+      .build();
+
+  @Rule
+  public TestRule mResetRule = sResource.getResetResource();
+
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Before
   public void before() throws Exception {
-    mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getProxyProcess().getWebLocalPort();
-    mFileSystemMaster = mResource.get().getLocalAlluxioMaster().getMasterProcess()
+    mHostname = sResource.get().getHostname();
+    mPort = sResource.get().getProxyProcess().getWebLocalPort();
+    mFileSystemMaster = sResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class);
-    mFileSystem = mResource.get().getClient();
+    mFileSystem = sResource.get().getClient();
   }
 
   @Test
