@@ -11,21 +11,21 @@
 
 package alluxio.client.fs;
 
+import static java.util.function.Function.identity;
+import static org.junit.Assert.assertEquals;
+
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerInfo;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -33,6 +33,8 @@ import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Integration tests for {@link alluxio.client.file.FileOutStream}, parameterized by the write
@@ -122,11 +124,10 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * Tests writing to a file and specify the location to be localhost.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(confParams = {
-      PropertyKey.Name.USER_BLOCK_WRITE_LOCATION_POLICY,
-      "alluxio.client.block.policy.LocalFirstPolicy"
-      })
   public void writeSpecifyLocal() throws Exception {
+    ServerConfiguration.set(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY,
+        "alluxio.client.block.policy.LocalFirstPolicy");
+
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
     CreateFilePOptions op = CreateFilePOptions.newBuilder().setWriteType(mWriteType.toProto())
@@ -144,8 +145,8 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   }
 
   /**
-   * Tests writing to a file for longer than HEARTBEAT_INTERVAL_MS to make sure the sessionId
-   * doesn't change. Tracks [ALLUXIO-171].
+   * Tests writing to a file for longer than {@link PropertyKey#WORKER_BLOCK_HEARTBEAT_INTERVAL_MS}
+   * to make sure the sessionId doesn't change. Tracks [ALLUXIO-171].
    */
   @Test
   public void longWrite() throws Exception {
@@ -154,7 +155,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     try (FileOutStream os = sFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
       os.write((byte) 0);
-      Thread.sleep(Constants.SECOND_MS * 2);
+      Thread.sleep(ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
       os.write((byte) 1);
     }
     if (mWriteType.getAlluxioStorageType().isStore()) {
@@ -194,10 +195,13 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * Tests canceling after multiple blocks have been written correctly cleans up temporary worker
    * resources.
    */
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_WORKER_HEARTBEAT_INTERVAL, "250ms"})
   @Test
   public void cancelWrite() throws Exception {
+    List<WorkerInfo> workers =
+        sLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+            .getMaster(FileSystemMaster.class).getFileSystemMasterView().getWorkerInfoList();
+    Map<WorkerInfo, Long> workerUsedBytes =
+        workers.stream().collect(Collectors.toMap(identity(), WorkerInfo::getUsedBytes));
     AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
     try (FileOutStream os = sFileSystem.createFile(path, CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
@@ -206,11 +210,11 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     }
     long gracePeriod = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL) * 2;
     CommonUtils.sleepMs(gracePeriod);
-    List<WorkerInfo> workers =
+    workers =
         sLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
             .getMaster(FileSystemMaster.class).getFileSystemMasterView().getWorkerInfoList();
     for (WorkerInfo worker : workers) {
-      Assert.assertEquals(0, worker.getUsedBytes());
+      assertEquals((long) workerUsedBytes.get(worker), worker.getUsedBytes());
     }
   }
 }
