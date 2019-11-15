@@ -14,14 +14,18 @@ package alluxio.client.rest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.AlluxioURI;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.meta.AlluxioMasterRestServiceHandler;
 import alluxio.metrics.MetricsSystem;
+import alluxio.security.authentication.AuthType;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.UnderFileSystemTestUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -34,9 +38,11 @@ import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 import java.util.HashMap;
 import java.util.List;
@@ -50,18 +56,25 @@ import javax.ws.rs.HttpMethod;
 public final class AlluxioMasterRestApiTest extends RestApiTest {
   private FileSystemMaster mFileSystemMaster;
 
+  // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to
+  // fix the test setup in SIMPLE mode.
+  @ClassRule
+  public static LocalAlluxioClusterResource sResource = new LocalAlluxioClusterResource.Builder()
+      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
+      .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
+      .build();
+
+  @Rule
+  public TestRule mResetRule = sResource.getResetResource();
+
   @Before
   public void before() {
-    mFileSystemMaster = mResource.get().getLocalAlluxioMaster().getMasterProcess()
+    mFileSystemMaster = sResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class);
-    mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
+    mHostname = sResource.get().getHostname();
+    mPort = sResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
     mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;
-  }
-
-  @After
-  public void after() {
-    ServerConfiguration.reset();
   }
 
   private AlluxioMasterInfo getInfo(Map<String, String> params) throws Exception {
@@ -122,14 +135,16 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getMetricsInfo() throws Exception {
-    assertEquals(Long.valueOf(0),
-        getInfo(NO_PARAMS).getMetrics().get(MetricsSystem.getMetricName("CompleteFileOps")));
+    long start = getInfo(NO_PARAMS).getMetrics().get(MetricsSystem.getMetricName("FileInfosGot"));
+    mFileSystemMaster.getFileInfo(new AlluxioURI("/"), GetStatusContext.defaults());
+    assertEquals(Long.valueOf(start + 1),
+        getInfo(NO_PARAMS).getMetrics().get(MetricsSystem.getMetricName("FileInfosGot")));
   }
 
   @Test
   public void getUfsMetrics() throws Exception {
     int len = 100;
-    FileSystemTestUtils.createByteFile(mResource.get().getClient(), "/f1", WritePType.THROUGH, len);
+    FileSystemTestUtils.createByteFile(sResource.get().getClient(), "/f1", WritePType.THROUGH, len);
     CommonUtils.waitFor("Metrics to be updated correctly", () -> {
       try {
         return FormatUtils.getSizeFromBytes(len).equals(getMetrics(NO_PARAMS)
@@ -139,7 +154,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
       }
     }, WaitForOptions.defaults().setTimeoutMs(2000));
 
-    FileSystemTestUtils.createByteFile(mResource.get().getClient(), "/f2", WritePType.THROUGH, len);
+    FileSystemTestUtils.createByteFile(sResource.get().getClient(), "/f2", WritePType.THROUGH, len);
     CommonUtils.waitFor("Metrics to be updated correctly", () -> {
       try {
         return FormatUtils.getSizeFromBytes(2 * len).equals(getMetrics(NO_PARAMS)

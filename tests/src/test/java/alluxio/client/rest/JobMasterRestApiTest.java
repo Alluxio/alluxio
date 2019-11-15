@@ -11,13 +11,17 @@
 
 package alluxio.client.rest;
 
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.AlluxioJobMasterRestServiceHandler;
 import alluxio.master.LocalAlluxioJobCluster;
+import alluxio.security.authentication.AuthType;
+import alluxio.testutils.LocalAlluxioClusterResource;
 
 import com.google.common.collect.Maps;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Map;
@@ -30,6 +34,15 @@ import javax.ws.rs.HttpMethod;
 public final class JobMasterRestApiTest extends RestApiTest {
   private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
   private LocalAlluxioJobCluster mJobCluster;
+
+  // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to
+  // fix the test setup in SIMPLE mode.
+  @Rule
+  public LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource.Builder()
+      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
+      .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
+      .build();
 
   @Before
   public void before() throws Exception {
