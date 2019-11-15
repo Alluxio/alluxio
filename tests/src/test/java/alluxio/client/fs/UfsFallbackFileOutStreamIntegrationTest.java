@@ -38,7 +38,6 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -61,24 +60,21 @@ public class UfsFallbackFileOutStreamIntegrationTest {
   public static ManuallyScheduleHeartbeat sManuallyScheduleEviction =
       new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_SPACE_RESERVER);
 
+  @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_MEMORY_SIZE)
-          .setProperty(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "100ms")
-          .setProperty(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "100ms")
-          .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, "100ms")
-          .setProperty(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL, "100ms")
-          .setProperty(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "100ms")
+          .setProperty(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "10ms")
+          .setProperty(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "10ms")
+          .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, "10ms")
+          .setProperty(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL, "10ms")
+          .setProperty(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "10ms")
           // initial buffer for worker
           .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, BUFFER_BYTES)
           .setProperty(PropertyKey.USER_FILE_UFS_TIER_ENABLED, true)
           .setProperty(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_HIGH, "1.0")
-          .setProperty(PropertyKey.WORKER_FREE_SPACE_TIMEOUT, "500ms")
+          .setProperty(PropertyKey.WORKER_FREE_SPACE_TIMEOUT, "100ms")
       .build();
-
-  @ClassRule
-  public static RuleChain sRuleChain = RuleChain.outerRule(sLocalAlluxioClusterResource)
-      .around(sLocalAlluxioClusterResource.getResetResource());
 
   @Rule
   public TestRule mResetRule = sLocalAlluxioClusterResource.getResetResource();
