@@ -11,6 +11,9 @@
 
 package alluxio.client.fs;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.client.file.FileSystem;
@@ -29,10 +32,7 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
@@ -57,7 +57,6 @@ public class UfsFallbackFileOutStreamIntegrationTest {
   private static final int WORKER_MEMORY_SIZE = 1500;
   private static final int BUFFER_BYTES = 100;
 
-
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallyScheduleEviction =
       new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_SPACE_RESERVER);
@@ -70,7 +69,8 @@ public class UfsFallbackFileOutStreamIntegrationTest {
           .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, "100ms")
           .setProperty(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL, "100ms")
           .setProperty(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "100ms")
-          .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, BUFFER_BYTES) // initial buffer for worker
+          // initial buffer for worker
+          .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, BUFFER_BYTES)
           .setProperty(PropertyKey.USER_FILE_UFS_TIER_ENABLED, true)
           .setProperty(PropertyKey.WORKER_NETWORK_NETTY_WATERMARK_HIGH, "1.0")
           .setProperty(PropertyKey.WORKER_FREE_SPACE_TIMEOUT, "500ms")
@@ -135,20 +135,22 @@ public class UfsFallbackFileOutStreamIntegrationTest {
     }, ServerConfiguration.global()).toResource()) {
       try (FileSystem fs = FileSystem.Factory.create(ServerConfiguration.global())) {
         AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-        CreateFilePOptions op =
-            CreateFilePOptions.newBuilder().setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build();
+        CreateFilePOptions op = CreateFilePOptions.newBuilder()
+            .setWriteType(WritePType.ASYNC_THROUGH)
+            .setRecursive(true)
+            .build();
         FileOutStreamTestUtils.writeIncreasingBytesToFile(fs, filePath, mFileLength, op);
 
         CommonUtils.sleepMs(1);
         // check the file is completed but not persisted
         URIStatus status = fs.getStatus(filePath);
-        Assert.assertEquals(PersistenceState.TO_BE_PERSISTED.toString(), status.getPersistenceState());
-        Assert.assertTrue(status.isCompleted());
+        assertEquals(PersistenceState.TO_BE_PERSISTED.toString(), status.getPersistenceState());
+        assertTrue(status.isCompleted());
 
         IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, filePath);
 
         status = fs.getStatus(filePath);
-        Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
+        assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
         FileOutStreamTestUtils.checkFileInAlluxio(fs, filePath, mFileLength);
         FileOutStreamTestUtils.checkFileInUnderStorage(fs, filePath, mFileLength);
@@ -169,20 +171,22 @@ public class UfsFallbackFileOutStreamIntegrationTest {
 
       try (FileSystem fs = FileSystem.Factory.create(ServerConfiguration.global())) {
         AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-        CreateFilePOptions op =
-            CreateFilePOptions.newBuilder().setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build();
+        CreateFilePOptions op = CreateFilePOptions.newBuilder()
+            .setWriteType(WritePType.ASYNC_THROUGH)
+            .setRecursive(true)
+            .build();
         FileOutStreamTestUtils.writeIncreasingBytesToFile(fs, filePath, mFileLength, op);
 
         CommonUtils.sleepMs(1);
         // check the file is completed but not persisted
         URIStatus status = fs.getStatus(filePath);
-        Assert.assertEquals(PersistenceState.TO_BE_PERSISTED.toString(), status.getPersistenceState());
-        Assert.assertTrue(status.isCompleted());
+        assertEquals(PersistenceState.TO_BE_PERSISTED.toString(), status.getPersistenceState());
+        assertTrue(status.isCompleted());
 
         IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, filePath);
 
         status = fs.getStatus(filePath);
-        Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
+        assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
         FileOutStreamTestUtils.checkFileInAlluxio(fs, filePath, mFileLength);
         FileOutStreamTestUtils.checkFileInUnderStorage(fs, filePath, mFileLength);
