@@ -23,7 +23,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.rules.RuleChain;
 
 /**
  * Abstract classes for all integration tests of {@link FileOutStream}.
@@ -36,21 +35,17 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   protected static final int BLOCK_SIZE_BYTES = 1024;
   protected static LocalAlluxioJobCluster sLocalAlluxioJobCluster;
 
+  @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       buildLocalAlluxioClusterResource();
 
-  @ClassRule
-  public static RuleChain sRuleChain = RuleChain.outerRule(sLocalAlluxioClusterResource)
-      .around(sLocalAlluxioClusterResource.getResetResource());
-
-  protected static FileSystem sFileSystem = null;
+  protected FileSystem mFileSystem = null;
 
   @BeforeClass
   public static void beforeClass() throws Exception {
     sLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
     sLocalAlluxioJobCluster.setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "25ms");
     sLocalAlluxioJobCluster.start();
-    sFileSystem = sLocalAlluxioClusterResource.get().getClient();
   }
 
   @AfterClass
@@ -58,18 +53,17 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
     if (sLocalAlluxioJobCluster != null) {
       sLocalAlluxioJobCluster.stop();
     }
-    sFileSystem.close();
   }
 
   @Before
   public void before() throws Exception {
-    sFileSystem = sLocalAlluxioClusterResource.get().getClient();
+    mFileSystem = sLocalAlluxioClusterResource.get().getClient();
   }
 
   @After
   public void after() throws Exception {
-    if (sFileSystem != null) {
-      sFileSystem.close();
+    if (mFileSystem != null) {
+      mFileSystem.close();
     }
   }
 
@@ -80,11 +74,11 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   protected static void customizeClusterResource(LocalAlluxioClusterResource.Builder resource) {
     resource.setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BUFFER_BYTES)
         .setProperty(PropertyKey.USER_FILE_REPLICATION_DURABLE, 1)
-        .setProperty(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "100ms")
-        .setProperty(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "100ms")
-        .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, "100ms")
-        .setProperty(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL, "100ms")
-        .setProperty(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "100ms")
+        .setProperty(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "10ms")
+        .setProperty(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "10ms")
+        .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, "10ms")
+        .setProperty(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL, "10ms")
+        .setProperty(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "10ms")
         .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES);
   }
 

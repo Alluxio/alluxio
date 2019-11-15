@@ -43,7 +43,7 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.SpaceReserver;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.powermock.reflect.Whitebox;
 
@@ -200,15 +200,12 @@ public final class IntegrationTestUtils {
       // Waiting for the blocks to be added into the heartbeat reportor, so that they will be
       // removed from master in the next heartbeat.
       CommonUtils.waitFor("blocks to be removed", () -> {
-        if (blockIds.length == 0) {
-          return true;
-        }
+
         Set<Long> blocks = bw.getBlockStore().getBlockStoreMetaFull()
             .getBlockListByStorageLocation().values().stream().flatMap(List::stream)
             .collect(Collectors.toSet());
-        List<Long> bids = Lists.newArrayList(blockIds);
-        return bids.stream().map(id -> !blocks.contains(id)).reduce((s1, s2) -> s1 && s2)
-            .orElse(false);
+        blocks.retainAll(Sets.newHashSet(blockIds));
+        return blocks.size() <= 0;
       }, WaitForOptions.defaults().setTimeoutMs(100 * Constants.SECOND_MS));
 
       // Execute 2nd heartbeat from worker.

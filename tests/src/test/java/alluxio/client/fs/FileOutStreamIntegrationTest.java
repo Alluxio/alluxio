@@ -68,12 +68,12 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
           .setRecursive(true).build();
       AlluxioURI filePath =
           new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + len + "_" + mWriteType));
-      FileOutStreamTestUtils.writeIncreasingBytesToFile(sFileSystem, filePath, len, op);
+      FileOutStreamTestUtils.writeIncreasingBytesToFile(mFileSystem, filePath, len, op);
       if (mWriteType.getAlluxioStorageType().isStore()) {
-        FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, filePath, len);
+        FileOutStreamTestUtils.checkFileInAlluxio(mFileSystem, filePath, len);
       }
       if (mWriteType.getUnderStorageType().isSyncPersist()) {
-        FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, filePath, len);
+        FileOutStreamTestUtils.checkFileInUnderStorage(mFileSystem, filePath, len);
       }
     }
   }
@@ -89,12 +89,12 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
           .setRecursive(true).build();
       AlluxioURI filePath =
           new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + len + "_" + mWriteType));
-      FileOutStreamTestUtils.writeIncreasingByteArrayToFile(sFileSystem, filePath, len, op);
+      FileOutStreamTestUtils.writeIncreasingByteArrayToFile(mFileSystem, filePath, len, op);
       if (mWriteType.getAlluxioStorageType().isStore()) {
-        FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, filePath, len);
+        FileOutStreamTestUtils.checkFileInAlluxio(mFileSystem, filePath, len);
       }
       if (mWriteType.getUnderStorageType().isSyncPersist()) {
-        FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, filePath, len);
+        FileOutStreamTestUtils.checkFileInUnderStorage(mFileSystem, filePath, len);
       }
     }
   }
@@ -110,12 +110,12 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
           .setRecursive(true).build();
       AlluxioURI filePath =
           new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + len + "_" + mWriteType));
-      FileOutStreamTestUtils.writeTwoIncreasingByteArraysToFile(sFileSystem, filePath, len, op);
+      FileOutStreamTestUtils.writeTwoIncreasingByteArraysToFile(mFileSystem, filePath, len, op);
       if (mWriteType.getAlluxioStorageType().isStore()) {
-        FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, filePath, len);
+        FileOutStreamTestUtils.checkFileInAlluxio(mFileSystem, filePath, len);
       }
       if (mWriteType.getUnderStorageType().isSyncPersist()) {
-        FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, filePath, len);
+        FileOutStreamTestUtils.checkFileInUnderStorage(mFileSystem, filePath, len);
       }
     }
   }
@@ -132,37 +132,37 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     final int length = 2;
     CreateFilePOptions op = CreateFilePOptions.newBuilder().setWriteType(mWriteType.toProto())
         .setRecursive(true).build();
-    try (FileOutStream os = sFileSystem.createFile(filePath, op)) {
+    try (FileOutStream os = mFileSystem.createFile(filePath, op)) {
       os.write((byte) 0);
       os.write((byte) 1);
     }
     if (mWriteType.getAlluxioStorageType().isStore()) {
-      FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, filePath, length);
+      FileOutStreamTestUtils.checkFileInAlluxio(mFileSystem, filePath, length);
     }
     if (mWriteType.getUnderStorageType().isSyncPersist()) {
-      FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, filePath, length);
+      FileOutStreamTestUtils.checkFileInUnderStorage(mFileSystem, filePath, length);
     }
   }
 
   /**
-   * Tests writing to a file for longer than {@link PropertyKey#WORKER_BLOCK_HEARTBEAT_INTERVAL_MS}
+   * Tests writing to a file for longer than {@link PropertyKey#MASTER_WORKER_HEARTBEAT_INTERVAL}
    * to make sure the sessionId doesn't change. Tracks [ALLUXIO-171].
    */
   @Test
   public void longWrite() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
-    try (FileOutStream os = sFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
+    try (FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
       os.write((byte) 0);
-      Thread.sleep(ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+      Thread.sleep(ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2);
       os.write((byte) 1);
     }
     if (mWriteType.getAlluxioStorageType().isStore()) {
-      FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, filePath, length);
+      FileOutStreamTestUtils.checkFileInAlluxio(mFileSystem, filePath, length);
     }
     if (mWriteType.getUnderStorageType().isSyncPersist()) {
-      FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, filePath, length);
+      FileOutStreamTestUtils.checkFileInUnderStorage(mFileSystem, filePath, length);
     }
   }
 
@@ -176,7 +176,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     // A length greater than 0.5 * BUFFER_BYTES and less than BUFFER_BYTES.
     int length = (BUFFER_BYTES * 3) / 4;
-    try (FileOutStream os = sFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
+    try (FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
       // Write something small, so it is written into the buffer, and not directly to the file.
       os.write((byte) 0);
@@ -184,10 +184,10 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
       os.write(BufferUtils.getIncreasingByteArray(1, length));
     }
     if (mWriteType.getAlluxioStorageType().isStore()) {
-      FileOutStreamTestUtils.checkFileInAlluxio(sFileSystem, filePath, length + 1);
+      FileOutStreamTestUtils.checkFileInAlluxio(mFileSystem, filePath, length + 1);
     }
     if (mWriteType.getUnderStorageType().isSyncPersist()) {
-      FileOutStreamTestUtils.checkFileInUnderStorage(sFileSystem, filePath, length + 1);
+      FileOutStreamTestUtils.checkFileInUnderStorage(mFileSystem, filePath, length + 1);
     }
   }
 
@@ -203,7 +203,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     Map<WorkerInfo, Long> workerUsedBytes =
         workers.stream().collect(Collectors.toMap(identity(), WorkerInfo::getUsedBytes));
     AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
-    try (FileOutStream os = sFileSystem.createFile(path, CreateFilePOptions.newBuilder()
+    try (FileOutStream os = mFileSystem.createFile(path, CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
       os.write(BufferUtils.getIncreasingByteArray(0, BLOCK_SIZE_BYTES * 3 + 1));
       os.cancel();

@@ -55,18 +55,18 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(mUfs) || UnderFileSystemUtils.isHdfs(mUfs));
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    FileOutStream os = sFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
+    FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setWriteType(WritePType.CACHE_THROUGH).setRecursive(true).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
 
     // Check the file is persisted
-    URIStatus status = sFileSystem.getStatus(filePath);
+    URIStatus status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
     Assert.assertTrue(status.isCompleted());
     short fileMode = (short) status.getMode();
-    short parentMode = (short) sFileSystem.getStatus(filePath.getParent()).getMode();
+    short parentMode = (short) mFileSystem.getStatus(filePath.getParent()).getMode();
 
     // Check the permission of the created file and parent dir are in-sync between Alluxio and UFS.
     Assert.assertEquals(fileMode,
@@ -81,7 +81,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(mUfs) || UnderFileSystemUtils.isHdfs(mUfs));
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    FileOutStream os = sFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
+    FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build());
     os.write((byte) 0);
     os.write((byte) 1);
@@ -89,15 +89,15 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
 
     CommonUtils.sleepMs(1);
     // check the file is completed but not persisted
-    URIStatus status = sFileSystem.getStatus(filePath);
+    URIStatus status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.TO_BE_PERSISTED.toString(), status.getPersistenceState());
     Assert.assertTrue(status.isCompleted());
     short fileMode = (short) status.getMode();
-    short parentMode = (short) sFileSystem.getStatus(filePath.getParent()).getMode();
+    short parentMode = (short) mFileSystem.getStatus(filePath.getParent()).getMode();
 
     IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, filePath);
 
-    status = sFileSystem.getStatus(filePath);
+    status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
     // Check the permission of the created file and parent dir are in-sync between Alluxio and UFS.
@@ -113,19 +113,19 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(mUfs) || UnderFileSystemUtils.isHdfs(mUfs));
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    sFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
+    mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build()).close();
 
     // check the file is completed but not persisted
-    URIStatus status = sFileSystem.getStatus(filePath);
+    URIStatus status = mFileSystem.getStatus(filePath);
     Assert.assertNotEquals(PersistenceState.PERSISTED, status.getPersistenceState());
     Assert.assertTrue(status.isCompleted());
     short fileMode = (short) status.getMode();
-    short parentMode = (short) sFileSystem.getStatus(filePath.getParent()).getMode();
+    short parentMode = (short) mFileSystem.getStatus(filePath.getParent()).getMode();
 
     IntegrationTestUtils.waitForPersist(sLocalAlluxioClusterResource, filePath);
 
-    status = sFileSystem.getStatus(filePath);
+    status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
     // Check the permission of the created file and parent dir are in-sync between Alluxio and UFS.

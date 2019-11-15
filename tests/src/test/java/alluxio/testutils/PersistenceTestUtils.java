@@ -13,17 +13,17 @@ package alluxio.testutils;
 
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.PersistJob;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.time.ExponentialTimer;
 import alluxio.util.CommonUtils;
 
 import org.powermock.reflect.Whitebox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -32,6 +32,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class PersistenceTestUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(PersistenceTestUtils.class);
 
   /**
    * A simple wrapper around an inner map that delegates operations to the inner
@@ -98,7 +99,8 @@ public final class PersistenceTestUtils {
           Whitebox.getInternalState(nestedMaster, "mPersistRequests");
       Whitebox.setInternalState(nestedMaster, "mPersistRequests", persistRequests.getInnerMap());
     } catch (ClassCastException e) {
-      Whitebox.setInternalState(nestedMaster, "mPersistRequests", new ConcurrentHashMap<>());
+      // This will occur is resume is called without first being paused
+      LOG.warn("Call to resumeScheduler failed: ", e);
     }
   }
 
@@ -126,7 +128,8 @@ public final class PersistenceTestUtils {
           Whitebox.getInternalState(nestedMaster, "mPersistJobs");
       Whitebox.setInternalState(nestedMaster, "mPersistJobs", persistJobs.getInnerMap());
     } catch (ClassCastException e) {
-      Whitebox.setInternalState(nestedMaster, "mPersistJobs", new ConcurrentHashMap<>());
+      // This will occur is resume is called without first being paused
+      LOG.warn("Call to resumeChecker failed: ", e);
     }
   }
 

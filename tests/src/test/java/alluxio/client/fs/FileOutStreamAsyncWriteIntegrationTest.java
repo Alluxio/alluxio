@@ -174,7 +174,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest extends BaseIntegratio
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     createTwoBytesFile(mFileSystem, filePath, 2000);
 
-    CommonUtils.sleepMs(500);
     IntegrationTestUtils
         .checkPersistStateAndWaitForPersist(sLocalAlluxioClusterResource, mFileSystem, filePath, 2);
   }
