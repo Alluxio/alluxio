@@ -33,7 +33,6 @@ import alluxio.util.ModeUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockWorker;
 
-import org.datanucleus.util.PersistenceUtils;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
@@ -60,7 +59,7 @@ public final class FileOutStreamAsyncWriteJobIntegrationTest
   private AlluxioURI mUri;
 
   @ClassRule
-  public static ManuallyScheduleHeartbeat sMnauallySchedule =
+  public static ManuallyScheduleHeartbeat sManuallySchedule =
       new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
 
   @Override

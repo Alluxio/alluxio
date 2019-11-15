@@ -23,7 +23,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.rules.TestRule;
+import org.junit.rules.RuleChain;
 
 /**
  * Abstract classes for all integration tests of {@link FileOutStream}.
@@ -36,12 +36,12 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   protected static final int BLOCK_SIZE_BYTES = 1024;
   protected static LocalAlluxioJobCluster sLocalAlluxioJobCluster;
 
-  @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       buildLocalAlluxioClusterResource();
 
   @ClassRule
-  public static TestRule sResetRule = sLocalAlluxioClusterResource.getResetResource();
+  public static RuleChain sRuleChain = RuleChain.outerRule(sLocalAlluxioClusterResource)
+      .around(sLocalAlluxioClusterResource.getResetResource());
 
   protected static FileSystem sFileSystem = null;
 

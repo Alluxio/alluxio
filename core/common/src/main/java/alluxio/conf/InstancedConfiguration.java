@@ -202,7 +202,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
   public void set(@Nonnull PropertyKey key, @Nonnull Object value, @Nonnull Source source) {
-    Preconditions.checkArgument(key != null && value != null && !value.equals(""),
+    Preconditions.checkArgument(key != null && value != null,
         String.format("The key value pair (%s, %s) cannot be null", key, value));
     Preconditions.checkArgument(!value.equals(""),
         String.format("The key \"%s\" cannot be have an empty string as a value. Use "

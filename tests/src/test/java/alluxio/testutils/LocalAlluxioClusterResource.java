@@ -13,6 +13,7 @@ package alluxio.testutils;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedClientUserResource;
+import alluxio.conf.AlluxioProperties;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.DeletePOptions;
@@ -268,6 +269,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
       return new Statement() {
         @Override
         public void evaluate() throws Throwable {
+          AlluxioProperties props = ServerConfiguration.copyProperties();
           try {
             statement.evaluate();
           } finally {
@@ -284,6 +286,17 @@ public final class LocalAlluxioClusterResource implements TestRule {
             } else {
               resetCluster(fsm);
             }
+
+            // Reset any properties that have changed
+            ServerConfiguration.reset();
+            props.entrySet()
+                .forEach(e -> {
+                  if (e.getValue() == null || e.getValue().equals("")) {
+                    ServerConfiguration.unset(e.getKey());
+                  } else {
+                    ServerConfiguration.set(e.getKey(), e.getValue());
+                  }
+                });
           }
         }
       };

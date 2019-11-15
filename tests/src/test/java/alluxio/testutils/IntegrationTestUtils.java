@@ -12,6 +12,7 @@
 package alluxio.testutils;
 
 import static alluxio.util.network.NetworkAddressUtils.ServiceType;
+import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
@@ -19,13 +20,16 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
+import alluxio.client.fs.FileOutStreamTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.exception.status.UnavailableException;
+import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterClientContext;
 import alluxio.master.NoopMaster;
 import alluxio.master.PortRegistry;
+import alluxio.master.block.BlockMaster;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalSnapshot;
@@ -33,12 +37,14 @@ import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptions;
 import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.worker.block.BlockHeartbeatReporter;
+import alluxio.wire.WorkerInfo;
 import alluxio.worker.block.BlockMasterSync;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.SpaceReserver;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import org.junit.Assert;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
@@ -49,12 +55,77 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Util methods for writing integration tests.
  */
 public final class IntegrationTestUtils {
+
+  /**
+   * - Checks that a file is in the {@link PersistenceState#TO_BE_PERSISTED} state.
+   * - Wait for the persist to occur
+   * - After occurring, makes sure that the URI status after the persist is
+   * {@link PersistenceState#PERSISTED}.
+   * - Checks that the file is in Alluxio and under storage.
+   *
+   * @param resource the local alluxio cluster resource
+   * @param path the path to check
+   * @param length expected size of the file
+   */
+  public static void checkPersistStateAndWaitForPersist(LocalAlluxioClusterResource resource,
+      FileSystem fs, AlluxioURI path, int length) throws Exception {
+    // check the file is completed but not persisted
+    URIStatus status = fs.getStatus(path);
+    assertEquals(PersistenceState.TO_BE_PERSISTED.toString(), status.getPersistenceState());
+    Assert.assertTrue(status.isCompleted());
+
+    IntegrationTestUtils.waitForPersist(resource, path);
+
+    status = fs.getStatus(path);
+    assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
+
+    FileOutStreamTestUtils.checkFileInAlluxio(fs, path, length);
+    FileOutStreamTestUtils.checkFileInUnderStorage(fs, path, length);
+  }
+
+  /**
+   * Gets the total capacity of a {@link alluxio.master.LocalAlluxioCluster}.
+   *
+   * @return the total capacity according to the master at the time of calling
+   */
+  public static long getClusterCapacity(LocalAlluxioCluster cluster) throws UnavailableException {
+    // This value shouldn't ever change, so we don't need to trigger eviction or heartbeats
+    return cluster.getLocalAlluxioMaster().getMasterProcess()
+        .getMaster(BlockMaster.class)
+        .getWorkerInfoList()
+        .stream()
+        .map(WorkerInfo::getCapacityBytes)
+        .mapToLong(Long::new).sum();
+  }
+
+  /**
+   * Executing this will trigger an eviction on the worker, force a sync of storage info to the
+   * master, and then retrieve the updated storage value from the master.
+   *
+   * @return the amount of space used in the cluster
+   */
+  public static long getUsedWorkerSpace(LocalAlluxioClusterResource resource)
+      throws UnavailableException {
+    BlockWorker blkWorker = resource.get().getWorkerProcess()
+        .getWorker(BlockWorker.class);
+    Whitebox.getInternalState(blkWorker, BlockMasterSync.class).heartbeat(); // heartbeat before
+    SpaceReserver reserver = Whitebox.getInternalState(blkWorker, SpaceReserver.class);
+    // free space, update master storage info and make sure eviction has occurred
+    reserver.heartbeat();
+    reserver.updateStorageInfo();
+    Whitebox.getInternalState(blkWorker, BlockMasterSync.class).heartbeat(); // heartbeat before
+    return resource.get().getLocalAlluxioMaster()
+        .getMasterProcess().getMaster(BlockMaster.class)
+        .getWorkerInfoList()
+        .stream()
+        .map(WorkerInfo::getUsedBytes)
+        .mapToLong(Long::new).sum();
+  }
 
   /**
    * Convenience method for calling
