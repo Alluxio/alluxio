@@ -28,7 +28,9 @@ import alluxio.util.io.PathUtils;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 /**
  * Integration tests of file permission propagation for persist and async persist.
@@ -37,8 +39,12 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
   private String mUfsRoot;
   private UnderFileSystem mUfs;
 
+  @Rule
+  public TestRule mResetRule = sLocalAlluxioClusterResource.getResetResource();
+
   @Before
   public void before() throws Exception {
+    super.before();
     mUfsRoot = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
   }
