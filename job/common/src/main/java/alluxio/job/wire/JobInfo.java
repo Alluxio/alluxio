@@ -15,12 +15,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
+import java.util.List;
 
 /**
- * The Job Info. {@link JobInfo} can currently be either a {@link TaskInfo} or a {@link PlanInfo}.
+ * The Job Info. {@link JobInfo} can currently be either {@link TaskInfo}, {@link PlanInfo},
+ * or {@link WorkflowInfo}.
  */
 public interface JobInfo {
+
   /**
    * @return job id
    */
@@ -59,7 +61,7 @@ public interface JobInfo {
    * @return collection of children
    */
   @Nonnull
-  Collection<JobInfo> getChildren();
+  List<JobInfo> getChildren();
 
   /**
    * @return result of the job

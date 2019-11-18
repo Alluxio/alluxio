@@ -20,6 +20,7 @@ enum Status {
 enum JobType {
   PLAN = 1;
   TASK = 2;
+  WORKFLOW = 3;
 }
 
 message JobUnused {}
