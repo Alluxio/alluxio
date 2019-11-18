@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.time.Duration;
@@ -61,9 +62,11 @@ public class BufferedJournalApplier {
   private long mLastAppliedSequence = -1;
 
   /** Whether this state machine is suspended. */
+  @GuardedBy("mStateLock")
   private boolean mSuspended = false;
 
   /** Whether a resume() call is in progress. */
+  @GuardedBy("mStateLock")
   private boolean mResumeInProgress = false;
 
   /** Buffer to use during suspend period. */
