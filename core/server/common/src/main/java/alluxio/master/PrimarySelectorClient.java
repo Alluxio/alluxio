@@ -22,6 +22,7 @@ import org.apache.curator.framework.recipes.leader.LeaderSelector;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListener;
 import org.apache.curator.framework.recipes.leader.Participant;
 import org.apache.curator.framework.state.ConnectionState;
+import org.apache.curator.framework.state.SessionConnectionStateErrorPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
@@ -53,6 +54,10 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
   private String mName;
   /** The address to Zookeeper. */
   private final String mZookeeperAddress;
+  /** The sessionID under which leadership is granted. */
+  private long mLeaderZkSessionId;
+  /** Configured connection error policy for leader election. */
+  private ZookeeperConnectionErrorPolicy mConnectionErrorPolicy;
 
   /**
    * Constructs a new {@link PrimarySelectorClient}.
@@ -69,6 +74,8 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
     } else {
       mLeaderFolder = leaderPath + AlluxioURI.SEPARATOR;
     }
+    mConnectionErrorPolicy = ServerConfiguration.getEnum(
+        PropertyKey.ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY, ZookeeperConnectionErrorPolicy.class);
 
     // Create a leader selector using the given path for management.
     // All participants in a given leader selection must use the same path.
@@ -132,7 +139,55 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
 
   @Override
   public void stateChanged(CuratorFramework client, ConnectionState newState) {
-    setState(State.SECONDARY);
+    // Handle state change.
+    switch (newState) {
+      case CONNECTED:
+      case LOST:
+        setState(State.SECONDARY);
+        break;
+      case SUSPENDED:
+      case RECONNECTED:
+        if (mConnectionErrorPolicy == ZookeeperConnectionErrorPolicy.STANDARD) {
+          // Assume SECONDARY mode under standard policy.
+          setState(State.SECONDARY);
+        } else {
+          // Leave it to curator session handling.
+          if (newState == ConnectionState.SUSPENDED) {
+            // Do not act when the connection is suspended.
+            // Curator will either RECONNECT or LOST the connection.
+            LOG.warn("Session suspended for primary selector at state: {}", getState());
+          } else {
+            if (getState() == State.PRIMARY) {
+              try {
+                /**
+                 * Do a sanity check, when reconnected for a selector with "PRIMARY" mode.
+                 * This is to ensure that curator reconnected with the same Id.
+                 * Hence, guaranteeing Zookeeper state for this instance was preserved.
+                 */
+                long reconnectSessionId = client.getZookeeperClient().getZooKeeper().getSessionId();
+                if (mLeaderZkSessionId != reconnectSessionId) {
+                  LOG.warn(String.format(
+                      "Curator reconnected under a different session. "
+                          + "Old sessionId: %x, New sessionId: %x",
+                      mLeaderZkSessionId, reconnectSessionId));
+                  setState(State.SECONDARY);
+                } else {
+                  LOG.info(String.format(
+                      "Retaining leader state after zookeeper reconnected with sessionId: %x.",
+                      reconnectSessionId));
+                }
+              } catch (Exception e) {
+                LOG.warn(String
+                    .format("Cannot query session Id after session is reconnected with Id: %x", e));
+                setState(State.SECONDARY);
+              }
+            }
+          }
+        }
+        break;
+      default:
+        throw new IllegalStateException(String.format("Unexpected state: %s", newState));
+    }
 
     if ((newState != ConnectionState.LOST) && (newState != ConnectionState.SUSPENDED)) {
       try {
@@ -158,12 +213,14 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
         .forPath(mLeaderFolder + mName);
     LOG.info("{} is now the leader.", mName);
     try {
+      mLeaderZkSessionId = client.getZookeeperClient().getZooKeeper().getSessionId();
       waitForState(State.SECONDARY);
     } finally {
       LOG.warn("{} relinquishing leadership.", mName);
       LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
       LOG.info("All participants: {}", mLeaderSelector.getParticipants());
       client.delete().forPath(mLeaderFolder + mName);
+      mLeaderZkSessionId = -1;
     }
   }
 
@@ -187,6 +244,10 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
     // Prevent using container parents as it breaks compatibility with 3.4.x servers.
     // This is only required if the client is used to write data to zookeeper.
     curatorBuilder.dontUseContainerParents();
+    // Use SESSION policy for leader connection errors, when configured.
+    if (mConnectionErrorPolicy == ZookeeperConnectionErrorPolicy.SESSION) {
+      curatorBuilder.connectionStateErrorPolicy(new SessionConnectionStateErrorPolicy());
+    }
 
     CuratorFramework client = curatorBuilder.build();
     client.start();
@@ -199,5 +260,13 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
     client = curatorBuilder.build();
     client.start();
     return client;
+  }
+
+  /**
+   * Defines supported connection error policies for leader election.
+   */
+  protected enum ZookeeperConnectionErrorPolicy {
+    STANDARD, // Treat each state change as error.
+    SESSION   // Treat state change as error when state is lost.
   }
 }
