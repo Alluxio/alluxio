@@ -5,7 +5,7 @@ package alluxio.grpc;
 
 /**
  * <pre>
- * next available id: 12
+ * next available id: 14
  * </pre>
  *
  * Protobuf type {@code alluxio.grpc.job.JobInfo}
@@ -943,7 +943,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * next available id: 12
+   * next available id: 14
    * </pre>
    *
    * Protobuf type {@code alluxio.grpc.job.JobInfo}

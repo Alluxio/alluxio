@@ -402,6 +402,19 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   }
 
   @Override
+  public List<WorkerNetAddress> getWorkerAddresses() throws UnavailableException {
+    if (mSafeModeManager.isInSafeMode()) {
+      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
+    }
+    List<WorkerNetAddress> workerAddresses = new ArrayList<>(mWorkers.size());
+
+    for (MasterWorkerInfo worker : mWorkers) {
+      workerAddresses.add(worker.getStableWorkerInfo().getWorkerAddress());
+    }
+    return workerAddresses;
+  }
+
+  @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
     if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());

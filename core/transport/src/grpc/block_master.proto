@@ -93,6 +93,12 @@ message GetWorkerReportPOptions {
   repeated WorkerInfoField fieldRanges = 2;
   optional WorkerRange workerRange = 3;
 }
+
+message GetWorkerAddressesPOptions {}
+message GetWorkerAddressesPResponse {
+  repeated WorkerNetAddress workerAddresses = 1;
+}
+
 message GetWorkerInfoListPOptions {}
 message GetWorkerInfoListPResponse {
   repeated WorkerInfo workerInfos = 1;
@@ -133,6 +139,11 @@ service BlockMasterClientService {
    * Returns the used storage (in bytes).
    */
   rpc GetUsedBytes(GetUsedBytesPOptions) returns (GetUsedBytesPResponse);
+
+  /**
+   * Returns a list of workers addresses.
+   */
+  rpc GetWorkerAddresses(GetWorkerAddressesPOptions) returns (GetWorkerAddressesPResponse);
 
   /**
    * Returns a list of workers information.

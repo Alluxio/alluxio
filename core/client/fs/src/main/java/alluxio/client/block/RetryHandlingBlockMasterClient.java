@@ -19,6 +19,7 @@ import alluxio.grpc.GetBlockInfoPRequest;
 import alluxio.grpc.GetBlockMasterInfoPOptions;
 import alluxio.grpc.GetCapacityBytesPOptions;
 import alluxio.grpc.GetUsedBytesPOptions;
+import alluxio.grpc.GetWorkerAddressesPOptions;
 import alluxio.grpc.GetWorkerInfoListPOptions;
 import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.ServiceType;
@@ -29,6 +30,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
 import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -73,6 +75,19 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   @Override
   protected void afterConnect() {
     mClient = BlockMasterClientServiceGrpc.newBlockingStub(mChannel);
+  }
+
+  @Override
+  public List<WorkerNetAddress> getWorkerAddresses() throws IOException {
+    return retryRPC(() -> {
+      List<WorkerNetAddress> result = new ArrayList<>();
+      for (alluxio.grpc.WorkerNetAddress adddress : mClient
+          .getWorkerAddresses(GetWorkerAddressesPOptions.getDefaultInstance())
+          .getWorkerAddressesList()) {
+        result.add(GrpcUtils.fromProto(adddress));
+      }
+      return result;
+    });
   }
 
   @Override

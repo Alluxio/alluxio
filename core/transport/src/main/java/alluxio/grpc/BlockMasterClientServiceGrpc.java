@@ -159,6 +159,38 @@ public final class BlockMasterClientServiceGrpc {
      return getGetUsedBytesMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetWorkerAddressesPOptions,
+      alluxio.grpc.GetWorkerAddressesPResponse> getGetWorkerAddressesMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetWorkerAddresses",
+      requestType = alluxio.grpc.GetWorkerAddressesPOptions.class,
+      responseType = alluxio.grpc.GetWorkerAddressesPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.GetWorkerAddressesPOptions,
+      alluxio.grpc.GetWorkerAddressesPResponse> getGetWorkerAddressesMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.GetWorkerAddressesPOptions, alluxio.grpc.GetWorkerAddressesPResponse> getGetWorkerAddressesMethod;
+    if ((getGetWorkerAddressesMethod = BlockMasterClientServiceGrpc.getGetWorkerAddressesMethod) == null) {
+      synchronized (BlockMasterClientServiceGrpc.class) {
+        if ((getGetWorkerAddressesMethod = BlockMasterClientServiceGrpc.getGetWorkerAddressesMethod) == null) {
+          BlockMasterClientServiceGrpc.getGetWorkerAddressesMethod = getGetWorkerAddressesMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.GetWorkerAddressesPOptions, alluxio.grpc.GetWorkerAddressesPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.block.BlockMasterClientService", "GetWorkerAddresses"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetWorkerAddressesPOptions.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetWorkerAddressesPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new BlockMasterClientServiceMethodDescriptorSupplier("GetWorkerAddresses"))
+                  .build();
+          }
+        }
+     }
+     return getGetWorkerAddressesMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetWorkerInfoListPOptions,
       alluxio.grpc.GetWorkerInfoListPResponse> getGetWorkerInfoListMethod;
 
@@ -333,6 +365,17 @@ public final class BlockMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Returns a list of workers addresses.
+     * </pre>
+     */
+    public void getWorkerAddresses(alluxio.grpc.GetWorkerAddressesPOptions request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetWorkerAddressesPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetWorkerAddressesMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
      * Returns a list of workers information.
      * </pre>
      */
@@ -393,6 +436,13 @@ public final class BlockMasterClientServiceGrpc {
                 alluxio.grpc.GetUsedBytesPOptions,
                 alluxio.grpc.GetUsedBytesPResponse>(
                   this, METHODID_GET_USED_BYTES)))
+          .addMethod(
+            getGetWorkerAddressesMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.GetWorkerAddressesPOptions,
+                alluxio.grpc.GetWorkerAddressesPResponse>(
+                  this, METHODID_GET_WORKER_ADDRESSES)))
           .addMethod(
             getGetWorkerInfoListMethod(),
             asyncUnaryCall(
@@ -486,6 +536,18 @@ public final class BlockMasterClientServiceGrpc {
         io.grpc.stub.StreamObserver<alluxio.grpc.GetUsedBytesPResponse> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getGetUsedBytesMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Returns a list of workers addresses.
+     * </pre>
+     */
+    public void getWorkerAddresses(alluxio.grpc.GetWorkerAddressesPOptions request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetWorkerAddressesPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getGetWorkerAddressesMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -589,6 +651,17 @@ public final class BlockMasterClientServiceGrpc {
     public alluxio.grpc.GetUsedBytesPResponse getUsedBytes(alluxio.grpc.GetUsedBytesPOptions request) {
       return blockingUnaryCall(
           getChannel(), getGetUsedBytesMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Returns a list of workers addresses.
+     * </pre>
+     */
+    public alluxio.grpc.GetWorkerAddressesPResponse getWorkerAddresses(alluxio.grpc.GetWorkerAddressesPOptions request) {
+      return blockingUnaryCall(
+          getChannel(), getGetWorkerAddressesMethod(), getCallOptions(), request);
     }
 
     /**
@@ -698,6 +771,18 @@ public final class BlockMasterClientServiceGrpc {
     /**
      * <pre>
      **
+     * Returns a list of workers addresses.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetWorkerAddressesPResponse> getWorkerAddresses(
+        alluxio.grpc.GetWorkerAddressesPOptions request) {
+      return futureUnaryCall(
+          getChannel().newCall(getGetWorkerAddressesMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     **
      * Returns a list of workers information.
      * </pre>
      */
@@ -736,9 +821,10 @@ public final class BlockMasterClientServiceGrpc {
   private static final int METHODID_GET_BLOCK_MASTER_INFO = 1;
   private static final int METHODID_GET_CAPACITY_BYTES = 2;
   private static final int METHODID_GET_USED_BYTES = 3;
-  private static final int METHODID_GET_WORKER_INFO_LIST = 4;
-  private static final int METHODID_GET_WORKER_REPORT = 5;
-  private static final int METHODID_GET_WORKER_LOST_STORAGE = 6;
+  private static final int METHODID_GET_WORKER_ADDRESSES = 4;
+  private static final int METHODID_GET_WORKER_INFO_LIST = 5;
+  private static final int METHODID_GET_WORKER_REPORT = 6;
+  private static final int METHODID_GET_WORKER_LOST_STORAGE = 7;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -772,6 +858,10 @@ public final class BlockMasterClientServiceGrpc {
         case METHODID_GET_USED_BYTES:
           serviceImpl.getUsedBytes((alluxio.grpc.GetUsedBytesPOptions) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.GetUsedBytesPResponse>) responseObserver);
+          break;
+        case METHODID_GET_WORKER_ADDRESSES:
+          serviceImpl.getWorkerAddresses((alluxio.grpc.GetWorkerAddressesPOptions) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.GetWorkerAddressesPResponse>) responseObserver);
           break;
         case METHODID_GET_WORKER_INFO_LIST:
           serviceImpl.getWorkerInfoList((alluxio.grpc.GetWorkerInfoListPOptions) request,
@@ -850,6 +940,7 @@ public final class BlockMasterClientServiceGrpc {
               .addMethod(getGetBlockMasterInfoMethod())
               .addMethod(getGetCapacityBytesMethod())
               .addMethod(getGetUsedBytesMethod())
+              .addMethod(getGetWorkerAddressesMethod())
               .addMethod(getGetWorkerInfoListMethod())
               .addMethod(getGetWorkerReportMethod())
               .addMethod(getGetWorkerLostStorageMethod())

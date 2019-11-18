@@ -19,6 +19,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
 import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
 import java.util.List;
@@ -49,6 +50,13 @@ public interface BlockMasterClient extends Client {
       return new RetryHandlingBlockMasterClient(conf);
     }
   }
+
+  /**
+   * Gets the worker address of live workers(support older version Alluxio server).
+   *
+   * @return a list of live worker addresses
+   */
+  List<WorkerNetAddress> getWorkerAddresses() throws IOException;
 
   /**
    * Gets the worker information of live workers(support older version Alluxio server).

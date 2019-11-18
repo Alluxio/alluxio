@@ -25,6 +25,8 @@ import alluxio.grpc.GetCapacityBytesPOptions;
 import alluxio.grpc.GetCapacityBytesPResponse;
 import alluxio.grpc.GetUsedBytesPOptions;
 import alluxio.grpc.GetUsedBytesPResponse;
+import alluxio.grpc.GetWorkerAddressesPOptions;
+import alluxio.grpc.GetWorkerAddressesPResponse;
 import alluxio.grpc.GetWorkerInfoListPOptions;
 import alluxio.grpc.GetWorkerInfoListPResponse;
 import alluxio.grpc.GetWorkerLostStoragePOptions;
@@ -123,6 +125,16 @@ public final class BlockMasterClientServiceHandler
     RpcUtils.call(LOG,
         () -> GetUsedBytesPResponse.newBuilder().setBytes(mBlockMaster.getUsedBytes()).build(),
         "GetUsedBytes", "options=%s", responseObserver, options);
+  }
+
+  @Override
+  public void getWorkerAddresses(GetWorkerAddressesPOptions options,
+      StreamObserver<GetWorkerAddressesPResponse> responseObserver) {
+    RpcUtils.call(LOG,
+        () -> GetWorkerAddressesPResponse.newBuilder()
+            .addAllWorkerAddresses(mBlockMaster.getWorkerAddresses().stream()
+                .map(GrpcUtils::toProto).collect(Collectors.toList())).build(),
+        "GetWorkerAddresses", "options=%s", responseObserver, options);
   }
 
   @Override

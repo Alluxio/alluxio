@@ -68,6 +68,11 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   long getUsedBytes();
 
   /**
+   * @return a list of {@link WorkerNetAddress} of live workers in Alluxio
+   */
+  List<WorkerNetAddress> getWorkerAddresses() throws UnavailableException;
+
+  /**
    * @return a list of {@link WorkerInfo} objects representing the live workers in Alluxio
    */
   List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
