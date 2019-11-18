@@ -12,8 +12,8 @@
 package alluxio.metrics;
 
 import alluxio.grpc.MetricType;
-
 import alluxio.resource.LockResource;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -138,9 +138,8 @@ public final class Metric implements Serializable {
     }
   }
 
-
   /**
-   * Add value to the existing value
+   * Add value to the existing metric value.
    *
    * @param value the value to add
    */
@@ -149,7 +148,6 @@ public final class Metric implements Serializable {
       mValue = mValue + value;
     }
   }
-
 
   /**
    * @return the instance id
