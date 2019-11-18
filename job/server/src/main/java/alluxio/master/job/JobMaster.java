@@ -59,6 +59,8 @@ import io.grpc.Context;
 import net.jcip.annotations.GuardedBy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import oshi.SystemInfo;
+import oshi.hardware.CentralProcessor;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -275,6 +277,15 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    * @return list all the job ids
    */
   public List<Long> list() {
+    long[][] processorCpuLoadTicks = new SystemInfo().getHardware().getProcessor().getProcessorCpuLoadTicks();
+    for (long[] processorCpuLoadTick : processorCpuLoadTicks) {
+      String t = "";
+      for (long l : processorCpuLoadTick) {
+        t += l + ", ";
+      }
+      LOG.info(t);
+    }
+
     ArrayList<Long> allIds = Lists.newArrayList(mPlanTracker.list());
     allIds.addAll(mWorkflowTracker.list());
     Collections.sort(allIds);
