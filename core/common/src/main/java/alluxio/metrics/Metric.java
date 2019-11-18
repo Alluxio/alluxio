@@ -13,9 +13,11 @@ package alluxio.metrics;
 
 import alluxio.grpc.MetricType;
 
+import alluxio.resource.LockResource;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import net.jcip.annotations.GuardedBy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * A metric of a given instance. The instance can be master, worker, or client.
@@ -40,12 +43,16 @@ public final class Metric implements Serializable {
   private final MetricsSystem.InstanceType mInstanceType;
   private final String mHostname;
   private final String mName;
-  private final Double mValue;
   private final MetricType mMetricType;
   private String mInstanceId;
   // TODO(yupeng): consider a dedicated data structure for tag, when more functionality are added to
   // tags in the future
   private final Map<String, String> mTags;
+
+  // Lock for change the metrics value
+  private final ReentrantReadWriteLock mLock;
+  @GuardedBy("mLock")
+  private Double mValue;
 
   /**
    * Constructs a {@link Metric} instance.
@@ -81,6 +88,7 @@ public final class Metric implements Serializable {
     mName = name;
     mValue = value;
     mTags = new LinkedHashMap<>();
+    mLock = new ReentrantReadWriteLock();
   }
 
   /**
@@ -125,8 +133,23 @@ public final class Metric implements Serializable {
    * @return the metric value
    */
   public double getValue() {
-    return mValue;
+    try (LockResource r = new LockResource(mLock.readLock())) {
+      return mValue;
+    }
   }
+
+
+  /**
+   * Add value to the existing value
+   *
+   * @param value the value to add
+   */
+  public void addValue(double value) {
+    try (LockResource r = new LockResource(mLock.writeLock())) {
+      mValue = mValue + value;
+    }
+  }
+
 
   /**
    * @return the instance id

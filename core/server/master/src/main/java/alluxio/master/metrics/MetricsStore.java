@@ -95,9 +95,7 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
-    synchronized (mWorkerMetrics) {
-      putReportedMetrics(mWorkerMetrics, getFullInstanceId(hostname, null), metrics);
-    }
+    putReportedMetrics(mWorkerMetrics, getFullInstanceId(hostname, null), metrics);
   }
 
   /**
@@ -113,9 +111,7 @@ public class MetricsStore {
       return;
     }
     LOG.debug("Removing metrics for id {} to replace with {}", clientId, metrics);
-    synchronized (mClientMetrics) {
-      putReportedMetrics(mClientMetrics, getFullInstanceId(hostname, clientId), metrics);
-    }
+    putReportedMetrics(mClientMetrics, getFullInstanceId(hostname, clientId), metrics);
   }
 
   /**
@@ -132,7 +128,7 @@ public class MetricsStore {
    */
   private static void putReportedMetrics(IndexedSet<Metric> metricSet, String instanceId,
       List<Metric> reportedMetrics) {
-    List<Metric> newMetrics = new ArrayList<>(reportedMetrics.size());
+    // TODO(lu) Enable client metrics (clean stale client metrics)
     for (Metric metric : reportedMetrics) {
       if (metric.getHostname() == null) {
         continue; // ignore metrics whose hostname is null
@@ -145,21 +141,30 @@ public class MetricsStore {
         // FULL_NAME_INDEX is a unique index, so getFirstByField will return the same results as
         // getByField
         Metric oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
-        double oldVal = oldMetric == null ? 0.0 : oldMetric.getValue();
-        Metric newMetric = new Metric(metric.getInstanceType(), metric.getHostname(),
-            metric.getMetricType(), metric.getName(), oldVal + metric.getValue());
-        for (Map.Entry<String, String> tag : metric.getTags().entrySet()) {
-          newMetric.addTag(tag.getKey(), tag.getValue());
+        if (oldMetric != null) {
+          metric.addValue(metric.getValue());
+        } else {
+          Metric newMetric = new Metric(metric.getInstanceType(), metric.getHostname(),
+              metric.getMetricType(), metric.getName(), metric.getValue());
+          for (Map.Entry<String, String> tag : metric.getTags().entrySet()) {
+            newMetric.addTag(tag.getKey(), tag.getValue());
+          }
+          synchronized (metricSet) {
+            oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
+            if (oldMetric != null) {
+              metric.addValue(metric.getValue());
+            } else {
+              metricSet.add(newMetric);
+            }
+          }
         }
-        metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
-        newMetrics.add(newMetric);
       } else {
-        metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
-        newMetrics.add(metric);
+        synchronized (metricSet) {
+          metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
+          metricSet.add(metric);
+        }
       }
     }
-    metricSet.removeByField(ID_INDEX, instanceId);
-    metricSet.addAll(newMetrics);
   }
 
   /**
