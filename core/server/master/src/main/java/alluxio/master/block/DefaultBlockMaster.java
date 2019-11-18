@@ -43,6 +43,7 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.block.meta.MasterWorkerInfo;
+import alluxio.master.block.meta.StableWorkerInfo;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.BlockStore;
@@ -125,7 +126,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       new IndexDefinition<MasterWorkerInfo, Long>(true) {
         @Override
         public Long getFieldValue(MasterWorkerInfo o) {
-          return o.getId();
+          return o.getStableWorkerInfo().getId();
         }
       };
 
@@ -133,7 +134,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       new IndexDefinition<MasterWorkerInfo, WorkerNetAddress>(true) {
         @Override
         public WorkerNetAddress getFieldValue(MasterWorkerInfo o) {
-          return o.getWorkerAddress();
+          return o.getStableWorkerInfo().getWorkerAddress();
         }
       };
 
@@ -406,6 +407,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
+
     for (MasterWorkerInfo worker : mWorkers) {
       synchronized (worker) {
         workerInfoList.add(worker.generateWorkerInfo(null, true));
@@ -492,7 +494,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
               .stream().collect(Collectors.toMap(Map.Entry::getKey,
                   e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
           workerLostStorageList.add(WorkerLostStorageInfo.newBuilder()
-              .setAddress(GrpcUtils.toProto(worker.getWorkerAddress()))
+              .setAddress(GrpcUtils.toProto(worker.getStableWorkerInfo().getWorkerAddress()))
               .putAllLostStorage(lostStorage).build());
         }
       }
@@ -775,14 +777,17 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
         worker.updateLastUpdatedTimeMs();
         mWorkers.add(worker);
         workers.remove(worker);
-        if (workers == mLostWorkers) {
-          for (Consumer<Address> function : mLostWorkerFoundListeners) {
-            function.accept(new Address(worker.getWorkerAddress().getHost(),
-                  worker.getWorkerAddress().getRpcPort()));
-          }
-          LOG.warn("A lost worker {} has requested its old id {}.",
-              worker.getWorkerAddress(), worker.getId());
+      }
+
+      if (workers == mLostWorkers) {
+        StableWorkerInfo stableWorkerInfo = worker.getStableWorkerInfo();
+        WorkerNetAddress address = stableWorkerInfo.getWorkerAddress();
+        for (Consumer<Address> function : mLostWorkerFoundListeners) {
+          function.accept(new Address(address.getHost(),
+              address.getRpcPort()));
         }
+        LOG.warn("A lost worker {} has requested its old id {}.",
+            address, stableWorkerInfo.getId());
       }
 
       return worker;
@@ -795,14 +800,14 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     MasterWorkerInfo existingWorker = mWorkers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
     if (existingWorker != null) {
       // This worker address is already mapped to a worker id.
-      long oldWorkerId = existingWorker.getId();
+      long oldWorkerId = existingWorker.getStableWorkerInfo().getId();
       LOG.warn("The worker {} already exists as id {}.", workerNetAddress, oldWorkerId);
       return oldWorkerId;
     }
 
     existingWorker = findUnregisteredWorker(workerNetAddress);
     if (existingWorker != null) {
-      return existingWorker.getId();
+      return existingWorker.getStableWorkerInfo().getId();
     }
 
     // Generate a new worker id.
@@ -850,7 +855,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     }
     if (options.getConfigsCount() > 0) {
       for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
-        WorkerNetAddress workerAddress = worker.getWorkerAddress();
+        WorkerNetAddress workerAddress = worker.getStableWorkerInfo().getWorkerAddress();
         function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()),
             options.getConfigsList());
       }
@@ -873,13 +878,14 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       return Command.newBuilder().setCommandType(CommandType.Register).build();
     }
 
+    processWorkerMetrics(worker.getStableWorkerInfo().getWorkerAddress().getHost(), metrics);
+
     synchronized (worker) {
       // Technically, 'worker' should be confirmed to still be in the data structure. Lost worker
       // detection can remove it. However, we are intentionally ignoring this race, since the worker
       // will just re-register regardless.
       processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocks);
-      processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
 
       worker.addLostStorage(lostStorage);
 
@@ -918,8 +924,9 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       try (LockResource lr = lockBlock(removedBlockId)) {
         Optional<BlockMeta> block = mBlockStore.getBlock(removedBlockId);
         if (block.isPresent()) {
-          LOG.debug("Block {} is removed on worker {}.", removedBlockId, workerInfo.getId());
-          mBlockStore.removeLocation(removedBlockId, workerInfo.getId());
+          LOG.debug("Block {} is removed on worker {}.", removedBlockId,
+              workerInfo.getStableWorkerInfo().getId());
+          mBlockStore.removeLocation(removedBlockId, workerInfo.getStableWorkerInfo().getId());
           if (mBlockStore.getLocations(removedBlockId).size() == 0) {
             mLostBlocks.add(removedBlockId);
           }
@@ -945,7 +952,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
           if (block.isPresent()) {
             workerInfo.addBlock(blockId);
             BlockLocation blockLocation = BlockLocation.newBuilder()
-                .setWorkerId(workerInfo.getId())
+                .setWorkerId(workerInfo.getStableWorkerInfo().getId())
                 .setTier(entry.getKey().getTier())
                 .setMediumType(entry.getKey().getMediumType())
                 .build();
@@ -953,7 +960,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
             mLostBlocks.remove(blockId);
           } else {
             LOG.warn("Invalid block: {} from worker {}.", blockId,
-                workerInfo.getWorkerAddress().getHost());
+                workerInfo.getStableWorkerInfo().getWorkerAddress().getHost());
           }
         }
       }
@@ -965,7 +972,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     for (long block : workerInfo.getBlocks()) {
       if (!mBlockStore.getBlock(block).isPresent()) {
         LOG.info("Requesting delete for orphaned block: {} from worker {}.", block,
-            workerInfo.getWorkerAddress().getHost());
+            workerInfo.getStableWorkerInfo().getWorkerAddress().getHost());
         workerInfo.updateToRemovedBlock(true, block);
       }
     }
@@ -1012,7 +1019,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
         // - it would be an incorrect order (correct order is lock worker first, then block)
         // - only uses getters of final variables
         locations.add(new alluxio.wire.BlockLocation().setWorkerId(location.getWorkerId())
-            .setWorkerAddress(workerInfo.getWorkerAddress())
+            .setWorkerAddress(workerInfo.getStableWorkerInfo().getWorkerAddress())
             .setTierAlias(location.getTier()).setMediumType(location.getMediumType()));
       }
     }
@@ -1047,11 +1054,12 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
         synchronized (worker) {
           final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
           if (lastUpdate > masterWorkerTimeoutMs) {
-            LOG.error("The worker {}({}) timed out after {}ms without a heartbeat!", worker.getId(),
-                worker.getWorkerAddress(), lastUpdate);
+            LOG.error("The worker {}({}) timed out after {}ms without a heartbeat!",
+                worker.getStableWorkerInfo().getId(),
+                worker.getStableWorkerInfo().getWorkerAddress(), lastUpdate);
             mLostWorkers.add(worker);
             mWorkers.remove(worker);
-            WorkerNetAddress workerAddress = worker.getWorkerAddress();
+            WorkerNetAddress workerAddress = worker.getStableWorkerInfo().getWorkerAddress();
             for (Consumer<Address> function : mWorkerLostListeners) {
               function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
             }
@@ -1082,7 +1090,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   private Set<MasterWorkerInfo> selectInfoByAddress(Set<String> addresses,
       Set<MasterWorkerInfo> workerInfoSet, Set<String> workerNames) {
     return workerInfoSet.stream().filter(info -> {
-      String host = info.getWorkerAddress().getHost();
+      String host = info.getStableWorkerInfo().getWorkerAddress().getHost();
       workerNames.add(host);
 
       String ip = null;

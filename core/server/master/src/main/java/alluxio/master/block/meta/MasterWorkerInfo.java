@@ -13,7 +13,6 @@ package alluxio.master.block.meta;
 
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.grpc.StorageList;
 import alluxio.util.CommonUtils;
@@ -21,7 +20,6 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,22 +44,15 @@ public final class MasterWorkerInfo {
   private static final String LIVE_WORKER_STATE = "In Service";
   private static final String LOST_WORKER_STATE = "Out of Service";
 
-  /** Worker's address. */
-  private final WorkerNetAddress mWorkerAddress;
-  /** The id of the worker. */
-  private final long mId;
-  /** Start time of the worker in ms. */
-  private final long mStartTimeMs;
-  /** Capacity of worker in bytes. */
-  private long mCapacityBytes;
+  /** Worker infos that are not highly concurrent. Thread safe internally. */
+  private final StableWorkerInfo mStableWorkerInfo;
+
   /** Worker's used bytes. */
   private long mUsedBytes;
   /** Worker's last updated time in ms. */
   private long mLastUpdatedTimeMs;
-  /** If true, the worker is considered registered. */
-  private boolean mIsRegistered;
-  /** Worker-specific mapping between storage tier alias and storage tier ordinal. */
-  private StorageTierAssoc mStorageTierAssoc;
+  /** Capacity of worker in bytes. */
+  private long mCapacityBytes;
   /** Mapping from storage tier alias to total bytes. */
   private Map<String, Long> mTotalBytesOnTiers;
   /** Mapping from storage tier alias to used bytes. */
@@ -71,9 +62,9 @@ public final class MasterWorkerInfo {
   private Set<Long> mBlocks;
   /** ids of blocks the worker should remove. */
   private Set<Long> mToRemoveBlocks;
+
   /** Mapping from tier alias to lost storage paths. */
   private Map<String, List<String>> mLostStorage;
-
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
    *
@@ -81,12 +72,8 @@ public final class MasterWorkerInfo {
    * @param address the worker address to use
    */
   public MasterWorkerInfo(long id, WorkerNetAddress address) {
-    mWorkerAddress = Preconditions.checkNotNull(address, "address");
-    mId = id;
-    mStartTimeMs = System.currentTimeMillis();
+    mStableWorkerInfo = new StableWorkerInfo(id, address);
     mLastUpdatedTimeMs = System.currentTimeMillis();
-    mIsRegistered = false;
-    mStorageTierAssoc = null;
     mTotalBytesOnTiers = new HashMap<>();
     mUsedBytesOnTiers = new HashMap<>();
     mBlocks = new HashSet<>();
@@ -118,13 +105,13 @@ public final class MasterWorkerInfo {
                 + storageTierAliases.get(i + 1) + " in the hierarchy");
       }
     }
-    mStorageTierAssoc = new WorkerStorageTierAssoc(storageTierAliases);
+    mStableWorkerInfo.setStorageTierAssoc(storageTierAliases);
     // validate the number of tiers
-    if (mStorageTierAssoc.size() != totalBytesOnTiers.size()
-        || mStorageTierAssoc.size() != usedBytesOnTiers.size()) {
+    if (storageTierAliases.size() != totalBytesOnTiers.size()
+        || storageTierAliases.size() != usedBytesOnTiers.size()) {
       throw new IllegalArgumentException(
           "totalBytesOnTiers and usedBytesOnTiers should have the same number of tiers as "
-              + "storageTierAliases, but storageTierAliases has " + mStorageTierAssoc.size()
+              + "storageTierAliases, but storageTierAliases has " + storageTierAliases.size()
               + " tiers, while totalBytesOnTiers has " + totalBytesOnTiers.size()
               + " tiers and usedBytesOnTiers has " + usedBytesOnTiers.size() + " tiers");
     }
@@ -142,10 +129,10 @@ public final class MasterWorkerInfo {
     }
 
     Set<Long> removedBlocks;
-    if (mIsRegistered) {
+    if (mStableWorkerInfo.isRegistered()) {
       // This is a re-register of an existing worker. Assume the new block ownership data is more
       // up-to-date and update the existing block information.
-      LOG.info("re-registering an existing workerId: {}", mId);
+      LOG.info("re-registering an existing workerId: {}", mStableWorkerInfo.getId());
 
       // Compute the difference between the existing block data, and the new data.
       removedBlocks = Sets.difference(mBlocks, blocks);
@@ -156,7 +143,7 @@ public final class MasterWorkerInfo {
     // Set the new block information.
     mBlocks = new HashSet<>(blocks);
 
-    mIsRegistered = true;
+    mStableWorkerInfo.setRegistered(true);
     return removedBlocks;
   }
 
@@ -218,23 +205,23 @@ public final class MasterWorkerInfo {
     for (WorkerInfoField field : checkedFieldRange) {
       switch (field) {
         case ADDRESS:
-          info.setAddress(mWorkerAddress);
+          info.setAddress(mStableWorkerInfo.getWorkerAddress());
           break;
         case WORKER_CAPACITY_BYTES:
           info.setCapacityBytes(mCapacityBytes);
           break;
         case WORKER_CAPACITY_BYTES_ON_TIERS:
-          info.setCapacityBytesOnTiers(mTotalBytesOnTiers);
+          info.setCapacityBytesOnTiers(getTotalBytesOnTiers());
           break;
         case ID:
-          info.setId(mId);
+          info.setId(mStableWorkerInfo.getId());
           break;
         case LAST_CONTACT_SEC:
           info.setLastContactSec(
               (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS));
           break;
         case START_TIME_MS:
-          info.setStartTimeMs(mStartTimeMs);
+          info.setStartTimeMs(mStableWorkerInfo.getStartTime());
           break;
         case STATE:
           if (isLiveWorker) {
@@ -257,10 +244,13 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return the worker's address
+   * Gets the stable worker info. This method does not require
+   * external locks.
+   *
+   * @return the stable worker info
    */
-  public WorkerNetAddress getWorkerAddress() {
-    return mWorkerAddress;
+  public StableWorkerInfo getStableWorkerInfo() {
+    return mStableWorkerInfo;
   }
 
   /**
@@ -285,13 +275,6 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return the id of the worker
-   */
-  public long getId() {
-    return mId;
-  }
-
-  /**
    * @return the last updated time of the worker in ms
    */
   public long getLastUpdatedTimeMs() {
@@ -313,13 +296,6 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return the storage tier mapping for the worker
-   */
-  public StorageTierAssoc getStorageTierAssoc() {
-    return mStorageTierAssoc;
-  }
-
-  /**
    * @return the total bytes on each storage tier
    */
   public Map<String, Long> getTotalBytesOnTiers() {
@@ -334,25 +310,11 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return the start time in milliseconds
-   */
-  public long getStartTime() {
-    return mStartTimeMs;
-  }
-
-  /**
-   * @return whether the worker has been registered yet
-   */
-  public boolean isRegistered() {
-    return mIsRegistered;
-  }
-
-  /**
    * @return the free bytes on each storage tier
    */
   public Map<String, Long> getFreeBytesOnTiers() {
     Map<String, Long> freeCapacityBytes = new HashMap<>();
-    for (Map.Entry<String, Long> entry : mTotalBytesOnTiers.entrySet()) {
+    for (Map.Entry<String, Long> entry : getTotalBytesOnTiers().entrySet()) {
       freeCapacityBytes.put(entry.getKey(),
           entry.getValue() - mUsedBytesOnTiers.get(entry.getKey()));
     }
@@ -375,10 +337,9 @@ public final class MasterWorkerInfo {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("id", mId).add("workerAddress", mWorkerAddress)
-        .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
-        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("blocks", mBlocks)
-        .add("lostStorage", mLostStorage).toString();
+    return MoreObjects.toStringHelper(this).add("stableWorkerInfo", mStableWorkerInfo)
+        .add("usedBytes", mUsedBytes).add("lastUpdatedTimeMs", mLastUpdatedTimeMs)
+        .add("blocks", mBlocks).toString();
   }
 
   /**
