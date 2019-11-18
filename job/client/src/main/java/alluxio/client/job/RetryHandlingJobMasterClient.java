@@ -21,10 +21,10 @@ import alluxio.grpc.ListAllPRequest;
 import alluxio.grpc.RunPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.job.JobConfig;
+import alluxio.job.ProtoUtils;
 import alluxio.job.util.SerializationUtils;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobInfo;
-import alluxio.job.wire.PlanInfo;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.google.protobuf.ByteString;
@@ -83,7 +83,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
 
   @Override
   public JobInfo getJobStatus(final long id) throws IOException {
-    return new PlanInfo(retryRPC(new RpcCallable<alluxio.grpc.JobInfo>() {
+    return ProtoUtils.fromProto(retryRPC(new RpcCallable<alluxio.grpc.JobInfo>() {
       public alluxio.grpc.JobInfo call() throws StatusRuntimeException {
         return mClient.getJobStatus(GetJobStatusPRequest.newBuilder().setJobId(id).build())
             .getJobInfo();

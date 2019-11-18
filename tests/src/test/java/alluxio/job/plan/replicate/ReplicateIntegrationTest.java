@@ -11,6 +11,8 @@
 
 package alluxio.job.plan.replicate;
 
+import static org.mockito.Mockito.mock;
+
 import alluxio.AlluxioURI;
 import alluxio.TestLoggerRule;
 import alluxio.client.file.FileOutStream;
@@ -24,6 +26,7 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.job.JobIntegrationTest;
 import alluxio.master.job.plan.PlanTracker;
+import alluxio.master.job.workflow.WorkflowTracker;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockInfo;
@@ -78,7 +81,7 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
   public void replicateFullBlockFromUFS() throws Exception {
     // run the replicate job for mBlockId1
     // hack - use a job tracker with capacity of 1
-    PlanTracker planTracker = new PlanTracker(1, 0, -1);
+    PlanTracker planTracker = new PlanTracker(1, 0, -1, mock(WorkflowTracker.class));
     Whitebox.setInternalState(mJobMaster, "mPlanTracker", planTracker);
     waitForJobToFinish(mJobMaster.run(new ReplicateConfig(TEST_URI, mBlockId1, 1)));
 
@@ -96,7 +99,7 @@ public final class ReplicateIntegrationTest extends JobIntegrationTest {
   public void replicateLastBlockFromUFS() throws Exception {
     // run the replicate job for mBlockId2
     // hack - use a plan tracker with capacity of 1
-    PlanTracker planTracker = new PlanTracker(1, 0, -1);
+    PlanTracker planTracker = new PlanTracker(1, 0, -1, mock(WorkflowTracker.class));
     Whitebox.setInternalState(mJobMaster, "mPlanTracker", planTracker);
     waitForJobToFinish(mJobMaster.run(new ReplicateConfig(TEST_URI, mBlockId2, 1)));
 

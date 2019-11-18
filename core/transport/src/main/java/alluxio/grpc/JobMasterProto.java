@@ -228,26 +228,27 @@ public final class JobMasterProto {
       "ptions\"(\n\032RegisterJobWorkerPResponse\022\n\n\002" +
       "id\030\001 \001(\003*X\n\006Status\022\013\n\007UNKNOWN\020\000\022\013\n\007CREAT" +
       "ED\020\001\022\014\n\010CANCELED\020\002\022\n\n\006FAILED\020\003\022\013\n\007RUNNIN" +
-      "G\020\004\022\r\n\tCOMPLETED\020\005*\035\n\007JobType\022\010\n\004PLAN\020\001\022" +
-      "\010\n\004TASK\020\0022\331\003\n\026JobMasterClientService\022M\n\006" +
-      "Cancel\022 .alluxio.grpc.job.CancelPRequest" +
-      "\032!.alluxio.grpc.job.CancelPResponse\022_\n\014G" +
-      "etJobStatus\022&.alluxio.grpc.job.GetJobSta" +
-      "tusPRequest\032\'.alluxio.grpc.job.GetJobSta" +
-      "tusPResponse\022w\n\024GetJobServiceSummary\022..a" +
-      "lluxio.grpc.job.GetJobServiceSummaryPReq" +
-      "uest\032/.alluxio.grpc.job.GetJobServiceSum" +
-      "maryPResponse\022P\n\007ListAll\022!.alluxio.grpc." +
-      "job.ListAllPRequest\032\".alluxio.grpc.job.L" +
-      "istAllPResponse\022D\n\003Run\022\035.alluxio.grpc.jo" +
-      "b.RunPRequest\032\036.alluxio.grpc.job.RunPRes" +
-      "ponse2\346\001\n\026JobMasterWorkerService\022\\\n\tHear" +
-      "tbeat\022&.alluxio.grpc.job.JobHeartbeatPRe" +
-      "quest\032\'.alluxio.grpc.job.JobHeartbeatPRe" +
-      "sponse\022n\n\021RegisterJobWorker\022+.alluxio.gr" +
-      "pc.job.RegisterJobWorkerPRequest\032,.allux" +
-      "io.grpc.job.RegisterJobWorkerPResponseB " +
-      "\n\014alluxio.grpcB\016JobMasterProtoP\001"
+      "G\020\004\022\r\n\tCOMPLETED\020\005*+\n\007JobType\022\010\n\004PLAN\020\001\022" +
+      "\010\n\004TASK\020\002\022\014\n\010WORKFLOW\020\0032\331\003\n\026JobMasterCli" +
+      "entService\022M\n\006Cancel\022 .alluxio.grpc.job." +
+      "CancelPRequest\032!.alluxio.grpc.job.Cancel" +
+      "PResponse\022_\n\014GetJobStatus\022&.alluxio.grpc" +
+      ".job.GetJobStatusPRequest\032\'.alluxio.grpc" +
+      ".job.GetJobStatusPResponse\022w\n\024GetJobServ" +
+      "iceSummary\022..alluxio.grpc.job.GetJobServ" +
+      "iceSummaryPRequest\032/.alluxio.grpc.job.Ge" +
+      "tJobServiceSummaryPResponse\022P\n\007ListAll\022!" +
+      ".alluxio.grpc.job.ListAllPRequest\032\".allu" +
+      "xio.grpc.job.ListAllPResponse\022D\n\003Run\022\035.a" +
+      "lluxio.grpc.job.RunPRequest\032\036.alluxio.gr" +
+      "pc.job.RunPResponse2\346\001\n\026JobMasterWorkerS" +
+      "ervice\022\\\n\tHeartbeat\022&.alluxio.grpc.job.J" +
+      "obHeartbeatPRequest\032\'.alluxio.grpc.job.J" +
+      "obHeartbeatPResponse\022n\n\021RegisterJobWorke" +
+      "r\022+.alluxio.grpc.job.RegisterJobWorkerPR" +
+      "equest\032,.alluxio.grpc.job.RegisterJobWor" +
+      "kerPResponseB \n\014alluxio.grpcB\016JobMasterP" +
+      "rotoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
