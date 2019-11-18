@@ -68,10 +68,17 @@ $ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostna
 View Alluxio WebUI at `http://master_hostname:port` and you can see the directory and file Hive
 creates:
 
-> Note: Since the test data files are in text, make sure Hive is configured to read from TextFile. 
-```properties
-hive.default.fileformat=TextFile
-hive.default.fileformat.managed=TextFile
+> Note: Since the test data files are in text format, make sure Hive is configured to read from TextFile for managed and unmanaged tables.
+You should make sure your Hive `hive-site.xml` has the following properties:
+```xml
+<property>
+  <name>hive.default.fileformat</name>
+  <value>TextFile</value>
+</property>
+<property>
+  <name>hive.default.fileformat.managed</name>
+  <value>TextFile</value>
+</property>
 ```
 
 ![HiveTableInAlluxio]({{ '/img/screenshot_hive_table_in_alluxio.png' | relativize_url }})
