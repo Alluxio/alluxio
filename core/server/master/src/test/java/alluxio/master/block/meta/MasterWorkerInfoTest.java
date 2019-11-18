@@ -134,12 +134,12 @@ public final class MasterWorkerInfoTest {
   @Test
   public void workerInfoGeneration() {
     WorkerInfo workerInfo = mInfo.generateWorkerInfo(null, true);
-    assertEquals(mInfo.getId(), workerInfo.getId());
-    assertEquals(mInfo.getWorkerAddress(), workerInfo.getAddress());
+    assertEquals(mInfo.getStableWorkerInfo().getId(), workerInfo.getId());
+    assertEquals(mInfo.getStableWorkerInfo().getWorkerAddress(), workerInfo.getAddress());
     assertEquals("In Service", workerInfo.getState());
     assertEquals(mInfo.getCapacityBytes(), workerInfo.getCapacityBytes());
     assertEquals(mInfo.getUsedBytes(), workerInfo.getUsedBytes());
-    assertEquals(mInfo.getStartTime(), workerInfo.getStartTimeMs());
+    assertEquals(mInfo.getStableWorkerInfo().getStartTime(), workerInfo.getStartTimeMs());
   }
 
   /**
