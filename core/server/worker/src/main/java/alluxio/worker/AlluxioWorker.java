@@ -17,6 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.MasterInquireClient;
 import alluxio.retry.RetryUtils;
+import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 
@@ -54,7 +55,7 @@ public final class AlluxioWorker {
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.WORKER);
     MasterInquireClient masterInquireClient =
-        MasterInquireClient.Factory.create(ServerConfiguration.global());
+        MasterInquireClient.Factory.create(ServerConfiguration.global(), ServerUserState.global());
     try {
       RetryUtils.retry("load cluster default configuration with master", () -> {
         InetSocketAddress masterAddress = masterInquireClient.getPrimaryRpcAddress();

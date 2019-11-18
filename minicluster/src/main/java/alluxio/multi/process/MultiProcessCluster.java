@@ -39,6 +39,7 @@ import alluxio.master.ZkMasterInquireClient;
 import alluxio.master.journal.JournalType;
 import alluxio.multi.process.PortCoordination.ReservedPort;
 import alluxio.network.PortUtils;
+import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
@@ -643,7 +644,8 @@ public final class MultiProcessCluster {
           for (MasterNetAddress address : mMasterAddresses) {
             addresses.add(new InetSocketAddress(address.getHostname(), address.getRpcPort()));
           }
-          return new PollingMasterInquireClient(addresses, ServerConfiguration.global());
+          return new PollingMasterInquireClient(addresses, ServerConfiguration.global(),
+              ServerUserState.global());
         } else {
           return new SingleMasterInquireClient(new InetSocketAddress(
               mMasterAddresses.get(0).getHostname(), mMasterAddresses.get(0).getRpcPort()));
