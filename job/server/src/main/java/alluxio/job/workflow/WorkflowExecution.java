@@ -55,6 +55,7 @@ public abstract class WorkflowExecution {
   /**
    * stops future execution.
    * @param status status of the failure: either CANCELLED or FAILED
+   * @param errorMessage error message
    */
   public final void stop(Status status, String errorMessage) {
     Preconditions.checkArgument(status.equals(Status.CANCELED) || status.equals(Status.FAILED));

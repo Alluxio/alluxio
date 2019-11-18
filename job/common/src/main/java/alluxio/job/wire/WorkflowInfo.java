@@ -43,13 +43,14 @@ public class WorkflowInfo implements JobInfo {
    * @param id id of the workflow
    * @param status {@link Status} of the workflow
    * @param lastUpdated lastUpdated time in milliseconds
+   * @param errorMessage error message
    * @param children list of child job infos
    */
   public WorkflowInfo(long id, Status status, long lastUpdated, String errorMessage,
       List<JobInfo> children) {
     mId = id;
     mStatus = status;
-    mLastUpdated = lastUpdated;)
+    mLastUpdated = lastUpdated;
     mErrorMessage = (errorMessage == null) ? "" : errorMessage;
     mChildren = children;
   }
