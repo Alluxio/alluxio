@@ -33,7 +33,6 @@ import alluxio.security.authentication.AuthenticationUserUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
