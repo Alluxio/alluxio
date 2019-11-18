@@ -558,30 +558,27 @@ public final class FileSystemContext implements Closeable {
    *         otherwise a list of all remote workers will be returned
    */
   private List<WorkerNetAddress> getWorkerAddresses() throws IOException {
-    List<WorkerInfo> infos;
+    List<WorkerNetAddress> workerAddresses;
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
-      infos = blockMasterClient.getWorkerInfoList();
+      workerAddresses = blockMasterClient.getWorkerAddresses();
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);
     }
-    if (infos.isEmpty()) {
+    if (workerAddresses.isEmpty()) {
       throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
 
     // Convert the worker infos into net addresses, if there are local addresses, only keep those
-    List<WorkerNetAddress> workerNetAddresses = new ArrayList<>();
     List<WorkerNetAddress> localWorkerNetAddresses = new ArrayList<>();
     String localHostname = NetworkAddressUtils.getClientHostName(getClusterConf());
-    for (WorkerInfo info : infos) {
-      WorkerNetAddress netAddress = info.getAddress();
-      if (netAddress.getHost().equals(localHostname)) {
-        localWorkerNetAddresses.add(netAddress);
+    for (WorkerNetAddress address : workerAddresses) {
+      if (address.getHost().equals(localHostname)) {
+        localWorkerNetAddresses.add(address);
       }
-      workerNetAddresses.add(netAddress);
     }
 
-    return localWorkerNetAddresses.isEmpty() ? workerNetAddresses : localWorkerNetAddresses;
+    return localWorkerNetAddresses.isEmpty() ? workerAddresses : localWorkerNetAddresses;
   }
 
   /**
