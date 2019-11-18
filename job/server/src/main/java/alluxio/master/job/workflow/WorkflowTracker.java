@@ -104,7 +104,7 @@ public class WorkflowTracker {
     }
 
     WorkflowInfo workflowInfo = new WorkflowInfo(jobId, workflowExecution.getStatus(),
-        workflowExecution.getLastUpdated(), jobInfos);
+        workflowExecution.getLastUpdated(), workflowExecution.getErrorMessage(), jobInfos);
     return workflowInfo;
   }
 
@@ -176,7 +176,7 @@ public class WorkflowTracker {
     }
   }
 
-  private synchronized void fail(long jobId, Status status) {
+  private synchronized void stop(long jobId, Status status, String errorMessage) {
     Long parentJobId = mParentWorkflow.get(jobId);
 
     if (parentJobId == null) {
@@ -185,9 +185,9 @@ public class WorkflowTracker {
 
     WorkflowExecution workflowExecution = mWorkflows.get(parentJobId);
 
-    workflowExecution.fail(status);
+    workflowExecution.stop(status, errorMessage);
 
-    fail(parentJobId, status);
+    stop(parentJobId, status, errorMessage);
     return;
   }
 
@@ -225,7 +225,7 @@ public class WorkflowTracker {
         mJobMaster.run(childJobConfig, childJobId);
       } catch (JobDoesNotExistException e) {
         LOG.warn(e.getMessage());
-        fail(jobId, Status.FAILED);
+        stop(jobId, Status.FAILED, e.getMessage());
       }
     }
   }
@@ -251,7 +251,7 @@ public class WorkflowTracker {
       if (status.equals(Status.COMPLETED)) {
         done(planId);
       } else if (status.equals(Status.CANCELED) || status.equals(Status.FAILED)) {
-        fail(planId, status);
+        stop(planId, status, jobInfo.getErrorMessage());
       }
     }
   }

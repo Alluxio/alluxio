@@ -45,13 +45,13 @@ public enum WorkflowExecutionRegistry {
     }
   }
 
-  private synchronized WorkflowExecutionFactory getExecutionFactory(WorkflowConfig workflowConfig)
+  private WorkflowExecutionFactory getExecutionFactory(WorkflowConfig config)
       throws JobDoesNotExistException {
-    if (!mExecutionFactories.containsKey(workflowConfig.getClass())) {
+    if (!mExecutionFactories.containsKey(config.getClass())) {
       throw new JobDoesNotExistException(ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST
-          .getMessage(workflowConfig.getName()));
+          .getMessage(config.getName()));
     }
-    return mExecutionFactories.get(workflowConfig.getClass());
+    return mExecutionFactories.get(config.getClass());
   }
 
   /**

@@ -17,6 +17,7 @@ import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
@@ -26,12 +27,14 @@ public abstract class WorkflowExecution {
 
   private Status mStatus;
   private long mLastUpdated;
+  private String mErrorMessage;
 
   /**
    * Default constructor.
    */
   public WorkflowExecution() {
     setStatus(Status.RUNNING);
+    mErrorMessage = null;
   }
 
   /**
@@ -50,12 +53,15 @@ public abstract class WorkflowExecution {
   }
 
   /**
-   * fails the workflow and stops future execution.
+   * stops future execution.
    * @param status status of the failure: either CANCELLED or FAILED
    */
-  public final void fail(Status status) {
+  public final void stop(Status status, String errorMessage) {
     Preconditions.checkArgument(status.equals(Status.CANCELED) || status.equals(Status.FAILED));
     setStatus(status);
+    if (mErrorMessage == null) {
+      mErrorMessage = errorMessage;
+    }
   }
 
   /**
@@ -70,6 +76,14 @@ public abstract class WorkflowExecution {
    */
   public final long getLastUpdated() {
     return mLastUpdated;
+  }
+
+  /**
+   * @return the error message
+   */
+  @Nullable
+  public final String getErrorMessage() {
+    return mErrorMessage;
   }
 
   private void setStatus(Status status) {
