@@ -11,25 +11,17 @@
 
 package alluxio.worker.job.heartbeat;
 
-import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.worker.job.JobMasterClient;
+import oshi.SystemInfo;
+import oshi.hardware.CentralProcessor;
 
-public class HealthReportExecutor extends HeartbeatExecutor {
+public class HealthReport {
 
-  private final JobMasterClient mJobMasterClient;
+  CentralProcessor mProcessor;
 
-  public HealthReportExecutor(JobMasterClient jobMasterClient) {
-    mJobMasterClient = jobMasterClient
-  }
+  private long[] mPrevTicks;
+  private long[][] mPrevProcTicks;
 
-
-  @Override
-  public void heartbeat() throws InterruptedException {
-
-  }
-
-  @Override
-  public void close() {
-
+  public HealthReport() {
+    mProcessor = new SystemInfo().getHardware().getProcessor();
   }
 }

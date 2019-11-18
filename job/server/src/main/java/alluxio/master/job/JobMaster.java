@@ -61,6 +61,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
+import oshi.hardware.HWDiskStore;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -277,6 +278,13 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    * @return list all the job ids
    */
   public List<Long> list() {
+    LOG.info("Disk:");
+    for (HWDiskStore diskStore : new SystemInfo().getHardware().getDiskStores()) {
+      LOG.info(diskStore.toString());
+    }
+
+    LOG.info("CPU Ticks:");
+
     long[][] processorCpuLoadTicks = new SystemInfo().getHardware().getProcessor().getProcessorCpuLoadTicks();
     for (long[] processorCpuLoadTick : processorCpuLoadTicks) {
       String t = "";
