@@ -74,22 +74,16 @@ public class MetricsStore {
    * A thread-safe linked-list-based queue with an optional capacity limit.
    * If the rate of submitting worker metrics and client metrics are much faster
    * than the rate of processing submitted metrics, no new metrics will be accepted.
-   * The master metrics will become incorrect.
+   * The stored worker metrics and client metrics will become incorrect.
    */
   private final LinkedBlockingQueue<InstanceMetrics> mMetricsQueue;
 
-  /**
-   * Dedicated thread for process metrics in the metrics queue.
-   */
+  // Dedicated thread for process metrics in the metrics queue.
   private Thread mMetricsProcessThread;
-  /**
-   * Timeout for submitting instance metrics to metrics queue.
-   */
+  // Timeout for submitting instance metrics to metrics queue.
   private final long mMetricsSubmitTimeout;
 
-  /**
-   * Control flag that is used to instruct metrics processing thread to exit.
-   */
+  // Control flag that is used to instruct metrics processing thread to exit.
   private volatile boolean mStopProcessing = false;
 
   /**
@@ -218,7 +212,8 @@ public class MetricsStore {
           newMetrics.add(metric);
         }
       }
-      metricSet.removeByField(ID_INDEX, instanceMetrics.getId());
+      metricSet.removeByField(ID_INDEX,
+          getFullInstanceId(instanceMetrics.getHostname(), instanceMetrics.getId()));
       metricSet.addAll(newMetrics);
     }
   }
@@ -267,6 +262,19 @@ public class MetricsStore {
     if (mMetricsProcessThread != null) {
       stop();
     }
+    // Clears all the existing metrics to support master failover
+    synchronized (mWorkerMetrics) {
+      if (!mWorkerMetrics.isEmpty()) {
+        mWorkerMetrics.clear();
+      }
+    }
+    synchronized (mClientMetrics) {
+      if (!mClientMetrics.isEmpty()) {
+        mClientMetrics.clear();
+      }
+    }
+    mMetricsQueue.clear();
+
     // Create a new thread.
     mMetricsProcessThread = new Thread(this::processMetrics, "MetricsProcessingThread");
     // Reset termination flag before starting the new thread.
@@ -289,18 +297,6 @@ public class MetricsStore {
       } finally {
         mMetricsProcessThread = null;
       }
-    }
-  }
-
-  /**
-   * Clears all the metrics.
-   */
-  public void clear() {
-    synchronized (mWorkerMetrics) {
-      mWorkerMetrics.clear();
-    }
-    synchronized (mClientMetrics) {
-      mClientMetrics.clear();
     }
   }
 
