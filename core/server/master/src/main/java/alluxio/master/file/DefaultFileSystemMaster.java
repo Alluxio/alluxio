@@ -3213,9 +3213,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
     Map<AlluxioURI, UfsStatus> statusCache;
     try (RpcContext rpcContext = createRpcContext()) {
+      // TODO(adit): do we need to populate the status cache for all descendants?
       statusCache = populateStatusCache(path, DescendantType.ALL);
       if (changedFiles == null) {
         LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, true);
+        // TODO(adit): do we need to write lock entire sub-tree while full syncing
         try (LockedInodePath inodePath =
             mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern())) {
           syncMetadataInternal(rpcContext, inodePath, lockingScheme, DescendantType.ALL,
@@ -3303,13 +3305,17 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
         listOptions.setRecursive(syncDescendantType == DescendantType.ALL);
         try {
+          // TODO(adit): this call will be expensive as we list recursively even when changelist is not empty
+          long startTime = System.nanoTime();
           UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
           if (children != null) {
             for (UfsStatus childStatus : children) {
+              // TODO(adit): can we avoid copying the hashmap which may be very large
               statusCache.put(path.joinUnsafe(childStatus.getName()),
                   childStatus);
             }
           }
+          LOG.info("AMDEBUG Time elapsed in ufs.listStatus {} (ns)", System.nanoTime() - startTime);
         } catch (Exception e) {
           LOG.debug("ListStatus failed as an preparation step for syncMetadata {}", path, e);
         }
