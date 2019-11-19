@@ -146,41 +146,40 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
         setState(State.SECONDARY);
         break;
       case SUSPENDED:
+        if (mConnectionErrorPolicy == ZookeeperConnectionErrorPolicy.STANDARD) {
+          // Assume SECONDARY mode under standard policy.
+          setState(State.SECONDARY);
+        }
+        break;
       case RECONNECTED:
         if (mConnectionErrorPolicy == ZookeeperConnectionErrorPolicy.STANDARD) {
           // Assume SECONDARY mode under standard policy.
           setState(State.SECONDARY);
         } else {
-          // Leave it to curator session handling.
-          if (newState == ConnectionState.SUSPENDED) {
-            // Do not act when the connection is suspended.
-            // Curator will either RECONNECT or LOST the connection.
-            LOG.warn("Session suspended for primary selector at state: {}", getState());
-          } else {
-            if (getState() == State.PRIMARY) {
-              try {
-                /**
-                 * Do a sanity check, when reconnected for a selector with "PRIMARY" mode.
-                 * This is to ensure that curator reconnected with the same Id.
-                 * Hence, guaranteeing Zookeeper state for this instance was preserved.
-                 */
-                long reconnectSessionId = client.getZookeeperClient().getZooKeeper().getSessionId();
-                if (mLeaderZkSessionId != reconnectSessionId) {
-                  LOG.warn(String.format(
-                      "Curator reconnected under a different session. "
-                          + "Old sessionId: %x, New sessionId: %x",
-                      mLeaderZkSessionId, reconnectSessionId));
-                  setState(State.SECONDARY);
-                } else {
-                  LOG.info(String.format(
-                      "Retaining leader state after zookeeper reconnected with sessionId: %x.",
-                      reconnectSessionId));
-                }
-              } catch (Exception e) {
-                LOG.warn(String
-                    .format("Cannot query session Id after session is reconnected with Id: %x", e));
+          // Try to retain existing PRIMARY role under session policy.
+          if (getState() == State.PRIMARY) {
+            /**
+             * Do a sanity check when reconnected for a selector with "PRIMARY" mode.
+             * This is to ensure that curator reconnected with the same Id.
+             * Hence, guaranteeing Zookeeper state for this instance was preserved.
+             */
+            try {
+              long reconnectSessionId = client.getZookeeperClient().getZooKeeper().getSessionId();
+              if (mLeaderZkSessionId != reconnectSessionId) {
+                LOG.warn(String.format(
+                    "Curator reconnected under a different session. "
+                        + "Old sessionId: %x, New sessionId: %x",
+                    mLeaderZkSessionId, reconnectSessionId));
                 setState(State.SECONDARY);
+              } else {
+                LOG.info(String.format(
+                    "Retaining leader state after zookeeper reconnected with sessionId: %x.",
+                    reconnectSessionId));
               }
+            } catch (Exception e) {
+              LOG.warn(String
+                  .format("Cannot query session Id after session is reconnected with Id: %x", e));
+              setState(State.SECONDARY);
             }
           }
         }
