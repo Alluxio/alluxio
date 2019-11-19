@@ -24,7 +24,7 @@ import alluxio.job.wire.JobWorkerHealth;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.job.JobMasterClient;
-import alluxio.worker.job.heartbeat.CommandHandlingExecutor;
+import alluxio.worker.job.command.CommandHandlingExecutor;
 import alluxio.worker.job.task.TaskExecutorManager;
 
 import com.google.common.collect.Lists;

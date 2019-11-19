@@ -17,6 +17,7 @@ import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.StatusSummary;
 import alluxio.util.CommonUtils;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -56,7 +57,7 @@ public class JobServiceMetricsCommand {
     List<JobWorkerHealth> allWorkerHealth = mJobMasterClient.getAllWorkerHealth();
 
     for (JobWorkerHealth workerHealth : allWorkerHealth) {
-      mPrintStream.print(String.format("Worker: %-12s", workerHealth.getHostname()));
+      mPrintStream.print(String.format("Worker: %-10s  ", workerHealth.getHostname()));
       mPrintStream.println(String.format("Load Avg: %s",
           StringUtils.join(workerHealth.getLoadAverage(), ", ")));
     }
@@ -67,7 +68,7 @@ public class JobServiceMetricsCommand {
     Collection<StatusSummary> jobStatusSummaries = jobServiceSummary.getSummaryPerStatus();
 
     for (StatusSummary statusSummary : jobStatusSummaries) {
-      mPrintStream.print(String.format("Status: %-12s", statusSummary.getStatus()));
+      mPrintStream.print(String.format("Status: %-10s", statusSummary.getStatus()));
       mPrintStream.println(String.format("Count: %s", statusSummary.getCount()));
     }
 

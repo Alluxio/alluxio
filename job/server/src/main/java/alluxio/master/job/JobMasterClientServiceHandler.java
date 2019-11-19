@@ -28,8 +28,8 @@ import alluxio.grpc.RunPRequest;
 import alluxio.grpc.RunPResponse;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
-
 import alluxio.job.wire.JobWorkerHealth;
+
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -104,7 +104,8 @@ public class JobMasterClientServiceHandler
   }
 
   @Override
-  public void getAllWorkerHealth(GetAllWorkerHealthPRequest request, StreamObserver<GetAllWorkerHealthPResponse> responseObserver) {
+  public void getAllWorkerHealth(GetAllWorkerHealthPRequest request,
+                                 StreamObserver<GetAllWorkerHealthPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetAllWorkerHealthPResponse>) () -> {
       GetAllWorkerHealthPResponse.Builder builder = GetAllWorkerHealthPResponse.newBuilder();
 

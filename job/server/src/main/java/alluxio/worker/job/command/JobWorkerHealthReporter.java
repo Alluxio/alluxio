@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.job.heartbeat;
+package alluxio.worker.job.command;
 
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;

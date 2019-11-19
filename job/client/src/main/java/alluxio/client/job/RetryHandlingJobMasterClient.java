@@ -15,7 +15,6 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.GetAllWorkerHealthPRequest;
-import alluxio.grpc.GetAllWorkerHealthPResponse;
 import alluxio.grpc.GetJobServiceSummaryPRequest;
 import alluxio.grpc.GetJobStatusPRequest;
 import alluxio.grpc.JobMasterClientServiceGrpc;

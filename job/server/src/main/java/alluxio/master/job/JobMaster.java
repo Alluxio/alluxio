@@ -328,6 +328,9 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     return new JobServiceSummary(jobInfos);
   }
 
+  /**
+   * @return health metrics for each of the job workers
+   */
   public List<JobWorkerHealth> getAllWorkerHealth() {
     ArrayList<JobWorkerHealth> result = Lists.newArrayList(mWorkerHealth.values());
     Collections.sort(result, Comparator.comparingLong((a) -> a.getWorkerId()));
