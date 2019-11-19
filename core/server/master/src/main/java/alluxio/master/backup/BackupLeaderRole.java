@@ -290,9 +290,10 @@ public class BackupLeaderRole extends AbstractBackupRole {
           journalSequences = mJournalSystem.getCurrentSequenceNumbers();
         }
         // Send backup request along with consistent journal sequences.
-        LOG.info("Sending backup request to backup-worker: {}", workerEntry.getValue());
-        sendMessageBlocking(workerEntry.getKey(),
-            new BackupRequestMessage(backupId, request, journalSequences));
+        BackupRequestMessage requestMessage = new BackupRequestMessage(backupId, request, journalSequences);
+        LOG.info("Sending backup request to backup-worker: {}. Request message: {}",
+            workerEntry.getValue(), requestMessage);
+        sendMessageBlocking(workerEntry.getKey(), requestMessage);
         // Delegation successful.
         mRemoteBackupConnection = workerEntry.getKey();
         // Start abandon timer.
