@@ -39,49 +39,46 @@ defaults:
 
 # These are the ordered category names
 categoryList:
-  - Home
-  - Deploying Alluxio
-  - Under Stores
-  - Data Applications
-  - Basic
+  - Overview
+  - Core Services
+  - Install Alluxio
+  - Alluxio in the Cloud
+  - Compute Integrations
+  - Storage Integrations
   - Operations
-  - Advanced
   - Client APIs
-  - Structured Data
   - Contributor Resources
   - Reference
 
 # Each language has a particular version of category names
 # When supporting a new language version, do not change the 'group' attribute in .md page files
 # Instead, just add the group name of that language below
+# TODO: review/fill in chinese category names to match new layout
 categoryInfo:
-  Home:
-    en: Home
+  Overview:
+    en: Overview
     cn: 用户指南
-  Deploying Alluxio:
-    en: Deploying Alluxio
+  Core Services:
+    en: Core Services
+    cn: TODO
+  Install Alluxio:
+    en: Install Alluxio
     cn: 部署 Alluxio
-  Under Stores:
-    en: Under Stores
-    cn: 底层存储系统
-  Data Applications:
-    en: Data Applications
+  Alluxio in the Cloud:
+    en: Alluxio in the Cloud
+    cn: TODO
+  Compute Integrations:
+    en: Compute Integrations
     cn: 计算应用
-  Basic:
-    en: Basic
-    cn: 基本用法
+  Storage Integrations:
+    en: Storage Integrations
+    cn: 底层存储系统
   Operations:
     en: Operations
     cn: 运行维护
-  Advanced:
-    en: Advanced
-    cn: 高级用法
   Client APIs:
     en: Client APIs
     cn: APIs
-  Structured Data:
-    en: Structured Data
-    cn: 结构化数据
   Contributor Resources:
     en: Contributor Resources
     cn: 开发者资源
