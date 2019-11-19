@@ -84,7 +84,7 @@ public final class UfsFallbackBlockWriteHandler
   @Override
   protected BlockWriteRequestContext createRequestContext(alluxio.grpc.WriteRequest msg)
       throws Exception {
-    BlockWriteRequestContext context = new BlockWriteRequestContext(msg, FILE_BUFFER_SIZE);
+    BlockWriteRequestContext context = mBlockWriteHandler.createRequestContext(msg);
     BlockWriteRequest request = context.getRequest();
     Preconditions.checkState(request.hasCreateUfsBlockOptions());
     // if it is already a UFS fallback from short-circuit write, avoid writing to local again
