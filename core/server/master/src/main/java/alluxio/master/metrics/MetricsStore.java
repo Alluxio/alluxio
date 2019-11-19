@@ -13,6 +13,8 @@ package alluxio.master.metrics;
 
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.MetricType;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
@@ -26,8 +28,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -60,6 +63,45 @@ public class MetricsStore {
         }
       };
 
+  // Although IndexedSet is threadsafe, it lacks an update operation, so we need locking to
+  // implement atomic update using remove + add.
+  private final IndexedSet<Metric> mWorkerMetrics =
+      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
+  private final IndexedSet<Metric> mClientMetrics =
+      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
+
+  /**
+   * A thread-safe linked-list-based queue with an optional capacity limit.
+   * If the rate of submitting worker metrics and client metrics are much faster
+   * than the rate of processing submitted metrics, no new metrics will be accepted.
+   * The master metrics will become incorrect.
+   */
+  private final LinkedBlockingQueue<InstanceMetrics> mMetricsQueue;
+
+  /**
+   * Dedicated thread for process metrics in the metrics queue.
+   */
+  private Thread mMetricsProcessThread;
+  /**
+   * Timeout for submitting instance metrics to metrics queue.
+   */
+  private final long mMetricsSubmitTimeout;
+
+  /**
+   * Control flag that is used to instruct metrics processing thread to exit.
+   */
+  private volatile boolean mStopProcessing = false;
+
+  /**
+   * Constructs a new {@link MetricsStore}.
+   */
+  public MetricsStore() {
+    mMetricsQueue = new LinkedBlockingQueue<>(ServerConfiguration
+        .getInt(PropertyKey.MASTER_METRICS_QUEUE_CAPACITY));
+    mMetricsSubmitTimeout = ServerConfiguration
+        .getMs(PropertyKey.MASTER_METRICS_QUEUE_OFFER_TIMEOUT);
+  }
+
   /**
    * Gets the full instance id of the concatenation of hostname and the id. The dots in the hostname
    * replaced by underscores.
@@ -75,18 +117,9 @@ public class MetricsStore {
     return str;
   }
 
-  // Although IndexedSet is threadsafe, it lacks an update operation, so we need locking to
-  // implement atomic update using remove + add.
-  @GuardedBy("itself")
-  private final IndexedSet<Metric> mWorkerMetrics =
-      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
-  @GuardedBy("itself")
-  private final IndexedSet<Metric> mClientMetrics =
-      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
-
   /**
-   * Put the metrics from a worker with a hostname. If all the old metrics associated with this
-   * instance will be removed and then replaced by the latest.
+   * Put the metrics from a worker with a hostname into the metrics queue.
+   * The submitted metrics will be processed asynchronously.
    *
    * @param hostname the hostname of the instance
    * @param metrics the new worker metrics
@@ -95,14 +128,12 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
-    synchronized (mWorkerMetrics) {
-      putReportedMetrics(mWorkerMetrics, getFullInstanceId(hostname, null), metrics);
-    }
+    putMetrics(new InstanceMetrics(hostname, null, metrics));
   }
 
   /**
-   * Put the metrics from a client with a hostname and a client id. If all the old metrics
-   * associated with this instance will be removed and then replaced by the latest.
+   * Put the metrics from a client with a hostname and a client id into the metric queue.
+   * The submitted metrics will be processed asynchronously.
    *
    * @param hostname the hostname of the client
    * @param clientId the id of the client
@@ -112,54 +143,84 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
-    LOG.debug("Removing metrics for id {} to replace with {}", clientId, metrics);
-    synchronized (mClientMetrics) {
-      putReportedMetrics(mClientMetrics, getFullInstanceId(hostname, clientId), metrics);
+    putMetrics(new InstanceMetrics(hostname, clientId, metrics));
+  }
+
+  /**
+   * Put the instance metrics into the metrics queue.
+   * If the put process fail, error message will be logged instead of throwing exception
+   * to affect master process.
+   *
+   * @param instanceMetrics the instance metrics to put
+   */
+  private void putMetrics(InstanceMetrics instanceMetrics) {
+    try {
+      boolean submitted = mMetricsQueue.offer(instanceMetrics,
+          mMetricsSubmitTimeout, TimeUnit.MILLISECONDS);
+      if (!submitted) {
+        LOG.error("Master metrics queue is full, fail to submit metrics of {}",
+            instanceMetrics.getHostname());
+      }
+    } catch (InterruptedException e) {
+      LOG.error("Submitting metrics of hostname {} is interrupted", instanceMetrics.getHostname());
     }
   }
 
   /**
-   * Update the reported metrics with the given instanceId and set of metrics received from a
-   * worker or client.
+   * A dedicated thread that goes over outstanding queue items and process them.
+   */
+  private void processMetrics() {
+    while (!mStopProcessing) {
+      while (!mMetricsQueue.isEmpty() && !mStopProcessing) {
+        InstanceMetrics submittedMetrics = mMetricsQueue.poll();
+        processSingleInstanceMetrics(submittedMetrics);
+      }
+    }
+  }
+
+  /**
+   * Update the worker or client metrics with the given instance metrics.
    *
    * Any metrics from the given instanceId which are not reported in the new set of metrics are
    * removed. Metrics of {@link MetricType} COUNTER are incremented by the reported values.
    * Otherwise, all metrics are simply replaced.
    *
-   * @param metricSet the {@link IndexedSet} of client or worker metrics to update
-   * @param instanceId the instance id, derived from {@link #getFullInstanceId(String, String)}
-   * @param reportedMetrics the metrics received by the RPC handler
+   * @param instanceMetrics The single instance metrics to be processed
    */
-  private static void putReportedMetrics(IndexedSet<Metric> metricSet, String instanceId,
-      List<Metric> reportedMetrics) {
+  private void processSingleInstanceMetrics(InstanceMetrics instanceMetrics) {
+    IndexedSet<Metric> metricSet = instanceMetrics.getId() == null
+        ? mWorkerMetrics : mClientMetrics;
+    List<Metric> reportedMetrics = instanceMetrics.getMetricsList();
     List<Metric> newMetrics = new ArrayList<>(reportedMetrics.size());
-    for (Metric metric : reportedMetrics) {
-      if (metric.getHostname() == null) {
-        continue; // ignore metrics whose hostname is null
-      }
-
-      // If a metric is COUNTER, the value sent via RPC should be the incremental value; i.e.
-      // the amount the value has changed since the last RPC. The master should equivalently
-      // increment its value based on the received metric rather than replacing it.
-      if (metric.getMetricType() == MetricType.COUNTER) {
-        // FULL_NAME_INDEX is a unique index, so getFirstByField will return the same results as
-        // getByField
-        Metric oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
-        double oldVal = oldMetric == null ? 0.0 : oldMetric.getValue();
-        Metric newMetric = new Metric(metric.getInstanceType(), metric.getHostname(),
-            metric.getMetricType(), metric.getName(), oldVal + metric.getValue());
-        for (Map.Entry<String, String> tag : metric.getTags().entrySet()) {
-          newMetric.addTag(tag.getKey(), tag.getValue());
+    synchronized (metricSet) {
+      for (Metric metric : reportedMetrics) {
+        if (metric.getHostname() == null) {
+          continue; // ignore metrics whose hostname is null
         }
-        metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
-        newMetrics.add(newMetric);
-      } else {
-        metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
-        newMetrics.add(metric);
+
+        // If a metric is COUNTER, the value sent via RPC should be the incremental value; i.e.
+        // the amount the value has changed since the last RPC. The master should equivalently
+        // increment its value based on the received metric rather than replacing it.
+        if (metric.getMetricType() == MetricType.COUNTER) {
+          // FULL_NAME_INDEX is a unique index, so getFirstByField will return the same results as
+          // getByField
+          Metric oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
+          double oldVal = oldMetric == null ? 0.0 : oldMetric.getValue();
+          Metric newMetric = new Metric(metric.getInstanceType(), metric.getHostname(),
+              metric.getMetricType(), metric.getName(), oldVal + metric.getValue());
+          for (Map.Entry<String, String> tag : metric.getTags().entrySet()) {
+            newMetric.addTag(tag.getKey(), tag.getValue());
+          }
+          metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
+          newMetrics.add(newMetric);
+        } else {
+          metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
+          newMetrics.add(metric);
+        }
       }
+      metricSet.removeByField(ID_INDEX, instanceMetrics.getId());
+      metricSet.addAll(newMetrics);
     }
-    metricSet.removeByField(ID_INDEX, instanceId);
-    metricSet.addAll(newMetrics);
   }
 
   /**
@@ -200,6 +261,38 @@ public class MetricsStore {
   }
 
   /**
+   * Starts processing metrics.
+   */
+  public synchronized void start() {
+    if (mMetricsProcessThread != null) {
+      stop();
+    }
+    // Create a new thread.
+    mMetricsProcessThread = new Thread(this::processMetrics, "MetricsProcessingThread");
+    // Reset termination flag before starting the new thread.
+    mStopProcessing = false;
+    mMetricsProcessThread.start();
+  }
+
+  /**
+   * Stops processing metrics.
+   */
+  public synchronized void stop() {
+    mStopProcessing = true;
+
+    if (mMetricsProcessThread != null) {
+      try {
+        mMetricsProcessThread.join();
+      } catch (InterruptedException ie) {
+        Thread.currentThread().interrupt();
+        return;
+      } finally {
+        mMetricsProcessThread = null;
+      }
+    }
+  }
+
+  /**
    * Clears all the metrics.
    */
   public void clear() {
@@ -208,6 +301,33 @@ public class MetricsStore {
     }
     synchronized (mClientMetrics) {
       mClientMetrics.clear();
+    }
+  }
+
+  /**
+   * The instance metrics that represent the metrics that submitted by a worker or a client.
+   */
+  private class InstanceMetrics {
+    private String mHostname;
+    private String mId;
+    private List<Metric> mMetrics;
+
+    public InstanceMetrics(String hostname, String id, List<Metric> metrics) {
+      mHostname = hostname;
+      mId = id;
+      mMetrics = metrics;
+    }
+
+    public String getHostname() {
+      return mHostname;
+    }
+
+    public String getId() {
+      return mId;
+    }
+
+    public List<Metric> getMetricsList() {
+      return mMetrics;
     }
   }
 }

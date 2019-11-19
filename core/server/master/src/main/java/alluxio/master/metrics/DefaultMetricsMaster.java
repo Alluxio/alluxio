@@ -188,8 +188,15 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader) {
+      mMetricsStore.start();
       getExecutorService().submit(mClusterMetricsUpdater);
     }
+  }
+
+  @Override
+  public void stop() throws IOException {
+    super.stop();
+    mMetricsStore.stop();
   }
 
   @Override

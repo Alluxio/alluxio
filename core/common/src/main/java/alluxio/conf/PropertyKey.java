@@ -1461,6 +1461,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METRICS_QUEUE_CAPACITY =
+      new Builder(Name.MASTER_METRICS_QUEUE_CAPACITY)
+          .setDefaultValue(10000)
+          .setDescription("Capacity of the queue used by caching metrics"
+              + "reported by workers or clients.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METRICS_QUEUE_OFFER_TIMEOUT =
+      new Builder(Name.MASTER_METRICS_QUEUE_OFFER_TIMEOUT)
+          .setDefaultValue("5sec")
+          .setDescription("Timeout offering worker or client metrics to the master metrics queue "
+              + "which will be processed later.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METRICS_TIME_SERIES_INTERVAL =
       new Builder(Name.MASTER_METRICS_TIME_SERIES_INTERVAL)
           .setDefaultValue("5min")
@@ -4031,6 +4047,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.inherit.owner.and.group";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval";
+    public static final String MASTER_METRICS_QUEUE_CAPACITY =
+        "alluxio.master.metrics.queue.capacity";
+    public static final String MASTER_METRICS_QUEUE_OFFER_TIMEOUT =
+        "alluxio.master.metrics.queue.offer.timeout";
     public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =
         "alluxio.master.metrics.time.series.interval";
     public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
