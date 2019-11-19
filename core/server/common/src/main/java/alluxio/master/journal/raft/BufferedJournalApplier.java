@@ -28,8 +28,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -39,7 +37,11 @@ import java.util.function.Supplier;
 
 /**
  * Used to control applying to masters.
- * It supports suspending and resuming.
+ *
+ * It is supported by this class to suspend and resume applies, without blocking the callers.
+ * During suspend, entries will be buffered in-memory in order to not block caller
+ * when it wants new entries to be processed. These buffered entries will be applied to masters
+ * when this applier is resumed.
  *
  * TODO(ggezer): Extend with on-disk buffering.
  */
@@ -130,7 +132,6 @@ public class BufferedJournalApplier {
   public void suspend() throws IOException {
     try (LockResource stateLock = new LockResource(mStateLock)) {
       Preconditions.checkState(!mSuspended, "Already suspended");
-      LOG.info("Suspending state machine.");
       mSuspended = true;
       LOG.info("Suspended state machine at sequence: {}", mLastAppliedSequence);
     }
@@ -146,7 +147,7 @@ public class BufferedJournalApplier {
       Preconditions.checkState(mSuspended, "Not suspended");
       Preconditions.checkState(!mResumeInProgress, "Resume in progress");
       mResumeInProgress = true;
-      LOG.info("Resuming state machine.");
+      LOG.info("Resuming state machine from sequence: {}", mLastAppliedSequence);
     }
 
     // Cancel catching up thread if active.
@@ -164,7 +165,7 @@ public class BufferedJournalApplier {
      */
     try {
       // Mark resume start time.
-      Instant resumeStartTime = Instant.now();
+      long resumeStartTimeMs = System.currentTimeMillis();
       // Lock initially if few or none elements in the queue.
       if (mSuspendBuffer.size() <= RESUME_LOCK_BUFFER_SIZE_WATERMARK) {
         mStateLock.lock();
@@ -176,8 +177,7 @@ public class BufferedJournalApplier {
         // Check whether to lock the state now.
         boolean lockSubmission = !mStateLock.isHeldByCurrentThread()
             && (mSuspendBuffer.size() <= RESUME_LOCK_BUFFER_SIZE_WATERMARK
-                || Duration.between(Instant.now(), resumeStartTime)
-                    .compareTo(Duration.ofMillis(RESUME_LOCK_TIME_LIMIT_MS)) > 0);
+                || (System.currentTimeMillis() - resumeStartTimeMs) > RESUME_LOCK_TIME_LIMIT_MS);
 
         if (lockSubmission) {
           mStateLock.lock();

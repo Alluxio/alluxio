@@ -142,7 +142,6 @@ public interface JournalSystem {
   /**
    * Suspends applying for all journals.
    *
-   * @throws IOException
    */
   void suspend() throws IOException;
 
@@ -150,7 +149,6 @@ public interface JournalSystem {
    * Resumes applying for all journals.
    * Note: Journal system should have been suspended prior to calling this.
    *
-   * @throws IOException
    */
   void resume() throws IOException;
 
@@ -160,14 +158,14 @@ public interface JournalSystem {
    *
    * @param journalSequenceNumbers sequence to advance per each journal
    * @return the future to track when catching up is completed
-   * @throws IOException
    */
   CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) throws IOException;
 
   /**
    * Used to get the current state from a leader journal system.
    *
-   * Note: State changes to journals must have been suspended before calling this method.
+   * Note: State changes to journals must have been effectively blocked by a state-lock
+   * before calling this method.
    *
    * @return the current map of sequences for each master
    */

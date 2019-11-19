@@ -250,6 +250,7 @@ public class BackupStatus {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).omitNullValues()
+        .add("BackupId", mBackupId)
         .add("BackupState", mState.name())
         .add("BackupHost", mBackupHost)
         .add("BackupURI", mBackupUri)

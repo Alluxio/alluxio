@@ -20,32 +20,53 @@ import java.util.List;
  */
 public class CatchupFuture {
   /** Internal list of catch-up threads. */
-  private List<AbstractCatchupThread> mAdvanceThreads;
+  private List<AbstractCatchupThread> mCatchupThreads;
 
   /**
-   * Creates a tracker for given advance thread.
+   * Creates a single future for tracking a list of catchup futures.
    *
-   * @param advanceThread journal advance thread
+   * @param futures list of catchup futures
+   * @return unified catchup future
    */
-  public CatchupFuture(AbstractCatchupThread advanceThread) {
-    mAdvanceThreads = new ArrayList<>(1);
-    mAdvanceThreads.add(advanceThread);
+  public static CatchupFuture allOf(List<CatchupFuture> futures) {
+    List<AbstractCatchupThread> threads = new ArrayList<>(futures.size());
+    for (CatchupFuture future : futures) {
+      threads.addAll(future.mCatchupThreads);
+    }
+    return new CatchupFuture(threads);
   }
 
   /**
-   * Used internally to manage multiple advance threads.
-   *
-   * @param advanceThreads list of advance threads
+   * @return a completed catchup future
    */
-  private CatchupFuture(List<AbstractCatchupThread> advanceThreads) {
-    mAdvanceThreads = advanceThreads;
+  public static CatchupFuture completed() {
+    return new CatchupFuture(Collections.emptyList());
   }
 
   /**
-   * Cancels advance progress gracefully.
+   * Creates a tracker for given catchup thread.
+   *
+   * @param catchupThread journal catchup thread
+   */
+  public CatchupFuture(AbstractCatchupThread catchupThread) {
+    mCatchupThreads = new ArrayList<>(1);
+    mCatchupThreads.add(catchupThread);
+  }
+
+  /**
+   * Used internally to manage multiple catchup threads.
+   *
+   * @param catchupThreads list of catchup threads
+   */
+  private CatchupFuture(List<AbstractCatchupThread> catchupThreads) {
+    mCatchupThreads = catchupThreads;
+  }
+
+  /**
+   * Cancels catchup progress gracefully.
    */
   public void cancel() {
-    for (AbstractCatchupThread thread : mAdvanceThreads) {
+    for (AbstractCatchupThread thread : mCatchupThreads) {
       thread.cancel();
     }
   }
@@ -54,29 +75,8 @@ public class CatchupFuture {
    * Waits until advancing finishes.
    */
   public void waitTermination() {
-    for (AbstractCatchupThread thread : mAdvanceThreads) {
+    for (AbstractCatchupThread thread : mCatchupThreads) {
       thread.waitTermination();
     }
-  }
-
-  /**
-   * Creates a single future for tracking a list of advance futures.
-   *
-   * @param futures list of advance futures
-   * @return unified advance future
-   */
-  public static CatchupFuture allOf(List<CatchupFuture> futures) {
-    List<AbstractCatchupThread> threads = new ArrayList<>(futures.size());
-    for (CatchupFuture future : futures) {
-      threads.addAll(future.mAdvanceThreads);
-    }
-    return new CatchupFuture(threads);
-  }
-
-  /**
-   * @return a completed advance future
-   */
-  public static CatchupFuture completed() {
-    return new CatchupFuture(Collections.emptyList());
   }
 }
