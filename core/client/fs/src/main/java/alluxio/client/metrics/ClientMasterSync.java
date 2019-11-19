@@ -38,7 +38,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class ClientMasterSync {
   private static final Logger SAMPLING_LOG =
-      new SamplingLogger(LoggerFactory.getLogger(ClientMasterSync.class), 30 * Constants.SECOND_MS);
+      new SamplingLogger(LoggerFactory.getLogger(ClientMasterSync.class),
+          (long) 30 * Constants.SECOND_MS);
 
   /**
    * Client for communicating to metrics master.

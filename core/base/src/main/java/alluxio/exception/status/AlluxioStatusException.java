@@ -172,6 +172,7 @@ public class AlluxioStatusException extends IOException {
     } catch (AlluxioException e) {
       return fromAlluxioException(e);
     } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
       return new CancelledException(e);
     } catch (RuntimeException e) {
       throw new IllegalStateException("Expected a checked exception but got " + e);

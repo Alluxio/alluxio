@@ -72,7 +72,7 @@ public final class RejectingServer extends Thread {
       }
     }
     try {
-      join(5 * Constants.SECOND_MS);
+      join((long) 5 * Constants.SECOND_MS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }

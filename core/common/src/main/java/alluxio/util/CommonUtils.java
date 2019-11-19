@@ -80,7 +80,7 @@ public final class CommonUtils {
    * @return the thread
    */
   public static Thread createProgressThread(PrintStream stream) {
-    return createProgressThread(2 * Constants.SECOND_MS, stream);
+    return createProgressThread((long) 2 * Constants.SECOND_MS, stream);
   }
 
   /**

@@ -260,12 +260,13 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len)
       throws IOException {
-    LOG.debug("getFileBlockLocations({}, {}, {})", file.getPath().getName(), start, len);
     if (file == null) {
       LOG.debug("getFileBlockLocations({}, {}, {}) returned null",
           file.getPath().getName(), start, len);
       return null;
     }
+    LOG.debug("getFileBlockLocations({}, {}, {})", file.getPath().getName(), start, len);
+
     if (mStatistics != null) {
       mStatistics.incrementReadOps(1);
     }

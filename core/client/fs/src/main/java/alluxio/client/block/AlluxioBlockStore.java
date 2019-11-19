@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -251,8 +252,8 @@ public final class AlluxioBlockStore {
     Set<WorkerNetAddress> nonFailed =
         workers.stream().filter(worker -> !failedWorkers.containsKey(worker)).collect(toSet());
     if (nonFailed.isEmpty()) {
-      return Collections.singleton(workers.stream()
-          .min((x, y) -> Long.compare(failedWorkers.get(x), failedWorkers.get(y))).get());
+      return Collections.singleton(failedWorkers.keySet().stream()
+          .min(Comparator.comparingLong((x) -> failedWorkers.get(x))).get());
     }
     return nonFailed;
   }

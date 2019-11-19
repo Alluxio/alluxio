@@ -99,7 +99,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     private long mInitialDelayMs = 100;
 
     /** The gc interval. */
-    private long mGcIntervalMs = 120 * Constants.SECOND_MS;
+    private long mGcIntervalMs = (long) 120 * Constants.SECOND_MS;
 
     /** The gc executor. */
     private ScheduledExecutorService mGcExecutor;
