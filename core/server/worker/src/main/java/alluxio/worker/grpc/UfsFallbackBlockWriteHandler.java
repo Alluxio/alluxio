@@ -64,6 +64,7 @@ public final class UfsFallbackBlockWriteHandler
   private final UfsManager mUfsManager;
   private final BlockWriteHandler mBlockWriteHandler;
   private final boolean mDomainSocketEnabled;
+
   /**
    * Creates an instance of {@link UfsFallbackBlockWriteHandler}.
    *
