@@ -16,6 +16,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.JobInfo;
+import alluxio.job.wire.JobWorkerHealth;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
@@ -57,12 +58,12 @@ public interface JobMasterClient extends Client {
   /**
    * Periodic heartbeats to update the tasks' status from a worker, and returns the commands.
    *
-   * @param workerId the worker id
+   * @param jobWorkerHealth the job worker info
    * @param taskInfoList the list of the task information
    * @return the commands issued to the worker
    * @throws AlluxioException if an Alluxio error occurs
    * @throws IOException if an I/O error occurs
    */
-  List<JobCommand> heartbeat(final long workerId, final List<JobInfo> taskInfoList)
-      throws AlluxioException, IOException;
+  List<JobCommand> heartbeat(final JobWorkerHealth jobWorkerHealth,
+      final List<JobInfo> taskInfoList) throws AlluxioException, IOException;
 }

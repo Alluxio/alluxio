@@ -14,14 +14,24 @@ package alluxio.worker.job.heartbeat;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 
-public class HealthReport {
+/**
+ * The job worker health reporter.
+ */
+public class JobWorkerHealthReporter {
 
   CentralProcessor mProcessor;
 
-  private long[] mPrevTicks;
-  private long[][] mPrevProcTicks;
-
-  public HealthReport() {
+  /**
+   * Default constructor.
+   */
+  public JobWorkerHealthReporter() {
     mProcessor = new SystemInfo().getHardware().getProcessor();
+  }
+
+  /**
+   * @return the cpu load average of the worker
+   */
+  public double[] getCpuLoadAverage() {
+    return mProcessor.getSystemLoadAverage(3);
   }
 }

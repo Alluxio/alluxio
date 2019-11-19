@@ -14,6 +14,8 @@ package alluxio.client.job;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.grpc.CancelPRequest;
+import alluxio.grpc.GetAllWorkerHealthPRequest;
+import alluxio.grpc.GetAllWorkerHealthPResponse;
 import alluxio.grpc.GetJobServiceSummaryPRequest;
 import alluxio.grpc.GetJobStatusPRequest;
 import alluxio.grpc.JobMasterClientServiceGrpc;
@@ -25,12 +27,15 @@ import alluxio.job.ProtoUtils;
 import alluxio.job.util.SerializationUtils;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.JobWorkerHealth;
 import alluxio.worker.job.JobMasterClientContext;
 
+import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import io.grpc.StatusRuntimeException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -114,6 +119,23 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     return retryRPC(new RpcCallable<Long>() {
       public Long call() throws StatusRuntimeException {
         return mClient.run(RunPRequest.newBuilder().setJobConfig(jobConfigStr).build()).getJobId();
+      }
+    });
+  }
+
+  @Override
+  public List<JobWorkerHealth> getAllWorkerHealth() throws IOException {
+    return retryRPC(new RpcCallable<List<JobWorkerHealth>>() {
+      public List<JobWorkerHealth> call() throws StatusRuntimeException {
+        List<alluxio.grpc.JobWorkerHealth> workerHealthsList = mClient
+            .getAllWorkerHealth(GetAllWorkerHealthPRequest.newBuilder().build())
+            .getWorkerHealthsList();
+
+        ArrayList<JobWorkerHealth> result = Lists.newArrayList();
+        for (alluxio.grpc.JobWorkerHealth workerHealth : workerHealthsList) {
+          result.add(new JobWorkerHealth(workerHealth));
+        }
+        return result;
       }
     });
   }
