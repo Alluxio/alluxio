@@ -12,11 +12,12 @@
 package alluxio.client.file;
 
 import alluxio.annotation.PublicApi;
+import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
-import alluxio.grpc.TtlAction;
 
 import com.google.common.base.Preconditions;
 
@@ -57,6 +58,15 @@ public class URIStatus {
    */
   public DefaultAccessControlList getDefaultAcl() {
     return mInfo.getDefaultAcl();
+  }
+
+  /**
+   * @param blockId the block ID
+   * @return the corresponding block info or null
+   */
+  public BlockInfo getBlockInfo(long blockId) {
+    FileBlockInfo info = mInfo.getFileBlockInfo(blockId);
+    return info == null ? null : info.getBlockInfo();
   }
 
   /**

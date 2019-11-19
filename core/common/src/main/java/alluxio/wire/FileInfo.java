@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +64,7 @@ public final class FileInfo implements Serializable {
   private int mMode;
   private String mPersistenceState = "";
   private boolean mMountPoint;
-  private ArrayList<FileBlockInfo> mFileBlockInfos = new ArrayList<>();
+  private Map<Long, FileBlockInfo> mFileBlockInfos = new HashMap<>();
   private long mMountId;
   private int mReplicationMax;
   private int mReplicationMin;
@@ -251,7 +252,15 @@ public final class FileInfo implements Serializable {
    * @return the list of file block descriptors
    */
   public List<FileBlockInfo> getFileBlockInfos() {
-    return mFileBlockInfos;
+    return new ArrayList<>(mFileBlockInfos.values());
+  }
+
+  /**
+   * @param blockId the block ID
+   * @return the corresponding block info or null
+   */
+  public FileBlockInfo getFileBlockInfo(long blockId) {
+    return mFileBlockInfos.get(blockId);
   }
 
   /**
@@ -555,7 +564,9 @@ public final class FileInfo implements Serializable {
    * @return the file information
    */
   public FileInfo setFileBlockInfos(List<FileBlockInfo> fileBlockInfos) {
-    mFileBlockInfos = new ArrayList<>(fileBlockInfos);
+    for (FileBlockInfo info : fileBlockInfos) {
+      mFileBlockInfos.put(info.getBlockInfo().getBlockId(), info);
+    }
     return this;
   }
 

@@ -14,18 +14,18 @@ package alluxio.client.block;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import alluxio.client.block.util.BlockLocationUtils;
-import alluxio.collections.Pair;
-import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
 import alluxio.client.block.stream.BlockOutStream;
+import alluxio.client.block.util.BlockLocationUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.collections.Pair;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.ResourceExhaustedException;
@@ -56,6 +56,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -168,6 +169,19 @@ public final class AlluxioBlockStore {
              mContext.acquireBlockMasterClientResource()) {
       info = masterClientResource.get().getBlockInfo(blockId);
     }
+    return getInStream(info, options, failedWorkers);
+  }
+
+  /**
+   * {@link #getInStream(long, InStreamOptions, Map)}.
+   *
+   * @param info the block info
+   * @param options the options associated with the read request
+   * @param failedWorkers the map of workers address to most recent failure time
+   * @return a stream which reads from the beginning of the block
+   */
+  public BlockInStream getInStream(@Nonnull BlockInfo info, InStreamOptions options,
+      Map<WorkerNetAddress, Long> failedWorkers) throws IOException {
     List<BlockLocation> locations = info.getLocations();
     List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;
     // Initial target workers to read the block given the block locations.
