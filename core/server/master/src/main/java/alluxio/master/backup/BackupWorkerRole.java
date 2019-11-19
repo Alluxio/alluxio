@@ -247,7 +247,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
   private void enforceResumeJournals() {
     try {
       mJournalSystem.resume();
-    } catch (IOException e) {
+    } catch (Throwable e) {
       ProcessUtils.fatalError(LOG, e, "Failed to resume journals.");
     }
   }
