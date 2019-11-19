@@ -124,12 +124,12 @@ public abstract class AbstractBackupRole implements BackupRole {
   protected void sendMessageBlocking(Connection connection, Object message) throws IOException {
     try {
       mCatalystContext.execute(() -> {
-        connection.sendAndReceive(message);
-      }).get();
+        return connection.sendAndReceive(message);
+      }).get().get(); // First get is for the task, second is for the messaging future.
     } catch (InterruptedException ie) {
-      throw new RuntimeException("Interrupted while sending message.");
+      throw new RuntimeException("Interrupted while waiting for messaging to complete.");
     } catch (ExecutionException ee) {
-      throw new IOException("Failed to send message", ee.getCause());
+      throw new IOException("Failed to send and receive message", ee.getCause());
     }
   }
 

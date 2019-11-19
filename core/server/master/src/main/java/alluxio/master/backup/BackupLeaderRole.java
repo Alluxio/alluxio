@@ -54,7 +54,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 
 /**
  * Implementation of {@link BackupRole} for primary mode.
@@ -217,15 +216,12 @@ public class BackupLeaderRole extends AbstractBackupRole {
   private void activateWorkerConnection(Connection workerConnection) {
     LOG.info("Backup-leader connected with backup-worker: {}", workerConnection);
     // Register handshake message handler.
-    workerConnection.handler(BackupHandshakeMessage.class,
-        (Consumer<BackupHandshakeMessage>) request -> {
-          // Attach the connection before calling the handler.
-          request.setConnection(workerConnection);
-          handleHandshakeMessage(request);
-        });
+    workerConnection.handler(BackupHandshakeMessage.class, (message) -> {
+      message.setConnection(workerConnection);
+      return handleHandshakeMessage(message);
+    });
     // Register heartbeat message handler.
-    workerConnection.handler(BackupHeartbeatMessage.class,
-        (Consumer<BackupHeartbeatMessage>) request -> handleHeartbeatMessage(request));
+    workerConnection.handler(BackupHeartbeatMessage.class, this::handleHeartbeatMessage);
     // Register connection error listener.
     workerConnection.onException((error) -> {
       LOG.warn(String.format("Backup-worker connection failed for %s.", workerConnection), error);
@@ -290,7 +286,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
           journalSequences = mJournalSystem.getCurrentSequenceNumbers();
         }
         // Send backup request along with consistent journal sequences.
-        BackupRequestMessage requestMessage = new BackupRequestMessage(backupId, request, journalSequences);
+        BackupRequestMessage requestMessage =
+            new BackupRequestMessage(backupId, request, journalSequences);
         LOG.info("Sending backup request to backup-worker: {}. Request message: {}",
             workerEntry.getValue(), requestMessage);
         sendMessageBlocking(workerEntry.getKey(), requestMessage);
@@ -311,16 +308,20 @@ public class BackupLeaderRole extends AbstractBackupRole {
   /**
    * Handles worker heart-beat message.
    */
-  private synchronized void handleHandshakeMessage(BackupHandshakeMessage handshakeMsg) {
+  private synchronized CompletableFuture<Void> handleHandshakeMessage(
+      BackupHandshakeMessage handshakeMsg) {
     LOG.info("Received handshake message:{}", handshakeMsg);
     mBackupWorkerHostNames.put(handshakeMsg.getConnection(),
         handshakeMsg.getBackupWorkerHostname());
+    // This future is only used for providing a receipt of message.
+    return CompletableFuture.completedFuture(null);
   }
 
   /**
    * Handles worker heart-beat message.
    */
-  private synchronized void handleHeartbeatMessage(BackupHeartbeatMessage heartbeatMsg) {
+  private synchronized CompletableFuture<Void> handleHeartbeatMessage(
+      BackupHeartbeatMessage heartbeatMsg) {
     LOG.info("Received heartbeat message:{}", heartbeatMsg);
     if (heartbeatMsg.getBackupStatus() != null) {
       // Process heart-beat.
@@ -328,6 +329,8 @@ public class BackupLeaderRole extends AbstractBackupRole {
       // Adjust backup timeout.
       adjustAbandonTimeout(!mBackupTracker.inProgress());
     }
+    // This future is only used for providing a receipt of message.
+    return CompletableFuture.completedFuture(null);
   }
 
   /**

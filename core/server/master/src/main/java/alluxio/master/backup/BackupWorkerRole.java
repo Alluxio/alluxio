@@ -53,7 +53,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /**
  * Implementation of {@link BackupRole} for secondary mode.
@@ -161,9 +160,13 @@ public class BackupWorkerRole extends AbstractBackupRole {
   /**
    * Handler for suspend message. It's used in secondary master.
    */
-  private void handleSuspendJournalsMessage(BackupSuspendMessage suspendMsg) {
+  private CompletableFuture<Void> handleSuspendJournalsMessage(BackupSuspendMessage suspendMsg) {
     LOG.info("Received suspend message: {}", suspendMsg.toString());
     Preconditions.checkState(!mBackupTracker.inProgress(), "Backup in progress");
+
+    // Create a completed future for returning form this handler.
+    // This future is only used for providing a receipt of message.
+    CompletableFuture<Void> msgFuture = CompletableFuture.completedFuture(null);
 
     try {
       mJournalSystem.suspend();
@@ -178,14 +181,20 @@ public class BackupWorkerRole extends AbstractBackupRole {
       LOG.info("Resuming journals as backup request hasn't been received.");
       enforceResumeJournals();
     }, BACKUP_ABORT_AFTER_SUSPEND_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+
+    return msgFuture;
   }
 
   /**
    * Handler for backup request message. It's used in secondary master.
    */
-  private void handleRequestMessage(BackupRequestMessage requestMsg) {
+  private CompletableFuture<Void> handleRequestMessage(BackupRequestMessage requestMsg) {
     LOG.info("Received backup message: {}", requestMsg.toString());
     Preconditions.checkState(!mBackupTracker.inProgress(), "Backup in progress");
+
+    // Create a completed future for returning form this handler.
+    // This future is only used for providing a receipt of message.
+    CompletableFuture<Void> msgFuture = CompletableFuture.completedFuture(null);
 
     // Reset backup tracker.
     mBackupTracker.reset();
@@ -200,7 +209,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
     // Cancel timeout task created by suspend message handler.
     if (!mBackupTimeoutTask.cancel(true)) {
       mBackupTracker.updateError(new BackupException("Journal has been resumed due to a time-out"));
-      return;
+      return msgFuture;
     }
 
     // Spawn a task for advancing journals to target sequences, then taking the backup.
@@ -234,6 +243,8 @@ public class BackupWorkerRole extends AbstractBackupRole {
         enforceResumeJournals();
       }
     });
+
+    return msgFuture;
   }
 
   /**
@@ -302,11 +313,9 @@ public class BackupWorkerRole extends AbstractBackupRole {
     try {
       mCatalystContext.execute(() -> {
         // Register suspend message handler.
-        leaderConnection.handler(BackupSuspendMessage.class,
-            (Consumer<BackupSuspendMessage>) request -> handleSuspendJournalsMessage(request));
+        leaderConnection.handler(BackupSuspendMessage.class, this::handleSuspendJournalsMessage);
         // Register backup message handler.
-        leaderConnection.handler(BackupRequestMessage.class,
-            (Consumer<BackupRequestMessage>) request -> handleRequestMessage(request));
+        leaderConnection.handler(BackupRequestMessage.class, this::handleRequestMessage);
         // Send handshake message to introduce connection to leader.
         leaderConnection.sendAndReceive(new BackupHandshakeMessage(
             NetworkAddressUtils.getLocalHostName((int) ServerConfiguration.global()
