@@ -214,13 +214,8 @@ public class BackupWorkerRole extends AbstractBackupRole {
         CatchupFuture catchupFuture = mJournalSystem.catchup(requestMsg.getJournalSequences());
         CompletableFuture.runAsync(() -> catchupFuture.waitTermination())
             .get(BACKUP_ABORT_AFTER_TRANSITION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-      } catch (Exception e) {
-        mBackupTracker.updateError(new BackupException(
-            String.format("Failed to catch-up journals: %s", e.getMessage()), e));
-        return;
-      }
-      LOG.info("Journal transition completed. Taking a backup.");
-      try {
+
+        LOG.info("Journal transition completed. Taking a backup.");
         mBackupTracker.updateState(BackupState.Running);
         AlluxioURI backupUri =
             takeBackup(requestMsg.getBackupRequest(), mBackupTracker.getEntryCounter());
@@ -232,7 +227,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
         } catch (Exception e) {
           LOG.warn("Failed to wait for backup heartbeat completion. ", e);
         }
-      } catch (IOException e) {
+      } catch (Exception e) {
         mBackupTracker.updateError(
             new BackupException(String.format("Backup failed at worker: %s", e.getMessage()), e));
       } finally {
