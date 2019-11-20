@@ -63,6 +63,8 @@ public class PortCoordination {
   public static final List<ReservedPort> BACKUP_DELEGATION_EMBEDDED = allocate(2, 1);
 
   public static final List<ReservedPort> ZOOKEEPER_FAILURE = allocate(2, 1);
+  public static final List<ReservedPort> ZOOKEEPER_CONNECTION_POLICY_STANDARD = allocate(2, 1);
+  public static final List<ReservedPort> ZOOKEEPER_CONNECTION_POLICY_SESSION = allocate(2, 1);
 
   public static final List<ReservedPort> CHECKPOINT = allocate(2, 0);
 
