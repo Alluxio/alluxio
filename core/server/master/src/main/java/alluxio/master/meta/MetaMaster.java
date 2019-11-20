@@ -14,13 +14,12 @@ package alluxio.master.meta;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.master.Master;
+import alluxio.master.backup.BackupOps;
 import alluxio.wire.Address;
-import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigHash;
 import alluxio.wire.Configuration;
@@ -34,15 +33,7 @@ import java.util.Set;
 /**
  * The interface of meta master.
  */
-public interface MetaMaster extends Master {
-
-  /**
-   * Backs up the master.
-   *
-   * @param options method options
-   * @return the uri of the created backup
-   */
-  BackupResponse backup(BackupPOptions options) throws IOException;
+public interface MetaMaster extends BackupOps, Master {
 
   /**
    * @return the cluster ID

@@ -1194,19 +1194,48 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_BIND_HOST =
-      new Builder(Name.MASTER_BIND_HOST)
-          .setDefaultValue("0.0.0.0")
-          .setDescription("The hostname that Alluxio master binds to.")
+  public static final PropertyKey MASTER_BACKUP_DELEGATION_ENABLED =
+      new Builder(Name.MASTER_BACKUP_DELEGATION_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to delegate journals to stand-by masters in HA cluster.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
-      new Builder(Name.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL)
-          .setDefaultValue("1m")
-          .setDescription("The interval for periodically updating the cluster level metrics.")
+  public static final PropertyKey MASTER_BACKUP_TRANSPORT_TIMEOUT =
+      new Builder(Name.MASTER_BACKUP_TRANSPORT_TIMEOUT)
+          .setDefaultValue("5sec")
+          .setDescription("Request timeout for backup messaging.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
+          .build();
+  public static final PropertyKey MASTER_BACKUP_HEARTBEAT_INTERVAL =
+      new Builder(Name.MASTER_BACKUP_HEARTBEAT_INTERVAL)
+          .setDefaultValue("1sec")
+          .setDescription("Interval at which follower updates the leader on ongoing backup.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BACKUP_CONNECT_INTERVAL_MIN =
+      new Builder(Name.MASTER_BACKUP_CONNECT_INTERVAL_MIN)
+          .setDefaultValue("1sec")
+          .setDescription("Minimum delay between each connection attempt to leader backup master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BACKUP_CONNECT_INTERVAL_MAX =
+      new Builder(Name.MASTER_BACKUP_CONNECT_INTERVAL_MAX)
+          .setDefaultValue("10sec")
+          .setDescription("Maximum delay between each connection attempt to leader backup master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BACKUP_ABANDON_TIMEOUT =
+      new Builder(Name.MASTER_BACKUP_ABANDON_TIMEOUT)
+          .setDefaultValue("2min")
+          .setDescription("Duration after which leader will abandon the backup"
+              + " if not received heartbeat from backup-worker.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_ENABLED =
       new Builder(Name.MASTER_DAILY_BACKUP_ENABLED)
@@ -1234,6 +1263,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "to avoid interfering with other users of the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BIND_HOST =
+      new Builder(Name.MASTER_BIND_HOST)
+          .setDefaultValue("0.0.0.0")
+          .setDescription("The hostname that Alluxio master binds to.")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
+      new Builder(Name.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL)
+          .setDefaultValue("1m")
+          .setDescription("The interval for periodically updating the cluster level metrics.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
@@ -3940,15 +3983,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.backup.directory";
     public static final String MASTER_BACKUP_ENTRY_BUFFER_COUNT =
         "alluxio.master.backup.entry.buffer.count";
-    public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
-    public static final String MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
-        "alluxio.master.cluster.metrics.update.interval";
+    public static final String MASTER_BACKUP_DELEGATION_ENABLED =
+        "alluxio.master.backup.delegation.enabled";
+    public static final String MASTER_BACKUP_TRANSPORT_TIMEOUT =
+        "alluxio.master.backup.transport.timeout";
+    public static final String MASTER_BACKUP_HEARTBEAT_INTERVAL =
+        "alluxio.master.backup.heartbeat.interval";
+    public static final String MASTER_BACKUP_CONNECT_INTERVAL_MIN =
+        "alluxio.master.backup.connect.interval.min";
+    public static final String MASTER_BACKUP_CONNECT_INTERVAL_MAX =
+        "alluxio.master.backup.connect.interval.max";
+    public static final String MASTER_BACKUP_ABANDON_TIMEOUT =
+        "alluxio.master.backup.abandon.timeout";
     public static final String MASTER_DAILY_BACKUP_ENABLED =
         "alluxio.master.daily.backup.enabled";
     public static final String MASTER_DAILY_BACKUP_FILES_RETAINED =
         "alluxio.master.daily.backup.files.retained";
     public static final String MASTER_DAILY_BACKUP_TIME =
         "alluxio.master.daily.backup.time";
+    public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
+    public static final String MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
+        "alluxio.master.cluster.metrics.update.interval";
     public static final String MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
         "alluxio.master.file.access.time.journal.flush.interval";
     public static final String MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION =

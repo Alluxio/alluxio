@@ -31,36 +31,68 @@ public final class MetaMasterClientServiceGrpc {
   public static final String SERVICE_NAME = "alluxio.grpc.meta.MetaMasterClientService";
 
   // Static method descriptors that strictly reflect the proto.
-  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.BackupPOptions,
-      alluxio.grpc.BackupPResponse> getBackupMethod;
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.BackupPRequest,
+      alluxio.grpc.BackupPStatus> getBackupMethod;
 
   @io.grpc.stub.annotations.RpcMethod(
       fullMethodName = SERVICE_NAME + '/' + "Backup",
-      requestType = alluxio.grpc.BackupPOptions.class,
-      responseType = alluxio.grpc.BackupPResponse.class,
+      requestType = alluxio.grpc.BackupPRequest.class,
+      responseType = alluxio.grpc.BackupPStatus.class,
       methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<alluxio.grpc.BackupPOptions,
-      alluxio.grpc.BackupPResponse> getBackupMethod() {
-    io.grpc.MethodDescriptor<alluxio.grpc.BackupPOptions, alluxio.grpc.BackupPResponse> getBackupMethod;
+  public static io.grpc.MethodDescriptor<alluxio.grpc.BackupPRequest,
+      alluxio.grpc.BackupPStatus> getBackupMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.BackupPRequest, alluxio.grpc.BackupPStatus> getBackupMethod;
     if ((getBackupMethod = MetaMasterClientServiceGrpc.getBackupMethod) == null) {
       synchronized (MetaMasterClientServiceGrpc.class) {
         if ((getBackupMethod = MetaMasterClientServiceGrpc.getBackupMethod) == null) {
           MetaMasterClientServiceGrpc.getBackupMethod = getBackupMethod = 
-              io.grpc.MethodDescriptor.<alluxio.grpc.BackupPOptions, alluxio.grpc.BackupPResponse>newBuilder()
+              io.grpc.MethodDescriptor.<alluxio.grpc.BackupPRequest, alluxio.grpc.BackupPStatus>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
               .setFullMethodName(generateFullMethodName(
                   "alluxio.grpc.meta.MetaMasterClientService", "Backup"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  alluxio.grpc.BackupPOptions.getDefaultInstance()))
+                  alluxio.grpc.BackupPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  alluxio.grpc.BackupPResponse.getDefaultInstance()))
+                  alluxio.grpc.BackupPStatus.getDefaultInstance()))
                   .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("Backup"))
                   .build();
           }
         }
      }
      return getBackupMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.BackupStatusPRequest,
+      alluxio.grpc.BackupPStatus> getGetBackupStatusMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetBackupStatus",
+      requestType = alluxio.grpc.BackupStatusPRequest.class,
+      responseType = alluxio.grpc.BackupPStatus.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.BackupStatusPRequest,
+      alluxio.grpc.BackupPStatus> getGetBackupStatusMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.BackupStatusPRequest, alluxio.grpc.BackupPStatus> getGetBackupStatusMethod;
+    if ((getGetBackupStatusMethod = MetaMasterClientServiceGrpc.getGetBackupStatusMethod) == null) {
+      synchronized (MetaMasterClientServiceGrpc.class) {
+        if ((getGetBackupStatusMethod = MetaMasterClientServiceGrpc.getGetBackupStatusMethod) == null) {
+          MetaMasterClientServiceGrpc.getGetBackupStatusMethod = getGetBackupStatusMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.BackupStatusPRequest, alluxio.grpc.BackupPStatus>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.meta.MetaMasterClientService", "GetBackupStatus"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.BackupStatusPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.BackupPStatus.getDefaultInstance()))
+                  .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("GetBackupStatus"))
+                  .build();
+          }
+        }
+     }
+     return getGetBackupStatusMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetConfigReportPOptions,
@@ -228,9 +260,20 @@ public final class MetaMasterClientServiceGrpc {
      * Backs up the Alluxio master to the specified URI
      * </pre>
      */
-    public void backup(alluxio.grpc.BackupPOptions request,
-        io.grpc.stub.StreamObserver<alluxio.grpc.BackupPResponse> responseObserver) {
+    public void backup(alluxio.grpc.BackupPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.BackupPStatus> responseObserver) {
       asyncUnimplementedUnaryCall(getBackupMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Returns status of the latest backup.
+     * </pre>
+     */
+    public void getBackupStatus(alluxio.grpc.BackupStatusPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.BackupPStatus> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetBackupStatusMethod(), responseObserver);
     }
 
     /**
@@ -283,9 +326,16 @@ public final class MetaMasterClientServiceGrpc {
             getBackupMethod(),
             asyncUnaryCall(
               new MethodHandlers<
-                alluxio.grpc.BackupPOptions,
-                alluxio.grpc.BackupPResponse>(
+                alluxio.grpc.BackupPRequest,
+                alluxio.grpc.BackupPStatus>(
                   this, METHODID_BACKUP)))
+          .addMethod(
+            getGetBackupStatusMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.BackupStatusPRequest,
+                alluxio.grpc.BackupPStatus>(
+                  this, METHODID_GET_BACKUP_STATUS)))
           .addMethod(
             getGetConfigReportMethod(),
             asyncUnaryCall(
@@ -346,10 +396,22 @@ public final class MetaMasterClientServiceGrpc {
      * Backs up the Alluxio master to the specified URI
      * </pre>
      */
-    public void backup(alluxio.grpc.BackupPOptions request,
-        io.grpc.stub.StreamObserver<alluxio.grpc.BackupPResponse> responseObserver) {
+    public void backup(alluxio.grpc.BackupPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.BackupPStatus> responseObserver) {
       asyncUnaryCall(
           getChannel().newCall(getBackupMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
+     **
+     * Returns status of the latest backup.
+     * </pre>
+     */
+    public void getBackupStatus(alluxio.grpc.BackupStatusPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.BackupPStatus> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getGetBackupStatusMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -429,9 +491,20 @@ public final class MetaMasterClientServiceGrpc {
      * Backs up the Alluxio master to the specified URI
      * </pre>
      */
-    public alluxio.grpc.BackupPResponse backup(alluxio.grpc.BackupPOptions request) {
+    public alluxio.grpc.BackupPStatus backup(alluxio.grpc.BackupPRequest request) {
       return blockingUnaryCall(
           getChannel(), getBackupMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Returns status of the latest backup.
+     * </pre>
+     */
+    public alluxio.grpc.BackupPStatus getBackupStatus(alluxio.grpc.BackupStatusPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getGetBackupStatusMethod(), getCallOptions(), request);
     }
 
     /**
@@ -507,10 +580,22 @@ public final class MetaMasterClientServiceGrpc {
      * Backs up the Alluxio master to the specified URI
      * </pre>
      */
-    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.BackupPResponse> backup(
-        alluxio.grpc.BackupPOptions request) {
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.BackupPStatus> backup(
+        alluxio.grpc.BackupPRequest request) {
       return futureUnaryCall(
           getChannel().newCall(getBackupMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Returns status of the latest backup.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.BackupPStatus> getBackupStatus(
+        alluxio.grpc.BackupStatusPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getGetBackupStatusMethod(), getCallOptions()), request);
     }
 
     /**
@@ -563,10 +648,11 @@ public final class MetaMasterClientServiceGrpc {
   }
 
   private static final int METHODID_BACKUP = 0;
-  private static final int METHODID_GET_CONFIG_REPORT = 1;
-  private static final int METHODID_GET_MASTER_INFO = 2;
-  private static final int METHODID_GET_METRICS = 3;
-  private static final int METHODID_CHECKPOINT = 4;
+  private static final int METHODID_GET_BACKUP_STATUS = 1;
+  private static final int METHODID_GET_CONFIG_REPORT = 2;
+  private static final int METHODID_GET_MASTER_INFO = 3;
+  private static final int METHODID_GET_METRICS = 4;
+  private static final int METHODID_CHECKPOINT = 5;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -586,8 +672,12 @@ public final class MetaMasterClientServiceGrpc {
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
         case METHODID_BACKUP:
-          serviceImpl.backup((alluxio.grpc.BackupPOptions) request,
-              (io.grpc.stub.StreamObserver<alluxio.grpc.BackupPResponse>) responseObserver);
+          serviceImpl.backup((alluxio.grpc.BackupPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.BackupPStatus>) responseObserver);
+          break;
+        case METHODID_GET_BACKUP_STATUS:
+          serviceImpl.getBackupStatus((alluxio.grpc.BackupStatusPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.BackupPStatus>) responseObserver);
           break;
         case METHODID_GET_CONFIG_REPORT:
           serviceImpl.getConfigReport((alluxio.grpc.GetConfigReportPOptions) request,
@@ -667,6 +757,7 @@ public final class MetaMasterClientServiceGrpc {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new MetaMasterClientServiceFileDescriptorSupplier())
               .addMethod(getBackupMethod())
+              .addMethod(getGetBackupStatusMethod())
               .addMethod(getGetConfigReportMethod())
               .addMethod(getGetMasterInfoMethod())
               .addMethod(getGetMetricsMethod())
