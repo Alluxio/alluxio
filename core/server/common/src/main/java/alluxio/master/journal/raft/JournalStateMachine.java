@@ -14,8 +14,8 @@ package alluxio.master.journal.raft;
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
-import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.sink.JournalSink;
@@ -29,18 +29,18 @@ import io.atomix.copycat.server.Snapshottable;
 import io.atomix.copycat.server.StateMachine;
 import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
 import io.atomix.copycat.server.storage.snapshot.SnapshotWriter;
-import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A state machine for managing all of Alluxio's journaled state. Entries applied to this state
@@ -51,11 +51,13 @@ import javax.annotation.concurrent.GuardedBy;
  * other primary master is serving, then call {@link #upgrade}. Once the state machine is upgraded,
  * it will ignore all entries appended by copycat because those entries are applied to primary
  * master state before being written to copycat.
+ *
  */
 @ThreadSafe
 public class JournalStateMachine extends StateMachine implements Snapshottable {
   private static final Logger LOG = LoggerFactory.getLogger(JournalStateMachine.class);
 
+  /** Journals managed by this applier. */
   private final Map<String, RaftJournal> mJournals;
   @GuardedBy("this")
   private boolean mIgnoreApplys = false;
@@ -70,9 +72,8 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
   private volatile boolean mSnapshotting = false;
   // The start time of the most recent snapshot
   private volatile long mLastSnapshotStartTime = 0;
-
-  /** A supplier of journal sinks for this journal. */
-  private final Supplier<Set<JournalSink>> mJournalSinks;
+  /** Used to control applying to masters. */
+  private BufferedJournalApplier mJournalApplier;
 
   /**
    * @param journals master journals; these journals are still owned by the caller, not by the
@@ -81,8 +82,8 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
    */
   public JournalStateMachine(Map<String, RaftJournal> journals,
       Supplier<Set<JournalSink>> journalSinks) {
-    mJournals = Collections.unmodifiableMap(journals);
-    mJournalSinks = journalSinks;
+    mJournals = journals;
+    mJournalApplier = new BufferedJournalApplier(journals, journalSinks);
     resetState();
     LOG.info("Initialized new journal state machine");
   }
@@ -94,7 +95,7 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
    *
    * @param commit the commit
    */
-  public synchronized void applyJournalEntryCommand(Commit<JournalEntryCommand> commit) {
+  public void applyJournalEntryCommand(Commit<JournalEntryCommand> commit) {
     JournalEntry entry;
     try {
       entry = JournalEntry.parseFrom(commit.command().getSerializedJournalEntry());
@@ -143,8 +144,8 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
   }
 
   @SuppressFBWarnings(value = "VO_VOLATILE_INCREMENT",
-      justification = "All writes to mNextSequenceNumberToRead are synchronized")
-  private synchronized void applySingleEntry(JournalEntry entry) {
+      justification = "All calls to applyJournalEntryCommand() are synchronized by copycat")
+  private void applySingleEntry(JournalEntry entry) {
     if (mClosed) {
       return;
     }
@@ -166,31 +167,12 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
 
     mNextSequenceNumberToRead++;
     if (!mIgnoreApplys) {
-      applyToMaster(entry);
-    }
-  }
-
-  private synchronized void applyToMaster(JournalEntry entry) {
-    String masterName;
-    try {
-      masterName = JournalEntryAssociation.getMasterForEntry(entry);
-    } catch (Throwable t) {
-      ProcessUtils.fatalError(LOG, t, "Unrecognized journal entry: %s", entry);
-      throw new IllegalStateException();
-    }
-    try {
-      Journaled master = mJournals.get(masterName).getStateMachine();
-      LOG.trace("Applying entry to master {}: {} ", masterName, entry);
-      master.processJournalEntry(entry);
-      JournalUtils.sinkAppend(mJournalSinks, entry);
-    } catch (Throwable t) {
-      JournalUtils.handleJournalReplayFailure(LOG, t,
-          "Failed to apply journal entry to master %s. Entry: %s", masterName, entry);
+      mJournalApplier.processJournalEntry(entry);
     }
   }
 
   @Override
-  public synchronized void snapshot(SnapshotWriter writer) {
+  public void snapshot(SnapshotWriter writer) {
     // Snapshot format is [snapshotId, name1, bytes1, name2, bytes2, ...].
     if (mClosed) {
       return;
@@ -213,7 +195,7 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
   }
 
   @Override
-  public synchronized void install(SnapshotReader snapshotReader) {
+  public void install(SnapshotReader snapshotReader) {
     if (mClosed) {
       return;
     }
@@ -242,11 +224,39 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
     LOG.info("Successfully installed snapshot up to SN {}", snapshotId);
   }
 
+  /**
+   * Suspends applying to masters.
+   *
+   * @throws IOException
+   */
+  public void suspend() throws IOException {
+    mJournalApplier.suspend();
+  }
+
+  /**
+   * Resumes applying to masters.
+   *
+   * @throws IOException
+   */
+  public void resume() throws IOException {
+    mJournalApplier.resume();
+  }
+
+  /**
+   * Initiates catching up of masters to given sequence.
+   *
+   * @param sequence the target sequence
+   * @return the future to track when catching up is done
+   */
+  public CatchupFuture catchup(long sequence) {
+    return mJournalApplier.catchup(sequence);
+  }
+
   private List<Journaled> getStateMachines() {
     return StreamUtils.map(RaftJournal::getStateMachine, mJournals.values());
   }
 
-  private synchronized void resetState() {
+  private void resetState() {
     if (mClosed) {
       return;
     }
@@ -264,7 +274,15 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
    *
    * @return the last sequence number read while in secondary mode
    */
-  public synchronized long upgrade() {
+  public long upgrade() {
+    // Resume the journal applier if was suspended.
+    if (mJournalApplier.isSuspended()) {
+      try {
+        resume();
+      } catch (IOException e) {
+        ProcessUtils.fatalError(LOG, e, "State-machine failed to catch up after suspension.");
+      }
+    }
     mIgnoreApplys = true;
     return mNextSequenceNumberToRead - 1;
   }
@@ -300,7 +318,7 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
   /**
    * Closes the journal state machine, causing all further modification requests to be ignored.
    */
-  public synchronized void close() {
+  public void close() {
     mClosed = true;
   }
 }

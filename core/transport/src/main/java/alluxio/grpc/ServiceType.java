@@ -68,6 +68,10 @@ public enum ServiceType
    * <code>TABLE_MASTER_CLIENT_SERVICE = 14;</code>
    */
   TABLE_MASTER_CLIENT_SERVICE(14),
+  /**
+   * <code>META_MASTER_BACKUP_MESSAGING_SERVICE = 15;</code>
+   */
+  META_MASTER_BACKUP_MESSAGING_SERVICE(15),
   ;
 
   /**
@@ -130,6 +134,10 @@ public enum ServiceType
    * <code>TABLE_MASTER_CLIENT_SERVICE = 14;</code>
    */
   public static final int TABLE_MASTER_CLIENT_SERVICE_VALUE = 14;
+  /**
+   * <code>META_MASTER_BACKUP_MESSAGING_SERVICE = 15;</code>
+   */
+  public static final int META_MASTER_BACKUP_MESSAGING_SERVICE_VALUE = 15;
 
 
   public final int getNumber() {
@@ -161,6 +169,7 @@ public enum ServiceType
       case 12: return FILE_SYSTEM_WORKER_WORKER_SERVICE;
       case 13: return JOURNAL_MASTER_CLIENT_SERVICE;
       case 14: return TABLE_MASTER_CLIENT_SERVICE;
+      case 15: return META_MASTER_BACKUP_MESSAGING_SERVICE;
       default: return null;
     }
   }

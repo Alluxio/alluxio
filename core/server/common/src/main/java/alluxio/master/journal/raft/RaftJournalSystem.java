@@ -23,6 +23,7 @@ import alluxio.grpc.QuorumServerState;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.raft.transport.CopycatGrpcTransport;
@@ -32,6 +33,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.transport.Address;
@@ -52,8 +54,10 @@ import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -366,6 +370,40 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
+  public synchronized Map<String, Long> getCurrentSequenceNumbers() {
+    long currentGlobalState = mStateMachine.getLastAppliedSequenceNumber();
+    Map<String, Long> sequenceMap = new HashMap<>();
+    for (String master : mJournals.keySet()) {
+      // Return the same global sequence for each master.
+      sequenceMap.put(master, currentGlobalState);
+    }
+    return sequenceMap;
+  }
+
+  @Override
+  public synchronized void suspend() throws IOException {
+    // Suspend copycat snapshots.
+    mSnapshotAllowed.set(false);
+    mStateMachine.suspend();
+  }
+
+  @Override
+  public synchronized void resume() throws IOException {
+    mStateMachine.resume();
+    // Resume copycat snapshots.
+    mSnapshotAllowed.set(true);
+  }
+
+  @Override
+  public synchronized CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) {
+    // Given sequences should be the same for each master for embedded journal.
+    List<Long> distinctSequences =
+        journalSequenceNumbers.values().stream().distinct().collect(Collectors.toList());
+    Preconditions.checkState(distinctSequences.size() == 1, "incorrect journal sequences");
+    return mStateMachine.catchup(distinctSequences.get(0));
+  }
+
+  @Override
   public synchronized void checkpoint() throws IOException {
     try {
       long start = System.currentTimeMillis();
@@ -554,6 +592,14 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
           .setServerState(QuorumServerState.valueOf(member.status().name())).build());
     }
     return quorumMemberStateList;
+  }
+
+  /**
+   * @return {@code true} if this journal system is the leader
+   */
+  @VisibleForTesting
+  public synchronized boolean isLeader() {
+    return mServer != null && mServer.isRunning() && mServer.state() == CopycatServer.State.LEADER;
   }
 
   /**

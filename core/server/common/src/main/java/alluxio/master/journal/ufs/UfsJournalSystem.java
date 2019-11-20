@@ -14,6 +14,7 @@ package alluxio.master.journal.ufs;
 import alluxio.Constants;
 import alluxio.master.Master;
 import alluxio.master.journal.AbstractJournalSystem;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.sink.JournalSink;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -100,6 +102,42 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     } catch (IOException e) {
       throw new RuntimeException("Failed to downgrade journal to secondary", e);
     }
+  }
+
+  @Override
+  public void suspend() throws IOException {
+    for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
+      LOG.info("Suspending journal: {}", journalEntry.getKey());
+      journalEntry.getValue().suspend();
+    }
+  }
+
+  @Override
+  public void resume() throws IOException {
+    for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
+      LOG.info("Resuming journal: {}", journalEntry.getKey());
+      journalEntry.getValue().resume();
+    }
+  }
+
+  @Override
+  public CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) throws IOException {
+    List<CatchupFuture> futures = new ArrayList<>(journalSequenceNumbers.size());
+    for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
+      long resumeSequence = journalSequenceNumbers.get(journalEntry.getKey());
+      LOG.info("Advancing journal :{} to sequence: {}", journalEntry.getKey(), resumeSequence);
+      futures.add(journalEntry.getValue().catchup(resumeSequence));
+    }
+    return CatchupFuture.allOf(futures);
+  }
+
+  @Override
+  public Map<String, Long> getCurrentSequenceNumbers() {
+    Map<String, Long> sequenceMap = new HashMap<>();
+    for (String master : mJournals.keySet()) {
+      sequenceMap.put(master, mJournals.get(master).getNextSequenceNumberToWrite() - 1);
+    }
+    return sequenceMap;
   }
 
   @Override

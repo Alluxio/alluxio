@@ -8,16 +8,6 @@ package alluxio.grpc.meta;
 
 import "grpc/common.proto";
 
-message BackupPOptions {
- optional string targetDirectory = 1;
- optional bool localFileSystem = 2;
-}
-message BackupPResponse {
- optional string backupUri = 1;
- optional string hostname = 2;
- optional int64 entryCount = 3;
-}
-
 message ConfigProperties {
   repeated ConfigProperty properties = 1;
 }
@@ -123,6 +113,72 @@ message CheckpointPResponse {
  optional string masterHostname = 1;
 }
 
+enum BackupState {
+    None = 1;
+    Initiating = 2;
+    Transitioning = 3;
+    Running = 4;
+    Completed = 5;
+    Failed = 6;
+}
+
+message BackupPRequest {
+    optional BackupPOptions options = 1;
+    optional string targetDirectory = 2;
+}
+message BackupPOptions {
+    optional bool localFileSystem = 1;
+    optional bool runAsync = 2;
+    optional bool allowLeader = 3;
+}
+message BackupPStatus {
+    optional string backupId = 1;
+    optional BackupState backupState = 2;
+    optional string backupHost = 3;
+    optional string backupUri = 4;
+    optional int64 entryCount = 5;
+    optional bytes backupError = 6;
+}
+
+message BackupStatusPRequest {
+    optional string backupId = 1;
+}
+
+ /**
+  * This interface contains meta master service endpoints for Alluxio clients.
+  */
+service MetaMasterClientService {
+  /**
+   * Backs up the Alluxio master to the specified URI
+   */
+  rpc Backup (BackupPRequest) returns (BackupPStatus);
+
+  /**
+   * Returns status of the latest backup.
+   */
+  rpc GetBackupStatus (BackupStatusPRequest) returns (BackupPStatus);
+
+  /**
+   * Returns server-side configuration report.
+   */
+  rpc GetConfigReport(GetConfigReportPOptions) returns (GetConfigReportPResponse);
+
+  /**
+   * Returns information about the master.
+   */
+  rpc GetMasterInfo(GetMasterInfoPOptions) returns (GetMasterInfoPResponse);
+
+  /**
+   * Returns a map of metrics property names and their values from Alluxio metrics system.
+   */
+  rpc GetMetrics(GetMetricsPOptions) returns (GetMetricsPResponse);
+
+  /**
+   * Creates a checkpoint in the primary master journal system.
+   */
+  rpc Checkpoint(CheckpointPOptions) returns (CheckpointPResponse);
+}
+
 message SetPathConfigurationPOptions {}
 message SetPathConfigurationPRequest {
   optional string path = 1;
@@ -169,37 +225,6 @@ service MetaMasterConfigurationService {
      * Returns the hashes of cluster and path level configurations.
      */
     rpc GetConfigHash (GetConfigHashPOptions) returns (GetConfigHashPResponse);
-}
-
-/**
-  * This interface contains meta master service endpoints for Alluxio clients.
-  */
-service MetaMasterClientService {
-
-  /**
-   * Backs up the Alluxio master to the specified URI
-   */
-  rpc Backup(BackupPOptions) returns (BackupPResponse);
-
-  /**
-   * Returns server-side configuration report.
-   */
-  rpc GetConfigReport(GetConfigReportPOptions) returns (GetConfigReportPResponse);
-
-  /**
-   * Returns information about the master.
-   */
-  rpc GetMasterInfo(GetMasterInfoPOptions) returns (GetMasterInfoPResponse);
-
-  /**
-   * Returns a map of metrics property names and their values from Alluxio metrics system.
-   */
-  rpc GetMetrics(GetMetricsPOptions) returns (GetMetricsPResponse);
-
-  /**
-   * Creates a checkpoint in the primary master journal system.
-   */
-  rpc Checkpoint(CheckpointPOptions) returns (CheckpointPResponse);
 }
 
 message GetMasterIdPOptions {}

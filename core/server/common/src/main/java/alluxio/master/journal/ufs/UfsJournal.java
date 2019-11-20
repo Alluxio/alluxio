@@ -17,6 +17,8 @@ import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
+import alluxio.master.journal.AbstractCatchupThread;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
@@ -103,6 +105,15 @@ public class UfsJournal implements Journal {
    * Null when in primary mode.
    */
   private UfsJournalCheckpointThread mTailerThread;
+
+  /** Whether the journal is suspended. */
+  private volatile boolean mSuspended = false;
+  /** Store where the journal was suspended. */
+  private volatile long mSuspendSequence = -1;
+  /** Used to store latest catch-up task. */
+  private volatile AbstractCatchupThread mCatchupThread;
+  /** Used to stop catching up when cancellation requested.  */
+  private volatile boolean mStopCatchingUp = false;
 
   private enum State {
     SECONDARY, PRIMARY, CLOSED;
@@ -217,11 +228,18 @@ public class UfsJournal implements Journal {
    */
   public synchronized void gainPrimacy() throws IOException {
     Preconditions.checkState(mWriter == null, "writer must be null in secondary mode");
-    Preconditions.checkState(mTailerThread != null,
+    Preconditions.checkState(mSuspended || mTailerThread != null,
         "tailer thread must not be null in secondary mode");
+
+    // Resume first if suspended.
+    if (mSuspended) {
+      resume();
+    }
+
     mTailerThread.awaitTermination(true);
     long nextSequenceNumber = mTailerThread.getNextSequenceNumber();
     mTailerThread = null;
+
     nextSequenceNumber = catchUp(nextSequenceNumber);
     mWriter = new UfsJournalLogWriter(this, nextSequenceNumber);
     mAsyncWriter = new AsyncJournalWriter(mWriter, mJournalSinks);
@@ -245,6 +263,73 @@ public class UfsJournal implements Journal {
     mTailerThread = new UfsJournalCheckpointThread(mMaster, this, mJournalSinks);
     mTailerThread.start();
     mState = State.SECONDARY;
+  }
+
+  /**
+   * Suspends applying this journal until resumed.
+   *
+   * @throws IOException
+   */
+  public synchronized void suspend() throws IOException {
+    Preconditions.checkState(!mSuspended, "journal is already suspended");
+    Preconditions.checkState(mState == State.SECONDARY, "unexpected state " + mState);
+    Preconditions.checkState(mSuspendSequence == -1, "suspend sequence already set");
+    mTailerThread.awaitTermination(false);
+    mSuspendSequence = mTailerThread.getNextSequenceNumber() - 1;
+    mTailerThread = null;
+    mSuspended = true;
+  }
+
+  /**
+   * Initiates catching up of the journal up to given sequence.
+   * Note: Journal should have been suspended prior to calling this.
+   *
+   * @param sequence sequence to catch up
+   * @return the catch-up task
+   * @throws IOException
+   */
+  public synchronized CatchupFuture catchup(long sequence) throws IOException {
+    Preconditions.checkState(mSuspended, "journal is not suspended");
+    Preconditions.checkState(mState == State.SECONDARY, "unexpected state " + mState);
+    Preconditions.checkState(mTailerThread == null, "tailer is not null");
+    Preconditions.checkState(sequence >= mSuspendSequence, "can't catch-up before suspend");
+    Preconditions.checkState(mCatchupThread == null || !mCatchupThread.isAlive(),
+        "Catch-up thread active");
+
+    // Return completed if already at target.
+    if (sequence == mSuspendSequence) {
+      return CatchupFuture.completed();
+    }
+
+    // Create an async task to catch up to target sequence.
+    mCatchupThread = new UfsJournalCatchupThread(mSuspendSequence + 1, sequence);
+    mCatchupThread.start();
+    return new CatchupFuture(mCatchupThread);
+  }
+
+  /**
+   * Resumes the journal.
+   * Note: Journal should have been suspended prior to calling this.
+   *
+   * @throws IOException
+   */
+  public synchronized void resume() throws IOException {
+    Preconditions.checkState(mSuspended, "journal is not suspended");
+    Preconditions.checkState(mState == State.SECONDARY, "unexpected state " + mState);
+    Preconditions.checkState(mTailerThread == null, "tailer is not null");
+
+    // Cancel and wait for active catch-up thread.
+    if (mCatchupThread != null && mCatchupThread.isAlive()) {
+      mCatchupThread.cancel();
+      mCatchupThread.waitTermination();
+      mStopCatchingUp = false;
+    }
+
+    mTailerThread =
+        new UfsJournalCheckpointThread(mMaster, this, mSuspendSequence + 1, mJournalSinks);
+    mTailerThread.start();
+    mSuspendSequence = -1;
+    mSuspended = false;
   }
 
   /**
@@ -387,9 +472,20 @@ public class UfsJournal implements Journal {
    * @return the next sequence number after the final sequence number read
    */
   private synchronized long catchUp(long nextSequenceNumber) {
+    return catchUp(nextSequenceNumber, -1);
+  }
+
+  /**
+   * Reads and applies journal entries starting from the specified sequence number upto given limit.
+   *
+   * @param nextSequenceNumber the sequence number to continue catching up from
+   * @param endSequenceNumber the inclusive sequence number to end catching up
+   * @return the next sequence number after the final sequence number read
+   */
+  private long catchUp(long nextSequenceNumber, long endSequenceNumber) {
     JournalReader journalReader = new UfsJournalReader(this, nextSequenceNumber, true);
     try {
-      return catchUp(journalReader);
+      return catchUp(journalReader, endSequenceNumber);
     } finally {
       try {
         journalReader.close();
@@ -399,7 +495,7 @@ public class UfsJournal implements Journal {
     }
   }
 
-  private long catchUp(JournalReader journalReader) {
+  private long catchUp(JournalReader journalReader, long limit) {
     RetryPolicy retry =
         ExponentialTimeBoundedRetry.builder()
             .withInitialSleep(Duration.ofSeconds(1))
@@ -407,6 +503,13 @@ public class UfsJournal implements Journal {
             .withMaxDuration(Duration.ofDays(365))
             .build();
     while (true) {
+      // Finish catching up, if reader is beyond given limit.
+      if (limit != -1 && journalReader.getNextSequenceNumber() > limit) {
+        return journalReader.getNextSequenceNumber();
+      }
+      if (mStopCatchingUp) {
+        return journalReader.getNextSequenceNumber();
+      }
       try {
         switch (journalReader.advance()) {
           case CHECKPOINT:
@@ -460,5 +563,38 @@ public class UfsJournal implements Journal {
       mTailerThread = null;
     }
     mState = State.CLOSED;
+  }
+
+  /**
+   * UFS implementation for {@link AbstractCatchupThread}.
+   */
+  class UfsJournalCatchupThread extends AbstractCatchupThread {
+    /** Where to start catching up. */
+    private long mCatchUpStartSequence;
+    /** Where to end catching up. */
+    private long mCatchUpEndSequence;
+
+    /**
+     * Creates UFS catch-up thread for given range.
+     *
+     * @param start start sequence (inclusive)
+     * @param end end sequence (inclusive)
+     */
+    public UfsJournalCatchupThread(long start, long end) {
+      mCatchUpStartSequence = start;
+      mCatchUpEndSequence = end;
+      setName(String.format("ufs-catchup-thread-%s", mMaster.getName()));
+    }
+
+    @Override
+    public void cancel() {
+      // Used by catchup() to bail early.
+      mStopCatchingUp = true;
+    }
+
+    protected void runCatchup() {
+      // Update suspended sequence after catch-up is finished.
+      mSuspendSequence = catchUp(mCatchUpStartSequence, mCatchUpEndSequence) - 1;
+    }
   }
 }

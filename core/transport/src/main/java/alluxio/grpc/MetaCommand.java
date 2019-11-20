@@ -87,7 +87,7 @@ public enum MetaCommand
   }
   public static final com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return alluxio.grpc.MetaMasterProto.getDescriptor().getEnumTypes().get(3);
+    return alluxio.grpc.MetaMasterProto.getDescriptor().getEnumTypes().get(4);
   }
 
   private static final MetaCommand[] VALUES = values();
