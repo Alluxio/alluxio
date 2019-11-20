@@ -359,8 +359,8 @@ public class BackupWorkerRole extends AbstractBackupRole {
             MessagingServiceGrpc.newStub(channel);
 
         // Create a client connection to leader.
-        GrpcMessagingConnection leaderConnection = new GrpcMessagingClientConnection(mCatalystContext,
-            mExecutorService, channel, mCatalystRequestTimeout);
+        GrpcMessagingConnection leaderConnection = new GrpcMessagingClientConnection(
+            mCatalystContext, mExecutorService, channel, mCatalystRequestTimeout);
         leaderConnection.setTargetObserver(messageClientStub.connect(leaderConnection));
 
         // Activate the connection.
