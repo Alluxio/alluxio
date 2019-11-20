@@ -17,6 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.MetricType;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricIdentifier;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MetricsSystem.InstanceType;
 
@@ -38,11 +39,11 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class MetricsStore {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsStore.class);
-  private static final IndexDefinition<Metric, String> FULL_NAME_INDEX =
-      new IndexDefinition<Metric, String>(true) {
+  private static final IndexDefinition<Metric, MetricIdentifier> METRIC_IDENTIFIER_INDEX =
+      new IndexDefinition<Metric, MetricIdentifier>(true) {
         @Override
-        public String getFieldValue(Metric o) {
-          return o.getFullMetricName();
+        public MetricIdentifier getFieldValue(Metric o) {
+          return o.getMetricIdentifier();
         }
       };
 
@@ -54,20 +55,12 @@ public class MetricsStore {
         }
       };
 
-  private static final IndexDefinition<Metric, String> ID_INDEX =
-      new IndexDefinition<Metric, String>(false) {
-        @Override
-        public String getFieldValue(Metric o) {
-          return getFullInstanceId(o.getHostname(), o.getInstanceId());
-        }
-      };
-
   // Although IndexedSet is threadsafe, it lacks an update operation, so we need locking to
   // implement atomic update using remove + add.
   private final IndexedSet<Metric> mWorkerMetrics =
-      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
+      new IndexedSet<>(METRIC_IDENTIFIER_INDEX, NAME_INDEX);
   private final IndexedSet<Metric> mClientMetrics =
-      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
+      new IndexedSet<>(METRIC_IDENTIFIER_INDEX, NAME_INDEX);
 
   /**
    * A thread-safe linked-list-based queue with an optional capacity limit.
@@ -189,7 +182,8 @@ public class MetricsStore {
         continue; // ignore metrics whose hostname is null
       }
 
-      Metric oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
+      Metric oldMetric = metricSet.getFirstByField(METRIC_IDENTIFIER_INDEX,
+          metric.getMetricIdentifier());
       if (oldMetric == null) {
         metricSet.add(metric);
       } else if (metric.getMetricType() == MetricType.COUNTER) {

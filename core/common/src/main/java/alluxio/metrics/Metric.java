@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,14 +36,9 @@ public final class Metric implements Serializable {
   private static final ConcurrentHashMap<UserMetricKey, String> CACHED_METRICS =
       new ConcurrentHashMap<>();
 
-  private final MetricsSystem.InstanceType mInstanceType;
-  private final String mHostname;
-  private final String mName;
+  private final MetricIdentifier mMetricIdentifier;
   private final MetricType mMetricType;
   private String mInstanceId;
-  // TODO(yupeng): consider a dedicated data structure for tag, when more functionality are added to
-  // tags in the future
-  private final Map<String, String> mTags;
 
   private Double mValue;
 
@@ -75,13 +69,10 @@ public final class Metric implements Serializable {
   public Metric(MetricsSystem.InstanceType instanceType, String hostname, String id,
       MetricType metricType, String name, Double value) {
     Preconditions.checkNotNull(name, "name");
-    mInstanceType = instanceType;
-    mHostname = hostname;
+    mMetricIdentifier = new MetricIdentifier(instanceType, hostname, name);
     mInstanceId = id;
     mMetricType = metricType;
-    mName = name;
     mValue = value;
-    mTags = new LinkedHashMap<>();
   }
 
   /**
@@ -112,10 +103,17 @@ public final class Metric implements Serializable {
   }
 
   /**
+   * @return the metric identifier
+   */
+  public MetricIdentifier getMetricIdentifier() {
+    return mMetricIdentifier;
+  }
+
+  /**
    * @return the instance type
    */
   public MetricsSystem.InstanceType getInstanceType() {
-    return mInstanceType;
+    return mMetricIdentifier.getInstanceType();
   }
 
   /**
@@ -125,14 +123,14 @@ public final class Metric implements Serializable {
    * @param value the tag value
    */
   public void addTag(String name, String value) {
-    mTags.put(name, value);
+    mMetricIdentifier.addTag(name, value);
   }
 
   /**
    * @return the hostname
    */
   public String getHostname() {
-    return mHostname;
+    return mMetricIdentifier.getHostname();
   }
 
   /**
@@ -146,7 +144,7 @@ public final class Metric implements Serializable {
    * @return the metric name
    */
   public String getName() {
-    return mName;
+    return mMetricIdentifier.getName();
   }
 
   /**
@@ -160,7 +158,7 @@ public final class Metric implements Serializable {
    * @return the tags
    */
   public Map<String, String> getTags() {
-    return mTags;
+    return mMetricIdentifier.getTags();
   }
 
   /**
@@ -173,21 +171,23 @@ public final class Metric implements Serializable {
   }
 
   @Override
-  public boolean equals(Object other) {
-    if (other == null) {
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Metric)) {
       return false;
     }
-    if (!(other instanceof Metric)) {
-      return false;
-    }
-    Metric metric = (Metric) other;
-    return Objects.equal(getFullMetricName(), metric.getFullMetricName())
-        && Objects.equal(getValue(), metric.getValue());
+    Metric  that = (Metric) o;
+    return Objects.equal(mMetricIdentifier, that.mMetricIdentifier)
+        && Objects.equal(mInstanceId, that.mInstanceId)
+        && Objects.equal(mMetricType, that.mMetricType)
+        && Objects.equal(getValue(), that.getValue());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(getFullMetricName(), getValue());
+    return Objects.hashCode(mMetricIdentifier, mMetricType, mInstanceId, getValue());
   }
 
   /**
@@ -197,17 +197,17 @@ public final class Metric implements Serializable {
    */
   public String getFullMetricName() {
     StringBuilder sb = new StringBuilder();
-    sb.append(mInstanceType).append('.');
-    if (mHostname != null) {
-      sb.append(mHostname);
+    sb.append(mMetricIdentifier.getInstanceType()).append('.');
+    if (mMetricIdentifier.getHostname() != null) {
+      sb.append(mMetricIdentifier.getHostname());
       if (mInstanceId != null) {
         sb.append(ID_SEPARATOR).append(mInstanceId);
       }
       sb.append('.');
     }
 
-    sb.append(mName);
-    for (Entry<String, String> entry : mTags.entrySet()) {
+    sb.append(mMetricIdentifier.getName());
+    for (Entry<String, String> entry : mMetricIdentifier.getTags().entrySet()) {
       sb.append('.').append(entry.getKey()).append(TAG_SEPARATOR).append(entry.getValue());
     }
     return sb.toString();
@@ -218,8 +218,9 @@ public final class Metric implements Serializable {
    */
   public alluxio.grpc.Metric toProto() {
     alluxio.grpc.Metric.Builder metric = alluxio.grpc.Metric.newBuilder();
-    metric.setInstance(mInstanceType.toString()).setHostname(mHostname).setMetricType(mMetricType)
-        .setName(mName).setValue(getValue()).putAllTags(mTags);
+    metric.setInstance(getInstanceType().toString())
+        .setHostname(getHostname()).setMetricType(mMetricType)
+        .setName(getName()).setValue(getValue()).putAllTags(getTags());
 
     if (mInstanceId != null && !mInstanceId.isEmpty()) {
       metric.setInstanceId(mInstanceId);
@@ -335,12 +336,9 @@ public final class Metric implements Serializable {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("hostname", mHostname)
+        .add("metricIdentifier", mMetricIdentifier)
         .add("instanceId", mInstanceId)
-        .add("instanceType", mInstanceType)
         .add("metricType", mMetricType)
-        .add("name", mName)
-        .add("tags", mTags)
         .add("value", getValue())
         .toString();
   }

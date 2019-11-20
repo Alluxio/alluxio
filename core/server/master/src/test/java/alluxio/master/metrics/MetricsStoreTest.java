@@ -81,7 +81,40 @@ public class MetricsStoreTest {
     metric2.addTag("Tag", "2");
     mMetricStore.putWorkerMetrics("host", Lists.newArrayList(metric1, metric2));
     MetricsStoreUtils.waitForMetricsCacheQueueEmpty(mMetricStore);
-    assertEquals(mMetricStore.getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType.WORKER,
-        name), Sets.newHashSet(metric1, metric2));
+    assertEquals(Sets.newHashSet(metric1, metric2),
+        mMetricStore.getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType.WORKER, name));
+  }
+
+  @Test
+  public void workerMetricsCounterSummary() throws Exception {
+    List<Metric> metrics1 = Lists.newArrayList(
+        Metric.from("worker.192_1_1_1.metric1", 10, MetricType.COUNTER),
+        Metric.from("worker.192_1_1_1.metric2", 20, MetricType.COUNTER));
+    mMetricStore.putWorkerMetrics("192_1_1_1", metrics1);
+    List<Metric> metrics2 = Lists.newArrayList(
+        Metric.from("worker.192_1_1_1.metric1", 3, MetricType.COUNTER),
+        Metric.from("worker.192_1_1_1.metric2", 5, MetricType.COUNTER));
+    mMetricStore.putWorkerMetrics("192_1_1_1", metrics2);
+    MetricsStoreUtils.waitForMetricsCacheQueueEmpty(mMetricStore);
+    assertEquals(Sets.newHashSet(
+        Metric.from("worker.192_1_1_1.metric1", 13, MetricType.COUNTER)),
+        mMetricStore.getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType.WORKER, "metric1"));
+    assertEquals(Sets.newHashSet(
+        Metric.from("worker.192_1_1_1.metric2", 25, MetricType.COUNTER)),
+        mMetricStore.getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType.WORKER, "metric2"));
+  }
+
+  @Test
+  public void workerMetricsGuageOverwrite() throws Exception {
+    List<Metric> metrics1 = Lists.newArrayList(
+        Metric.from("worker.192_1_1_1.metric1", 10, MetricType.GAUGE));
+    mMetricStore.putWorkerMetrics("192_1_1_1", metrics1);
+    List<Metric> metrics2 = Lists.newArrayList(
+        Metric.from("worker.192_1_1_1.metric1", 3, MetricType.GAUGE));
+    mMetricStore.putWorkerMetrics("192_1_1_1", metrics2);
+    MetricsStoreUtils.waitForMetricsCacheQueueEmpty(mMetricStore);
+    assertEquals(Sets.newHashSet(
+        Metric.from("worker.192_1_1_1.metric1", 3, MetricType.GAUGE)),
+        mMetricStore.getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType.WORKER, "metric1"));
   }
 }
