@@ -11,18 +11,15 @@
 
 package alluxio.job.plan.replicate;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
+import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -88,17 +85,7 @@ public final class MoveDefinition
     AlluxioBlockStore blockStore = AlluxioBlockStore.create(context.getFsContext());
 
     long blockId = config.getBlockId();
-    String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
-        ServerConfiguration.global());
-    List<BlockWorkerInfo> workerInfoList = blockStore.getAllWorkers();
-    WorkerNetAddress localNetAddress = null;
-
-    for (BlockWorkerInfo workerInfo : workerInfoList) {
-      if (workerInfo.getNetAddress().getHost().equals(localHostName)) {
-        localNetAddress = workerInfo.getNetAddress();
-        break;
-      }
-    }
+    WorkerNetAddress localNetAddress = JobUtils.getLocalWorkerAddress(blockStore);
     if (localNetAddress == null) {
       String message = String.format("Cannot find a local block worker to move block %d", blockId);
       throw new NotFoundException(message);

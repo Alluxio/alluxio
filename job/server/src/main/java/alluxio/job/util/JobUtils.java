@@ -109,17 +109,7 @@ public final class JobUtils {
       throws AlluxioException, IOException {
     AlluxioBlockStore blockStore = AlluxioBlockStore.create(context);
 
-    String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
-        ServerConfiguration.global());
-    List<BlockWorkerInfo> workerInfoList = blockStore.getAllWorkers();
-    WorkerNetAddress localNetAddress = null;
-
-    for (BlockWorkerInfo workerInfo : workerInfoList) {
-      if (workerInfo.getNetAddress().getHost().equals(localHostName)) {
-        localNetAddress = workerInfo.getNetAddress();
-        break;
-      }
-    }
+    WorkerNetAddress localNetAddress = getLocalWorkerAddress(blockStore);
     if (localNetAddress == null) {
       throw new NotFoundException(ExceptionMessage.NO_LOCAL_BLOCK_WORKER_REPLICATE_TASK
           .getMessage(blockId));
@@ -167,6 +157,26 @@ public final class JobUtils {
         throw t;
       }
     }
+  }
+
+  /**
+   * Get the net address of the local worker.
+   *
+   * @param blockStore the block store to get worker addresses from
+   * @return the worker net address if the local worker is one of the active workers,
+   *         null otherwise
+   */
+  public static WorkerNetAddress getLocalWorkerAddress(AlluxioBlockStore blockStore)
+      throws IOException {
+    List<WorkerNetAddress> workerAddressesList = blockStore.getAllWorkerAddresses();
+    String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
+        ServerConfiguration.global());
+    for (WorkerNetAddress workerAddress: workerAddressesList) {
+      if (workerAddress.getHost().equals(localHostName)) {
+        return workerAddress;
+      }
+    }
+    return null;
   }
 
   private JobUtils() {} // Utils class not intended for instantiation.

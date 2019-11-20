@@ -136,6 +136,16 @@ public final class AlluxioBlockStore {
   }
 
   /**
+   * @return the the addresses of all active workers
+   */
+  public List<WorkerNetAddress> getAllWorkerAddresses() throws IOException {
+    try (CloseableResource<BlockMasterClient> masterClientResource =
+             mContext.acquireBlockMasterClientResource()) {
+      return masterClientResource.get().getWorkerAddresses();
+    }
+  }
+
+  /**
    * Gets a stream to read the data of a block. This method is primarily responsible for
    * determining the data source and type of data source. The latest BlockInfo will be fetched
    * from the master to ensure the locations are up to date.
