@@ -282,7 +282,31 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
     FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
     File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
     testFile.createNewFile();
-    mFsShell.run("mkdir", mLocalAlluxioCluster.getAlluxioHome());
+    FileOutputStream fos = new FileOutputStream(testFile);
+    byte[] toWrite = BufferUtils.getIncreasingByteArray(100);
+    fos.write(toWrite);
+    fos.close();
+
+    mFsShell.run("copyFromLocal", testFile.getPath(), "/");
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testFile")));
+    mLocalAlluxioCluster.stopWorkers();
+    mFsShell.run("cp", "/testFile", "/testFile2");
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testFile2")));
+  }
+
+  @Test
+  public void copyAfterWorkersNotAvailableMustCache() throws Exception {
+    InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
+    conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    mFsShell = new FileSystemShell(conf);
+
+    File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
+    testFile.createNewFile();
+    FileOutputStream fos = new FileOutputStream(testFile);
+    byte[] toWrite = BufferUtils.getIncreasingByteArray(100);
+    fos.write(toWrite);
+    fos.close();
+
     mFsShell.run("copyFromLocal", testFile.getPath(), "/");
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testFile")));
     mLocalAlluxioCluster.stopWorkers();
