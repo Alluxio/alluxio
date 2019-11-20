@@ -33,13 +33,6 @@ public final class MetricTest {
   }
 
   @Test
-  public void testFullNameParsing() {
-    String fullName = "Client.192_1_1_1|A.metric.tag1:A::/.tag2:B:/";
-    Metric metric = Metric.from(fullName, 1, MetricType.COUNTER);
-    assertEquals(fullName, metric.getFullMetricName());
-  }
-
-  @Test
   public void testMetricNameWithTags() {
     assertEquals("metric.t1:v1.t2:v2:",
         Metric.getMetricNameWithTags("metric", "t1", "v1", "t2", "v2:"));
@@ -50,7 +43,6 @@ public final class MetricTest {
     assertEquals(a.getInstanceType(), b.getInstanceType());
     assertEquals(a.getValue(), b.getValue(), 1e-15);
     assertEquals(a.getHostname(), b.getHostname());
-    assertEquals(a.getFullMetricName(), b.getFullMetricName());
   }
 
   public static Metric createRandom() {

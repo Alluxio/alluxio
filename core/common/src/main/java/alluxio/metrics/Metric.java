@@ -191,29 +191,6 @@ public final class Metric implements Serializable {
   }
 
   /**
-   * @return the fully qualified metric name, which is of pattern
-   *         instance.[hostname-id:instanceId.]name[.tagName:tagValue]*, where the tags are appended
-   *         at the end
-   */
-  public String getFullMetricName() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(mMetricIdentifier.getInstanceType()).append('.');
-    if (mMetricIdentifier.getHostname() != null) {
-      sb.append(mMetricIdentifier.getHostname());
-      if (mInstanceId != null) {
-        sb.append(ID_SEPARATOR).append(mInstanceId);
-      }
-      sb.append('.');
-    }
-
-    sb.append(mMetricIdentifier.getName());
-    for (Entry<String, String> entry : mMetricIdentifier.getTags().entrySet()) {
-      sb.append('.').append(entry.getKey()).append(TAG_SEPARATOR).append(entry.getValue());
-    }
-    return sb.toString();
-  }
-
-  /**
    * @return the proto object it converts to. Note the value must be either integer or long
    */
   public alluxio.grpc.Metric toProto() {

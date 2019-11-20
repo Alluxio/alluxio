@@ -58,7 +58,7 @@ public final class MetricsSystem {
   private static int sResolveTimeout =
       (int) new InstancedConfiguration(ConfigurationUtils.defaults())
           .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
-  private static final ConcurrentHashMap<String, Metric> LAST_REPORTED_METRICS =
+  private static final ConcurrentHashMap<MetricIdentifier, Metric> LAST_REPORTED_METRICS =
       new ConcurrentHashMap<>();
 
   /**
@@ -450,15 +450,19 @@ public final class MetricsSystem {
       // contain the difference of the current value, and the last value sent. If it doesn't
       // yet exist, just send the current value
       if (m.getMetricType() == MetricType.COUNTER) {
-        Metric prev = LAST_REPORTED_METRICS.replace(m.getFullMetricName(), m);
+        Metric prev = LAST_REPORTED_METRICS.get(m.getMetricIdentifier());
         // On restarts counters will be reset to 0, so whatever the value is the first time
         // this method is called represents the value which should be added to the master's
         // counter.
-        if (prev == null) {
-          LAST_REPORTED_METRICS.put(m.getFullMetricName(), m);
-        }
         double diff = prev != null ? m.getValue() - prev.getValue() : m.getValue();
-        rpcMetrics.add(m.toProto().toBuilder().setValue(diff).build());
+        if (diff != 0) { // Don't report metrics of zero counter
+          rpcMetrics.add(m.toProto().toBuilder().setValue(diff).build());
+        }
+        if (prev != null) {
+          prev.setValue(m.getValue());
+        } else {
+          LAST_REPORTED_METRICS.put(m.getMetricIdentifier(), m);
+        }
       } else {
         rpcMetrics.add(m.toProto());
       }
