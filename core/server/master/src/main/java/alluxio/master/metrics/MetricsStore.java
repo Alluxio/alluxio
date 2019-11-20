@@ -24,10 +24,8 @@ import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -186,36 +184,19 @@ public class MetricsStore {
     IndexedSet<Metric> metricSet = instanceMetrics.getId() == null
         ? mWorkerMetrics : mClientMetrics;
     List<Metric> reportedMetrics = instanceMetrics.getMetricsList();
-    List<Metric> newMetrics = new ArrayList<>(reportedMetrics.size());
-    synchronized (metricSet) {
-      for (Metric metric : reportedMetrics) {
-        if (metric.getHostname() == null) {
-          continue; // ignore metrics whose hostname is null
-        }
-
-        // If a metric is COUNTER, the value sent via RPC should be the incremental value; i.e.
-        // the amount the value has changed since the last RPC. The master should equivalently
-        // increment its value based on the received metric rather than replacing it.
-        if (metric.getMetricType() == MetricType.COUNTER) {
-          // FULL_NAME_INDEX is a unique index, so getFirstByField will return the same results as
-          // getByField
-          Metric oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
-          double oldVal = oldMetric == null ? 0.0 : oldMetric.getValue();
-          Metric newMetric = new Metric(metric.getInstanceType(), metric.getHostname(),
-              metric.getMetricType(), metric.getName(), oldVal + metric.getValue());
-          for (Map.Entry<String, String> tag : metric.getTags().entrySet()) {
-            newMetric.addTag(tag.getKey(), tag.getValue());
-          }
-          metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
-          newMetrics.add(newMetric);
-        } else {
-          metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
-          newMetrics.add(metric);
-        }
+    for (Metric metric : reportedMetrics) {
+      if (metric.getHostname() == null) {
+        continue; // ignore metrics whose hostname is null
       }
-      metricSet.removeByField(ID_INDEX,
-          getFullInstanceId(instanceMetrics.getHostname(), instanceMetrics.getId()));
-      metricSet.addAll(newMetrics);
+
+      Metric oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
+      if (oldMetric == null) {
+        metricSet.add(metric);
+      } else if (metric.getMetricType() == MetricType.COUNTER) {
+        oldMetric.addValue(metric.getValue());
+      } else {
+        oldMetric.setValue(metric.getValue());
+      }
     }
   }
 
@@ -229,6 +210,9 @@ public class MetricsStore {
    */
   public Set<Metric> getMetricsByInstanceTypeAndName(
       MetricsSystem.InstanceType instanceType, String name) {
+    if (mStopProcessing) {
+      return new HashSet<>();
+    }
     if (instanceType == InstanceType.MASTER) {
       return getMasterMetrics(name);
     }
@@ -264,23 +248,19 @@ public class MetricsStore {
       stop();
     }
     // Clears all the existing metrics to support master failover
-    synchronized (mWorkerMetrics) {
-      if (!mWorkerMetrics.isEmpty()) {
-        mWorkerMetrics.clear();
-      }
+    if (!mWorkerMetrics.isEmpty()) {
+      mWorkerMetrics.clear();
     }
-    synchronized (mClientMetrics) {
-      if (!mClientMetrics.isEmpty()) {
-        mClientMetrics.clear();
-      }
+    if (!mClientMetrics.isEmpty()) {
+      mClientMetrics.clear();
     }
     mMetricsQueue.clear();
 
     // Create a new thread.
     mMetricsProcessThread = new Thread(this::processMetrics, "MetricsProcessingThread");
     // Reset termination flag before starting the new thread.
-    mStopProcessing = false;
     mMetricsProcessThread.start();
+    mStopProcessing = false;
   }
 
   /**
