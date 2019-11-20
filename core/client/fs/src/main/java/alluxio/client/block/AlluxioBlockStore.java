@@ -252,7 +252,7 @@ public final class AlluxioBlockStore {
     Set<WorkerNetAddress> nonFailed =
         workers.stream().filter(worker -> !failedWorkers.containsKey(worker)).collect(toSet());
     if (nonFailed.isEmpty()) {
-      return Collections.singleton(failedWorkers.keySet().stream()
+      return Collections.singleton(workers.stream()
           .min(Comparator.comparingLong((x) -> failedWorkers.get(x))).get());
     }
     return nonFailed;
