@@ -11,12 +11,14 @@
 
 package alluxio.job.plan;
 
+import alluxio.collections.Pair;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.util.SerializableVoid;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
+import com.google.common.collect.Lists;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,12 +41,12 @@ public final class SleepPlanDefinition
   }
 
   @Override
-  public Map<WorkerInfo, SerializableVoid> selectExecutors(SleepJobConfig config,
+  public List<Pair<WorkerInfo, SerializableVoid>> selectExecutors(SleepJobConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
       throws Exception {
-    Map<WorkerInfo, SerializableVoid> executors = new HashMap<>();
+    List<Pair<WorkerInfo, SerializableVoid>> executors = Lists.newArrayList();
     for (WorkerInfo jobWorker : jobWorkerInfoList) {
-      executors.put(jobWorker, null);
+      executors.add(new Pair(jobWorker, null));
     }
     return executors;
   }

@@ -11,6 +11,7 @@
 
 package alluxio.job.plan;
 
+import alluxio.collections.Pair;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.TestPlanConfig;
@@ -18,7 +19,6 @@ import alluxio.job.util.SerializableVoid;
 import alluxio.wire.WorkerInfo;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -46,7 +46,7 @@ public final class TestPlanDefinition
   }
 
   @Override
-  public Map<WorkerInfo, SerializableVoid> selectExecutors(TestPlanConfig config,
+  public List<Pair<WorkerInfo, SerializableVoid>> selectExecutors(TestPlanConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
       throws Exception {
     return null;

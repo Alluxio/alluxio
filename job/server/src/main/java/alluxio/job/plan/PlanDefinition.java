@@ -11,6 +11,7 @@
 
 package alluxio.job.plan;
 
+import alluxio.collections.Pair;
 import alluxio.job.JobConfig;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
@@ -47,8 +48,8 @@ public interface PlanDefinition<T extends JobConfig, P extends Serializable,
    * @return a map of selected workers to the parameters to pass along
    * @throws Exception if any error occurs
    */
-  Map<WorkerInfo, P> selectExecutors(T config, List<WorkerInfo> jobWorkerInfoList,
-      SelectExecutorsContext selectExecutorsContext) throws Exception;
+  List<Pair<WorkerInfo, P>> selectExecutors(T config, List<WorkerInfo> jobWorkerInfoList,
+    SelectExecutorsContext selectExecutorsContext) throws Exception;
 
   /**
    * Runs the task in the executor.

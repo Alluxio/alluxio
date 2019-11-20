@@ -20,6 +20,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
@@ -158,12 +159,12 @@ public final class MigrateDefinition
    * If no worker has blocks for a file, a random worker is chosen.
    */
   @Override
-  public Map<WorkerInfo, ArrayList<MigrateCommand>> selectExecutors(MigrateConfig config,
+  public List<Pair<WorkerInfo, ArrayList<MigrateCommand>>> selectExecutors(MigrateConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context) throws Exception {
     AlluxioURI source = new AlluxioURI(config.getSource());
     AlluxioURI destination = new AlluxioURI(config.getDestination());
     if (source.equals(destination)) {
-      return new HashMap<>();
+      return Lists.newArrayList();
     }
     checkMigrateValid(config, context.getFileSystem());
     Preconditions.checkState(!jobWorkerInfoList.isEmpty(), "No workers are available");
@@ -190,7 +191,14 @@ public final class MigrateDefinition
         assignments.get(bestJobWorker).add(new MigrateCommand(status.getPath(), destinationPath));
       }
     }
-    return assignments;
+
+    List<Pair<WorkerInfo, ArrayList<MigrateCommand>>> result = Lists.newArrayList();
+
+    for (Map.Entry<WorkerInfo, ArrayList<MigrateCommand>> assignment : assignments.entrySet()) {
+      result.add(new Pair(assignment.getKey(), assignment.getValue()));
+    }
+
+    return result;
   }
 
   private WorkerInfo getBestJobWorker(URIStatus status, List<BlockWorkerInfo> alluxioWorkerInfoList,

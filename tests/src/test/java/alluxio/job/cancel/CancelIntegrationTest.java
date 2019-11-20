@@ -12,6 +12,7 @@
 package alluxio.job.cancel;
 
 import alluxio.Constants;
+import alluxio.collections.Pair;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.plan.PlanConfig;
 import alluxio.job.plan.PlanDefinitionRegistry;
@@ -44,7 +45,7 @@ public final class CancelIntegrationTest extends JobIntegrationTest {
   public static class CancelTestDefinition
       extends AbstractVoidPlanDefinition<CancelTestConfig, Integer> {
     @Override
-    public Map<WorkerInfo, Integer> selectExecutors(CancelTestConfig config,
+    public List<Pair<WorkerInfo, Integer>> selectExecutors(CancelTestConfig config,
         List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
         throws Exception {
       Map<WorkerInfo, Integer> result = new HashMap<>();

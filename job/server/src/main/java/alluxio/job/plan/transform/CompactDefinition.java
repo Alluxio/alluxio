@@ -13,6 +13,7 @@ package alluxio.job.plan.transform;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.Pair;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
@@ -68,7 +69,7 @@ public final class CompactDefinition
   }
 
   @Override
-  public Map<WorkerInfo, ArrayList<CompactTask>> selectExecutors(CompactConfig config,
+  public List<Pair<WorkerInfo, ArrayList<CompactTask>>> selectExecutors(CompactConfig config,
       List<WorkerInfo> jobWorkers, SelectExecutorsContext context) throws Exception {
     Preconditions.checkState(!jobWorkers.isEmpty(), "No job worker");
     AlluxioURI inputDir = new AlluxioURI(config.getInput());
@@ -105,7 +106,13 @@ public final class CompactDefinition
         group = new ArrayList<>(groupSize);
       }
     }
-    return assignments;
+
+    List<Pair<WorkerInfo, ArrayList<CompactTask>>> result = Lists.newArrayList();
+    for (Map.Entry<WorkerInfo, ArrayList<CompactTask>> assignment : assignments.entrySet()) {
+      result.add(new Pair(assignment.getKey(), assignment.getValue()));
+    }
+
+    return result;
   }
 
   @Override

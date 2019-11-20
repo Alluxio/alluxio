@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.collections.Pair;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
@@ -28,12 +29,14 @@ import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +60,7 @@ public final class LoadDefinition
   }
 
   @Override
-  public Map<WorkerInfo, ArrayList<LoadTask>> selectExecutors(LoadConfig config,
+  public List<Pair<WorkerInfo, ArrayList<LoadTask>>> selectExecutors(LoadConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context)
       throws Exception {
     Map<String, WorkerInfo> jobWorkersByAddress = jobWorkerInfoList.stream()
@@ -98,7 +101,13 @@ public final class LoadDefinition
         assignments.put(jobWorker, new LoadTask(blockInfo.getBlockInfo().getBlockId()));
       }
     }
-    return SerializationUtils.makeValuesSerializable(assignments.asMap());
+
+    List<Pair<WorkerInfo, ArrayList<LoadTask>>> result = Lists.newArrayList();
+    for (Map.Entry<WorkerInfo, Collection<LoadTask>> assignment : assignments.asMap().entrySet()) {
+      result.add(new Pair(assignment.getKey(), assignment.getValue()));
+    }
+
+    return result;
   }
 
   /**

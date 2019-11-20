@@ -11,6 +11,7 @@
 
 package alluxio.job.plan.replicate;
 
+import alluxio.collections.Pair;
 import alluxio.conf.ServerConfiguration;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
@@ -29,6 +30,7 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +64,7 @@ public final class EvictDefinition
   }
 
   @Override
-  public Map<WorkerInfo, SerializableVoid> selectExecutors(EvictConfig config,
+  public List<Pair<WorkerInfo, SerializableVoid>> selectExecutors(EvictConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context)
       throws Exception {
     Preconditions.checkArgument(!jobWorkerInfoList.isEmpty(), "No worker is available");
@@ -77,13 +79,13 @@ public final class EvictDefinition
     for (BlockLocation blockLocation : blockInfo.getLocations()) {
       hosts.add(blockLocation.getWorkerAddress().getHost());
     }
-    Map<WorkerInfo, SerializableVoid> result = Maps.newHashMap();
+    List<Pair<WorkerInfo, SerializableVoid>> result = Lists.newArrayList();
 
     Collections.shuffle(jobWorkerInfoList);
     for (WorkerInfo workerInfo : jobWorkerInfoList) {
       // Select job workers that have this block locally to evict
       if (hosts.contains(workerInfo.getAddress().getHost())) {
-        result.put(workerInfo, null);
+        result.add(new Pair(workerInfo, null));
         if (result.size() >= numReplicas) {
           break;
         }
