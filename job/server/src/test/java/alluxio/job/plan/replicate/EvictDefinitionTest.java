@@ -55,7 +55,7 @@ public final class EvictDefinitionTest {
   private static final WorkerInfo WORKER_INFO_1 = new WorkerInfo().setAddress(ADDRESS_1);
   private static final WorkerInfo WORKER_INFO_2 = new WorkerInfo().setAddress(ADDRESS_2);
   private static final WorkerInfo WORKER_INFO_3 = new WorkerInfo().setAddress(ADDRESS_3);
-  private static final Map<WorkerInfo, SerializableVoid> EMPTY = Maps.newHashMap();
+  private static final List<Pair<WorkerInfo, SerializableVoid>> EMPTY = Lists.newArrayList();
 
   private FileSystem mMockFileSystem;
   private FileSystemContext mMockFileSystemContext;
@@ -96,7 +96,7 @@ public final class EvictDefinitionTest {
 
   @Test
   public void selectExecutorsNoBlockWorkerHasBlock() throws Exception {
-    Map<WorkerInfo, SerializableVoid> result =
+    List<Pair<WorkerInfo, SerializableVoid>> result =
         selectExecutorsTestHelper(Lists.<BlockLocation>newArrayList(), 1,
             Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     // Expect none as no worker has this copy
@@ -105,7 +105,7 @@ public final class EvictDefinitionTest {
 
   @Test
   public void selectExecutorsNoJobWorkerHasBlock() throws Exception {
-    Map<WorkerInfo, SerializableVoid> result = selectExecutorsTestHelper(
+    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
         Lists.newArrayList(WORKER_INFO_2, WORKER_INFO_3));
     // Expect none as no worker that is available has this copy
@@ -114,7 +114,7 @@ public final class EvictDefinitionTest {
 
   @Test
   public void selectExecutorsOnlyOneBlockWorkerHasBlock() throws Exception {
-    Map<WorkerInfo, SerializableVoid> result = selectExecutorsTestHelper(
+    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     Map<WorkerInfo, SerializableVoid> expected = Maps.newHashMap();
@@ -125,7 +125,7 @@ public final class EvictDefinitionTest {
 
   @Test
   public void selectExecutorsAnyOneWorkers() throws Exception {
-    Map<WorkerInfo, SerializableVoid> result = selectExecutorsTestHelper(Lists
+    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(Lists
             .newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1),
                 new BlockLocation().setWorkerAddress(ADDRESS_2),
                 new BlockLocation().setWorkerAddress(ADDRESS_3)), 1,
@@ -137,7 +137,7 @@ public final class EvictDefinitionTest {
 
   @Test
   public void selectExecutorsAllWorkers() throws Exception {
-    Map<WorkerInfo, SerializableVoid> result = selectExecutorsTestHelper(Lists
+    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(Lists
             .newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1),
                 new BlockLocation().setWorkerAddress(ADDRESS_2),
                 new BlockLocation().setWorkerAddress(ADDRESS_3)), 3,
@@ -152,7 +152,7 @@ public final class EvictDefinitionTest {
 
   @Test
   public void selectExecutorsBothWorkers() throws Exception {
-    Map<WorkerInfo, SerializableVoid> result = selectExecutorsTestHelper(Lists
+    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(Lists
             .newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1),
                 new BlockLocation().setWorkerAddress(ADDRESS_2)), 3,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));

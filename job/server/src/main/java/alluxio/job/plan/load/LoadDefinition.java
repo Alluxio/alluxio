@@ -103,7 +103,7 @@ public final class LoadDefinition
 
     List<Pair<WorkerInfo, ArrayList<LoadTask>>> result = Lists.newArrayList();
     for (Map.Entry<WorkerInfo, Collection<LoadTask>> assignment : assignments.asMap().entrySet()) {
-      result.add(new Pair<>(assignment.getKey(), assignment.getValue()));
+      result.add(new Pair<>(assignment.getKey(), Lists.newArrayList(assignment.getValue())));
     }
 
     return result;

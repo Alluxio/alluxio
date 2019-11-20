@@ -57,7 +57,6 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -71,7 +70,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Tests {@link ReplicateConfig}.
@@ -187,54 +185,54 @@ public final class ReplicateDefinitionTest {
 
   @Test
   public void selectExecutorsOnlyOneWorkerValid() throws Exception {
-    Map<WorkerInfo, SerializableVoid> result = selectExecutorsTestHelper(
+    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2));
-    Map<WorkerInfo, SerializableVoid> expected = Maps.newHashMap();
-    expected.put(WORKER_INFO_2, null);
+    List<Pair<WorkerInfo, SerializableVoid>> expected = Lists.newArrayList();
+    expected.add(new Pair(WORKER_INFO_2, null));
     // select one worker left
     assertEquals(expected, result);
   }
 
   @Test
   public void selectExecutorsTwoWorkersValid() throws Exception {
-    Map<WorkerInfo, SerializableVoid> result = selectExecutorsTestHelper(
+    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 2,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
-    Map<WorkerInfo, SerializableVoid> expected = Maps.newHashMap();
-    expected.put(WORKER_INFO_2, null);
-    expected.put(WORKER_INFO_3, null);
+    List<Pair<WorkerInfo, SerializableVoid>> expected = Lists.newArrayList();
+    expected.add(new Pair(WORKER_INFO_2, null));
+    expected.add(new Pair(WORKER_INFO_3, null));
     // select both workers left
     assertEquals(expected, result);
   }
 
   @Test
   public void selectExecutorsOneOutOFTwoWorkersValid() throws Exception {
-    Map<WorkerInfo, SerializableVoid> result = selectExecutorsTestHelper(
+    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     // select one worker out of two
     assertEquals(1, result.size());
-    assertEquals(null, result.values().iterator().next());
+    assertEquals(null, result.get(0).getSecond());
   }
 
   @Test
   public void selectExecutorsNoWorkerValid() throws Exception {
-    Map<WorkerInfo, SerializableVoid> result = selectExecutorsTestHelper(
+    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
         Lists.newArrayList(WORKER_INFO_1));
-    Map<WorkerInfo, SerializableVoid> expected = Maps.newHashMap();
+    List<Pair<WorkerInfo, SerializableVoid>> expected = Lists.newArrayList();
     // select none as no choice left
     assertEquals(expected, result);
   }
 
   @Test
   public void selectExecutorsInsufficientWorkerValid() throws Exception {
-    Map<WorkerInfo, SerializableVoid> result = selectExecutorsTestHelper(
+    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 2,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2));
-    Map<WorkerInfo, SerializableVoid> expected = Maps.newHashMap();
-    expected.put(WORKER_INFO_2, null);
+    List<Pair<WorkerInfo, SerializableVoid>> expected = Lists.newArrayList();
+    expected.add(new Pair(WORKER_INFO_2, null));
     // select the only worker left though more copies are requested
     assertEquals(expected, result);
   }

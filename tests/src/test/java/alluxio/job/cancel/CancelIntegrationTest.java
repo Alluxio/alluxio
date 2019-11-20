@@ -26,9 +26,7 @@ import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Tests the cancellation of a job.
@@ -49,7 +47,7 @@ public final class CancelIntegrationTest extends JobIntegrationTest {
     public List<Pair<WorkerInfo, Integer>> selectExecutors(CancelTestConfig config,
         List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
         throws Exception {
-      List<Pair<WorkerInfo, Integer>> result = Lists.newArrayList()
+      List<Pair<WorkerInfo, Integer>> result = Lists.newArrayList();
       for (WorkerInfo info : jobWorkerInfoList) {
         result.add(new Pair<>(info, 0));
       }
