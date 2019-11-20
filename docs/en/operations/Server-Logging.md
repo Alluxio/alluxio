@@ -3,7 +3,7 @@ layout: global
 title: Server Logging
 nickname: Server Logging
 group: Operations
-priority: 11
+priority: 12
 ---
 
 * Table of Contents

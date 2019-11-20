@@ -2,7 +2,7 @@
 layout: global
 title: Quick Start Guide
 group: Overview
-priority: 2
+priority: 3
 ---
 
 * Table of Contents

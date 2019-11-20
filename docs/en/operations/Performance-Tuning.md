@@ -3,7 +3,7 @@ layout: global
 title: Performance Tuning
 nickname: Performance Tuning
 group: Operations
-priority: 7
+priority: 8
 ---
 
 * Table of Contents

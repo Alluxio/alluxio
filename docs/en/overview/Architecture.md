@@ -2,7 +2,7 @@
 layout: global
 title: Architecture
 group: Overview
-priority: 1
+priority: 2
 ---
 
 * Table of Contents

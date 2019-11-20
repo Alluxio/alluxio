@@ -3,7 +3,7 @@ layout: global
 title: Scalability Tuning
 nickname: Scalability Tuning
 group: Operations
-priority: 8
+priority: 9
 ---
 
 Alluxio is a scalable distributed file system designed to handle many workers within a single cluster.

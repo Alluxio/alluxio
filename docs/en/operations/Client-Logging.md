@@ -3,7 +3,7 @@ layout: global
 title: Client Logging
 nickname: Client Logging
 group: Operations
-priority: 10
+priority: 11
 ---
 
 This page summarizes how to find client-specific logs and modify logging levels in order to debug

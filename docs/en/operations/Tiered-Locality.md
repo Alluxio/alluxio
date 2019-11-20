@@ -3,7 +3,7 @@ layout: global
 title: Tiered Locality
 nickname: Tiered Locality
 group: Operations
-priority: 12
+priority: 13
 ---
 
 * Table of Contents

@@ -2,7 +2,7 @@
 layout: global
 title: Introduction
 group: Overview
-priority: 0
+priority: 1
 ---
 
 * Table of Contents
