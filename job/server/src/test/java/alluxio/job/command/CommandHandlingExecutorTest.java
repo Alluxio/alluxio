@@ -12,6 +12,7 @@
 package alluxio.job.command;
 
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -89,7 +90,7 @@ public final class CommandHandlingExecutorTest {
 
     command.setRunTaskCommand(runTaskCommand);
 
-    Mockito.when(mJobMasterClient.heartbeat(any(JobWorkerHealth.class), Lists.newArrayList()))
+    Mockito.when(mJobMasterClient.heartbeat(any(JobWorkerHealth.class), eq(Lists.newArrayList())))
         .thenReturn(Lists.newArrayList(command.build()));
 
     mCommandHandlingExecutor.heartbeat();
