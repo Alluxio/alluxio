@@ -108,8 +108,18 @@ public final class JobUtils {
   public static void loadBlock(FileSystem fs, FileSystemContext context, String path, long blockId)
       throws AlluxioException, IOException {
     AlluxioBlockStore blockStore = AlluxioBlockStore.create(context);
+    String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
+        ServerConfiguration.global());
+    List<BlockWorkerInfo> workerInfoList = blockStore.getAllWorkers();
+    WorkerNetAddress localNetAddress = null;
 
-    WorkerNetAddress localNetAddress = getLocalWorkerAddress(blockStore);
+    for (BlockWorkerInfo workerInfo : workerInfoList) {
+      if (workerInfo.getNetAddress().getHost().equals(localHostName)) {
+        localNetAddress = workerInfo.getNetAddress();
+        break;
+      }
+    }
+    localNetAddress = getLocalWorkerAddress(blockStore);
     if (localNetAddress == null) {
       throw new NotFoundException(ExceptionMessage.NO_LOCAL_BLOCK_WORKER_REPLICATE_TASK
           .getMessage(blockId));

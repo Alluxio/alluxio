@@ -26,7 +26,6 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
 import alluxio.client.block.stream.BlockOutStream;
@@ -143,11 +142,11 @@ public final class ReplicateDefinitionTest {
   /**
    * Helper function to run a replicate task.
    *
-   * @param blockWorkers available block workers
+   * @param workerAddresses available worker addresses
    * @param mockInStream mock blockInStream returned by the Block Store
    * @param mockOutStream mock blockOutStream returned by the Block Store
    */
-  private void runTaskReplicateTestHelper(List<BlockWorkerInfo> blockWorkers,
+  private void runTaskReplicateTestHelper(List<WorkerNetAddress> workerAddresses,
       BlockInStream mockInStream, BlockOutStream mockOutStream) throws Exception {
     String path = "/test";
     URIStatus status = new URIStatus(
@@ -156,7 +155,7 @@ public final class ReplicateDefinitionTest {
                 new FileBlockInfo().setBlockInfo(new BlockInfo().setBlockId(TEST_BLOCK_ID)))));
     when(mMockFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
 
-    when(mMockBlockStore.getAllWorkers()).thenReturn(blockWorkers);
+    when(mMockBlockStore.getAllWorkerAddresses()).thenReturn(workerAddresses);
     when(mMockBlockStore.getInStream(anyLong(),
             any(InStreamOptions.class))).thenReturn(mockInStream);
     when(
@@ -249,7 +248,7 @@ public final class ReplicateDefinitionTest {
     mThrown.expect(NotFoundException.class);
     mThrown.expectMessage(ExceptionMessage.NO_LOCAL_BLOCK_WORKER_REPLICATE_TASK
         .getMessage(TEST_BLOCK_ID));
-    runTaskReplicateTestHelper(Lists.<BlockWorkerInfo>newArrayList(), mockInStream, mockOutStream);
+    runTaskReplicateTestHelper(Lists.<WorkerNetAddress>newArrayList(), mockInStream, mockOutStream);
   }
 
   @Test
@@ -260,8 +259,7 @@ public final class ReplicateDefinitionTest {
         new TestBlockInStream(input, TEST_BLOCK_ID, input.length, false, BlockInStreamSource.LOCAL);
     TestBlockOutStream mockOutStream =
         new TestBlockOutStream(ByteBuffer.allocate(MAX_BYTES), TEST_BLOCK_SIZE);
-    BlockWorkerInfo localBlockWorker = new BlockWorkerInfo(LOCAL_ADDRESS, TEST_BLOCK_SIZE, 0);
-    runTaskReplicateTestHelper(Lists.newArrayList(localBlockWorker), mockInStream, mockOutStream);
+    runTaskReplicateTestHelper(Lists.newArrayList(LOCAL_ADDRESS), mockInStream, mockOutStream);
     assertTrue(Arrays.equals(input, mockOutStream.getWrittenData()));
   }
 
@@ -270,11 +268,10 @@ public final class ReplicateDefinitionTest {
     BlockInStream mockInStream = mock(BlockInStream.class);
     BlockOutStream mockOutStream = mock(BlockOutStream.class);
 
-    BlockWorkerInfo localBlockWorker = new BlockWorkerInfo(LOCAL_ADDRESS, TEST_BLOCK_SIZE, 0);
     doThrow(new IOException("test")).when(mockInStream).read(any(byte[].class), anyInt(), anyInt());
     doThrow(new IOException("test")).when(mockInStream).read(any(byte[].class));
     try {
-      runTaskReplicateTestHelper(Lists.newArrayList(localBlockWorker), mockInStream, mockOutStream);
+      runTaskReplicateTestHelper(Lists.newArrayList(LOCAL_ADDRESS), mockInStream, mockOutStream);
       fail("Expected the task to throw and IOException");
     } catch (IOException e) {
       assertEquals("test", e.getMessage());
