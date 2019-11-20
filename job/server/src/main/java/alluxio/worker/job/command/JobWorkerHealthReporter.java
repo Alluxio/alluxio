@@ -29,7 +29,10 @@ public class JobWorkerHealthReporter {
   }
 
   /**
-   * @return the cpu load average of the worker
+   * Returns the system load average of the worker.
+   * See http://oshi.github.io/oshi/apidocs/oshi/hardware/CentralProcessor.html#getSystemLoadAverage
+   *
+   * @return the system load average of the worker
    */
   public double[] getCpuLoadAverage() {
     return mProcessor.getSystemLoadAverage(3);

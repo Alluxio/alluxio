@@ -386,7 +386,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    * Updates the tasks' status when a worker periodically heartbeats with the master, and sends the
    * commands for the worker to execute.
    *
-   * @param jobWorkerHealth the job worker info
+   * @param jobWorkerHealth the job worker health info
    * @param taskInfoList the list of the task information
    * @return the list of {@link JobCommand} to the worker
    */

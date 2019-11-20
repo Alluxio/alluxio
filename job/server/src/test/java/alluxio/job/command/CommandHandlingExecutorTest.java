@@ -11,6 +11,8 @@
 
 package alluxio.job.command;
 
+import static org.mockito.Mockito.any;
+
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.JobCommand;
@@ -87,8 +89,7 @@ public final class CommandHandlingExecutorTest {
 
     command.setRunTaskCommand(runTaskCommand);
 
-    JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(mWorkerId, new double[]{0.0});
-    Mockito.when(mJobMasterClient.heartbeat(jobWorkerHealth, Lists.newArrayList()))
+    Mockito.when(mJobMasterClient.heartbeat(any(JobWorkerHealth.class), Lists.newArrayList()))
         .thenReturn(Lists.newArrayList(command.build()));
 
     mCommandHandlingExecutor.heartbeat();

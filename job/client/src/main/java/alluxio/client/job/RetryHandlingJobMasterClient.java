@@ -29,13 +29,12 @@ import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.worker.job.JobMasterClientContext;
 
-import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import io.grpc.StatusRuntimeException;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -130,11 +129,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
             .getAllWorkerHealth(GetAllWorkerHealthPRequest.newBuilder().build())
             .getWorkerHealthsList();
 
-        ArrayList<JobWorkerHealth> result = Lists.newArrayList();
-        for (alluxio.grpc.JobWorkerHealth workerHealth : workerHealthsList) {
-          result.add(new JobWorkerHealth(workerHealth));
-        }
-        return result;
+        return workerHealthsList.stream().map(JobWorkerHealth::new).collect(Collectors.toList());
       }
     });
   }

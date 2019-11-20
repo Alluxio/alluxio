@@ -13,10 +13,8 @@ package alluxio.job.wire;
 
 import alluxio.util.CommonUtils;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,13 +24,14 @@ import java.util.List;
 public class JobWorkerHealth {
 
   private final long mWorkerId;
-  private final ArrayList<Double> mLoadAverage;
+  private final List<Double> mLoadAverage;
   private final long mLastUpdated;
 
   private String mHostname;
 
   /**
    * Default constructor.
+   *
    * @param workerId the worker id
    * @param loadAverage the cpu load average
    */
@@ -47,11 +46,12 @@ public class JobWorkerHealth {
 
   /**
    * Constructor from the grpc representation.
+   *
    * @param jobWorkerHealth grpc representation
    */
   public JobWorkerHealth(alluxio.grpc.JobWorkerHealth jobWorkerHealth) {
     mWorkerId = jobWorkerHealth.getWorkerId();
-    mLoadAverage = Lists.newArrayList(jobWorkerHealth.getLoadAverageList());
+    mLoadAverage = jobWorkerHealth.getLoadAverageList();
     mLastUpdated = jobWorkerHealth.getLastUpdated();
     mHostname = jobWorkerHealth.getHostname();
   }
@@ -64,7 +64,11 @@ public class JobWorkerHealth {
   }
 
   /**
-   * @return the load average
+   * Returns system load average for 1, 5, and 15 minutes. System load average is the sum of
+   * runnable entities.
+   * See http://oshi.github.io/oshi/apidocs/oshi/hardware/CentralProcessor.html#getSystemLoadAverage
+   *
+   * @return the load average for 1, 5, and 15 minutes. negative values if not available
    */
   public List<Double> getLoadAverage() {
     return Collections.unmodifiableList(mLoadAverage);
@@ -97,25 +101,5 @@ public class JobWorkerHealth {
     }
 
     return builder.build();
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(mWorkerId);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (o == null) {
-      return false;
-    }
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof JobWorkerHealth)) {
-      return false;
-    }
-    JobWorkerHealth that = (JobWorkerHealth) o;
-    return Objects.equal(mWorkerId, that.mWorkerId);
   }
 }
