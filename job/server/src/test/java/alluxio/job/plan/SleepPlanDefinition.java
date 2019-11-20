@@ -18,11 +18,10 @@ import alluxio.job.SleepJobConfig;
 import alluxio.job.util.SerializableVoid;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
+
 import com.google.common.collect.Lists;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The definition for a job which sleeps for the specified number of milliseconds on each worker.
@@ -46,7 +45,7 @@ public final class SleepPlanDefinition
       throws Exception {
     List<Pair<WorkerInfo, SerializableVoid>> executors = Lists.newArrayList();
     for (WorkerInfo jobWorker : jobWorkerInfoList) {
-      executors.add(new Pair(jobWorker, null));
+      executors.add(new Pair<>(jobWorker, null));
     }
     return executors;
   }

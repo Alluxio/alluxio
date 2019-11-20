@@ -11,6 +11,7 @@
 
 package alluxio.master.job.plan;
 
+import alluxio.collections.Pair;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.PlanDefinition;
@@ -32,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.function.Consumer;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -109,7 +109,7 @@ public final class PlanCoordinator {
         PlanDefinitionRegistry.INSTANCE.getJobDefinition(mPlanInfo.getJobConfig());
     SelectExecutorsContext context =
         new SelectExecutorsContext(mPlanInfo.getId(), mJobServerContext);
-    Map<WorkerInfo, ?> taskAddressToArgs;
+    List<? extends Pair<WorkerInfo, ?>> taskAddressToArgs;
     try {
       taskAddressToArgs =
           definition.selectExecutors(mPlanInfo.getJobConfig(), mWorkersInfoList, context);
@@ -125,16 +125,16 @@ public final class PlanCoordinator {
       updateStatus();
     }
 
-    for (Entry<WorkerInfo, ?> entry : taskAddressToArgs.entrySet()) {
-      LOG.debug("Selected executor {} with parameters {}.", entry.getKey(), entry.getValue());
+    for (Pair<WorkerInfo, ?> pair : taskAddressToArgs) {
+      LOG.debug("Selected executor {} with parameters {}.", pair.getFirst(), pair.getSecond());
       int taskId = mTaskIdToWorkerInfo.size();
       // create task
-      mPlanInfo.addTask(taskId, entry.getKey());
+      mPlanInfo.addTask(taskId, pair.getFirst());
       // submit commands
       mCommandManager.submitRunTaskCommand(mPlanInfo.getId(), taskId, mPlanInfo.getJobConfig(),
-          entry.getValue(), entry.getKey().getId());
-      mTaskIdToWorkerInfo.put((long) taskId, entry.getKey());
-      mWorkerIdToTaskId.put(entry.getKey().getId(), (long) taskId);
+          pair.getSecond(), pair.getFirst().getId());
+      mTaskIdToWorkerInfo.put((long) taskId, pair.getFirst());
+      mWorkerIdToTaskId.put(pair.getFirst().getId(), (long) taskId);
     }
   }
 

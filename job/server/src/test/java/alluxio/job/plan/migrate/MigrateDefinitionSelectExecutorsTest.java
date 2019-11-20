@@ -21,6 +21,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.Pair;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -311,21 +312,21 @@ public final class MigrateDefinitionSelectExecutorsTest {
     createFileWithBlocksOnWorkers("/src", 0);
     setPathToNotExist("/dst");
 
-    Map<WorkerInfo, ArrayList<MigrateCommand>> assignments =
+    List<Pair<WorkerInfo, ArrayList<MigrateCommand>>> assignments =
         new MigrateDefinition().selectExecutors(
             new MigrateConfig("/src", "/dst", "THROUGH", true, false),
             ImmutableList.of(JOB_WORKER_3),
             new SelectExecutorsContext(1,
                 new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager)));
 
-    Assert.assertEquals(ImmutableMap.of(JOB_WORKER_3,
-        new ArrayList<>(Arrays.asList(new MigrateCommand("/src", "/dst")))), assignments);
+    Assert.assertEquals(ImmutableList.of(new Pair<>(JOB_WORKER_3,
+        new ArrayList<>(Arrays.asList(new MigrateCommand("/src", "/dst"))))), assignments);
   }
 
   /**
    * Runs selectExecutors for the migrate from source to destination.
    */
-  private Map<WorkerInfo, ArrayList<MigrateCommand>> assignMigrates(String source,
+  private List<Pair<WorkerInfo, ArrayList<MigrateCommand>>> assignMigrates(String source,
       String destination) throws Exception {
     return assignMigrates(new MigrateConfig(source, destination, "THROUGH", false, false));
   }
@@ -334,7 +335,7 @@ public final class MigrateDefinitionSelectExecutorsTest {
    * Runs selectExecutors for the migrate from source to destination with the given writeType and
    * overwrite value.
    */
-  private Map<WorkerInfo, ArrayList<MigrateCommand>> assignMigrates(MigrateConfig config)
+  private List<Pair<WorkerInfo, ArrayList<MigrateCommand>>> assignMigrates(MigrateConfig config)
       throws Exception {
     return new MigrateDefinition().selectExecutors(config,
         JOB_WORKERS, new SelectExecutorsContext(1,
@@ -353,7 +354,7 @@ public final class MigrateDefinitionSelectExecutorsTest {
    */
   private void assignMigratesFail(String source, String destination, String writeType,
       boolean overwrite) throws Exception {
-    Map<WorkerInfo, ArrayList<MigrateCommand>> assignment =
+    List<Pair<WorkerInfo, ArrayList<MigrateCommand>>> assignment =
         assignMigrates(new MigrateConfig(source, destination, writeType, overwrite, false));
     Assert.fail(
         "Selecting executors should have failed, but it succeeded with assignment " + assignment);

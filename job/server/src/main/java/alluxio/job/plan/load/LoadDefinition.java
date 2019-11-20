@@ -23,7 +23,6 @@ import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.load.LoadDefinition.LoadTask;
 import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
-import alluxio.job.util.SerializationUtils;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerInfo;
 
@@ -104,7 +103,7 @@ public final class LoadDefinition
 
     List<Pair<WorkerInfo, ArrayList<LoadTask>>> result = Lists.newArrayList();
     for (Map.Entry<WorkerInfo, Collection<LoadTask>> assignment : assignments.asMap().entrySet()) {
-      result.add(new Pair(assignment.getKey(), assignment.getValue()));
+      result.add(new Pair<>(assignment.getKey(), assignment.getValue()));
     }
 
     return result;

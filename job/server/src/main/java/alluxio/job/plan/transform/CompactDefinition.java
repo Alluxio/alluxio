@@ -109,7 +109,7 @@ public final class CompactDefinition
 
     List<Pair<WorkerInfo, ArrayList<CompactTask>>> result = Lists.newArrayList();
     for (Map.Entry<WorkerInfo, ArrayList<CompactTask>> assignment : assignments.entrySet()) {
-      result.add(new Pair(assignment.getKey(), assignment.getValue()));
+      result.add(new Pair<>(assignment.getKey(), assignment.getValue()));
     }
 
     return result;

@@ -22,6 +22,7 @@ import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
 import alluxio.wire.WorkerInfo;
 
+import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
@@ -48,9 +49,9 @@ public final class CancelIntegrationTest extends JobIntegrationTest {
     public List<Pair<WorkerInfo, Integer>> selectExecutors(CancelTestConfig config,
         List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
         throws Exception {
-      Map<WorkerInfo, Integer> result = new HashMap<>();
+      List<Pair<WorkerInfo, Integer>> result = Lists.newArrayList()
       for (WorkerInfo info : jobWorkerInfoList) {
-        result.put(info, 0);
+        result.add(new Pair<>(info, 0));
       }
       return result;
     }

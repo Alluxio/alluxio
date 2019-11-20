@@ -24,14 +24,12 @@ import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -80,7 +78,7 @@ public final class ReplicateDefinition
     for (WorkerInfo workerInfo : jobWorkerInfoList) {
       // Select job workers that don't have this block locally to replicate
       if (!hosts.contains(workerInfo.getAddress().getHost())) {
-        result.add(new Pair(workerInfo, null));
+        result.add(new Pair<>(workerInfo, null));
         if (result.size() >= numReplicas) {
           break;
         }

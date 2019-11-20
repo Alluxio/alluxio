@@ -37,6 +37,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
@@ -124,7 +125,7 @@ public final class ReplicateDefinitionTest {
    * @param workerInfoList a list of current available job workers
    * @return the selection result
    */
-  private Map<WorkerInfo, SerializableVoid> selectExecutorsTestHelper(
+  private List<Pair<WorkerInfo, SerializableVoid>> selectExecutorsTestHelper(
       List<BlockLocation> blockLocations, int numReplicas, List<WorkerInfo> workerInfoList)
       throws Exception {
     BlockInfo blockInfo = new BlockInfo().setBlockId(TEST_BLOCK_ID);
@@ -175,10 +176,10 @@ public final class ReplicateDefinitionTest {
 
   @Test
   public void selectExecutorsOnlyOneWorkerAvailable() throws Exception {
-    Map<WorkerInfo, SerializableVoid> result =
+    List<Pair<WorkerInfo, SerializableVoid>> result =
         selectExecutorsTestHelper(Lists.<BlockLocation>newArrayList(), 1,
             Lists.newArrayList(WORKER_INFO_1));
-    Map<WorkerInfo, SerializableVoid> expected = Maps.newHashMap();
+    List<Pair<WorkerInfo, SerializableVoid>> expected = Lists.newArrayList();
     expected.put(WORKER_INFO_1, null);
     // select the only worker
     assertEquals(expected, result);

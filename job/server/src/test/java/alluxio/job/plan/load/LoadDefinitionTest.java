@@ -20,6 +20,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.Pair;
 import alluxio.conf.ServerConfiguration;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
@@ -47,7 +48,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Tests {@link LoadDefinition}.
@@ -100,13 +100,14 @@ public class LoadDefinitionTest {
     int replication = 3;
     createFileWithNoLocations(TEST_URI, numBlocks);
     LoadConfig config = new LoadConfig(TEST_URI, replication);
-    Map<WorkerInfo, ArrayList<LoadTask>> assignments =
+    List<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
         new LoadDefinition().selectExecutors(config,
             JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));
     // Check that we are loading the right number of blocks.
     int totalBlockLoads = 0;
-    for (List<LoadTask> blocks : assignments.values()) {
-      totalBlockLoads += blocks.size();
+
+    for (Pair<WorkerInfo, ArrayList<LoadTask>> assignment : assignments) {
+      totalBlockLoads += assignment.getSecond().size();
     }
     Assert.assertEquals(numBlocks * replication, totalBlockLoads);
   }
@@ -118,11 +119,11 @@ public class LoadDefinitionTest {
     Mockito.when(mMockBlockStore.getAllWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 10);
     LoadConfig config = new LoadConfig(TEST_URI, 1);
-    Map<WorkerInfo, ArrayList<LoadTask>> assignments =
+    List<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
         new LoadDefinition().selectExecutors(config, JOB_WORKERS,
             new SelectExecutorsContext(1, mJobServerContext));
     Assert.assertEquals(1, assignments.size());
-    Assert.assertEquals(10, assignments.values().iterator().next().size());
+    Assert.assertEquals(10, assignments.get(0).getSecond().size());
   }
 
   @Test

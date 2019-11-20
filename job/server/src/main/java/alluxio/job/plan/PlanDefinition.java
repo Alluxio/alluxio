@@ -45,11 +45,11 @@ public interface PlanDefinition<T extends JobConfig, P extends Serializable,
    * @param config the job configuration
    * @param jobWorkerInfoList the list of available workers' information
    * @param selectExecutorsContext the context containing information used to select executors
-   * @return a map of selected workers to the parameters to pass along
+   * @return a list of pairs of selected workers to the parameters to pass along
    * @throws Exception if any error occurs
    */
   List<Pair<WorkerInfo, P>> selectExecutors(T config, List<WorkerInfo> jobWorkerInfoList,
-    SelectExecutorsContext selectExecutorsContext) throws Exception;
+      SelectExecutorsContext selectExecutorsContext) throws Exception;
 
   /**
    * Runs the task in the executor.

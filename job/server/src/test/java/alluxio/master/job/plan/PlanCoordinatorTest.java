@@ -15,6 +15,7 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.collections.Pair;
 import alluxio.grpc.JobCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.PlanDefinition;
@@ -42,7 +43,6 @@ import org.powermock.reflect.Whitebox;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Tests {@link PlanCoordinator}.
@@ -188,9 +188,9 @@ public final class PlanCoordinatorTest {
    * @param workerInfos the worker infos to return from the mocked selectExecutors method
    */
   private void mockSelectExecutors(WorkerInfo... workerInfos) throws Exception {
-    Map<WorkerInfo, Serializable> taskAddressToArgs = Maps.newHashMap();
+    List<Pair<WorkerInfo, Serializable>> taskAddressToArgs = Maps.newHashMap();
     for (WorkerInfo workerInfo : workerInfos) {
-      taskAddressToArgs.put(workerInfo, null);
+      taskAddressToArgs.add(new Pair<>(workerInfo, null));
     }
     Mockito
         .when(mPlanDefinition.selectExecutors(Mockito.eq(mJobconfig),

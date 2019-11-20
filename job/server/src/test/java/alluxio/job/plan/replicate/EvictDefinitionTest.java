@@ -16,6 +16,7 @@ import static org.mockito.Mockito.when;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.collections.Pair;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
@@ -78,7 +79,7 @@ public final class EvictDefinitionTest {
    * @param workerInfoList a list of currently available job workers
    * @return the selection result
    */
-  private Map<WorkerInfo, SerializableVoid> selectExecutorsTestHelper(
+  private List<Pair<WorkerInfo, SerializableVoid>> selectExecutorsTestHelper(
       List<BlockLocation> blockLocations, int replicas, List<WorkerInfo> workerInfoList)
       throws Exception {
     BlockInfo blockInfo = new BlockInfo().setBlockId(TEST_BLOCK_ID);

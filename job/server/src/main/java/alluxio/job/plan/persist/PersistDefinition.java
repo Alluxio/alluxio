@@ -37,7 +37,6 @@ import alluxio.underfs.options.MkdirsOptions;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.io.Closer;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -46,7 +45,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Stack;
 import java.util.stream.Collectors;
@@ -89,14 +87,15 @@ public final class PersistDefinition
       for (WorkerInfo workerInfo : jobWorkerInfoList) {
         if (workerInfo.getAddress().getHost()
             .equals(workerWithMostBlocks.getNetAddress().getHost())) {
-          result.add(new Pair(workerInfo, null));
+          result.add(new Pair<>(workerInfo, null));
           found = true;
           break;
         }
       }
     }
     if (!found) {
-      result.add(new Pair(jobWorkerInfoList.get(new Random().nextInt(jobWorkerInfoList.size())), null));
+      result.add(new Pair<>(
+          jobWorkerInfoList.get(new Random().nextInt(jobWorkerInfoList.size())), null));
     }
     return result;
   }

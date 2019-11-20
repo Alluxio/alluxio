@@ -33,9 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -72,7 +70,7 @@ public final class MoveDefinition
     for (WorkerInfo workerInfo : jobWorkerInfoList) {
       // Select job workers that have this block locally to move
       if (workerHost.equals(workerInfo.getAddress().getHost())) {
-        result.add(new Pair(workerInfo, null));
+        result.add(new Pair<>(workerInfo, null));
         return result;
       }
     }
