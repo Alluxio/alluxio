@@ -13,6 +13,7 @@ package alluxio.job.wire;
 
 import alluxio.util.CommonUtils;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
@@ -96,5 +97,25 @@ public class JobWorkerHealth {
     }
 
     return builder.build();
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mWorkerId);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null) {
+      return false;
+    }
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof JobWorkerHealth)) {
+      return false;
+    }
+    JobWorkerHealth that = (JobWorkerHealth) o;
+    return Objects.equal(mWorkerId, that.mWorkerId);
   }
 }

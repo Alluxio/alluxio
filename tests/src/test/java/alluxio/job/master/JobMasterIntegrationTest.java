@@ -134,6 +134,6 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
 
     JobWorkerHealth workerHealth = allWorkerHealth.get(0);
     assertNotNull(workerHealth.getHostname());
-    assertEquals(3, workerHealth.getLoadAverage().size())
+    assertEquals(3, workerHealth.getLoadAverage().size());
   }
 }
