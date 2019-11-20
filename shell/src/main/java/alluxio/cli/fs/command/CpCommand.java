@@ -27,6 +27,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.security.authorization.Mode;
@@ -542,6 +543,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
         IOUtils.copyLarge(is, os, new byte[8 * Constants.MB]);
       } catch (Exception e) {
         os.cancel();
+        // clean up the incomplete file
+        mFileSystem.delete(dstPath, DeletePOptions.newBuilder().setUnchecked(true).build());
         throw e;
       }
       System.out.println(String.format(COPY_SUCCEED_MESSAGE, srcPath, dstPath));
