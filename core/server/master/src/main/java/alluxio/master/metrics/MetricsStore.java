@@ -20,6 +20,7 @@ import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MetricsSystem.InstanceType;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -298,6 +299,14 @@ public class MetricsStore {
         mMetricsProcessThread = null;
       }
     }
+  }
+
+  /**
+   * @return the metrics caching queue size
+   */
+  @VisibleForTesting
+  protected int getMetricsQueueSize() {
+    return mMetricsQueue.size();
   }
 
   /**

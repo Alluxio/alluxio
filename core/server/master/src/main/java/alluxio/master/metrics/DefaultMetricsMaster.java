@@ -107,6 +107,11 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     mMultiValueMetricsAggregatorRegistry.add(aggregator);
   }
 
+  @VisibleForTesting
+  protected MetricsStore getMetricsStore() {
+    return mMetricsStore;
+  }
+
   private void updateMultiValueMetrics() {
     for (MultiValueMetricsAggregator aggregator : mMultiValueMetricsAggregatorRegistry) {
       Map<MetricsFilter, Set<Metric>> metrics = new HashMap<>();

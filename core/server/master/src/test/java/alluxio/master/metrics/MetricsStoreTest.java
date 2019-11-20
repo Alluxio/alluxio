@@ -30,10 +30,11 @@ public class MetricsStoreTest {
   @Before
   public void before() {
     mMetricStore = new MetricsStore();
+    mMetricStore.start();
   }
 
   @Test
-  public void putWorkerMetrics() {
+  public void putWorkerMetrics() throws Exception {
     List<Metric> metrics1 = Lists.newArrayList(
         Metric.from("worker.192_1_1_1.metric1", 10, MetricType.GAUGE),
         Metric.from("worker.192_1_1_1.metric2", 20, MetricType.GAUGE));
@@ -41,6 +42,7 @@ public class MetricsStoreTest {
     List<Metric> metrics2 = Lists.newArrayList(
         Metric.from("worker.192_1_1_2.metric1", 1, MetricType.GAUGE));
     mMetricStore.putWorkerMetrics("192_1_1_2", metrics2);
+    MetricsStoreUtils.waitForMetricsCacheQueueEmpty(mMetricStore);
     assertEquals(Sets.newHashSet(
             Metric.from("worker.192_1_1_1.metric1", 10, MetricType.GAUGE),
             Metric.from("worker.192_1_1_2.metric1", 1, MetricType.GAUGE)),
@@ -48,7 +50,7 @@ public class MetricsStoreTest {
   }
 
   @Test
-  public void putClientMetrics() {
+  public void putClientMetrics() throws Exception {
     List<Metric> metrics1 = Lists.newArrayList(
         Metric.from("client.192_1_1_1:A.metric1", 10, MetricType.GAUGE),
         Metric.from("client.192_1_1_1:A.metric2", 20, MetricType.GAUGE));
@@ -60,6 +62,7 @@ public class MetricsStoreTest {
         Metric.from("client.192_1_1_1:B.metric1", 15, MetricType.GAUGE),
         Metric.from("client.192_1_1_1:B.metric2", 25, MetricType.GAUGE));
     mMetricStore.putClientMetrics("192_1_1_1", "B", metrics3);
+    MetricsStoreUtils.waitForMetricsCacheQueueEmpty(mMetricStore);
     assertEquals(Sets.newHashSet(
         Metric.from("client.192_1_1_1:A.metric1", 10, MetricType.GAUGE),
         Metric.from("client.192_1_1_2:C.metric1", 1, MetricType.GAUGE),
@@ -68,7 +71,7 @@ public class MetricsStoreTest {
   }
 
   @Test
-  public void putTaggedMetrics() {
+  public void putTaggedMetrics() throws Exception {
     String name = "test";
     Metric metric1 =
         new Metric(MetricsSystem.InstanceType.WORKER, "host", MetricType.COUNTER, name, 1.0);
@@ -77,6 +80,7 @@ public class MetricsStoreTest {
         new Metric(MetricsSystem.InstanceType.WORKER, "host", MetricType.COUNTER, name, 2.0);
     metric2.addTag("Tag", "2");
     mMetricStore.putWorkerMetrics("host", Lists.newArrayList(metric1, metric2));
+    MetricsStoreUtils.waitForMetricsCacheQueueEmpty(mMetricStore);
     assertEquals(mMetricStore.getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType.WORKER,
         name), Sets.newHashSet(metric1, metric2));
   }

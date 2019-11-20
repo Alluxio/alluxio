@@ -13,7 +13,6 @@ package alluxio.master.metrics;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.Constants;
 import alluxio.clock.ManualClock;
 import alluxio.grpc.MetricType;
 import alluxio.heartbeat.HeartbeatContext;
@@ -25,9 +24,7 @@ import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.aggregator.SingleTagValueAggregator;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
-import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.WaitForOptions;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.google.common.collect.Lists;
@@ -52,7 +49,6 @@ public class MetricsMasterTest {
   private MasterRegistry mRegistry;
   private ManualClock mClock;
   private ExecutorService mExecutorService;
-  private int mMetricsWaitTimeout;
 
   @Before
   public void before() throws Exception {
@@ -64,7 +60,6 @@ public class MetricsMasterTest {
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mRegistry.start(true);
-    mMetricsWaitTimeout = 5 * Constants.SECOND_MS;
   }
 
   /**
@@ -91,14 +86,14 @@ public class MetricsMasterTest {
         Metric.from("worker.192_1_1_2.metricA", 1, MetricType.GAUGE),
         Metric.from("worker.192_1_1_2.metricB", 2, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
-    waitAndCheckMetricsResult(11L, "metricA");
+    MetricsStoreUtils.waitForMetricsCacheQueueEmpty(mMetricsMaster.getMetricsStore());
     assertEquals(22L, getGauge("metricB"));
 
     // override metrics from hostname 192_1_1_2
     List<Metric> metrics3 = Lists.newArrayList(
         Metric.from("worker.192_1_1_2.metricA", 3, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics3);
-    waitAndCheckMetricsResult(13L, "metricA");
+    MetricsStoreUtils.waitForMetricsCacheQueueEmpty(mMetricsMaster.getMetricsStore());
     assertEquals(20L, getGauge("metricB"));
   }
 
@@ -115,17 +110,7 @@ public class MetricsMasterTest {
         Metric.from("worker.192_1_1_2.metric.tag:v2", 2, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER);
-    CommonUtils.waitFor("get correct metrics result", () -> {
-      try {
-        if ((long) getGauge("metric", "tag", "v1") == 11L) {
-          return true;
-        } else {
-          return false;
-        }
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(mMetricsWaitTimeout));
+    MetricsStoreUtils.waitForMetricsCacheQueueEmpty(mMetricsMaster.getMetricsStore());
     assertEquals(11L, getGauge("metric", "tag", "v1"));
     assertEquals(22L, getGauge("metric", "tag", "v2"));
   }
@@ -148,30 +133,8 @@ public class MetricsMasterTest {
         Metric.from("client.192_1_1_2:C.metric1", 1, MetricType.GAUGE),
         Metric.from("client.192_1_1_2:C.metric2", 2, MetricType.GAUGE));
     mMetricsMaster.clientHeartbeat("C", "192.1.1.2", metrics3);
-    waitAndCheckMetricsResult(26L, "metric1");
+    MetricsStoreUtils.waitForMetricsCacheQueueEmpty(mMetricsMaster.getMetricsStore());
     assertEquals(47L, getGauge("metric2"));
-  }
-
-  /**
-   * Metrics reported by worker or client are processed asynchronous.
-   * This method will wait until timeout or get the desired metric value.
-   *
-   * @param value the desired metric value
-   * @param name the name of the metric to wait and check
-   */
-  private void waitAndCheckMetricsResult(long value, String name) throws Exception {
-    CommonUtils.waitFor("get correct metrics result", () -> {
-      try {
-        if (value == (long) getGauge(name)) {
-          return true;
-        } else {
-          return false;
-        }
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(mMetricsWaitTimeout));
-    assertEquals(value, getGauge(name));
   }
 
   private Object getGauge(String name) {
