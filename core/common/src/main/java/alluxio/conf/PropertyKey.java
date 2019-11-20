@@ -536,7 +536,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY =
       new Builder(Name.ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY)
-          .setDefaultValue("STANDARD")
+          .setDefaultValue("SESSION")
           .setDescription("Connection error policy defines how errors on zookeeper connections "
               + "to be treated in leader election. "
               + "STANDARD policy treats every connection event as failure."
