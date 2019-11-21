@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * The identifier to describe an unique metric.
  */
-public final class MetricIdentifier implements Serializable {
+public final class MetricIdentifier {
   private final MetricsSystem.InstanceType mInstanceType;
   private final String mHostname;
   private final String mName;
