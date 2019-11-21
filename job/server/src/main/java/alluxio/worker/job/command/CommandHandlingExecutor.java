@@ -39,6 +39,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.DoubleStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -82,7 +83,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
   @Override
   public void heartbeat() {
     JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(JobWorkerIdRegistry.getWorkerId(),
-        mHealthReporter.getCpuLoadAverage());
+        mHealthReporter.getCpuLoadAverage(), mWorkerNetAddress.getHost());
 
     List<JobInfo> taskStatusList = mTaskExecutorManager.getAndClearTaskUpdates();
 

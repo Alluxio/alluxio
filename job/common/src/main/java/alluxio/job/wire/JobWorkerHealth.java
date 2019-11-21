@@ -17,6 +17,8 @@ import com.google.common.collect.Lists;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 /**
  * The job worker health information.
@@ -26,22 +28,19 @@ public class JobWorkerHealth {
   private final long mWorkerId;
   private final List<Double> mLoadAverage;
   private final long mLastUpdated;
-
-  private String mHostname;
+  private final String mHostname;
 
   /**
    * Default constructor.
    *
    * @param workerId the worker id
-   * @param loadAverage the cpu load average
+   * @param loadAverage output of CentralProcessor.getSystemLoadAverage on the worker
    */
-  public JobWorkerHealth(long workerId, double[] loadAverage) {
+  public JobWorkerHealth(long workerId, double[] loadAverage, String hostname) {
     mWorkerId = workerId;
-    mLoadAverage = Lists.newArrayList();
-    for (double l : loadAverage) {
-      mLoadAverage.add(l);
-    }
+    mLoadAverage = DoubleStream.of(loadAverage).boxed().collect(Collectors.toList());
     mLastUpdated = CommonUtils.getCurrentMs();
+    mHostname = hostname;
   }
 
   /**

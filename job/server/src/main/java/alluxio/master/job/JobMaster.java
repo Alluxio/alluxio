@@ -408,8 +408,6 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       // to prevent lost worker detector clearing it under race
       worker.updateLastUpdatedTimeMs();
     }
-
-    jobWorkerHealth.setHostname(hostname);
     mWorkerHealth.put(workerId, jobWorkerHealth);
 
     // Update task infos for all jobs involved
