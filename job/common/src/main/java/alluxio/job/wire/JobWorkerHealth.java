@@ -13,8 +13,6 @@ package alluxio.job.wire;
 
 import alluxio.util.CommonUtils;
 
-import com.google.common.collect.Lists;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,6 +33,7 @@ public class JobWorkerHealth {
    *
    * @param workerId the worker id
    * @param loadAverage output of CentralProcessor.getSystemLoadAverage on the worker
+   * @param hostname hostname of the worker
    */
   public JobWorkerHealth(long workerId, double[] loadAverage, String hostname) {
     mWorkerId = workerId;
