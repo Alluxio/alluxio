@@ -180,7 +180,7 @@ public final class ReplicateDefinitionTest {
     Set<Pair<WorkerInfo, SerializableVoid>> result =
         selectExecutorsTestHelper(Lists.<BlockLocation>newArrayList(), 1,
             Lists.newArrayList(WORKER_INFO_1));
-    Set<Pair<WorkerInfo, SerializableVoid>> expected = ImmutableSet.of();
+    Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
     expected.add(new Pair<>(WORKER_INFO_1, null));
     // select the only worker
     assertEquals(expected, result);
@@ -191,7 +191,7 @@ public final class ReplicateDefinitionTest {
     Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2));
-    Set<Pair<WorkerInfo, SerializableVoid>> expected = ImmutableSet.of();
+    Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
     expected.add(new Pair<>(WORKER_INFO_2, null));
     // select one worker left
     assertEquals(expected, result);
@@ -202,7 +202,7 @@ public final class ReplicateDefinitionTest {
     Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 2,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
-    Set<Pair<WorkerInfo, SerializableVoid>> expected = ImmutableSet.of();
+    Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
     expected.add(new Pair<>(WORKER_INFO_2, null));
     expected.add(new Pair<>(WORKER_INFO_3, null));
     // select both workers left
