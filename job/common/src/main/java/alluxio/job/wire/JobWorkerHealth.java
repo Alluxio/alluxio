@@ -81,14 +81,6 @@ public class JobWorkerHealth {
   }
 
   /**
-   * Sets the worker hostname.
-   * @param hostname worker hostname
-   */
-  public void setHostname(String hostname) {
-    mHostname = hostname;
-  }
-
-  /**
    * @return proto representation of JobWorkerInfo
    */
   public alluxio.grpc.JobWorkerHealth toProto() {
