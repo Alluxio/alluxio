@@ -13,7 +13,6 @@ package alluxio.job;
 
 import alluxio.job.plan.PlanConfig;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
