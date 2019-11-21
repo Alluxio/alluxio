@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal.raft.transport;
+package alluxio.master.transport;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
@@ -44,15 +44,16 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * Units tests for {@link CopycatGrpcTransport}.
+ * Units tests for {@link GrpcMessagingTransport}.
  */
-public class CopycatGrpcTransportTest {
+public class GrpcMessagingTransportTest {
 
   private Transport mTransport;
 
   @Before
   public void before() {
-    mTransport = new CopycatGrpcTransport(ServerConfiguration.global(), ServerUserState.global());
+    mTransport = new GrpcMessagingTransport(
+        ServerConfiguration.global(), ServerUserState.global(), "TestClient");
   }
 
   @After

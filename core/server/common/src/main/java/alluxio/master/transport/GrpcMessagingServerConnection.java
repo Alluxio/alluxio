@@ -9,19 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal.raft.transport;
+package alluxio.master.transport;
 
 import io.atomix.catalyst.concurrent.ThreadContext;
 
 import java.util.concurrent.ExecutorService;
 
 /**
- * {@link CopycatGrpcConnection} implementation for server.
+ * {@link GrpcMessagingConnection} implementation for server.
  */
-public class CopycatGrpcServerConnection extends CopycatGrpcConnection {
+public class GrpcMessagingServerConnection extends GrpcMessagingConnection {
 
   /**
-   * Creates a connection object for server.
+   * Creates a messaging connection for server.
    *
    * Note: {@link #setTargetObserver} should be called explicitly before using the connection.
    *
@@ -30,7 +30,7 @@ public class CopycatGrpcServerConnection extends CopycatGrpcConnection {
    * @param executor transport executor
    * @param requestTimeoutMs timeout in milliseconds for requests
    */
-  public CopycatGrpcServerConnection(String transportId, ThreadContext context,
+  public GrpcMessagingServerConnection(String transportId, ThreadContext context,
       ExecutorService executor, long requestTimeoutMs) {
     super(ConnectionOwner.SERVER, transportId, context, executor, requestTimeoutMs);
   }
