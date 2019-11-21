@@ -66,6 +66,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -136,7 +137,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   // Table of open files with corresponding InputStreams and OutputStreams
   private final IndexedSet<OpenFileEntry> mOpenFiles;
 
-  private long mNextOpenFileId;
+  private AtomicLong mNextOpenFileId = new AtomicLong(0);
   private final String mFsName;
 
   /**
@@ -151,7 +152,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     mFsName = conf.get(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
-    mNextOpenFileId = 0L;
     mOpenFiles = new IndexedSet<>(ID_INDEX, PATH_INDEX);
 
     final int maxCachedPaths = conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
@@ -306,13 +306,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
           CreateFilePOptions.newBuilder()
               .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
               .build());
-      synchronized (mOpenFiles) {
-        mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path, null, os));
-        fi.fh.set(mNextOpenFileId);
-
-        // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
-        mNextOpenFileId += 1;
-      }
+      long fid = mNextOpenFileId.getAndAdd(1);
+      mOpenFiles.add(new OpenFileEntry(fid, path, null, os));
+      fi.fh.set(fid);
       if (gid != GID || uid != UID) {
         LOG.debug("Set attributes of path {} to {}", path, setAttributePOptions);
         mFileSystem.setAttribute(uri, setAttributePOptions);
@@ -528,12 +524,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       }
 
       FileInStream is = mFileSystem.openFile(uri);
-      synchronized (mOpenFiles) {
-        mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path, is, null));
-        fi.fh.set(mNextOpenFileId);
-        // Assuming I will never wrap around (2^64 open files are quite a lot anyway)
-        mNextOpenFileId += 1;
-      }
+      long fid = mNextOpenFileId.getAndAdd(1);
+      mOpenFiles.add(new OpenFileEntry(fid, path, is, null));
+      fi.fh.set(fid);
     } catch (FileDoesNotExistException | InvalidPathException e) {
       LOG.debug("Failed to open file {}, path does not exist or is invalid", path);
       return -ErrorCodes.ENOENT();
@@ -656,10 +649,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("release({})", path);
     OpenFileEntry oe;
     final long fd = fi.fh.get();
-    synchronized (mOpenFiles) {
-      oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
-      mOpenFiles.remove(oe);
-    }
+    oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
+    mOpenFiles.remove(oe);
     if (oe == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
@@ -693,11 +684,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     }
     try {
       mFileSystem.rename(oldUri, newUri);
-      synchronized (mOpenFiles) {
-        if (mOpenFiles.contains(PATH_INDEX, oldPath)) {
-          OpenFileEntry oe = mOpenFiles.getFirstByField(PATH_INDEX, oldPath);
-          oe.setPath(newPath);
-        }
+      if (mOpenFiles.contains(PATH_INDEX, oldPath)) {
+        OpenFileEntry oe = mOpenFiles.getFirstByField(PATH_INDEX, oldPath);
+        oe.setPath(newPath);
       }
     } catch (FileDoesNotExistException e) {
       LOG.debug("Failed to rename {} to {}, file {} does not exist", oldPath, newPath, oldPath);
