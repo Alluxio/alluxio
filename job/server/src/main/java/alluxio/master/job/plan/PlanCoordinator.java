@@ -26,6 +26,7 @@ import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +67,7 @@ public final class PlanCoordinator {
    * Mapping from workers running tasks for this job to the ids of those tasks. If this coordinator
    * was created to represent an already-completed job, this map will be empty.
    */
-  private final Map<Long, Long> mWorkerIdToTaskId = Maps.newHashMap();
+  private final Map<Long, List<Long>> mWorkerIdToTaskIds = Maps.newHashMap();
 
   private PlanCoordinator(CommandManager commandManager, JobServerContext jobServerContext,
                           List<WorkerInfo> workerInfoList, Long jobId, JobConfig jobConfig,
@@ -134,7 +135,8 @@ public final class PlanCoordinator {
       mCommandManager.submitRunTaskCommand(mPlanInfo.getId(), taskId, mPlanInfo.getJobConfig(),
           pair.getSecond(), pair.getFirst().getId());
       mTaskIdToWorkerInfo.put((long) taskId, pair.getFirst());
-      mWorkerIdToTaskId.put(pair.getFirst().getId(), (long) taskId);
+      mWorkerIdToTaskIds.putIfAbsent(pair.getFirst().getId(), Lists.newArrayList());
+      mWorkerIdToTaskIds.get(pair.getFirst().getId()).add((long) taskId);
     }
   }
 
@@ -197,17 +199,24 @@ public final class PlanCoordinator {
    */
   public void failTasksForWorker(long workerId) {
     synchronized (mPlanInfo) {
-      Long taskId = mWorkerIdToTaskId.get(workerId);
-      if (taskId == null) {
+      List<Long> taskIds = mWorkerIdToTaskIds.get(workerId);
+      if (taskIds == null) {
         return;
       }
-      TaskInfo taskInfo = mPlanInfo.getTaskInfo(taskId);
-      if (taskInfo.getStatus().isFinished()) {
-        return;
+
+      boolean statusChanged = false;
+      for (Long taskId : taskIds) {
+        TaskInfo taskInfo = mPlanInfo.getTaskInfo(taskId);
+        if (taskInfo.getStatus().isFinished()) {
+          return;
+        }
+        if (!mPlanInfo.getStatus().isFinished()) {
+          taskInfo.setStatus(Status.FAILED);
+          taskInfo.setErrorMessage("Job worker was lost before the task could complete");
+          statusChanged = true;
+        }
       }
-      if (!mPlanInfo.getStatus().isFinished()) {
-        taskInfo.setStatus(Status.FAILED);
-        taskInfo.setErrorMessage("Job worker was lost before the task could complete");
+      if (statusChanged) {
         updateStatus();
       }
     }

@@ -29,12 +29,18 @@ public class SleepJobConfig implements PlanConfig {
   public static final String NAME = "Sleep";
 
   private final long mTimeMs;
+  private final int mTasksPerWorker;
 
   /**
    * @param timeMs the time to sleep for in milliseconds
    */
-  public SleepJobConfig(@JsonProperty("timeMs") long timeMs) {
+  public SleepJobConfig(long timeMs) {
+    this(timeMs, 1);
+  }
+
+  public SleepJobConfig(long timeMs, int tasksPerWorker) {
     mTimeMs = timeMs;
+    mTasksPerWorker = tasksPerWorker;
   }
 
   /**
@@ -42,6 +48,13 @@ public class SleepJobConfig implements PlanConfig {
    */
   public long getTimeMs() {
     return mTimeMs;
+  }
+
+  /**
+   * @return
+   */
+  public int getTasksPerWorker() {
+    return mTasksPerWorker;
   }
 
   @Override

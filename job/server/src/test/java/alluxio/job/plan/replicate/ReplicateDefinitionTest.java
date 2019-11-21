@@ -178,7 +178,7 @@ public final class ReplicateDefinitionTest {
         selectExecutorsTestHelper(Lists.<BlockLocation>newArrayList(), 1,
             Lists.newArrayList(WORKER_INFO_1));
     List<Pair<WorkerInfo, SerializableVoid>> expected = Lists.newArrayList();
-    expected.put(WORKER_INFO_1, null);
+    expected.add(new Pair<>(WORKER_INFO_1, null));
     // select the only worker
     assertEquals(expected, result);
   }
@@ -189,7 +189,7 @@ public final class ReplicateDefinitionTest {
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2));
     List<Pair<WorkerInfo, SerializableVoid>> expected = Lists.newArrayList();
-    expected.add(new Pair(WORKER_INFO_2, null));
+    expected.add(new Pair<>(WORKER_INFO_2, null));
     // select one worker left
     assertEquals(expected, result);
   }
@@ -200,8 +200,8 @@ public final class ReplicateDefinitionTest {
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 2,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     List<Pair<WorkerInfo, SerializableVoid>> expected = Lists.newArrayList();
-    expected.add(new Pair(WORKER_INFO_2, null));
-    expected.add(new Pair(WORKER_INFO_3, null));
+    expected.add(new Pair<>(WORKER_INFO_2, null));
+    expected.add(new Pair<>(WORKER_INFO_3, null));
     // select both workers left
     assertEquals(expected, result);
   }
@@ -232,7 +232,7 @@ public final class ReplicateDefinitionTest {
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 2,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2));
     List<Pair<WorkerInfo, SerializableVoid>> expected = Lists.newArrayList();
-    expected.add(new Pair(WORKER_INFO_2, null));
+    expected.add(new Pair<>(WORKER_INFO_2, null));
     // select the only worker left though more copies are requested
     assertEquals(expected, result);
   }

@@ -23,6 +23,7 @@ import alluxio.job.SleepJobConfig;
 import alluxio.job.plan.SleepPlanDefinition;
 import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.JobWorkerHealth;
+import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
@@ -73,6 +74,19 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
   @After
   public void after() throws Exception {
     mLocalAlluxioJobCluster.stop();
+  }
+
+  @Test
+  public void multipleTasksPerWorker() throws Exception {
+    long jobId = mJobMaster.run(new SleepJobConfig(1, 2));
+
+    JobInfo jobStatus = mJobMaster.getStatus(jobId);
+    assertEquals(2, jobStatus.getChildren().size());
+
+    JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.COMPLETED);
+
+    jobStatus = mJobMaster.getStatus(jobId);
+    assertEquals(2, jobStatus.getChildren().size());
   }
 
   @Test

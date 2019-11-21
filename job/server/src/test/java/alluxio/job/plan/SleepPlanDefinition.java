@@ -45,7 +45,9 @@ public final class SleepPlanDefinition
       throws Exception {
     List<Pair<WorkerInfo, SerializableVoid>> executors = Lists.newArrayList();
     for (WorkerInfo jobWorker : jobWorkerInfoList) {
-      executors.add(new Pair<>(jobWorker, null));
+      for (int i = 0; i < config.getTasksPerWorker(); i++) {
+        executors.add(new Pair<>(jobWorker, null));
+      }
     }
     return executors;
   }

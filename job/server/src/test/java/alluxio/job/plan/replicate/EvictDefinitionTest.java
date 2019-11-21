@@ -132,7 +132,7 @@ public final class EvictDefinitionTest {
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     // Expect one worker from all workers having this block
     Assert.assertEquals(1, result.size());
-    Assert.assertEquals(null, result.values().iterator().next());
+    Assert.assertEquals(null, result.get(0).getSecond());
   }
 
   @Test
