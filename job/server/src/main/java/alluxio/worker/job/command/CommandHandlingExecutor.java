@@ -39,7 +39,6 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.DoubleStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
