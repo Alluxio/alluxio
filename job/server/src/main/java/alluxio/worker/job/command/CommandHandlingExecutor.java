@@ -22,6 +22,7 @@ import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.RunTaskContext;
 import alluxio.job.wire.JobWorkerHealth;
+import alluxio.job.wire.TaskInfo;
 import alluxio.worker.job.JobMasterClient;
 import alluxio.job.util.SerializationUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -39,6 +40,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -84,11 +86,15 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
     JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(JobWorkerIdRegistry.getWorkerId(),
         mHealthReporter.getCpuLoadAverage(), mWorkerNetAddress.getHost());
 
-    List<JobInfo> taskStatusList = mTaskExecutorManager.getAndClearTaskUpdates();
+    List<TaskInfo> taskStatusList = mTaskExecutorManager.getAndClearTaskUpdates();
 
     List<alluxio.grpc.JobCommand> commands;
+
+    List<JobInfo> taskProtoList = taskStatusList.stream().map(TaskInfo::toProto)
+        .collect(Collectors.toList());
+
     try {
-      commands = mMasterClient.heartbeat(jobWorkerHealth, taskStatusList);
+      commands = mMasterClient.heartbeat(jobWorkerHealth, taskProtoList);
     } catch (AlluxioException | IOException e) {
       // Restore the task updates so that they can be accessed in the next heartbeat.
       mTaskExecutorManager.restoreTaskUpdates(taskStatusList);
