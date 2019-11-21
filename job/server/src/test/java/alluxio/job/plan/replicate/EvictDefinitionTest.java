@@ -26,8 +26,8 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.beust.jcommander.internal.Sets;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +37,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 /**
  * Tests {@link EvictDefinition}.
@@ -55,7 +55,7 @@ public final class EvictDefinitionTest {
   private static final WorkerInfo WORKER_INFO_1 = new WorkerInfo().setAddress(ADDRESS_1);
   private static final WorkerInfo WORKER_INFO_2 = new WorkerInfo().setAddress(ADDRESS_2);
   private static final WorkerInfo WORKER_INFO_3 = new WorkerInfo().setAddress(ADDRESS_3);
-  private static final List<Pair<WorkerInfo, SerializableVoid>> EMPTY = Lists.newArrayList();
+  private static final Set<Pair<WorkerInfo, SerializableVoid>> EMPTY = Sets.newHashSet();
 
   private FileSystem mMockFileSystem;
   private FileSystemContext mMockFileSystemContext;
@@ -79,7 +79,7 @@ public final class EvictDefinitionTest {
    * @param workerInfoList a list of currently available job workers
    * @return the selection result
    */
-  private List<Pair<WorkerInfo, SerializableVoid>> selectExecutorsTestHelper(
+  private Set<Pair<WorkerInfo, SerializableVoid>> selectExecutorsTestHelper(
       List<BlockLocation> blockLocations, int replicas, List<WorkerInfo> workerInfoList)
       throws Exception {
     BlockInfo blockInfo = new BlockInfo().setBlockId(TEST_BLOCK_ID);
@@ -96,7 +96,7 @@ public final class EvictDefinitionTest {
 
   @Test
   public void selectExecutorsNoBlockWorkerHasBlock() throws Exception {
-    List<Pair<WorkerInfo, SerializableVoid>> result =
+    Set<Pair<WorkerInfo, SerializableVoid>> result =
         selectExecutorsTestHelper(Lists.<BlockLocation>newArrayList(), 1,
             Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     // Expect none as no worker has this copy
@@ -105,7 +105,7 @@ public final class EvictDefinitionTest {
 
   @Test
   public void selectExecutorsNoJobWorkerHasBlock() throws Exception {
-    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
+    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
         Lists.newArrayList(WORKER_INFO_2, WORKER_INFO_3));
     // Expect none as no worker that is available has this copy
@@ -114,51 +114,51 @@ public final class EvictDefinitionTest {
 
   @Test
   public void selectExecutorsOnlyOneBlockWorkerHasBlock() throws Exception {
-    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
+    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
-    Map<WorkerInfo, SerializableVoid> expected = Maps.newHashMap();
-    expected.put(WORKER_INFO_1, null);
+    Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
+    expected.add(new Pair<>(WORKER_INFO_1, null));
     // Expect the only worker 1 having this block
     Assert.assertEquals(expected, result);
   }
 
   @Test
   public void selectExecutorsAnyOneWorkers() throws Exception {
-    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(Lists
+    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(Lists
             .newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1),
                 new BlockLocation().setWorkerAddress(ADDRESS_2),
                 new BlockLocation().setWorkerAddress(ADDRESS_3)), 1,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     // Expect one worker from all workers having this block
     Assert.assertEquals(1, result.size());
-    Assert.assertEquals(null, result.get(0).getSecond());
+    Assert.assertEquals(null, result.iterator().next().getSecond());
   }
 
   @Test
   public void selectExecutorsAllWorkers() throws Exception {
-    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(Lists
+    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(Lists
             .newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1),
                 new BlockLocation().setWorkerAddress(ADDRESS_2),
                 new BlockLocation().setWorkerAddress(ADDRESS_3)), 3,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
-    Map<WorkerInfo, SerializableVoid> expected = Maps.newHashMap();
-    expected.put(WORKER_INFO_1, null);
-    expected.put(WORKER_INFO_2, null);
-    expected.put(WORKER_INFO_3, null);
+    Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
+    expected.add(new Pair<>(WORKER_INFO_1, null));
+    expected.add(new Pair<>(WORKER_INFO_2, null));
+    expected.add(new Pair<>(WORKER_INFO_3, null));
     // Expect all workers are selected as they all have this block
     Assert.assertEquals(expected, result);
   }
 
   @Test
   public void selectExecutorsBothWorkers() throws Exception {
-    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(Lists
+    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(Lists
             .newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1),
                 new BlockLocation().setWorkerAddress(ADDRESS_2)), 3,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
-    Map<WorkerInfo, SerializableVoid> expected = Maps.newHashMap();
-    expected.put(WORKER_INFO_1, null);
-    expected.put(WORKER_INFO_2, null);
+    Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
+    expected.add(new Pair<>(WORKER_INFO_1, null));
+    expected.add(new Pair<>(WORKER_INFO_2, null));
     // Expect both workers having this block should be selected
     Assert.assertEquals(expected, result);
   }

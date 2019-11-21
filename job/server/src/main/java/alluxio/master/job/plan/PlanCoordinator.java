@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -110,7 +111,7 @@ public final class PlanCoordinator {
         PlanDefinitionRegistry.INSTANCE.getJobDefinition(mPlanInfo.getJobConfig());
     SelectExecutorsContext context =
         new SelectExecutorsContext(mPlanInfo.getId(), mJobServerContext);
-    List<? extends Pair<WorkerInfo, ?>> taskAddressToArgs;
+    Set<? extends Pair<WorkerInfo, ?>> taskAddressToArgs;
     try {
       taskAddressToArgs =
           definition.selectExecutors(mPlanInfo.getJobConfig(), mWorkersInfoList, context);

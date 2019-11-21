@@ -39,6 +39,7 @@ import alluxio.job.util.SerializableVoid;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerInfo;
 
+import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -51,6 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentMap;
 
@@ -156,14 +158,15 @@ public final class MigrateDefinition
    *
    * Assigns each worker to migrate whichever files it has the most blocks for.
    * If no worker has blocks for a file, a random worker is chosen.
+   * @return
    */
   @Override
-  public List<Pair<WorkerInfo, ArrayList<MigrateCommand>>> selectExecutors(MigrateConfig config,
+  public Set<Pair<WorkerInfo, ArrayList<MigrateCommand>>> selectExecutors(MigrateConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context) throws Exception {
     AlluxioURI source = new AlluxioURI(config.getSource());
     AlluxioURI destination = new AlluxioURI(config.getDestination());
     if (source.equals(destination)) {
-      return Lists.newArrayList();
+      return Sets.newHashSet();
     }
     checkMigrateValid(config, context.getFileSystem());
     Preconditions.checkState(!jobWorkerInfoList.isEmpty(), "No workers are available");
@@ -191,7 +194,7 @@ public final class MigrateDefinition
       }
     }
 
-    List<Pair<WorkerInfo, ArrayList<MigrateCommand>>> result = Lists.newArrayList();
+    Set<Pair<WorkerInfo, ArrayList<MigrateCommand>>> result = Sets.newHashSet();
 
     for (Map.Entry<WorkerInfo, ArrayList<MigrateCommand>> assignment : assignments.entrySet()) {
       result.add(new Pair<>(assignment.getKey(), assignment.getValue()));

@@ -56,7 +56,9 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -70,6 +72,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Tests {@link ReplicateConfig}.
@@ -123,7 +126,7 @@ public final class ReplicateDefinitionTest {
    * @param workerInfoList a list of current available job workers
    * @return the selection result
    */
-  private List<Pair<WorkerInfo, SerializableVoid>> selectExecutorsTestHelper(
+  private Set<Pair<WorkerInfo, SerializableVoid>> selectExecutorsTestHelper(
       List<BlockLocation> blockLocations, int numReplicas, List<WorkerInfo> workerInfoList)
       throws Exception {
     BlockInfo blockInfo = new BlockInfo().setBlockId(TEST_BLOCK_ID);
@@ -174,10 +177,10 @@ public final class ReplicateDefinitionTest {
 
   @Test
   public void selectExecutorsOnlyOneWorkerAvailable() throws Exception {
-    List<Pair<WorkerInfo, SerializableVoid>> result =
+    Set<Pair<WorkerInfo, SerializableVoid>> result =
         selectExecutorsTestHelper(Lists.<BlockLocation>newArrayList(), 1,
             Lists.newArrayList(WORKER_INFO_1));
-    List<Pair<WorkerInfo, SerializableVoid>> expected = Lists.newArrayList();
+    Set<Pair<WorkerInfo, SerializableVoid>> expected = ImmutableSet.of();
     expected.add(new Pair<>(WORKER_INFO_1, null));
     // select the only worker
     assertEquals(expected, result);
@@ -185,10 +188,10 @@ public final class ReplicateDefinitionTest {
 
   @Test
   public void selectExecutorsOnlyOneWorkerValid() throws Exception {
-    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
+    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2));
-    List<Pair<WorkerInfo, SerializableVoid>> expected = Lists.newArrayList();
+    Set<Pair<WorkerInfo, SerializableVoid>> expected = ImmutableSet.of();
     expected.add(new Pair<>(WORKER_INFO_2, null));
     // select one worker left
     assertEquals(expected, result);
@@ -196,10 +199,10 @@ public final class ReplicateDefinitionTest {
 
   @Test
   public void selectExecutorsTwoWorkersValid() throws Exception {
-    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
+    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 2,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
-    List<Pair<WorkerInfo, SerializableVoid>> expected = Lists.newArrayList();
+    Set<Pair<WorkerInfo, SerializableVoid>> expected = ImmutableSet.of();
     expected.add(new Pair<>(WORKER_INFO_2, null));
     expected.add(new Pair<>(WORKER_INFO_3, null));
     // select both workers left
@@ -208,30 +211,30 @@ public final class ReplicateDefinitionTest {
 
   @Test
   public void selectExecutorsOneOutOFTwoWorkersValid() throws Exception {
-    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
+    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     // select one worker out of two
     assertEquals(1, result.size());
-    assertEquals(null, result.get(0).getSecond());
+    assertEquals(null, result.iterator().next().getSecond());
   }
 
   @Test
   public void selectExecutorsNoWorkerValid() throws Exception {
-    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
+    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
         Lists.newArrayList(WORKER_INFO_1));
-    List<Pair<WorkerInfo, SerializableVoid>> expected = Lists.newArrayList();
+    Set<Pair<WorkerInfo, SerializableVoid>> expected = ImmutableSet.of();
     // select none as no choice left
     assertEquals(expected, result);
   }
 
   @Test
   public void selectExecutorsInsufficientWorkerValid() throws Exception {
-    List<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
+    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
         Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 2,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2));
-    List<Pair<WorkerInfo, SerializableVoid>> expected = Lists.newArrayList();
+    Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
     expected.add(new Pair<>(WORKER_INFO_2, null));
     // select the only worker left though more copies are requested
     assertEquals(expected, result);

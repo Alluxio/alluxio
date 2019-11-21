@@ -30,6 +30,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -59,7 +61,7 @@ public final class LoadDefinition
   }
 
   @Override
-  public List<Pair<WorkerInfo, ArrayList<LoadTask>>> selectExecutors(LoadConfig config,
+  public Set<Pair<WorkerInfo, ArrayList<LoadTask>>> selectExecutors(LoadConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context)
       throws Exception {
     Map<String, WorkerInfo> jobWorkersByAddress = jobWorkerInfoList.stream()
@@ -101,7 +103,7 @@ public final class LoadDefinition
       }
     }
 
-    List<Pair<WorkerInfo, ArrayList<LoadTask>>> result = Lists.newArrayList();
+    Set<Pair<WorkerInfo, ArrayList<LoadTask>>> result = Sets.newHashSet();
     for (Map.Entry<WorkerInfo, Collection<LoadTask>> assignment : assignments.asMap().entrySet()) {
       result.add(new Pair<>(assignment.getKey(), Lists.newArrayList(assignment.getValue())));
     }

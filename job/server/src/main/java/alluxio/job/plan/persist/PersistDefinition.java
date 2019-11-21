@@ -36,7 +36,7 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.wire.WorkerInfo;
 
-import com.google.common.collect.Lists;
+import com.beust.jcommander.internal.Sets;
 import com.google.common.io.Closer;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -67,7 +68,7 @@ public final class PersistDefinition
   }
 
   @Override
-  public List<Pair<WorkerInfo, SerializableVoid>> selectExecutors(PersistConfig config,
+  public Set<Pair<WorkerInfo, SerializableVoid>> selectExecutors(PersistConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context)
       throws Exception {
     if (jobWorkerInfoList.isEmpty()) {
@@ -81,7 +82,7 @@ public final class PersistDefinition
         context.getFileSystem().getStatus(uri).getFileBlockInfos());
 
     // Map the best Alluxio worker to a job worker.
-    List<Pair<WorkerInfo, SerializableVoid>> result = Lists.newArrayList();
+    Set<Pair<WorkerInfo, SerializableVoid>> result = Sets.newHashSet();
     boolean found = false;
     if (workerWithMostBlocks != null) {
       for (WorkerInfo workerInfo : jobWorkerInfoList) {

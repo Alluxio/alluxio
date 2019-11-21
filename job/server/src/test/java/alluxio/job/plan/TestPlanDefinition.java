@@ -19,6 +19,7 @@ import alluxio.job.util.SerializableVoid;
 import alluxio.wire.WorkerInfo;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -46,7 +47,7 @@ public final class TestPlanDefinition
   }
 
   @Override
-  public List<Pair<WorkerInfo, SerializableVoid>> selectExecutors(TestPlanConfig config,
+  public Set<Pair<WorkerInfo, SerializableVoid>> selectExecutors(TestPlanConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
       throws Exception {
     return null;

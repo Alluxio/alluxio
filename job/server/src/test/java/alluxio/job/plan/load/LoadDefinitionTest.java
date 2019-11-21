@@ -48,6 +48,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Tests {@link LoadDefinition}.
@@ -100,7 +101,7 @@ public class LoadDefinitionTest {
     int replication = 3;
     createFileWithNoLocations(TEST_URI, numBlocks);
     LoadConfig config = new LoadConfig(TEST_URI, replication);
-    List<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
+    Set<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
         new LoadDefinition().selectExecutors(config,
             JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));
     // Check that we are loading the right number of blocks.
@@ -119,11 +120,11 @@ public class LoadDefinitionTest {
     Mockito.when(mMockBlockStore.getAllWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 10);
     LoadConfig config = new LoadConfig(TEST_URI, 1);
-    List<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
+    Set<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
         new LoadDefinition().selectExecutors(config, JOB_WORKERS,
             new SelectExecutorsContext(1, mJobServerContext));
     Assert.assertEquals(1, assignments.size());
-    Assert.assertEquals(10, assignments.get(0).getSecond().size());
+    Assert.assertEquals(10, assignments.iterator().next().getSecond().size());
   }
 
   @Test

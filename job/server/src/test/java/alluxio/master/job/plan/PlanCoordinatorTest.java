@@ -29,6 +29,7 @@ import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,6 +43,7 @@ import org.powermock.reflect.Whitebox;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Tests {@link PlanCoordinator}.
@@ -187,7 +189,7 @@ public final class PlanCoordinatorTest {
    * @param workerInfos the worker infos to return from the mocked selectExecutors method
    */
   private void mockSelectExecutors(WorkerInfo... workerInfos) throws Exception {
-    List<Pair<WorkerInfo, Serializable>> taskAddressToArgs = Lists.newArrayList();
+    Set<Pair<WorkerInfo, Serializable>> taskAddressToArgs = Sets.newHashSet();
     for (WorkerInfo workerInfo : workerInfos) {
       taskAddressToArgs.add(new Pair<>(workerInfo, null));
     }
