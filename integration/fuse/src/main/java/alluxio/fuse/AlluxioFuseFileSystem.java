@@ -527,7 +527,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         return ErrorCodes.EMFILE();
       }
 
-      FileInStream is = mFileSystem.openFile(uri);
+      FileInStream is = mFileSystem.openFile(status);
       synchronized (mOpenFiles) {
         mOpenFiles.add(new OpenFileEntry(mNextOpenFileId, path, is, null));
         fi.fh.set(mNextOpenFileId);

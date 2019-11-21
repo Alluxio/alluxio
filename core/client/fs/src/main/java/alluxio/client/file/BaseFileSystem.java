@@ -456,6 +456,23 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  public FileInStream openFile(URIStatus status)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return openFile(status, OpenFilePOptions.getDefaultInstance());
+  }
+
+  @Override
+  public FileInStream openFile(URIStatus status, OpenFilePOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    AlluxioURI path = new AlluxioURI(status.getPath());
+    AlluxioConfiguration conf = mFsContext.getPathConf(path);
+    OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(conf)
+        .toBuilder().mergeFrom(options).build();
+    InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions, conf);
+    return new FileInStream(status, inStreamOptions, mFsContext);
+  }
+
+  @Override
   public void rename(AlluxioURI src, AlluxioURI dst)
       throws FileDoesNotExistException, IOException, AlluxioException {
     rename(src, dst, RenamePOptions.getDefaultInstance());
