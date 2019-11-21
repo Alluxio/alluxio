@@ -88,6 +88,32 @@ private static final long serialVersionUID = 0L;
             bitField0_ |= 0x00000004;
             break;
           }
+          case 34: {
+            alluxio.grpc.ThrottleCommand.Builder subBuilder = null;
+            if (((bitField0_ & 0x00000008) == 0x00000008)) {
+              subBuilder = throttleCommand_.toBuilder();
+            }
+            throttleCommand_ = input.readMessage(alluxio.grpc.ThrottleCommand.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(throttleCommand_);
+              throttleCommand_ = subBuilder.buildPartial();
+            }
+            bitField0_ |= 0x00000008;
+            break;
+          }
+          case 42: {
+            alluxio.grpc.ResumeCommand.Builder subBuilder = null;
+            if (((bitField0_ & 0x00000010) == 0x00000010)) {
+              subBuilder = resumeCommand_.toBuilder();
+            }
+            resumeCommand_ = input.readMessage(alluxio.grpc.ResumeCommand.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(resumeCommand_);
+              resumeCommand_ = subBuilder.buildPartial();
+            }
+            bitField0_ |= 0x00000010;
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -176,6 +202,48 @@ private static final long serialVersionUID = 0L;
     return registerCommand_ == null ? alluxio.grpc.RegisterCommand.getDefaultInstance() : registerCommand_;
   }
 
+  public static final int THROTTLECOMMAND_FIELD_NUMBER = 4;
+  private alluxio.grpc.ThrottleCommand throttleCommand_;
+  /**
+   * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+   */
+  public boolean hasThrottleCommand() {
+    return ((bitField0_ & 0x00000008) == 0x00000008);
+  }
+  /**
+   * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+   */
+  public alluxio.grpc.ThrottleCommand getThrottleCommand() {
+    return throttleCommand_ == null ? alluxio.grpc.ThrottleCommand.getDefaultInstance() : throttleCommand_;
+  }
+  /**
+   * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+   */
+  public alluxio.grpc.ThrottleCommandOrBuilder getThrottleCommandOrBuilder() {
+    return throttleCommand_ == null ? alluxio.grpc.ThrottleCommand.getDefaultInstance() : throttleCommand_;
+  }
+
+  public static final int RESUMECOMMAND_FIELD_NUMBER = 5;
+  private alluxio.grpc.ResumeCommand resumeCommand_;
+  /**
+   * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+   */
+  public boolean hasResumeCommand() {
+    return ((bitField0_ & 0x00000010) == 0x00000010);
+  }
+  /**
+   * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+   */
+  public alluxio.grpc.ResumeCommand getResumeCommand() {
+    return resumeCommand_ == null ? alluxio.grpc.ResumeCommand.getDefaultInstance() : resumeCommand_;
+  }
+  /**
+   * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+   */
+  public alluxio.grpc.ResumeCommandOrBuilder getResumeCommandOrBuilder() {
+    return resumeCommand_ == null ? alluxio.grpc.ResumeCommand.getDefaultInstance() : resumeCommand_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -197,6 +265,12 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       output.writeMessage(3, getRegisterCommand());
     }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      output.writeMessage(4, getThrottleCommand());
+    }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      output.writeMessage(5, getResumeCommand());
+    }
     unknownFields.writeTo(output);
   }
 
@@ -216,6 +290,14 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000004) == 0x00000004)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(3, getRegisterCommand());
+    }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(4, getThrottleCommand());
+    }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(5, getResumeCommand());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -248,6 +330,16 @@ private static final long serialVersionUID = 0L;
       result = result && getRegisterCommand()
           .equals(other.getRegisterCommand());
     }
+    result = result && (hasThrottleCommand() == other.hasThrottleCommand());
+    if (hasThrottleCommand()) {
+      result = result && getThrottleCommand()
+          .equals(other.getThrottleCommand());
+    }
+    result = result && (hasResumeCommand() == other.hasResumeCommand());
+    if (hasResumeCommand()) {
+      result = result && getResumeCommand()
+          .equals(other.getResumeCommand());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -270,6 +362,14 @@ private static final long serialVersionUID = 0L;
     if (hasRegisterCommand()) {
       hash = (37 * hash) + REGISTERCOMMAND_FIELD_NUMBER;
       hash = (53 * hash) + getRegisterCommand().hashCode();
+    }
+    if (hasThrottleCommand()) {
+      hash = (37 * hash) + THROTTLECOMMAND_FIELD_NUMBER;
+      hash = (53 * hash) + getThrottleCommand().hashCode();
+    }
+    if (hasResumeCommand()) {
+      hash = (37 * hash) + RESUMECOMMAND_FIELD_NUMBER;
+      hash = (53 * hash) + getResumeCommand().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -399,6 +499,8 @@ private static final long serialVersionUID = 0L;
         getRunTaskCommandFieldBuilder();
         getCancelTaskCommandFieldBuilder();
         getRegisterCommandFieldBuilder();
+        getThrottleCommandFieldBuilder();
+        getResumeCommandFieldBuilder();
       }
     }
     public Builder clear() {
@@ -421,6 +523,18 @@ private static final long serialVersionUID = 0L;
         registerCommandBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000004);
+      if (throttleCommandBuilder_ == null) {
+        throttleCommand_ = null;
+      } else {
+        throttleCommandBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000008);
+      if (resumeCommandBuilder_ == null) {
+        resumeCommand_ = null;
+      } else {
+        resumeCommandBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000010);
       return this;
     }
 
@@ -468,6 +582,22 @@ private static final long serialVersionUID = 0L;
         result.registerCommand_ = registerCommand_;
       } else {
         result.registerCommand_ = registerCommandBuilder_.build();
+      }
+      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        to_bitField0_ |= 0x00000008;
+      }
+      if (throttleCommandBuilder_ == null) {
+        result.throttleCommand_ = throttleCommand_;
+      } else {
+        result.throttleCommand_ = throttleCommandBuilder_.build();
+      }
+      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+        to_bitField0_ |= 0x00000010;
+      }
+      if (resumeCommandBuilder_ == null) {
+        result.resumeCommand_ = resumeCommand_;
+      } else {
+        result.resumeCommand_ = resumeCommandBuilder_.build();
       }
       result.bitField0_ = to_bitField0_;
       onBuilt();
@@ -519,6 +649,12 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasRegisterCommand()) {
         mergeRegisterCommand(other.getRegisterCommand());
+      }
+      if (other.hasThrottleCommand()) {
+        mergeThrottleCommand(other.getThrottleCommand());
+      }
+      if (other.hasResumeCommand()) {
+        mergeResumeCommand(other.getResumeCommand());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -900,6 +1036,242 @@ private static final long serialVersionUID = 0L;
         registerCommand_ = null;
       }
       return registerCommandBuilder_;
+    }
+
+    private alluxio.grpc.ThrottleCommand throttleCommand_ = null;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.ThrottleCommand, alluxio.grpc.ThrottleCommand.Builder, alluxio.grpc.ThrottleCommandOrBuilder> throttleCommandBuilder_;
+    /**
+     * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+     */
+    public boolean hasThrottleCommand() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+     */
+    public alluxio.grpc.ThrottleCommand getThrottleCommand() {
+      if (throttleCommandBuilder_ == null) {
+        return throttleCommand_ == null ? alluxio.grpc.ThrottleCommand.getDefaultInstance() : throttleCommand_;
+      } else {
+        return throttleCommandBuilder_.getMessage();
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+     */
+    public Builder setThrottleCommand(alluxio.grpc.ThrottleCommand value) {
+      if (throttleCommandBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        throttleCommand_ = value;
+        onChanged();
+      } else {
+        throttleCommandBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x00000008;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+     */
+    public Builder setThrottleCommand(
+        alluxio.grpc.ThrottleCommand.Builder builderForValue) {
+      if (throttleCommandBuilder_ == null) {
+        throttleCommand_ = builderForValue.build();
+        onChanged();
+      } else {
+        throttleCommandBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000008;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+     */
+    public Builder mergeThrottleCommand(alluxio.grpc.ThrottleCommand value) {
+      if (throttleCommandBuilder_ == null) {
+        if (((bitField0_ & 0x00000008) == 0x00000008) &&
+            throttleCommand_ != null &&
+            throttleCommand_ != alluxio.grpc.ThrottleCommand.getDefaultInstance()) {
+          throttleCommand_ =
+            alluxio.grpc.ThrottleCommand.newBuilder(throttleCommand_).mergeFrom(value).buildPartial();
+        } else {
+          throttleCommand_ = value;
+        }
+        onChanged();
+      } else {
+        throttleCommandBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x00000008;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+     */
+    public Builder clearThrottleCommand() {
+      if (throttleCommandBuilder_ == null) {
+        throttleCommand_ = null;
+        onChanged();
+      } else {
+        throttleCommandBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000008);
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+     */
+    public alluxio.grpc.ThrottleCommand.Builder getThrottleCommandBuilder() {
+      bitField0_ |= 0x00000008;
+      onChanged();
+      return getThrottleCommandFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+     */
+    public alluxio.grpc.ThrottleCommandOrBuilder getThrottleCommandOrBuilder() {
+      if (throttleCommandBuilder_ != null) {
+        return throttleCommandBuilder_.getMessageOrBuilder();
+      } else {
+        return throttleCommand_ == null ?
+            alluxio.grpc.ThrottleCommand.getDefaultInstance() : throttleCommand_;
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.ThrottleCommand, alluxio.grpc.ThrottleCommand.Builder, alluxio.grpc.ThrottleCommandOrBuilder> 
+        getThrottleCommandFieldBuilder() {
+      if (throttleCommandBuilder_ == null) {
+        throttleCommandBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.ThrottleCommand, alluxio.grpc.ThrottleCommand.Builder, alluxio.grpc.ThrottleCommandOrBuilder>(
+                getThrottleCommand(),
+                getParentForChildren(),
+                isClean());
+        throttleCommand_ = null;
+      }
+      return throttleCommandBuilder_;
+    }
+
+    private alluxio.grpc.ResumeCommand resumeCommand_ = null;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.ResumeCommand, alluxio.grpc.ResumeCommand.Builder, alluxio.grpc.ResumeCommandOrBuilder> resumeCommandBuilder_;
+    /**
+     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     */
+    public boolean hasResumeCommand() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     */
+    public alluxio.grpc.ResumeCommand getResumeCommand() {
+      if (resumeCommandBuilder_ == null) {
+        return resumeCommand_ == null ? alluxio.grpc.ResumeCommand.getDefaultInstance() : resumeCommand_;
+      } else {
+        return resumeCommandBuilder_.getMessage();
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     */
+    public Builder setResumeCommand(alluxio.grpc.ResumeCommand value) {
+      if (resumeCommandBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        resumeCommand_ = value;
+        onChanged();
+      } else {
+        resumeCommandBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x00000010;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     */
+    public Builder setResumeCommand(
+        alluxio.grpc.ResumeCommand.Builder builderForValue) {
+      if (resumeCommandBuilder_ == null) {
+        resumeCommand_ = builderForValue.build();
+        onChanged();
+      } else {
+        resumeCommandBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000010;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     */
+    public Builder mergeResumeCommand(alluxio.grpc.ResumeCommand value) {
+      if (resumeCommandBuilder_ == null) {
+        if (((bitField0_ & 0x00000010) == 0x00000010) &&
+            resumeCommand_ != null &&
+            resumeCommand_ != alluxio.grpc.ResumeCommand.getDefaultInstance()) {
+          resumeCommand_ =
+            alluxio.grpc.ResumeCommand.newBuilder(resumeCommand_).mergeFrom(value).buildPartial();
+        } else {
+          resumeCommand_ = value;
+        }
+        onChanged();
+      } else {
+        resumeCommandBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x00000010;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     */
+    public Builder clearResumeCommand() {
+      if (resumeCommandBuilder_ == null) {
+        resumeCommand_ = null;
+        onChanged();
+      } else {
+        resumeCommandBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000010);
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     */
+    public alluxio.grpc.ResumeCommand.Builder getResumeCommandBuilder() {
+      bitField0_ |= 0x00000010;
+      onChanged();
+      return getResumeCommandFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     */
+    public alluxio.grpc.ResumeCommandOrBuilder getResumeCommandOrBuilder() {
+      if (resumeCommandBuilder_ != null) {
+        return resumeCommandBuilder_.getMessageOrBuilder();
+      } else {
+        return resumeCommand_ == null ?
+            alluxio.grpc.ResumeCommand.getDefaultInstance() : resumeCommand_;
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.ResumeCommand, alluxio.grpc.ResumeCommand.Builder, alluxio.grpc.ResumeCommandOrBuilder> 
+        getResumeCommandFieldBuilder() {
+      if (resumeCommandBuilder_ == null) {
+        resumeCommandBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.ResumeCommand, alluxio.grpc.ResumeCommand.Builder, alluxio.grpc.ResumeCommandOrBuilder>(
+                getResumeCommand(),
+                getParentForChildren(),
+                isClean());
+        resumeCommand_ = null;
+      }
+      return resumeCommandBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

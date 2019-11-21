@@ -383,6 +383,28 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   }
 
   /**
+   * throttles all JobWorkers from executing future tasks.
+   */
+  public void throttle() {
+    try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {
+      for (MasterWorkerInfo worker : mWorkers) {
+        mCommandManager.submitThrottleCommand(worker.getId());
+      }
+    }
+  }
+
+  /**
+   * lets JobWorker resume executing future tasks.
+   */
+  public void resume() {
+    try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {
+      for (MasterWorkerInfo worker : mWorkers) {
+        mCommandManager.submitResumeCommand(worker.getId());
+      }
+    }
+  }
+
+  /**
    * Updates the tasks' status when a worker periodically heartbeats with the master, and sends the
    * commands for the worker to execute.
    *

@@ -27,9 +27,10 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -40,7 +41,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class TaskExecutorManager {
   private static final Logger LOG = LoggerFactory.getLogger(TaskExecutorManager.class);
 
-  private final ExecutorService mTaskExecutionService;
+  private final ThreadPoolExecutor mTaskExecutionService;
 
   // These maps are all indexed by <Job ID, Task ID> pairs.
   /** Stores the futures for all running tasks. */
@@ -61,8 +62,10 @@ public class TaskExecutorManager {
     mTaskFutures = Maps.newHashMap();
     mUnfinishedTasks = Maps.newHashMap();
     mTaskUpdates = Maps.newHashMap();
-    mTaskExecutionService = Executors.newFixedThreadPool(taskExecutorPoolSize,
-      ThreadFactoryUtils.build("task-execution-service-%d", true));
+    mTaskExecutionService = new ThreadPoolExecutor(taskExecutorPoolSize, taskExecutorPoolSize,
+        0L, TimeUnit.MILLISECONDS,
+        new LinkedBlockingQueue<>(),
+        ThreadFactoryUtils.build("task-execution-service-%d", true));
     mAddress = address;
   }
 

@@ -45,4 +45,30 @@ public interface JobCommandOrBuilder extends
    * <code>optional .alluxio.grpc.job.RegisterCommand registerCommand = 3;</code>
    */
   alluxio.grpc.RegisterCommandOrBuilder getRegisterCommandOrBuilder();
+
+  /**
+   * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+   */
+  boolean hasThrottleCommand();
+  /**
+   * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+   */
+  alluxio.grpc.ThrottleCommand getThrottleCommand();
+  /**
+   * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+   */
+  alluxio.grpc.ThrottleCommandOrBuilder getThrottleCommandOrBuilder();
+
+  /**
+   * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+   */
+  boolean hasResumeCommand();
+  /**
+   * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+   */
+  alluxio.grpc.ResumeCommand getResumeCommand();
+  /**
+   * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+   */
+  alluxio.grpc.ResumeCommandOrBuilder getResumeCommandOrBuilder();
 }

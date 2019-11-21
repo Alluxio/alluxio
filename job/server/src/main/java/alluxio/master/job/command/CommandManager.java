@@ -13,7 +13,9 @@ package alluxio.master.job.command;
 
 import alluxio.grpc.CancelTaskCommand;
 import alluxio.grpc.JobCommand;
+import alluxio.grpc.ResumeCommand;
 import alluxio.grpc.RunTaskCommand;
+import alluxio.grpc.ThrottleCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
 
@@ -71,10 +73,7 @@ public final class CommandManager {
     }
     JobCommand.Builder command = JobCommand.newBuilder();
     command.setRunTaskCommand(runTaskCommand);
-    if (!mWorkerIdToPendingCommands.containsKey(workerId)) {
-      mWorkerIdToPendingCommands.put(workerId, Lists.<JobCommand>newArrayList());
-    }
-    mWorkerIdToPendingCommands.get(workerId).add(command.build());
+    submit(workerId, command);
   }
 
   /**
@@ -90,8 +89,36 @@ public final class CommandManager {
     cancelTaskCommand.setTaskId(taskId);
     JobCommand.Builder command = JobCommand.newBuilder();
     command.setCancelTaskCommand(cancelTaskCommand);
+    submit(workerId, command);
+  }
+
+  /**
+   * Submits a throttle-task command to a specific worker.
+   *
+   * @param workerId the worker id
+   */
+  public synchronized void submitThrottleCommand(long workerId) {
+    ThrottleCommand.Builder throttleCommand = ThrottleCommand.newBuilder();
+    JobCommand.Builder command = JobCommand.newBuilder();
+    command.setThrottleCommand(throttleCommand);
+    submit(workerId, command);
+  }
+
+  /**
+   * Submits a resume-task command to a specific worker.
+   *
+   * @param workerId the worker id
+   */
+  public synchronized void submitResumeCommand(long workerId) {
+    ResumeCommand.Builder resumeCommand = ResumeCommand.newBuilder();
+    JobCommand.Builder command = JobCommand.newBuilder();
+    command.setResumeCommand(resumeCommand);
+    submit(workerId, command);
+  }
+
+  private void submit(long workerId, JobCommand.Builder command) {
     if (!mWorkerIdToPendingCommands.containsKey(workerId)) {
-      mWorkerIdToPendingCommands.put(workerId, Lists.<JobCommand>newArrayList());
+      mWorkerIdToPendingCommands.put(workerId, Lists.newArrayList());
     }
     mWorkerIdToPendingCommands.get(workerId).add(command.build());
   }

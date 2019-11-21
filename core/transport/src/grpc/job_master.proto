@@ -69,6 +69,8 @@ message JobCommand {
   optional RunTaskCommand runTaskCommand = 1;
   optional CancelTaskCommand cancelTaskCommand = 2;
   optional RegisterCommand registerCommand = 3;
+  optional ThrottleCommand throttleCommand = 4;
+  optional ResumeCommand resumeCommand = 5;
 }
 
 message RunTaskCommand {
@@ -79,6 +81,10 @@ message RunTaskCommand {
 }
 
 message RegisterCommand {}
+
+message ThrottleCommand {}
+
+message ResumeCommand {}
 
 message CancelTaskCommand {
   optional int64 jobId = 1;
