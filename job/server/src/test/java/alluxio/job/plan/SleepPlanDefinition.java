@@ -19,8 +19,8 @@ import alluxio.job.util.SerializableVoid;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
-import com.google.common.collect.Sets;
-
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -44,7 +44,8 @@ public final class SleepPlanDefinition
   public Set<Pair<WorkerInfo, SerializableVoid>> selectExecutors(SleepJobConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
       throws Exception {
-    Set<Pair<WorkerInfo, SerializableVoid>> executors = Sets.newHashSet();
+    Set<Pair<WorkerInfo, SerializableVoid>> executors =
+        Collections.newSetFromMap(new IdentityHashMap<>());
     for (WorkerInfo jobWorker : jobWorkerInfoList) {
       for (int i = 0; i < config.getTasksPerWorker(); i++) {
         executors.add(new Pair<>(jobWorker, null));

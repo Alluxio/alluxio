@@ -13,6 +13,7 @@ package alluxio.job;
 
 import alluxio.job.plan.PlanConfig;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
@@ -37,7 +38,8 @@ public class SleepJobConfig implements PlanConfig {
     this(timeMs, 1);
   }
 
-  public SleepJobConfig(long timeMs, int tasksPerWorker) {
+  public SleepJobConfig(@JsonProperty("timeMs") long timeMs,
+                        @JsonProperty("tasksPerWorker") int tasksPerWorker) {
     mTimeMs = timeMs;
     mTasksPerWorker = tasksPerWorker;
   }
