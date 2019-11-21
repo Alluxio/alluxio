@@ -9,10 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal.raft.transport;
+package alluxio.master.transport;
 
-import alluxio.grpc.CopycatMessage;
-import alluxio.grpc.CopycatMessageServerGrpc;
+import alluxio.grpc.MessagingServiceGrpc;
+import alluxio.grpc.TransportMessage;
 import alluxio.security.authentication.ClientIpAddressInjector;
 
 import com.google.common.base.MoreObjects;
@@ -28,17 +28,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 /**
- * gRPC service handler for message exchange between copycat clients and servers that are created by
- * {@link CopycatGrpcTransport}.
+ * gRPC service handler for message exchange between messaging clients and servers
+ * that are created by {@link GrpcMessagingTransport}.
  */
-public class CopycatMessageServiceClientHandler
-    extends CopycatMessageServerGrpc.CopycatMessageServerImplBase {
+public class GrpcMessagingServiceClientHandler
+    extends MessagingServiceGrpc.MessagingServiceImplBase {
   private static final Logger LOG =
-      LoggerFactory.getLogger(CopycatMessageServiceClientHandler.class);
+      LoggerFactory.getLogger(GrpcMessagingServiceClientHandler.class);
 
-  /** Copycat provided listener for storing incoming connections. */
+  /** Messaging server provided listener for storing incoming connections. */
   private final Consumer<Connection> mListener;
-  /** {@link CopycatGrpcServer}'s copycat thread context. */
+  /** {@link GrpcMessagingServer}'s catalyst thread context. */
   private final ThreadContext mContext;
   /** Request timeout value for new connections. */
   private final long mRequestTimeoutMs;
@@ -50,11 +50,11 @@ public class CopycatMessageServiceClientHandler
   /**
    * @param serverAddress server address
    * @param listener listener for incoming connections
-   * @param context copycat thread context
+   * @param context catalyst thread context
    * @param executor transport executor
    * @param requestTimeoutMs request timeout value for new connections
    */
-  public CopycatMessageServiceClientHandler(Address serverAddress, Consumer<Connection> listener,
+  public GrpcMessagingServiceClientHandler(Address serverAddress, Consumer<Connection> listener,
       ThreadContext context, ExecutorService executor, long requestTimeoutMs) {
     mServerAddress = serverAddress;
     mListener = listener;
@@ -69,21 +69,22 @@ public class CopycatMessageServiceClientHandler
    * @param responseObserver client's stream observer
    * @return server's stream observer
    */
-  public StreamObserver<CopycatMessage> connect(StreamObserver<CopycatMessage> responseObserver) {
+  public StreamObserver<TransportMessage> connect(
+      StreamObserver<TransportMessage> responseObserver) {
     // Transport level identifier for this connection.
     String transportId = MoreObjects.toStringHelper(this)
         .add("ServerAddress", mServerAddress)
         .add("ClientAddress", ClientIpAddressInjector.getIpAddress())
         .toString();
-    LOG.debug("Creating a copycat server connection: {}", transportId);
+    LOG.debug("Creating a messaging server connection: {}", transportId);
 
     // Create server connection that is bound to given client stream.
-    CopycatGrpcConnection serverConnection =
-        new CopycatGrpcServerConnection(transportId, mContext, mExecutor, mRequestTimeoutMs);
+    GrpcMessagingConnection serverConnection =
+        new GrpcMessagingServerConnection(transportId, mContext, mExecutor, mRequestTimeoutMs);
     serverConnection.setTargetObserver(responseObserver);
-    LOG.debug("Created a copycat server connection: {}", serverConnection);
+    LOG.debug("Created a messaging server connection: {}", serverConnection);
 
-    // Update copycat with new connection.
+    // Update server with new connection.
     try {
       mContext.execute(() -> {
         mListener.accept(serverConnection);
@@ -91,9 +92,9 @@ public class CopycatMessageServiceClientHandler
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
       throw new RuntimeException(
-          "Interrupted while waiting for copycat to register new connection.");
+          "Interrupted while waiting for server to register new connection.");
     } catch (ExecutionException ee) {
-      throw new RuntimeException("Failed to register new connection with copycat", ee.getCause());
+      throw new RuntimeException("Failed to register new connection with server", ee.getCause());
     }
 
     return serverConnection;

@@ -26,7 +26,7 @@ import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
-import alluxio.master.journal.raft.transport.CopycatGrpcTransport;
+import alluxio.master.transport.GrpcMessagingTransport;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
@@ -128,6 +128,9 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
 
   // Election timeout to use in a single master cluster.
   private static final long SINGLE_MASTER_ELECTION_TIMEOUT_MS = 500;
+
+  private static final String RAFTCLIENT_CLIENT_TYPE = "RaftClient";
+  private static final String RAFTSERVER_CLIENT_TYPE = "RaftServer";
 
   /// Lifecycle: constant from when the journal system is constructed.
 
@@ -240,8 +243,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         .withHeartbeatInterval(Duration.ofMillis(mConf.getHeartbeatIntervalMs()))
         .withSnapshotAllowed(mSnapshotAllowed)
         .withSerializer(createSerializer())
-        .withTransport(
-            new CopycatGrpcTransport(ServerConfiguration.global(), ServerUserState.global()))
+        .withTransport(new GrpcMessagingTransport(
+            ServerConfiguration.global(), ServerUserState.global(), RAFTSERVER_CLIENT_TYPE))
         // Copycat wants a supplier that will generate *new* state machines. We can't handle
         // generating a new state machine here, so we will throw an exception if copycat tries to
         // call the supplier more than once.
@@ -273,8 +276,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         .withRecoveryStrategy(RecoveryStrategies.RECOVER)
         .withConnectionStrategy(attempt -> attempt.retry(Duration.ofMillis(
             Math.min(Math.round(100D * Math.pow(2D, (double) attempt.attempt())), 1000L))))
-        .withTransport(
-            new CopycatGrpcTransport(ServerConfiguration.global(), ServerUserState.global()))
+        .withTransport(new GrpcMessagingTransport(
+            ServerConfiguration.global(), ServerUserState.global(), RAFTCLIENT_CLIENT_TYPE))
         .withSerializer(createSerializer())
         .build();
   }

@@ -21,18 +21,18 @@ import alluxio.exception.BackupException;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupState;
 import alluxio.grpc.BackupStatusPRequest;
-import alluxio.grpc.CopycatMessageServerGrpc;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.MessagingServiceGrpc;
 import alluxio.grpc.ServiceType;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.master.journal.CatchupFuture;
-import alluxio.master.journal.raft.transport.CopycatGrpcClientConnection;
-import alluxio.master.journal.raft.transport.CopycatGrpcConnection;
+import alluxio.master.transport.GrpcMessagingClientConnection;
+import alluxio.master.transport.GrpcMessagingConnection;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.network.NetworkAddressUtils;
@@ -355,12 +355,12 @@ public class BackupWorkerRole extends AbstractBackupRole {
             .build();
 
         // Create stub for receiving stream from leader.
-        CopycatMessageServerGrpc.CopycatMessageServerStub messageClientStub =
-            CopycatMessageServerGrpc.newStub(channel);
+        MessagingServiceGrpc.MessagingServiceStub messageClientStub =
+            MessagingServiceGrpc.newStub(channel);
 
         // Create a client connection to leader.
-        CopycatGrpcConnection leaderConnection = new CopycatGrpcClientConnection(mCatalystContext,
-            mExecutorService, channel, mCatalystRequestTimeout);
+        GrpcMessagingConnection leaderConnection = new GrpcMessagingClientConnection(
+            mCatalystContext, mExecutorService, channel, mCatalystRequestTimeout);
         leaderConnection.setTargetObserver(messageClientStub.connect(leaderConnection));
 
         // Activate the connection.

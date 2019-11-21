@@ -25,7 +25,7 @@ import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.master.CoreMasterContext;
-import alluxio.master.journal.raft.transport.CopycatMessageServiceClientHandler;
+import alluxio.master.transport.GrpcMessagingServiceClientHandler;
 import alluxio.resource.LockResource;
 import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.util.ConfigurationUtils;
@@ -138,7 +138,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
         .put(ServiceType.META_MASTER_BACKUP_MESSAGING_SERVICE,
             new GrpcService(
                 ServerInterceptors.intercept(
-                    new CopycatMessageServiceClientHandler(
+                    new GrpcMessagingServiceClientHandler(
                         new Address(NetworkAddressUtils.getConnectAddress(
                             NetworkAddressUtils.ServiceType.MASTER_RPC,
                             ServerConfiguration.global())),
