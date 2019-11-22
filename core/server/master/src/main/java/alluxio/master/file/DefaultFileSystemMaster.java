@@ -3213,8 +3213,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
     Map<AlluxioURI, UfsStatus> statusCache;
     try (RpcContext rpcContext = createRpcContext()) {
-      // TODO(adit): do we need to populate the status cache for all descendants?
-      statusCache = populateStatusCache(path, DescendantType.ALL);
+      if (changedFiles == null) {
+        // full sync
+        statusCache = populateStatusCache(path, DescendantType.ALL);
+      } else {
+        // incremental sync
+        statusCache = populateStatusCache(changedFiles);
+      }
       if (changedFiles == null) {
         LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, true);
         // TODO(adit): do we need to write lock entire sub-tree while full syncing
@@ -3324,6 +3329,16 @@ public final class DefaultFileSystemMaster extends CoreMaster
     } catch (InvalidPathException e) {
       return statusCache;
     }
+  }
+
+  private Map<AlluxioURI, UfsStatus> populateStatusCache(Collection<AlluxioURI> changedFiles) {
+    Preconditions.checkNotNull(changedFiles);
+    Preconditions.checkArgument(!changedFiles.isEmpty(), "Change list should not be empty");
+
+    // TODO(adit): List individually below a threshold
+
+    // Recursively list the lowest common ancestor
+    return populateStatusCache(PathUtils.findLowestCommonAncestor(changedFiles), DescendantType.ALL);
   }
 
   /**
