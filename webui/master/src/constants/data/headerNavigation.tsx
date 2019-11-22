@@ -9,28 +9,36 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {INavigationData} from '@alluxio/common-ui/src/constants';
-import {routePaths} from "./routePaths";
+import { INavigationData } from '@alluxio/common-ui/src/constants';
+import { routePaths } from './routePaths';
 
-export const headerNavigationData : INavigationData[] = [{
-  innerText: 'Overview',
-  url: routePaths.overview
-}, {
-  innerText: 'Browse',
-  url: routePaths.browse
-}, {
-  innerText: 'In-Alluxio Data',
-  url: routePaths.data
-}, {
-  innerText: 'Logs',
-  url: routePaths.logs
-}, {
-  innerText: 'Configuration',
-  url: routePaths.config
-}, {
-  innerText: 'Workers',
-  url: routePaths.workers
-}, {
-  innerText: 'Metrics',
-  url: routePaths.metrics
-}];
+export const headerNavigationData: INavigationData[] = [
+  {
+    innerText: 'Overview',
+    url: routePaths.overview,
+  },
+  {
+    innerText: 'Browse',
+    url: routePaths.browse,
+  },
+  {
+    innerText: 'In-Alluxio Data',
+    url: routePaths.data,
+  },
+  {
+    innerText: 'Logs',
+    url: routePaths.logs,
+  },
+  {
+    innerText: 'Configuration',
+    url: routePaths.config,
+  },
+  {
+    innerText: 'Workers',
+    url: routePaths.workers,
+  },
+  {
+    innerText: 'Metrics',
+    url: routePaths.metrics,
+  },
+];

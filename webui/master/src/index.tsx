@@ -12,21 +12,21 @@
 import 'babel-polyfill';
 import 'raf/polyfill';
 
-import {Action, createBrowserHistory, Location} from 'history';
+import { Action, createBrowserHistory, Location } from 'history';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {Provider} from 'react-redux';
+import { Provider } from 'react-redux';
 
 import configureStore from './configureStore';
-import {App} from './containers';
-import {initialState} from './store';
+import { App } from './containers';
+import { initialState } from './store';
 
 import 'source-sans-pro/source-sans-pro.css';
 import 'source-serif-pro/source-serif-pro.css';
 import 'source-code-pro/source-code-pro.css';
 
 import './index.css';
-import {AllProps, IAppProps} from "./containers/App/App";
+import { IAppProps } from './containers/App/App';
 
 const history = createBrowserHistory();
 history.listen((loc: Location, action: Action) => {
@@ -50,8 +50,6 @@ history.listen((loc: Location, action: Action) => {
 const store = configureStore(history, initialState);
 
 ReactDOM.render(
-  <Provider store={store}>
-    {React.createElement(App as React.ComponentType<IAppProps>, {history: history})}
-  </Provider>,
-  document.getElementById('root') as HTMLElement
+  <Provider store={store}>{React.createElement(App as React.ComponentType<IAppProps>, { history: history })}</Provider>,
+  document.getElementById('root') as HTMLElement,
 );
