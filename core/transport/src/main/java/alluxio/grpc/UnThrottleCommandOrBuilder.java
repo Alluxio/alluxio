@@ -3,7 +3,7 @@
 
 package alluxio.grpc;
 
-public interface ResumeCommandOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:alluxio.grpc.job.ResumeCommand)
+public interface UnThrottleCommandOrBuilder extends
+    // @@protoc_insertion_point(interface_extends:alluxio.grpc.job.UnThrottleCommand)
     com.google.protobuf.MessageOrBuilder {
 }

@@ -13,9 +13,9 @@ package alluxio.master.job.command;
 
 import alluxio.grpc.CancelTaskCommand;
 import alluxio.grpc.JobCommand;
-import alluxio.grpc.ResumeCommand;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.grpc.ThrottleCommand;
+import alluxio.grpc.UnThrottleCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
 
@@ -109,10 +109,10 @@ public final class CommandManager {
    *
    * @param workerId the worker id
    */
-  public synchronized void submitResumeCommand(long workerId) {
-    ResumeCommand.Builder resumeCommand = ResumeCommand.newBuilder();
+  public synchronized void submitUnThrottleCommand(long workerId) {
+    UnThrottleCommand.Builder resumeCommand = UnThrottleCommand.newBuilder();
     JobCommand.Builder command = JobCommand.newBuilder();
-    command.setResumeCommand(resumeCommand);
+    command.setUnThrottleCommand(resumeCommand);
     submit(workerId, command);
   }
 

@@ -396,10 +396,10 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   /**
    * lets JobWorker resume executing future tasks.
    */
-  public void resume() {
+  public void unthrottle() {
     try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {
       for (MasterWorkerInfo worker : mWorkers) {
-        mCommandManager.submitResumeCommand(worker.getId());
+        mCommandManager.submitUnThrottleCommand(worker.getId());
       }
     }
   }

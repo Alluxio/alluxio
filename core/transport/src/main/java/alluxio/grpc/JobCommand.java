@@ -102,14 +102,14 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 42: {
-            alluxio.grpc.ResumeCommand.Builder subBuilder = null;
+            alluxio.grpc.UnThrottleCommand.Builder subBuilder = null;
             if (((bitField0_ & 0x00000010) == 0x00000010)) {
-              subBuilder = resumeCommand_.toBuilder();
+              subBuilder = unThrottleCommand_.toBuilder();
             }
-            resumeCommand_ = input.readMessage(alluxio.grpc.ResumeCommand.PARSER, extensionRegistry);
+            unThrottleCommand_ = input.readMessage(alluxio.grpc.UnThrottleCommand.PARSER, extensionRegistry);
             if (subBuilder != null) {
-              subBuilder.mergeFrom(resumeCommand_);
-              resumeCommand_ = subBuilder.buildPartial();
+              subBuilder.mergeFrom(unThrottleCommand_);
+              unThrottleCommand_ = subBuilder.buildPartial();
             }
             bitField0_ |= 0x00000010;
             break;
@@ -223,25 +223,25 @@ private static final long serialVersionUID = 0L;
     return throttleCommand_ == null ? alluxio.grpc.ThrottleCommand.getDefaultInstance() : throttleCommand_;
   }
 
-  public static final int RESUMECOMMAND_FIELD_NUMBER = 5;
-  private alluxio.grpc.ResumeCommand resumeCommand_;
+  public static final int UNTHROTTLECOMMAND_FIELD_NUMBER = 5;
+  private alluxio.grpc.UnThrottleCommand unThrottleCommand_;
   /**
-   * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+   * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
    */
-  public boolean hasResumeCommand() {
+  public boolean hasUnThrottleCommand() {
     return ((bitField0_ & 0x00000010) == 0x00000010);
   }
   /**
-   * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+   * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
    */
-  public alluxio.grpc.ResumeCommand getResumeCommand() {
-    return resumeCommand_ == null ? alluxio.grpc.ResumeCommand.getDefaultInstance() : resumeCommand_;
+  public alluxio.grpc.UnThrottleCommand getUnThrottleCommand() {
+    return unThrottleCommand_ == null ? alluxio.grpc.UnThrottleCommand.getDefaultInstance() : unThrottleCommand_;
   }
   /**
-   * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+   * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
    */
-  public alluxio.grpc.ResumeCommandOrBuilder getResumeCommandOrBuilder() {
-    return resumeCommand_ == null ? alluxio.grpc.ResumeCommand.getDefaultInstance() : resumeCommand_;
+  public alluxio.grpc.UnThrottleCommandOrBuilder getUnThrottleCommandOrBuilder() {
+    return unThrottleCommand_ == null ? alluxio.grpc.UnThrottleCommand.getDefaultInstance() : unThrottleCommand_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -269,7 +269,7 @@ private static final long serialVersionUID = 0L;
       output.writeMessage(4, getThrottleCommand());
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
-      output.writeMessage(5, getResumeCommand());
+      output.writeMessage(5, getUnThrottleCommand());
     }
     unknownFields.writeTo(output);
   }
@@ -297,7 +297,7 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(5, getResumeCommand());
+        .computeMessageSize(5, getUnThrottleCommand());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -335,10 +335,10 @@ private static final long serialVersionUID = 0L;
       result = result && getThrottleCommand()
           .equals(other.getThrottleCommand());
     }
-    result = result && (hasResumeCommand() == other.hasResumeCommand());
-    if (hasResumeCommand()) {
-      result = result && getResumeCommand()
-          .equals(other.getResumeCommand());
+    result = result && (hasUnThrottleCommand() == other.hasUnThrottleCommand());
+    if (hasUnThrottleCommand()) {
+      result = result && getUnThrottleCommand()
+          .equals(other.getUnThrottleCommand());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -367,9 +367,9 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + THROTTLECOMMAND_FIELD_NUMBER;
       hash = (53 * hash) + getThrottleCommand().hashCode();
     }
-    if (hasResumeCommand()) {
-      hash = (37 * hash) + RESUMECOMMAND_FIELD_NUMBER;
-      hash = (53 * hash) + getResumeCommand().hashCode();
+    if (hasUnThrottleCommand()) {
+      hash = (37 * hash) + UNTHROTTLECOMMAND_FIELD_NUMBER;
+      hash = (53 * hash) + getUnThrottleCommand().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -500,7 +500,7 @@ private static final long serialVersionUID = 0L;
         getCancelTaskCommandFieldBuilder();
         getRegisterCommandFieldBuilder();
         getThrottleCommandFieldBuilder();
-        getResumeCommandFieldBuilder();
+        getUnThrottleCommandFieldBuilder();
       }
     }
     public Builder clear() {
@@ -529,10 +529,10 @@ private static final long serialVersionUID = 0L;
         throttleCommandBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000008);
-      if (resumeCommandBuilder_ == null) {
-        resumeCommand_ = null;
+      if (unThrottleCommandBuilder_ == null) {
+        unThrottleCommand_ = null;
       } else {
-        resumeCommandBuilder_.clear();
+        unThrottleCommandBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000010);
       return this;
@@ -594,10 +594,10 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
         to_bitField0_ |= 0x00000010;
       }
-      if (resumeCommandBuilder_ == null) {
-        result.resumeCommand_ = resumeCommand_;
+      if (unThrottleCommandBuilder_ == null) {
+        result.unThrottleCommand_ = unThrottleCommand_;
       } else {
-        result.resumeCommand_ = resumeCommandBuilder_.build();
+        result.unThrottleCommand_ = unThrottleCommandBuilder_.build();
       }
       result.bitField0_ = to_bitField0_;
       onBuilt();
@@ -653,8 +653,8 @@ private static final long serialVersionUID = 0L;
       if (other.hasThrottleCommand()) {
         mergeThrottleCommand(other.getThrottleCommand());
       }
-      if (other.hasResumeCommand()) {
-        mergeResumeCommand(other.getResumeCommand());
+      if (other.hasUnThrottleCommand()) {
+        mergeUnThrottleCommand(other.getUnThrottleCommand());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -1156,122 +1156,122 @@ private static final long serialVersionUID = 0L;
       return throttleCommandBuilder_;
     }
 
-    private alluxio.grpc.ResumeCommand resumeCommand_ = null;
+    private alluxio.grpc.UnThrottleCommand unThrottleCommand_ = null;
     private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.ResumeCommand, alluxio.grpc.ResumeCommand.Builder, alluxio.grpc.ResumeCommandOrBuilder> resumeCommandBuilder_;
+        alluxio.grpc.UnThrottleCommand, alluxio.grpc.UnThrottleCommand.Builder, alluxio.grpc.UnThrottleCommandOrBuilder> unThrottleCommandBuilder_;
     /**
-     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
      */
-    public boolean hasResumeCommand() {
+    public boolean hasUnThrottleCommand() {
       return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
-     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
      */
-    public alluxio.grpc.ResumeCommand getResumeCommand() {
-      if (resumeCommandBuilder_ == null) {
-        return resumeCommand_ == null ? alluxio.grpc.ResumeCommand.getDefaultInstance() : resumeCommand_;
+    public alluxio.grpc.UnThrottleCommand getUnThrottleCommand() {
+      if (unThrottleCommandBuilder_ == null) {
+        return unThrottleCommand_ == null ? alluxio.grpc.UnThrottleCommand.getDefaultInstance() : unThrottleCommand_;
       } else {
-        return resumeCommandBuilder_.getMessage();
+        return unThrottleCommandBuilder_.getMessage();
       }
     }
     /**
-     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
      */
-    public Builder setResumeCommand(alluxio.grpc.ResumeCommand value) {
-      if (resumeCommandBuilder_ == null) {
+    public Builder setUnThrottleCommand(alluxio.grpc.UnThrottleCommand value) {
+      if (unThrottleCommandBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        resumeCommand_ = value;
+        unThrottleCommand_ = value;
         onChanged();
       } else {
-        resumeCommandBuilder_.setMessage(value);
+        unThrottleCommandBuilder_.setMessage(value);
       }
       bitField0_ |= 0x00000010;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
      */
-    public Builder setResumeCommand(
-        alluxio.grpc.ResumeCommand.Builder builderForValue) {
-      if (resumeCommandBuilder_ == null) {
-        resumeCommand_ = builderForValue.build();
+    public Builder setUnThrottleCommand(
+        alluxio.grpc.UnThrottleCommand.Builder builderForValue) {
+      if (unThrottleCommandBuilder_ == null) {
+        unThrottleCommand_ = builderForValue.build();
         onChanged();
       } else {
-        resumeCommandBuilder_.setMessage(builderForValue.build());
+        unThrottleCommandBuilder_.setMessage(builderForValue.build());
       }
       bitField0_ |= 0x00000010;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
      */
-    public Builder mergeResumeCommand(alluxio.grpc.ResumeCommand value) {
-      if (resumeCommandBuilder_ == null) {
+    public Builder mergeUnThrottleCommand(alluxio.grpc.UnThrottleCommand value) {
+      if (unThrottleCommandBuilder_ == null) {
         if (((bitField0_ & 0x00000010) == 0x00000010) &&
-            resumeCommand_ != null &&
-            resumeCommand_ != alluxio.grpc.ResumeCommand.getDefaultInstance()) {
-          resumeCommand_ =
-            alluxio.grpc.ResumeCommand.newBuilder(resumeCommand_).mergeFrom(value).buildPartial();
+            unThrottleCommand_ != null &&
+            unThrottleCommand_ != alluxio.grpc.UnThrottleCommand.getDefaultInstance()) {
+          unThrottleCommand_ =
+            alluxio.grpc.UnThrottleCommand.newBuilder(unThrottleCommand_).mergeFrom(value).buildPartial();
         } else {
-          resumeCommand_ = value;
+          unThrottleCommand_ = value;
         }
         onChanged();
       } else {
-        resumeCommandBuilder_.mergeFrom(value);
+        unThrottleCommandBuilder_.mergeFrom(value);
       }
       bitField0_ |= 0x00000010;
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
      */
-    public Builder clearResumeCommand() {
-      if (resumeCommandBuilder_ == null) {
-        resumeCommand_ = null;
+    public Builder clearUnThrottleCommand() {
+      if (unThrottleCommandBuilder_ == null) {
+        unThrottleCommand_ = null;
         onChanged();
       } else {
-        resumeCommandBuilder_.clear();
+        unThrottleCommandBuilder_.clear();
       }
       bitField0_ = (bitField0_ & ~0x00000010);
       return this;
     }
     /**
-     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
      */
-    public alluxio.grpc.ResumeCommand.Builder getResumeCommandBuilder() {
+    public alluxio.grpc.UnThrottleCommand.Builder getUnThrottleCommandBuilder() {
       bitField0_ |= 0x00000010;
       onChanged();
-      return getResumeCommandFieldBuilder().getBuilder();
+      return getUnThrottleCommandFieldBuilder().getBuilder();
     }
     /**
-     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
      */
-    public alluxio.grpc.ResumeCommandOrBuilder getResumeCommandOrBuilder() {
-      if (resumeCommandBuilder_ != null) {
-        return resumeCommandBuilder_.getMessageOrBuilder();
+    public alluxio.grpc.UnThrottleCommandOrBuilder getUnThrottleCommandOrBuilder() {
+      if (unThrottleCommandBuilder_ != null) {
+        return unThrottleCommandBuilder_.getMessageOrBuilder();
       } else {
-        return resumeCommand_ == null ?
-            alluxio.grpc.ResumeCommand.getDefaultInstance() : resumeCommand_;
+        return unThrottleCommand_ == null ?
+            alluxio.grpc.UnThrottleCommand.getDefaultInstance() : unThrottleCommand_;
       }
     }
     /**
-     * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+     * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
-        alluxio.grpc.ResumeCommand, alluxio.grpc.ResumeCommand.Builder, alluxio.grpc.ResumeCommandOrBuilder> 
-        getResumeCommandFieldBuilder() {
-      if (resumeCommandBuilder_ == null) {
-        resumeCommandBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            alluxio.grpc.ResumeCommand, alluxio.grpc.ResumeCommand.Builder, alluxio.grpc.ResumeCommandOrBuilder>(
-                getResumeCommand(),
+        alluxio.grpc.UnThrottleCommand, alluxio.grpc.UnThrottleCommand.Builder, alluxio.grpc.UnThrottleCommandOrBuilder> 
+        getUnThrottleCommandFieldBuilder() {
+      if (unThrottleCommandBuilder_ == null) {
+        unThrottleCommandBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.UnThrottleCommand, alluxio.grpc.UnThrottleCommand.Builder, alluxio.grpc.UnThrottleCommandOrBuilder>(
+                getUnThrottleCommand(),
                 getParentForChildren(),
                 isClean());
-        resumeCommand_ = null;
+        unThrottleCommand_ = null;
       }
-      return resumeCommandBuilder_;
+      return unThrottleCommandBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

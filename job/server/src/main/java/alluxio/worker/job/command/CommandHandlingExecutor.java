@@ -157,7 +157,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
         }
       } else if (mCommand.hasThrottleCommand()) {
         mTaskExecutorManager.throttle(100);
-      } else if (mCommand.hasResumeCommand()) {
+      } else if (mCommand.hasUnThrottleCommand()) {
         mTaskExecutorManager.throttle(0);
       } else {
         throw new RuntimeException("unsupported command type:" + mCommand.toString());

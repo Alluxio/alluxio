@@ -60,15 +60,15 @@ public interface JobCommandOrBuilder extends
   alluxio.grpc.ThrottleCommandOrBuilder getThrottleCommandOrBuilder();
 
   /**
-   * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+   * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
    */
-  boolean hasResumeCommand();
+  boolean hasUnThrottleCommand();
   /**
-   * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+   * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
    */
-  alluxio.grpc.ResumeCommand getResumeCommand();
+  alluxio.grpc.UnThrottleCommand getUnThrottleCommand();
   /**
-   * <code>optional .alluxio.grpc.job.ResumeCommand resumeCommand = 5;</code>
+   * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
    */
-  alluxio.grpc.ResumeCommandOrBuilder getResumeCommandOrBuilder();
+  alluxio.grpc.UnThrottleCommandOrBuilder getUnThrottleCommandOrBuilder();
 }

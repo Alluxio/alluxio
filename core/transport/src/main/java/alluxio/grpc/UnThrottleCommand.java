@@ -4,18 +4,18 @@
 package alluxio.grpc;
 
 /**
- * Protobuf type {@code alluxio.grpc.job.ResumeCommand}
+ * Protobuf type {@code alluxio.grpc.job.UnThrottleCommand}
  */
-public  final class ResumeCommand extends
+public  final class UnThrottleCommand extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.job.ResumeCommand)
-    ResumeCommandOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.job.UnThrottleCommand)
+    UnThrottleCommandOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use ResumeCommand.newBuilder() to construct.
-  private ResumeCommand(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use UnThrottleCommand.newBuilder() to construct.
+  private UnThrottleCommand(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private ResumeCommand() {
+  private UnThrottleCommand() {
   }
 
   @java.lang.Override
@@ -23,7 +23,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private ResumeCommand(
+  private UnThrottleCommand(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -62,14 +62,14 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_ResumeCommand_descriptor;
+    return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_UnThrottleCommand_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_ResumeCommand_fieldAccessorTable
+    return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_UnThrottleCommand_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.ResumeCommand.class, alluxio.grpc.ResumeCommand.Builder.class);
+            alluxio.grpc.UnThrottleCommand.class, alluxio.grpc.UnThrottleCommand.Builder.class);
   }
 
   private byte memoizedIsInitialized = -1;
@@ -102,10 +102,10 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.ResumeCommand)) {
+    if (!(obj instanceof alluxio.grpc.UnThrottleCommand)) {
       return super.equals(obj);
     }
-    alluxio.grpc.ResumeCommand other = (alluxio.grpc.ResumeCommand) obj;
+    alluxio.grpc.UnThrottleCommand other = (alluxio.grpc.UnThrottleCommand) obj;
 
     boolean result = true;
     result = result && unknownFields.equals(other.unknownFields);
@@ -124,69 +124,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static alluxio.grpc.ResumeCommand parseFrom(
+  public static alluxio.grpc.UnThrottleCommand parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.ResumeCommand parseFrom(
+  public static alluxio.grpc.UnThrottleCommand parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.ResumeCommand parseFrom(
+  public static alluxio.grpc.UnThrottleCommand parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.ResumeCommand parseFrom(
+  public static alluxio.grpc.UnThrottleCommand parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.ResumeCommand parseFrom(byte[] data)
+  public static alluxio.grpc.UnThrottleCommand parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.ResumeCommand parseFrom(
+  public static alluxio.grpc.UnThrottleCommand parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.ResumeCommand parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.UnThrottleCommand parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.ResumeCommand parseFrom(
+  public static alluxio.grpc.UnThrottleCommand parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.ResumeCommand parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.UnThrottleCommand parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.ResumeCommand parseDelimitedFrom(
+  public static alluxio.grpc.UnThrottleCommand parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.ResumeCommand parseFrom(
+  public static alluxio.grpc.UnThrottleCommand parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.ResumeCommand parseFrom(
+  public static alluxio.grpc.UnThrottleCommand parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -198,7 +198,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.ResumeCommand prototype) {
+  public static Builder newBuilder(alluxio.grpc.UnThrottleCommand prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -213,25 +213,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.job.ResumeCommand}
+   * Protobuf type {@code alluxio.grpc.job.UnThrottleCommand}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.job.ResumeCommand)
-      alluxio.grpc.ResumeCommandOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.job.UnThrottleCommand)
+      alluxio.grpc.UnThrottleCommandOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_ResumeCommand_descriptor;
+      return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_UnThrottleCommand_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_ResumeCommand_fieldAccessorTable
+      return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_UnThrottleCommand_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.ResumeCommand.class, alluxio.grpc.ResumeCommand.Builder.class);
+              alluxio.grpc.UnThrottleCommand.class, alluxio.grpc.UnThrottleCommand.Builder.class);
     }
 
-    // Construct using alluxio.grpc.ResumeCommand.newBuilder()
+    // Construct using alluxio.grpc.UnThrottleCommand.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -253,23 +253,23 @@ private static final long serialVersionUID = 0L;
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_ResumeCommand_descriptor;
+      return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_UnThrottleCommand_descriptor;
     }
 
-    public alluxio.grpc.ResumeCommand getDefaultInstanceForType() {
-      return alluxio.grpc.ResumeCommand.getDefaultInstance();
+    public alluxio.grpc.UnThrottleCommand getDefaultInstanceForType() {
+      return alluxio.grpc.UnThrottleCommand.getDefaultInstance();
     }
 
-    public alluxio.grpc.ResumeCommand build() {
-      alluxio.grpc.ResumeCommand result = buildPartial();
+    public alluxio.grpc.UnThrottleCommand build() {
+      alluxio.grpc.UnThrottleCommand result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.ResumeCommand buildPartial() {
-      alluxio.grpc.ResumeCommand result = new alluxio.grpc.ResumeCommand(this);
+    public alluxio.grpc.UnThrottleCommand buildPartial() {
+      alluxio.grpc.UnThrottleCommand result = new alluxio.grpc.UnThrottleCommand(this);
       onBuilt();
       return result;
     }
@@ -301,16 +301,16 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.ResumeCommand) {
-        return mergeFrom((alluxio.grpc.ResumeCommand)other);
+      if (other instanceof alluxio.grpc.UnThrottleCommand) {
+        return mergeFrom((alluxio.grpc.UnThrottleCommand)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.ResumeCommand other) {
-      if (other == alluxio.grpc.ResumeCommand.getDefaultInstance()) return this;
+    public Builder mergeFrom(alluxio.grpc.UnThrottleCommand other) {
+      if (other == alluxio.grpc.UnThrottleCommand.getDefaultInstance()) return this;
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -324,11 +324,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.ResumeCommand parsedMessage = null;
+      alluxio.grpc.UnThrottleCommand parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.ResumeCommand) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.UnThrottleCommand) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -348,39 +348,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.job.ResumeCommand)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.job.UnThrottleCommand)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.job.ResumeCommand)
-  private static final alluxio.grpc.ResumeCommand DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.job.UnThrottleCommand)
+  private static final alluxio.grpc.UnThrottleCommand DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.ResumeCommand();
+    DEFAULT_INSTANCE = new alluxio.grpc.UnThrottleCommand();
   }
 
-  public static alluxio.grpc.ResumeCommand getDefaultInstance() {
+  public static alluxio.grpc.UnThrottleCommand getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<ResumeCommand>
-      PARSER = new com.google.protobuf.AbstractParser<ResumeCommand>() {
-    public ResumeCommand parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<UnThrottleCommand>
+      PARSER = new com.google.protobuf.AbstractParser<UnThrottleCommand>() {
+    public UnThrottleCommand parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new ResumeCommand(input, extensionRegistry);
+      return new UnThrottleCommand(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<ResumeCommand> parser() {
+  public static com.google.protobuf.Parser<UnThrottleCommand> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<ResumeCommand> getParserForType() {
+  public com.google.protobuf.Parser<UnThrottleCommand> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.ResumeCommand getDefaultInstanceForType() {
+  public alluxio.grpc.UnThrottleCommand getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 
