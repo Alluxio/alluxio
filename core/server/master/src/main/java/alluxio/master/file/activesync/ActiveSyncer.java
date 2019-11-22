@@ -28,8 +28,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -80,32 +82,45 @@ public class ActiveSyncer implements HeartbeatExecutor {
           // This returns a list of ufsUris that we need to sync.
           Set<AlluxioURI> ufsSyncPoints = syncInfo.getSyncPoints();
           for (AlluxioURI ufsUri : ufsSyncPoints) {
-            AlluxioURI alluxioUri = mMountTable.reverseResolve(ufsUri).getUri();
-            if (alluxioUri != null) {
-              if (syncInfo.isForceSync()) {
-                LOG.debug("force full sync {}", ufsUri.toString());
-                RetryUtils.retry("Full Sync", () -> {
-                  mFileSystemMaster.activeSyncMetadata(alluxioUri, null,
-                      mSyncManager.getExecutor());
-                }, RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
-                    .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT)));
-              } else {
-                LOG.debug("sync {}", ufsUri.toString());
-                RetryUtils.retry("Incremental Sync", () -> {
-                  mFileSystemMaster.activeSyncMetadata(alluxioUri,
-                      syncInfo.getChangedFiles(ufsUri).stream().parallel()
-                          .map((uri) -> mMountTable.reverseResolve(uri).getUri())
-                          .collect(Collectors.toSet()),
-                      mSyncManager.getExecutor()
-                  );
-                }, RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
-                    .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT)));
+            // Parallelize across sync points
+            List<Callable<Void>> tasksPerSyncPoint = new ArrayList<>(ufsSyncPoints.size());
+            tasksPerSyncPoint.add(() -> {
+              try {
+                AlluxioURI alluxioUri = mMountTable.reverseResolve(ufsUri).getUri();
+                if (alluxioUri != null) {
+                  if (syncInfo.isForceSync()) {
+                    LOG.debug("force full sync {}", ufsUri.toString());
+                    RetryUtils.retry("Full Sync", () -> {
+                      mFileSystemMaster.activeSyncMetadata(alluxioUri, null,
+                          mSyncManager.getExecutor());
+                    }, RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
+                        .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT)));
+                  } else {
+                    LOG.debug("sync {}", ufsUri.toString());
+                    RetryUtils.retry("Incremental Sync", () -> {
+                      mFileSystemMaster.activeSyncMetadata(alluxioUri,
+                          syncInfo.getChangedFiles(ufsUri).stream().parallel()
+                              .map((uri) -> mMountTable.reverseResolve(uri).getUri())
+                              .collect(Collectors.toSet()),
+                          mSyncManager.getExecutor());
+                    }, RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
+                        .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT)));
+                  }
+                  // Journal the latest processed txId
+                  mFileSystemMaster.recordActiveSyncTxid(syncInfo.getTxId(), mMountId);
+                }
+              } catch (IOException e) {
+                LOG.warn("Failed to submit active sync job to master", e);
               }
-              // Journal the latest processed txId
-              mFileSystemMaster.recordActiveSyncTxid(syncInfo.getTxId(), mMountId);
-            }
+              return null;
+            });
+            mSyncManager.getExecutor().invokeAll(tasksPerSyncPoint);
           }
         }
+      } catch (InterruptedException e) {
+        LOG.warn("Interrupted while submitting active sync change job to master", e);
+        Thread.currentThread().interrupt();
+        return;
       }
     } catch (IOException e) {
       LOG.warn("IOException " + Throwables.getStackTraceAsString(e));
