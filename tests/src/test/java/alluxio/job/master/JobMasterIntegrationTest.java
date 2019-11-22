@@ -39,6 +39,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Integration tests for the job master.
@@ -128,9 +129,14 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void getAllWorkerHealth() {
-    List<JobWorkerHealth> allWorkerHealth = mJobMaster.getAllWorkerHealth();
-    assertEquals(1, allWorkerHealth.size());
+  public void getAllWorkerHealth() throws Exception {
+    final AtomicReference<List<JobWorkerHealth>> singleton = new AtomicReference<>();
+    CommonUtils.waitFor("allWorkerHealth", () -> {
+      List<JobWorkerHealth> allWorkerHealth = mJobMaster.getAllWorkerHealth();
+      singleton.set(allWorkerHealth);
+      return allWorkerHealth.size() == 1;
+    });
+    List<JobWorkerHealth> allWorkerHealth = singleton.get();
 
     JobWorkerHealth workerHealth = allWorkerHealth.get(0);
     assertNotNull(workerHealth.getHostname());
