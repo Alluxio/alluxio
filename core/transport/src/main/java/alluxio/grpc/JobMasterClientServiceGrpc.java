@@ -191,6 +191,38 @@ public final class JobMasterClientServiceGrpc {
      return getRunMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetAllWorkerHealthPRequest,
+      alluxio.grpc.GetAllWorkerHealthPResponse> getGetAllWorkerHealthMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetAllWorkerHealth",
+      requestType = alluxio.grpc.GetAllWorkerHealthPRequest.class,
+      responseType = alluxio.grpc.GetAllWorkerHealthPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.GetAllWorkerHealthPRequest,
+      alluxio.grpc.GetAllWorkerHealthPResponse> getGetAllWorkerHealthMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.GetAllWorkerHealthPRequest, alluxio.grpc.GetAllWorkerHealthPResponse> getGetAllWorkerHealthMethod;
+    if ((getGetAllWorkerHealthMethod = JobMasterClientServiceGrpc.getGetAllWorkerHealthMethod) == null) {
+      synchronized (JobMasterClientServiceGrpc.class) {
+        if ((getGetAllWorkerHealthMethod = JobMasterClientServiceGrpc.getGetAllWorkerHealthMethod) == null) {
+          JobMasterClientServiceGrpc.getGetAllWorkerHealthMethod = getGetAllWorkerHealthMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.GetAllWorkerHealthPRequest, alluxio.grpc.GetAllWorkerHealthPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.job.JobMasterClientService", "GetAllWorkerHealth"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetAllWorkerHealthPRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetAllWorkerHealthPResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new JobMasterClientServiceMethodDescriptorSupplier("GetAllWorkerHealth"))
+                  .build();
+          }
+        }
+     }
+     return getGetAllWorkerHealthMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -277,6 +309,17 @@ public final class JobMasterClientServiceGrpc {
       asyncUnimplementedUnaryCall(getRunMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     **
+     * Lists all worker health.
+     * </pre>
+     */
+    public void getAllWorkerHealth(alluxio.grpc.GetAllWorkerHealthPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetAllWorkerHealthPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetAllWorkerHealthMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -314,6 +357,13 @@ public final class JobMasterClientServiceGrpc {
                 alluxio.grpc.RunPRequest,
                 alluxio.grpc.RunPResponse>(
                   this, METHODID_RUN)))
+          .addMethod(
+            getGetAllWorkerHealthMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.GetAllWorkerHealthPRequest,
+                alluxio.grpc.GetAllWorkerHealthPResponse>(
+                  this, METHODID_GET_ALL_WORKER_HEALTH)))
           .build();
     }
   }
@@ -399,6 +449,18 @@ public final class JobMasterClientServiceGrpc {
       asyncUnaryCall(
           getChannel().newCall(getRunMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     **
+     * Lists all worker health.
+     * </pre>
+     */
+    public void getAllWorkerHealth(alluxio.grpc.GetAllWorkerHealthPRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetAllWorkerHealthPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getGetAllWorkerHealthMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -476,6 +538,17 @@ public final class JobMasterClientServiceGrpc {
     public alluxio.grpc.RunPResponse run(alluxio.grpc.RunPRequest request) {
       return blockingUnaryCall(
           getChannel(), getRunMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     **
+     * Lists all worker health.
+     * </pre>
+     */
+    public alluxio.grpc.GetAllWorkerHealthPResponse getAllWorkerHealth(alluxio.grpc.GetAllWorkerHealthPRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getGetAllWorkerHealthMethod(), getCallOptions(), request);
     }
   }
 
@@ -560,6 +633,18 @@ public final class JobMasterClientServiceGrpc {
       return futureUnaryCall(
           getChannel().newCall(getRunMethod(), getCallOptions()), request);
     }
+
+    /**
+     * <pre>
+     **
+     * Lists all worker health.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetAllWorkerHealthPResponse> getAllWorkerHealth(
+        alluxio.grpc.GetAllWorkerHealthPRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getGetAllWorkerHealthMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_CANCEL = 0;
@@ -567,6 +652,7 @@ public final class JobMasterClientServiceGrpc {
   private static final int METHODID_GET_JOB_SERVICE_SUMMARY = 2;
   private static final int METHODID_LIST_ALL = 3;
   private static final int METHODID_RUN = 4;
+  private static final int METHODID_GET_ALL_WORKER_HEALTH = 5;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -604,6 +690,10 @@ public final class JobMasterClientServiceGrpc {
         case METHODID_RUN:
           serviceImpl.run((alluxio.grpc.RunPRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.RunPResponse>) responseObserver);
+          break;
+        case METHODID_GET_ALL_WORKER_HEALTH:
+          serviceImpl.getAllWorkerHealth((alluxio.grpc.GetAllWorkerHealthPRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.GetAllWorkerHealthPResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -671,6 +761,7 @@ public final class JobMasterClientServiceGrpc {
               .addMethod(getGetJobServiceSummaryMethod())
               .addMethod(getListAllMethod())
               .addMethod(getRunMethod())
+              .addMethod(getGetAllWorkerHealthMethod())
               .build();
         }
       }

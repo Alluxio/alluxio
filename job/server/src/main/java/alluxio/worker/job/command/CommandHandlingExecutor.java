@@ -21,6 +21,7 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.RunTaskContext;
+import alluxio.job.wire.JobWorkerHealth;
 import alluxio.worker.job.JobMasterClient;
 import alluxio.job.util.SerializationUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -54,6 +55,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
   private final JobMasterClient mMasterClient;
   private final TaskExecutorManager mTaskExecutorManager;
   private final WorkerNetAddress mWorkerNetAddress;
+  private final JobWorkerHealthReporter mHealthReporter;
 
   private final ExecutorService mCommandHandlingService =
       Executors.newFixedThreadPool(DEFAULT_COMMAND_HANDLING_POOL_SIZE,
@@ -74,15 +76,19 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
     mTaskExecutorManager = Preconditions.checkNotNull(taskExecutorManager, "taskExecutorManager");
     mMasterClient = Preconditions.checkNotNull(masterClient, "masterClient");
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress, "workerNetAddress");
+    mHealthReporter = new JobWorkerHealthReporter();
   }
 
   @Override
   public void heartbeat() {
+    JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(JobWorkerIdRegistry.getWorkerId(),
+        mHealthReporter.getCpuLoadAverage(), mWorkerNetAddress.getHost());
+
     List<JobInfo> taskStatusList = mTaskExecutorManager.getAndClearTaskUpdates();
 
     List<alluxio.grpc.JobCommand> commands;
     try {
-      commands = mMasterClient.heartbeat(JobWorkerIdRegistry.getWorkerId(), taskStatusList);
+      commands = mMasterClient.heartbeat(jobWorkerHealth, taskStatusList);
     } catch (AlluxioException | IOException e) {
       // Restore the task updates so that they can be accessed in the next heartbeat.
       mTaskExecutorManager.restoreTaskUpdates(taskStatusList);
