@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -111,6 +113,13 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
    */
   public WorkerProcess getWorkerProcess() {
     return mWorkers.get(0);
+  }
+
+  /**
+   * @return a unmodifiable list of all the workers
+   */
+  public List<WorkerProcess> getWorkerProcesses() {
+    return Collections.unmodifiableList(mWorkers);
   }
 
   /**

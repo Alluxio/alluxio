@@ -292,9 +292,9 @@ public final class LocalAlluxioClusterResource implements TestRule {
               resetFsm(fsm);
             }
 
-            BlockWorker blkWorker = mCluster.mLocalAlluxioCluster.getWorkerProcess()
-                .getWorker(BlockWorker.class);
-            resetBlockWorker(blkWorker);
+            mCluster.mLocalAlluxioCluster.getWorkerProcesses().stream()
+                .map(w -> w.getWorker(BlockWorker.class))
+            .forEach(blkWorker -> resetBlockWorker(blkWorker));
 
             // Reset any properties that have changed
             ServerConfiguration.reset();

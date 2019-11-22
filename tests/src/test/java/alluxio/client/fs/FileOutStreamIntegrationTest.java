@@ -32,8 +32,6 @@ import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Integration tests for {@link alluxio.client.file.FileOutStream}, parameterized by the write
