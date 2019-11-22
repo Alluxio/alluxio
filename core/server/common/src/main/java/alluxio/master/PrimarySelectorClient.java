@@ -227,7 +227,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
     LOG.info("{} is now the leader.", mName);
     try {
       mLeaderZkSessionId = client.getZookeeperClient().getZooKeeper().getSessionId();
-      LOG.info("Taken leadership under session Id: {}", mLeaderZkSessionId);
+      LOG.info(String.format("Taken leadership under session Id: %x", mLeaderZkSessionId));
       waitForState(State.SECONDARY);
     } finally {
       LOG.warn("{} relinquishing leadership.", mName);
