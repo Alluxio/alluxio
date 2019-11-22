@@ -100,7 +100,7 @@ public final class GrpcServer {
     try {
       mCloser.close();
     } catch (IOException e) {
-      LOG.warn("Failed to close resources during shutdown.", e);
+      LOG.error("Failed to close resources during shutdown.", e);
       // Do nothing.
     }
     // Force shutdown remaining calls.
