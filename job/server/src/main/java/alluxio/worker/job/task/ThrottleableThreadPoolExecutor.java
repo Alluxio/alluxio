@@ -9,7 +9,6 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-
 package alluxio.worker.job.task;
 
 import com.google.common.base.Preconditions;
@@ -24,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-
 /**
  * An extension of ThreadPoolExecutor to handle throttling some threads.
  */
@@ -33,9 +31,19 @@ public class ThrottleableThreadPoolExecutor extends ThreadPoolExecutor {
   private int mThrottlePercentage;
   HashFunction mHashFunction;
 
-  private ReentrantLock throttleLock = new ReentrantLock();
-  private Condition throttleReduced = throttleLock.newCondition();
+  private ReentrantLock mThrottleLock = new ReentrantLock();
+  private Condition mThrottleReduced = mThrottleLock.newCondition();
 
+  /**
+   * Copy of one of the constructors in {@link ThreadPoolExecutor}.
+   *
+   * @param corePoolSize the core pool size
+   * @param maximumPoolSize the maximum pool size
+   * @param keepAliveTime the keep alive time
+   * @param unit the unit
+   * @param workQueue the work queue
+   * @param threadFactory the thread factory
+   */
   public ThrottleableThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime,
       TimeUnit unit, BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory) {
     super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
@@ -43,32 +51,37 @@ public class ThrottleableThreadPoolExecutor extends ThreadPoolExecutor {
     mThrottlePercentage = 0;
   }
 
+  /**
+   * Sets a percentage of threads to be throttled.
+   *
+   * @param throttlePercentage throttle percentage (0-100)
+   */
   public void throttle(int throttlePercentage) {
     Preconditions.checkArgument(throttlePercentage >= 0 && throttlePercentage <= 100);
-    throttleLock.lock();
+    mThrottleLock.lock();
     try {
       int prevThrottlePercentage = mThrottlePercentage;
       mThrottlePercentage = throttlePercentage;
       if (prevThrottlePercentage > mThrottlePercentage) {
-        throttleReduced.signalAll();
+        mThrottleReduced.signalAll();
       }
     } finally {
-      throttleLock.unlock();
+      mThrottleLock.unlock();
     }
   }
 
   @Override
   protected void beforeExecute(Thread t, Runnable r) {
     super.beforeExecute(t, r);
-    throttleLock.lock();
+    mThrottleLock.lock();
     try {
       while (!check(t)) {
-        throttleReduced.await();
+        mThrottleReduced.await();
       }
     } catch (InterruptedException e) {
       t.interrupt();
     } finally {
-      throttleLock.unlock();
+      mThrottleLock.unlock();
     }
   }
 
