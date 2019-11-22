@@ -63,6 +63,7 @@ public final class UfsFallbackBlockWriteHandler
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   private final UfsManager mUfsManager;
   private final BlockWriteHandler mBlockWriteHandler;
+  private final boolean mDomainSocketEnabled;
 
   /**
    * Creates an instance of {@link UfsFallbackBlockWriteHandler}.
@@ -79,12 +80,20 @@ public final class UfsFallbackBlockWriteHandler
     mUfsManager = ufsManager;
     mBlockWriteHandler =
         new BlockWriteHandler(blockWorker, responseObserver, userInfo, domainSocketEnabled);
+    mDomainSocketEnabled = domainSocketEnabled;
   }
 
   @Override
   protected BlockWriteRequestContext createRequestContext(alluxio.grpc.WriteRequest msg)
       throws Exception {
     BlockWriteRequestContext context = new BlockWriteRequestContext(msg, FILE_BUFFER_SIZE);
+    if (mDomainSocketEnabled) {
+      context.setCounter(MetricsSystem.counter(WorkerMetrics.BYTES_WRITTEN_DOMAIN));
+      context.setMeter(MetricsSystem.meter(WorkerMetrics.BYTES_WRITTEN_DOMAIN_THROUGHPUT));
+    } else {
+      context.setCounter(MetricsSystem.counter(WorkerMetrics.BYTES_WRITTEN_ALLUXIO));
+      context.setMeter(MetricsSystem.meter(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT));
+    }
     BlockWriteRequest request = context.getRequest();
     Preconditions.checkState(request.hasCreateUfsBlockOptions());
     // if it is already a UFS fallback from short-circuit write, avoid writing to local again
