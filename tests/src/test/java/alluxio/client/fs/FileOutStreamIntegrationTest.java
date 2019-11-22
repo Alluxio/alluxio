@@ -19,11 +19,11 @@ import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.master.file.FileSystemMaster;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.WorkerInfo;
+import alluxio.worker.WorkerProcess;
+import alluxio.worker.block.BlockWorker;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -194,6 +194,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    */
   @Test
   public void cancelWrite() throws Exception {
+    assertAllWorkersAtZeroUsedBytes(sLocalAlluxioClusterResource.get().getWorkerProcesses());
     AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
     try (FileOutStream os = mFileSystem.createFile(path, CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
@@ -202,11 +203,17 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     }
     long gracePeriod = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL) * 2;
     CommonUtils.sleepMs(gracePeriod);
-    List<WorkerInfo> workers = sLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
-        .getMasterProcess().getMaster(FileSystemMaster.class).getFileSystemMasterView()
-        .getWorkerInfoList();
-    for (WorkerInfo worker : workers) {
-      assertEquals(0L, worker.getUsedBytes());
-    }
+    sLocalAlluxioClusterResource.get().getWorkerProcesses()
+        .stream().map(wp -> wp.getWorker(BlockWorker.class).getStoreMetaFull().getUsedBytes())
+    .forEach(used -> assertEquals(0L, used.longValue()));
+    assertAllWorkersAtZeroUsedBytes(sLocalAlluxioClusterResource.get().getWorkerProcesses());
+  }
+
+  private static void assertAllWorkersAtZeroUsedBytes(List<WorkerProcess> workers) {
+    workers.forEach(wp -> {
+      BlockWorker blkWorker = wp.getWorker(BlockWorker.class);
+      long usedBytes = blkWorker.getStoreMetaFull().getUsedBytes();
+      assertEquals(String.format("worker %s must be empty", wp.getAddress()), 0, usedBytes);
+    });
   }
 }
