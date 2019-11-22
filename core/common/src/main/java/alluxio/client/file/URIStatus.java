@@ -65,7 +65,8 @@ public class URIStatus {
    * @param blockId the block ID
    * @return the corresponding block info or null
    */
-  public @Nullable BlockInfo getBlockInfo(long blockId) {
+  @Nullable
+  public BlockInfo getBlockInfo(long blockId) {
     FileBlockInfo info = mInfo.getFileBlockInfo(blockId);
     return info == null ? null : info.getBlockInfo();
   }

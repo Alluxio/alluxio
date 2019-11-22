@@ -147,13 +147,16 @@ public final class FileInStreamTest {
       when(mBlockStore.getEligibleWorkers())
           .thenReturn(Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress(), 0, 0)));
       when(mBlockStore.getInStream(eq((long) i), any(InStreamOptions.class), any()))
-          .thenAnswer(new Answer<BlockInStream>() {
-            @Override
-            public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
-              long blockId = (Long) invocation.getArguments()[0];
-              return mInStreams.get((int) blockId).isClosed() ? new TestBlockInStream(input,
-                  blockId, input.length, false, mBlockSource) : mInStreams.get((int) blockId);
-            }
+          .thenAnswer(invocation -> {
+            long blockId = (Long) invocation.getArguments()[0];
+            return mInStreams.get((int) blockId).isClosed() ? new TestBlockInStream(input,
+                blockId, input.length, false, mBlockSource) : mInStreams.get((int) blockId);
+          });
+      when(mBlockStore.getInStream(eq(new BlockInfo().setBlockId(i)), any(InStreamOptions.class),
+          any())).thenAnswer(invocation -> {
+            long blockId = ((BlockInfo) invocation.getArguments()[0]).getBlockId();
+            return mInStreams.get((int) blockId).isClosed() ? new TestBlockInStream(input,
+                blockId, input.length, false, mBlockSource) : mInStreams.get((int) blockId);
           });
     }
     mInfo.setBlockIds(blockIds);
@@ -547,7 +550,7 @@ public final class FileInStreamTest {
    */
   @Test
   public void failGetInStream() throws IOException {
-    when(mBlockStore.getInStream(anyLong(), any(InStreamOptions.class), any()))
+    when(mBlockStore.getInStream(any(BlockInfo.class), any(InStreamOptions.class), any()))
         .thenThrow(new UnavailableException("test exception"));
     try {
       mTestStream.read();
@@ -640,7 +643,7 @@ public final class FileInStreamTest {
     TestBlockInStream workingStream = mInStreams.get(0);
     TestBlockInStream brokenStream = mock(TestBlockInStream.class);
     when(mBlockStore
-        .getInStream(eq(0L), any(InStreamOptions.class), any()))
+        .getInStream(eq(new BlockInfo().setBlockId(0)), any(InStreamOptions.class), any()))
         .thenReturn(brokenStream).thenReturn(workingStream);
     when(brokenStream.read()).thenThrow(new UnavailableException("test exception"));
     when(brokenStream.getPos()).thenReturn(offset);
@@ -659,7 +662,7 @@ public final class FileInStreamTest {
     TestBlockInStream workingStream = mInStreams.get(0);
     TestBlockInStream brokenStream = mock(TestBlockInStream.class);
     when(mBlockStore
-        .getInStream(eq(0L), any(InStreamOptions.class), any()))
+        .getInStream(eq(new BlockInfo().setBlockId(0)), any(InStreamOptions.class), any()))
         .thenReturn(brokenStream).thenReturn(workingStream);
     when(brokenStream.read(any(byte[].class), anyInt(), anyInt()))
         .thenThrow(new UnavailableException("test exception"));
@@ -704,7 +707,7 @@ public final class FileInStreamTest {
    */
   @Test
   public void blockInStreamOutOfSync() throws Exception {
-    when(mBlockStore.getInStream(anyLong(), any(InStreamOptions.class), any()))
+    when(mBlockStore.getInStream(any(BlockInfo.class), any(InStreamOptions.class), any()))
         .thenAnswer(new Answer<BlockInStream>() {
           @Override
           public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
