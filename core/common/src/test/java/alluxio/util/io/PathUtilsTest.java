@@ -155,6 +155,17 @@ public final class PathUtilsTest {
     paths.add(new AlluxioURI("/a/b/d"));
     paths.add(new AlluxioURI("/a/b/e"));
     assertTrue("/a/b".equals(PathUtils.findLowestCommonAncestor(paths).getPath()));
+
+    paths.clear();
+    String prefix = "/a/b/c";
+    for (int i = 0; i < 10; i++) {
+      for (int j = 0; j < 10; j++) {
+        for (int k = 0; k < 10; k++) {
+          paths.add(new AlluxioURI(String.format("%s/%d/%d/%d", prefix, i, j, k)));
+        }
+      }
+    }
+    assertTrue(prefix.equals(PathUtils.findLowestCommonAncestor(paths).getPath()));
   }
 
   /**

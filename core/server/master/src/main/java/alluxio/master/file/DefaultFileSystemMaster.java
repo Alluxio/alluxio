@@ -3218,7 +3218,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
         statusCache = populateStatusCache(path, DescendantType.ALL);
       } else {
         // incremental sync
-        statusCache = populateStatusCache(changedFiles);
+        statusCache = populateStatusCache(PathUtils.findLowestCommonAncestor(changedFiles),
+            DescendantType.ALL);
       }
       if (changedFiles == null) {
         LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, true);
@@ -3310,12 +3311,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
         listOptions.setRecursive(syncDescendantType == DescendantType.ALL);
         try {
-          // TODO(adit): this call will be expensive as we list recursively even when changelist is not empty
           long startTime = System.nanoTime();
           UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
           if (children != null) {
             for (UfsStatus childStatus : children) {
-              // TODO(adit): can we avoid copying the hashmap which may be very large
               statusCache.put(path.joinUnsafe(childStatus.getName()),
                   childStatus);
             }
@@ -3329,16 +3328,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
     } catch (InvalidPathException e) {
       return statusCache;
     }
-  }
-
-  private Map<AlluxioURI, UfsStatus> populateStatusCache(Collection<AlluxioURI> changedFiles) {
-    Preconditions.checkNotNull(changedFiles);
-    Preconditions.checkArgument(!changedFiles.isEmpty(), "Change list should not be empty");
-
-    // TODO(adit): List individually below a threshold
-
-    // Recursively list the lowest common ancestor
-    return populateStatusCache(PathUtils.findLowestCommonAncestor(changedFiles), DescendantType.ALL);
   }
 
   /**
