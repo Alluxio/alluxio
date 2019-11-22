@@ -23,6 +23,8 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.rules.TestRule;
 
 /**
  * Abstract classes for all integration tests of {@link FileOutStream}.
@@ -38,6 +40,9 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       buildLocalAlluxioClusterResource();
+
+  @Rule
+  public TestRule mTestRule = sLocalAlluxioClusterResource.getResetResource();
 
   protected FileSystem mFileSystem = null;
 
@@ -67,11 +72,8 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
     }
   }
 
-  /**
-   * Override this method in a test in order to customize the {@link LocalAlluxioClusterResource}.
-   * @param resource an AlluxioClusterResource builder
-   */
-  protected static void customizeClusterResource(LocalAlluxioClusterResource.Builder resource) {
+  private static LocalAlluxioClusterResource buildLocalAlluxioClusterResource() {
+    LocalAlluxioClusterResource.Builder resource = new LocalAlluxioClusterResource.Builder();
     resource.setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BUFFER_BYTES)
         .setProperty(PropertyKey.USER_FILE_REPLICATION_DURABLE, 1)
         .setProperty(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "10ms")
@@ -79,12 +81,8 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
         .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, "10ms")
         .setProperty(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL, "10ms")
         .setProperty(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "10ms")
-        .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES);
-  }
-
-  private static LocalAlluxioClusterResource buildLocalAlluxioClusterResource() {
-    LocalAlluxioClusterResource.Builder resource = new LocalAlluxioClusterResource.Builder();
-    customizeClusterResource(resource);
+        .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
+    ;
     return resource.build();
   }
 }

@@ -24,8 +24,10 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UfsMode;
+import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.wire.FileInfo;
+import alluxio.worker.block.BlockWorker;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -34,9 +36,12 @@ import org.junit.runners.model.Statement;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -281,11 +286,15 @@ public final class LocalAlluxioClusterResource implements TestRule {
               // Reset the state as the root inode user (superuser).
               try (AuthenticatedClientUserResource r = new AuthenticatedClientUserResource(
                   fsm.getRootInodeOwner(), ServerConfiguration.global())) {
-                resetCluster(fsm);
+                resetFsm(fsm);
               }
             } else {
-              resetCluster(fsm);
+              resetFsm(fsm);
             }
+
+            BlockWorker blkWorker = mCluster.mLocalAlluxioCluster.getWorkerProcess()
+                .getWorker(BlockWorker.class);
+            resetBlockWorker(blkWorker);
 
             // Reset any properties that have changed
             ServerConfiguration.reset();
@@ -302,13 +311,38 @@ public final class LocalAlluxioClusterResource implements TestRule {
       };
     }
 
-    private void resetCluster(FileSystemMaster fsm) throws Exception {
+    /**
+     * Resets the filesystem tree to a clean state by removing all files and directories.
+     *
+     * @param fsm the local master's {@link FileSystemMaster}
+     */
+    private void resetFsm(FileSystemMaster fsm) throws Exception {
       fsm.updateUfsMode(new AlluxioURI(fsm.getUfsAddress()), UfsMode.READ_WRITE);
       for (FileInfo fileInfo : fsm
           .listStatus(new AlluxioURI("/"), ListStatusContext.defaults())) {
         fsm.delete(new AlluxioURI(fileInfo.getPath()), DeleteContext
             .create(DeletePOptions.newBuilder().setUnchecked(true).setRecursive(true)));
       }
+    }
+
+    /**
+     * Resets the block worker to a clean state by removing all blocks stored.
+     *
+     * @param blkWorker the local {@link BlockWorker}
+     */
+    private void resetBlockWorker(BlockWorker blkWorker) {
+      blkWorker.updatePinList(Collections.emptySet()); // To make sure there are no pinned inodes
+      List<Long> blocks = blkWorker.getStoreMetaFull().getBlockList().values().stream()
+          .flatMap(List::stream).collect(Collectors.toList());
+      long sessionId = IdUtils.createSessionId();
+      blocks.forEach(blockId -> {
+        try {
+          blkWorker.removeBlock(sessionId, blockId);
+        } catch (Exception e) {
+          // Ignore
+          System.out.println("oh on");
+        }
+      });
     }
   }
 

@@ -200,12 +200,11 @@ public final class IntegrationTestUtils {
       // Waiting for the blocks to be added into the heartbeat reportor, so that they will be
       // removed from master in the next heartbeat.
       CommonUtils.waitFor("blocks to be removed", () -> {
-
         Set<Long> blocks = bw.getBlockStore().getBlockStoreMetaFull()
             .getBlockListByStorageLocation().values().stream().flatMap(List::stream)
             .collect(Collectors.toSet());
         blocks.retainAll(Sets.newHashSet(blockIds));
-        return blocks.size() <= 0;
+        return blocks.isEmpty();
       }, WaitForOptions.defaults().setTimeoutMs(100 * Constants.SECOND_MS));
 
       // Execute 2nd heartbeat from worker.

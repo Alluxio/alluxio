@@ -29,7 +29,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.rules.TestRule;
 
 /**
  * Integration tests of file permission propagation for persist and async persist.
@@ -40,9 +39,6 @@ public final class PersistMultipleMountsIntegrationTest
 
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();
-
-  @Rule
-  public TestRule mResetRule = sLocalAlluxioClusterResource.getResetResource();
 
   private String mUfsRoot;
   private UnderFileSystem mUfs;

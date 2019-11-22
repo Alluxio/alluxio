@@ -11,7 +11,6 @@
 
 package alluxio.client.fs;
 
-import static java.util.function.Function.identity;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
@@ -200,8 +199,8 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     List<WorkerInfo> workers =
         sLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
             .getMaster(FileSystemMaster.class).getFileSystemMasterView().getWorkerInfoList();
-    Map<WorkerInfo, Long> workerUsedBytes =
-        workers.stream().collect(Collectors.toMap(identity(), WorkerInfo::getUsedBytes));
+    Map<Long, Long> workerUsedBytes =
+        workers.stream().collect(Collectors.toMap(WorkerInfo::getId, WorkerInfo::getUsedBytes));
     AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
     try (FileOutStream os = mFileSystem.createFile(path, CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
@@ -210,11 +209,12 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     }
     long gracePeriod = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL) * 2;
     CommonUtils.sleepMs(gracePeriod);
-    workers =
-        sLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+    workers = sLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
             .getMaster(FileSystemMaster.class).getFileSystemMasterView().getWorkerInfoList();
     for (WorkerInfo worker : workers) {
-      assertEquals((long) workerUsedBytes.get(worker), worker.getUsedBytes());
+      Long wub = workerUsedBytes.get(worker.getId());
+      Long ub = worker.getUsedBytes();
+      assertEquals(wub, ub);
     }
   }
 }
