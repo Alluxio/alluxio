@@ -91,6 +91,7 @@ public class BaseFileSystem implements FileSystem {
   protected final FileSystemContext mFsContext;
   protected final AlluxioBlockStore mBlockStore;
   protected final boolean mCachingEnabled;
+  private final MetadataCache mMetadataCache;
 
   private volatile boolean mClosed = false;
 
@@ -121,6 +122,12 @@ public class BaseFileSystem implements FileSystem {
     mFsContext = fsContext;
     mBlockStore = AlluxioBlockStore.create(fsContext);
     mCachingEnabled = cachingEnabled;
+    if (mFsContext.getClusterConf().getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
+      int maxSize = mFsContext.getClusterConf().getInt(PropertyKey.USER_METADATA_CACHE_MAX_SIZE);
+      mMetadataCache = new MetadataCache(this, maxSize);
+    } else {
+      mMetadataCache = null;
+    }
   }
 
   /**
@@ -310,10 +317,38 @@ public class BaseFileSystem implements FileSystem {
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
+    if (mMetadataCache == null) {
+      return getStatusThroughRPC(path, options);
+    }
+    return mMetadataCache.getStatus(path, options);
+  }
+
+  /**
+   * @param path the path
+   * @param options the options
+   * @return the status got through RPC
+   */
+  public URIStatus getStatusThroughRPC(AlluxioURI path, final GetStatusPOptions options)
+      throws IOException, AlluxioException {
     return rpc(client -> {
       GetStatusPOptions mergedOptions = FileSystemOptions.getStatusDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       return client.getStatus(path, mergedOptions);
+    });
+  }
+
+  /**
+   * @param path the path
+   * @param options the options
+   * @return the list of statuses got through RPC
+   */
+  public List<URIStatus> listStatusThroughRPC(AlluxioURI path, final ListStatusPOptions options)
+      throws IOException, AlluxioException {
+    return rpc(client -> {
+      // TODO(calvin): Fix the exception handling in the master
+      ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      return client.listStatus(path, mergedOptions);
     });
   }
 
@@ -327,12 +362,10 @@ public class BaseFileSystem implements FileSystem {
   public List<URIStatus> listStatus(AlluxioURI path, final ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    return rpc(client -> {
-      // TODO(calvin): Fix the exception handling in the master
-      ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
-          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-      return client.listStatus(path, mergedOptions);
-    });
+    if (mMetadataCache == null) {
+      return listStatusThroughRPC(path, options);
+    }
+    return mMetadataCache.listStatus(path, options);
   }
 
   @Override
@@ -408,22 +441,18 @@ public class BaseFileSystem implements FileSystem {
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    return rpc(client -> {
-      AlluxioConfiguration conf = mFsContext.getPathConf(path);
-      URIStatus status = client.getStatus(path,
-          FileSystemOptions.getStatusDefaults(conf).toBuilder()
-              .setAccessMode(Bits.READ)
-              .setUpdateTimestamps(options.getUpdateLastAccessTime())
-              .build());
-      if (status.isFolder()) {
-        throw new FileDoesNotExistException(
-            ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
-      }
-      OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(conf)
-          .toBuilder().mergeFrom(options).build();
-      InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions, conf);
-      return new FileInStream(status, inStreamOptions, mFsContext);
-    });
+    AlluxioConfiguration conf = mFsContext.getPathConf(path);
+    // TODO(cc): if status is got from cache, the last access time cannot be updated.
+    GetStatusPOptions getStatusOptions = FileSystemOptions.getStatusDefaults(conf).toBuilder()
+        .setAccessMode(Bits.READ)
+        .setUpdateTimestamps(options.getUpdateLastAccessTime())
+        .build();
+    URIStatus status = getStatus(path, getStatusOptions);
+    if (status.isFolder()) {
+      throw new FileDoesNotExistException(
+          ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
+    }
+    return openFile(status, options);
   }
 
   @Override
