@@ -151,9 +151,11 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void testThrottle() throws Exception {
+    mJobMaster.throttle();
     long jobId = mJobMaster.run(new SleepJobConfig(1));
-    long before = CommonUtils.getCurrentMs();
+    CommonUtils.sleepMs(300);
+    assertFalse(mJobMaster.getStatus(jobId).getStatus().isFinished());
+    mJobMaster.unthrottle();
     JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.COMPLETED);
-    assertEquals(0, CommonUtils.getCurrentMs() - before);
   }
 }

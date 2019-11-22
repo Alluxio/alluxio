@@ -15,6 +15,7 @@ package alluxio.worker.job.task;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import com.google.common.math.IntMath;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -72,6 +73,6 @@ public class ThrottleableThreadPoolExecutor extends ThreadPoolExecutor {
   }
 
   private boolean check(Thread t) {
-    return mHashFunction.hashLong(t.getId()).asLong() % 100 >= mThrottlePercentage;
+    return IntMath.mod(mHashFunction.hashLong(t.getId()).asInt(), 100) >= mThrottlePercentage;
   }
 }
