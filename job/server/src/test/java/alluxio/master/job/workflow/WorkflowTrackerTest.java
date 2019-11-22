@@ -37,6 +37,7 @@ import alluxio.master.job.JobMaster;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.plan.PlanTracker;
 import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;
@@ -95,7 +96,7 @@ public class WorkflowTrackerTest {
 
     verify(mMockJobMaster, never()).run(child2, 101);
 
-    TaskInfo task100 = new TaskInfo(100, 0, Status.COMPLETED);
+    TaskInfo task100 = new TaskInfo(100, 0, Status.COMPLETED, new WorkerNetAddress());
     ArrayList<TaskInfo> taskInfos = Lists.newArrayList(task100);
 
     PlanInfo plan100 = new PlanInfo(100, "test", Status.COMPLETED, 0, null);
@@ -106,7 +107,7 @@ public class WorkflowTrackerTest {
 
     assertEquals(Status.RUNNING, mWorkflowTracker.getStatus(0).getStatus());
 
-    TaskInfo task101 = new TaskInfo(101, 0, Status.COMPLETED);
+    TaskInfo task101 = new TaskInfo(101, 0, Status.COMPLETED, new WorkerNetAddress());
     taskInfos = Lists.newArrayList(task101);
     PlanInfo plan101 = new PlanInfo(101, "test", Status.COMPLETED, 0, null);
     when(mMockJobMaster.getStatus(101)).thenReturn(plan101);
