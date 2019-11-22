@@ -19,6 +19,7 @@ import alluxio.job.wire.TaskInfo;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
@@ -41,7 +42,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class TaskExecutorManager {
   private static final Logger LOG = LoggerFactory.getLogger(TaskExecutorManager.class);
 
-  private final ThreadPoolExecutor mTaskExecutionService;
+  private final ThrottleableThreadPoolExecutor mTaskExecutionService;
 
   // These maps are all indexed by <Job ID, Task ID> pairs.
   /** Stores the futures for all running tasks. */
@@ -62,11 +63,21 @@ public class TaskExecutorManager {
     mTaskFutures = Maps.newHashMap();
     mUnfinishedTasks = Maps.newHashMap();
     mTaskUpdates = Maps.newHashMap();
-    mTaskExecutionService = new ThreadPoolExecutor(taskExecutorPoolSize, taskExecutorPoolSize,
-        0L, TimeUnit.MILLISECONDS,
-        new LinkedBlockingQueue<>(),
+    mTaskExecutionService = new ThrottleableThreadPoolExecutor(taskExecutorPoolSize,
+        taskExecutorPoolSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(),
         ThreadFactoryUtils.build("task-execution-service-%d", true));
     mAddress = address;
+  }
+
+  /**
+   * Throttles the execution service to prevent a portion of the threads to not execute any
+   * new tasks.
+   *
+   * @param throttlePercentage approximate percentage of the threads to be throttled (0-100)
+   */
+  public void throttle(int throttlePercentage) {
+    Preconditions.checkArgument(throttlePercentage >= 0 && throttlePercentage <= 100);
+    mTaskExecutionService.throttle(throttlePercentage);
   }
 
   /**
