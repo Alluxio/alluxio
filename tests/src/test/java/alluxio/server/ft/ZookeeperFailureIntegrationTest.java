@@ -112,7 +112,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.ZOOKEEPER_CONNECTION_POLICY_STANDARD)
         .setClusterName("ZookeeperConnectionPolicy_Standard")
         .setNumMasters(2)
-        .setNumWorkers(1)
+        .setNumWorkers(0)
         .addProperty(PropertyKey.ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY, "STANDARD")
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         .build();
@@ -132,7 +132,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.ZOOKEEPER_CONNECTION_POLICY_SESSION)
         .setClusterName("ZookeeperConnectionPolicy_Session")
         .setNumMasters(2)
-        .setNumWorkers(1)
+        .setNumWorkers(0)
         .addProperty(PropertyKey.ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY, "SESSION")
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         .build();
