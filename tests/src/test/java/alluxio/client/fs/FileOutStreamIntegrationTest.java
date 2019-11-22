@@ -196,11 +196,6 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    */
   @Test
   public void cancelWrite() throws Exception {
-    List<WorkerInfo> workers =
-        sLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-            .getMaster(FileSystemMaster.class).getFileSystemMasterView().getWorkerInfoList();
-    Map<Long, Long> workerUsedBytes =
-        workers.stream().collect(Collectors.toMap(WorkerInfo::getId, WorkerInfo::getUsedBytes));
     AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
     try (FileOutStream os = mFileSystem.createFile(path, CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
@@ -209,12 +204,11 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     }
     long gracePeriod = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL) * 2;
     CommonUtils.sleepMs(gracePeriod);
-    workers = sLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-            .getMaster(FileSystemMaster.class).getFileSystemMasterView().getWorkerInfoList();
+    List<WorkerInfo> workers = sLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
+        .getMasterProcess().getMaster(FileSystemMaster.class).getFileSystemMasterView()
+        .getWorkerInfoList();
     for (WorkerInfo worker : workers) {
-      Long wub = workerUsedBytes.get(worker.getId());
-      Long ub = worker.getUsedBytes();
-      assertEquals(wub, ub);
+      assertEquals(0L, worker.getUsedBytes());
     }
   }
 }
