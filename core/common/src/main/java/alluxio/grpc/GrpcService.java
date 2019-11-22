@@ -60,6 +60,9 @@ public class GrpcService {
   /**
    * Add a new closeable resource to this service's closer.
    *
+   * Registered closer will be owned and closed by {@link GrpcServer} that hosts
+   * the service.
+   *
    * @param closeable the closeable resource
    * @return the updated {@link GrpcService} instance
    */

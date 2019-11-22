@@ -48,7 +48,7 @@ public final class GrpcServer {
    *
    * @param server the wrapped server
    * @param authServer the authentication server
-   * @param closer resources to close before shutting down server
+   * @param closer resources to close during shutting down of this server
    * @param serverShutdownTimeoutMs server shutdown timeout in milliseconds
    */
   public GrpcServer(Server server, AuthenticationServer authServer, Closer closer,
