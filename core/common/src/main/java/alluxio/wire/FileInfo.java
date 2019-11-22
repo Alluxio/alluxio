@@ -38,7 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 // TODO(jiri): Consolidate with URIStatus.
 public final class FileInfo implements Serializable {
-  private static final long serialVersionUID = 7119966306934831779L;
+  private static final long serialVersionUID = 3086599355791696602L;
 
   private long mFileId;
   private String mName = "";
@@ -64,7 +64,8 @@ public final class FileInfo implements Serializable {
   private int mMode;
   private String mPersistenceState = "";
   private boolean mMountPoint;
-  private Map<Long, FileBlockInfo> mFileBlockInfos = new HashMap<>();
+  private ArrayList<FileBlockInfo> mFileBlockInfoList = new ArrayList<>();
+  private Map<Long, FileBlockInfo> mFileBlockInfoMap = new HashMap<>();
   private long mMountId;
   private int mReplicationMax;
   private int mReplicationMin;
@@ -252,7 +253,7 @@ public final class FileInfo implements Serializable {
    * @return the list of file block descriptors
    */
   public List<FileBlockInfo> getFileBlockInfos() {
-    return new ArrayList<>(mFileBlockInfos.values());
+    return mFileBlockInfoList;
   }
 
   /**
@@ -260,7 +261,7 @@ public final class FileInfo implements Serializable {
    * @return the corresponding block info or null
    */
   public FileBlockInfo getFileBlockInfo(long blockId) {
-    return mFileBlockInfos.get(blockId);
+    return mFileBlockInfoMap.get(blockId);
   }
 
   /**
@@ -564,8 +565,9 @@ public final class FileInfo implements Serializable {
    * @return the file information
    */
   public FileInfo setFileBlockInfos(List<FileBlockInfo> fileBlockInfos) {
-    for (FileBlockInfo info : fileBlockInfos) {
-      mFileBlockInfos.put(info.getBlockInfo().getBlockId(), info);
+    mFileBlockInfoList = new ArrayList<>(fileBlockInfos);
+    for (FileBlockInfo info : mFileBlockInfoList) {
+      mFileBlockInfoMap.put(info.getBlockInfo().getBlockId(), info);
     }
     return this;
   }
@@ -662,7 +664,7 @@ public final class FileInfo implements Serializable {
         && mOwner.equals(that.mOwner) && mGroup.equals(that.mGroup) && mMode == that.mMode
         && mPersistenceState.equals(that.mPersistenceState) && mMountPoint == that.mMountPoint
         && mReplicationMax == that.mReplicationMax && mReplicationMin == that.mReplicationMin
-        && mFileBlockInfos.equals(that.mFileBlockInfos) && mTtlAction == that.mTtlAction
+        && mFileBlockInfoList.equals(that.mFileBlockInfoList) && mTtlAction == that.mTtlAction
         && mMountId == that.mMountId && mInAlluxioPercentage == that.mInAlluxioPercentage
         && mUfsFingerprint.equals(that.mUfsFingerprint)
         && Objects.equal(mAcl, that.mAcl)
@@ -675,7 +677,7 @@ public final class FileInfo implements Serializable {
     return Objects.hashCode(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mLastAccessTimeMs, mTtl, mOwner, mGroup,
-        mMode, mReplicationMax, mReplicationMin, mPersistenceState, mMountPoint, mFileBlockInfos,
+        mMode, mReplicationMax, mReplicationMin, mPersistenceState, mMountPoint, mFileBlockInfoList,
         mTtlAction, mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl, mMediumTypes);
   }
 
@@ -695,7 +697,7 @@ public final class FileInfo implements Serializable {
         .add("ttlAction", mTtlAction).add("owner", mOwner).add("group", mGroup).add("mode", mMode)
         .add("persistenceState", mPersistenceState).add("mountPoint", mMountPoint)
         .add("replicationMax", mReplicationMax).add("replicationMin", mReplicationMin)
-        .add("fileBlockInfos", mFileBlockInfos)
+        .add("fileBlockInfos", mFileBlockInfoList)
         .add("mountId", mMountId).add("inAlluxioPercentage", mInAlluxioPercentage)
         .add("ufsFingerprint", mUfsFingerprint)
         .add("acl", mAcl.toString())

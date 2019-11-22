@@ -326,11 +326,11 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     long blockId = mStatus.getBlockIds().get(Math.toIntExact(mPosition / mBlockSize));
     BlockInfo blockInfo = mStatus.getBlockInfo(blockId);
     if (blockInfo == null) {
-      throw new IOException("Block " + blockId + " does not exist");
+      throw new IOException("No BlockInfo for block(id=" + blockId + ") of file"
+          + "(id=" + mStatus.getFileId() + ", path=" + mStatus.getPath() + ")");
     }
     // Create stream
-    mBlockInStream = mBlockStore.getInStream(blockInfo, mOptions,
-        mFailedWorkers);
+    mBlockInStream = mBlockStore.getInStream(blockInfo, mOptions, mFailedWorkers);
     // Set the stream to the correct position.
     long offset = mPosition % mBlockSize;
     mBlockInStream.seek(offset);

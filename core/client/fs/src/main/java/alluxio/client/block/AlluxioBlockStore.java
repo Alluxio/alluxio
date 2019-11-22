@@ -56,7 +56,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -180,7 +179,7 @@ public final class AlluxioBlockStore {
    * @param failedWorkers the map of workers address to most recent failure time
    * @return a stream which reads from the beginning of the block
    */
-  public BlockInStream getInStream(@Nonnull BlockInfo info, InStreamOptions options,
+  public BlockInStream getInStream(BlockInfo info, InStreamOptions options,
       Map<WorkerNetAddress, Long> failedWorkers) throws IOException {
     List<BlockLocation> locations = info.getLocations();
     List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;

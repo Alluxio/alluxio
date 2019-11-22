@@ -24,6 +24,7 @@ import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -64,7 +65,7 @@ public class URIStatus {
    * @param blockId the block ID
    * @return the corresponding block info or null
    */
-  public BlockInfo getBlockInfo(long blockId) {
+  public @Nullable BlockInfo getBlockInfo(long blockId) {
     FileBlockInfo info = mInfo.getFileBlockInfo(blockId);
     return info == null ? null : info.getBlockInfo();
   }
