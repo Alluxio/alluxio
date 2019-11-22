@@ -144,7 +144,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
                             ServerConfiguration.global())),
                         (conn) -> activateWorkerConnection(conn), mCatalystContext,
                         mExecutorService, mCatalystRequestTimeout),
-                    new ClientIpAddressInjector())));
+                    new ClientIpAddressInjector())).withCloseable(this));
     return services;
   }
 
