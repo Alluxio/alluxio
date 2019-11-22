@@ -3223,7 +3223,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
       }
       if (changedFiles == null) {
         LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, true);
-        // TODO(adit): do we need to write lock entire sub-tree while full syncing
         try (LockedInodePath inodePath =
             mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern())) {
           syncMetadataInternal(rpcContext, inodePath, lockingScheme, DescendantType.ALL,
@@ -3311,7 +3310,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
         listOptions.setRecursive(syncDescendantType == DescendantType.ALL);
         try {
-          long startTime = System.nanoTime();
           UfsStatus[] children = ufs.listStatus(ufsUri.toString(), listOptions);
           if (children != null) {
             for (UfsStatus childStatus : children) {
@@ -3319,7 +3317,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
                   childStatus);
             }
           }
-          LOG.info("AMDEBUG Time elapsed in ufs.listStatus {} (ns)", System.nanoTime() - startTime);
         } catch (Exception e) {
           LOG.debug("ListStatus failed as an preparation step for syncMetadata {}", path, e);
         }
