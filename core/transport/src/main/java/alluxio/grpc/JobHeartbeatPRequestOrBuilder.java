@@ -8,13 +8,17 @@ public interface JobHeartbeatPRequestOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional int64 workerId = 1;</code>
+   * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
    */
-  boolean hasWorkerId();
+  boolean hasJobWorkerHealth();
   /**
-   * <code>optional int64 workerId = 1;</code>
+   * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
    */
-  long getWorkerId();
+  alluxio.grpc.JobWorkerHealth getJobWorkerHealth();
+  /**
+   * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
+   */
+  alluxio.grpc.JobWorkerHealthOrBuilder getJobWorkerHealthOrBuilder();
 
   /**
    * <code>repeated .alluxio.grpc.job.JobInfo taskInfos = 2;</code>

@@ -12,6 +12,7 @@
 package alluxio.job.master;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
@@ -21,6 +22,7 @@ import alluxio.job.plan.PlanDefinitionRegistryRule;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.plan.SleepPlanDefinition;
 import alluxio.job.util.JobTestUtils;
+import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
@@ -123,5 +125,15 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
     }, WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
     // The restarted worker should replace the original worker since they have the same address.
     assertEquals(1, mJobMaster.getWorkerInfoList().size());
+  }
+
+  @Test
+  public void getAllWorkerHealth() {
+    List<JobWorkerHealth> allWorkerHealth = mJobMaster.getAllWorkerHealth();
+    assertEquals(1, allWorkerHealth.size());
+
+    JobWorkerHealth workerHealth = allWorkerHealth.get(0);
+    assertNotNull(workerHealth.getHostname());
+    assertEquals(3, workerHealth.getLoadAverage().size());
   }
 }

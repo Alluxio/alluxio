@@ -11,14 +11,18 @@
 
 package alluxio.cli.fsadmin.report;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.client.job.JobMasterClient;
+import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.PlanInfo;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.Status;
 
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.ArrayUtils;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -54,6 +58,12 @@ public class JobServiceMetricsCommandTest {
   @Test
   public void testBasic() throws IOException, ParseException {
 
+    JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(
+        1, new double[]{1.2, 0.9, 0.7}, "testHost");
+
+    Mockito.when(mJobMasterClient.getAllWorkerHealth())
+        .thenReturn(Lists.newArrayList(jobWorkerHealth));
+
     List<JobInfo> jobInfos = new ArrayList<>();
 
     jobInfos.add(createJobInfo(1, "Test1", Status.RUNNING, "2019-10-17 12:00:00"));
@@ -68,33 +78,44 @@ public class JobServiceMetricsCommandTest {
 
     String[] lineByLine = output.split("\n");
 
-    Assert.assertEquals("Status: CREATED   Count: 0", lineByLine[0]);
-    Assert.assertEquals("Status: CANCELED  Count: 0", lineByLine[1]);
-    Assert.assertEquals("Status: FAILED    Count: 1", lineByLine[2]);
-    Assert.assertEquals("Status: RUNNING   Count: 1", lineByLine[3]);
-    Assert.assertEquals("Status: COMPLETED Count: 0", lineByLine[4]);
-    Assert.assertEquals("", lineByLine[5]);
-    Assert.assertEquals("10 Most Recently Modified Jobs:", lineByLine[6]);
-    Assert.assertEquals(
+    // Worker Health Section
+    assertEquals("Worker: testHost    Load Avg: 1.2, 0.9, 0.7", lineByLine[0]);
+    assertEquals("", lineByLine[1]);
+
+    // Group By Status
+    lineByLine = ArrayUtils.subarray(lineByLine, 2, lineByLine.length);
+
+    assertEquals("Status: CREATED   Count: 0", lineByLine[0]);
+    assertEquals("Status: CANCELED  Count: 0", lineByLine[1]);
+    assertEquals("Status: FAILED    Count: 1", lineByLine[2]);
+    assertEquals("Status: RUNNING   Count: 1", lineByLine[3]);
+    assertEquals("Status: COMPLETED Count: 0", lineByLine[4]);
+    assertEquals("", lineByLine[5]);
+
+    // Top 10
+    lineByLine = ArrayUtils.subarray(lineByLine, 6, lineByLine.length);
+
+    assertEquals("10 Most Recently Modified Jobs:", lineByLine[0]);
+    assertEquals(
         "Timestamp: 01-17-2019 12:30:15:000       Id: 2                   Name: Test2"
         + "               Status: FAILED",
-        lineByLine[7]);
-    Assert.assertEquals(
+        lineByLine[1]);
+    assertEquals(
         "Timestamp: 01-17-2019 12:00:00:000       Id: 1                   Name: Test1"
         + "               Status: RUNNING",
-        lineByLine[8]);
-    Assert.assertEquals("", lineByLine[9]);
-    Assert.assertEquals("10 Most Recently Failed Jobs:", lineByLine[10]);
-    Assert.assertEquals(
+        lineByLine[2]);
+    assertEquals("", lineByLine[3]);
+    assertEquals("10 Most Recently Failed Jobs:", lineByLine[4]);
+    assertEquals(
         "Timestamp: 01-17-2019 12:30:15:000       Id: 2                   Name: Test2"
         + "               Status: FAILED",
-        lineByLine[11]);
-    Assert.assertEquals("", lineByLine[12]);
-    Assert.assertEquals("10 Longest Running Jobs:", lineByLine[13]);
-    Assert.assertEquals(
+        lineByLine[5]);
+    assertEquals("", lineByLine[6]);
+    assertEquals("10 Longest Running Jobs:", lineByLine[7]);
+    assertEquals(
         "Timestamp: 01-17-2019 12:00:00:000       Id: 1                   Name: Test1"
             + "               Status: RUNNING",
-        lineByLine[14]);
+        lineByLine[8]);
   }
 
   private JobInfo createJobInfo(int id, String name, Status status, String datetime)

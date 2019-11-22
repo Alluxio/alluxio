@@ -36,6 +36,7 @@ import alluxio.job.meta.JobIdGenerator;
 import alluxio.job.plan.PlanConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
+import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.TaskInfo;
 import alluxio.job.wire.WorkflowInfo;
 import alluxio.job.workflow.WorkflowConfig;
@@ -63,9 +64,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -123,6 +126,11 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   private final IndexedSet<MasterWorkerInfo> mWorkers = new IndexedSet<>(mIdIndex, mAddressIndex);
 
   /**
+   * All worker health information.
+   */
+  private final ConcurrentHashMap<Long, JobWorkerHealth> mWorkerHealth;
+
+  /**
    * An RW lock that is used to control access to mWorkers.
    */
   private final ReentrantReadWriteLock mWorkerRWLock = new ReentrantReadWriteLock(true);
@@ -169,6 +177,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     mJobIdGenerator = new JobIdGenerator();
     mWorkflowTracker = new WorkflowTracker(this);
     mPlanTracker = new PlanTracker(JOB_CAPACITY, RETENTION_MS, MAX_PURGE_COUNT, mWorkflowTracker);
+    mWorkerHealth = new ConcurrentHashMap<>();
   }
 
   /**
@@ -320,6 +329,15 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   }
 
   /**
+   * @return health metrics for each of the job workers
+   */
+  public List<JobWorkerHealth> getAllWorkerHealth() {
+    ArrayList<JobWorkerHealth> result = Lists.newArrayList(mWorkerHealth.values());
+    Collections.sort(result, Comparator.comparingLong((a) -> a.getWorkerId()));
+    return result;
+  }
+
+  /**
    * Returns a worker id for the given worker.
    *
    * @param workerNetAddress the worker {@link WorkerNetAddress}
@@ -368,12 +386,15 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    * Updates the tasks' status when a worker periodically heartbeats with the master, and sends the
    * commands for the worker to execute.
    *
-   * @param workerId the worker id
+   * @param jobWorkerHealth the job worker health info
    * @param taskInfoList the list of the task information
    * @return the list of {@link JobCommand} to the worker
    */
-  public List<JobCommand> workerHeartbeat(long workerId, List<TaskInfo> taskInfoList)
-      throws ResourceExhaustedException, JobDoesNotExistException {
+  public List<JobCommand> workerHeartbeat(JobWorkerHealth jobWorkerHealth,
+      List<TaskInfo> taskInfoList) throws ResourceExhaustedException {
+
+    long workerId = jobWorkerHealth.getWorkerId();
+
     String hostname;
     // Run under shared lock for mWorkers
     try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {
@@ -387,6 +408,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       // to prevent lost worker detector clearing it under race
       worker.updateLastUpdatedTimeMs();
     }
+    mWorkerHealth.put(workerId, jobWorkerHealth);
 
     // Update task infos for all jobs involved
     Map<Long, List<TaskInfo>> taskInfosPerJob = new HashMap<>();

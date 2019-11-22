@@ -15,6 +15,8 @@ import alluxio.RpcUtils;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.CancelPResponse;
+import alluxio.grpc.GetAllWorkerHealthPRequest;
+import alluxio.grpc.GetAllWorkerHealthPResponse;
 import alluxio.grpc.GetJobServiceSummaryPRequest;
 import alluxio.grpc.GetJobServiceSummaryPResponse;
 import alluxio.grpc.GetJobStatusPRequest;
@@ -26,11 +28,14 @@ import alluxio.grpc.RunPRequest;
 import alluxio.grpc.RunPResponse;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
+import alluxio.job.wire.JobWorkerHealth;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * This class is a gRPC handler for job master RPCs invoked by a job service client.
@@ -96,5 +101,21 @@ public class JobMasterClientServiceHandler
         throw new InvalidArgumentException(e);
       }
     }, "run", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getAllWorkerHealth(GetAllWorkerHealthPRequest request,
+                                 StreamObserver<GetAllWorkerHealthPResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetAllWorkerHealthPResponse>) () -> {
+      GetAllWorkerHealthPResponse.Builder builder = GetAllWorkerHealthPResponse.newBuilder();
+
+      List<JobWorkerHealth> workerHealths = mJobMaster.getAllWorkerHealth();
+
+      for (JobWorkerHealth workerHealth : workerHealths) {
+        builder.addWorkerHealths(workerHealth.toProto());
+      }
+
+      return builder.build();
+    }, "getAllWorkerHealth", "request=%s", responseObserver, request);
   }
 }
