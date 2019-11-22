@@ -9,8 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {action} from 'typesafe-actions';
+import { action } from 'typesafe-actions';
+import { AnyAction } from 'redux';
 
-import {RefreshActionTypes} from './types';
+import { RefreshActionTypes } from './types';
 
-export const triggerRefresh = () => action(RefreshActionTypes.TRIGGER_REFRESH);
+export const triggerRefresh = (): AnyAction => action(RefreshActionTypes.TRIGGER_REFRESH);
