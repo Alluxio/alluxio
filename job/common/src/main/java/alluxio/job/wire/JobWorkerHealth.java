@@ -18,8 +18,6 @@ import com.google.common.base.Objects;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 
 /**
  * The job worker health information.
@@ -28,6 +26,7 @@ public class JobWorkerHealth {
 
   private final long mWorkerId;
   private final List<Double> mLoadAverage;
+  private final int mUnfinishedTasks;
   private final long mLastUpdated;
   private final int mTaskPoolSize;
   private final int mNumActiveTasks;
@@ -38,14 +37,16 @@ public class JobWorkerHealth {
    *
    * @param workerId the worker id
    * @param loadAverage output of CentralProcessor.getSystemLoadAverage on the worker
-   * @param hostname hostname of the worker
-   * @param numActiveTasks number of active tasks in the worker
    * @param taskPoolSize task pool size
+   * @param numActiveTasks number of active tasks in the worker
+   * @param unfinishedTasks number of unfinished tasks that the worker has
+   * @param hostname hostname of the worker
    */
-  public JobWorkerHealth(long workerId, double[] loadAverage, int taskPoolSize,
-                         int numActiveTasks, String hostname) {
+  public JobWorkerHealth(long workerId, List<Double> loadAverage, int taskPoolSize,
+      int numActiveTasks, int unfinishedTasks, String hostname) {
     mWorkerId = workerId;
-    mLoadAverage = DoubleStream.of(loadAverage).boxed().collect(Collectors.toList());
+    mLoadAverage = loadAverage;
+    mUnfinishedTasks = unfinishedTasks;
     mLastUpdated = CommonUtils.getCurrentMs();
     mTaskPoolSize = taskPoolSize;
     mNumActiveTasks = numActiveTasks;
@@ -60,6 +61,7 @@ public class JobWorkerHealth {
   public JobWorkerHealth(alluxio.grpc.JobWorkerHealth jobWorkerHealth) {
     mWorkerId = jobWorkerHealth.getWorkerId();
     mLoadAverage = jobWorkerHealth.getLoadAverageList();
+    mUnfinishedTasks = jobWorkerHealth.getUnfinishedTasks();
     mLastUpdated = jobWorkerHealth.getLastUpdated();
     mTaskPoolSize = jobWorkerHealth.getTaskPoolSize();
     mNumActiveTasks = jobWorkerHealth.getNumActiveTasks();
@@ -99,6 +101,13 @@ public class JobWorkerHealth {
   }
 
   /**
+   * @return the number of unfinished tasks
+   */
+  public int getUnfinishedTasks() {
+    return mUnfinishedTasks;
+  }
+
+  /**
    * @return the worker hostname
    */
   public String getHostname() {
@@ -110,12 +119,9 @@ public class JobWorkerHealth {
    */
   public alluxio.grpc.JobWorkerHealth toProto() {
     alluxio.grpc.JobWorkerHealth.Builder builder = alluxio.grpc.JobWorkerHealth.newBuilder()
-        .setWorkerId(mWorkerId).addAllLoadAverage(mLoadAverage).setTaskPoolSize(mTaskPoolSize)
-        .setNumActiveTasks(mNumActiveTasks).setLastUpdated(mLastUpdated);
-
-    if (mHostname != null) {
-      builder.setHostname(mHostname);
-    }
+        .setWorkerId(mWorkerId).addAllLoadAverage(mLoadAverage).setUnfinishedTasks(mUnfinishedTasks)
+        .setTaskPoolSize(mTaskPoolSize).setNumActiveTasks(mNumActiveTasks)
+        .setLastUpdated(mLastUpdated).setHostname(mHostname);
 
     return builder.build();
   }

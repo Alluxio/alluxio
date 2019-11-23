@@ -59,7 +59,7 @@ public class JobServiceMetricsCommandTest {
   public void testBasic() throws IOException, ParseException {
 
     JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(
-        1, new double[]{1.2, 0.9, 0.7}, 10, 2, "testHost");
+        1, Lists.newArrayList(1.2, 0.9, 0.7), 10, 2, 2, "testHost");
 
     Mockito.when(mJobMasterClient.getAllWorkerHealth())
         .thenReturn(Lists.newArrayList(jobWorkerHealth));
@@ -79,7 +79,8 @@ public class JobServiceMetricsCommandTest {
     String[] lineByLine = output.split("\n");
 
     // Worker Health Section
-    assertEquals("Worker: testHost    Task Pool Size: 10     Load Avg: 1.2, 0.9, 0.7",
+    assertEquals("Worker: testHost    Task Pool Size: 10     Unfinished Tasks: 10"
+        + "     Load Avg: 1.2, 0.9, 0.7",
         lineByLine[0]);
     assertEquals("", lineByLine[1]);
 
