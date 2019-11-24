@@ -24,6 +24,9 @@ public class UfsFileStatus extends UfsStatus {
   public static final String INVALID_CONTENT_HASH = "";
   public static final long UNKNOWN_BLOCK_SIZE = -1;
 
+  // if block size equals to MAGIC_BLOCK_SIZE, use alluxio.user.block.size.bytes.default instread
+  public static final long MAGIC_BLOCK_SIZE = 1;
+
   protected final String mContentHash;
   protected final long mContentLength;
   protected final long mBlockSize;

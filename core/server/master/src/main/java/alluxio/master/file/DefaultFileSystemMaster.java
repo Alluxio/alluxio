@@ -2490,6 +2490,14 @@ public final class DefaultFileSystemMaster extends CoreMaster
       ufsBlockSizeByte = blockSize != UfsFileStatus.UNKNOWN_BLOCK_SIZE
           ? blockSize : ufs.getBlockSizeByte(ufsUri.toString());
 
+      // When UFS is using hadoop-compatible FileSystem for object storage, Block size is a fake number.
+      // In this case, it is better to use alluxio default block size.
+      // you can set ufs default block size configuration to UfsFileStatus.MAGIC_BLOCK_SIZE
+      // to use same block size with alluxio setting.
+      if (ufsBlockSizeByte == UfsFileStatus.MAGIC_BLOCK_SIZE) {
+        ufsBlockSizeByte = ServerConfiguration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+      }
+
       if (isAclEnabled()) {
         Pair<AccessControlList, DefaultAccessControlList> aclPair
             = ufs.getAclPair(ufsUri.toString());
