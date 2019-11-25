@@ -193,6 +193,4 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
     assertEquals(1, mJobMaster.getAllWorkerHealth().get(0).getTaskPoolSize());
     assertEquals(1, mJobMaster.getAllWorkerHealth().get(0).getNumActiveTasks());
   }
-
-
 }
