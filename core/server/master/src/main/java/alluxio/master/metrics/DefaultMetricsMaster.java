@@ -90,7 +90,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
             ServerConfiguration.global(), mMasterContext.getUserState());
     int numThreads = ServerConfiguration.getInt(PropertyKey.MASTER_METRICS_SERVICE_THREADS);
     mExecutorService = ExecutorServiceFactories.fixedThreadPool(
-        "alluxio-master-metrics-service", numThreads).create();
+        "alluxio-master-metrics-updater", numThreads).create();
   }
 
   @VisibleForTesting

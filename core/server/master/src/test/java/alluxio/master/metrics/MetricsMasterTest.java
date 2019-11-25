@@ -11,7 +11,6 @@
 
 package alluxio.master.metrics;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
@@ -93,15 +92,15 @@ public class MetricsMasterTest {
         Metric.from("worker.192_1_1_2.metricA", 1, MetricType.GAUGE),
         Metric.from("worker.192_1_1_2.metricB", 2, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
-    waitForAndCheckResult(() -> (Long) getGauge("metricA") == 11L);
-    assertEquals(22L, getGauge("metricB"));
+    checkMetricValue("metricA", 11L);
+    checkMetricValue("metricB", 22L);
 
     // override metrics from hostname 192_1_1_2
     List<Metric> metrics3 = Lists.newArrayList(
         Metric.from("worker.192_1_1_2.metricA", 3, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics3);
-    waitForAndCheckResult(() -> (Long) getGauge("metricA") == 13L);
-    assertEquals(20L, getGauge("metricB"));
+    checkMetricValue("metricA", 13L);
+    checkMetricValue("metricB", 20L);
   }
 
   @Test
@@ -117,8 +116,8 @@ public class MetricsMasterTest {
         Metric.from("worker.192_1_1_2.metric.tag:v2", 2, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER);
-    waitForAndCheckResult(() -> (Long) getGauge("metric", "tag", "v1") == 11L);
-    assertEquals(22L, getGauge("metric", "tag", "v2"));
+    checkMetricValue("metric", 11L, "tag", "v1");
+    checkMetricValue("metric", 22L, "tag", "v2");
   }
 
   @Test
@@ -139,8 +138,8 @@ public class MetricsMasterTest {
         Metric.from("client.192_1_1_2:C.metric1", 1, MetricType.GAUGE),
         Metric.from("client.192_1_1_2:C.metric2", 2, MetricType.GAUGE));
     mMetricsMaster.clientHeartbeat("C", "192.1.1.2", metrics3);
-    waitForAndCheckResult(() -> (Long) getGauge("metric1") == 26L);
-    assertEquals(47L, getGauge("metric2"));
+    checkMetricValue("metric1", 26L);
+    checkMetricValue("metric2", 47L);
   }
 
   private Object getGauge(String name) {
@@ -155,9 +154,23 @@ public class MetricsMasterTest {
         .getValue();
   }
 
-  private void waitForAndCheckResult(Supplier<Boolean> condition) throws Exception {
-    CommonUtils.waitFor("metrics processed", condition,
-        WaitForOptions.defaults().setTimeoutMs(TIMEOUT_MS));
-    assertTrue(condition.get());
+  private void checkMetricValue(String metricsName, Long value) throws Exception {
+    checkMetricValue(metricsName, value, null, null);
+  }
+
+  private void checkMetricValue(String metricsName, Long value,
+      String tagName, String tagValue) throws Exception {
+    Supplier<Boolean> condition;
+    if (tagName == null) {
+      condition = () -> getGauge(metricsName) == value;
+    } else {
+      condition = () -> getGauge(metricsName, tagName, tagValue) == value;
+    }
+    if (!condition.get()) {
+      // Wait for the async metrics updater to finish
+      CommonUtils.waitFor("metrics processed", condition,
+          WaitForOptions.defaults().setTimeoutMs(TIMEOUT_MS));
+      assertTrue(condition.get());
+    }
   }
 }
