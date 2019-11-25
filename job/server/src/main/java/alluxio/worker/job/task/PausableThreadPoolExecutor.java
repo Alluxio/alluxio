@@ -48,8 +48,10 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
     mUnpaused = mPauseLock.newCondition();
   }
 
-  @Override
-  public int getActiveCount() {
+  /**
+   * @return number of active threads subtracted by the number of tasks paused
+   */
+  public int getNumActiveTasks() {
     return super.getActiveCount() - mNumPaused;
   }
 
@@ -79,14 +81,7 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
       mPauseLock.unlock();
     }
   }
-
-  /**
-   * @return whether the thread executor is paused
-   */
-  public boolean isPaused() {
-    return mIsPaused;
-  }
-
+  
   @Override
   protected void beforeExecute(Thread t, Runnable r) {
     super.beforeExecute(t, r);

@@ -71,10 +71,10 @@ public class TaskExecutorManager {
   }
 
   /**
-   * @return number of active tasks in
+   * @return number of active tasks
    */
-  public int getActiveTaskCount() {
-    return mTaskExecutionService.getActiveCount();
+  public int getNumActiveTasks() {
+    return mTaskExecutionService.getNumActiveTasks();
   }
 
   /**
