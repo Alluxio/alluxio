@@ -532,6 +532,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY =
+      new Builder(Name.ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY)
+          .setDefaultValue("SESSION")
+          .setDescription("Connection error policy defines how errors on zookeeper connections "
+              + "to be treated in leader election. "
+              + "STANDARD policy treats every connection event as failure."
+              + "SESSION policy relies on zookeeper sessions for judging failures, "
+              + "helping leader to retain its status, as long as its session is protected.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   /**
    * UFS related properties.
    */
@@ -3695,6 +3706,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
     public static final String ZOOKEEPER_SESSION_TIMEOUT = "alluxio.zookeeper.session.timeout";
     public static final String ZOOKEEPER_AUTH_ENABLED = "alluxio.zookeeper.auth.enabled";
+    public static final String ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY =
+        "alluxio.zookeeper.leader.connection.error.policy";
     //
     // UFS related properties
     //
