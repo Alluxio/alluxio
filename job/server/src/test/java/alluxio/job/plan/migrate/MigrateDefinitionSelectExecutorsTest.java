@@ -21,6 +21,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.Pair;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -35,9 +36,8 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 /**
  * Unit tests for
@@ -100,15 +100,15 @@ public final class MigrateDefinitionSelectExecutorsTest {
   @Test
   public void migrateToSelf() throws Exception {
     createDirectory("/src");
-    Assert.assertEquals(Maps.newHashMap(), assignMigrates("/src", "/src"));
+    Assert.assertEquals(ImmutableSet.of(), assignMigrates("/src", "/src"));
   }
 
   @Test
   public void assignToLocalWorker() throws Exception {
     createFileWithBlocksOnWorkers("/src", 0);
     setPathToNotExist("/dst");
-    Map<WorkerInfo, List<MigrateCommand>> expected = ImmutableMap.of(JOB_WORKERS.get(0),
-        Collections.singletonList(new MigrateCommand("/src", "/dst")));
+    Set<Pair<WorkerInfo, List<MigrateCommand>>> expected = ImmutableSet.of(new Pair<>(
+        JOB_WORKERS.get(0), Collections.singletonList(new MigrateCommand("/src", "/dst"))));
     Assert.assertEquals(expected, assignMigrates("/src", "/dst"));
   }
 
@@ -116,8 +116,8 @@ public final class MigrateDefinitionSelectExecutorsTest {
   public void assignToWorkerWithMostBlocks() throws Exception {
     createFileWithBlocksOnWorkers("/src", 3, 1, 1, 3, 1);
     setPathToNotExist("/dst");
-    Map<WorkerInfo, List<MigrateCommand>> expected = ImmutableMap.of(JOB_WORKERS.get(1),
-        Collections.singletonList(new MigrateCommand("/src", "/dst")));
+    Set<Pair<WorkerInfo, List<MigrateCommand>>> expected = ImmutableSet.of(new Pair<>(
+        JOB_WORKERS.get(1), Collections.singletonList(new MigrateCommand("/src", "/dst"))));
     Assert.assertEquals(expected, assignMigrates("/src", "/dst"));
   }
 
@@ -135,12 +135,13 @@ public final class MigrateDefinitionSelectExecutorsTest {
     setPathToNotExist("/dst");
 
     List<MigrateCommand> migrateCommandsWorker0 = Lists.newArrayList(
-        new MigrateCommand("/dir/src1", "/dst/src1"), new MigrateCommand("/dir/src3", "/dst/src3"));
+        new MigrateCommand("/dir/src1", "/dst/src1"),
+        new MigrateCommand("/dir/src3", "/dst/src3"));
     List<MigrateCommand> migrateCommandsWorker2 =
         Lists.newArrayList(new MigrateCommand("/dir/src2", "/dst/src2"));
-    ImmutableMap<WorkerInfo, List<MigrateCommand>> expected =
-        ImmutableMap.of(JOB_WORKERS.get(0), migrateCommandsWorker0, JOB_WORKERS.get(2),
-                migrateCommandsWorker2);
+    Set<Pair<WorkerInfo, List<MigrateCommand>>> expected =
+        ImmutableSet.of(new Pair<>(JOB_WORKERS.get(0), migrateCommandsWorker0), new Pair<>(
+            JOB_WORKERS.get(2), migrateCommandsWorker2));
     Assert.assertEquals(expected, assignMigrates("/dir", "/dst"));
   }
 
@@ -266,8 +267,8 @@ public final class MigrateDefinitionSelectExecutorsTest {
     createFileWithBlocksOnWorkers("/src", 0);
     createFile("/dst");
 
-    Map<WorkerInfo, List<MigrateCommand>> expected = ImmutableMap.of(JOB_WORKERS.get(0),
-        Collections.singletonList(new MigrateCommand("/src", "/dst")));
+    Set<Pair<WorkerInfo, List<MigrateCommand>>> expected = ImmutableSet.of(new Pair<>(
+        JOB_WORKERS.get(0), Collections.singletonList(new MigrateCommand("/src", "/dst"))));
     // Set overwrite to true.
     Assert.assertEquals(expected, assignMigrates(new MigrateConfig("/src", "/dst", "THROUGH",
         true, false)));
@@ -292,9 +293,9 @@ public final class MigrateDefinitionSelectExecutorsTest {
                     "/dst/nested/moreNested/file3"));
     List<MigrateCommand> migrateCommandsWorker2 =
         Lists.newArrayList(new MigrateCommand("/src/file1", "/dst/file1"));
-    ImmutableMap<WorkerInfo, List<MigrateCommand>> expected =
-        ImmutableMap.of(JOB_WORKERS.get(1), migrateCommandsWorker1, JOB_WORKERS.get(2),
-                migrateCommandsWorker2);
+    Set<Pair<WorkerInfo, List<MigrateCommand>>> expected =
+        ImmutableSet.of(new Pair<>(JOB_WORKERS.get(1), migrateCommandsWorker1), new Pair<>(
+            JOB_WORKERS.get(2), migrateCommandsWorker2));
     Assert.assertEquals(expected, assignMigrates(new MigrateConfig(
             "/src", "/dst", "THROUGH", true, false)));
   }
@@ -311,21 +312,21 @@ public final class MigrateDefinitionSelectExecutorsTest {
     createFileWithBlocksOnWorkers("/src", 0);
     setPathToNotExist("/dst");
 
-    Map<WorkerInfo, ArrayList<MigrateCommand>> assignments =
+    Set<Pair<WorkerInfo, ArrayList<MigrateCommand>>> assignments =
         new MigrateDefinition().selectExecutors(
             new MigrateConfig("/src", "/dst", "THROUGH", true, false),
             ImmutableList.of(JOB_WORKER_3),
             new SelectExecutorsContext(1,
                 new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager)));
 
-    Assert.assertEquals(ImmutableMap.of(JOB_WORKER_3,
-        new ArrayList<>(Arrays.asList(new MigrateCommand("/src", "/dst")))), assignments);
+    Assert.assertEquals(ImmutableSet.of(new Pair<>(JOB_WORKER_3,
+        new ArrayList<>(Arrays.asList(new MigrateCommand("/src", "/dst"))))), assignments);
   }
 
   /**
    * Runs selectExecutors for the migrate from source to destination.
    */
-  private Map<WorkerInfo, ArrayList<MigrateCommand>> assignMigrates(String source,
+  private Set<Pair<WorkerInfo, ArrayList<MigrateCommand>>> assignMigrates(String source,
       String destination) throws Exception {
     return assignMigrates(new MigrateConfig(source, destination, "THROUGH", false, false));
   }
@@ -334,7 +335,7 @@ public final class MigrateDefinitionSelectExecutorsTest {
    * Runs selectExecutors for the migrate from source to destination with the given writeType and
    * overwrite value.
    */
-  private Map<WorkerInfo, ArrayList<MigrateCommand>> assignMigrates(MigrateConfig config)
+  private Set<Pair<WorkerInfo, ArrayList<MigrateCommand>>> assignMigrates(MigrateConfig config)
       throws Exception {
     return new MigrateDefinition().selectExecutors(config,
         JOB_WORKERS, new SelectExecutorsContext(1,
@@ -353,7 +354,7 @@ public final class MigrateDefinitionSelectExecutorsTest {
    */
   private void assignMigratesFail(String source, String destination, String writeType,
       boolean overwrite) throws Exception {
-    Map<WorkerInfo, ArrayList<MigrateCommand>> assignment =
+    Set<Pair<WorkerInfo, ArrayList<MigrateCommand>>> assignment =
         assignMigrates(new MigrateConfig(source, destination, writeType, overwrite, false));
     Assert.fail(
         "Selecting executors should have failed, but it succeeded with assignment " + assignment);

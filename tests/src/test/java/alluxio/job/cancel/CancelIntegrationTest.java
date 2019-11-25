@@ -12,6 +12,7 @@
 package alluxio.job.cancel;
 
 import alluxio.Constants;
+import alluxio.collections.Pair;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.plan.PlanConfig;
 import alluxio.job.plan.PlanDefinitionRegistry;
@@ -21,12 +22,12 @@ import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
 import alluxio.wire.WorkerInfo;
 
+import com.beust.jcommander.internal.Sets;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 /**
  * Tests the cancellation of a job.
@@ -44,12 +45,12 @@ public final class CancelIntegrationTest extends JobIntegrationTest {
   public static class CancelTestDefinition
       extends AbstractVoidPlanDefinition<CancelTestConfig, Integer> {
     @Override
-    public Map<WorkerInfo, Integer> selectExecutors(CancelTestConfig config,
+    public Set<Pair<WorkerInfo, Integer>> selectExecutors(CancelTestConfig config,
         List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
         throws Exception {
-      Map<WorkerInfo, Integer> result = new HashMap<>();
+      Set<Pair<WorkerInfo, Integer>> result = Sets.newHashSet();
       for (WorkerInfo info : jobWorkerInfoList) {
-        result.put(info, 0);
+        result.add(new Pair<>(info, 0));
       }
       return result;
     }
