@@ -133,28 +133,28 @@ public final class PathUtilsTest {
     ArrayList<AlluxioURI> paths = new ArrayList<>();
 
     paths.add(new AlluxioURI("/"));
-    assertTrue("/".equals(PathUtils.findLowestCommonAncestor(paths).getPath()));
+    assertEquals("/", PathUtils.findLowestCommonAncestor(paths).getPath());
 
     paths.clear();
     paths.add(new AlluxioURI("/a"));
-    assertTrue("/a".equals(PathUtils.findLowestCommonAncestor(paths).getPath()));
+    assertEquals("/a", PathUtils.findLowestCommonAncestor(paths).getPath());
 
     paths.add(new AlluxioURI("/a/b"));
-    assertTrue("/a".equals(PathUtils.findLowestCommonAncestor(paths).getPath()));
+    assertEquals("/a", PathUtils.findLowestCommonAncestor(paths).getPath());
 
     paths.clear();
     paths.add(new AlluxioURI("/a/c"));
     paths.add(new AlluxioURI("/a/d/"));
-    assertTrue("/a".equals(PathUtils.findLowestCommonAncestor(paths).getPath()));
+    assertEquals("/a", PathUtils.findLowestCommonAncestor(paths).getPath());
 
     paths.add(new AlluxioURI("/b/a/"));
-    assertTrue("/".equals(PathUtils.findLowestCommonAncestor(paths).getPath()));
+    assertEquals("/", PathUtils.findLowestCommonAncestor(paths).getPath());
 
     paths.clear();
     paths.add(new AlluxioURI("/a/b/c"));
     paths.add(new AlluxioURI("/a/b/d"));
     paths.add(new AlluxioURI("/a/b/e"));
-    assertTrue("/a/b".equals(PathUtils.findLowestCommonAncestor(paths).getPath()));
+    assertEquals("/a/b", PathUtils.findLowestCommonAncestor(paths).getPath());
 
     paths.clear();
     String prefix = "/a/b/c";
@@ -165,7 +165,7 @@ public final class PathUtilsTest {
         }
       }
     }
-    assertTrue(prefix.equals(PathUtils.findLowestCommonAncestor(paths).getPath()));
+    assertEquals(prefix, PathUtils.findLowestCommonAncestor(paths).getPath());
   }
 
   /**

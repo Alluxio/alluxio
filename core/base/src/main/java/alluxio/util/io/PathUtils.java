@@ -150,9 +150,8 @@ public final class PathUtils {
         }
       }
     }
-    AlluxioURI lca = new AlluxioURI(AlluxioURI.SEPARATOR);
-    return new AlluxioURI(
-        PathUtils.concatPath(lca, matchedComponents.subList(0, matchedLen).toArray()));
+    return new AlluxioURI(PathUtils.concatPath(AlluxioURI.SEPARATOR,
+        matchedComponents.subList(0, matchedLen).toArray()));
   }
 
   /**
