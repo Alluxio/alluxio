@@ -51,4 +51,13 @@ public interface JobWorkerHealthOrBuilder extends
    */
   com.google.protobuf.ByteString
       getHostnameBytes();
+
+  /**
+   * <code>optional int32 taskPoolSize = 5;</code>
+   */
+  boolean hasTaskPoolSize();
+  /**
+   * <code>optional int32 taskPoolSize = 5;</code>
+   */
+  int getTaskPoolSize();
 }

@@ -72,8 +72,13 @@ public class TaskExecutorManager {
   }
 
   /**
-   * Sets the threadpool size of the task executor pool
-   *
+   * @return task executor pool size
+   */
+  public int getTaskExecutorPoolSize() {
+    return mTaskExecutionService.getCorePoolSize();
+  }
+
+  /**
    * @param taskExecutorPoolSize number of threads in the task executor pool
    */
   public void setTaskExecutorPoolSize(int taskExecutorPoolSize) {

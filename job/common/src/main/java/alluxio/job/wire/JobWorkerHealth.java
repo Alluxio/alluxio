@@ -26,6 +26,7 @@ public class JobWorkerHealth {
   private final long mWorkerId;
   private final List<Double> mLoadAverage;
   private final long mLastUpdated;
+  private final int mTaskPoolSize;
   private final String mHostname;
 
   /**
@@ -35,10 +36,11 @@ public class JobWorkerHealth {
    * @param loadAverage output of CentralProcessor.getSystemLoadAverage on the worker
    * @param hostname hostname of the worker
    */
-  public JobWorkerHealth(long workerId, double[] loadAverage, String hostname) {
+  public JobWorkerHealth(long workerId, double[] loadAverage, int taskPoolSize, String hostname) {
     mWorkerId = workerId;
     mLoadAverage = DoubleStream.of(loadAverage).boxed().collect(Collectors.toList());
     mLastUpdated = CommonUtils.getCurrentMs();
+    mTaskPoolSize = taskPoolSize;
     mHostname = hostname;
   }
 
@@ -51,6 +53,7 @@ public class JobWorkerHealth {
     mWorkerId = jobWorkerHealth.getWorkerId();
     mLoadAverage = jobWorkerHealth.getLoadAverageList();
     mLastUpdated = jobWorkerHealth.getLastUpdated();
+    mTaskPoolSize = jobWorkerHealth.getTaskPoolSize();
     mHostname = jobWorkerHealth.getHostname();
   }
 
@@ -73,6 +76,13 @@ public class JobWorkerHealth {
   }
 
   /**
+   * @return task pool size
+   */
+  public int getTaskPoolSize() {
+    return mTaskPoolSize;
+  }
+
+  /**
    * @return the worker hostname
    */
   public String getHostname() {
@@ -84,7 +94,8 @@ public class JobWorkerHealth {
    */
   public alluxio.grpc.JobWorkerHealth toProto() {
     alluxio.grpc.JobWorkerHealth.Builder builder = alluxio.grpc.JobWorkerHealth.newBuilder()
-        .setWorkerId(mWorkerId).addAllLoadAverage(mLoadAverage).setLastUpdated(mLastUpdated);
+        .setWorkerId(mWorkerId).addAllLoadAverage(mLoadAverage).setTaskPoolSize(mTaskPoolSize)
+        .setLastUpdated(mLastUpdated);
 
     if (mHostname != null) {
       builder.setHostname(mHostname);

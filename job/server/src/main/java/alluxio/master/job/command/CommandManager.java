@@ -95,6 +95,7 @@ public final class CommandManager {
    * Submits a set thread pool size command to specific worker.
    *
    * @param workerId the worker id
+   * @param taskPoolSize the task pool size
    */
   public synchronized void submitSetTaskPoolSizeCommand(long workerId, int taskPoolSize) {
     SetTaskPoolSizeCommand.Builder setTaskPoolSizeCommand = SetTaskPoolSizeCommand.newBuilder();

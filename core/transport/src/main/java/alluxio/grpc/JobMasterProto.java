@@ -211,83 +211,84 @@ public final class JobMasterProto {
       "\0132\031.alluxio.grpc.job.JobInfo\0221\n\016recentFa" +
       "ilures\030\003 \003(\0132\031.alluxio.grpc.job.JobInfo\022" +
       "1\n\016longestRunning\030\004 \003(\0132\031.alluxio.grpc.j" +
-      "ob.JobInfo\"_\n\017JobWorkerHealth\022\020\n\010workerI" +
+      "ob.JobInfo\"u\n\017JobWorkerHealth\022\020\n\010workerI" +
       "d\030\001 \001(\003\022\023\n\013loadAverage\030\002 \003(\001\022\023\n\013lastUpda" +
-      "ted\030\003 \001(\003\022\020\n\010hostname\030\004 \001(\t\"\214\002\n\nJobComma" +
-      "nd\0228\n\016runTaskCommand\030\001 \001(\0132 .alluxio.grp" +
-      "c.job.RunTaskCommand\022>\n\021cancelTaskComman" +
-      "d\030\002 \001(\0132#.alluxio.grpc.job.CancelTaskCom" +
-      "mand\022:\n\017registerCommand\030\003 \001(\0132!.alluxio." +
-      "grpc.job.RegisterCommand\022H\n\026setTaskPoolS" +
-      "izeCommand\030\004 \001(\0132(.alluxio.grpc.job.SetT" +
-      "askPoolSizeCommand\"T\n\016RunTaskCommand\022\r\n\005" +
-      "jobId\030\001 \001(\003\022\016\n\006taskId\030\002 \001(\003\022\021\n\tjobConfig" +
-      "\030\003 \001(\014\022\020\n\010taskArgs\030\004 \001(\014\"\021\n\017RegisterComm" +
-      "and\".\n\026SetTaskPoolSizeCommand\022\024\n\014taskPoo" +
-      "lSize\030\001 \001(\005\"2\n\021CancelTaskCommand\022\r\n\005jobI" +
-      "d\030\001 \001(\003\022\016\n\006taskId\030\002 \001(\003\"\020\n\016CancelPOption" +
-      "s\"R\n\016CancelPRequest\022\r\n\005jobId\030\001 \001(\003\0221\n\007op" +
-      "tions\030\002 \001(\0132 .alluxio.grpc.job.CancelPOp" +
-      "tions\"\021\n\017CancelPResponse\"\026\n\024GetJobStatus" +
-      "POptions\"^\n\024GetJobStatusPRequest\022\r\n\005jobI" +
-      "d\030\001 \001(\003\0227\n\007options\030\002 \001(\0132&.alluxio.grpc." +
-      "job.GetJobStatusPOptions\"C\n\025GetJobStatus" +
-      "PResponse\022*\n\007jobInfo\030\001 \001(\0132\031.alluxio.grp" +
-      "c.job.JobInfo\"\021\n\017ListAllPOptions\"E\n\017List" +
-      "AllPRequest\0222\n\007options\030\001 \001(\0132!.alluxio.g" +
-      "rpc.job.ListAllPOptions\"\"\n\020ListAllPRespo" +
-      "nse\022\016\n\006jobIds\030\001 \003(\003\"\r\n\013RunPOptions\"P\n\013Ru" +
-      "nPRequest\022\021\n\tjobConfig\030\001 \001(\014\022.\n\007options\030" +
-      "\002 \001(\0132\035.alluxio.grpc.job.RunPOptions\"\035\n\014" +
-      "RunPResponse\022\r\n\005jobId\030\001 \001(\003\"\036\n\034GetJobSer" +
-      "viceSummaryPOptions\"_\n\034GetJobServiceSumm" +
-      "aryPRequest\022?\n\007options\030\001 \001(\0132..alluxio.g" +
-      "rpc.job.GetJobServiceSummaryPOptions\"U\n\035" +
-      "GetJobServiceSummaryPResponse\0224\n\007summary" +
-      "\030\001 \001(\0132#.alluxio.grpc.job.JobServiceSumm" +
-      "ary\"\034\n\032GetAllWorkerHealthPOptions\"[\n\032Get" +
-      "AllWorkerHealthPRequest\022=\n\007options\030\001 \001(\013" +
-      "2,.alluxio.grpc.job.GetAllWorkerHealthPO" +
-      "ptions\"W\n\033GetAllWorkerHealthPResponse\0228\n" +
-      "\rworkerHealths\030\001 \003(\0132!.alluxio.grpc.job." +
-      "JobWorkerHealth\"\026\n\024JobHeartbeatPOptions\"" +
-      "\271\001\n\024JobHeartbeatPRequest\022:\n\017jobWorkerHea" +
-      "lth\030\001 \001(\0132!.alluxio.grpc.job.JobWorkerHe" +
-      "alth\022,\n\ttaskInfos\030\002 \003(\0132\031.alluxio.grpc.j" +
-      "ob.JobInfo\0227\n\007options\030\003 \001(\0132&.alluxio.gr" +
-      "pc.job.JobHeartbeatPOptions\"G\n\025JobHeartb" +
-      "eatPResponse\022.\n\010commands\030\001 \003(\0132\034.alluxio" +
-      ".grpc.job.JobCommand\"\033\n\031RegisterJobWorke" +
-      "rPOptions\"\223\001\n\031RegisterJobWorkerPRequest\022" +
-      "8\n\020workerNetAddress\030\001 \001(\0132\036.alluxio.grpc" +
-      ".WorkerNetAddress\022<\n\007options\030\002 \001(\0132+.all" +
-      "uxio.grpc.job.RegisterJobWorkerPOptions\"" +
-      "(\n\032RegisterJobWorkerPResponse\022\n\n\002id\030\001 \001(" +
-      "\003*X\n\006Status\022\013\n\007UNKNOWN\020\000\022\013\n\007CREATED\020\001\022\014\n" +
-      "\010CANCELED\020\002\022\n\n\006FAILED\020\003\022\013\n\007RUNNING\020\004\022\r\n\t" +
-      "COMPLETED\020\005*+\n\007JobType\022\010\n\004PLAN\020\001\022\010\n\004TASK" +
-      "\020\002\022\014\n\010WORKFLOW\020\0032\314\004\n\026JobMasterClientServ" +
-      "ice\022M\n\006Cancel\022 .alluxio.grpc.job.CancelP" +
-      "Request\032!.alluxio.grpc.job.CancelPRespon" +
-      "se\022_\n\014GetJobStatus\022&.alluxio.grpc.job.Ge" +
-      "tJobStatusPRequest\032\'.alluxio.grpc.job.Ge" +
-      "tJobStatusPResponse\022w\n\024GetJobServiceSumm" +
-      "ary\022..alluxio.grpc.job.GetJobServiceSumm" +
-      "aryPRequest\032/.alluxio.grpc.job.GetJobSer" +
-      "viceSummaryPResponse\022P\n\007ListAll\022!.alluxi" +
-      "o.grpc.job.ListAllPRequest\032\".alluxio.grp" +
-      "c.job.ListAllPResponse\022D\n\003Run\022\035.alluxio." +
-      "grpc.job.RunPRequest\032\036.alluxio.grpc.job." +
-      "RunPResponse\022q\n\022GetAllWorkerHealth\022,.all" +
-      "uxio.grpc.job.GetAllWorkerHealthPRequest" +
-      "\032-.alluxio.grpc.job.GetAllWorkerHealthPR" +
-      "esponse2\346\001\n\026JobMasterWorkerService\022\\\n\tHe" +
-      "artbeat\022&.alluxio.grpc.job.JobHeartbeatP" +
-      "Request\032\'.alluxio.grpc.job.JobHeartbeatP" +
-      "Response\022n\n\021RegisterJobWorker\022+.alluxio." +
-      "grpc.job.RegisterJobWorkerPRequest\032,.all" +
-      "uxio.grpc.job.RegisterJobWorkerPResponse" +
-      "B \n\014alluxio.grpcB\016JobMasterProtoP\001"
+      "ted\030\003 \001(\003\022\020\n\010hostname\030\004 \001(\t\022\024\n\014taskPoolS" +
+      "ize\030\005 \001(\005\"\214\002\n\nJobCommand\0228\n\016runTaskComma" +
+      "nd\030\001 \001(\0132 .alluxio.grpc.job.RunTaskComma" +
+      "nd\022>\n\021cancelTaskCommand\030\002 \001(\0132#.alluxio." +
+      "grpc.job.CancelTaskCommand\022:\n\017registerCo" +
+      "mmand\030\003 \001(\0132!.alluxio.grpc.job.RegisterC" +
+      "ommand\022H\n\026setTaskPoolSizeCommand\030\004 \001(\0132(" +
+      ".alluxio.grpc.job.SetTaskPoolSizeCommand" +
+      "\"T\n\016RunTaskCommand\022\r\n\005jobId\030\001 \001(\003\022\016\n\006tas" +
+      "kId\030\002 \001(\003\022\021\n\tjobConfig\030\003 \001(\014\022\020\n\010taskArgs" +
+      "\030\004 \001(\014\"\021\n\017RegisterCommand\".\n\026SetTaskPool" +
+      "SizeCommand\022\024\n\014taskPoolSize\030\001 \001(\005\"2\n\021Can" +
+      "celTaskCommand\022\r\n\005jobId\030\001 \001(\003\022\016\n\006taskId\030" +
+      "\002 \001(\003\"\020\n\016CancelPOptions\"R\n\016CancelPReques" +
+      "t\022\r\n\005jobId\030\001 \001(\003\0221\n\007options\030\002 \001(\0132 .allu" +
+      "xio.grpc.job.CancelPOptions\"\021\n\017CancelPRe" +
+      "sponse\"\026\n\024GetJobStatusPOptions\"^\n\024GetJob" +
+      "StatusPRequest\022\r\n\005jobId\030\001 \001(\003\0227\n\007options" +
+      "\030\002 \001(\0132&.alluxio.grpc.job.GetJobStatusPO" +
+      "ptions\"C\n\025GetJobStatusPResponse\022*\n\007jobIn" +
+      "fo\030\001 \001(\0132\031.alluxio.grpc.job.JobInfo\"\021\n\017L" +
+      "istAllPOptions\"E\n\017ListAllPRequest\0222\n\007opt" +
+      "ions\030\001 \001(\0132!.alluxio.grpc.job.ListAllPOp" +
+      "tions\"\"\n\020ListAllPResponse\022\016\n\006jobIds\030\001 \003(" +
+      "\003\"\r\n\013RunPOptions\"P\n\013RunPRequest\022\021\n\tjobCo" +
+      "nfig\030\001 \001(\014\022.\n\007options\030\002 \001(\0132\035.alluxio.gr" +
+      "pc.job.RunPOptions\"\035\n\014RunPResponse\022\r\n\005jo" +
+      "bId\030\001 \001(\003\"\036\n\034GetJobServiceSummaryPOption" +
+      "s\"_\n\034GetJobServiceSummaryPRequest\022?\n\007opt" +
+      "ions\030\001 \001(\0132..alluxio.grpc.job.GetJobServ" +
+      "iceSummaryPOptions\"U\n\035GetJobServiceSumma" +
+      "ryPResponse\0224\n\007summary\030\001 \001(\0132#.alluxio.g" +
+      "rpc.job.JobServiceSummary\"\034\n\032GetAllWorke" +
+      "rHealthPOptions\"[\n\032GetAllWorkerHealthPRe" +
+      "quest\022=\n\007options\030\001 \001(\0132,.alluxio.grpc.jo" +
+      "b.GetAllWorkerHealthPOptions\"W\n\033GetAllWo" +
+      "rkerHealthPResponse\0228\n\rworkerHealths\030\001 \003" +
+      "(\0132!.alluxio.grpc.job.JobWorkerHealth\"\026\n" +
+      "\024JobHeartbeatPOptions\"\271\001\n\024JobHeartbeatPR" +
+      "equest\022:\n\017jobWorkerHealth\030\001 \001(\0132!.alluxi" +
+      "o.grpc.job.JobWorkerHealth\022,\n\ttaskInfos\030" +
+      "\002 \003(\0132\031.alluxio.grpc.job.JobInfo\0227\n\007opti" +
+      "ons\030\003 \001(\0132&.alluxio.grpc.job.JobHeartbea" +
+      "tPOptions\"G\n\025JobHeartbeatPResponse\022.\n\010co" +
+      "mmands\030\001 \003(\0132\034.alluxio.grpc.job.JobComma" +
+      "nd\"\033\n\031RegisterJobWorkerPOptions\"\223\001\n\031Regi" +
+      "sterJobWorkerPRequest\0228\n\020workerNetAddres" +
+      "s\030\001 \001(\0132\036.alluxio.grpc.WorkerNetAddress\022" +
+      "<\n\007options\030\002 \001(\0132+.alluxio.grpc.job.Regi" +
+      "sterJobWorkerPOptions\"(\n\032RegisterJobWork" +
+      "erPResponse\022\n\n\002id\030\001 \001(\003*X\n\006Status\022\013\n\007UNK" +
+      "NOWN\020\000\022\013\n\007CREATED\020\001\022\014\n\010CANCELED\020\002\022\n\n\006FAI" +
+      "LED\020\003\022\013\n\007RUNNING\020\004\022\r\n\tCOMPLETED\020\005*+\n\007Job" +
+      "Type\022\010\n\004PLAN\020\001\022\010\n\004TASK\020\002\022\014\n\010WORKFLOW\020\0032\314" +
+      "\004\n\026JobMasterClientService\022M\n\006Cancel\022 .al" +
+      "luxio.grpc.job.CancelPRequest\032!.alluxio." +
+      "grpc.job.CancelPResponse\022_\n\014GetJobStatus" +
+      "\022&.alluxio.grpc.job.GetJobStatusPRequest" +
+      "\032\'.alluxio.grpc.job.GetJobStatusPRespons" +
+      "e\022w\n\024GetJobServiceSummary\022..alluxio.grpc" +
+      ".job.GetJobServiceSummaryPRequest\032/.allu" +
+      "xio.grpc.job.GetJobServiceSummaryPRespon" +
+      "se\022P\n\007ListAll\022!.alluxio.grpc.job.ListAll" +
+      "PRequest\032\".alluxio.grpc.job.ListAllPResp" +
+      "onse\022D\n\003Run\022\035.alluxio.grpc.job.RunPReque" +
+      "st\032\036.alluxio.grpc.job.RunPResponse\022q\n\022Ge" +
+      "tAllWorkerHealth\022,.alluxio.grpc.job.GetA" +
+      "llWorkerHealthPRequest\032-.alluxio.grpc.jo" +
+      "b.GetAllWorkerHealthPResponse2\346\001\n\026JobMas" +
+      "terWorkerService\022\\\n\tHeartbeat\022&.alluxio." +
+      "grpc.job.JobHeartbeatPRequest\032\'.alluxio." +
+      "grpc.job.JobHeartbeatPResponse\022n\n\021Regist" +
+      "erJobWorker\022+.alluxio.grpc.job.RegisterJ" +
+      "obWorkerPRequest\032,.alluxio.grpc.job.Regi" +
+      "sterJobWorkerPResponseB \n\014alluxio.grpcB\016" +
+      "JobMasterProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -331,7 +332,7 @@ public final class JobMasterProto {
     internal_static_alluxio_grpc_job_JobWorkerHealth_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_job_JobWorkerHealth_descriptor,
-        new java.lang.String[] { "WorkerId", "LoadAverage", "LastUpdated", "Hostname", });
+        new java.lang.String[] { "WorkerId", "LoadAverage", "LastUpdated", "Hostname", "TaskPoolSize", });
     internal_static_alluxio_grpc_job_JobCommand_descriptor =
       getDescriptor().getMessageTypes().get(5);
     internal_static_alluxio_grpc_job_JobCommand_fieldAccessorTable = new

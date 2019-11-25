@@ -63,6 +63,7 @@ message JobWorkerHealth {
   repeated double loadAverage = 2;
   optional int64 lastUpdated = 3;
   optional string hostname = 4;
+  optional int32 taskPoolSize = 5;
 }
 
 message JobCommand {
