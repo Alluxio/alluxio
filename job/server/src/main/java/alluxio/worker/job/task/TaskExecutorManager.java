@@ -42,7 +42,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class TaskExecutorManager {
   private static final Logger LOG = LoggerFactory.getLogger(TaskExecutorManager.class);
 
-  private static final int MAX_TASK_EXECUTOR_POOL_SIZE = 100;
+  private static final int MAX_TASK_EXECUTOR_POOL_SIZE = 10000;
 
   private final ThreadPoolExecutor mTaskExecutionService;
 

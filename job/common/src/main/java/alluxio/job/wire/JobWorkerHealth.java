@@ -12,6 +12,8 @@
 package alluxio.job.wire;
 
 import alluxio.util.CommonUtils;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 import java.util.Collections;
 import java.util.List;
@@ -103,5 +105,40 @@ public class JobWorkerHealth {
     }
 
     return builder.build();
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mWorkerId, mLoadAverage, mLastUpdated, mHostname, mTaskPoolSize);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null) {
+      return false;
+    }
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof JobWorkerHealth)) {
+      return false;
+    }
+    JobWorkerHealth that = (JobWorkerHealth) o;
+    return Objects.equal(mWorkerId, that.mWorkerId)
+        && Objects.equal(mLoadAverage, that.mLoadAverage)
+        && Objects.equal(mLastUpdated, that.mLastUpdated)
+        && Objects.equal(mHostname, that.mHostname)
+        && Objects.equal(mTaskPoolSize, that.mTaskPoolSize);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("workerId", mWorkerId)
+        .add("loadAverage", mLoadAverage)
+        .add("lastUpdated", mLastUpdated)
+        .add("hostname", mHostname)
+        .add("taskPoolSize", mTaskPoolSize)
+        .toString();
   }
 }

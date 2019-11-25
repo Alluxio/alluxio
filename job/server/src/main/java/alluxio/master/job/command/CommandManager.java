@@ -106,7 +106,7 @@ public final class CommandManager {
     submit(workerId, command);
   }
 
-  private void submit(long workerId, JobCommand.Builder command) {
+  private synchronized void submit(long workerId, JobCommand.Builder command) {
     if (!mWorkerIdToPendingCommands.containsKey(workerId)) {
       mWorkerIdToPendingCommands.put(workerId, Lists.newArrayList());
     }
