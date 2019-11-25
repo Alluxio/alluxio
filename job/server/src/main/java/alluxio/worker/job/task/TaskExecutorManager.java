@@ -17,6 +17,7 @@ import alluxio.job.RunTaskContext;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -47,18 +48,22 @@ public class TaskExecutorManager {
   /** Stores the task info for all running tasks. */
   private final Map<Pair<Long, Long>, TaskInfo> mUnfinishedTasks;
   /** Stores the updated tasks since the last call to {@link #getAndClearTaskUpdates()}. */
-  private final Map<Pair<Long, Long>, alluxio.grpc.JobInfo> mTaskUpdates;
+  private final Map<Pair<Long, Long>, TaskInfo> mTaskUpdates;
+
+  private final WorkerNetAddress mAddress;
 
   /**
    * Constructs a new instance of {@link TaskExecutorManager}.
    * @param taskExecutorPoolSize number of task executors in the pool
+   * @param address the worker address
    */
-  public TaskExecutorManager(int taskExecutorPoolSize) {
+  public TaskExecutorManager(int taskExecutorPoolSize, WorkerNetAddress address) {
     mTaskFutures = Maps.newHashMap();
     mUnfinishedTasks = Maps.newHashMap();
     mTaskUpdates = Maps.newHashMap();
     mTaskExecutionService = Executors.newFixedThreadPool(taskExecutorPoolSize,
       ThreadFactoryUtils.build("task-execution-service-%d", true));
+    mAddress = address;
   }
 
   /**
@@ -124,10 +129,10 @@ public class TaskExecutorManager {
         .submit(new TaskExecutor(jobId, taskId, jobConfig, taskArgs, context, this));
     Pair<Long, Long> id = new Pair<>(jobId, taskId);
     mTaskFutures.put(id, future);
-    TaskInfo taskInfo = new TaskInfo(jobId, taskId, Status.RUNNING);
+    TaskInfo taskInfo = new TaskInfo(jobId, taskId, Status.RUNNING, mAddress);
 
     mUnfinishedTasks.put(id, taskInfo);
-    mTaskUpdates.put(id, taskInfo.toProto());
+    mTaskUpdates.put(id, taskInfo);
     LOG.info("Task {} for job {} started", taskId, jobId);
   }
 
@@ -156,7 +161,7 @@ public class TaskExecutorManager {
   /**
    * @return the list of task information
    */
-  public synchronized List<alluxio.grpc.JobInfo> getAndClearTaskUpdates() {
+  public synchronized List<TaskInfo> getAndClearTaskUpdates() {
     try {
       return ImmutableList.copyOf(mTaskUpdates.values());
     } finally {
@@ -170,8 +175,8 @@ public class TaskExecutorManager {
    *
    * @param tasks the tasks to restore
    */
-  public synchronized void restoreTaskUpdates(List<alluxio.grpc.JobInfo> tasks) {
-    for (alluxio.grpc.JobInfo task : tasks) {
+  public synchronized void restoreTaskUpdates(List<TaskInfo> tasks) {
+    for (TaskInfo task : tasks) {
       Pair<Long, Long> id = new Pair<>(task.getParentId(), task.getId());
       if (!mTaskUpdates.containsKey(id)) {
         mTaskUpdates.put(id, task);
@@ -183,6 +188,6 @@ public class TaskExecutorManager {
     TaskInfo taskInfo = mUnfinishedTasks.get(id);
     mTaskFutures.remove(id);
     mUnfinishedTasks.remove(id);
-    mTaskUpdates.put(id, taskInfo.toProto());
+    mTaskUpdates.put(id, taskInfo);
   }
 }

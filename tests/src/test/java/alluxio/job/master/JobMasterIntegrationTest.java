@@ -12,6 +12,7 @@
 package alluxio.job.master;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
@@ -21,6 +22,8 @@ import alluxio.job.plan.PlanDefinitionRegistryRule;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.plan.SleepPlanDefinition;
 import alluxio.job.util.JobTestUtils;
+import alluxio.job.wire.JobWorkerHealth;
+import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
@@ -37,6 +40,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Integration tests for the job master.
@@ -71,6 +75,19 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
   @After
   public void after() throws Exception {
     mLocalAlluxioJobCluster.stop();
+  }
+
+  @Test
+  public void multipleTasksPerWorker() throws Exception {
+    long jobId = mJobMaster.run(new SleepJobConfig(1, 2));
+
+    JobInfo jobStatus = mJobMaster.getStatus(jobId);
+    assertEquals(2, jobStatus.getChildren().size());
+
+    JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.COMPLETED);
+
+    jobStatus = mJobMaster.getStatus(jobId);
+    assertEquals(2, jobStatus.getChildren().size());
   }
 
   @Test
@@ -123,5 +140,20 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
     }, WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
     // The restarted worker should replace the original worker since they have the same address.
     assertEquals(1, mJobMaster.getWorkerInfoList().size());
+  }
+
+  @Test
+  public void getAllWorkerHealth() throws Exception {
+    final AtomicReference<List<JobWorkerHealth>> singleton = new AtomicReference<>();
+    CommonUtils.waitFor("allWorkerHealth", () -> {
+      List<JobWorkerHealth> allWorkerHealth = mJobMaster.getAllWorkerHealth();
+      singleton.set(allWorkerHealth);
+      return allWorkerHealth.size() == 1;
+    });
+    List<JobWorkerHealth> allWorkerHealth = singleton.get();
+
+    JobWorkerHealth workerHealth = allWorkerHealth.get(0);
+    assertNotNull(workerHealth.getHostname());
+    assertEquals(3, workerHealth.getLoadAverage().size());
   }
 }

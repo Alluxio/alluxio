@@ -15,7 +15,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.JobType;
 import alluxio.job.util.SerializationUtils;
 import alluxio.util.CommonUtils;
-import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
-import java.util.Collection;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -53,34 +53,19 @@ public class TaskInfo implements JobInfo {
   public TaskInfo() {}
 
   /**
-   * Constructor for TaskInfo.
-   * @param jobId the job id
-   * @param taskId the task id
-   * @param workerInfo the worker info
-   */
-  public TaskInfo(long jobId, long taskId, WorkerInfo workerInfo) {
-    mJobId = jobId;
-    mTaskId = taskId;
-    mStatus = Status.CREATED;
-    mErrorMessage = "";
-    mResult = null;
-    mLastUpdated = CommonUtils.getCurrentMs();
-    mWorkerHost = workerInfo.getAddress().getHost();
-  }
-
-  /**
-   * Constructs a new TaskInfo from jobId, taskId, and Status.
+   * Constructs a new TaskInfo from jobId, taskId, Status, and workerAddress.
    * @param jobId the job id
    * @param taskId the task id
    * @param status the status
+   * @param workerAddress the worker address
    */
-  public TaskInfo(long jobId, long taskId, Status status) {
+  public TaskInfo(long jobId, long taskId, Status status, WorkerNetAddress workerAddress) {
     mJobId = jobId;
     mTaskId = taskId;
     mStatus = status;
     mErrorMessage = "";
     mResult = null;
-    mWorkerHost = "";
+    mWorkerHost = workerAddress.getHost();
   }
 
   /**
@@ -192,7 +177,7 @@ public class TaskInfo implements JobInfo {
   }
 
   @Override
-  public Collection<JobInfo> getChildren() {
+  public List<JobInfo> getChildren() {
     return ImmutableList.of();
   }
 

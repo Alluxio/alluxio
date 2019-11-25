@@ -16,10 +16,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.BackupPStatus;
+import alluxio.grpc.BackupState;
 import alluxio.master.BackupManager;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsFileStatus;
@@ -29,7 +30,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.executor.ControllableScheduler;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.BackupResponse;
+import alluxio.wire.BackupStatus;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
@@ -41,6 +42,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -61,9 +63,10 @@ public class DailyMetadataBackupTest {
     mBackupDir = "/tmp/test/alluxio_backups";
 
     mMetaMaster = Mockito.mock(MetaMaster.class);
-    when(mMetaMaster.backup(any())).thenReturn(new BackupResponse(
-        new AlluxioURI(PathUtils.concatPath(mBackupDir, generateBackupFileName())), "localhost",
-        0/*not validated.*/));
+    when(mMetaMaster.backup(any())).thenReturn(BackupStatus.fromProto(BackupPStatus.newBuilder()
+        .setBackupId(UUID.randomUUID().toString()).setBackupState(BackupState.Completed)
+        .setBackupUri(PathUtils.concatPath(mBackupDir, generateBackupFileName()))
+        .setBackupHost("localhost").build()));
 
     mUfs = Mockito.mock(UnderFileSystem.class);
     when(mUfs.getUnderFSType()).thenReturn("local");

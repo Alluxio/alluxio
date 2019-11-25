@@ -11,6 +11,11 @@
 
 package alluxio.job.plan.replicate;
 
+<<<<<<< HEAD
+=======
+import alluxio.collections.Pair;
+import alluxio.conf.ServerConfiguration;
+>>>>>>> c01191e117cd16c51297f4533493dea18d5c2918
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.exception.status.NotFoundException;
@@ -24,13 +29,13 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -55,19 +60,19 @@ public final class MoveDefinition
   }
 
   @Override
-  public Map<WorkerInfo, SerializableVoid> selectExecutors(MoveConfig config,
+  public Set<Pair<WorkerInfo, SerializableVoid>> selectExecutors(MoveConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context) {
     Preconditions.checkArgument(!jobWorkerInfoList.isEmpty(), "No worker is available");
 
     String workerHost = config.getWorkerHost();
 
-    Map<WorkerInfo, SerializableVoid> result = new HashMap<>();
+    Set<Pair<WorkerInfo, SerializableVoid>> result = Sets.newHashSet();
 
     Collections.shuffle(jobWorkerInfoList);
     for (WorkerInfo workerInfo : jobWorkerInfoList) {
       // Select job workers that have this block locally to move
       if (workerHost.equals(workerInfo.getAddress().getHost())) {
-        result.put(workerInfo, null);
+        result.add(new Pair<>(workerInfo, null));
         return result;
       }
     }

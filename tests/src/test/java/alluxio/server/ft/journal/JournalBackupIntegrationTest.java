@@ -11,6 +11,7 @@
 
 package alluxio.server.ft.journal;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -24,7 +25,10 @@ import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.BackupAbortedException;
+import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.BackupPOptions;
+import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientContext;
@@ -33,8 +37,11 @@ import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.AlluxioOperationThread;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -43,12 +50,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Integration test for backing up and restoring alluxio master.
  */
 public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public MultiProcessCluster mCluster;
+  private static final int GET_PRIMARY_INDEX_TIMEOUT_MS = 30000;
+  private static final int PRIMARY_KILL_TIMEOUT_MS = 30000;
 
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(new HashMap<PropertyKey, String>() {
@@ -72,10 +84,12 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .setNumMasters(3)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         // Masters become primary faster
-        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec").build();
+        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        .build();
     backupRestoreTest(true);
   }
 
+  // This test needs to stop and start master many times, so it can take up to a minute to complete.
   @Test
   public void backupRestoreEmbedded() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_EMBEDDED)
@@ -96,6 +110,157 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     backupRestoreTest(false);
   }
 
+  // Tests various protocols and configurations for backup delegation.
+  @Test
+  public void backupDelegationProtocol() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_DELEGATION_PROTOCOL)
+        .setClusterName("backupDelegationProtocol")
+        .setNumMasters(3)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        // Masters become primary faster
+        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        // For faster backup role handshake.
+        .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MIN, "100ms")
+        .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX, "100ms")
+        // Enable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, "true")
+        // Set backup timeout to be shorter
+        .addProperty(PropertyKey.MASTER_BACKUP_ABANDON_TIMEOUT, "3sec")
+        .build();
+
+    File backups = AlluxioTestDirectory.createTemporaryDirectory("backups");
+    mCluster.start();
+
+    // Validate backup works with delegation.
+    waitForBackup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
+        .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false)).build());
+
+    // Kill the primary.
+    int primaryIdx = mCluster.getPrimaryMasterIndex(GET_PRIMARY_INDEX_TIMEOUT_MS);
+    mCluster.waitForAndKillPrimaryMaster(PRIMARY_KILL_TIMEOUT_MS);
+
+    // Validate backup works again after leader fail-over.
+    waitForBackup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
+        .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false)).build());
+
+    // Continue testing with 2 masters...
+    // Find standby master index.
+    int newPrimaryIdx = mCluster.getPrimaryMasterIndex(GET_PRIMARY_INDEX_TIMEOUT_MS);
+    int followerIdx = (newPrimaryIdx + 1) % 2;
+    if (followerIdx == primaryIdx) {
+      followerIdx = (followerIdx + 1) % 2;
+    }
+
+    // Kill the follower. (only leader remains).
+    mCluster.stopMaster(followerIdx);
+
+    // Wait for a second for process to terminate properly.
+    // This is so that backup request don't get delegated to follower before termination.
+    Thread.sleep(1000);
+
+    // Validate backup delegation fails.
+    try {
+      mCluster.getMetaMasterClient()
+          .backup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
+              .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false)).build());
+      Assert.fail("Cannot delegate backup with no followers.");
+    } catch (FailedPreconditionException e) {
+      // Expected to fail since there is only single master.
+    }
+
+    // Should work with "AllowLeader" backup.
+    mCluster.getMetaMasterClient()
+        .backup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
+            .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false).setAllowLeader(true))
+            .build());
+
+    // Restart the follower. (1 leader 1 follower remains).
+    mCluster.startMaster(followerIdx);
+
+    // Validate backup works again.
+    waitForBackup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
+        .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false)).build());
+
+    // Schedule async backup.
+    UUID backupId = mCluster.getMetaMasterClient()
+        .backup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
+            .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false).setRunAsync(true))
+            .build())
+        .getBackupId();
+    // Kill follower immediately before it sends the next heartbeat to leader.
+    mCluster.stopMaster(followerIdx);
+    // Wait until backup is abandoned.
+    CommonUtils.waitFor("Backup abandoned.", () -> {
+      try {
+        return mCluster.getMetaMasterClient().getBackupStatus(backupId)
+            .getError() instanceof BackupAbortedException;
+      } catch (Exception e) {
+        throw new RuntimeException(
+            String.format("Unexpected error while getting backup status: %s", e.toString()));
+      }
+    });
+
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void backupDelegationZk() throws Exception {
+    MultiProcessCluster.Builder clusterBuilder = MultiProcessCluster
+        .newBuilder(PortCoordination.BACKUP_DELEGATION_ZK)
+        .setClusterName("backupDelegationZk")
+        .setNumMasters(2)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        // Masters become primary faster
+        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        // Enable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, "true")
+        // For faster backup role handshake.
+        .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MIN, "100ms")
+        .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX, "100ms");
+    backupDelegationTest(clusterBuilder);
+  }
+
+  @Test
+  public void backupDelegationEmbedded() throws Exception {
+    MultiProcessCluster.Builder clusterBuilder =
+        MultiProcessCluster.newBuilder(PortCoordination.BACKUP_DELEGATION_EMBEDDED)
+            .setClusterName("backupDelegationEmbedded")
+            .setNumMasters(2)
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+            // Enable backup delegation
+            .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, "true")
+            // For faster backup role handshake.
+            .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MIN, "100ms")
+            .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX, "100ms");
+    backupDelegationTest(clusterBuilder);
+  }
+
+  /**
+   * Used to wait until successful backup.
+   *
+   * It tolerates {@link FailedPreconditionException} that could be thrown when backup-workers have
+   * not established connection with the backup-leader yet.
+   *
+   * @param backupRequest the backup request
+   * @return backup uri
+   */
+  private AlluxioURI waitForBackup(BackupPRequest backupRequest) throws Exception {
+    AtomicReference<AlluxioURI> backupUriRef = new AtomicReference<>(null);
+    CommonUtils.waitFor("Backup delegation to succeed.", () -> {
+      try {
+        backupUriRef.set(mCluster.getMetaMasterClient().backup(backupRequest).getBackupUri());
+        return true;
+      } catch (FailedPreconditionException e1) {
+        // Expected to fail with this until backup-workers connect with backup-leader.
+        return false;
+      } catch (Exception e2) {
+        throw new RuntimeException(
+            String.format("Backup failed with unexpected error: %s", e2.toString()));
+      }
+    }, WaitForOptions.defaults());
+    return backupUriRef.get();
+  }
+
   private void backupRestoreTest(boolean testFailover) throws Exception {
     File backups = AlluxioTestDirectory.createTemporaryDirectory("backups");
     mCluster.start();
@@ -114,14 +279,16 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
       AlluxioURI dir1 = new AlluxioURI("/dir1");
       fs.createDirectory(dir1,
           CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
-      AlluxioURI backup1 = metaClient.backup(BackupPOptions.newBuilder()
-          .setTargetDirectory(backups.getAbsolutePath()).setLocalFileSystem(false).build())
+      AlluxioURI backup1 = metaClient
+          .backup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
+              .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false)).build())
           .getBackupUri();
       AlluxioURI dir2 = new AlluxioURI("/dir2");
       fs.createDirectory(dir2,
           CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
-      AlluxioURI backup2 = metaClient.backup(BackupPOptions.newBuilder()
-          .setTargetDirectory(backups.getAbsolutePath()).setLocalFileSystem(false).build())
+      AlluxioURI backup2 = metaClient
+          .backup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
+              .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false)).build())
           .getBackupUri();
 
       restartMastersFromBackup(backup2);
@@ -149,6 +316,48 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     } finally {
       opThreads.forEach(Thread::interrupt);
     }
+  }
+
+  private void backupDelegationTest(MultiProcessCluster.Builder clusterBuilder) throws Exception {
+    // Update configuration for each master to backup to a specific folder.
+    Map<Integer, Map<PropertyKey, String>> masterProps = new HashMap<>();
+    File backupsParent0 = AlluxioTestDirectory.createTemporaryDirectory("backups0");
+    File backupsParent1 = AlluxioTestDirectory.createTemporaryDirectory("backups1");
+    Map<PropertyKey, String> master0Props = new HashMap<>();
+    master0Props.put(PropertyKey.MASTER_BACKUP_DIRECTORY, backupsParent0.getAbsolutePath());
+    Map<PropertyKey, String> master1Props = new HashMap<>();
+    master1Props.put(PropertyKey.MASTER_BACKUP_DIRECTORY, backupsParent1.getAbsolutePath());
+    masterProps.put(0, master0Props);
+    masterProps.put(1, master1Props);
+    clusterBuilder.setMasterProperties(masterProps);
+    // Start cluster.
+    mCluster = clusterBuilder.build();
+    mCluster.start();
+
+    // Delegation test can work with 2 masters only.
+    assertEquals(2, mCluster.getMasterAddresses().size());
+
+    FileSystem fs = mCluster.getFileSystemClient();
+
+    AlluxioURI dir1 = new AlluxioURI("/dir1");
+    mCluster.getFileSystemClient().createDirectory(dir1,
+        CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
+
+    AlluxioURI backupUri = waitForBackup(BackupPRequest.newBuilder()
+        .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(true)).build());
+
+    int primaryIndex = mCluster.getPrimaryMasterIndex(GET_PRIMARY_INDEX_TIMEOUT_MS);
+    int followerIndex = (primaryIndex + 1) % 2;
+
+    // Validate backup is taken on follower's local path.
+    assertTrue(backupUri.toString()
+        .contains(masterProps.get(followerIndex).get(PropertyKey.MASTER_BACKUP_DIRECTORY)));
+
+    // Validate backup is valid.
+    restartMastersFromBackup(backupUri);
+    assertTrue(fs.exists(dir1));
+
+    mCluster.notifySuccess();
   }
 
   private void restartMastersFromBackup(AlluxioURI backup) throws IOException {

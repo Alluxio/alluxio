@@ -16,6 +16,10 @@ public enum JobType
    * <code>TASK = 2;</code>
    */
   TASK(2),
+  /**
+   * <code>WORKFLOW = 3;</code>
+   */
+  WORKFLOW(3),
   ;
 
   /**
@@ -26,6 +30,10 @@ public enum JobType
    * <code>TASK = 2;</code>
    */
   public static final int TASK_VALUE = 2;
+  /**
+   * <code>WORKFLOW = 3;</code>
+   */
+  public static final int WORKFLOW_VALUE = 3;
 
 
   public final int getNumber() {
@@ -44,6 +52,7 @@ public enum JobType
     switch (value) {
       case 1: return PLAN;
       case 2: return TASK;
+      case 3: return WORKFLOW;
       default: return null;
     }
   }

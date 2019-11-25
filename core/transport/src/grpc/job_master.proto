@@ -20,6 +20,7 @@ enum Status {
 enum JobType {
   PLAN = 1;
   TASK = 2;
+  WORKFLOW = 3;
 }
 
 message JobUnused {}
@@ -55,6 +56,13 @@ message JobServiceSummary {
   repeated JobInfo recentActivities = 2;
   repeated JobInfo recentFailures = 3;
   repeated JobInfo longestRunning = 4;
+}
+
+message JobWorkerHealth {
+  optional int64 workerId = 1;
+  repeated double loadAverage = 2;
+  optional int64 lastUpdated = 3;
+  optional string hostname = 4;
 }
 
 message JobCommand {
@@ -118,6 +126,14 @@ message GetJobServiceSummaryPResponse {
   optional JobServiceSummary summary = 1;
 }
 
+message GetAllWorkerHealthPOptions {}
+message GetAllWorkerHealthPRequest {
+  optional GetAllWorkerHealthPOptions options = 1;
+}
+message GetAllWorkerHealthPResponse {
+  repeated JobWorkerHealth workerHealths = 1;
+}
+
 /**
  * This interface contains job master service endpoints for job service clients.
  */
@@ -147,11 +163,16 @@ service JobMasterClientService {
    * Starts the given job, returning a job id.
    */
   rpc Run(RunPRequest) returns (RunPResponse);
+
+  /**
+   * Lists all worker health.
+   */
+  rpc GetAllWorkerHealth(GetAllWorkerHealthPRequest) returns (GetAllWorkerHealthPResponse);
 }
 
 message JobHeartbeatPOptions {}
 message JobHeartbeatPRequest {
-  optional int64 workerId = 1;
+  optional JobWorkerHealth jobWorkerHealth = 1;
   repeated JobInfo taskInfos = 2;
   optional JobHeartbeatPOptions options = 3;
 }
