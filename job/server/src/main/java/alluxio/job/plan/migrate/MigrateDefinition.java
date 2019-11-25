@@ -39,11 +39,11 @@ import alluxio.job.util.SerializableVoid;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerInfo;
 
-import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

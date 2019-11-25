@@ -208,8 +208,8 @@ public final class PlanCoordinator {
       boolean statusChanged = false;
       for (Long taskId : taskIds) {
         TaskInfo taskInfo = mPlanInfo.getTaskInfo(taskId);
-        if (taskInfo.getStatus().isFinished()) {
-          return;
+        if (taskInfo == null || taskInfo.getStatus().isFinished()) {
+          continue;
         }
         if (!mPlanInfo.getStatus().isFinished()) {
           taskInfo.setStatus(Status.FAILED);

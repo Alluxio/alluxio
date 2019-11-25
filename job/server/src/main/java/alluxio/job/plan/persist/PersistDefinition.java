@@ -36,7 +36,7 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.wire.WorkerInfo;
 
-import com.beust.jcommander.internal.Sets;
+import com.google.common.collect.Sets;
 import com.google.common.io.Closer;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
