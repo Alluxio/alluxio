@@ -11,6 +11,7 @@
 
 package alluxio.job.plan;
 
+import alluxio.collections.Pair;
 import alluxio.job.JobConfig;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
@@ -19,6 +20,7 @@ import alluxio.wire.WorkerInfo;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A job definition. A definition has two important parts: (1) a
@@ -44,10 +46,10 @@ public interface PlanDefinition<T extends JobConfig, P extends Serializable,
    * @param config the job configuration
    * @param jobWorkerInfoList the list of available workers' information
    * @param selectExecutorsContext the context containing information used to select executors
-   * @return a map of selected workers to the parameters to pass along
+   * @return a set of pairs of selected workers to the parameters to pass along
    * @throws Exception if any error occurs
    */
-  Map<WorkerInfo, P> selectExecutors(T config, List<WorkerInfo> jobWorkerInfoList,
+  Set<Pair<WorkerInfo, P>> selectExecutors(T config, List<WorkerInfo> jobWorkerInfoList,
       SelectExecutorsContext selectExecutorsContext) throws Exception;
 
   /**
