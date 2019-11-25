@@ -200,6 +200,10 @@ public final class PlanCoordinator {
    */
   public void failTasksForWorker(long workerId) {
     synchronized (mPlanInfo) {
+      if (mPlanInfo.getStatus().isFinished()) {
+        return;
+      }
+
       List<Long> taskIds = mWorkerIdToTaskIds.get(workerId);
       if (taskIds == null) {
         return;
@@ -211,11 +215,9 @@ public final class PlanCoordinator {
         if (taskInfo == null || taskInfo.getStatus().isFinished()) {
           continue;
         }
-        if (!mPlanInfo.getStatus().isFinished()) {
-          taskInfo.setStatus(Status.FAILED);
-          taskInfo.setErrorMessage("Job worker was lost before the task could complete");
-          statusChanged = true;
-        }
+        taskInfo.setStatus(Status.FAILED);
+        taskInfo.setErrorMessage("Job worker was lost before the task could complete");
+        statusChanged = true;
       }
       if (statusChanged) {
         updateStatus();
