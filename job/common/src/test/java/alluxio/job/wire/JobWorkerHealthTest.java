@@ -19,7 +19,7 @@ public class JobWorkerHealthTest {
 
   @Test
   public void testToProto() {
-    JobWorkerHealth host = new JobWorkerHealth(1L, new double[]{0.0, 0.0, 0.1}, 10, "host");
+    JobWorkerHealth host = new JobWorkerHealth(1L, new double[]{0.0, 0.0, 0.1}, 10, 1, "host");
 
     JobWorkerHealth other = new JobWorkerHealth(host.toProto());
 

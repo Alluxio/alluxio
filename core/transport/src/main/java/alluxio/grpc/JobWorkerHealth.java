@@ -21,6 +21,7 @@ private static final long serialVersionUID = 0L;
     lastUpdated_ = 0L;
     hostname_ = "";
     taskPoolSize_ = 0;
+    numActiveTasks_ = 0;
   }
 
   @java.lang.Override
@@ -94,6 +95,11 @@ private static final long serialVersionUID = 0L;
           case 40: {
             bitField0_ |= 0x00000008;
             taskPoolSize_ = input.readInt32();
+            break;
+          }
+          case 48: {
+            bitField0_ |= 0x00000010;
+            numActiveTasks_ = input.readInt32();
             break;
           }
         }
@@ -233,6 +239,21 @@ private static final long serialVersionUID = 0L;
     return taskPoolSize_;
   }
 
+  public static final int NUMACTIVETASKS_FIELD_NUMBER = 6;
+  private int numActiveTasks_;
+  /**
+   * <code>optional int32 numActiveTasks = 6;</code>
+   */
+  public boolean hasNumActiveTasks() {
+    return ((bitField0_ & 0x00000010) == 0x00000010);
+  }
+  /**
+   * <code>optional int32 numActiveTasks = 6;</code>
+   */
+  public int getNumActiveTasks() {
+    return numActiveTasks_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -259,6 +280,9 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       output.writeInt32(5, taskPoolSize_);
+    }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      output.writeInt32(6, numActiveTasks_);
     }
     unknownFields.writeTo(output);
   }
@@ -288,6 +312,10 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000008) == 0x00000008)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(5, taskPoolSize_);
+    }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt32Size(6, numActiveTasks_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -327,6 +355,11 @@ private static final long serialVersionUID = 0L;
       result = result && (getTaskPoolSize()
           == other.getTaskPoolSize());
     }
+    result = result && (hasNumActiveTasks() == other.hasNumActiveTasks());
+    if (hasNumActiveTasks()) {
+      result = result && (getNumActiveTasks()
+          == other.getNumActiveTasks());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -359,6 +392,10 @@ private static final long serialVersionUID = 0L;
     if (hasTaskPoolSize()) {
       hash = (37 * hash) + TASKPOOLSIZE_FIELD_NUMBER;
       hash = (53 * hash) + getTaskPoolSize();
+    }
+    if (hasNumActiveTasks()) {
+      hash = (37 * hash) + NUMACTIVETASKS_FIELD_NUMBER;
+      hash = (53 * hash) + getNumActiveTasks();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -499,6 +536,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000008);
       taskPoolSize_ = 0;
       bitField0_ = (bitField0_ & ~0x00000010);
+      numActiveTasks_ = 0;
+      bitField0_ = (bitField0_ & ~0x00000020);
       return this;
     }
 
@@ -544,6 +583,10 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000008;
       }
       result.taskPoolSize_ = taskPoolSize_;
+      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+        to_bitField0_ |= 0x00000010;
+      }
+      result.numActiveTasks_ = numActiveTasks_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -609,6 +652,9 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasTaskPoolSize()) {
         setTaskPoolSize(other.getTaskPoolSize());
+      }
+      if (other.hasNumActiveTasks()) {
+        setNumActiveTasks(other.getNumActiveTasks());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -872,6 +918,38 @@ private static final long serialVersionUID = 0L;
     public Builder clearTaskPoolSize() {
       bitField0_ = (bitField0_ & ~0x00000010);
       taskPoolSize_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private int numActiveTasks_ ;
+    /**
+     * <code>optional int32 numActiveTasks = 6;</code>
+     */
+    public boolean hasNumActiveTasks() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <code>optional int32 numActiveTasks = 6;</code>
+     */
+    public int getNumActiveTasks() {
+      return numActiveTasks_;
+    }
+    /**
+     * <code>optional int32 numActiveTasks = 6;</code>
+     */
+    public Builder setNumActiveTasks(int value) {
+      bitField0_ |= 0x00000020;
+      numActiveTasks_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int32 numActiveTasks = 6;</code>
+     */
+    public Builder clearNumActiveTasks() {
+      bitField0_ = (bitField0_ & ~0x00000020);
+      numActiveTasks_ = 0;
       onChanged();
       return this;
     }

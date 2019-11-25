@@ -59,7 +59,7 @@ public class JobServiceMetricsCommandTest {
   public void testBasic() throws IOException, ParseException {
 
     JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(
-        1, new double[]{1.2, 0.9, 0.7}, 10, "testHost");
+        1, new double[]{1.2, 0.9, 0.7}, 10, 2, "testHost");
 
     Mockito.when(mJobMasterClient.getAllWorkerHealth())
         .thenReturn(Lists.newArrayList(jobWorkerHealth));

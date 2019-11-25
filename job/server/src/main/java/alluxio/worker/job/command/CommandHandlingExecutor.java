@@ -86,7 +86,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
   public void heartbeat() {
     JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(JobWorkerIdRegistry.getWorkerId(),
         mHealthReporter.getCpuLoadAverage(), mTaskExecutorManager.getTaskExecutorPoolSize(),
-        mWorkerNetAddress.getHost());
+        mTaskExecutorManager.getActiveTaskCount(), mWorkerNetAddress.getHost());
 
     List<TaskInfo> taskStatusList = mTaskExecutorManager.getAndClearTaskUpdates();
 
@@ -159,6 +159,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
         }
       } else if (mCommand.hasSetTaskPoolSizeCommand()) {
         SetTaskPoolSizeCommand command = mCommand.getSetTaskPoolSizeCommand();
+        LOG.info(String.format("Task Pool Size: %s", command.getTaskPoolSize()));
         mTaskExecutorManager.setTaskExecutorPoolSize(command.getTaskPoolSize());
       } else {
         throw new RuntimeException("unsupported command type:" + mCommand.toString());

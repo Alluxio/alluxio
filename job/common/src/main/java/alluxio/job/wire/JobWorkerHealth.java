@@ -30,6 +30,7 @@ public class JobWorkerHealth {
   private final List<Double> mLoadAverage;
   private final long mLastUpdated;
   private final int mTaskPoolSize;
+  private final int mNumActiveTasks;
   private final String mHostname;
 
   /**
@@ -38,13 +39,16 @@ public class JobWorkerHealth {
    * @param workerId the worker id
    * @param loadAverage output of CentralProcessor.getSystemLoadAverage on the worker
    * @param hostname hostname of the worker
+   * @param numActiveTasks number of active tasks in the worker
    * @param taskPoolSize task pool size
    */
-  public JobWorkerHealth(long workerId, double[] loadAverage, int taskPoolSize, String hostname) {
+  public JobWorkerHealth(long workerId, double[] loadAverage, int taskPoolSize,
+                         int numActiveTasks, String hostname) {
     mWorkerId = workerId;
     mLoadAverage = DoubleStream.of(loadAverage).boxed().collect(Collectors.toList());
     mLastUpdated = CommonUtils.getCurrentMs();
     mTaskPoolSize = taskPoolSize;
+    mNumActiveTasks = numActiveTasks;
     mHostname = hostname;
   }
 
@@ -58,6 +62,7 @@ public class JobWorkerHealth {
     mLoadAverage = jobWorkerHealth.getLoadAverageList();
     mLastUpdated = jobWorkerHealth.getLastUpdated();
     mTaskPoolSize = jobWorkerHealth.getTaskPoolSize();
+    mNumActiveTasks = jobWorkerHealth.getNumActiveTasks();
     mHostname = jobWorkerHealth.getHostname();
   }
 
@@ -87,6 +92,13 @@ public class JobWorkerHealth {
   }
 
   /**
+   * @return number of active tasks
+   */
+  public int getNumActiveTasks() {
+    return mNumActiveTasks;
+  }
+
+  /**
    * @return the worker hostname
    */
   public String getHostname() {
@@ -94,12 +106,12 @@ public class JobWorkerHealth {
   }
 
   /**
-   * @return proto representation of JobWorkerInfo
+   * @return proto representatx`ion of JobWorkerInfo
    */
   public alluxio.grpc.JobWorkerHealth toProto() {
     alluxio.grpc.JobWorkerHealth.Builder builder = alluxio.grpc.JobWorkerHealth.newBuilder()
         .setWorkerId(mWorkerId).addAllLoadAverage(mLoadAverage).setTaskPoolSize(mTaskPoolSize)
-        .setLastUpdated(mLastUpdated);
+        .setNumActiveTasks(mNumActiveTasks).setLastUpdated(mLastUpdated);
 
     if (mHostname != null) {
       builder.setHostname(mHostname);
@@ -110,7 +122,8 @@ public class JobWorkerHealth {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mWorkerId, mLoadAverage, mLastUpdated, mHostname, mTaskPoolSize);
+    return Objects.hashCode(mWorkerId, mLoadAverage, mLastUpdated, mHostname, mNumActiveTasks,
+        mTaskPoolSize);
   }
 
   @Override
@@ -129,7 +142,8 @@ public class JobWorkerHealth {
         && Objects.equal(mLoadAverage, that.mLoadAverage)
         && Objects.equal(mLastUpdated, that.mLastUpdated)
         && Objects.equal(mHostname, that.mHostname)
-        && Objects.equal(mTaskPoolSize, that.mTaskPoolSize);
+        && Objects.equal(mTaskPoolSize, that.mTaskPoolSize)
+        && Objects.equal(mNumActiveTasks, that.mNumActiveTasks);
   }
 
   @Override
@@ -140,6 +154,7 @@ public class JobWorkerHealth {
         .add("lastUpdated", mLastUpdated)
         .add("hostname", mHostname)
         .add("taskPoolSize", mTaskPoolSize)
+        .add("numActiveTasks", mNumActiveTasks)
         .toString();
   }
 }

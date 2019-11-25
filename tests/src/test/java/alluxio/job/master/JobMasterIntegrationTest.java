@@ -145,12 +145,54 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void testThreadPoolSize() throws Exception {
+  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.JOB_MASTER_JOB_CAPACITY, "20"})
+  public void stopJobWorkerTasks() throws Exception {
+    long jobId0 = mJobMaster.run(new SleepJobConfig(5000));
+    long jobId1 = mJobMaster.run(new SleepJobConfig(5000));
+    long jobId2 = mJobMaster.run(new SleepJobConfig(1));
+    long jobId3 = mJobMaster.run(new SleepJobConfig(1));
+
+    JobTestUtils.waitForJobStatus(mJobMaster, jobId2, Status.COMPLETED);
+    JobTestUtils.waitForJobStatus(mJobMaster, jobId3, Status.COMPLETED);
+
+    assertFalse(mJobMaster.getStatus(jobId1).getStatus().isFinished());
+    assertFalse(mJobMaster.getStatus(jobId0).getStatus().isFinished());
+    assertEquals(2, mJobMaster.getAllWorkerHealth().get(0).getNumActiveTasks());
+
     mJobMaster.setTaskPoolSize(0);
-    long jobId = mJobMaster.run(new SleepJobConfig(1));
+    long jobId5 = mJobMaster.run(new SleepJobConfig(1));
+
+    // wait to make sure that this job is not completing any time soon
     CommonUtils.sleepMs(300);
-    assertFalse(mJobMaster.getStatus(jobId).getStatus().isFinished());
-    mJobMaster.setTaskPoolSize(10);
-    JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.COMPLETED);
+    assertFalse(mJobMaster.getStatus(jobId5).getStatus().isFinished());
+    assertEquals(0, mJobMaster.getAllWorkerHealth().get(0).getTaskPoolSize());
+
+    // existing running tasks will continue to run
+    assertEquals(2, mJobMaster.getAllWorkerHealth().get(0).getNumActiveTasks());
   }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.JOB_MASTER_JOB_CAPACITY, "20"})
+  public void throttleJobWorkerTasks() throws Exception {
+    mJobMaster.setTaskPoolSize(1);
+
+    long jobId0 = mJobMaster.run(new SleepJobConfig(1));
+    long jobId1 = mJobMaster.run(new SleepJobConfig(5000));
+    JobTestUtils.waitForJobStatus(mJobMaster, jobId0, Status.COMPLETED);
+
+    long jobId2 = mJobMaster.run(new SleepJobConfig(1));
+    long jobId3 = mJobMaster.run(new SleepJobConfig(1));
+
+    // wait a bit more to make sure other jobs aren't completing
+    CommonUtils.sleepMs(300);
+
+    assertFalse(mJobMaster.getStatus(jobId1).getStatus().isFinished());
+    assertFalse(mJobMaster.getStatus(jobId2).getStatus().isFinished());
+    assertFalse(mJobMaster.getStatus(jobId3).getStatus().isFinished());
+
+    assertEquals(1, mJobMaster.getAllWorkerHealth().get(0).getTaskPoolSize());
+    assertEquals(1, mJobMaster.getAllWorkerHealth().get(0).getNumActiveTasks());
+  }
+
+
 }

@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -44,7 +43,7 @@ public class TaskExecutorManager {
 
   private static final int MAX_TASK_EXECUTOR_POOL_SIZE = 10000;
 
-  private final ThreadPoolExecutor mTaskExecutionService;
+  private final PausableThreadPoolExecutor mTaskExecutionService;
 
   // These maps are all indexed by <Job ID, Task ID> pairs.
   /** Stores the futures for all running tasks. */
@@ -65,10 +64,17 @@ public class TaskExecutorManager {
     mTaskFutures = Maps.newHashMap();
     mUnfinishedTasks = Maps.newHashMap();
     mTaskUpdates = Maps.newHashMap();
-    mTaskExecutionService = new ThreadPoolExecutor(taskExecutorPoolSize,
+    mTaskExecutionService = new PausableThreadPoolExecutor(taskExecutorPoolSize,
         MAX_TASK_EXECUTOR_POOL_SIZE, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(),
         ThreadFactoryUtils.build("task-execution-service-%d", true));
     mAddress = address;
+  }
+
+  /**
+   * @return number of active tasks in
+   */
+  public int getActiveTaskCount() {
+    return mTaskExecutionService.getActiveCount();
   }
 
   /**
@@ -82,8 +88,15 @@ public class TaskExecutorManager {
    * @param taskExecutorPoolSize number of threads in the task executor pool
    */
   public void setTaskExecutorPoolSize(int taskExecutorPoolSize) {
-    Preconditions.checkArgument(taskExecutorPoolSize > 0);
+    Preconditions.checkArgument(taskExecutorPoolSize >= 0);
     Preconditions.checkArgument(taskExecutorPoolSize <= MAX_TASK_EXECUTOR_POOL_SIZE);
+
+    if (taskExecutorPoolSize == 0) {
+      // treat 0 as a schedule case because ThreadedTaskExecutorService can't seem to have 0 threads
+      mTaskExecutionService.pause();
+    } else {
+      mTaskExecutionService.resume();
+    }
 
     mTaskExecutionService.setCorePoolSize(taskExecutorPoolSize);
   }
