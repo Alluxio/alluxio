@@ -891,8 +891,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       return Command.newBuilder().setCommandType(CommandType.Register).build();
     }
 
-    processWorkerMetrics(worker.getStableWorkerInfo().getWorkerAddress().getHost(), metrics);
-
     synchronized (worker) {
       // Technically, 'worker' should be confirmed to still be in the data structure. Lost worker
       // detection can remove it. However, we are intentionally ignoring this race, since the worker
