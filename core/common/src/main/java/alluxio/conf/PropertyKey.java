@@ -1461,6 +1461,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METRICS_SERVICE_THREADS =
+      new Builder(Name.MASTER_METRICS_SERVICE_THREADS)
+          .setDefaultValue(5)
+          .setDescription("The number of threads in executor pool for parallel processing "
+              + "metrics submitted by workers or clients")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METRICS_TIME_SERIES_INTERVAL =
       new Builder(Name.MASTER_METRICS_TIME_SERIES_INTERVAL)
           .setDefaultValue("5min")
@@ -4031,6 +4039,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.inherit.owner.and.group";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval";
+    public static final String MASTER_METRICS_SERVICE_THREADS =
+        "alluxio.master.metrics.service.threads";
     public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =
         "alluxio.master.metrics.time.series.interval";
     public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
