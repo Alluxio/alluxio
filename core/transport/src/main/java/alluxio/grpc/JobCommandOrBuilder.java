@@ -47,28 +47,15 @@ public interface JobCommandOrBuilder extends
   alluxio.grpc.RegisterCommandOrBuilder getRegisterCommandOrBuilder();
 
   /**
-   * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+   * <code>optional .alluxio.grpc.job.SetTaskPoolSizeCommand setTaskPoolSizeCommand = 4;</code>
    */
-  boolean hasThrottleCommand();
+  boolean hasSetTaskPoolSizeCommand();
   /**
-   * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+   * <code>optional .alluxio.grpc.job.SetTaskPoolSizeCommand setTaskPoolSizeCommand = 4;</code>
    */
-  alluxio.grpc.ThrottleCommand getThrottleCommand();
+  alluxio.grpc.SetTaskPoolSizeCommand getSetTaskPoolSizeCommand();
   /**
-   * <code>optional .alluxio.grpc.job.ThrottleCommand throttleCommand = 4;</code>
+   * <code>optional .alluxio.grpc.job.SetTaskPoolSizeCommand setTaskPoolSizeCommand = 4;</code>
    */
-  alluxio.grpc.ThrottleCommandOrBuilder getThrottleCommandOrBuilder();
-
-  /**
-   * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
-   */
-  boolean hasUnThrottleCommand();
-  /**
-   * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
-   */
-  alluxio.grpc.UnThrottleCommand getUnThrottleCommand();
-  /**
-   * <code>optional .alluxio.grpc.job.UnThrottleCommand unThrottleCommand = 5;</code>
-   */
-  alluxio.grpc.UnThrottleCommandOrBuilder getUnThrottleCommandOrBuilder();
+  alluxio.grpc.SetTaskPoolSizeCommandOrBuilder getSetTaskPoolSizeCommandOrBuilder();
 }

@@ -4,18 +4,19 @@
 package alluxio.grpc;
 
 /**
- * Protobuf type {@code alluxio.grpc.job.ThrottleCommand}
+ * Protobuf type {@code alluxio.grpc.job.SetTaskPoolSizeCommand}
  */
-public  final class ThrottleCommand extends
+public  final class SetTaskPoolSizeCommand extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:alluxio.grpc.job.ThrottleCommand)
-    ThrottleCommandOrBuilder {
+    // @@protoc_insertion_point(message_implements:alluxio.grpc.job.SetTaskPoolSizeCommand)
+    SetTaskPoolSizeCommandOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use ThrottleCommand.newBuilder() to construct.
-  private ThrottleCommand(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use SetTaskPoolSizeCommand.newBuilder() to construct.
+  private SetTaskPoolSizeCommand(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private ThrottleCommand() {
+  private SetTaskPoolSizeCommand() {
+    taskPoolSize_ = 0;
   }
 
   @java.lang.Override
@@ -23,7 +24,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private ThrottleCommand(
+  private SetTaskPoolSizeCommand(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -31,6 +32,7 @@ private static final long serialVersionUID = 0L;
     if (extensionRegistry == null) {
       throw new java.lang.NullPointerException();
     }
+    int mutable_bitField0_ = 0;
     com.google.protobuf.UnknownFieldSet.Builder unknownFields =
         com.google.protobuf.UnknownFieldSet.newBuilder();
     try {
@@ -48,6 +50,11 @@ private static final long serialVersionUID = 0L;
             }
             break;
           }
+          case 8: {
+            bitField0_ |= 0x00000001;
+            taskPoolSize_ = input.readInt32();
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -62,14 +69,30 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_ThrottleCommand_descriptor;
+    return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_SetTaskPoolSizeCommand_descriptor;
   }
 
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_ThrottleCommand_fieldAccessorTable
+    return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_SetTaskPoolSizeCommand_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            alluxio.grpc.ThrottleCommand.class, alluxio.grpc.ThrottleCommand.Builder.class);
+            alluxio.grpc.SetTaskPoolSizeCommand.class, alluxio.grpc.SetTaskPoolSizeCommand.Builder.class);
+  }
+
+  private int bitField0_;
+  public static final int TASKPOOLSIZE_FIELD_NUMBER = 1;
+  private int taskPoolSize_;
+  /**
+   * <code>optional int32 taskPoolSize = 1;</code>
+   */
+  public boolean hasTaskPoolSize() {
+    return ((bitField0_ & 0x00000001) == 0x00000001);
+  }
+  /**
+   * <code>optional int32 taskPoolSize = 1;</code>
+   */
+  public int getTaskPoolSize() {
+    return taskPoolSize_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -84,6 +107,9 @@ private static final long serialVersionUID = 0L;
 
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
+    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      output.writeInt32(1, taskPoolSize_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -92,6 +118,10 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
+    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt32Size(1, taskPoolSize_);
+    }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
     return size;
@@ -102,12 +132,17 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof alluxio.grpc.ThrottleCommand)) {
+    if (!(obj instanceof alluxio.grpc.SetTaskPoolSizeCommand)) {
       return super.equals(obj);
     }
-    alluxio.grpc.ThrottleCommand other = (alluxio.grpc.ThrottleCommand) obj;
+    alluxio.grpc.SetTaskPoolSizeCommand other = (alluxio.grpc.SetTaskPoolSizeCommand) obj;
 
     boolean result = true;
+    result = result && (hasTaskPoolSize() == other.hasTaskPoolSize());
+    if (hasTaskPoolSize()) {
+      result = result && (getTaskPoolSize()
+          == other.getTaskPoolSize());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -119,74 +154,78 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
+    if (hasTaskPoolSize()) {
+      hash = (37 * hash) + TASKPOOLSIZE_FIELD_NUMBER;
+      hash = (53 * hash) + getTaskPoolSize();
+    }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
   }
 
-  public static alluxio.grpc.ThrottleCommand parseFrom(
+  public static alluxio.grpc.SetTaskPoolSizeCommand parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.ThrottleCommand parseFrom(
+  public static alluxio.grpc.SetTaskPoolSizeCommand parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.ThrottleCommand parseFrom(
+  public static alluxio.grpc.SetTaskPoolSizeCommand parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.ThrottleCommand parseFrom(
+  public static alluxio.grpc.SetTaskPoolSizeCommand parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.ThrottleCommand parseFrom(byte[] data)
+  public static alluxio.grpc.SetTaskPoolSizeCommand parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static alluxio.grpc.ThrottleCommand parseFrom(
+  public static alluxio.grpc.SetTaskPoolSizeCommand parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static alluxio.grpc.ThrottleCommand parseFrom(java.io.InputStream input)
+  public static alluxio.grpc.SetTaskPoolSizeCommand parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.ThrottleCommand parseFrom(
+  public static alluxio.grpc.SetTaskPoolSizeCommand parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.ThrottleCommand parseDelimitedFrom(java.io.InputStream input)
+  public static alluxio.grpc.SetTaskPoolSizeCommand parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.ThrottleCommand parseDelimitedFrom(
+  public static alluxio.grpc.SetTaskPoolSizeCommand parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static alluxio.grpc.ThrottleCommand parseFrom(
+  public static alluxio.grpc.SetTaskPoolSizeCommand parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static alluxio.grpc.ThrottleCommand parseFrom(
+  public static alluxio.grpc.SetTaskPoolSizeCommand parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -198,7 +237,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(alluxio.grpc.ThrottleCommand prototype) {
+  public static Builder newBuilder(alluxio.grpc.SetTaskPoolSizeCommand prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   public Builder toBuilder() {
@@ -213,25 +252,25 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
-   * Protobuf type {@code alluxio.grpc.job.ThrottleCommand}
+   * Protobuf type {@code alluxio.grpc.job.SetTaskPoolSizeCommand}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:alluxio.grpc.job.ThrottleCommand)
-      alluxio.grpc.ThrottleCommandOrBuilder {
+      // @@protoc_insertion_point(builder_implements:alluxio.grpc.job.SetTaskPoolSizeCommand)
+      alluxio.grpc.SetTaskPoolSizeCommandOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_ThrottleCommand_descriptor;
+      return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_SetTaskPoolSizeCommand_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_ThrottleCommand_fieldAccessorTable
+      return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_SetTaskPoolSizeCommand_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              alluxio.grpc.ThrottleCommand.class, alluxio.grpc.ThrottleCommand.Builder.class);
+              alluxio.grpc.SetTaskPoolSizeCommand.class, alluxio.grpc.SetTaskPoolSizeCommand.Builder.class);
     }
 
-    // Construct using alluxio.grpc.ThrottleCommand.newBuilder()
+    // Construct using alluxio.grpc.SetTaskPoolSizeCommand.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -248,28 +287,37 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
+      taskPoolSize_ = 0;
+      bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
 
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_ThrottleCommand_descriptor;
+      return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_SetTaskPoolSizeCommand_descriptor;
     }
 
-    public alluxio.grpc.ThrottleCommand getDefaultInstanceForType() {
-      return alluxio.grpc.ThrottleCommand.getDefaultInstance();
+    public alluxio.grpc.SetTaskPoolSizeCommand getDefaultInstanceForType() {
+      return alluxio.grpc.SetTaskPoolSizeCommand.getDefaultInstance();
     }
 
-    public alluxio.grpc.ThrottleCommand build() {
-      alluxio.grpc.ThrottleCommand result = buildPartial();
+    public alluxio.grpc.SetTaskPoolSizeCommand build() {
+      alluxio.grpc.SetTaskPoolSizeCommand result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
       return result;
     }
 
-    public alluxio.grpc.ThrottleCommand buildPartial() {
-      alluxio.grpc.ThrottleCommand result = new alluxio.grpc.ThrottleCommand(this);
+    public alluxio.grpc.SetTaskPoolSizeCommand buildPartial() {
+      alluxio.grpc.SetTaskPoolSizeCommand result = new alluxio.grpc.SetTaskPoolSizeCommand(this);
+      int from_bitField0_ = bitField0_;
+      int to_bitField0_ = 0;
+      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        to_bitField0_ |= 0x00000001;
+      }
+      result.taskPoolSize_ = taskPoolSize_;
+      result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
@@ -301,16 +349,19 @@ private static final long serialVersionUID = 0L;
       return (Builder) super.addRepeatedField(field, value);
     }
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof alluxio.grpc.ThrottleCommand) {
-        return mergeFrom((alluxio.grpc.ThrottleCommand)other);
+      if (other instanceof alluxio.grpc.SetTaskPoolSizeCommand) {
+        return mergeFrom((alluxio.grpc.SetTaskPoolSizeCommand)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(alluxio.grpc.ThrottleCommand other) {
-      if (other == alluxio.grpc.ThrottleCommand.getDefaultInstance()) return this;
+    public Builder mergeFrom(alluxio.grpc.SetTaskPoolSizeCommand other) {
+      if (other == alluxio.grpc.SetTaskPoolSizeCommand.getDefaultInstance()) return this;
+      if (other.hasTaskPoolSize()) {
+        setTaskPoolSize(other.getTaskPoolSize());
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -324,17 +375,50 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      alluxio.grpc.ThrottleCommand parsedMessage = null;
+      alluxio.grpc.SetTaskPoolSizeCommand parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (alluxio.grpc.ThrottleCommand) e.getUnfinishedMessage();
+        parsedMessage = (alluxio.grpc.SetTaskPoolSizeCommand) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
           mergeFrom(parsedMessage);
         }
       }
+      return this;
+    }
+    private int bitField0_;
+
+    private int taskPoolSize_ ;
+    /**
+     * <code>optional int32 taskPoolSize = 1;</code>
+     */
+    public boolean hasTaskPoolSize() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional int32 taskPoolSize = 1;</code>
+     */
+    public int getTaskPoolSize() {
+      return taskPoolSize_;
+    }
+    /**
+     * <code>optional int32 taskPoolSize = 1;</code>
+     */
+    public Builder setTaskPoolSize(int value) {
+      bitField0_ |= 0x00000001;
+      taskPoolSize_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int32 taskPoolSize = 1;</code>
+     */
+    public Builder clearTaskPoolSize() {
+      bitField0_ = (bitField0_ & ~0x00000001);
+      taskPoolSize_ = 0;
+      onChanged();
       return this;
     }
     public final Builder setUnknownFields(
@@ -348,39 +432,39 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:alluxio.grpc.job.ThrottleCommand)
+    // @@protoc_insertion_point(builder_scope:alluxio.grpc.job.SetTaskPoolSizeCommand)
   }
 
-  // @@protoc_insertion_point(class_scope:alluxio.grpc.job.ThrottleCommand)
-  private static final alluxio.grpc.ThrottleCommand DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:alluxio.grpc.job.SetTaskPoolSizeCommand)
+  private static final alluxio.grpc.SetTaskPoolSizeCommand DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new alluxio.grpc.ThrottleCommand();
+    DEFAULT_INSTANCE = new alluxio.grpc.SetTaskPoolSizeCommand();
   }
 
-  public static alluxio.grpc.ThrottleCommand getDefaultInstance() {
+  public static alluxio.grpc.SetTaskPoolSizeCommand getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  @java.lang.Deprecated public static final com.google.protobuf.Parser<ThrottleCommand>
-      PARSER = new com.google.protobuf.AbstractParser<ThrottleCommand>() {
-    public ThrottleCommand parsePartialFrom(
+  @java.lang.Deprecated public static final com.google.protobuf.Parser<SetTaskPoolSizeCommand>
+      PARSER = new com.google.protobuf.AbstractParser<SetTaskPoolSizeCommand>() {
+    public SetTaskPoolSizeCommand parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new ThrottleCommand(input, extensionRegistry);
+      return new SetTaskPoolSizeCommand(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<ThrottleCommand> parser() {
+  public static com.google.protobuf.Parser<SetTaskPoolSizeCommand> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<ThrottleCommand> getParserForType() {
+  public com.google.protobuf.Parser<SetTaskPoolSizeCommand> getParserForType() {
     return PARSER;
   }
 
-  public alluxio.grpc.ThrottleCommand getDefaultInstanceForType() {
+  public alluxio.grpc.SetTaskPoolSizeCommand getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

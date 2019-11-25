@@ -69,8 +69,7 @@ message JobCommand {
   optional RunTaskCommand runTaskCommand = 1;
   optional CancelTaskCommand cancelTaskCommand = 2;
   optional RegisterCommand registerCommand = 3;
-  optional ThrottleCommand throttleCommand = 4;
-  optional UnThrottleCommand unThrottleCommand = 5;
+  optional SetTaskPoolSizeCommand setTaskPoolSizeCommand = 4;
 }
 
 message RunTaskCommand {
@@ -82,9 +81,9 @@ message RunTaskCommand {
 
 message RegisterCommand {}
 
-message ThrottleCommand {}
-
-message UnThrottleCommand {}
+message SetTaskPoolSizeCommand {
+  optional int32 taskPoolSize = 1;
+}
 
 message CancelTaskCommand {
   optional int64 jobId = 1;

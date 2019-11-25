@@ -150,12 +150,12 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void testThrottle() throws Exception {
-    mJobMaster.throttle();
+  public void testThreadPoolSize() throws Exception {
+    mJobMaster.setTaskPoolSize(0);
     long jobId = mJobMaster.run(new SleepJobConfig(1));
     CommonUtils.sleepMs(300);
     assertFalse(mJobMaster.getStatus(jobId).getStatus().isFinished());
-    mJobMaster.unthrottle();
+    mJobMaster.setTaskPoolSize(10);
     JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.COMPLETED);
   }
 }

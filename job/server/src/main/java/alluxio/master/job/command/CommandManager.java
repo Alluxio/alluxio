@@ -14,8 +14,7 @@ package alluxio.master.job.command;
 import alluxio.grpc.CancelTaskCommand;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.RunTaskCommand;
-import alluxio.grpc.ThrottleCommand;
-import alluxio.grpc.UnThrottleCommand;
+import alluxio.grpc.SetTaskPoolSizeCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
 
@@ -93,26 +92,16 @@ public final class CommandManager {
   }
 
   /**
-   * Submits a throttle-task command to a specific worker.
+   * Submits a set thread pool size command to specific worker.
    *
    * @param workerId the worker id
    */
-  public synchronized void submitThrottleCommand(long workerId) {
-    ThrottleCommand.Builder throttleCommand = ThrottleCommand.newBuilder();
-    JobCommand.Builder command = JobCommand.newBuilder();
-    command.setThrottleCommand(throttleCommand);
-    submit(workerId, command);
-  }
+  public synchronized void submitSetTaskPoolSizeCommand(long workerId, int taskPoolSize) {
+    SetTaskPoolSizeCommand.Builder setTaskPoolSizeCommand = SetTaskPoolSizeCommand.newBuilder();
+    setTaskPoolSizeCommand.setTaskPoolSize(taskPoolSize);
 
-  /**
-   * Submits a resume-task command to a specific worker.
-   *
-   * @param workerId the worker id
-   */
-  public synchronized void submitUnThrottleCommand(long workerId) {
-    UnThrottleCommand.Builder resumeCommand = UnThrottleCommand.newBuilder();
     JobCommand.Builder command = JobCommand.newBuilder();
-    command.setUnThrottleCommand(resumeCommand);
+    command.setSetTaskPoolSizeCommand(setTaskPoolSizeCommand);
     submit(workerId, command);
   }
 

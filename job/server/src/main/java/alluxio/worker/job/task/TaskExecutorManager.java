@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -41,7 +42,9 @@ import javax.annotation.concurrent.ThreadSafe;
 public class TaskExecutorManager {
   private static final Logger LOG = LoggerFactory.getLogger(TaskExecutorManager.class);
 
-  private final ThrottleableThreadPoolExecutor mTaskExecutionService;
+  private static final int MAX_TASK_EXECUTOR_POOL_SIZE = 100;
+
+  private final ThreadPoolExecutor mTaskExecutionService;
 
   // These maps are all indexed by <Job ID, Task ID> pairs.
   /** Stores the futures for all running tasks. */
@@ -62,21 +65,22 @@ public class TaskExecutorManager {
     mTaskFutures = Maps.newHashMap();
     mUnfinishedTasks = Maps.newHashMap();
     mTaskUpdates = Maps.newHashMap();
-    mTaskExecutionService = new ThrottleableThreadPoolExecutor(taskExecutorPoolSize,
-        taskExecutorPoolSize, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(),
+    mTaskExecutionService = new ThreadPoolExecutor(taskExecutorPoolSize,
+        MAX_TASK_EXECUTOR_POOL_SIZE, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(),
         ThreadFactoryUtils.build("task-execution-service-%d", true));
     mAddress = address;
   }
 
   /**
-   * Throttles the execution service to prevent a portion of the threads to not execute any
-   * new tasks.
+   * Sets the threadpool size of the task executor pool
    *
-   * @param throttlePercentage approximate percentage of the threads to be throttled (0-100)
+   * @param taskExecutorPoolSize number of threads in the task executor pool
    */
-  public void throttle(int throttlePercentage) {
-    Preconditions.checkArgument(throttlePercentage >= 0 && throttlePercentage <= 100);
-    mTaskExecutionService.throttle(throttlePercentage);
+  public void setTaskExecutorPoolSize(int taskExecutorPoolSize) {
+    Preconditions.checkArgument(taskExecutorPoolSize > 0);
+    Preconditions.checkArgument(taskExecutorPoolSize <= MAX_TASK_EXECUTOR_POOL_SIZE);
+
+    mTaskExecutionService.setCorePoolSize(taskExecutorPoolSize);
   }
 
   /**

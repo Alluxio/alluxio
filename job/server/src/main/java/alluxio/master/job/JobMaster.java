@@ -383,23 +383,12 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   }
 
   /**
-   * throttles all JobWorkers from executing future tasks.
+   * @param taskPoolSize the task pool size for the job workers
    */
-  public void throttle() {
+  public void setTaskPoolSize(int taskPoolSize) {
     try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {
       for (MasterWorkerInfo worker : mWorkers) {
-        mCommandManager.submitThrottleCommand(worker.getId());
-      }
-    }
-  }
-
-  /**
-   * lets JobWorker resume executing future tasks.
-   */
-  public void unthrottle() {
-    try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {
-      for (MasterWorkerInfo worker : mWorkers) {
-        mCommandManager.submitUnThrottleCommand(worker.getId());
+        mCommandManager.submitSetTaskPoolSizeCommand(worker.getId(), taskPoolSize);
       }
     }
   }
