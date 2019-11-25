@@ -899,6 +899,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       // will just re-register regardless.
       processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocks);
+      processWorkerMetrics(worker.getStableWorkerInfo().getWorkerAddress().getHost(), metrics);
 
       worker.addLostStorage(lostStorage);
 
