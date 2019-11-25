@@ -11,11 +11,7 @@
 
 package alluxio.job.plan.replicate;
 
-<<<<<<< HEAD
-=======
 import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
->>>>>>> c01191e117cd16c51297f4533493dea18d5c2918
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.exception.status.NotFoundException;
