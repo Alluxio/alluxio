@@ -48,6 +48,8 @@ public class PortCoordination {
   public static final List<ReservedPort> BACKUP_RESTORE_SINGLE = allocate(1, 1);
 
   public static final List<ReservedPort> ZOOKEEPER_FAILURE = allocate(1, 1);
+  public static final List<ReservedPort> ZOOKEEPER_CONNECTION_POLICY_STANDARD = allocate(2, 0);
+  public static final List<ReservedPort> ZOOKEEPER_CONNECTION_POLICY_SESSION = allocate(2, 0);
 
   private static synchronized List<ReservedPort> allocate(int numMasters, int numWorkers) {
     int needed = numMasters * MultiProcessCluster.PORTS_PER_MASTER

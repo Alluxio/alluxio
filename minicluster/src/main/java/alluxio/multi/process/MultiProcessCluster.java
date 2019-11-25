@@ -243,6 +243,42 @@ public final class MultiProcessCluster {
   }
 
   /**
+   * Gets the index of the primary master.
+   *
+   * @param timeoutMs maximum amount of time to wait, in milliseconds
+   * @return the index of the primary master
+   */
+  public synchronized int getPrimaryMasterIndex(int timeoutMs) {
+    final FileSystem fs = getFileSystemClient();
+    final MasterInquireClient inquireClient = getMasterInquireClient();
+    CommonUtils.waitFor("a primary master to be serving", (input) -> {
+      try {
+        // Make sure the leader is serving.
+        fs.getStatus(new AlluxioURI("/"));
+        return true;
+      } catch (Exception e) {
+        LOG.error("Failed to get status of root directory:", e);
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+    int primaryRpcPort;
+    try {
+      primaryRpcPort = inquireClient.getPrimaryRpcAddress().getPort();
+    } catch (UnavailableException e) {
+      throw new RuntimeException(e);
+    }
+    // Returns the master whose RPC port matches the primary RPC port.
+    for (int i = 0; i < mMasterAddresses.size(); i++) {
+      if (mMasterAddresses.get(i).getRpcPort() == primaryRpcPort) {
+        return i;
+      }
+    }
+    throw new RuntimeException(
+        String.format("No master found with RPC port %d. Master addresses: %s", primaryRpcPort,
+            mMasterAddresses));
+  }
+
+  /**
    * Waits for the number of live nodes in server configuration store
    * reached the number of nodes in this cluster and gets meta master client.
    *
