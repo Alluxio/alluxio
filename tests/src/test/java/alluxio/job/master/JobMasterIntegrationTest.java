@@ -78,7 +78,6 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
     mLocalAlluxioJobCluster.stop();
   }
 
-  @Ignore
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.JOB_MASTER_JOB_CAPACITY, "1",
       PropertyKey.Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME, "0"})
@@ -96,7 +95,6 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  @Ignore
   @Test
   public void restartMasterAndLoseWorker() throws Exception {
     long jobId = mJobMaster.run(new SleepJobConfig(1));
@@ -111,7 +109,6 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
     assertTrue(mJobMaster.getWorkerInfoList().isEmpty());
   }
 
-  @Ignore
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.JOB_MASTER_LOST_WORKER_INTERVAL, "10000000"})
@@ -133,7 +130,6 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
     assertEquals(1, mJobMaster.getWorkerInfoList().size());
   }
 
-  @Ignore
   @Test
   public void getAllWorkerHealth() throws Exception {
     final AtomicReference<List<JobWorkerHealth>> singleton = new AtomicReference<>();
