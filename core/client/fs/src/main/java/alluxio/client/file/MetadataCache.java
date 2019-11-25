@@ -12,7 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.GetStatusPOptions;
@@ -31,7 +30,6 @@ import java.util.concurrent.ExecutionException;
 public final class MetadataCache {
   private final BaseFileSystem mFs;
   private final Cache<String, URIStatus> mCache;
-  private final ConcurrentHashSet<AlluxioURI> mLoadingDirectories = new ConcurrentHashSet<>();
 
   /**
    * @param fs the fs client
@@ -44,7 +42,7 @@ public final class MetadataCache {
 
   /**
    * If file status is cached, return the cached status.
-   * Otherwise, issue an RPC to master to get the status, then the status is cached.
+   * Otherwise, issue an RPC to master to get and cache the status.
    *
    * @param file the file
    * @param options the options
@@ -53,25 +51,7 @@ public final class MetadataCache {
   public URIStatus getStatus(AlluxioURI file, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     try {
-      return mCache.get(file.getPath(), () -> {
-        AlluxioURI directory = file.getParent();
-        URIStatus fileStatus = null;
-        if (mLoadingDirectories.addIfAbsent(directory)) {
-          try {
-            List<URIStatus> statuses = mFs.listStatusThroughRPC(directory,
-                ListStatusPOptions.getDefaultInstance());
-            for (URIStatus status : statuses) {
-              if (status.getPath().equals(file.getPath())) {
-                fileStatus = status;
-              }
-              mCache.put(status.getPath(), status);
-            }
-          } finally {
-            mLoadingDirectories.remove(directory);
-          }
-        }
-        return fileStatus == null ? mFs.getStatusThroughRPC(file, options) : fileStatus;
-      });
+      return mCache.get(file.getPath(), () -> mFs.getStatusThroughRPC(file, options));
     } catch (ExecutionException e) {
       if (e.getCause() instanceof FileDoesNotExistException) {
         throw (FileDoesNotExistException) e.getCause();
