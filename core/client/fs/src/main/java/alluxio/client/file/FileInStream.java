@@ -30,6 +30,7 @@ import alluxio.grpc.AsyncCacheRequest;
 import alluxio.retry.CountingRetry;
 import alluxio.util.CommonUtils;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -330,7 +331,17 @@ public class FileInStream extends InputStream implements BoundedStream, Position
           + "(id=" + mStatus.getFileId() + ", path=" + mStatus.getPath() + ")");
     }
     // Create stream
-    mBlockInStream = mBlockStore.getInStream(blockInfo, mOptions, mFailedWorkers);
+    boolean isBlockInfoOutdated = true;
+    for (BlockLocation location : blockInfo.getLocations()) {
+      if (!mFailedWorkers.containsKey(location.getWorkerAddress())) {
+        isBlockInfoOutdated = false;
+      }
+    }
+    if (isBlockInfoOutdated) {
+      mBlockInStream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
+    } else {
+      mBlockInStream = mBlockStore.getInStream(blockInfo, mOptions, mFailedWorkers);
+    }
     // Set the stream to the correct position.
     long offset = mPosition % mBlockSize;
     mBlockInStream.seek(offset);
