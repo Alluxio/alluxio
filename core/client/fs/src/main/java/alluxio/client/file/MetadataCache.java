@@ -23,6 +23,7 @@ import com.google.common.cache.CacheBuilder;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Cache for metadata of files.
@@ -34,10 +35,14 @@ public final class MetadataCache {
   /**
    * @param fs the fs client
    * @param maxSize the max size of the cache
+   * @param expirationTimeMs the expiration time (in milliseconds) of the cached item
    */
-  public MetadataCache(BaseFileSystem fs, int maxSize) {
+  public MetadataCache(BaseFileSystem fs, int maxSize, long expirationTimeMs) {
     mFs = fs;
-    mCache = CacheBuilder.newBuilder().maximumSize(maxSize).build();
+    mCache = CacheBuilder.newBuilder()
+        .maximumSize(maxSize)
+        .expireAfterWrite(expirationTimeMs, TimeUnit.MILLISECONDS)
+        .build();
   }
 
   /**

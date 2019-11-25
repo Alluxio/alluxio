@@ -124,7 +124,9 @@ public class BaseFileSystem implements FileSystem {
     mCachingEnabled = cachingEnabled;
     if (mFsContext.getClusterConf().getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
       int maxSize = mFsContext.getClusterConf().getInt(PropertyKey.USER_METADATA_CACHE_MAX_SIZE);
-      mMetadataCache = new MetadataCache(this, maxSize);
+      long expirationTimeMs = mFsContext.getClusterConf()
+          .getMs(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME);
+      mMetadataCache = new MetadataCache(this, maxSize, expirationTimeMs);
     } else {
       mMetadataCache = null;
     }
