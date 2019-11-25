@@ -35,6 +35,7 @@ public class JobWorkerHealth {
    * @param workerId the worker id
    * @param loadAverage output of CentralProcessor.getSystemLoadAverage on the worker
    * @param hostname hostname of the worker
+   * @param taskPoolSize task pool size
    */
   public JobWorkerHealth(long workerId, double[] loadAverage, int taskPoolSize, String hostname) {
     mWorkerId = workerId;
