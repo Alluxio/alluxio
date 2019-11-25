@@ -12,6 +12,7 @@
 package alluxio.job.wire;
 
 import alluxio.util.CommonUtils;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 

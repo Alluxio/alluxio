@@ -11,9 +11,9 @@
 
 package alluxio.job.wire;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 public class JobWorkerHealthTest {
 
@@ -25,5 +25,4 @@ public class JobWorkerHealthTest {
 
     assertEquals(host, other);
   }
-
 }
