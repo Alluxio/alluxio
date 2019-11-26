@@ -332,9 +332,12 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     }
     // Create stream
     boolean isBlockInfoOutdated = true;
+    // blockInfo is "outdated" when all the locations in that blockInfo are failed workers,
+    // if there is at least one location that is not a failed worker, then it's not outdated.
     for (BlockLocation location : blockInfo.getLocations()) {
       if (!mFailedWorkers.containsKey(location.getWorkerAddress())) {
         isBlockInfoOutdated = false;
+        break;
       }
     }
     if (isBlockInfoOutdated) {
