@@ -41,7 +41,7 @@ alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT>
 
 首先, 你可以从[七牛密钥管理](https://portal.qiniu.com/user/key)中 获取 `AccessKey/SecretKey`。
 
-`alluxio.underfs.kodo.downloadhost` 可以在[七牛云对象存储管理平台](https://portal.qiniu.com/bucket) 中的空间概览中获取[访问域名](https://mars-assets.qnssl.com/alluxio_host.png)。
+`alluxio.underfs.kodo.downloadhost` 可以在[七牛云对象存储管理平台](https://portal.qiniu.com/bucket) 中的空间概览中获取。
 `alluxio.underfs.kodo.endpoint` 是七牛云存储源站的端点域名配置,可以根据存储空间所在存储区域进行配置:
 
 Kodo 存储空间和对应端点域名可以参考
