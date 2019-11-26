@@ -29,6 +29,8 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.retry.CountingRetry;
 import alluxio.util.CommonUtils;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -323,8 +325,26 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     /* Create a new stream to read from mPosition. */
     // Calculate block id.
     long blockId = mStatus.getBlockIds().get(Math.toIntExact(mPosition / mBlockSize));
+    BlockInfo blockInfo = mStatus.getBlockInfo(blockId);
+    if (blockInfo == null) {
+      throw new IOException("No BlockInfo for block(id=" + blockId + ") of file"
+          + "(id=" + mStatus.getFileId() + ", path=" + mStatus.getPath() + ")");
+    }
     // Create stream
-    mBlockInStream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
+    boolean isBlockInfoOutdated = true;
+    // blockInfo is "outdated" when all the locations in that blockInfo are failed workers,
+    // if there is at least one location that is not a failed worker, then it's not outdated.
+    for (BlockLocation location : blockInfo.getLocations()) {
+      if (!mFailedWorkers.containsKey(location.getWorkerAddress())) {
+        isBlockInfoOutdated = false;
+        break;
+      }
+    }
+    if (isBlockInfoOutdated) {
+      mBlockInStream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
+    } else {
+      mBlockInStream = mBlockStore.getInStream(blockInfo, mOptions, mFailedWorkers);
+    }
     // Set the stream to the correct position.
     long offset = mPosition % mBlockSize;
     mBlockInStream.seek(offset);
