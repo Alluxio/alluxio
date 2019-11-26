@@ -1307,6 +1307,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METRICS_SERVICE_THREADS =
+      new Builder(Name.MASTER_METRICS_SERVICE_THREADS)
+          .setDefaultValue(5)
+          .setDescription("The number of threads in executor pool for parallel processing "
+              + "metrics submitted by workers or clients")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
       new Builder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
           .setDefaultValue(true)
@@ -3438,6 +3446,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.inherit.owner.and.group";
     public static final String MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
         "alluxio.master.log.config.report.heartbeat.interval";
+    public static final String MASTER_METRICS_SERVICE_THREADS =
+        "alluxio.master.metrics.service.threads";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
         "alluxio.master.periodic.block.integrity.check.repair";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
