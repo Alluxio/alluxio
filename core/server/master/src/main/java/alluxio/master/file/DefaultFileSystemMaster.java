@@ -3209,19 +3209,21 @@ public final class DefaultFileSystemMaster extends CoreMaster
       return;
     }
 
-    Map<AlluxioURI, UfsStatus> statusCache;
     try (RpcContext rpcContext = createRpcContext()) {
-      statusCache = populateStatusCache(path, DescendantType.ALL);
       if (changedFiles == null) {
+        // full sync
         LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, true);
         try (LockedInodePath inodePath =
             mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern())) {
           syncMetadataInternal(rpcContext, inodePath, lockingScheme, DescendantType.ALL,
-              statusCache);
+              populateStatusCache(path, DescendantType.ALL));
         }
         LOG.info("Ended an active full sync of {}", path.toString());
         return;
       } else {
+        // incremental sync
+        Map<AlluxioURI, UfsStatus> statusCache = populateStatusCache(
+            PathUtils.findLowestCommonAncestor(changedFiles), DescendantType.ALL);
         Set<Callable<Void>> callables = new HashSet<>();
         for (AlluxioURI changedFile : changedFiles) {
           callables.add(() -> {

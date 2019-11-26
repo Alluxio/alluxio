@@ -19,6 +19,7 @@ import static org.junit.Assert.fail;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotEquals;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
@@ -28,6 +29,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Tests for the {@link PathUtils} class.
@@ -117,6 +120,52 @@ public final class PathUtilsTest {
     // Header
     assertEquals(Constants.HEADER + "host:port/foo/bar",
         PathUtils.concatPath(Constants.HEADER + "host:port", "/foo", "bar"));
+  }
+
+  /**
+   * Tests the {@link PathUtils#findLowestCommonAncestor(Collection)} method.
+   */
+  @Test
+  public void findLowestCommonAncestor() {
+    assertNull(PathUtils.findLowestCommonAncestor(null));
+    assertNull(PathUtils.findLowestCommonAncestor(Collections.EMPTY_LIST));
+
+    ArrayList<AlluxioURI> paths = new ArrayList<>();
+
+    paths.add(new AlluxioURI("/"));
+    assertEquals("/", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.clear();
+    paths.add(new AlluxioURI("/a"));
+    assertEquals("/a", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.add(new AlluxioURI("/a/b"));
+    assertEquals("/a", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.clear();
+    paths.add(new AlluxioURI("/a/c"));
+    paths.add(new AlluxioURI("/a/d/"));
+    assertEquals("/a", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.add(new AlluxioURI("/b/a/"));
+    assertEquals("/", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.clear();
+    paths.add(new AlluxioURI("/a/b/c"));
+    paths.add(new AlluxioURI("/a/b/d"));
+    paths.add(new AlluxioURI("/a/b/e"));
+    assertEquals("/a/b", PathUtils.findLowestCommonAncestor(paths).getPath());
+
+    paths.clear();
+    String prefix = "/a/b/c";
+    for (int i = 0; i < 10; i++) {
+      for (int j = 0; j < 10; j++) {
+        for (int k = 0; k < 10; k++) {
+          paths.add(new AlluxioURI(String.format("%s/%d/%d/%d", prefix, i, j, k)));
+        }
+      }
+    }
+    assertEquals(prefix, PathUtils.findLowestCommonAncestor(paths).getPath());
   }
 
   /**
