@@ -18,6 +18,7 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.Pair;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
@@ -39,7 +40,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.Map;
+import java.util.Set;
 
 /**
  * Tests {@link PersistDefinition}.
@@ -81,11 +82,11 @@ public final class PersistDefinitionTest {
     testFileInfo.setFileBlockInfos(Lists.newArrayList(fileBlockInfo));
     Mockito.when(mMockFileSystem.getStatus(uri)).thenReturn(new URIStatus(testFileInfo));
 
-    Map<WorkerInfo, SerializableVoid> result =
+    Set<Pair<WorkerInfo, SerializableVoid>> result =
         new PersistDefinition().selectExecutors(config,
             Lists.newArrayList(workerInfo), new SelectExecutorsContext(1, mJobServerContext));
     Assert.assertEquals(1, result.size());
-    Assert.assertEquals(workerInfo, result.keySet().iterator().next());
+    Assert.assertEquals(workerInfo, result.iterator().next().getFirst());
   }
 
   @Test

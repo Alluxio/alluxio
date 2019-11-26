@@ -64,7 +64,7 @@ public class PlanTrackerTest {
   }
 
   @Test
-  public void testAddJobIncreaesCount() throws Exception {
+  public void testAddJobIncreasesCount() throws Exception {
     assertEquals("tracker should be empty", 0, mTracker.coordinators().size());
     addJob(100);
     assertEquals("tracker should have one job", 1, mTracker.coordinators().size());

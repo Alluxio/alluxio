@@ -110,7 +110,7 @@ public final class ShellUtils {
     // Now parse the rest
     matcher = Pattern.compile("(.*) on (.*) \\((.*)\\)").matcher(lineWithoutType);
     if (!matcher.matches()) {
-      LOG.debug("Unable to parse output of 'mount': {}", line);
+      LOG.warn("Unable to parse output of '{}': {}", MOUNT_COMMAND, line);
       return builder.build();
     }
     builder.setDeviceSpec(matcher.group(1));
