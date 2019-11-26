@@ -306,7 +306,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
           CreateFilePOptions.newBuilder()
               .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
               .build());
-      long fid = mNextOpenFileId.getAndAdd(1);
+      long fid = mNextOpenFileId.getAndIncrement();
       mOpenFiles.add(new OpenFileEntry(fid, path, null, os));
       fi.fh.set(fid);
       if (gid != GID || uid != UID) {
@@ -524,7 +524,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       }
 
       FileInStream is = mFileSystem.openFile(uri);
-      long fid = mNextOpenFileId.getAndAdd(1);
+      long fid = mNextOpenFileId.getAndIncrement();
       mOpenFiles.add(new OpenFileEntry(fid, path, is, null));
       fi.fh.set(fid);
     } catch (FileDoesNotExistException | InvalidPathException e) {
