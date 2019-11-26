@@ -93,9 +93,7 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
-    synchronized (mWorkerMetrics) {
-      putReportedMetrics(mWorkerMetrics, getFullInstanceId(hostname, null), metrics);
-    }
+    putReportedMetrics(mWorkerMetrics, getFullInstanceId(hostname, null), metrics);
   }
 
   /**
@@ -110,9 +108,7 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
-    synchronized (mClientMetrics) {
-      putReportedMetrics(mClientMetrics, getFullInstanceId(hostname, clientId), metrics);
-    }
+    putReportedMetrics(mClientMetrics, getFullInstanceId(hostname, clientId), metrics);
   }
 
   /**
@@ -137,13 +133,13 @@ public class MetricsStore {
       // If a metric is COUNTER, the value sent via RPC should be the incremental value; i.e.
       // the amount the value has changed since the last RPC. The master should equivalently
       // increment its value based on the received metric rather than replacing it.
-      Metric oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
-      if (oldMetric == null) {
-        metricSet.add(metric);
-      } else if (metric.getMetricType() == MetricType.COUNTER) {
-        oldMetric.addValue(metric.getValue());
-      } else {
-        oldMetric.setValue(metric.getValue());
+      if (!metricSet.add(metric)) {
+        Metric oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
+        if (metric.getMetricType() == MetricType.COUNTER) {
+          oldMetric.addValue(metric.getValue());
+        } else {
+          oldMetric.setValue(metric.getValue());
+        }
       }
     }
   }
@@ -163,13 +159,9 @@ public class MetricsStore {
     }
 
     if (instanceType == InstanceType.WORKER) {
-      synchronized (mWorkerMetrics) {
-        return mWorkerMetrics.getByField(NAME_INDEX, name);
-      }
+      return mWorkerMetrics.getByField(NAME_INDEX, name);
     } else if (instanceType == InstanceType.CLIENT) {
-      synchronized (mClientMetrics) {
-        return mClientMetrics.getByField(NAME_INDEX, name);
-      }
+      return mClientMetrics.getByField(NAME_INDEX, name);
     } else {
       throw new IllegalArgumentException("Unsupported instance type " + instanceType);
     }
@@ -187,13 +179,14 @@ public class MetricsStore {
 
   /**
    * Clears all the metrics.
+   *
+   * This method should only be called when starting the {@link DefaultMetricsMaster}
+   * and before starting the metrics updater to avoid conflicts with
+   * other methods in this class which updates or accesses
+   * the metrics inside metrics sets.
    */
   public void clear() {
-    synchronized (mWorkerMetrics) {
-      mWorkerMetrics.clear();
-    }
-    synchronized (mClientMetrics) {
-      mClientMetrics.clear();
-    }
+    mWorkerMetrics.clear();
+    mClientMetrics.clear();
   }
 }

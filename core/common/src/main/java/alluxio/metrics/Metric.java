@@ -16,6 +16,7 @@ import alluxio.grpc.MetricType;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.AtomicDouble;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +47,7 @@ public final class Metric implements Serializable {
   // tags in the future
   private final Map<String, String> mTags;
 
-  private Double mValue;
+  private AtomicDouble mValue;
 
   /**
    * Constructs a {@link Metric} instance.
@@ -80,7 +81,7 @@ public final class Metric implements Serializable {
     mInstanceId = id;
     mMetricType = metricType;
     mName = name;
-    mValue = value;
+    mValue = new AtomicDouble(value);
     mTags = new LinkedHashMap<>();
   }
 
@@ -88,10 +89,10 @@ public final class Metric implements Serializable {
    * Add metric value delta to the existing value.
    * This method should only be used by {@link alluxio.master.metrics.MetricsStore}
    *
-   * @param value value to add
+   * @param delta value to add
    */
-  public void addValue(double value) {
-    mValue += value;
+  public void addValue(double delta) {
+    mValue.addAndGet(delta);
   }
 
   /**
@@ -101,14 +102,14 @@ public final class Metric implements Serializable {
    * @param value value to set
    */
   public void setValue(double value) {
-    mValue = value;
+    mValue.set(value);
   }
 
   /**
    * @return the metric value
    */
   public double getValue() {
-    return mValue;
+    return mValue.get();
   }
 
   /**
@@ -182,12 +183,12 @@ public final class Metric implements Serializable {
     }
     Metric metric = (Metric) other;
     return Objects.equal(getFullMetricName(), metric.getFullMetricName())
-        && Objects.equal(mValue, metric.mValue);
+        && Objects.equal(mValue.get(), metric.mValue.get());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(getFullMetricName(), mValue);
+    return Objects.hashCode(getFullMetricName(), mValue.get());
   }
 
   /**
@@ -219,7 +220,7 @@ public final class Metric implements Serializable {
   public alluxio.grpc.Metric toProto() {
     alluxio.grpc.Metric.Builder metric = alluxio.grpc.Metric.newBuilder();
     metric.setInstance(mInstanceType.toString()).setHostname(mHostname).setMetricType(mMetricType)
-        .setName(mName).setValue(mValue).putAllTags(mTags);
+        .setName(mName).setValue(mValue.get()).putAllTags(mTags);
 
     if (mInstanceId != null && !mInstanceId.isEmpty()) {
       metric.setInstanceId(mInstanceId);
@@ -341,7 +342,7 @@ public final class Metric implements Serializable {
         .add("metricType", mMetricType)
         .add("name", mName)
         .add("tags", mTags)
-        .add("value", mValue)
+        .add("value", mValue.get())
         .toString();
   }
 
