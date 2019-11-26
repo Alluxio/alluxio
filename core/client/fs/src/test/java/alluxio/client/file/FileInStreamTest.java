@@ -147,13 +147,16 @@ public final class FileInStreamTest {
       when(mBlockStore.getEligibleWorkers())
           .thenReturn(Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress(), 0, 0)));
       when(mBlockStore.getInStream(eq((long) i), any(InStreamOptions.class), any()))
-          .thenAnswer(new Answer<BlockInStream>() {
-            @Override
-            public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
-              long blockId = (Long) invocation.getArguments()[0];
-              return mInStreams.get((int) blockId).isClosed() ? new TestBlockInStream(input,
-                  blockId, input.length, false, mBlockSource) : mInStreams.get((int) blockId);
-            }
+          .thenAnswer(invocation -> {
+            long blockId = (Long) invocation.getArguments()[0];
+            return mInStreams.get((int) blockId).isClosed() ? new TestBlockInStream(input,
+                blockId, input.length, false, mBlockSource) : mInStreams.get((int) blockId);
+          });
+      when(mBlockStore.getInStream(eq(new BlockInfo().setBlockId(i)), any(InStreamOptions.class),
+          any())).thenAnswer(invocation -> {
+            long blockId = ((BlockInfo) invocation.getArguments()[0]).getBlockId();
+            return mInStreams.get((int) blockId).isClosed() ? new TestBlockInStream(input,
+                blockId, input.length, false, mBlockSource) : mInStreams.get((int) blockId);
           });
     }
     mInfo.setBlockIds(blockIds);
