@@ -40,12 +40,13 @@ public final class Metric implements Serializable {
   private final MetricsSystem.InstanceType mInstanceType;
   private final String mHostname;
   private final String mName;
-  private final Double mValue;
   private final MetricType mMetricType;
   private String mInstanceId;
   // TODO(yupeng): consider a dedicated data structure for tag, when more functionality are added to
   // tags in the future
   private final Map<String, String> mTags;
+
+  private Double mValue;
 
   /**
    * Constructs a {@link Metric} instance.
@@ -84,6 +85,33 @@ public final class Metric implements Serializable {
   }
 
   /**
+   * Add metric value delta to the existing value.
+   * This method should only be used by {@link alluxio.master.metrics.MetricsStore}
+   *
+   * @param value value to add
+   */
+  public void addValue(double value) {
+    mValue += value;
+  }
+
+  /**
+   * Set the metric value.
+   * This method should only be used by {@link alluxio.master.metrics.MetricsStore}
+   *
+   * @param value value to set
+   */
+  public void setValue(double value) {
+    mValue = value;
+  }
+
+  /**
+   * @return the metric value
+   */
+  public double getValue() {
+    return mValue;
+  }
+
+  /**
    * @return the instance type
    */
   public MetricsSystem.InstanceType getInstanceType() {
@@ -119,13 +147,6 @@ public final class Metric implements Serializable {
    */
   public String getName() {
     return mName;
-  }
-
-  /**
-   * @return the metric value
-   */
-  public double getValue() {
-    return mValue;
   }
 
   /**

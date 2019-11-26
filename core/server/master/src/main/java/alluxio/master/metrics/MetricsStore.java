@@ -21,10 +21,8 @@ import alluxio.metrics.MetricsSystem.InstanceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -112,7 +110,6 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
-    LOG.debug("Removing metrics for id {} to replace with {}", clientId, metrics);
     synchronized (mClientMetrics) {
       putReportedMetrics(mClientMetrics, getFullInstanceId(hostname, clientId), metrics);
     }
@@ -132,7 +129,6 @@ public class MetricsStore {
    */
   private static void putReportedMetrics(IndexedSet<Metric> metricSet, String instanceId,
       List<Metric> reportedMetrics) {
-    List<Metric> newMetrics = new ArrayList<>(reportedMetrics.size());
     for (Metric metric : reportedMetrics) {
       if (metric.getHostname() == null) {
         continue; // ignore metrics whose hostname is null
@@ -141,25 +137,15 @@ public class MetricsStore {
       // If a metric is COUNTER, the value sent via RPC should be the incremental value; i.e.
       // the amount the value has changed since the last RPC. The master should equivalently
       // increment its value based on the received metric rather than replacing it.
-      if (metric.getMetricType() == MetricType.COUNTER) {
-        // FULL_NAME_INDEX is a unique index, so getFirstByField will return the same results as
-        // getByField
-        Metric oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
-        double oldVal = oldMetric == null ? 0.0 : oldMetric.getValue();
-        Metric newMetric = new Metric(metric.getInstanceType(), metric.getHostname(),
-            metric.getMetricType(), metric.getName(), oldVal + metric.getValue());
-        for (Map.Entry<String, String> tag : metric.getTags().entrySet()) {
-          newMetric.addTag(tag.getKey(), tag.getValue());
-        }
-        metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
-        newMetrics.add(newMetric);
+      Metric oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
+      if (oldMetric == null) {
+        metricSet.add(metric);
+      } else if (metric.getMetricType() == MetricType.COUNTER) {
+        oldMetric.addValue(metric.getValue());
       } else {
-        metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
-        newMetrics.add(metric);
+        oldMetric.setValue(metric.getValue());
       }
     }
-    metricSet.removeByField(ID_INDEX, instanceId);
-    metricSet.addAll(newMetrics);
   }
 
   /**
