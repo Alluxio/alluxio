@@ -106,7 +106,7 @@ public class JobWorkerHealth {
   }
 
   /**
-   * @return proto representatx`ion of JobWorkerInfo
+   * @return proto representation of JobWorkerInfo
    */
   public alluxio.grpc.JobWorkerHealth toProto() {
     alluxio.grpc.JobWorkerHealth.Builder builder = alluxio.grpc.JobWorkerHealth.newBuilder()

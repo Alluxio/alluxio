@@ -91,10 +91,10 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
       while (mIsPaused) {
         mUnpaused.await();
       }
-      mNumPaused--;
     } catch (InterruptedException e) {
       t.interrupt();
     } finally {
+      mNumPaused--;
       mPauseLock.unlock();
     }
   }
