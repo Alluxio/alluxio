@@ -13,6 +13,8 @@ package alluxio.metrics;
 
 import alluxio.grpc.MetricType;
 
+import alluxio.util.CommonUtils;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -25,6 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * A metric of a given instance. The instance can be master, worker, or client.
@@ -46,6 +49,14 @@ public final class Metric implements Serializable {
   // TODO(yupeng): consider a dedicated data structure for tag, when more functionality are added to
   // tags in the future
   private final Map<String, String> mTags;
+
+  /**
+   * The unique identifier to represent this metric.
+   * The pattern is instance.[hostname-id:instanceId.]name[.tagName:tagValue]*.
+   * Fetched once and assumed to be immutable.
+   */
+  private final Supplier<String> mFullMetricNameSupplier =
+      CommonUtils.memoize(this::constructFullMetricName);
 
   private AtomicDouble mValue;
 
@@ -197,6 +208,15 @@ public final class Metric implements Serializable {
    *         at the end
    */
   public String getFullMetricName() {
+    return mFullMetricNameSupplier.get();
+  }
+
+  /**
+   * @return the fully qualified metric name, which is of pattern
+   *         instance.[hostname-id:instanceId.]name[.tagName:tagValue]*, where the tags are appended
+   *         at the end
+   */
+  private String constructFullMetricName() {
     StringBuilder sb = new StringBuilder();
     sb.append(mInstanceType).append('.');
     if (mHostname != null) {
