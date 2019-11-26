@@ -298,10 +298,10 @@ Congratulations! You have successfully contributed to Alluxio! Thank you for joi
 
 There are a few things that new contributors can do to familiarize themselves with Alluxio:
 
-1.  [Run Alluxio Locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
-1.  [Run Alluxio on a Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
-1.  Read [Configuration Settings]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}) and
-[Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }})
+1.  [Run Alluxio Locally]({{ '/en/install/Running-Alluxio-Locally.html' | relativize_url }})
+1.  [Run Alluxio on a Cluster]({{ '/en/install/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
+1.  Read [Configuration Settings]({{ '/en/operations/Configuration.html' | relativize_url }}) and
+[Command Line Interface]({{ '/en/operations/User-CLI.html' | relativize_url }})
 1.  Read a [Code Example](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
 1.  [Build Alluxio From Source]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
 1.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request.

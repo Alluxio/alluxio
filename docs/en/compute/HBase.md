@@ -2,7 +2,7 @@
 layout: global
 title: Running Apache HBase on Alluxio
 nickname: Apache HBase
-group: Data Applications
+group: Compute Integrations
 priority: 2
 ---
 
@@ -75,7 +75,7 @@ Ensure alluxio scheme is recognized before starting HBase:
 $ ${HBASE_HOME}/bin/start-hbase.sh
 ```
 
-If not, follow the [Usage FAQs]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#usage-faq)
+If not, follow the [Usage FAQs]({{ '/en/operations/Troubleshooting.html' | relativize_url }}#usage-faq)
  as needed.
 
 Visit HBase Web UI at `http://<HBASE_MASTER_HOSTNAME>:16010` to confirm that HBase is running on Alluxio
@@ -136,7 +136,7 @@ or `zk@host1:2181,host2:2181,host3:2181`.
 </property>
 ```
 
-See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority)
+See [HA authority]({{ '/en/install/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority)
 for more details.
 
 ### Add additional Alluxio site properties to HBase
