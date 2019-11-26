@@ -457,25 +457,6 @@ public class BaseFileSystem implements FileSystem {
     return openFile(path, OpenFilePOptions.getDefaultInstance());
   }
 
-  private void updateFileAccessTime(AlluxioURI path) throws IOException, AlluxioException {
-    AlluxioConfiguration conf = mFsContext.getPathConf(path);
-    GetStatusPOptions getStatusOptions = FileSystemOptions.getStatusDefaults(conf).toBuilder()
-        .setAccessMode(Bits.READ)
-        .setUpdateTimestamps(true)
-        .build();
-    getStatusThroughRPC(path, getStatusOptions);
-  }
-
-  private void asyncUpdateFileAccessTime(AlluxioURI path) {
-    mAccessTimeUpdater.submit(() -> {
-      try {
-        updateFileAccessTime(path);
-      } catch (IOException | AlluxioException e) {
-        LOG.error("Failed to update access time for file " + path, e);
-      }
-    });
-  }
-
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
@@ -640,6 +621,25 @@ public class BaseFileSystem implements FileSystem {
       client.unmount(path);
       LOG.debug("Unmounted {}, options: {}", path.getPath(), mergedOptions);
       return null;
+    });
+  }
+
+  private void updateFileAccessTime(AlluxioURI path) throws IOException, AlluxioException {
+    AlluxioConfiguration conf = mFsContext.getPathConf(path);
+    GetStatusPOptions getStatusOptions = FileSystemOptions.getStatusDefaults(conf).toBuilder()
+        .setAccessMode(Bits.READ)
+        .setUpdateTimestamps(true)
+        .build();
+    getStatusThroughRPC(path, getStatusOptions);
+  }
+
+  private void asyncUpdateFileAccessTime(AlluxioURI path) {
+    mAccessTimeUpdater.submit(() -> {
+      try {
+        updateFileAccessTime(path);
+      } catch (IOException | AlluxioException e) {
+        LOG.error("Failed to update access time for file " + path, e);
+      }
     });
   }
 

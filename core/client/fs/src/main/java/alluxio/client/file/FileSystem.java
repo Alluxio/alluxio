@@ -479,14 +479,6 @@ public interface FileSystem extends Closeable {
   FileInStream openFile(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
-  /*
-   * @param status the file status
-   * @return a {@link FileInStream} for the given path
-   * @throws FileDoesNotExistException if the given file does not exist
-   */
-  FileInStream openFile(URIStatus status)
-      throws FileDoesNotExistException, IOException, AlluxioException;
-
   /**
    * Opens a file for reading.
    *
@@ -499,6 +491,18 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
+   * Convenience method for {@link #openFile(URIStatus, OpenFilePOptions)} with default options.
+   *
+   * @param status the file status
+   * @return a {@link FileInStream} for the given path
+   * @throws FileDoesNotExistException if the given file does not exist
+   */
+  FileInStream openFile(URIStatus status)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Opens a file for reading.
+   *
    * @param status the file status
    * @param options options to associate with this operation
    * @return a {@link FileInStream} for the given path
