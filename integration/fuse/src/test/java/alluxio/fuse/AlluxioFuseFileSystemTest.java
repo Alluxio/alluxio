@@ -23,21 +23,21 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.times;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
-import alluxio.Constants;
 import alluxio.ConfigurationTestUtils;
+import alluxio.Constants;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -56,6 +56,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -346,7 +347,9 @@ public class AlluxioFuseFileSystemTest {
 
     mFuseFs.open("/foo/bar", mFileInfo);
     verify(mFileSystem).getStatus(expectedPath);
-    verify(mFileSystem).openFile(expectedPath);
+    ArgumentCaptor<URIStatus> captor = ArgumentCaptor.forClass(URIStatus.class);
+    verify(mFileSystem).openFile(captor.capture());
+    assertEquals(expectedPath.getPath(), captor.getValue().getPath());
   }
 
   @Test
@@ -377,7 +380,9 @@ public class AlluxioFuseFileSystemTest {
 
     fi.setCompleted(true);
     t.join();
-    verify(mFileSystem).openFile(expectedPath);
+    ArgumentCaptor<URIStatus> captor = ArgumentCaptor.forClass(URIStatus.class);
+    verify(mFileSystem).openFile(captor.capture());
+    assertEquals(expectedPath.getPath(), captor.getValue().getPath());
   }
 
   @Test
@@ -396,7 +401,7 @@ public class AlluxioFuseFileSystemTest {
           return 4;
         });
 
-    when(mFileSystem.openFile(expectedPath)).thenReturn(fakeInStream);
+    when(mFileSystem.openFile(any(URIStatus.class))).thenReturn(fakeInStream);
     mFileInfo.flags.set(O_RDONLY.intValue());
 
     // prepare something to read to it
@@ -522,6 +527,7 @@ public class AlluxioFuseFileSystemTest {
     FileInfo fi = new FileInfo();
     fi.setCompleted(true);
     fi.setFolder(false);
+    fi.setPath(uri.getPath());
     URIStatus status = new URIStatus(fi);
 
     when(mFileSystem.getStatus(uri)).thenReturn(status);
