@@ -18,9 +18,10 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
+import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -76,6 +77,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -92,6 +96,7 @@ public class BaseFileSystem implements FileSystem {
   protected final AlluxioBlockStore mBlockStore;
   protected final boolean mCachingEnabled;
   private final MetadataCache mMetadataCache;
+  private final ExecutorService mAccessTimeUpdater;
 
   private volatile boolean mClosed = false;
 
@@ -130,6 +135,7 @@ public class BaseFileSystem implements FileSystem {
     } else {
       mMetadataCache = null;
     }
+    mAccessTimeUpdater = Executors.newCachedThreadPool();
   }
 
   /**
@@ -143,6 +149,18 @@ public class BaseFileSystem implements FileSystem {
     // TODO(zac) Determine the behavior when closing the context during operations.
     if (!mClosed) {
       mClosed = true;
+      mAccessTimeUpdater.shutdown();
+      try {
+        if (!mAccessTimeUpdater.awaitTermination(30, TimeUnit.SECONDS)) {
+          mAccessTimeUpdater.shutdownNow();
+          if (!mAccessTimeUpdater.awaitTermination(30, TimeUnit.SECONDS)) {
+            LOG.error("Failed to terminate the access time updater thread pool.");
+          }
+        }
+      } catch (InterruptedException e) {
+        mAccessTimeUpdater.shutdownNow();
+        Thread.currentThread().interrupt();
+      }
       if (mCachingEnabled) {
         Factory.FILESYSTEM_CACHE.remove(new FileSystemKey(mFsContext.getClientContext()));
       }
@@ -322,7 +340,7 @@ public class BaseFileSystem implements FileSystem {
     if (mMetadataCache == null) {
       return getStatusThroughRPC(path, options);
     }
-    return mMetadataCache.getStatus(path, options);
+    return mMetadataCache.getStatus(path, options).getFirst();
   }
 
   /**
@@ -439,20 +457,51 @@ public class BaseFileSystem implements FileSystem {
     return openFile(path, OpenFilePOptions.getDefaultInstance());
   }
 
+  private void updateFileAccessTime(AlluxioURI path) throws IOException, AlluxioException {
+    AlluxioConfiguration conf = mFsContext.getPathConf(path);
+    GetStatusPOptions getStatusOptions = FileSystemOptions.getStatusDefaults(conf).toBuilder()
+        .setAccessMode(Bits.READ)
+        .setUpdateTimestamps(true)
+        .build();
+    getStatusThroughRPC(path, getStatusOptions);
+  }
+
+  private void asyncUpdateFileAccessTime(AlluxioURI path) {
+    mAccessTimeUpdater.submit(() -> {
+      try {
+        updateFileAccessTime(path);
+      } catch (IOException | AlluxioException e) {
+        LOG.error("Failed to update access time for file " + path, e);
+      }
+    });
+  }
+
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
     AlluxioConfiguration conf = mFsContext.getPathConf(path);
-    // TODO(cc): if status is got from cache, the last access time cannot be updated.
     GetStatusPOptions getStatusOptions = FileSystemOptions.getStatusDefaults(conf).toBuilder()
         .setAccessMode(Bits.READ)
         .setUpdateTimestamps(options.getUpdateLastAccessTime())
         .build();
-    URIStatus status = getStatus(path, getStatusOptions);
+    URIStatus status;
+    boolean isStatusCached;
+    if (mMetadataCache == null) {
+      status = getStatusThroughRPC(path, getStatusOptions);
+      isStatusCached = false;
+    } else {
+      Pair<URIStatus, Boolean> stat = mMetadataCache.getStatus(path, getStatusOptions);
+      status = stat.getFirst();
+      isStatusCached = stat.getSecond();
+    }
     if (status.isFolder()) {
       throw new FileDoesNotExistException(
           ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
+    }
+    if (!isStatusCached) {
+      // The getStatus RPC has updated access time, no need to update again.
+      options = options.toBuilder().setUpdateLastAccessTime(false).build();
     }
     return openFile(status, options);
   }
@@ -467,6 +516,9 @@ public class BaseFileSystem implements FileSystem {
   public FileInStream openFile(URIStatus status, OpenFilePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     AlluxioURI path = new AlluxioURI(status.getPath());
+    if (options.hasUpdateLastAccessTime()) {
+      asyncUpdateFileAccessTime(path);
+    }
     AlluxioConfiguration conf = mFsContext.getPathConf(path);
     OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(conf)
         .toBuilder().mergeFrom(options).build();

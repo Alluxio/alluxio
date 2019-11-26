@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.GetStatusPOptions;
@@ -22,7 +23,6 @@ import com.google.common.cache.CacheBuilder;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -51,21 +51,18 @@ public final class MetadataCache {
    *
    * @param file the file
    * @param options the options
-   * @return the file status
+   * @return the file status and a boolean indicating whether the status comes from the cache
    */
-  public URIStatus getStatus(AlluxioURI file, GetStatusPOptions options)
+  public Pair<URIStatus, Boolean> getStatus(AlluxioURI file, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    try {
-      return mCache.get(file.getPath(), () -> mFs.getStatusThroughRPC(file, options));
-    } catch (ExecutionException e) {
-      if (e.getCause() instanceof FileDoesNotExistException) {
-        throw (FileDoesNotExistException) e.getCause();
-      }
-      if (e.getCause() instanceof AlluxioException) {
-        throw (AlluxioException) e.getCause();
-      }
-      throw new IOException(e.getCause());
+    boolean isCached = true;
+    URIStatus status = mCache.getIfPresent(file.getPath());
+    if (status == null) {
+      isCached = false;
+      status = mFs.getStatusThroughRPC(file, options);
+      mCache.put(file.getPath(), status);
     }
+    return new Pair<>(status, isCached);
   }
 
   /**
@@ -82,5 +79,13 @@ public final class MetadataCache {
       mCache.put(status.getPath(), status);
     }
     return statuses;
+  }
+
+  /**
+   * @param file the file URI
+   * @return whether the status of file is cached
+   */
+  public boolean contains(AlluxioURI file) {
+    return mCache.asMap().containsKey(file.getPath());
   }
 }
