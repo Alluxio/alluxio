@@ -24,8 +24,12 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
 
+  // write/read locked by mPauseLock
   private boolean mIsPaused;
+
+  // writes are locked by mPauseLock
   private int mNumPaused;
+
   private ReentrantLock mPauseLock;
   private Condition mUnpaused;
 
@@ -52,6 +56,8 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
    * @return number of active threads subtracted by the number of tasks paused
    */
   public int getNumActiveTasks() {
+    // the read for mNumPaused is not locked so the value might be off by 1
+    // but that is within the expected range.
     return super.getActiveCount() - mNumPaused;
   }
 
