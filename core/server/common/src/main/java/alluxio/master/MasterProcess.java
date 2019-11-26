@@ -176,11 +176,11 @@ public abstract class MasterProcess implements Process {
 
   protected void startRejectingServers() {
     if (mRejectingRpcServer == null) {
-      mRejectingRpcServer = new RejectingServer(mRpcBindAddress.getPort());
+      mRejectingRpcServer = new RejectingServer(mRpcBindAddress);
       mRejectingRpcServer.start();
     }
     if (mRejectingWebServer == null) {
-      mRejectingWebServer = new RejectingServer(mWebBindAddress.getPort());
+      mRejectingWebServer = new RejectingServer(mWebBindAddress);
       mRejectingWebServer.start();
     }
   }
