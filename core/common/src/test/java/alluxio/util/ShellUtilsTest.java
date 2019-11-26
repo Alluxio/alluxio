@@ -97,6 +97,15 @@ public final class ShellUtilsTest {
   }
 
   @Test
+  public void parseMountInfoInvalidOutput() throws Exception {
+    UnixMountInfo info = ShellUtils.parseMountInfo("invalid output");
+    assertFalse(info.getDeviceSpec().isPresent());
+    assertFalse(info.getMountPoint().isPresent());
+    assertFalse(info.getFsType().isPresent());
+    assertFalse(info.getOptions().getSize().isPresent());
+  }
+
+  @Test
   public void getMountInfo() throws Exception {
     assumeTrue(OSUtils.isMacOS() || OSUtils.isLinux());
     List<UnixMountInfo> info = ShellUtils.getUnixMountInfo();
