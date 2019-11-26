@@ -15,6 +15,7 @@ import alluxio.master.Master;
 import alluxio.metrics.Metric;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface of the metrics master that aggregates the cluster-level metrics from workers and
@@ -43,4 +44,9 @@ public interface MetricsMaster extends Master {
    * @param metrics the new worker metrics
    */
   void workerHeartbeat(String hostname, List<Metric> metrics);
+
+
+  void putWorkerMetric(String hostname, List<Metric> metrics);
+
+  Map<String, List<Metric>> getWorkerMetrics();
 }

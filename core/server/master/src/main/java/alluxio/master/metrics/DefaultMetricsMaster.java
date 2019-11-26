@@ -57,6 +57,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
       new HashSet<>();
   private final MetricsStore mMetricsStore;
   private final HeartbeatThread mClusterMetricsUpdater;
+  private Map<String, List<Metric>> mMap = new HashMap<>();
 
   /**
    * Creates a new instance of {@link MetricsMaster}.
@@ -204,7 +205,17 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
 
   @Override
   public void workerHeartbeat(String hostname, List<Metric> metrics) {
+    mMap.put(hostname, metrics);
+  }
+
+  @Override
+  public void putWorkerMetric(String hostname, List<Metric> metrics) {
     mMetricsStore.putWorkerMetrics(hostname, metrics);
+  }
+
+  @Override
+  public Map<String, List<Metric>> getWorkerMetrics() {
+    return mMap;
   }
 
   /**
