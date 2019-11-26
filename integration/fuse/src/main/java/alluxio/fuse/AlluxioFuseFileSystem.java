@@ -684,8 +684,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     }
     try {
       mFileSystem.rename(oldUri, newUri);
-      if (mOpenFiles.contains(PATH_INDEX, oldPath)) {
-        OpenFileEntry oe = mOpenFiles.getFirstByField(PATH_INDEX, oldPath);
+      OpenFileEntry oe = mOpenFiles.getFirstByField(PATH_INDEX, oldPath);
+      if (oe != null) {
         oe.setPath(newPath);
       }
     } catch (FileDoesNotExistException e) {
