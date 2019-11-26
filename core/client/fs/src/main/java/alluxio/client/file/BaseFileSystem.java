@@ -497,7 +497,7 @@ public class BaseFileSystem implements FileSystem {
   public FileInStream openFile(URIStatus status, OpenFilePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     AlluxioURI path = new AlluxioURI(status.getPath());
-    if (options.hasUpdateLastAccessTime()) {
+    if (options.getUpdateLastAccessTime()) {
       asyncUpdateFileAccessTime(path);
     }
     AlluxioConfiguration conf = mFsContext.getPathConf(path);
