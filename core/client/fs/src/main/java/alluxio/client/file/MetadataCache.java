@@ -12,33 +12,27 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.collections.Pair;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
- * Cache for metadata of files.
+ * Cache for metadata of paths.
  */
+@ThreadSafe
 public final class MetadataCache {
-  private final BaseFileSystem mFs;
   private final Cache<String, URIStatus> mCache;
 
   /**
-   * @param fs the fs client
    * @param maxSize the max size of the cache
    * @param expirationTimeMs the expiration time (in milliseconds) of the cached item
    */
-  public MetadataCache(BaseFileSystem fs, int maxSize, long expirationTimeMs) {
-    mFs = fs;
+  public MetadataCache(int maxSize, long expirationTimeMs) {
     mCache = CacheBuilder.newBuilder()
         .maximumSize(maxSize)
         .expireAfterWrite(expirationTimeMs, TimeUnit.MILLISECONDS)
@@ -46,46 +40,34 @@ public final class MetadataCache {
   }
 
   /**
-   * If file status is cached, return the cached status.
-   * Otherwise, issue an RPC to master to get and cache the status.
-   *
-   * @param file the file
-   * @param options the options
-   * @return the file status and a boolean indicating whether the status comes from the cache
+   * @param path the Alluxio path
+   * @return the cached status or null
    */
-  public Pair<URIStatus, Boolean> getStatus(AlluxioURI file, GetStatusPOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
-    boolean isCached = true;
-    URIStatus status = mCache.getIfPresent(file.getPath());
-    if (status == null) {
-      isCached = false;
-      status = mFs.getStatusThroughRPC(file, options);
-      mCache.put(file.getPath(), status);
-    }
-    return new Pair<>(status, isCached);
+  public URIStatus get(AlluxioURI path) {
+    return mCache.getIfPresent(path.getPath());
   }
 
   /**
-   * Issues an RPC to master to list the status of the directory, and cache the results.
-   *
-   * @param directory the directory
-   * @param options the options
-   * @return the list of statuses
+   * @param path the Alluxio path
+   * @param status the status to be cached
    */
-  public List<URIStatus> listStatus(AlluxioURI directory, ListStatusPOptions options)
-      throws IOException, AlluxioException {
-    List<URIStatus> statuses = mFs.listStatusThroughRPC(directory, options);
-    for (URIStatus status : statuses) {
-      mCache.put(status.getPath(), status);
-    }
-    return statuses;
+  public void put(AlluxioURI path, URIStatus status) {
+    mCache.put(path.getPath(), status);
   }
 
   /**
-   * @param file the file URI
-   * @return whether the status of file is cached
+   * @param path the Alluxio path
+   * @param status the status to be cached
    */
-  public boolean contains(AlluxioURI file) {
-    return mCache.asMap().containsKey(file.getPath());
+  public void put(String path, URIStatus status) {
+    mCache.put(path, status);
+  }
+
+  /**
+   * @return the cache size
+   */
+  @VisibleForTesting
+  public long size() {
+    return mCache.size();
   }
 }

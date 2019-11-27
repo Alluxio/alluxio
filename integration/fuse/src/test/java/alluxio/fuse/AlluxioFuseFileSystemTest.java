@@ -40,6 +40,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.FileIncompleteException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -56,7 +57,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -345,11 +345,10 @@ public class AlluxioFuseFileSystemTest {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     setUpOpenMock(expectedPath);
 
+    FileInStream is = mock(FileInStream.class);
+    when(mFileSystem.openFile(expectedPath)).thenReturn(is);
     mFuseFs.open("/foo/bar", mFileInfo);
-    verify(mFileSystem).getStatus(expectedPath);
-    ArgumentCaptor<URIStatus> captor = ArgumentCaptor.forClass(URIStatus.class);
-    verify(mFileSystem).openFile(captor.capture());
-    assertEquals(expectedPath.getPath(), captor.getValue().getPath());
+    verify(mFileSystem).openFile(expectedPath);
   }
 
   @Test
@@ -358,9 +357,8 @@ public class AlluxioFuseFileSystemTest {
     FileInfo fi = setUpOpenMock(expectedPath);
     fi.setCompleted(false);
 
-    mFuseFs.open("/foo/bar", mFileInfo);
-    verify(mFileSystem, atLeast(100)).getStatus(expectedPath);
-    verify(mFileSystem, never()).openFile(expectedPath);
+    when(mFileSystem.openFile(expectedPath)).thenThrow(new FileIncompleteException(expectedPath));
+    assertEquals(-ErrorCodes.EFAULT(), mFuseFs.open("/foo/bar", mFileInfo));
   }
 
   @Test
@@ -368,6 +366,7 @@ public class AlluxioFuseFileSystemTest {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     FileInfo fi = setUpOpenMock(expectedPath);
     fi.setCompleted(false);
+    when(mFileSystem.openFile(expectedPath)).thenThrow(new FileIncompleteException(expectedPath));
 
     // Use another thread to open file so that
     // we could change the file status when opening it
@@ -376,13 +375,10 @@ public class AlluxioFuseFileSystemTest {
     Thread.sleep(1000);
     // If the file exists but is not completed, we will wait for the file to complete
     verify(mFileSystem, atLeast(10)).getStatus(expectedPath);
-    verify(mFileSystem, never()).openFile(expectedPath);
 
     fi.setCompleted(true);
     t.join();
-    ArgumentCaptor<URIStatus> captor = ArgumentCaptor.forClass(URIStatus.class);
-    verify(mFileSystem).openFile(captor.capture());
-    assertEquals(expectedPath.getPath(), captor.getValue().getPath());
+    verify(mFileSystem, times(2)).openFile(expectedPath);
   }
 
   @Test
@@ -401,7 +397,7 @@ public class AlluxioFuseFileSystemTest {
           return 4;
         });
 
-    when(mFileSystem.openFile(any(URIStatus.class))).thenReturn(fakeInStream);
+    when(mFileSystem.openFile(expectedPath)).thenReturn(fakeInStream);
     mFileInfo.flags.set(O_RDONLY.intValue());
 
     // prepare something to read to it
@@ -527,7 +523,6 @@ public class AlluxioFuseFileSystemTest {
     FileInfo fi = new FileInfo();
     fi.setCompleted(true);
     fi.setFolder(false);
-    fi.setPath(uri.getPath());
     URIStatus status = new URIStatus(fi);
 
     when(mFileSystem.getStatus(uri)).thenReturn(status);

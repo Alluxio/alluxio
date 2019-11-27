@@ -22,7 +22,9 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.OpenDirectoryException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -145,6 +147,9 @@ public interface FileSystem extends Closeable {
           Source source = conf.getSource(key);
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
+      }
+      if (context.getClusterConf().getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
+        return new CachingFileSystem(context, cachingEnabled);
       }
       return BaseFileSystem.create(context, cachingEnabled);
     }
@@ -474,10 +479,13 @@ public interface FileSystem extends Closeable {
    *
    * @param path the file to read from
    * @return a {@link FileInStream} for the given path
-   * @throws FileDoesNotExistException if the given file does not exist
+   * @throws FileDoesNotExistException when path does not exist
+   * @throws OpenDirectoryException when path is a directory
+   * @throws FileIncompleteException when path is a file and is not completed yet
    */
   FileInStream openFile(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+      IOException, AlluxioException;
 
   /**
    * Opens a file for reading.
@@ -485,31 +493,13 @@ public interface FileSystem extends Closeable {
    * @param path the file to read from
    * @param options options to associate with this operation
    * @return a {@link FileInStream} for the given path
-   * @throws FileDoesNotExistException if the given file does not exist
+   * @throws FileDoesNotExistException when path does not exist
+   * @throws OpenDirectoryException when path is a directory
+   * @throws FileIncompleteException when path is a file and is not completed yet
    */
   FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException;
-
-  /**
-   * Convenience method for {@link #openFile(URIStatus, OpenFilePOptions)} with default options.
-   *
-   * @param status the file status
-   * @return a {@link FileInStream} for the given path
-   * @throws FileDoesNotExistException if the given file does not exist
-   */
-  FileInStream openFile(URIStatus status)
-      throws FileDoesNotExistException, IOException, AlluxioException;
-
-  /**
-   * Opens a file for reading.
-   *
-   * @param status the file status
-   * @param options options to associate with this operation
-   * @return a {@link FileInStream} for the given path
-   * @throws FileDoesNotExistException if the given file does not exist
-   */
-  FileInStream openFile(URIStatus status, OpenFilePOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+      IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #persist(AlluxioURI, ScheduleAsyncPersistencePOptions)} which
