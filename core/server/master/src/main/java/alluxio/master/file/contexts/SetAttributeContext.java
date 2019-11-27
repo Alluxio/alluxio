@@ -30,9 +30,11 @@ public class SetAttributeContext extends OperationContext<SetAttributePOptions.B
    * Creates context with given option data.
    *
    * @param optionsBuilder options builder
+   * @param callTracker client call tracker
    */
-  private SetAttributeContext(SetAttributePOptions.Builder optionsBuilder) {
-    super(optionsBuilder);
+  private SetAttributeContext(SetAttributePOptions.Builder optionsBuilder,
+      CallTracker callTracker) {
+    super(optionsBuilder, callTracker);
     mOperationTimeMs = System.currentTimeMillis();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
   }
@@ -42,7 +44,17 @@ public class SetAttributeContext extends OperationContext<SetAttributePOptions.B
    * @return the instance of {@link SetAttributeContext} with the given options
    */
   public static SetAttributeContext create(SetAttributePOptions.Builder optionsBuilder) {
-    return new SetAttributeContext(optionsBuilder);
+    return new SetAttributeContext(optionsBuilder, null);
+  }
+
+  /**
+   * @param optionsBuilder Builder for proto {@link SetAttributePOptions}
+   * @param callTracker client call tracker
+   * @return the instance of {@link SetAttributeContext} with the given options
+   */
+  public static SetAttributeContext create(SetAttributePOptions.Builder optionsBuilder,
+      CallTracker callTracker) {
+    return new SetAttributeContext(optionsBuilder, callTracker);
   }
 
   /**

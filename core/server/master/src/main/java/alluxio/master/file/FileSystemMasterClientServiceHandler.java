@@ -73,6 +73,7 @@ import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
+import alluxio.master.file.contexts.GrpcCallTracker;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
@@ -220,8 +221,8 @@ public final class FileSystemMasterClientServiceHandler
     try {
       RpcUtils.callAndReturn(LOG, () -> {
         AlluxioURI pathUri = getAlluxioURI(request.getPath());
-        mFileSystemMaster.listStatus(pathUri,
-            ListStatusContext.create(request.getOptions().toBuilder()), resultStream);
+        mFileSystemMaster.listStatus(pathUri, ListStatusContext.create(
+            request.getOptions().toBuilder(), new GrpcCallTracker(responseObserver)), resultStream);
         // Return just something.
         return null;
       }, "ListStatus", false, "request: %s", request);
@@ -321,8 +322,8 @@ public final class FileSystemMasterClientServiceHandler
       StreamObserver<SetAttributePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
-      mFileSystemMaster.setAttribute(pathUri,
-          SetAttributeContext.create(request.getOptions().toBuilder()));
+      mFileSystemMaster.setAttribute(pathUri, SetAttributeContext
+          .create(request.getOptions().toBuilder(), new GrpcCallTracker(responseObserver)));
       return SetAttributePResponse.newBuilder().build();
     }, "SetAttribute", "request=%s", responseObserver, request);
   }
