@@ -136,7 +136,9 @@ public class MetricsStore {
       if (!metricSet.add(metric)) {
         Metric oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
         if (metric.getMetricType() == MetricType.COUNTER) {
-          oldMetric.addValue(metric.getValue());
+          if (metric.getValue() != 0L) {
+            oldMetric.addValue(metric.getValue());
+          }
         } else {
           oldMetric.setValue(metric.getValue());
         }
