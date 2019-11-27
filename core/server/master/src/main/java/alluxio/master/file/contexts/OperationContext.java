@@ -31,8 +31,11 @@ public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.B
    * @param optionsBuilder Internal proto message builder instance
    */
   public OperationContext(T optionsBuilder) {
+    this(optionsBuilder, null);
     mOptionsBuilder = optionsBuilder;
-    mCallTracker = null;
+    mCallTracker = () -> {
+      throw new IllegalStateException("Call tracking is not supported.");
+    };
   }
 
   /**
@@ -57,11 +60,6 @@ public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.B
    * @return {@code true} if the call is cancelled by the client
    */
   public boolean isCancelled() {
-    if (mCallTracker == null) {
-      throw new IllegalStateException(
-          String.format("Operation don't support tracking: %s", this.getClass().getSimpleName()));
-    }
-
-    return mCallTracker.isCancelled();
+    return mCallTracker != null && mCallTracker.isCancelled();
   }
 }
