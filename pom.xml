@@ -927,6 +927,7 @@
             <runOrder>alphabetical</runOrder>
             <systemPropertyVariables>
               <alluxio.test.mode>true</alluxio.test.mode>
+              <jacoco-agent.destfile>${project.basedir}/target/jacoco.exec</jacoco-agent.destfile>
             </systemPropertyVariables>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
@@ -1317,6 +1318,16 @@
     </profile>
     <profile>
       <id>jacoco</id>
+      <dependencies>
+        <dependency>
+          <!-- must be on the classpath -->
+          <groupId>org.jacoco</groupId>
+          <artifactId>org.jacoco.agent</artifactId>
+          <classifier>runtime</classifier>
+          <version>0.8.5</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
       <build>
         <plugins>
           <plugin>
@@ -1325,14 +1336,21 @@
             <version>0.8.5</version>
             <executions>
               <execution>
-                <id>jacoco-initialize</id>
+                <id>jacoco-instrument-classes</id>
                 <goals>
-                  <goal>prepare-agent</goal>
+                  <goal>instrument</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>jacoco-restore-instrumented-classes</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>restore-instrumented-classes</goal>
                 </goals>
               </execution>
               <execution>
                 <id>jacoco-report</id>
-                <phase>test</phase>
+                <phase>verify</phase>
                 <goals>
                   <goal>report</goal>
                 </goals>
