@@ -107,6 +107,9 @@ import java.util.concurrent.ConcurrentMap;
 public final class MigrateDefinition
     extends AbstractVoidPlanDefinition<MigrateConfig, ArrayList<MigrateCommand>> {
   private static final Logger LOG = LoggerFactory.getLogger(MigrateDefinition.class);
+
+  private static final int JOBS_PER_WORKER = 10;
+
   private final Random mRandom = new Random();
 
   /**
@@ -197,7 +200,26 @@ public final class MigrateDefinition
     Set<Pair<WorkerInfo, ArrayList<MigrateCommand>>> result = Sets.newHashSet();
 
     for (Map.Entry<WorkerInfo, ArrayList<MigrateCommand>> assignment : assignments.entrySet()) {
-      result.add(new Pair<>(assignment.getKey(), assignment.getValue()));
+
+      // split the list of MigrateCommands for a given worker into JOBS_PER_WORKER.
+
+      ArrayList<MigrateCommand> migrateCommands = assignment.getValue();
+
+      ArrayList<ArrayList<MigrateCommand>> splittedCommands = Lists.newArrayList();
+
+      for (int i = 0; i < JOBS_PER_WORKER; i++) {
+        splittedCommands.add(Lists.newArrayList());
+      }
+
+      for (int i = 0; i < migrateCommands.size(); i++) {
+        splittedCommands.get(i % JOBS_PER_WORKER).add(migrateCommands.get(i));
+      }
+
+      for (ArrayList<MigrateCommand> commands : splittedCommands) {
+        if (!commands.isEmpty()) {
+          result.add(new Pair<>(assignment.getKey(), commands));
+        }
+      }
     }
 
     return result;
