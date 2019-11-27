@@ -1320,7 +1320,7 @@
       <id>jacoco</id>
       <dependencies>
         <dependency>
-          <!-- must be on the classpath -->
+          <!-- to use instrument, jacoco must be on the classpath -->
           <groupId>org.jacoco</groupId>
           <artifactId>org.jacoco.agent</artifactId>
           <classifier>runtime</classifier>
@@ -1336,6 +1336,7 @@
             <version>0.8.5</version>
             <executions>
               <execution>
+                <!-- offline instrumentation is required, for jacoco to work with powermock tests -->
                 <id>jacoco-instrument-classes</id>
                 <goals>
                   <goal>instrument</goal>
