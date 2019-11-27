@@ -140,8 +140,10 @@ public final class MigrateDefinitionSelectExecutorsTest {
     List<MigrateCommand> migrateCommandsWorker2 =
         Lists.newArrayList(new MigrateCommand("/dir/src2", "/dst/src2"));
     Set<Pair<WorkerInfo, List<MigrateCommand>>> expected =
-        ImmutableSet.of(new Pair<>(JOB_WORKERS.get(0), migrateCommandsWorker0), new Pair<>(
-            JOB_WORKERS.get(2), migrateCommandsWorker2));
+        ImmutableSet.of(
+            new Pair<>(JOB_WORKERS.get(0), ImmutableList.of(migrateCommandsWorker0.get(0))),
+            new Pair<>(JOB_WORKERS.get(0), ImmutableList.of(migrateCommandsWorker0.get(1))),
+            new Pair<>(JOB_WORKERS.get(2), ImmutableList.of(migrateCommandsWorker2.get(0))));
     Assert.assertEquals(expected, assignMigrates("/dir", "/dst"));
   }
 
@@ -294,8 +296,10 @@ public final class MigrateDefinitionSelectExecutorsTest {
     List<MigrateCommand> migrateCommandsWorker2 =
         Lists.newArrayList(new MigrateCommand("/src/file1", "/dst/file1"));
     Set<Pair<WorkerInfo, List<MigrateCommand>>> expected =
-        ImmutableSet.of(new Pair<>(JOB_WORKERS.get(1), migrateCommandsWorker1), new Pair<>(
-            JOB_WORKERS.get(2), migrateCommandsWorker2));
+        ImmutableSet.of(
+            new Pair<>(JOB_WORKERS.get(1), ImmutableList.of(migrateCommandsWorker1.get(0))),
+            new Pair<>(JOB_WORKERS.get(1), ImmutableList.of(migrateCommandsWorker1.get(1))),
+            new Pair<>(JOB_WORKERS.get(2), ImmutableList.of(migrateCommandsWorker2.get(0))));
     Assert.assertEquals(expected, assignMigrates(new MigrateConfig(
             "/src", "/dst", "THROUGH", true, false)));
   }
