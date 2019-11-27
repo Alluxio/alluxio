@@ -58,7 +58,8 @@ export class FileView extends React.PureComponent<IFileViewProps> {
     return (
       <React.Fragment>
         <h5>
-          {viewData.currentDirectory ? viewData.currentDirectory.absolutePath : viewData.currentPath}:{' '}
+          {viewData.currentDirectory ? viewData.currentDirectory.absolutePath : viewData.currentPath}
+          {': '}
           <small>First 5KB from {viewData.viewingOffset} in ASCII</small>
         </h5>
         <Form className="mb-3 viewData-file-form" id="viewDataFileForm" inline={true} onSubmit={disableFormSubmit}>
