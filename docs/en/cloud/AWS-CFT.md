@@ -80,14 +80,15 @@ Copy either URL in the *Amazon S3 URL* field:
 {% accordion configureCluster %}
   {% collapsible Configure cluster %}
 Specify the details of your Alluxio cluster in this page:
-- Stack details: Name of your cluster
+- Stack details:
+  - **Stack Name** is the name of your cluster
 
 - Network Configuration: 
   - Choose the [VPC and Subnet](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html) from the existing values.
   The default values should be available to select.
   If not, create them following the [AWS VPC documentation](https://docs.aws.amazon.com/vpc/latest/userguide/working-with-vpcs.html).
   These parameters isolate the cluster from other virtual private clouds, AWS regions, and availability zones.
-  - Choose at least [security group](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
+  - Choose at least one [security group](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)
   as a virtual firewall that controls the traffic allowed to reach your Alluxio cluster.
   It’s highly recommended that port 22 is open for SSH access.
   - The **AlluxioWebInboundRuleIp** parameter specifies the inbound locations for Alluxio web ports.
@@ -132,17 +133,17 @@ Specify the details of your Alluxio cluster in this page:
   - **AlluxioJournalSize** determines the EBS volume size, in GB, where Alluxio's embedded journal will write to.
   Each Alluxio master mounts a EBS volume dedicated for logging all metadata changes to achieve fault tolerance.
   The journal size should be proportional to the estimated magnitude of Alluxio metadata operations.
-  - **AlluxioWorkerMemPercent** is the percentage of the instance's total memory to allocate for the Alluxio worker process.
-  By default this is set to 70%.
+  - **AlluxioWorkerMemPercent** is the percentage of the instance's total memory to allocate for the Alluxio worker
+  to store cached data. By default this is set to 70%.
   This space is used for caching remote data in order to drastically increase overall I/O throughput.
   - **AlluxioWorkerSSDSize** determines the SSD volume size, in GB, to attach to each worker instance.
   An EBS volume is attached for workers to attach remote data if the value is non-zero.
   A SSD drive is a simple scalable alternative to instance memory to help increase the Alluxio worker's caching capacity.
   - **AlluxioMetadataBackupDirectory** determines the path to backup Alluxio's journal contents.
   This path is relative to Alluxio's root mount point.
-  Backup files can be use to relaunch an Alluxio cluster 
-  - **AlluxioMetadataBackupTime** is the time to schedule the daily backup operation.
+  Backup files can be use to relaunch an Alluxio cluster.
   If set to an empty string, the backup operation will be disabled.
+  - **AlluxioMetadataBackupTime** is the time to schedule the daily backup operation.
   - **AlluxioMetadataRestoreUri** can be set to launch an Alluxio cluster
   whose state is restored from the backup file at the given URI.
 
