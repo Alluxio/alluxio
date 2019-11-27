@@ -22,6 +22,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.Builder<?>> {
   // Proto message that is being wrapped
   private T mOptionsBuilder;
+  // Used to track client call status.
+  private CallTracker mCallTracker;
 
   /**
    * Creates an instance with given proto message.
@@ -30,6 +32,18 @@ public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.B
    */
   public OperationContext(T optionsBuilder) {
     mOptionsBuilder = optionsBuilder;
+    mCallTracker = null;
+  }
+
+  /**
+   * Creates an instance with given proto message.
+   *
+   * @param optionsBuilder Internal proto message builder instance
+   * @param callTracker client call tracker, or {@code null} if no tracking is desired
+   */
+  public OperationContext(T optionsBuilder, CallTracker callTracker) {
+    mOptionsBuilder = optionsBuilder;
+    mCallTracker = callTracker;
   }
 
   /**
@@ -37,5 +51,17 @@ public class OperationContext<T extends com.google.protobuf.GeneratedMessageV3.B
    */
   public T getOptions() {
     return mOptionsBuilder;
+  }
+
+  /**
+   * @return {@code true} if the call is cancelled by the client
+   */
+  public boolean isCancelled() {
+    if (mCallTracker == null) {
+      throw new IllegalStateException(
+          String.format("Operation don't support tracking: %s", this.getClass().getSimpleName()));
+    }
+
+    return mCallTracker.isCancelled();
   }
 }
