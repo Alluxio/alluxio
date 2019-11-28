@@ -26,7 +26,6 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
-import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
@@ -79,7 +78,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   /** The root key of an object fs. */
   protected final Supplier<String> mRootKeySupplier =
-      UnderFileSystemUtils.memoize(this::getRootKey);
+      CommonUtils.memoize(this::getRootKey);
 
   /**
    * Constructs an {@link ObjectUnderFileSystem}.
