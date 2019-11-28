@@ -171,7 +171,7 @@ public final class RestUtils {
    * @param e the exception to be converted into {@link ErrorResponse} and encoded into json
    * @return the response
    */
-  private static Response createErrorResponse(Exception e, AlluxioConfiguration alluxioConf) {
+  private static Response createErrorResponse(Throwable e, AlluxioConfiguration alluxioConf) {
     AlluxioStatusException se = AlluxioStatusException.fromThrowable(e);
     ErrorResponse response = new ErrorResponse(se.getStatus().getCode(), se.getMessage());
 
