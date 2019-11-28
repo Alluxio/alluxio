@@ -189,7 +189,7 @@ public class BaseFileSystem implements FileSystem {
       outStreamOptions.setAcl(status.getAcl());
       try {
         return new FileOutStream(path, outStreamOptions, mFsContext);
-      } catch (Exception e) {
+      } catch (Throwable e) {
         delete(path);
         throw e;
       }

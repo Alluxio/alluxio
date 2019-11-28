@@ -126,7 +126,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       mContext.setPosReceived(mContext.getRequest().getStart());
       mDataReaderExecutor.submit(createDataReader(mContext, mResponseObserver));
       mContext.setDataReaderActive(true);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LogUtils.warnWithException(LOG, "Exception occurred while processing read request {}.",
           request, e);
       mSerializingExecutor.execute(() -> mResponseObserver
@@ -349,7 +349,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
                   mResponse.onNext(response);
                 }
                 incrementMetrics(finalChunk.getLength());
-              } catch (Exception e) {
+              } catch (Throwable e) {
                 LogUtils.warnWithException(LOG,
                     "Exception occurred while sending data for read request {}.",
                     mContext.getRequest(), e);
@@ -361,7 +361,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
               }
             });
           }
-        } catch (Exception e) {
+        } catch (Throwable e) {
           LogUtils.warnWithException(LOG,
               "Exception occurred while reading data for read request {}.", mContext.getRequest(),
               e);
@@ -376,14 +376,14 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
           if (mRequest != null) {
             completeRequest(mContext);
           }
-        } catch (Exception e) {
+        } catch (Throwable e) {
           LOG.error("Failed to close the request.", e);
         }
         replyError(error);
       } else if (eof || cancel) {
         try {
           completeRequest(mContext);
-        } catch (Exception e) {
+        } catch (Throwable e) {
           LogUtils.warnWithException(LOG, "Exception occurred while completing read request {}.",
               mContext.getRequest(), e);
           setError(new Error(AlluxioStatusException.fromThrowable(e), true));

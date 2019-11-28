@@ -53,7 +53,7 @@ public final class PinListSync implements HeartbeatExecutor {
     try {
       Set<Long> pinList = mMasterClient.getPinList();
       mBlockWorker.updatePinList(pinList);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       // An error occurred, retry after 1 second or error if sync timeout is reached
       LOG.warn("Failed to receive pinlist: {}", e.getMessage());
       LOG.debug("Exception: ", e);

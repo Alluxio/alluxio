@@ -140,7 +140,7 @@ public final class LocalFileDataReader implements DataReader {
         OpenLocalBlockResponse response = mStream.receive(mDataTimeoutMs);
         Preconditions.checkState(response.hasPath());
         mPath = response.getPath();
-      } catch (Exception e) {
+      } catch (Throwable e) {
         context.releaseBlockWorkerClient(address, mBlockWorker);
         throw e;
       }

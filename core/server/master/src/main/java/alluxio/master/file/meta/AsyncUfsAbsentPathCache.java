@@ -212,7 +212,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
     try {
       MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
       return mMountTable.getMountInfo(resolution.getMountId());
-    } catch (Exception e) {
+    } catch (Throwable e) {
       // Catch Exception in case the mount point doesn't exist currently.
       LOG.warn("Failed to get mount info for path {}. message: {}", alluxioUri, e.getMessage());
       return null;

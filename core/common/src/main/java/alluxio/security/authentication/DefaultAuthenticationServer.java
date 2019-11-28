@@ -127,7 +127,7 @@ public class DefaultAuthenticationServer
     // Close authentication driver.
     try {
       channelInfo.getSaslServerDriver().close();
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LogUtils.warnWithException(LOG,
           "Failed to complete the authentication session for channel-Id: {}", channelId, e);
     }

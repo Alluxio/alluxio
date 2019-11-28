@@ -85,7 +85,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
             } catch (BlockDoesNotExistException e) {
               LOG.debug("Block {} to promote does not exist in Alluxio: {}",
                   mRequest.getBlockId(), e.getMessage());
-            } catch (Exception e) {
+            } catch (Throwable e) {
               LOG.warn("Failed to promote block {}: {}", mRequest.getBlockId(), e.getMessage());
             }
           }

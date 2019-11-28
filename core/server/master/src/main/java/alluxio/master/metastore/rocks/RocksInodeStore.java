@@ -396,7 +396,7 @@ public class RocksInodeStore implements InodeStore {
     public InodeView next() {
       try {
         return getMutable(Longs.fromByteArray(mRocksIterator.key()), ReadOption.defaults()).get();
-      } catch (Exception exc) {
+      } catch (Throwable exc) {
         mRocksIterator.close();
         mClosed = true;
         throw exc;

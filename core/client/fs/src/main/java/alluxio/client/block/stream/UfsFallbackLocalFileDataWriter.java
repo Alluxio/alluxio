@@ -121,7 +121,7 @@ public final class UfsFallbackLocalFileDataWriter implements DataWriter {
         if (pos > 0) {
           mGrpcDataWriter.writeFallbackInitRequest(pos);
         }
-      } catch (Exception e) {
+      } catch (Throwable e) {
         // chunk.refcount-- on exception
         chunk.release();
         throw new IOException("Failed to switch to writing block " + mBlockId + " to UFS", e);

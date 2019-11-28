@@ -60,7 +60,7 @@ public final class RestUtils {
 
     try {
       return createResponse(callable.call(), alluxioConf, headers);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.warn("Unexpected error invoking rest endpoint: {}", e.getMessage());
       return createErrorResponse(e, alluxioConf);
     }

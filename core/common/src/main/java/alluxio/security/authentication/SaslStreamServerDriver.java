@@ -108,7 +108,7 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
           mChannelId, ue);
       mRequestObserver.onError(ue.toGrpcStatusException());
       closeHandler = true;
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.debug("Exception while handling SASL message: {} for channel: {}. Error: {}", saslMessage,
           mChannelId, e);
       closeHandler = true;
@@ -161,7 +161,7 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
     if (mSaslServerHandler != null) {
       try {
         mSaslServerHandler.close();
-      } catch (Exception exc) {
+      } catch (Throwable exc) {
         LogUtils.warnWithException(LOG, "Failed to close server driver for channel: {}.",
             mChannelId, exc);
       }
@@ -175,7 +175,7 @@ public class SaslStreamServerDriver implements StreamObserver<SaslMessage> {
     if (mClientStreamValid.get() && mRequestObserver != null) {
       try {
         mRequestObserver.onCompleted();
-      } catch (Exception exc) {
+      } catch (Throwable exc) {
         LOG.debug("Failed to close authentication stream for channel: {}. Error: {}", mChannelId,
             exc);
       } finally {

@@ -120,7 +120,7 @@ public class AlluxioCatalog implements Journaled {
 
       try {
         mDBs.get(dbName).sync(journalContext);
-      } catch (Exception e) {
+      } catch (Throwable e) {
         // Failed to connect to and sync the udb.
         applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setDetachDb(
             alluxio.proto.journal.Table.DetachDbEntry.newBuilder().setDbName(dbName).build())

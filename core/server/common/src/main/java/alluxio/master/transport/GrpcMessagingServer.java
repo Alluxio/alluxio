@@ -140,7 +140,7 @@ public class GrpcMessagingServer implements Server {
           // Shut down gRPC server once all connections are closed.
           try {
             mGrpcServer.shutdown();
-          } catch (Exception e) {
+          } catch (Throwable e) {
             LOG.warn("Failed to close messaging gRPC server: {}", mGrpcServer);
           } finally {
             mGrpcServer = null;

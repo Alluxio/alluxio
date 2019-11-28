@@ -397,7 +397,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         } finally {
           mContext.releaseBlockWorkerClient(worker, blockWorker);
         }
-      } catch (Exception e) {
+      } catch (Throwable e) {
         LOG.warn("Failed to complete async cache request for block {} at worker {}: {}", blockId,
             worker, e.getMessage());
       }
@@ -410,7 +410,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         stream.getId(), workerAddress, e.getMessage());
     try {
       stream.close();
-    } catch (Exception ex) {
+    } catch (Throwable ex) {
       // Do not throw doing a best effort close
       LOG.warn("Failed to close input stream for block {}: {}", stream.getId(), ex.getMessage());
     }

@@ -80,7 +80,7 @@ public final class BufferUtils {
         sCleanerCleanMethod = cleaner.getClass().getMethod("clean");
       }
       sCleanerCleanMethod.invoke(cleaner);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.warn("Failed to unmap direct ByteBuffer: {}, error message: {}",
                 buffer.getClass().getName(), e.getMessage());
     } finally {

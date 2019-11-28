@@ -119,7 +119,7 @@ public class AsyncCacheRequestManager {
                     blockId, blockLength, sourceAddress, openUfsBlockOptions);
           }
           LOG.debug("Result of async caching block {}: {}", blockId, result);
-        } catch (Exception e) {
+        } catch (Throwable e) {
           LOG.warn("Async cache request failed.\n{}\nError: {}", request, e);
         } finally {
           if (result) {
@@ -130,7 +130,7 @@ public class AsyncCacheRequestManager {
           mPendingRequests.remove(blockId);
         }
       });
-    } catch (Exception e) {
+    } catch (Throwable e) {
       // RuntimeExceptions (e.g. RejectedExecutionException) may be thrown in extreme cases when the
       // gRPC thread pool is drained due to highly concurrent caching workloads. In these cases,
       // return as async caching is at best effort.

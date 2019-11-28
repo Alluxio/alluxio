@@ -2436,7 +2436,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
                         + " inodePath={}, options={}.",
                     descendant.getUri(), loadMetadataContext, e);
                 continue;
-              } catch (Exception e) {
+              } catch (Throwable e) {
                 LOG.info("Failed to loadMetadata: inodePath={}, options={}.", descendant.getUri(),
                     loadMetadataContext, e);
                 continue;
@@ -2824,7 +2824,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
       // mount.
       mMountTable.add(journalContext, alluxioPath, ufsPath, mountId, context.getOptions().build());
-    } catch (Exception e) {
+    } catch (Throwable e) {
       mUfsManager.removeMount(mountId);
       throw e;
     }
@@ -3284,7 +3284,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     try {
       result = syncMetadataInternal(rpcContext, inodePath, lockingScheme,
           syncDescendantType, populateStatusCache(inodePath.getUri(), syncDescendantType));
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.warn("Sync metadata for path {} encountered exception {}", inodePath.getUri(),
           Throwables.getStackTraceAsString(e));
       return false;
@@ -3312,7 +3312,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
                   childStatus);
             }
           }
-        } catch (Exception e) {
+        } catch (Throwable e) {
           LOG.debug("ListStatus failed as an preparation step for syncMetadata {}", path, e);
         }
         return statusCache;
@@ -3387,7 +3387,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
                         .setLoadDescendantType(GrpcUtils.toProto(syncDescendantType))));
 
             mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath(), syncDescendantType);
-          } catch (Exception e) {
+          } catch (Throwable e) {
             // This may be expected. For example, when creating a new file, the UFS file is not
             // expected to exist.
             LOG.debug("Failed to load metadata for path: {}", inodePath.getUri(), e);
@@ -3401,7 +3401,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
                   LoadMetadataContext
                       .mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
                           .setLoadDescendantType(GrpcUtils.toProto(syncDescendantType))));
-            } catch (Exception e) {
+            } catch (Throwable e) {
               LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
             }
             mUfsSyncPathCache.notifySyncedPath(mountPoint, syncDescendantType);
@@ -4079,7 +4079,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           }
           try {
             checkUfsMode(uri, OperationType.WRITE);
-          } catch (Exception e) {
+          } catch (Throwable e) {
             LOG.warn("Unable to schedule persist request for path {}: {}", uri, e.getMessage());
             // Retry when ufs mode permits operation
             remove = false;
@@ -4111,7 +4111,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           // End the method here until the next heartbeat. No more jobs should be scheduled during
           // the current heartbeat if the job master is at full capacity.
           return;
-        } catch (Exception e) {
+        } catch (Throwable e) {
           LOG.warn("Unexpected exception encountered when scheduling the persist job for file {} "
               + "(id={}) : {}", uri, fileId, e.getMessage());
           LOG.debug("Exception: ", e);
@@ -4211,7 +4211,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             cleanup(ufsResource.get(), tempUfsPath);
           }
         }
-      } catch (Exception e) {
+      } catch (Throwable e) {
         LOG.warn(
             "Unexpected exception encountered when trying to complete persistence of a file {} "
                 + "(id={}) : {}",
@@ -4232,7 +4232,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           String ufsBlockPath = alluxio.worker.BlockUtils.getUfsBlockPath(ufsClient, blockId);
           try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
             alluxio.util.UnderFileSystemUtils.deleteFileIfExists(ufsResource.get(), ufsBlockPath);
-          } catch (Exception e) {
+          } catch (Throwable e) {
             LOG.warn("Failed to clean up staging UFS block file {}: {}",
                 ufsBlockPath, e.toString());
           }
@@ -4270,7 +4270,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
               LOG.debug("Exception: ", e);
               mPersistJobs.remove(fileId);
               continue;
-            } catch (Exception e) {
+            } catch (Throwable e) {
               LOG.warn("Unexpected exception encountered when cancelling a persist job (id={}) for "
                   + "file {} (id={}) : {}", job.getId(), job.getUri(), fileId, e.getMessage());
               LOG.debug("Exception: ", e);
@@ -4312,7 +4312,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             default:
               throw new IllegalStateException("Unrecognized job status: " + jobInfo.getStatus());
           }
-        } catch (Exception e) {
+        } catch (Throwable e) {
           LOG.warn("Exception encountered when trying to retrieve the status of a "
                   + " persist job (id={}) for file {} (id={}): {}.", jobId, job.getUri(), fileId,
               e.getMessage());

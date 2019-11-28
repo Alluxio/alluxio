@@ -1162,7 +1162,7 @@ public class InodeTree implements DelegatingJournaled {
         UfsStatus status;
         try {
           status = ufs.getStatus(ufsUri);
-        } catch (Exception e) {
+        } catch (Throwable e) {
           throw new IOException(String.format("Cannot create or load UFS directory %s: %s.",
               ufsUri, e.toString()), e);
         }

@@ -103,7 +103,7 @@ public final class LocalFileDataWriter implements DataWriter {
       return new LocalFileDataWriter(chunkSize, blockWorker,
           writer, createRequest, stream, closer, fileBufferBytes,
           dataTimeout);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       throw CommonUtils.closeAndRethrow(closer, e);
     }
   }

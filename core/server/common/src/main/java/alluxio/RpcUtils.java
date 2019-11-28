@@ -171,7 +171,7 @@ public final class RpcUtils {
         responseObserver.onCompleted();
         logger.debug("Completed(stream): {}: {}", methodName, debugDesc);
       }
-    } catch (Exception e) {
+    } catch (Throwable e) {
       logger.warn("Exit(stream) (Error): {}: {}, Error={}", methodName,
           String.format(description, args), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();

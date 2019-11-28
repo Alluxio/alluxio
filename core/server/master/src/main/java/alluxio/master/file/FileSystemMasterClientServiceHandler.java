@@ -225,7 +225,7 @@ public final class FileSystemMasterClientServiceHandler
         // Return just something.
         return null;
       }, "ListStatus", false, "request: %s", request);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       resultStream.fail(e);
     } finally {
       resultStream.complete();

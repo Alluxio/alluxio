@@ -358,7 +358,7 @@ public final class AlluxioWorkerRestServiceHandler {
       } catch (ArithmeticException e) {
         response.setFatalError(
             "Error: offset or offset + limit is out ofbound, " + e.getLocalizedMessage());
-      } catch (Exception e) {
+      } catch (Throwable e) {
         response.setFatalError(e.getLocalizedMessage());
       }
 

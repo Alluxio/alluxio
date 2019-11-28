@@ -194,7 +194,7 @@ public abstract class GrpcMessagingConnection
             .setMessage(UnsafeByteOperations
                 .unsafeWrap(future.getContext().serializer().writeObject(request).array()))
             .build());
-      } catch (Exception e) {
+      } catch (Throwable e) {
         future.completeExceptionally(e);
         return future;
       }

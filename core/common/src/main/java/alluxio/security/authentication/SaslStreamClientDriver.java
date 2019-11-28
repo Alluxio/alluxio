@@ -102,7 +102,7 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
         // {@code null} response means server message was a success.
         mHandshakeFuture.set(true);
       }
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.debug("Exception while handling SASL message: {} for channel: {}. Error: {}", saslMessage,
           mChannelKey.toStringShort(), e);
       mHandshakeFuture.setException(e);

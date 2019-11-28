@@ -130,7 +130,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
               "invalid data size from write request message");
           writeData(new NioDataBuffer(data.asReadOnlyByteBuffer(), data.size()));
         }
-      } catch (Exception e) {
+      } catch (Throwable e) {
         LogUtils.warnWithException(LOG, "Exception occurred while processing write request {}.",
             writeRequest, e);
         abort(new Error(AlluxioStatusException.fromThrowable(e), true));
@@ -176,7 +176,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       try {
         completeRequest(mContext);
         replySuccess();
-      } catch (Exception e) {
+      } catch (Throwable e) {
         LogUtils.warnWithException(LOG, "Exception occurred while completing write request {}.",
             mContext.getRequest(), e);
         Throwables.throwIfUnchecked(e);
@@ -193,7 +193,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       try {
         cancelRequest(mContext);
         replyCancel();
-      } catch (Exception e) {
+      } catch (Throwable e) {
         LogUtils.warnWithException(LOG, "Exception occurred while cancelling write request {}.",
             mContext.getRequest(), e);
         Throwables.throwIfUnchecked(e);
@@ -259,7 +259,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       mContext.setPos(mContext.getPos() + readableBytes);
       writeBuf(mContext, mResponseObserver, buf, mContext.getPos());
       incrementMetrics(readableBytes);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.error("Failed to write data for request {}", mContext.getRequest(), e);
       Throwables.throwIfUnchecked(e);
       abort(new Error(AlluxioStatusException.fromCheckedException(e), true));
@@ -272,7 +272,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
     try {
       flushRequest(mContext);
       replyFlush();
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.error("Failed to flush for write request {}", mContext.getRequest(), e);
       Throwables.throwIfUnchecked(e);
       abort(new Error(AlluxioStatusException.fromCheckedException(e), true));
@@ -294,7 +294,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       mContext.setError(error);
       cleanupRequest(mContext);
       replyError();
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.warn("Failed to cleanup states with error {}.", e.getMessage());
     }
   }

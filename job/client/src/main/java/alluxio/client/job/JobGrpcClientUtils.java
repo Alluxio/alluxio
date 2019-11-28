@@ -55,7 +55,7 @@ public final class JobGrpcClientUtils {
       try (JobMasterClient client = JobMasterClient.Factory.create(
           JobMasterClientContext.newBuilder(ClientContext.create(alluxioConf)).build())) {
         jobId = client.run(config);
-      } catch (Exception e) {
+      } catch (Throwable e) {
         // job could not be started, retry
         LOG.warn("Exception encountered when starting a job.", e);
         continue;
@@ -89,7 +89,7 @@ public final class JobGrpcClientUtils {
         JobInfo jobInfo;
         try {
           jobInfo = client.getJobStatus(jobId);
-        } catch (Exception e) {
+        } catch (Throwable e) {
           LOG.warn("Failed to get status for job (jobId={})", jobId, e);
           return true;
         }

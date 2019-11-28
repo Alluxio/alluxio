@@ -80,7 +80,7 @@ public final class AlluxioFuse {
     } finally {
       try {
         tfs.close();
-      } catch (Exception e) {
+      } catch (Throwable e) {
         LOG.error("Failed to close Alluxio file system", e);
       }
     }

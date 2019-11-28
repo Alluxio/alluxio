@@ -124,7 +124,7 @@ public class GrpcMessagingTransport implements Transport {
       mClients.clear();
       try {
         CompletableFuture.allOf(clientCloseFutures.toArray(new CompletableFuture[0])).get();
-      } catch (Exception e) {
+      } catch (Throwable e) {
         LOG.warn("Failed to close messaging transport clients.", e);
       }
 
@@ -136,7 +136,7 @@ public class GrpcMessagingTransport implements Transport {
       mServers.clear();
       try {
         CompletableFuture.allOf(serverCloseFutures.toArray(new CompletableFuture[0])).get();
-      } catch (Exception e) {
+      } catch (Throwable e) {
         LOG.warn("Failed to close messaging transport servers.", e);
       }
 

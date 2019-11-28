@@ -98,7 +98,7 @@ public final class GrpcDataWriter implements DataWriter {
     try {
       return new GrpcDataWriter(context, address, id, length, chunkSize, type, options,
           grpcClient);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       context.releaseBlockWorkerClient(address, grpcClient);
       throw e;
     }

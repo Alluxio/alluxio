@@ -233,7 +233,7 @@ public final class GrpcChannelBuilder {
         return new GrpcChannel(mChannelKey, underlyingChannel,
             mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));
       }
-    } catch (Exception e) {
+    } catch (Throwable e) {
       // Release the managed channel to the pool before throwing.
       GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey,
           mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));

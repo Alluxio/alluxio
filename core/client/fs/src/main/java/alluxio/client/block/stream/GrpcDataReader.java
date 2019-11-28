@@ -97,7 +97,7 @@ public final class GrpcDataReader implements DataReader {
                 .toString());
       }
       mStream.send(mReadRequest, mDataTimeoutMs);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       mContext.releaseBlockWorkerClient(address, mClient);
       throw e;
     }
@@ -143,7 +143,7 @@ public final class GrpcDataReader implements DataReader {
     mPosToRead += buffer.readableBytes();
     try {
       mStream.send(mReadRequest.toBuilder().setOffsetReceived(mPosToRead).build());
-    } catch (Exception e) {
+    } catch (Throwable e) {
       // nothing is done as the receipt is sent at best effort
       LOG.debug("Failed to send receipt of data to worker {} for request {}: {}.", mAddress,
           mReadRequest, e.getMessage());

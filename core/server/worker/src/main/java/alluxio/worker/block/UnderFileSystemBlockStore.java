@@ -211,7 +211,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
         // Local block store.
         closeReaderOrWriter(sessionId, blockId);
         releaseAccess(sessionId, blockId);
-      } catch (Exception e) {
+      } catch (Throwable e) {
         LOG.warn("Failed to cleanup UFS block {}, session {}.", blockId, sessionId);
       }
     }

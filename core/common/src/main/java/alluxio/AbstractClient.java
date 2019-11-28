@@ -363,7 +363,7 @@ public abstract class AbstractClient implements Client {
         MetricsSystem.counter(getQualifiedRetryMetricName(rpcName)).inc();
         return null;
       });
-    } catch (Exception e) {
+    } catch (Throwable e) {
       MetricsSystem.counter(getQualifiedFailureMetricName(rpcName)).inc();
       throw e;
     }

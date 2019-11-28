@@ -115,7 +115,7 @@ public final class PlanCoordinator {
     try {
       taskAddressToArgs =
           definition.selectExecutors(mPlanInfo.getJobConfig(), mWorkersInfoList, context);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.warn("Failed to select executor. {})", e.getMessage());
       LOG.debug("Exception: ", e);
       mPlanInfo.setStatus(Status.FAILED);
@@ -277,7 +277,7 @@ public final class PlanCoordinator {
         // Try to join first, so that in case of failure we don't move to a completed state yet
         mPlanInfo.setResult(join(taskInfoList));
         mPlanInfo.setStatus(Status.COMPLETED);
-      } catch (Exception e) {
+      } catch (Throwable e) {
         mPlanInfo.setStatus(Status.FAILED);
         mPlanInfo.setErrorMessage(e.getMessage());
       }

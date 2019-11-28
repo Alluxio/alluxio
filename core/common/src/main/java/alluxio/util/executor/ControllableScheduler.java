@@ -204,7 +204,7 @@ public class ControllableScheduler implements ScheduledExecutorService {
     private final Callable<T> mCommand;
 
     private T mFutureResult;
-    private Exception mFailure = null;
+    private Throwable mFailure = null;
     private boolean mIsCancelled = false;
     private boolean mIsDone = false;
 
@@ -292,7 +292,7 @@ public class ControllableScheduler implements ScheduledExecutorService {
     public void run() {
       try {
         mFutureResult = mCommand.call();
-      } catch (Exception e) {
+      } catch (Throwable e) {
         mFailure = e;
       }
       mIsDone = true;

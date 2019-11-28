@@ -86,7 +86,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       if (reader != null) {
         try {
           reader.close();
-        } catch (Exception e) {
+        } catch (Throwable e) {
           LOG.warn("Failed to close block reader for block {} with error {}.",
               context.getRequest().getId(), e.getMessage());
         }
@@ -135,7 +135,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         } catch (BlockDoesNotExistException e) {
           LOG.debug("Block {} to promote does not exist in Alluxio: {}", request.getId(),
               e.getMessage());
-        } catch (Exception e) {
+        } catch (Throwable e) {
           LOG.warn("Failed to promote block {}: {}", request.getId(), e.getMessage());
         }
       }
@@ -159,7 +159,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
             mWorker.accessBlock(request.getSessionId(), request.getId());
             ((FileChannel) reader.getChannel()).position(request.getStart());
             return;
-          } catch (Exception e) {
+          } catch (Throwable e) {
             mWorker.unlockBlock(lockId);
             throw e;
           }
@@ -184,7 +184,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
             context.setMeter(MetricsSystem.meter(meterName));
             return;
           }
-        } catch (Exception e) {
+        } catch (Throwable e) {
           // TODO(binfan): remove the closeUfsBlock here as the exception will be handled in
           // AbstractReadHandler. Current approach to use context.blockReader as a flag is a
           // workaround.

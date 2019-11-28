@@ -128,7 +128,7 @@ public class GrpcSerializationUtils {
     }
     try {
       return (ReadableBuffer) sReadableBufferField.get(stream);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOG.warn("Failed to get data buffer from stream.", e);
       return null;
     }

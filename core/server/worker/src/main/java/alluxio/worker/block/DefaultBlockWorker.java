@@ -647,7 +647,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
         if (mBlockStore.checkStorage()) {
           mSpaceReserver.updateStorageInfo();
         }
-      } catch (Exception e) {
+      } catch (Throwable e) {
         LOG.warn("Failed to check storage: {}", e.toString());
         LOG.debug("Exception: ", e);
       }

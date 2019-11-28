@@ -115,7 +115,7 @@ public class AsyncBlockRemover {
         } catch (InvalidWorkerStateException e) {
           LOG.warn("{}: invalid block state for block {}, exception is {}.",
               mThreadName, blockToBeRemoved, e.getMessage());
-        } catch (Exception e) {
+        } catch (Throwable e) {
           LOG.warn("Unexpected exception: {}.", e.getMessage());
         } finally {
           if (blockToBeRemoved != INVALID_BLOCK_ID) {
