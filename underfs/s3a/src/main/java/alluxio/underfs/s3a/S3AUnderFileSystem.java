@@ -105,7 +105,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */
   private final Supplier<ObjectPermissions> mPermissions
-      = UnderFileSystemUtils.memoize(this::getPermissionsInternal);
+      = CommonUtils.memoize(this::getPermissionsInternal);
 
   static {
     byte[] dirByteHash = DigestUtils.md5(new byte[0]);

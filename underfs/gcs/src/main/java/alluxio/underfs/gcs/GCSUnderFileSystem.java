@@ -69,7 +69,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
 
   /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */
   private final Supplier<ObjectPermissions> mPermissions
-      = UnderFileSystemUtils.memoize(this::getPermissionsInternal);
+      = CommonUtils.memoize(this::getPermissionsInternal);
 
   static {
     try {
