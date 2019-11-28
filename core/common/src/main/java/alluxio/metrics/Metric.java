@@ -11,8 +11,11 @@
 
 package alluxio.metrics;
 
+import alluxio.util.CommonUtils;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.AtomicDouble;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * A metric of a given instance. The instance can be master, worker, or client.
@@ -37,11 +41,20 @@ public final class Metric implements Serializable {
   private final MetricsSystem.InstanceType mInstanceType;
   private final String mHostname;
   private final String mName;
-  private final Double mValue;
   private String mInstanceId;
   // TODO(yupeng): consider a dedicated data structure for tag, when more functionality are added to
   // tags in the future
   private final Map<String, String> mTags;
+
+  /**
+   * The unique identifier to represent this metric.
+   * The pattern is instance.[hostname-id:instanceId.]name[.tagName:tagValue]*.
+   * Fetched once and assumed to be immutable.
+   */
+  private final Supplier<String> mFullMetricNameSupplier =
+      CommonUtils.memoize(this::constructFullMetricName);
+
+  private AtomicDouble mValue;
 
   /**
    * Constructs a {@link Metric} instance.
@@ -72,8 +85,35 @@ public final class Metric implements Serializable {
     mHostname = hostname;
     mInstanceId = id;
     mName = name;
-    mValue = value;
+    mValue = new AtomicDouble(value);
     mTags = new LinkedHashMap<>();
+  }
+
+  /**
+   * Add metric value delta to the existing value.
+   * This method should only be used by {@link alluxio.master.metrics.MetricsStore}
+   *
+   * @param delta value to add
+   */
+  public void addValue(double delta) {
+    mValue.addAndGet(delta);
+  }
+
+  /**
+   * Set the metric value.
+   * This method should only be used by {@link alluxio.master.metrics.MetricsStore}
+   *
+   * @param value value to set
+   */
+  public void setValue(double value) {
+    mValue.set(value);
+  }
+
+  /**
+   * @return the metric value
+   */
+  public double getValue() {
+    return mValue.get();
   }
 
   /**
@@ -105,13 +145,6 @@ public final class Metric implements Serializable {
    */
   public String getName() {
     return mName;
-  }
-
-  /**
-   * @return the metric value
-   */
-  public double getValue() {
-    return mValue;
   }
 
   /**
@@ -147,12 +180,12 @@ public final class Metric implements Serializable {
     }
     Metric metric = (Metric) other;
     return Objects.equal(getFullMetricName(), metric.getFullMetricName())
-        && Objects.equal(mValue, metric.mValue);
+        && Objects.equal(mValue.get(), metric.mValue.get());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(getFullMetricName(), mValue);
+    return Objects.hashCode(getFullMetricName(), mValue.get());
   }
 
   /**
@@ -161,6 +194,15 @@ public final class Metric implements Serializable {
    *         at the end
    */
   public String getFullMetricName() {
+    return mFullMetricNameSupplier.get();
+  }
+
+  /**
+   * @return the fully qualified metric name, which is of pattern
+   *         instance.[hostname-id:instanceId.]name[.tagName:tagValue]*, where the tags are appended
+   *         at the end
+   */
+  private String constructFullMetricName() {
     StringBuilder sb = new StringBuilder();
     sb.append(mInstanceType).append('.');
     if (mHostname != null) {
@@ -187,7 +229,7 @@ public final class Metric implements Serializable {
     metric.setHostname(mHostname);
     metric.setName(mName);
     metric.setInstanceId(mInstanceId);
-    metric.setValue(mValue);
+    metric.setValue(mValue.get());
     metric.setTags(mTags);
     return metric;
   }
@@ -294,7 +336,7 @@ public final class Metric implements Serializable {
   public String toString() {
     return Objects.toStringHelper(this).add("instanceType", mInstanceType)
         .add("hostname", mHostname).add("instanceId", mInstanceId).add("name", mName)
-        .add("value", mValue).add("tags", mTags).toString();
+        .add("value", mValue.get()).add("tags", mTags).toString();
   }
 
   /**

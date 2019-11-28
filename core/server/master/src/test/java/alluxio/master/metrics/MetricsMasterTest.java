@@ -87,7 +87,7 @@ public class MetricsMasterTest {
     List<Metric> metrics3 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metricA", 3));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics3);
     assertEquals(13L, getGauge("metricA"));
-    assertEquals(20L, getGauge("metricB"));
+    assertEquals(22L, getGauge("metricB"));
   }
 
   @Test

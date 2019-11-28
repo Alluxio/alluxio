@@ -90,15 +90,7 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
-    synchronized (mWorkerMetrics) {
-      mWorkerMetrics.removeByField(ID_INDEX, getFullInstanceId(hostname, null));
-      for (Metric metric : metrics) {
-        if (metric.getHostname() == null) {
-          continue; // ignore metrics whose hostname is null
-        }
-        mWorkerMetrics.add(metric);
-      }
-    }
+    putReportedMetrics(mWorkerMetrics, getFullInstanceId(hostname, null), metrics);
   }
 
   /**
@@ -114,14 +106,30 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
-    LOG.debug("Removing metrics for id {} to replace with {}", clientId, metrics);
-    synchronized (mClientMetrics) {
-      mClientMetrics.removeByField(ID_INDEX, getFullInstanceId(hostname, clientId));
-      for (Metric metric : metrics) {
-        if (metric.getHostname() == null) {
-          continue; // ignore metrics whose hostname is null
-        }
-        mClientMetrics.add(metric);
+    putReportedMetrics(mClientMetrics, getFullInstanceId(hostname, clientId), metrics);
+  }
+
+  /**
+   * Update the reported metrics with the given instanceId and set of metrics received from a
+   * worker or client.
+   *
+   * Any metrics from the given instanceId which are not reported in the new set of metrics are
+   * removed.
+   *
+   * @param metricSet the {@link IndexedSet} of client or worker metrics to update
+   * @param instanceId the instance id, derived from {@link #getFullInstanceId(String, String)}
+   * @param reportedMetrics the metrics received by the RPC handler
+   */
+  private static void putReportedMetrics(IndexedSet<Metric> metricSet, String instanceId,
+      List<Metric> reportedMetrics) {
+    for (Metric metric : reportedMetrics) {
+      if (metric.getHostname() == null) {
+        continue; // ignore metrics whose hostname is null
+      }
+
+      if (!metricSet.add(metric)) {
+        Metric oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
+        oldMetric.setValue(metric.getValue());
       }
     }
   }
@@ -141,13 +149,9 @@ public class MetricsStore {
     }
 
     if (instanceType == InstanceType.WORKER) {
-      synchronized (mWorkerMetrics) {
-        return mWorkerMetrics.getByField(NAME_INDEX, name);
-      }
+      return mWorkerMetrics.getByField(NAME_INDEX, name);
     } else if (instanceType == InstanceType.CLIENT) {
-      synchronized (mClientMetrics) {
-        return mClientMetrics.getByField(NAME_INDEX, name);
-      }
+      return mClientMetrics.getByField(NAME_INDEX, name);
     } else {
       throw new IllegalArgumentException("Unsupported instance type " + instanceType);
     }
@@ -165,13 +169,14 @@ public class MetricsStore {
 
   /**
    * Clears all the metrics.
+   *
+   * This method should only be called when starting the {@link DefaultMetricsMaster}
+   * and before starting the metrics updater to avoid conflicts with
+   * other methods in this class which updates or accesses
+   * the metrics inside metrics sets.
    */
   public void clear() {
-    synchronized (mWorkerMetrics) {
-      mWorkerMetrics.clear();
-    }
-    synchronized (mClientMetrics) {
-      mClientMetrics.clear();
-    }
+    mWorkerMetrics.clear();
+    mClientMetrics.clear();
   }
 }

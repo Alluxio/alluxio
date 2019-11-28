@@ -199,6 +199,7 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader) {
+      mMetricsStore.clear();
       getExecutorService().submit(mClusterMetricsUpdater);
     }
   }
