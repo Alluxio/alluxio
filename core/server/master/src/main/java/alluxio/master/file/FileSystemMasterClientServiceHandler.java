@@ -381,7 +381,8 @@ public final class FileSystemMasterClientServiceHandler
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.setAcl(pathUri, request.getAction(),
           request.getEntriesList().stream().map(GrpcUtils::fromProto).collect(Collectors.toList()),
-          SetAclContext.create(request.getOptions().toBuilder()));
+          SetAclContext.create(request.getOptions().toBuilder(),
+              new GrpcCallTracker(responseObserver)));
       return SetAclPResponse.newBuilder().build();
     }, "setAcl", "request=%s", responseObserver, request);
   }

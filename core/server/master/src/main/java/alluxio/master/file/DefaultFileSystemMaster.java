@@ -3051,6 +3051,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
     if (context.getOptions().getRecursive()) {
       try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
         for (LockedInodePath childPath : descendants) {
+          // Fail if the client has cancelled the rpc.
+          if (context.isCancelled()) {
+            throw new RuntimeException("Call cancelled by the client.");
+          }
           setAclSingleInode(rpcContext, action, childPath, entries, replay, opTimeMs);
         }
       }
