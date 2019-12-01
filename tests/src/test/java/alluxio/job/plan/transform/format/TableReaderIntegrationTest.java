@@ -34,8 +34,8 @@ public class TableReaderIntegrationTest extends JobIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  private PartitionInfo mPartitionInfo = new PartitionInfo("serde", "inputformat", new HashMap<>(),
-      new ArrayList<>());
+  private PartitionInfo mPartitionInfo = new PartitionInfo("serde", "inputformat",
+      new HashMap<>(), new HashMap<>(), new ArrayList<>());
 
   @Test
   public void createReaderWithoutScheme() throws Exception {
