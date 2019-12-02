@@ -124,8 +124,9 @@ public class GrpcBlockingStream<ReqT, ResT> {
    */
   public void send(ReqT request) throws IOException {
     if (mClosed || mCanceled || mClosedFromRemote) {
-      throw new CancelledException(formatErrorMessage(
-          "Failed to send request %s: stream is already closed or canceled.", request));
+      LOG.debug("Failed to send request {}: stream is already closed or canceled. ({})",
+          request, mDescription);
+      return;
     }
     try (LockResource lr = new LockResource(mLock)) {
       checkError();
