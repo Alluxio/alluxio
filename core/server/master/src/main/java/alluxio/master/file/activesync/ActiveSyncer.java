@@ -28,8 +28,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -79,33 +81,22 @@ public class ActiveSyncer implements HeartbeatExecutor {
           SyncInfo syncInfo = ufs.getActiveSyncInfo();
           // This returns a list of ufsUris that we need to sync.
           Set<AlluxioURI> ufsSyncPoints = syncInfo.getSyncPoints();
+          // Parallelize across sync points
+          List<Callable<Void>> tasksPerSyncPoint = new ArrayList<>(ufsSyncPoints.size());
           for (AlluxioURI ufsUri : ufsSyncPoints) {
-            AlluxioURI alluxioUri = mMountTable.reverseResolve(ufsUri).getUri();
-            if (alluxioUri != null) {
-              if (syncInfo.isForceSync()) {
-                LOG.debug("force full sync {}", ufsUri.toString());
-                RetryUtils.retry("Full Sync", () -> {
-                  mFileSystemMaster.activeSyncMetadata(alluxioUri, null,
-                      mSyncManager.getExecutor());
-                }, RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
-                    .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT)));
-              } else {
-                LOG.debug("sync {}", ufsUri.toString());
-                RetryUtils.retry("Incremental Sync", () -> {
-                  mFileSystemMaster.activeSyncMetadata(alluxioUri,
-                      syncInfo.getChangedFiles(ufsUri).stream().parallel()
-                          .map((uri) -> mMountTable.reverseResolve(uri).getUri())
-                          .collect(Collectors.toSet()),
-                      mSyncManager.getExecutor()
-                  );
-                }, RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
-                    .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT)));
-              }
-              // Journal the latest processed txId
-              mFileSystemMaster.recordActiveSyncTxid(syncInfo.getTxId(), mMountId);
-            }
+            tasksPerSyncPoint.add(() -> {
+              processSyncPoint(ufsUri, syncInfo);
+              return null;
+            });
           }
+          mSyncManager.getExecutor().invokeAll(tasksPerSyncPoint);
+          // Journal the latest processed txId
+          mFileSystemMaster.recordActiveSyncTxid(syncInfo.getTxId(), mMountId);
         }
+      } catch (InterruptedException e) {
+        LOG.warn("Interrupted while submitting active sync change job to master", e);
+        Thread.currentThread().interrupt();
+        return;
       }
     } catch (IOException e) {
       LOG.warn("IOException " + Throwables.getStackTraceAsString(e));
@@ -115,5 +106,41 @@ public class ActiveSyncer implements HeartbeatExecutor {
   @Override
   public void close() {
     // Nothing to clean up
+  }
+
+  /**
+   * Process a single sync point.
+   *
+   * @param ufsUri ufs URI for the sync point
+   * @param syncInfo active sync info for mount
+   */
+  private void processSyncPoint(AlluxioURI ufsUri, SyncInfo syncInfo) {
+    AlluxioURI alluxioUri = mMountTable.reverseResolve(ufsUri).getUri();
+    if (alluxioUri == null) {
+      LOG.warn("Unable to reverse resolve ufsUri {}", ufsUri);
+      return;
+    }
+    try {
+      if (syncInfo.isForceSync()) {
+        LOG.debug("force full sync {}", ufsUri.toString());
+        RetryUtils.retry("Full Sync", () -> {
+          mFileSystemMaster.activeSyncMetadata(alluxioUri, null, mSyncManager.getExecutor());
+        }, RetryUtils.defaultActiveSyncClientRetry(
+            ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT)));
+      } else {
+        LOG.debug("incremental sync {}", ufsUri.toString());
+        RetryUtils.retry("Incremental Sync", () -> {
+          mFileSystemMaster.activeSyncMetadata(alluxioUri,
+              syncInfo.getChangedFiles(ufsUri).stream().parallel()
+                  .map((uri) -> mMountTable.reverseResolve(uri).getUri())
+                  .collect(Collectors.toSet()),
+              mSyncManager.getExecutor());
+        }, RetryUtils.defaultActiveSyncClientRetry(
+            ServerConfiguration.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT)));
+      }
+    } catch (IOException e) {
+      LOG.warn("Failed to submit active sync job to master: ufsUri {}, syncPoint {} ", ufsUri,
+          alluxioUri, e);
+    }
   }
 }
