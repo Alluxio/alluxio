@@ -199,17 +199,18 @@ public class HiveDatabase implements UnderDatabase {
   public UdbTable getTable(String tableName) throws IOException {
     Table table;
     try {
-      table = getHive().getTable(mHiveDbName, tableName);
+      HiveMetaStoreClient client = getHive();
+      table = client.getTable(mHiveDbName, tableName);
 
       // Potentially expensive call
       List<Partition> partitions =
-          getHive().listPartitions(mHiveDbName, table.getTableName(), (short) -1);
+          client.listPartitions(mHiveDbName, table.getTableName(), (short) -1);
 
       PathTranslator pathTranslator = mountAlluxioPaths(table, partitions);
       List<String> colNames = table.getSd().getCols().stream().map(FieldSchema::getName)
           .collect(Collectors.toList());
       List<ColumnStatisticsObj> columnStats =
-          getHive().getTableColumnStatistics(mHiveDbName, tableName, colNames);
+          client.getTableColumnStatistics(mHiveDbName, tableName, colNames);
 
       List<ColumnStatisticsInfo> colStats =
           columnStats.stream().map(HiveUtils::toProto).collect(Collectors.toList());
@@ -239,6 +240,13 @@ public class HiveDatabase implements UnderDatabase {
 
   HiveMetaStoreClient getHive() throws IOException {
     if (mHive != null) {
+      try {
+        mHive.reconnect();
+      } catch (MetaException e) {
+        throw new IOException(String
+            .format("Failed to reconnect client to hive metastore: %s. error: %s", mConnectionUri,
+                e.getMessage()), e);
+      }
       return mHive;
     }
 
