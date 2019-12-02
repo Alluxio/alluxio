@@ -84,7 +84,6 @@ public final class CsvReader implements TableReader {
       Map<String, String> serdeProperties) {
     CSVProperties.Builder propsBuilder = new CSVProperties.Builder();
     if (tableProperties.containsKey(HiveConstants.LINES_TO_SKIP)) {
-      // propsBuilder.hasHeader();
       propsBuilder.linesToSkip(Integer.parseInt(tableProperties.get(HiveConstants.LINES_TO_SKIP)));
     }
     if (serdeProperties.containsKey(HiveConstants.FIELD_DELIM)) {
