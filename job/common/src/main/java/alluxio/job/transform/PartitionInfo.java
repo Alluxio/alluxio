@@ -29,22 +29,26 @@ public class PartitionInfo implements Serializable {
 
   private final String mSerdeClass;
   private final String mInputFormatClass;
-  private final HashMap<String, String> mProperties;
+  private final HashMap<String, String> mSerdeProperties;
+  private final HashMap<String, String> mTableProperties;
   private final ArrayList<FieldSchema> mFields;
 
   /**
    * @param serdeClass the full serde class name
    * @param inputFormatClass the full input format class name
-   * @param properties the properties
+   * @param serdeProperties the serde Properties
+   * @param tableProperties the table Properties
    * @param fields the fields
    */
   public PartitionInfo(@JsonProperty("serdeClass") String serdeClass,
       @JsonProperty("inputFormatClass") String inputFormatClass,
-      @JsonProperty("properties") HashMap<String, String> properties,
+      @JsonProperty("serdeProperties") HashMap<String, String> serdeProperties,
+      @JsonProperty("tableProperties") HashMap<String, String> tableProperties,
       @JsonProperty("fields") ArrayList<FieldSchema> fields) {
     mSerdeClass = serdeClass;
     mInputFormatClass = inputFormatClass;
-    mProperties = properties;
+    mSerdeProperties = serdeProperties;
+    mTableProperties = tableProperties;
     mFields = fields;
   }
 
@@ -59,7 +63,7 @@ public class PartitionInfo implements Serializable {
       return Format.PARQUET;
     } else if (mSerdeClass.equals(HiveConstants.CSV_SERDE_CLASS)
         || (mInputFormatClass.equals(HiveConstants.TEXT_INPUT_FORMAT_CLASS)
-        && mProperties.containsKey(HiveConstants.SERIALIZATION_FORMAT))) {
+        && mSerdeProperties.containsKey(HiveConstants.SERIALIZATION_FORMAT))) {
       if (filename.endsWith(Format.GZIP.getSuffix())) {
         return Format.GZIP_CSV;
       }
@@ -83,10 +87,17 @@ public class PartitionInfo implements Serializable {
   }
 
   /**
-   * @return the properties
+   * @return the serde properties
    */
-  public HashMap<String, String> getProperties() {
-    return mProperties;
+  public HashMap<String, String> getSerdeProperties() {
+    return mSerdeProperties;
+  }
+
+  /**
+   * @return the table properties
+   */
+  public HashMap<String, String> getTableProperties() {
+    return mTableProperties;
   }
 
   /**
@@ -110,13 +121,15 @@ public class PartitionInfo implements Serializable {
     PartitionInfo that = (PartitionInfo) obj;
     return mSerdeClass.equals(that.mSerdeClass)
         && mInputFormatClass.equals(that.mInputFormatClass)
-        && mProperties.equals(that.mProperties)
+        && mSerdeProperties.equals(that.mSerdeProperties)
+        && mTableProperties.equals(that.mTableProperties)
         && mFields.equals(that.mFields);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mSerdeClass, mInputFormatClass, mProperties, mFields);
+    return Objects.hashCode(mSerdeClass, mInputFormatClass, mSerdeProperties, mTableProperties,
+        mFields);
   }
 
   @Override
@@ -124,7 +137,8 @@ public class PartitionInfo implements Serializable {
     return MoreObjects.toStringHelper(this)
         .add("serdeClass", mSerdeClass)
         .add("inputFormatClass", mInputFormatClass)
-        .add("properties", mProperties)
+        .add("serdeProperties", mSerdeProperties)
+        .add("tableProperties", mTableProperties)
         .add("fields", mFields)
         .toString();
   }

@@ -43,7 +43,8 @@ public final class ReadWriteTest extends BaseTransformTest {
   public TemporaryFolder mTempFolder = new TemporaryFolder();
 
   private PartitionInfo mPartitionInfo = new PartitionInfo(HiveConstants.PARQUET_SERDE_CLASS,
-      HiveConstants.PARQUET_INPUT_FORMAT_CLASS, new HashMap<>(), new ArrayList<>());
+      HiveConstants.PARQUET_INPUT_FORMAT_CLASS, new HashMap<>(), new HashMap<>(),
+      new ArrayList<>());
 
   private void createCsvFile(File file, boolean gzipped) throws IOException {
     OutputStream outputStream = new FileOutputStream(file);
