@@ -113,6 +113,7 @@ public class HiveLayout implements Layout {
   private HiveLayout transformLayout(AlluxioURI transformedUri) {
     // TODO(cc): assumption here is the transformed data is in Parquet format.
     PartitionInfo info = mPartitionInfo.toBuilder()
+        .putAllParameters(mPartitionInfo.getParametersMap())
         .setStorage(mPartitionInfo.getStorage().toBuilder()
             .setStorageFormat(mPartitionInfo.getStorage().getStorageFormat().toBuilder()
                 .setSerde(HiveConstants.PARQUET_SERDE_CLASS)

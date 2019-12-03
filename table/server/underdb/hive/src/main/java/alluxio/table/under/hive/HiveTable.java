@@ -135,7 +135,8 @@ public class HiveTable implements UdbTable {
             .setDbName(mHiveDatabase.getUdbContext().getDbName()).setTableName(mName)
             .addAllDataCols(HiveUtils.toProto(mTable.getSd().getCols()))
             .setStorage(HiveUtils.toProto(mTable.getSd(), mPathTranslator))
-            .setPartitionName(mName);
+            .setPartitionName(mName)
+            .putAllParameters(mTable.getParameters());
         udbPartitions.add(new HivePartition(
             new HiveLayout(pib.build(), Collections.emptyList())));
         return udbPartitions;
@@ -156,7 +157,8 @@ public class HiveTable implements UdbTable {
             .setTableName(mName)
             .addAllDataCols(HiveUtils.toProto(partition.getSd().getCols()))
             .setStorage(HiveUtils.toProto(partition.getSd(), mPathTranslator))
-            .setPartitionName(partName);
+            .setPartitionName(partName)
+            .putAllParameters(partition.getParameters());
         if (partition.getValues() != null) {
           pib.addAllValues(partition.getValues());
         }

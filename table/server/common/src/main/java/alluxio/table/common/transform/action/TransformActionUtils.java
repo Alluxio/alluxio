@@ -48,6 +48,7 @@ public class TransformActionUtils {
 
     return new alluxio.job.plan.transform.PartitionInfo(serdeClass, inputFormat,
         new HashMap<>(partitionInfo.getStorage().getStorageFormat().getSerdelibParametersMap()),
+        new HashMap<>(partitionInfo.getParametersMap()),
         colList);
   }
 }

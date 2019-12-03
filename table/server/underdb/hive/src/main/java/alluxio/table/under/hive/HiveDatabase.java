@@ -219,6 +219,7 @@ public class HiveDatabase implements UnderDatabase {
           .setTableName(tableName)
           .addAllDataCols(HiveUtils.toProto(table.getSd().getCols()))
           .setStorage(HiveUtils.toProto(table.getSd(), pathTranslator))
+          .putAllParameters(table.getParameters())
           // ignore partition name
           .build();
       Layout layout = Layout.newBuilder()
