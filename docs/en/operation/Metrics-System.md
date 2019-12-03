@@ -44,7 +44,7 @@ and guidance of how to specify each property.
 By default, `MetricsServlet` is enabled in Alluxio leading master and workers. 
 
 You can send an HTTP request to `/metrics/json/` of the Alluxio leading master to get a snapshot of all metrics in JSON format. 
-Metrics on Alluxio leading master is a summary of the cluster-wide aggregated metrics.
+Metrics on the Alluxio leading master is a summary of the cluster-wide aggregated metrics.
 
 ```console
 # Get the metrics in JSON format from Alluxio leading master
@@ -89,7 +89,7 @@ sink.csv.directory=/tmp/alluxio-metrics
 
 If Alluxio is deployed in a cluster, this file needs to be distributed to all the nodes.
 
-Then, start Alluxio, CSV files containing metrics will be found in the `sink.csv.directory`. 
+After starting Alluxio, the CSV files containing metrics will be found in the `sink.csv.directory`. 
 The filename will correspond with the metric name.
 
 Refer to `metrics.properties.template` for all possible sink specific configurations. 
@@ -137,7 +137,8 @@ Tags can be used to further filter or aggregate on various characteristics.
 Workers and clients send metrics data to the Alluxio master through heartbeats.
 The interval is defined by property `alluxio.master.worker.heartbeat.interval` and `alluxio.user.metrics.heartbeat.interval` respectively.
 
-Each client will be assigned an application id. All the metrics sent by this client contain the client application id information. 
+Each client will be assigned an application id. 
+All the metrics sent by this client contain the client application id information. 
 By default, this will be in the form of 'app-[random number]'. 
 This value can be configured through the property `alluxio.user.app.id`, 
 so multiple clients can be combined into a logical application.
