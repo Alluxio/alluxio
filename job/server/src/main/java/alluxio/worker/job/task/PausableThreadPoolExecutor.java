@@ -28,7 +28,7 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
   private boolean mIsPaused;
 
   // writes are locked by mPauseLock
-  private volatile int mNumPaused;
+  private int mNumPaused;
 
   private ReentrantLock mPauseLock;
   private Condition mUnpaused;
@@ -58,7 +58,12 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
   public int getNumActiveTasks() {
     // the read for mNumPaused is not locked so the value might be off by 1
     // but that is within the expected range.
-    return super.getActiveCount() - mNumPaused;
+    mPauseLock.lock();
+    try {
+      return super.getActiveCount() - mNumPaused;
+    } finally {
+      mPauseLock.unlock();
+    }
   }
 
   /**
