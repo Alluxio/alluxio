@@ -72,7 +72,17 @@ The `create-cluster` command requires passing in multiple flags to successfully 
 - `release-label`: The version of EMR to install with.
 The current version of Alluxio is compatible with `emr-5.25.0`.
 - `custom-ami-id`: The Alluxio Marketplace Enterprise Edition AMI ID.
-For `us-east-1` region, the AMI ID is `ami-0b58e65dfcb8a9475`.
+To find the latest AMI ID for a particular region, run the following AWS CLI command:
+```console
+aws ec2 describe-images \
+--owners 'aws-marketplace' \
+--filters 'Name=product-code,Values=6axlevynmkcnoq7ximzar80bx' \
+--query 'sort_by(Images, &CreationDate)[-1].[ImageId]' \
+--output text \
+--region us-east-1
+```
+where the value for `--region` can be set to the desired region.
+
 - `instance-count`: The number of nodes to provision for the cluster.
 - `instance-type`: The instance type to provision with.
 Make sure you pick an instance type supported by the Alluxio marketplace AMI.
@@ -338,9 +348,9 @@ If a specific Alluxio tarball is desired, see the -d option.
   {% collapsible Alluxio service %}
 Making configuration changes to the Alluxio service can be done in a few different ways via the
 bootstrap script.
-The `[-p]` flag allows users to pass in a set of delimited key-value properties to be set on all of
+The `-p` flag allows users to pass in a set of delimited key-value properties to be set on all of
 the Alluxio nodes.
-An alternative would be to pass in a custom file using the `[-f]` flag named
+An alternative would be to pass in a custom file using the `-f` flag named
 `alluxio-site.properties`.
 The bootstrap will make sure to overwrite any user-provided configs while retaining any defaults
 that are not overwritten.
