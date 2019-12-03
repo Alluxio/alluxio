@@ -71,34 +71,25 @@ $ aws emr create-default-roles
 The `create-cluster` command requires passing in multiple flags to successfully execute:
 - `release-label`: The version of EMR to install with.
 The current version of Alluxio is compatible with `emr-5.25.0`.
-- `custom-ami-id`: The Alluxio Marketplace Enterprise Edition AMI ID.
-To find the latest AMI ID for a particular region, run the following AWS CLI command:
-```console
-aws ec2 describe-images \
---owners 'aws-marketplace' \
---filters 'Name=product-code,Values=6axlevynmkcnoq7ximzar80bx' \
---query 'sort_by(Images, &CreationDate)[-1].[ImageId]' \
---output text \
---region us-east-1
-```
-where the value for `--region` can be set to the desired region.
-
 - `instance-count`: The number of nodes to provision for the cluster.
 - `instance-type`: The instance type to provision with.
 Make sure you pick an instance type supported by the Alluxio marketplace AMI.
-Note that your account can be limited in the number of instances you can launch; check your instance limits [here](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Limits:).
+Note that your account can be limited in the number of instances you can launch;
+check your instance limits [here](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Limits:).
 The default instance type for the AMI is `r4.4xlarge`.
 - `applications`: Specify `Name=Spark Name=Presto Name=Hive` to bootstrap the three additional services
 - `name`: The EMR cluster name
 - `bootstrap-actions`:
   - `Path`: The path to the bootstrap script, hosted in a publicly readable S3 bucket: `s3://alluxio-public/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.sh`
   - `Args`: The arguments passed to the bootstrap script.
-  The first argument, the root UFS URI, is required.
-  This S3 URI designates the root mount of the Alluxio file system and should be of the form `s3://bucket-name/mount-point`.
-  The mount point should be a folder; follow [these instructions](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/create-folder.html) to create a folder in S3.
-  You can also specify additional Alluxio properties as a delimited list of key-value pairs in the format `key=value`.
-  For example, `alluxio.user.file.writetype.default=CACHE_THROUGH` instructs ALluxio to write files synchronously to the underlying storage system.
-  See more about [write type options](https://docs.alluxio.io/ee/user/stable/en/Architecture-DataFlow.html?q=write%20types#data-flow-write).
+    - The first argument, the root UFS URI, is required.
+    This S3 URI designates the root mount of the Alluxio file system and should be of the form `s3://bucket-name/mount-point`.
+    The mount point should be a folder; follow [these instructions](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/create-folder.html) to create a folder in S3.
+    - Specify the path to a publicly accessible Alluxio tarball with the `-d` flag.
+    For example, you can use the URL: `https://downloads.alluxio.io/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz`
+    - You can also specify additional Alluxio properties as a delimited list of key-value pairs in the format `key=value`.
+    For example, `alluxio.user.file.writetype.default=CACHE_THROUGH` instructs ALluxio to write files synchronously to the underlying storage system.
+    See more about [write type options](https://docs.alluxio.io/ee/user/stable/en/Architecture-DataFlow.html?q=write%20types#data-flow-write).
 - `configurations`: The path to the configuration json file, also hosted in a publicly readable S3 bucket: `s3://alluxio-public/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.json`
 - `ec2-attributes`: EC2 settings to provide, most notably the name of the key pair to use to connect to the cluster
 
@@ -106,7 +97,6 @@ Below is a sample command with all of the above flags populated:
 ```console
 aws emr create-cluster \
 --release-label emr-5.25.0 \
---custom-ami-id ami-0b58e65dfcb8a9475 \
 --instance-count 3 \
 --instance-type r4.4xlarge \
 --applications Name=Spark Name=Presto Name=Hive \
@@ -114,6 +104,7 @@ aws emr create-cluster \
 --bootstrap-actions \
 Path=s3://alluxio-public/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.sh,\
 Args=[s3://myBucketName/mountPointFolder,\
+-d,"https://downloads.alluxio.io/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz",\
 -p,"alluxio.user.block.size.bytes.default=122M|alluxio.user.file.writetype.default=CACHE_THROUGH",\
 -s,"|"] \
 --configurations https://alluxio-public.s3.amazonaws.com/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.json \
@@ -282,7 +273,7 @@ and the delimiting string between properties.
 ```
 Usage: alluxio-emr.sh <root-ufs-uri>
                              [-b <backup_uri>]
-                             [ -d <alluxio-download-uri>]
+                             [-d <alluxio-download-uri>]
                              [-f <file_uri>]
                              [-i <journal_backup_uri>]
                              [-p <delimited_properties>]
