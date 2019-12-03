@@ -59,19 +59,13 @@ public final class UnderFileSystemContractTest {
   private InstancedConfiguration mConf
       = new InstancedConfiguration(ConfigurationUtils.defaults());
 
-  private UnderFileSystemConfiguration mUfsConf;
-
   private UnderFileSystem mUfs;
 
   private UnderFileSystemContractTest() {}
 
   private void run() throws Exception {
-    mUfsConf = UnderFileSystemConfiguration.defaults(mConf).createMountSpecificConf(
-        mConf.copyProperties().entrySet().stream()
-            .filter(entry -> mConf.getSource(entry.getKey()) == Source.SYSTEM_PROPERTY)
-            .filter(entry -> mConf.isSet(entry.getKey()) && !entry.getValue().isEmpty())
-            .collect(Collectors.toMap(entry -> entry.getKey().getName(), Map.Entry::getValue)));
-    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find(mUfsPath, mUfsConf);
+    UnderFileSystemConfiguration ufsConf = getUfsConf();
+    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find(mUfsPath, ufsConf);
     // Check if the ufs path is valid
     if (factory == null || !factory.supportsPath(mUfsPath)) {
       System.out.printf("%s is not a valid path", mUfsPath);
@@ -84,7 +78,7 @@ public final class UnderFileSystemContractTest {
     // Increase the buffer time of journal writes to speed up tests
     mConf.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "1sec");
 
-    mUfs = UnderFileSystem.Factory.create(mUfsPath, mUfsConf);
+    mUfs = UnderFileSystem.Factory.create(mUfsPath, ufsConf);
 
     runCommonOperations();
 
@@ -92,6 +86,14 @@ public final class UnderFileSystemContractTest {
       runS3Operations();
     }
     System.out.println("All tests passed!");
+  }
+
+  private UnderFileSystemConfiguration getUfsConf() {
+    return UnderFileSystemConfiguration.defaults(mConf)
+        .createMountSpecificConf(mConf.copyProperties().entrySet().stream()
+            .filter(entry -> mConf.getSource(entry.getKey()) == Source.SYSTEM_PROPERTY)
+            .filter(entry -> mConf.isSet(entry.getKey()) && !entry.getValue().isEmpty())
+            .collect(Collectors.toMap(entry -> entry.getKey().getName(), Map.Entry::getValue)));
   }
 
   private void runCommonOperations() throws Exception {
@@ -106,8 +108,7 @@ public final class UnderFileSystemContractTest {
     mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE, "5MB");
     mConf.set(PropertyKey.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE, "0");
 
-    mUfs = UnderFileSystem.Factory.create(mUfsPath,
-        mUfsConf);
+    mUfs = UnderFileSystem.Factory.create(mUfsPath, getUfsConf());
 
     String testDir = createTestDirectory();
     loadAndRunTests(new S3ASpecificOperations(testDir, mUfs, mConf), testDir);
