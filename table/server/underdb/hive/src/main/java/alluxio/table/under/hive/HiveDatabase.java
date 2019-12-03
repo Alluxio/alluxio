@@ -29,8 +29,6 @@ import alluxio.table.common.udb.UnderDatabase;
 import alluxio.table.under.hive.util.PathTranslator;
 import alluxio.util.io.PathUtils;
 
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
@@ -61,8 +59,8 @@ public class HiveDatabase implements UnderDatabase {
   /** the name of the hive db. */
   private final String mHiveDbName;
 
-  /** The cached hive client. This should not be used directly, but via {@link #getHive()}. */
-  private HiveMetaStoreClient mHive = null;
+  /** The cached hive client wrapper that tries to reconnect if it fails. */
+  private MetaStoreClient mHive = null;
 
   private HiveDatabase(UdbContext udbContext, UdbConfiguration configuration,
       String connectionUri, String hiveDbName) {
@@ -70,6 +68,7 @@ public class HiveDatabase implements UnderDatabase {
     mConfiguration = configuration;
     mConnectionUri = connectionUri;
     mHiveDbName = hiveDbName;
+    mHive = new HiveMetaStoreRetryClient(mConnectionUri, mHiveDbName);
   }
 
   /**
@@ -199,7 +198,7 @@ public class HiveDatabase implements UnderDatabase {
   public UdbTable getTable(String tableName) throws IOException {
     Table table;
     try {
-      HiveMetaStoreClient client = getHive();
+      MetaStoreClient client = getHive();
       table = client.getTable(mHiveDbName, tableName);
 
       // Potentially expensive call
@@ -238,44 +237,7 @@ public class HiveDatabase implements UnderDatabase {
     }
   }
 
-  private HiveMetaStoreClient newHiveClient() throws IOException {
-    HiveMetaStoreClient client;
-    // Hive uses/saves the thread context class loader.
-    ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
-    try {
-      // use the extension class loader
-      Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
-      HiveConf conf = new HiveConf();
-      conf.set("hive.metastore.uris", mConnectionUri);
-      client = new HiveMetaStoreClient(conf);
-      client.getDatabase(mHiveDbName);
-      return client;
-    } catch (NoSuchObjectException e) {
-      throw new IOException(String
-          .format("hive db name '%s' does not exist at metastore: %s", mHiveDbName, mConnectionUri),
-          e);
-    } catch (NullPointerException | TException e) {
-      // HiveMetaStoreClient throws a NPE if the uri is not a uri for hive metastore
-      throw new IOException(String
-          .format("Failed to create client to hive metastore: %s. error: %s", mConnectionUri,
-              e.getMessage()), e);
-    } finally {
-      Thread.currentThread().setContextClassLoader(currentClassLoader);
-    }
-  }
-
-  HiveMetaStoreClient getHive() throws IOException {
-    if (mHive != null) {
-      try {
-        mHive.getAllDatabases(); // test the connection
-      } catch (TException e) {
-        LOG.info("Hive metastore client disconnected, attempting to reconnect");
-        mHive = newHiveClient();
-      }
-      return mHive;
-    }
-
-    mHive = newHiveClient();
+  private MetaStoreClient getHive() {
     return mHive;
   }
 }
