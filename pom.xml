@@ -146,6 +146,7 @@
     <netty.version>4.1.30.Final</netty.version>
     <hadoop.version>2.7.3</hadoop.version>
     <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
+    <jacoco.version>0.8.5</jacoco.version>
     <java.version>1.8</java.version>
     <jersey.version>2.22</jersey.version>
     <jetty.version>9.2.16.v20160414</jetty.version>
@@ -927,7 +928,8 @@
             <runOrder>alphabetical</runOrder>
             <systemPropertyVariables>
               <alluxio.test.mode>true</alluxio.test.mode>
-              <jacoco-agent.destfile>${project.basedir}/target/jacoco.exec</jacoco-agent.destfile>
+              <jacoco-agent.append>true</jacoco-agent.append>
+              <jacoco-agent.destfile>${build.path}/../target/jacoco-combined.exec</jacoco-agent.destfile>
             </systemPropertyVariables>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
@@ -1333,27 +1335,60 @@
           <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
-            <version>0.8.5</version>
+            <version>${jacoco.version}</version>
+            <configuration>
+              <!--
+                  Append all coverage data into a single .exec file, so the reports include
+                  integration test results. The report generation should happen in a separate,
+                  later stage, so the coverage data is complete with the results of all the tests
+                  in the project.
+               -->
+              <append>true</append>
+              <destFile>${build.path}/../target/jacoco-combined.exec</destFile>
+            </configuration>
             <executions>
               <execution>
                 <!-- offline instrumentation is required, for jacoco to work with powermock tests -->
-                <id>jacoco-instrument-classes</id>
+                <id>jacoco-unit-instrument-classes</id>
                 <goals>
                   <goal>instrument</goal>
                 </goals>
               </execution>
               <execution>
-                <id>jacoco-restore-instrumented-classes</id>
+                <!-- offline instrumentation is required, for jacoco to work with powermock tests -->
+                <id>jacoco-unit-restore-instrumented-classes</id>
                 <phase>test</phase>
                 <goals>
                   <goal>restore-instrumented-classes</goal>
                 </goals>
               </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>jacocoReport</id>
+      <!--
+          This profile depends on the generated coverage data from the jacoco profile (test phase).
+          This should be run as a separate step, since the generated coverage data should include
+          the results from all the tests in the project.
+       -->
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+            <executions>
               <execution>
-                <id>jacoco-report</id>
+                <id>jacoco-coverage-report</id>
                 <goals>
                   <goal>report</goal>
                 </goals>
+                <configuration>
+                  <dataFile>${build.path}/../target/jacoco-combined.exec</dataFile>
+                </configuration>
               </execution>
             </executions>
           </plugin>
