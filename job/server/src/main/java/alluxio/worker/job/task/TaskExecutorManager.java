@@ -92,7 +92,7 @@ public class TaskExecutorManager {
     Preconditions.checkArgument(taskExecutorPoolSize <= MAX_TASK_EXECUTOR_POOL_SIZE);
 
     if (taskExecutorPoolSize == 0) {
-      // treat 0 as a schedule case because ThreadedTaskExecutorService can't seem to have 0 threads
+      // treat 0 as a special case because ThreadedTaskExecutorService can't seem to have 0 threads
       mTaskExecutionService.pause();
     } else {
       mTaskExecutionService.resume();

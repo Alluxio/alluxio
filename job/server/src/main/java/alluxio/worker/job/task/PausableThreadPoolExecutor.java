@@ -28,7 +28,7 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
   private boolean mIsPaused;
 
   // writes are locked by mPauseLock
-  private int mNumPaused;
+  private volatile int mNumPaused;
 
   private ReentrantLock mPauseLock;
   private Condition mUnpaused;
