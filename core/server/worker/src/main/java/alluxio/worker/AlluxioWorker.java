@@ -67,7 +67,14 @@ public final class AlluxioWorker {
           "Failed to load cluster default configuration for worker. Please make sure that Alluxio "
               + "master is running: %s", e.toString());
     }
-    WorkerProcess process = WorkerProcess.Factory.create();
+    WorkerProcess process;
+    try {
+      process = WorkerProcess.Factory.create();
+    } catch (Throwable t) {
+      ProcessUtils.fatalError(LOG, t, "Failed to create worker process");
+      // fatalError will exit, so we shouldn't reach here.
+      throw t;
+    }
     ProcessUtils.run(process);
   }
 
