@@ -92,7 +92,7 @@ sink.csv.directory=/tmp/alluxio-metrics
 If Alluxio is deployed in a cluster, this file needs to be distributed to all the nodes.
 
 Then, start Alluxio, CSV files containing metrics will be found in the `sink.csv.directory`. The
-file name will correspond with the metric name.
+filename will correspond with the metric name.
 
 Refer to `metrics.properties.template` for all possible sink specific configurations. 
 
@@ -109,17 +109,17 @@ For more details of the metric types, please refer to [Metric doc](https://metri
 
 ## Alluxio Metrics
 
-There are two types of metrics in Alluxio, cluster-wide aggregated metrics, and per process detailed
+There are two types of metrics in Alluxio, cluster-wide aggregated metrics, and per-process detailed
 metrics.
 
 Cluster metrics are collected by the leading master and displayed in the metrics tab of the web UI. These
 metrics are designed to provide a snapshot of the cluster state and the overall amount of data and
 metadata served by Alluxio.
 
-Process metrics are collected by each Alluxio process and exposed in a machine readable format
+Process metrics are collected by each Alluxio process and exposed in a machine-readable format
 through any configured sinks. Process metrics are highly detailed and are intended to be consumed
-by third-party monitoring tools. Users can then view fine grained dashboards with time series graphs
-of each metric, such as data transferred or number of rpc invocations.
+by third-party monitoring tools. Users can then view fine-grained dashboards with time-series graphs
+of each metric, such as data transferred or the number of RPC invocations.
 
 Metrics in Alluxio have the following format for master node metrics:
 
@@ -140,11 +140,11 @@ Tags can be used to further filter or aggregate on various characteristics.
 ![Master Metrics]({{ '/img/screenshot_generalMetrics.png' | relativize_url }})
 
 Workers and clients send metrics data to the Alluxio master through heartbeats.
-The interval is defined by property `alluxio.user.metrics.heartbeat.interval` 
-and `alluxio.master.worker.heartbeat.interval` respectively.
+The interval is defined by property `alluxio.master.worker.heartbeat.interval`
+and `alluxio.user.metrics.heartbeat.interval`  respectively.
 
-Each client will be assigned with an application id. All the metrics sent by 
-this client contain the client application id information. By default this will be 
+Each client will be assigned an application id. All the metrics sent by 
+this client contain the client application id information. By default, this will be 
 in the form of 'app-[random number]'. This value can be configured through the
 property `alluxio.user.app.id`, so multiple clients can be combined into a logical application.
 
@@ -248,8 +248,8 @@ UFS operation <RPC_NAME> ran on UFS <UFS_ADDRESS>
 | Master.SetAttributeOps | Total number of SetAttribute operations |
 
 All the Alluxio filesystem client operations come with retry mechanism 
-which master metrics record how many retries an operation has (in the format of Master.<RPC_NAME>Retries) and 
-how many failures an operation runs into (in the format of Master.<RPC_NAME>Failures).
+which master metrics record how many retries an operation has (in the format of `Master.<RPC_NAME>Retries`) and 
+how many failures an operation runs into (in the format of `Master.<RPC_NAME>Failures`).
 
 * Master timer metrics
 
