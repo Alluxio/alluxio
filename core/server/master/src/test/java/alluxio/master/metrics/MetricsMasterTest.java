@@ -94,7 +94,7 @@ public class MetricsMasterTest {
         Metric.from("worker.192_1_1_2.metricA", 3, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics3);
     assertEquals(13L, getGauge("metricA"));
-    assertEquals(20L, getGauge("metricB"));
+    assertEquals(22L, getGauge("metricB"));
   }
 
   @Test
