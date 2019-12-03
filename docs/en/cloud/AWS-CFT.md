@@ -48,8 +48,12 @@ Open a web browser and navigate to the EC2 console, logging in with your credent
 Note the AWS region in the upper right corner; click on the region to open a dropdown of available regions.
 It is recommended to select the region that is geographically closest to your computer.
 
+![cft_ec2_region]({{ '/img/cft_ec2_region.png' | relativize_url }})
+
 On the left sidebar, click the Key Pairs link to view created key pairs for this region.
 Click the Create Key Pair button to create a new key pair and download the it to your computer. 
+
+![cft_ec2_keypair]({{ '/img/cft_ec2_keypairc.png' | relativize_url }})
 
 Assuming the downloaded key pair is located at `~/Downloads/keypair.pem`,
 change the file permissions of the key pair to read-only by running the following command:
@@ -65,12 +69,17 @@ chmod 400 ~/Downloads/keypair.pem
 {% accordion launch %}
   {% collapsible Choose the CloudFormation template to launch %}
 Navigate to the [CloudFormation console](https://console.aws.amazon.com/cloudformation) and click Create Stack.
+
+![cft_create_stack]({{ '/img/cft_create_stack.png' | relativize_url }})
+
 We have two templates available: a basic and an advanced version.
 The advanced version is a copy of the basic one with additional parameters and configuration options exposed when creating the stack.
 
 Copy either URL in the *Amazon S3 URL* field:
 - Basic: [https://alluxio-public.s3.amazonaws.com/cft/{{site.ALLUXIO_RELEASED_VERSION}}/basic.json](https://alluxio-public.s3.amazonaws.com/cft/{{site.ALLUXIO_RELEASED_VERSION}}/basic.json)
 - Advanced: [https://alluxio-public.s3.amazonaws.com/cft/{{site.ALLUXIO_RELEASED_VERSION}}/advanced.json](https://alluxio-public.s3.amazonaws.com/cft/{{site.ALLUXIO_RELEASED_VERSION}}/advanced.json)
+
+![cft_create_stack_url]({{ '/img/cft_create_stack_url.png' | relativize_url }})
 
   {% endcollapsible %}
 {% endaccordion %}
@@ -102,6 +111,9 @@ Specify the details of your Alluxio cluster in this page:
   The default value is `r4.4xlarge`.
   Larger master instances provide more memory for Alluxio master to store metadata.
   Worker instance memory space is proportional to the Alluxio worker memory size, which determines how much data can be stored in this worker.
+
+  ![cft_configure_instance_type]({{ '/img/cft_configure_instance_type.png' | relativize_url }})
+
   - **WorkerSpotPrice** is an optional field to launch worker instances as spot instances,
   specifying the maximum hourly price that you are willing to pay for spot instances.
   Note that the price should be set according to the worker instance type.
@@ -116,29 +128,45 @@ Specify the details of your Alluxio cluster in this page:
   Because the addition and loss of workers do not affect basic Alluxio functionality,
   we can support launching Alluxio clusters with spot instances for workers.
 
+  ![cft_configure_worker_spot_price]({{ '/img/cft_configure_worker_spot_price.png' | relativize_url }})
+
 - Alluxio Configuration
   - **EnableHA** defaults to `No`, which instructs the cluster to launch a single master.
   If set to `Yes`, three master instances will be provisioned.
   - **WorkersCount** determines the number of Alluxio workers for the cluster.
+
+  ![cft_configure_alluxio_num_nodes]({{ '/img/cft_configure_alluxio_num_nodes.png' | relativize_url }})
+
   - **AlluxioRootMountS3BucketName** and **AlluxioRootMountS3BucketPath** are combined form a S3 URI to serve as Alluxio filesystem's root mount.
   The current user account must have the read/write/list permissions to this S3 URI and the URI will be mounted to the root of the Alluxio file system.
   - **OpenS3Access** should be set to `Yes` if Alluxio or other services in the cluster will need to access S3 buckets,
   other than the one defined for the root mount.
+
+  ![cft_configure_s3_bucket]({{ '/img/cft_configure_s3_bucket.png' | relativize_url }})
+
   - **AlluxioProperties** can be set to provide additional Alluxio site properties.
   Alluxio CFT only provides the necessary parameters to create an Alluxio cluster.
   If you desire to fine-tune Alluxio behavior, specify the desired properties in the format of `KEY1=VALUE1,KEY2=VALUE2`.
   The specified key-value pairs will be appended to the `alluxio-site.properties` file in all nodes inside the Alluxio cluster.
 
+  ![cft_configure_alluxio_props]({{ '/img/cft_configure_alluxio_props.png' | relativize_url }})
+
 - Advanced Alluxio Configuration: These optional parameters are only available in the advanced template.
   - **AlluxioJournalSize** determines the EBS volume size, in GB, where Alluxio's embedded journal will write to.
   Each Alluxio master mounts a EBS volume dedicated for logging all metadata changes to achieve fault tolerance.
   The journal size should be proportional to the estimated magnitude of Alluxio metadata operations.
+
+  ![cft_configure_alluxio_journal]({{ '/img/cft_configure_alluxio_journal.png' | relativize_url }})
+
   - **AlluxioWorkerMemPercent** is the percentage of the instance's total memory to allocate for the Alluxio worker
   to store cached data. By default this is set to 70%.
   This space is used for caching remote data in order to drastically increase overall I/O throughput.
   - **AlluxioWorkerSSDSize** determines the SSD volume size, in GB, to attach to each worker instance.
   An EBS volume is attached for workers to attach remote data if the value is non-zero.
   A SSD drive is a simple scalable alternative to instance memory to help increase the Alluxio worker's caching capacity.
+
+  ![cft_configure_alluxio_worker]({{ '/img/cft_configure_alluxio_worker.png' | relativize_url }})
+
   - **AlluxioMetadataBackupDirectory** determines the path to backup Alluxio's journal contents.
   This path is relative to Alluxio's root mount point.
   Backup files can be use to relaunch an Alluxio cluster.
@@ -147,11 +175,15 @@ Specify the details of your Alluxio cluster in this page:
   - **AlluxioMetadataRestoreUri** can be set to launch an Alluxio cluster
   whose state is restored from the backup file at the given URI.
 
+  ![cft_configure_alluxio_backup]({{ '/img/cft_configure_alluxio_backup.png' | relativize_url }})
+
 - Advanced Configuration: This section provides advanced configuration outside the scope of Alluxio.
   - **IamInstanceProfile** assigns a custom role with permissions to access AWS.
   By default, a IAM role is created as part of setup, with permissions to access EC2, S3, and AutoScaling services.
   These are necessary for Alluxio to bootstrap and access its S3 mount points.
   Note that the **OpenS3Access** parameter is only applicable if **IamInstanceProfile** is not set.
+
+  ![cft_configure_iam_profile]({{ '/img/cft_configure_iam_profile.png' | relativize_url }})
 
 Congratulations! All the necessary parameters are set now.
   
@@ -167,6 +199,8 @@ These options include adding tags to resources created in the Alluxio cluster st
 choosing the IAM role to limit the permissions available, 
 and specifying the stack policy and rollback configuration.
 For further insight into those options, see [stack options documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-add-tags.html).
+
+![cft_stack_options]({{ '/img/cft_stack_options.png' | relativize_url }})
 
   {% endcollapsible %}
 {% endaccordion %}
@@ -203,11 +237,17 @@ versus a cluster running in high availability mode.
 {% accordion outputSingle %}
   {% collapsible CloudFormation output for an Alluxio cluster with a single master %}
 Navigate to the Outputs tab in the CloudFormation console.
-This shows the command to SSH into the master instance,
-replacing `/path/to/alluxio_keypair.pem` with the path to your key pair file.
-There is also a link to the master's web UI.
 
 ![cft_output_single_master]({{ '/img/cft_output_single_master.png' | relativize_url }})
+
+There is a link to the master's web UI.
+
+![cft_output_alluxio_web_ui]({{ '/img/cft_output_alluxio_web_ui.png' | relativize_url }})
+
+The output shows the command to SSH into the master instance,
+replacing `/path/to/alluxio_keypair.pem` with the path to your key pair file.
+
+![cft_output_ssh]({{ '/img/cft_output_ssh.png' | relativize_url }})
 
   {% endcollapsible %}
 {% endaccordion %}
@@ -233,6 +273,8 @@ In particular, run `alluxio fsadmin report` to identify the private DNS of the l
 ![cft_ha_fsadmin]({{ '/img/cft_ha_fsadmin.png' | relativize_url }})
 
 Return back to the EC2 console. Search with the private DNS of the leading master to identify its public DNS.
+
+![cft_ha_ec2console_private]({{ '/img/cft_ha_ec2console_private.png' | relativize_url }})
 
   {% endcollapsible %}
 {% endaccordion %}
