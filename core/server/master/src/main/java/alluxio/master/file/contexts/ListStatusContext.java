@@ -37,7 +37,7 @@ public class ListStatusContext extends OperationContext<ListStatusPOptions.Build
    * @return the instance of {@link ListStatusContext} with the given options
    */
   public static ListStatusContext create(ListStatusPOptions.Builder optionsBuilder) {
-    return new ListStatusContext(optionsBuilder, null);
+    return new ListStatusContext(optionsBuilder, CallTracker.NOOP_TRACKER);
   }
 
   /**

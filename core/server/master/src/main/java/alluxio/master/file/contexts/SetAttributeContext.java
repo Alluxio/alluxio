@@ -44,7 +44,7 @@ public class SetAttributeContext extends OperationContext<SetAttributePOptions.B
    * @return the instance of {@link SetAttributeContext} with the given options
    */
   public static SetAttributeContext create(SetAttributePOptions.Builder optionsBuilder) {
-    return new SetAttributeContext(optionsBuilder, null);
+    return new SetAttributeContext(optionsBuilder, CallTracker.NOOP_TRACKER);
   }
 
   /**

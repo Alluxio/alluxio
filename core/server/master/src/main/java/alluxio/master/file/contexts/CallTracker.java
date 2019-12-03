@@ -19,4 +19,18 @@ public interface CallTracker {
    * @return {@code true} if call is cancelled by the client
    */
   boolean isCancelled();
+
+  /**
+   * Used when call tracking should not be enabled.
+   * Invoking it will throw a runtime exception.
+   */
+  CallTracker DISABLED_TRACKER = () -> {
+    throw new IllegalStateException("Call tracking is not supported.");
+  };
+
+  /**
+   * Used when call tracking is not desired.
+   * It will always return @{code false}.
+   */
+  CallTracker NOOP_TRACKER = () -> false;
 }

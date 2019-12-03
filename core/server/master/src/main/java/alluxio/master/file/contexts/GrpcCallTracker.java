@@ -29,7 +29,9 @@ public class GrpcCallTracker implements CallTracker {
    */
   public GrpcCallTracker(StreamObserver<?> streamObserver) {
     if (!(streamObserver instanceof ServerCallStreamObserver)) {
-      throw new IllegalStateException("Call tacking is supported for server streams.");
+      throw new IllegalStateException(String.format(
+          "Call tracking is only supported for server streams. Passed stream type: %s",
+          streamObserver.getClass().getSimpleName()));
     }
     mStreamObserver = (ServerCallStreamObserver) streamObserver;
   }

@@ -37,7 +37,7 @@ public class SetAclContext extends OperationContext<SetAclPOptions.Builder> {
    * @return the instance of {@link SetAclContext} with the given options
    */
   public static SetAclContext create(SetAclPOptions.Builder optionsBuilder) {
-    return new SetAclContext(optionsBuilder, null);
+    return new SetAclContext(optionsBuilder, CallTracker.NOOP_TRACKER);
   }
 
   /**
