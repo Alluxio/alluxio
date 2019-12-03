@@ -47,7 +47,14 @@ public final class AlluxioProxy {
     }
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.PROXY);
-    ProxyProcess process = ProxyProcess.Factory.create();
+    ProxyProcess process;
+    try {
+      process = ProxyProcess.Factory.create();
+    } catch (Throwable t) {
+      ProcessUtils.fatalError(LOG, t, "Failed to create proxy process");
+      // fatalError will exit, so we shouldn't reach here.
+      throw t;
+    }
     ProcessUtils.run(process);
   }
 
