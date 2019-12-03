@@ -61,7 +61,8 @@ public final class CsvReader implements TableReader {
       boolean isGzipped = pInfo.getFormat(inputPath.getName()).equals(Format.GZIP_CSV);
       InputStream input = open(mFs, inputPath, isGzipped);
 
-      CSVProperties props = buildProperties(pInfo.getProperties());
+      CSVProperties props = buildProperties(pInfo.getTableProperties(),
+          pInfo.getSerdeProperties());
 
       try {
         mReader = mCloser.register(new AvroCSVReader<>(input, props, mSchema.getReadSchema(),
@@ -79,14 +80,14 @@ public final class CsvReader implements TableReader {
     }
   }
 
-  private CSVProperties buildProperties(Map<String, String> properties) {
+  private CSVProperties buildProperties(Map<String, String> tableProperties,
+      Map<String, String> serdeProperties) {
     CSVProperties.Builder propsBuilder = new CSVProperties.Builder();
-    if (properties.containsKey(HiveConstants.LINES_TO_SKIP)) {
-      propsBuilder.hasHeader();
-      propsBuilder.linesToSkip(Integer.parseInt(properties.get(HiveConstants.LINES_TO_SKIP)));
+    if (tableProperties.containsKey(HiveConstants.LINES_TO_SKIP)) {
+      propsBuilder.linesToSkip(Integer.parseInt(tableProperties.get(HiveConstants.LINES_TO_SKIP)));
     }
-    if (properties.containsKey(HiveConstants.FIELD_DELIM)) {
-      propsBuilder.delimiter(properties.get(HiveConstants.FIELD_DELIM));
+    if (serdeProperties.containsKey(HiveConstants.FIELD_DELIM)) {
+      propsBuilder.delimiter(serdeProperties.get(HiveConstants.FIELD_DELIM));
     }
     return propsBuilder.build();
   }
