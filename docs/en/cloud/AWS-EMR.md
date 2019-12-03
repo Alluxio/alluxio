@@ -31,93 +31,192 @@ Blob Store.
 
 The majority of the pre-requisites can be found by going through the
 [AWS EMR Getting Started](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-gs.html) guide.
-An S3 bucket is needed as Alluxio's Root Under File System and to serve as the location for the
+An S3 bucket is needed as Alluxio's root Under File System and to serve as the location for the
 bootstrap script.
 If required, the root UFS can be reconfigured to be HDFS.
 
 ## Basic Setup
 
-To begin with, [download an Alluxio release](https://www.alluxio.io/download) and unzip it.
+{% accordion setup subscribe %}
+  {% collapsible Subscribe to the Alluxio AMI %}
+Go to the [Alluxio AMI page](https://aws.amazon.com/marketplace/pp/B07WR37VD1) in the AWS Marketplace.
+Click on "Continue to Subscribe"
 
-1. Set up the required IAM roles for the account to be able to use the EMR service.
+![emr_ami_subscribe]({{ '/img/emr_ami_subscribe.png' | relativize_url }})
+
+Review pricing and the terms. Click "Accept Terms" to continue.
+
+![emr_ami_accept_terms]({{ '/img/emr_ami_accept_terms.png' | relativize_url }})
+
+The Alluxio AMI is now associated with your account.
+The subscription includes a 7 day free trial.
+
+![emr_ami_subscribe_done]({{ '/img/emr_ami_subscribe_done.png' | relativize_url }})
+
+  {% endcollapsible %}
+{% endaccordion %}
+
+{% accordion setup iam roles %}
+  {% collapsible Set up the required IAM roles for the account to be able to use the EMR service %}
+Open a terminal and use the AWS CLI to create the necessary IAM roles on your account.
 ```console
 $ aws emr create-default-roles
 ```
-2. The Alluxio bootstrap script is hosted in a publicly readable
-[S3 bucket](https://alluxio-public.s3.amazonaws.com/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.sh).
-This bucket can also be accessed using it's S3 URI: `s3://alluxio-public/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.sh`
-The bootstrap script only requires a root UFS URI as an argument.
-Additional options can be seen in the comments at the top of the bootstrap script.
+
+  {% endcollapsible %}
+{% endaccordion %}
+
+{% accordion setup create cluster %}
+  {% collapsible Run the aws create-cluster command with the bootstrap action %}
+The `create-cluster` command requires passing in multiple flags to successfully execute:
+- `release-label`: The version of EMR to install with.
+The current version of Alluxio is compatible with `emr-5.25.0`.
+- `custom-ami-id`: The Alluxio Marketplace Enterprise Edition AMI ID.
+To find the latest AMI ID for a particular region, run the following AWS CLI command:
 ```console
-$ aws emr create-cluster \
+aws ec2 describe-images \
+--owners 'aws-marketplace' \
+--filters 'Name=product-code,Values=6axlevynmkcnoq7ximzar80bx' \
+--query 'sort_by(Images, &CreationDate)[-1].[ImageId]' \
+--output text \
+--region us-east-1
+```
+where the value for `--region` can be set to the desired region.
+
+- `instance-count`: The number of nodes to provision for the cluster.
+- `instance-type`: The instance type to provision with.
+Make sure you pick an instance type supported by the Alluxio marketplace AMI.
+Note that your account can be limited in the number of instances you can launch; check your instance limits [here](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Limits:).
+The default instance type for the AMI is `r4.4xlarge`.
+- `applications`: Specify `Name=Spark Name=Presto Name=Hive` to bootstrap the three additional services
+- `name`: The EMR cluster name
+- `bootstrap-actions`:
+  - `Path`: The path to the bootstrap script, hosted in a publicly readable S3 bucket: `s3://alluxio-public/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.sh`
+  - `Args`: The arguments passed to the bootstrap script.
+  The first argument, the root UFS URI, is required.
+  This S3 URI designates the root mount of the Alluxio file system and should be of the form `s3://bucket-name/mount-point`.
+  The mount point should be a folder; follow [these instructions](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/create-folder.html) to create a folder in S3.
+  You can also specify additional Alluxio properties as a delimited list of key-value pairs in the format `key=value`.
+  For example, `alluxio.user.file.writetype.default=CACHE_THROUGH` instructs ALluxio to write files synchronously to the underlying storage system.
+  See more about [write type options](https://docs.alluxio.io/ee/user/stable/en/Architecture-DataFlow.html?q=write%20types#data-flow-write).
+- `configurations`: The path to the configuration json file, also hosted in a publicly readable S3 bucket: `s3://alluxio-public/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.json`
+- `ec2-attributes`: EC2 settings to provide, most notably the name of the key pair to use to connect to the cluster
+
+Below is a sample command with all of the above flags populated:
+```console
+aws emr create-cluster \
 --release-label emr-5.25.0 \
---instance-count <num-instances> \
---instance-type <instance-type> \
---applications Name=Presto Name=Hive Name=Spark \
---name '<cluster-name>' \
+--custom-ami-id ami-0b58e65dfcb8a9475 \
+--instance-count 3 \
+--instance-type r4.4xlarge \
+--applications Name=Spark Name=Presto Name=Hive \
+--name try-alluxio \
 --bootstrap-actions \
 Path=s3://alluxio-public/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.sh,\
-Args=[s3://test-bucket/path/to/mount/] \
+Args=[s3://myBucketName/mountPointFolder,\
+-p,"alluxio.user.block.size.bytes.default=122M|alluxio.user.file.writetype.default=CACHE_THROUGH",\
+-s,"|"] \
 --configurations https://alluxio-public.s3.amazonaws.com/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.json \
---ec2-attributes KeyName=<ec2-keypair-name>
+--ec2-attributes KeyName=myKeyPairName
 ```
-4. On the [EMR Console](https://console.aws.amazon.com/elasticmapreduce/home), you should be able to
-see the cluster going through the different stages of setup.
-Once the cluster is in the 'Waiting' stage, click on the cluster details to get the
-'Master public DNS'.
-SSH into this instance using the keypair provided in the previous command.
-If a security group isn't specified via CLI, the default EMR security group will not allow inbound
-SSH.
-To SSH into the machine, a new rule will need to be added.
-5. Test that Alluxio is running as expected
+where `s3://myBucketName/mountPointFolder` should be replaced with a S3 URI that your AWS account can read and write to
+and `myKeyPairName` should be replaced with the name of your EC2 key pair.
+
+  {% endcollapsible %}
+{% endaccordion %}
+
+{% accordion setup ssh %}
+  {% collapsible SSH into the EMR cluster's master node %}
+Log into the [EMR console](https://console.aws.amazon.com/elasticmapreduce/home).
+
+Once the cluster is in the `Waiting` stage, click on the cluster details to get the `Master public DNS` if available
+or click on the `Hardware` tab to see the master and worker details.
+
+![emr_console_waiting]({{ '/img/emr_console_waiting.png' | relativize_url }})
+
+Clicking on the master instance group will show you the public DNS.
+
+![emr_console_public_dns]({{ '/img/emr_console_public_dns.png' | relativize_url }})
+
+SSH into the master instance using the key pair provided in the previous command.
+Use `hadoop` as the username.
 ```console
-$ alluxio runTests
+ssh -i /path/to/keypair.pem hadoop@masterPublicDns
 ```
 
-Alluxio is installed in `/opt/alluxio/` by default.
+If a security group isn't specified in the `create-cluster` command,
+the default EMR security group created for you will **not** allow inbound SSH.
+In order to continue, you will need to edit the security group and open port 22.
+See more details [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/authorizing-access-to-an-instance.html#add-rule-authorize-access).
+
+  {% endcollapsible %}
+{% endaccordion %}
+
+{% accordion setup test %}
+  {% collapsible Test that Alluxio is running %}
+Once inside the master instance, run the following command to run a series of basic tests to ensure Alluxio can read and write files.
+```console
+sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio runTests"
+```
+
+  {% endcollapsible %}
+{% endaccordion %}
+
+{% accordion setup details %}
+  {% collapsible Cluster details %}
+Using this boostrap script, Alluxio is installed in `/opt/alluxio/` by default.
 Hive and Presto are already configured to connect to Alluxio.
 The cluster also uses AWS Glue as the default metastore for both Presto and Hive.
 This will allow you to maintain table definitions between multiple runs of the Alluxio cluster.
 
-See the below sample command for reference.
+The default Alluxio worker is allocated a third of the instance's available memory.
+If the instance type has less than 20GB of memory, you will need to make your own copy of the `alluxio-emr.sh` script
+and update the divisor value at `mem_div=3`.
 
-```console
-$ aws emr create-cluster \
---release-label emr-5.25.0 \
---instance-count 3 \
---instance-type m4.xlarge \
---applications Name=Presto Name=Hive \
---name 'Test Cluster' \
---bootstrap-actions \
-Path=s3://alluxio-public/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.sh,\
-Args=[s3://test-bucket/path/to/mount/] \
---configurations https://alluxio-public.s3.amazonaws.com/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.json \
---ec2-attributes KeyName=admin-key
-```
-
-> Note: The default Alluxio Worker memory is set to 1/3 of the physical memory on the instance.
-If a specific value is desired, set `alluxio.worker.memory.size` in the provided
-`alluxio-site.properties` or in the additional options argument.
+  {% endcollapsible %}
+{% endaccordion %}
 
 ## Creating a Table
 
 The simplest step to using EMR with Alluxio is to create a table on Alluxio and query it using Presto/Hive.
 
-1. SSH into the 'hadoop' user in the master node.
-2. Create a directory in Alluxio to be the external location of your table.
+{% accordion table ssh %}
+  {% collapsible SSH into the master node %}
+From your terminal, SSH into the master instance using the key pair provided in the `create-cluster` command.
 ```console
-$ /opt/alluxio/bin/alluxio fs mkdir /testTable
+ssh -i /path/to/keypair.pem hadoop@masterPublicDns
 ```
-3. Start the hive CLI.
+Note that we are connecting as the `hadoop` user.
+All subsequent commands assume they are being executed from within the instance.
+
+  {% endcollapsible %}
+{% endaccordion %}
+
+{% accordion table create directory %}
+  {% collapsible Create a directory in Alluxio to be the external location of your table %}
+Create the `/testTable` directory in Alluxio, then set the `hadoop` user to be the directory owner.
+Note that these commands are being executed as the `alluxio` user.
 ```console
-$ hive
+sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs mkdir /testTable"
+sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs chown hadoop:hadoop /testTable"
 ```
-4. Create a new database to see if AWS Glue is working as expected.
-Check the [console](https://console.aws.amazon.com/glue/home) to see if the database is created.
+
+  {% endcollapsible %}
+{% endaccordion %}
+
+{% accordion table hive %}
+  {% collapsible Create a new database in AWS GLUE %}
+Open the Hive CLI.
+```console
+hive
+```
+
+Create a database, then check in the [GLUE console](https://console.aws.amazon.com/glue/home) to see if the database is created.
 ```sql
 CREATE DATABASE glue;
 ```
-5. Use the newly created database and define a table.
+
+Use the newly created database and define a table.
 ```sql
 USE glue;
 create external table test1 (userid INT,
@@ -129,22 +228,45 @@ ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '|'
 LOCATION 'alluxio:///testTable';
 ```
-6. Insert values into the table
+
+Exit the Hive CLI.
+```console
+exit
+```
+
+  {% endcollapsible %}
+{% endaccordion %}
+
+{% accordion table create presto tmp dir %}
+  {% collapsible Create the Presto /tmp directory %}
+Similar to before, create a `/tmp` directory in Alluxio.
+Then set the directory permissions to `777`.
+```console
+sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs mkdir /tmp"
+sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs chmod 777 /tmp"
+```
+
+  {% endcollapsible %}
+{% endaccordion %}
+
+{% accordion table create presto tmp dir %}
+  {% collapsible Interact with the table using Presto %}
+Open the Presto CLI, specifying `hive` as the catalog.
+```console
+presto-cli --catalog hive
+```
+Use the created database and insert some values into the table.
 ```sql
 USE glue;
 INSERT INTO test1 VALUES (1, 24, 'F', 'Developer', '12345');
 ```
-7. Read back the values in the table
+Read back all values in the table with a SELECT statement.
 ```sql
 SELECT * FROM test1;
 ```
 
-## Run a Spark Job
-
-The Alluxio bootstrap also takes care of setting up EMR for you.
-Follow the steps in our Alluxio on Spark
-[documentation]({{ '/en/compute/Spark.html#examples-use-alluxio-as-input-and-output' | relativize_url }})
-to get started.
+  {% endcollapsible %}
+{% endaccordion %}
 
 ## Customization
 
@@ -152,8 +274,11 @@ Tuning of Alluxio properties can be done in a few different locations.
 Depending on which service needs tuning, EMR offers different ways of modifying the service
 settings/environment variables.
 
-### Bootstrap Script Usage
-
+{% accordion table custom bootstrap script %}
+  {% collapsible Bootstrap Script Usage %}
+The following describes all the possible flags that can be passed into the bootstrap script.
+In the above example, we used the `-p` and `-s` flags to specify additional Alluxio properties
+and the delimiting string between properties.
 ```
 Usage: alluxio-emr.sh <root-ufs-uri>
                              [-b <backup_uri>]
@@ -216,22 +341,31 @@ If a specific Alluxio tarball is desired, see the -d option.
                     provided in the [-p] argument.
 ```
 
-### Alluxio Service
+  {% endcollapsible %}
+{% endaccordion %}
 
-Making configuration changes to the Alluxio Service can be done in a few different ways via the
+{% accordion table custom alluxio service %}
+  {% collapsible Alluxio service %}
+Making configuration changes to the Alluxio service can be done in a few different ways via the
 bootstrap script.
-The `[-p]` flag allows users to pass in a set of delimited key-value properties to be set on all of
+The `-p` flag allows users to pass in a set of delimited key-value properties to be set on all of
 the Alluxio nodes.
-An alternative would be to pass in a custom file using the `[-f]` flag named
+An alternative would be to pass in a custom file using the `-f` flag named
 `alluxio-site.properties`.
 The bootstrap will make sure to overwrite any user-provided configs while retaining any defaults
 that are not overwritten.
 The bootstrap also allows users to install previous versions of Alluxio (>=2.0) by specifying
 a download URL (HTTP or S3 only).
 
-### Alluxio Client
+  {% endcollapsible %}
+{% endaccordion %}
 
+{% accordion table custom alluxio client %}
+  {% collapsible Alluxio client %}
 Generic client-side properties can also be edited via the bootstrap script as mentioned above.
 This is mostly for the native client (CLI).
 Property changes for a specific service like Presto/Hive should be done in the respective section
 of the EMR JSON configuration file i.e. `core-site.xml` or `hive.catalog`.
+
+  {% endcollapsible %}
+{% endaccordion %}
