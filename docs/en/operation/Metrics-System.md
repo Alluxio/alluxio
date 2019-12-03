@@ -315,41 +315,41 @@ The following metrics are collected on each instance (Master, Worker or Client).
 | total.max | The maximum amount of memory in bytes that is available for use by the JVM |
 | total.used | The amount of memory currently used in bytes |
 | heap.committed | The amount of memory guaranteed to be available |
-| heap.init | The amount of memory available at initialization |
-| heap.max | The maximum amount of memory that is available |
-| heap.usage | The amount of memory currently used in GB|
-| heap.used | The amount of memory that has been used |
+| heap.init | The amount of memory from heap area available at initialization |
+| heap.max | The maximum amount of memory from heap area that is available |
+| heap.usage | The amount of memory from heap area currently used in GB|
+| heap.used | The amount of memory from heap area that has been used |
 | non-heap.committed |  |
 | non-heap.init |  |
 | non-heap.max |  |
 | non-heap.usage |  |
 | non-heap.used |  |
-| pools.Code-Cache.committed |  |
+| pools.Code-Cache.committed | Committed memory of collection usage from the pool from which memory is used for compilation and storage of native code |
+| pools.Code-Cache.used |  |
 | pools.Code-Cache.init |  |
 | pools.Code-Cache.max |  |
 | pools.Code-Cache.usage |  |
-| pools.Code-Cache.used |  |
-| pools.Compressed-Class-Space.committed |  |
+| pools.Compressed-Class-Space.committed | Committed memory of collection usage from the pool from which memory is use for class metadata |
+| pools.Compressed-Class-Space.used |  |
 | pools.Compressed-Class-Space.init |  |
 | pools.Compressed-Class-Space.max |  |
 | pools.Compressed-Class-Space.usage |  |
-| pools.Compressed-Class-Space.used |  |
 | pools.Metaspace.committed |  |
 | pools.Metaspace.init |  |
 | pools.Metaspace.max |  |
 | pools.Metaspace.usage |  |
 | pools.Metaspace.used |  |
-| pools.PS-Eden-Space.committed |  |
+| pools.PS-Eden-Space.committed | Committed memory of collection usage from the pool from which memory is initially allocated for most objects |
+| pools.PS-Eden-Space.used |  |
 | pools.PS-Eden-Space.init |  |
 | pools.PS-Eden-Space.max |  |
 | pools.PS-Eden-Space.usage |  |
-| pools.PS-Eden-Space.used |  |
 | pools.PS-Old-Gen.committed |  |
 | pools.PS-Old-Gen.init |  |
 | pools.PS-Old-Gen.max |  |
 | pools.PS-Old-Gen.usage |  |
 | pools.PS-Old-Gen.used |  |
-| pools.PS-Survivor-Space.committed |  |
+| pools.PS-Survivor-Space.committed | Committed memory of collection usage from the pool containing objects that have survived the garbage collection of the Eden space |
 | pools.PS-Survivor-Space.init |  |
 | pools.PS-Survivor-Space.max |  |
 | pools.PS-Survivor-Space.usage |  |
