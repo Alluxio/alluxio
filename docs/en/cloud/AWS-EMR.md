@@ -74,8 +74,8 @@ The current version of Alluxio is compatible with `emr-5.25.0`.
 - `instance-count`: The number of nodes to provision for the cluster.
 - `instance-type`: The instance type to provision with.
 Make sure you pick an instance type supported by the Alluxio marketplace AMI.
-Note that your account can be limited in the number of instances you can launch;
-check your instance limits [here](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Limits:).
+Note that your account is limited in the number of instances you can launch in each region;
+check your instance limits [here](https://console.aws.amazon.com/ec2/v2/home#Limits:).
 The default instance type for the AMI is `r4.4xlarge`.
 - `applications`: Specify `Name=Spark Name=Presto Name=Hive` to bootstrap the three additional services
 - `name`: The EMR cluster name
@@ -89,13 +89,13 @@ The default instance type for the AMI is `r4.4xlarge`.
     For example, you can use the URL: `https://downloads.alluxio.io/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz`
     - You can also specify additional Alluxio properties as a delimited list of key-value pairs in the format `key=value`.
     For example, `alluxio.user.file.writetype.default=CACHE_THROUGH` instructs ALluxio to write files synchronously to the underlying storage system.
-    See more about [write type options](https://docs.alluxio.io/ee/user/stable/en/Architecture-DataFlow.html?q=write%20types#data-flow-write).
+    See more about [write type options](https://docs.alluxio.io/ee/user/stable/en/Architecture-DataFlow.html#data-flow-write).
 - `configurations`: The path to the configuration json file, also hosted in a publicly readable S3 bucket: `s3://alluxio-public/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.json`
 - `ec2-attributes`: EC2 settings to provide, most notably the name of the key pair to use to connect to the cluster
 
 Below is a sample command with all of the above flags populated:
 ```console
-aws emr create-cluster \
+$ aws emr create-cluster \
 --release-label emr-5.25.0 \
 --instance-count 3 \
 --instance-type r4.4xlarge \
@@ -132,7 +132,7 @@ Clicking on the master instance group will show you the public DNS.
 SSH into the master instance using the key pair provided in the previous command.
 Use `hadoop` as the username.
 ```console
-ssh -i /path/to/keypair.pem hadoop@masterPublicDns
+$ ssh -i /path/to/keypair.pem hadoop@masterPublicDns
 ```
 
 If a security group isn't specified in the `create-cluster` command,
@@ -147,7 +147,7 @@ See more details [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/auth
   {% collapsible Test that Alluxio is running %}
 Once inside the master instance, run the following command to run a series of basic tests to ensure Alluxio can read and write files.
 ```console
-sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio runTests"
+$ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio runTests"
 ```
 
   {% endcollapsible %}
@@ -175,7 +175,7 @@ The simplest step to using EMR with Alluxio is to create a table on Alluxio and 
   {% collapsible SSH into the master node %}
 From your terminal, SSH into the master instance using the key pair provided in the `create-cluster` command.
 ```console
-ssh -i /path/to/keypair.pem hadoop@masterPublicDns
+$ ssh -i /path/to/keypair.pem hadoop@masterPublicDns
 ```
 Note that we are connecting as the `hadoop` user.
 All subsequent commands assume they are being executed from within the instance.
@@ -188,8 +188,8 @@ All subsequent commands assume they are being executed from within the instance.
 Create the `/testTable` directory in Alluxio, then set the `hadoop` user to be the directory owner.
 Note that these commands are being executed as the `alluxio` user.
 ```console
-sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs mkdir /testTable"
-sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs chown hadoop:hadoop /testTable"
+$ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs mkdir /testTable"
+$ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs chown hadoop:hadoop /testTable"
 ```
 
   {% endcollapsible %}
@@ -199,10 +199,10 @@ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs chown hadoop:hadoop /tes
   {% collapsible Create a new database in AWS GLUE %}
 Open the Hive CLI.
 ```console
-hive
+$ hive
 ```
 
-Create a database, then check in the [GLUE console](https://console.aws.amazon.com/glue/home) to see if the database is created.
+Create a database, then check in the [Glue console](https://console.aws.amazon.com/glue/home) to see if the database is created.
 ```sql
 CREATE DATABASE glue;
 ```
@@ -222,7 +222,7 @@ LOCATION 'alluxio:///testTable';
 
 Exit the Hive CLI.
 ```console
-exit
+$ exit
 ```
 
   {% endcollapsible %}
@@ -233,8 +233,8 @@ exit
 Similar to before, create a `/tmp` directory in Alluxio.
 Then set the directory permissions to `777`.
 ```console
-sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs mkdir /tmp"
-sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs chmod 777 /tmp"
+$ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs mkdir /tmp"
+$ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs chmod 777 /tmp"
 ```
 
   {% endcollapsible %}
@@ -244,7 +244,7 @@ sudo runuser -l alluxio -c "/opt/alluxio/bin/alluxio fs chmod 777 /tmp"
   {% collapsible Interact with the table using Presto %}
 Open the Presto CLI, specifying `hive` as the catalog.
 ```console
-presto-cli --catalog hive
+$ presto-cli --catalog hive
 ```
 Use the created database and insert some values into the table.
 ```sql
