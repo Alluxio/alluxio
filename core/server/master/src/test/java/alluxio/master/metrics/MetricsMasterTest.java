@@ -100,7 +100,7 @@ public class MetricsMasterTest {
         Metric.from("worker.192_1_1_2.metricA", 3, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics3);
     checkMetricValue("metricA", 13L);
-    checkMetricValue("metricB", 20L);
+    checkMetricValue("metricB", 22L);
   }
 
   @Test

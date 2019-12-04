@@ -193,6 +193,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader) {
+      mMetricsStore.clear();
       getExecutorService().submit(mClusterMetricsUpdater);
     }
   }
