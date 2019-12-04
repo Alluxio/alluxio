@@ -16,6 +16,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.resource.LockResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
+
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
@@ -34,8 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 /**
  * A wrapper around HMS client that does caching and reconnection.
@@ -56,7 +55,8 @@ public class HiveMetaStoreRetryClient implements MetaStoreClient {
     mConnectionUri = connectionUri;
     mHiveDbName = hiveDbName;
     mLock = new ReentrantReadWriteLock();
-    mPolicy = RetryUtils.defaultClientRetry(ServerConfiguration.getDuration(PropertyKey.TABLE_METASTORE_RETRY_TIMEOUT),
+    mPolicy = RetryUtils.defaultClientRetry(
+        ServerConfiguration.getDuration(PropertyKey.TABLE_METASTORE_RETRY_TIMEOUT),
         Duration.ofMillis(100), Duration.ofSeconds(5));
   }
 
@@ -100,9 +100,12 @@ public class HiveMetaStoreRetryClient implements MetaStoreClient {
     }
   }
 
+  /**
+   * Supplier throwing exception.
+   * @param <T> type of the return value
+   */
   @FunctionalInterface
   public interface SupplierThrowingException<T> {
-
     /**
      * Gets a result.
      *
@@ -143,6 +146,7 @@ public class HiveMetaStoreRetryClient implements MetaStoreClient {
       }
     }
   }
+
   @Override
   public List<String> getAllTables(String dbname) throws TException, MetaException, IOException {
     return retryCall("getAllTables", () -> getHive().getAllTables(dbname));

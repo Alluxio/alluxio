@@ -50,9 +50,11 @@ public final class RetryUtils {
    * Retries the given method until it doesn't throw an IO exception or the retry policy expires. If
    * the retry policy expires, the last exception generated will be rethrown.
    *
+   * @param <T> type of the return value
    * @param action a description of the action that fits the phrase "Failed to ${action}"
    * @param f the function to retry
    * @param policy the retry policy to use
+   * @return T return a value
    */
   public static <T> T retry(String action, RunnableFunctionThrowsException<T> f, RetryPolicy policy)
       throws CantRetryException {
@@ -137,34 +139,55 @@ public final class RetryUtils {
 
   /**
    * Interface for methods which return a result and may throw IOException.
+   * @param <T> type of the return value
    */
   @FunctionalInterface
   public interface RunnableFunctionThrowsException<T> {
     /**
      * Runs the runnable.
+     * @return T return an object of type T
      */
     T run() throws RetryException, CantRetryException;
   }
 
+  /**
+   * Exceptions that can be retried.
+   */
   public static class RetryException extends IOException {
-    public RetryException() {
-      super();
-    }
-    public RetryException(Throwable cause) {
-      super(cause);
-    }
+    /**
+     * Constructor for RetryException.
+     * @param msg error message
+     * @param cause cause of the error
+     */
     public RetryException(String msg, Throwable cause) {
       super(msg, cause);
     }
   }
 
+  /**
+   * Exceptions that can not be retried.
+   */
   public static class CantRetryException extends Exception {
+    /**
+     * Constructor for CantRetryException.
+     */
     public CantRetryException() {
       super();
     }
+
+    /**
+     * Constructor for CantRetryException.
+     * @param cause cause of the error
+     */
     public CantRetryException(Throwable cause) {
       super(cause);
     }
+
+    /**
+     * Constructor for CantRetryException.
+     * @param msg error message
+     * @param cause cause of the error
+     */
     public CantRetryException(String msg, Throwable cause) {
       super(msg, cause);
     }

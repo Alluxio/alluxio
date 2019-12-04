@@ -3782,7 +3782,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey TABLE_METASTORE_RETRY_TIMEOUT =
       new Builder(Name.TABLE_METASTORE_RETRY_TIMEOUT)
-          .setDescription("Retry period before Alluxio give up on connecting to metastore and exit.")
+          .setDescription("Retry period before Alluxio give up on connecting to"
+              + " metastore and exit.")
           .setDefaultValue("30 secs")
           .setScope(Scope.MASTER)
           .build();

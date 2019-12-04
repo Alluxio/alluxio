@@ -33,7 +33,8 @@ public interface MetaStoreClient {
    * @param dbname database name
    * @return a list of tables
    */
-  List<String> getAllTables(String dbname) throws MetaException, IOException, NoSuchObjectException, TException;
+  List<String> getAllTables(String dbname) throws MetaException, IOException,
+      NoSuchObjectException, TException;
 
   /**
    * Get a table object from the metastore.
