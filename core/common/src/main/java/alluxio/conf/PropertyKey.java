@@ -3780,6 +3780,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey TABLE_METASTORE_RETRY_TIMEOUT =
+      new Builder(Name.TABLE_METASTORE_RETRY_TIMEOUT)
+          .setDescription("Retry period before Alluxio give up on connecting to metastore and exit.")
+          .setDefaultValue("30 secs")
+          .setScope(Scope.MASTER)
+          .build();
 
   /**
    * @deprecated This key is used for testing. It is always deprecated.
@@ -4527,6 +4533,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.table.transform.manager.job.monitor.interval";
     public static final String TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
         "alluxio.table.transform.manager.job.history.retention.time";
+    public static final String TABLE_METASTORE_RETRY_TIMEOUT =
+        "alluxio.table.metastore.retry.timeout";
 
     private Name() {} // prevent instantiation
   }

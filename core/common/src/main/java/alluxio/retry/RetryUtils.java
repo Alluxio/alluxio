@@ -47,6 +47,32 @@ public final class RetryUtils {
   }
 
   /**
+   * Retries the given method until it doesn't throw an IO exception or the retry policy expires. If
+   * the retry policy expires, the last exception generated will be rethrown.
+   *
+   * @param action a description of the action that fits the phrase "Failed to ${action}"
+   * @param f the function to retry
+   * @param policy the retry policy to use
+   */
+  public static <T> T retry(String action, RunnableFunctionThrowsException<T> f, RetryPolicy policy)
+      throws CantRetryException {
+    RetryException e = null;
+    while (policy.attempt()) {
+      try {
+        return f.run();
+      } catch (RetryException ioe) {
+        e = ioe;
+        LOG.warn("Failed to {} (attempt {}): {}", action, policy.getAttemptCount(), e.toString());
+      }
+    }
+    if (e != null) {
+      throw new CantRetryException(e.getCause());
+    } else {
+      throw new CantRetryException();
+    }
+  }
+
+  /**
    * Gives a ClientRetry based on the given parameters.
    *
    * @param maxRetryDuration the maximum total duration to retry for
@@ -107,6 +133,41 @@ public final class RetryUtils {
      * Runs the runnable.
      */
     void run() throws IOException;
+  }
+
+  /**
+   * Interface for methods which return a result and may throw IOException.
+   */
+  @FunctionalInterface
+  public interface RunnableFunctionThrowsException<T> {
+    /**
+     * Runs the runnable.
+     */
+    T run() throws RetryException, CantRetryException;
+  }
+
+  public static class RetryException extends IOException {
+    public RetryException() {
+      super();
+    }
+    public RetryException(Throwable cause) {
+      super(cause);
+    }
+    public RetryException(String msg, Throwable cause) {
+      super(msg, cause);
+    }
+  }
+
+  public static class CantRetryException extends Exception {
+    public CantRetryException() {
+      super();
+    }
+    public CantRetryException(Throwable cause) {
+      super(cause);
+    }
+    public CantRetryException(String msg, Throwable cause) {
+      super(msg, cause);
+    }
   }
 
   private RetryUtils() {} // prevent instantiation
