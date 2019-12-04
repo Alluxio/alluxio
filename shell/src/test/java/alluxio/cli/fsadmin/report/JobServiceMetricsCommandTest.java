@@ -79,8 +79,8 @@ public class JobServiceMetricsCommandTest {
     String[] lineByLine = output.split("\n");
 
     // Worker Health Section
-    assertEquals("Worker: testHost    Task Pool Size: 10     Unfinished Tasks: 10"
-        + "     Load Avg: 1.2, 0.9, 0.7",
+    assertEquals("Worker: testHost    Task Pool Size: 10     Unfinished Tasks: 2"
+        + "      Load Avg: 1.2, 0.9, 0.7",
         lineByLine[0]);
     assertEquals("", lineByLine[1]);
 
