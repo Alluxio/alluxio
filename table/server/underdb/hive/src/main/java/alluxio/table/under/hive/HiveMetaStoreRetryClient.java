@@ -24,6 +24,7 @@ import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A wrapper around HMS client that does caching and reconnection.
@@ -119,6 +120,18 @@ public class HiveMetaStoreRetryClient implements MetaStoreClient {
     } catch (TException e) {
       mHive = newHiveClient();
       return getHive().getTableColumnStatistics(dbName, tableName, colNames);
+    }
+  }
+
+  @Override
+  public Map<String, List<ColumnStatisticsObj>> getPartitionColumnStatistics(
+      String dbName, String tableName, List<String> partNames, List<String> colNames)
+      throws NoSuchObjectException, MetaException, TException, IOException {
+    try {
+      return getHive().getPartitionColumnStatistics(dbName, tableName, partNames, colNames);
+    } catch (TException e) {
+      mHive = newHiveClient();
+      return getHive().getPartitionColumnStatistics(dbName, tableName, partNames, colNames);
     }
   }
 }

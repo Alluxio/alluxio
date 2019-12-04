@@ -237,7 +237,7 @@ public class HiveDatabase implements UnderDatabase {
     }
   }
 
-  private MetaStoreClient getHive() {
+  MetaStoreClient getHive() {
     return mHive;
   }
 }

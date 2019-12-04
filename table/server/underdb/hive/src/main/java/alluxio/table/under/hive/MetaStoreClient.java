@@ -22,6 +22,7 @@ import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface for the metastore.
@@ -57,10 +58,22 @@ public interface MetaStoreClient {
    * Get a list of table column statistics.
    * @param dbName database name
    * @param tableName table name
-   * @param colNames column name
+   * @param colNames column names as a list
    * @return a list of table column statistics
    */
   List<ColumnStatisticsObj> getTableColumnStatistics(String dbName, String tableName,
       List<String> colNames) throws NoSuchObjectException, MetaException,
       TException, InvalidInputException, InvalidObjectException, IOException;
+
+  /**
+   * Get a map of partition column statistics.
+   * @param dbName database name
+   * @param tableName table name
+   * @param partNames partition names as a list
+   * @param colNames column names as a list
+   * @return a map mapping partition names to a list of column statistics objects
+   */
+  Map<String, List<ColumnStatisticsObj>> getPartitionColumnStatistics(
+      String dbName, String tableName, List<String> partNames, List<String> colNames)
+      throws NoSuchObjectException, MetaException, TException, IOException;
 }
