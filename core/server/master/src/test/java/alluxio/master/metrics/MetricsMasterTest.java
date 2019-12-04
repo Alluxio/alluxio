@@ -11,8 +11,9 @@
 
 package alluxio.master.metrics;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import alluxio.Constants;
 import alluxio.clock.ManualClock;
 import alluxio.grpc.MetricType;
 import alluxio.heartbeat.HeartbeatContext;
@@ -24,7 +25,9 @@ import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.aggregator.SingleTagValueAggregator;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
+import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.google.common.collect.Lists;
@@ -36,6 +39,7 @@ import org.junit.Test;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 
 /**
  * Unit tests for {@link MetricsMaster}.
@@ -44,6 +48,8 @@ public class MetricsMasterTest {
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallyScheduleRule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER);
+
+  private static final int TIMEOUT_MS = 5 * Constants.SECOND_MS;
 
   private DefaultMetricsMaster mMetricsMaster;
   private MasterRegistry mRegistry;
@@ -71,7 +77,7 @@ public class MetricsMasterTest {
   }
 
   @Test
-  public void testAggregator() {
+  public void testAggregator() throws Exception {
     mMetricsMaster.addAggregator(
         new SumInstancesAggregator("metricA", MetricsSystem.InstanceType.WORKER, "metricA"));
     mMetricsMaster.addAggregator(
@@ -86,15 +92,15 @@ public class MetricsMasterTest {
         Metric.from("worker.192_1_1_2.metricA", 1, MetricType.GAUGE),
         Metric.from("worker.192_1_1_2.metricB", 2, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
-    assertEquals(11L, getGauge("metricA"));
-    assertEquals(22L, getGauge("metricB"));
+    checkMetricValue("metricA", 11L);
+    checkMetricValue("metricB", 22L);
 
     // override metrics from hostname 192_1_1_2
     List<Metric> metrics3 = Lists.newArrayList(
         Metric.from("worker.192_1_1_2.metricA", 3, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics3);
-    assertEquals(13L, getGauge("metricA"));
-    assertEquals(22L, getGauge("metricB"));
+    checkMetricValue("metricA", 13L);
+    checkMetricValue("metricB", 22L);
   }
 
   @Test
@@ -110,12 +116,12 @@ public class MetricsMasterTest {
         Metric.from("worker.192_1_1_2.metric.tag:v2", 2, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER);
-    assertEquals(11L, getGauge("metric", "tag", "v1"));
-    assertEquals(22L, getGauge("metric", "tag", "v2"));
+    checkMetricValue("metric", 11L, "tag", "v1");
+    checkMetricValue("metric", 22L, "tag", "v2");
   }
 
   @Test
-  public void testClientHeartbeat() {
+  public void testClientHeartbeat() throws Exception {
     mMetricsMaster.addAggregator(
         new SumInstancesAggregator("metric1", MetricsSystem.InstanceType.CLIENT, "metric1"));
     mMetricsMaster.addAggregator(
@@ -132,8 +138,8 @@ public class MetricsMasterTest {
         Metric.from("client.192_1_1_2:C.metric1", 1, MetricType.GAUGE),
         Metric.from("client.192_1_1_2:C.metric2", 2, MetricType.GAUGE));
     mMetricsMaster.clientHeartbeat("C", "192.1.1.2", metrics3);
-    assertEquals(26L, getGauge("metric1"));
-    assertEquals(47L, getGauge("metric2"));
+    checkMetricValue("metric1", 26L);
+    checkMetricValue("metric2", 47L);
   }
 
   private Object getGauge(String name) {
@@ -146,5 +152,25 @@ public class MetricsMasterTest {
         .get(MetricsSystem
             .getClusterMetricName(Metric.getMetricNameWithTags(metricName, tagName, tagValue)))
         .getValue();
+  }
+
+  private void checkMetricValue(String metricsName, Long value) throws Exception {
+    checkMetricValue(metricsName, value, null, null);
+  }
+
+  private void checkMetricValue(String metricsName, Long value,
+      String tagName, String tagValue) throws Exception {
+    Supplier<Boolean> condition;
+    if (tagName == null) {
+      condition = () -> getGauge(metricsName) == value;
+    } else {
+      condition = () -> getGauge(metricsName, tagName, tagValue) == value;
+    }
+    if (!condition.get()) {
+      // Wait for the async metrics updater to finish
+      CommonUtils.waitFor("metrics processed", condition,
+          WaitForOptions.defaults().setTimeoutMs(TIMEOUT_MS));
+      assertTrue(condition.get());
+    }
   }
 }
