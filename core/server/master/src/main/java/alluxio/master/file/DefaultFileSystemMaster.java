@@ -869,7 +869,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       auditContext.setSrcInode(inode);
       DescendantType descendantTypeForListStatus =
           (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
-      listStatusInternal(rpcContext, inodePath, auditContext, descendantTypeForListStatus,
+      listStatusInternal(context, rpcContext, inodePath, auditContext, descendantTypeForListStatus,
           resultStream, 0);
       auditContext.setSucceeded(true);
       Metrics.FILE_INFOS_GOT.inc();
@@ -889,18 +889,23 @@ public final class DefaultFileSystemMaster extends CoreMaster
    * descendantType. The result is returned via a list specified by statusList, in postorder
    * traversal order.
    *
+   * @param context call context
    * @param rpcContext the context for the RPC call
    * @param currInodePath the inode path to find the status
    * @param auditContext the audit context to return any access exceptions
    * @param descendantType if the currInodePath is a directory, how many levels of its descendant
-   *                       should be returned
+   *        should be returned
    * @param resultStream the stream to receive individual results
    * @param depth internal use field for tracking depth relative to root item
    */
-  private void listStatusInternal(RpcContext rpcContext, LockedInodePath currInodePath,
-      AuditContext auditContext, DescendantType descendantType, ResultStream<FileInfo> resultStream,
-      int depth) throws FileDoesNotExistException, UnavailableException, AccessControlException,
-      InvalidPathException {
+  private void listStatusInternal(ListStatusContext context, RpcContext rpcContext,
+      LockedInodePath currInodePath, AuditContext auditContext, DescendantType descendantType,
+      ResultStream<FileInfo> resultStream, int depth) throws FileDoesNotExistException,
+      UnavailableException, AccessControlException, InvalidPathException {
+    // Fail if the client has cancelled the rpc.
+    if (context.isCancelled()) {
+      throw new RuntimeException("Call cancelled by the client.");
+    }
     Inode inode = currInodePath.getInode();
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
       try {
@@ -931,7 +936,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
         try (LockedInodePath childInodePath =
             currInodePath.lockChild(child, LockPattern.READ, childComponentsHint)) {
-          listStatusInternal(rpcContext, childInodePath, auditContext, nextDescendantType,
+          listStatusInternal(context, rpcContext, childInodePath, auditContext, nextDescendantType,
               resultStream, depth + 1);
         } catch (InvalidPathException | FileDoesNotExistException e) {
           LOG.debug("Path \"{}\" is invalid, has been ignored.",
@@ -3046,6 +3051,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
     if (context.getOptions().getRecursive()) {
       try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
         for (LockedInodePath childPath : descendants) {
+          // Fail if the client has cancelled the rpc.
+          if (context.isCancelled()) {
+            throw new RuntimeException("Call cancelled by the client.");
+          }
           setAclSingleInode(rpcContext, action, childPath, entries, replay, opTimeMs);
         }
       }
@@ -3155,6 +3164,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
     if (context.getOptions().getRecursive() && targetInode.isDirectory()) {
       try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
         for (LockedInodePath childPath : descendants) {
+          // Fail if the client has cancelled the rpc.
+          if (context.isCancelled()) {
+            throw new RuntimeException("Call cancelled by the client.");
+          }
           setAttributeSingleFile(rpcContext, childPath, true, opTimeMs, context);
         }
       }
