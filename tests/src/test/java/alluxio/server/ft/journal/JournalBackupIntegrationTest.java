@@ -124,8 +124,6 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX, "100ms")
         // Enable backup delegation
         .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, "true")
-        // Set backup timeout to be shorter
-        .addProperty(PropertyKey.MASTER_BACKUP_ABANDON_TIMEOUT, "3sec")
         .build();
 
     File backups = AlluxioTestDirectory.createTemporaryDirectory("backups");
@@ -187,6 +185,64 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
             .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false).setRunAsync(true))
             .build())
         .getBackupId();
+    // Wait until backup is complete.
+    CommonUtils.waitFor("Backup completed.", () -> {
+      try {
+        mCluster.getMetaMasterClient().getBackupStatus(backupId);
+        return true;
+      } catch (Exception e) {
+        throw new RuntimeException(
+            String.format("Unexpected error while getting backup status: %s", e.toString()));
+      }
+    });
+
+    // Schedule a local backup to overwrite latest backup Id in the current leader.
+    mCluster.getMetaMasterClient()
+        .backup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
+            .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false).setAllowLeader(true))
+            .build());
+
+    // Validate old backup can still be queried.
+    mCluster.getMetaMasterClient().getBackupStatus(backupId);
+
+    mCluster.notifySuccess();
+  }
+
+  // Tests various protocols and configurations for backup delegation during fail-overs.
+  @Test
+  public void backupDelegationFailoverProtocol() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_DELEGATION_FAILOVER_PROTOCOL)
+        .setClusterName("backupDelegationFailoverProtocol")
+        .setNumMasters(2)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        // Masters become primary faster
+        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        // For faster backup role handshake.
+        .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MIN, "100ms")
+        .addProperty(PropertyKey.MASTER_BACKUP_CONNECT_INTERVAL_MAX, "100ms")
+        // Enable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, "true")
+        // Set backup timeout to be shorter
+        .addProperty(PropertyKey.MASTER_BACKUP_ABANDON_TIMEOUT, "3sec")
+        .build();
+
+    File backups = AlluxioTestDirectory.createTemporaryDirectory("backups");
+    mCluster.start();
+
+    // Validate backup works with delegation.
+    waitForBackup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
+        .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false)).build());
+
+    // Find standby master index.
+    int primaryIdx = mCluster.getPrimaryMasterIndex(GET_PRIMARY_INDEX_TIMEOUT_MS);
+    int followerIdx = (primaryIdx + 1) % 2;
+
+    // Schedule async backup.
+    UUID backupId = mCluster.getMetaMasterClient()
+        .backup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
+            .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false).setRunAsync(true))
+            .build())
+        .getBackupId();
     // Kill follower immediately before it sends the next heartbeat to leader.
     mCluster.stopMaster(followerIdx);
     // Wait until backup is abandoned.
@@ -199,6 +255,31 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
             String.format("Unexpected error while getting backup status: %s", e.toString()));
       }
     });
+
+    // Restart follower to restore HA.
+    mCluster.startMaster(followerIdx);
+
+    // Validate delegated backup works again.
+    waitForBackup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
+        .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false)).build());
+
+    // Schedule async backup.
+    mCluster.getMetaMasterClient()
+        .backup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
+            .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false).setRunAsync(true))
+            .build())
+        .getBackupId();
+
+    // Kill leader immediately before it receives the next heartbeat from backup-worker.
+    mCluster.waitForAndKillPrimaryMaster(PRIMARY_KILL_TIMEOUT_MS);
+    // Wait until follower steps up.
+    assertEquals(mCluster.getPrimaryMasterIndex(GET_PRIMARY_INDEX_TIMEOUT_MS), followerIdx);
+
+    // Follower should step-up without problem and accept backup requests.
+    mCluster.getMetaMasterClient()
+        .backup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
+            .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false).setAllowLeader(true))
+            .build());
 
     mCluster.notifySuccess();
   }

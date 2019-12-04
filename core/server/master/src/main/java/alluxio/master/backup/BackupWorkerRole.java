@@ -161,7 +161,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
    * Handler for suspend message. It's used in secondary master.
    */
   private CompletableFuture<Void> handleSuspendJournalsMessage(BackupSuspendMessage suspendMsg) {
-    LOG.info("Received suspend message: {}", suspendMsg.toString());
+    LOG.info("Received suspend message: {}", suspendMsg);
     Preconditions.checkState(!mBackupTracker.inProgress(), "Backup in progress");
 
     // Create a completed future for returning form this handler.
@@ -189,7 +189,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
    * Handler for backup request message. It's used in secondary master.
    */
   private CompletableFuture<Void> handleRequestMessage(BackupRequestMessage requestMsg) {
-    LOG.info("Received backup message: {}", requestMsg.toString());
+    LOG.info("Received backup message: {}", requestMsg);
     Preconditions.checkState(!mBackupTracker.inProgress(), "Backup in progress");
 
     // Create a completed future for returning form this handler.
