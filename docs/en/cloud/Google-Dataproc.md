@@ -44,13 +44,13 @@ GCS location at **gs://alluxio-public/dataproc/{{site.ALLUXIO_RELEASED_VERSION}}
 * Additional properties can be specified using the metadata key **alluxio_site_properties** delimited
 using `;`
 ```console
-gcloud dataproc clusters create <cluster_name> \
+$ gcloud dataproc clusters create <cluster_name> \
 --initialization-actions gs://alluxio-public/dataproc/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-dataproc.sh \
 --metadata alluxio_root_ufs_uri=<gs://my_bucket>,alluxio_site_properties="alluxio.master.mount.table.root.option.fs.gcs.accessKeyId=<gcs_access_key_id>;alluxio.master.mount.table.root.option.fs.gcs.secretAccessKey=<gcs_secret_access_key>"
 ```
 * Additional files can be downloaded into `/opt/alluxio/conf` using the metadata key `alluxio_download_files_list` by specifying `http(s)` or `gs` uris delimited using `;`
 ```console
-gcloud dataproc clusters create <cluster_name> \
+$ gcloud dataproc clusters create <cluster_name> \
 --initialization-actions gs://alluxio-public/dataproc/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-dataproc.sh \
 --metadata alluxio_root_ufs_uri=<under_storage_address>,alluxio_download_files_list="gs://$my_bucket/$my_file;https://$server/$file"
 ```
@@ -58,15 +58,15 @@ gcloud dataproc clusters create <cluster_name> \
 ## Next steps
 The status of the cluster deployment can be monitored using the CLI.
 ```console
-gcloud dataproc clusters list
+$ gcloud dataproc clusters list
 ```
 Identify the instance name and SSH into this instance to test the deployment.
 ```console
-gcloud compute ssh <cluster_name>-m
+$ gcloud compute ssh <cluster_name>-m
 ```
 Test that Alluxio is running as expected
 ```console
-alluxio runTests
+$ alluxio runTests
 ```
 
 Alluxio is installed in `/opt/alluxio/` by default.
