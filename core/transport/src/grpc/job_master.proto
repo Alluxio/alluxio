@@ -63,12 +63,15 @@ message JobWorkerHealth {
   repeated double loadAverage = 2;
   optional int64 lastUpdated = 3;
   optional string hostname = 4;
+  optional int32 taskPoolSize = 5;
+  optional int32 numActiveTasks = 6;
 }
 
 message JobCommand {
   optional RunTaskCommand runTaskCommand = 1;
   optional CancelTaskCommand cancelTaskCommand = 2;
   optional RegisterCommand registerCommand = 3;
+  optional SetTaskPoolSizeCommand setTaskPoolSizeCommand = 4;
 }
 
 message RunTaskCommand {
@@ -79,6 +82,10 @@ message RunTaskCommand {
 }
 
 message RegisterCommand {}
+
+message SetTaskPoolSizeCommand {
+  optional int32 taskPoolSize = 1;
+}
 
 message CancelTaskCommand {
   optional int64 jobId = 1;

@@ -81,22 +81,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public class JobMaster extends AbstractMaster implements NoopJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(JobMaster.class);
 
-  /**
-   * The total number of jobs that the JobMaster may run at any moment.
-   */
-  private static final long JOB_CAPACITY =
-      ServerConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
-  /**
-   * The max number of jobs to purge when the master reaches maximum capacity.
-   */
-  private static final long MAX_PURGE_COUNT =
-      ServerConfiguration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT);
-  /**
-   * The minimum amount of time to retain finished jobs.
-   */
-  private static final long RETENTION_MS =
-      ServerConfiguration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME);
-
   // Worker metadata management.
   private final IndexDefinition<MasterWorkerInfo, Long> mIdIndex =
       new IndexDefinition<MasterWorkerInfo, Long>(true) {
@@ -176,7 +160,13 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     mCommandManager = new CommandManager();
     mJobIdGenerator = new JobIdGenerator();
     mWorkflowTracker = new WorkflowTracker(this);
-    mPlanTracker = new PlanTracker(JOB_CAPACITY, RETENTION_MS, MAX_PURGE_COUNT, mWorkflowTracker);
+
+    mPlanTracker = new PlanTracker(
+        ServerConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY),
+        ServerConfiguration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME),
+        ServerConfiguration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT),
+        mWorkflowTracker);
+
     mWorkerHealth = new ConcurrentHashMap<>();
   }
 
@@ -380,6 +370,17 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       }
     }
     return workerInfoList;
+  }
+
+  /**
+   * @param taskPoolSize the task pool size for the job workers
+   */
+  public void setTaskPoolSize(int taskPoolSize) {
+    try (LockResource workersLockShared = new LockResource(mWorkerRWLock.readLock())) {
+      for (MasterWorkerInfo worker : mWorkers) {
+        mCommandManager.submitSetTaskPoolSizeCommand(worker.getId(), taskPoolSize);
+      }
+    }
   }
 
   /**

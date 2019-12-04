@@ -17,6 +17,7 @@ import alluxio.grpc.CancelTaskCommand;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.JobInfo;
 import alluxio.grpc.RunTaskCommand;
+import alluxio.grpc.SetTaskPoolSizeCommand;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
@@ -84,7 +85,8 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
   @Override
   public void heartbeat() {
     JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(JobWorkerIdRegistry.getWorkerId(),
-        mHealthReporter.getCpuLoadAverage(), mWorkerNetAddress.getHost());
+        mHealthReporter.getCpuLoadAverage(), mTaskExecutorManager.getTaskExecutorPoolSize(),
+        mTaskExecutorManager.getNumActiveTasks(), mWorkerNetAddress.getHost());
 
     List<TaskInfo> taskStatusList = mTaskExecutorManager.getAndClearTaskUpdates();
 
@@ -155,6 +157,10 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
           Throwables.throwIfUnchecked(e);
           throw new RuntimeException(e);
         }
+      } else if (mCommand.hasSetTaskPoolSizeCommand()) {
+        SetTaskPoolSizeCommand command = mCommand.getSetTaskPoolSizeCommand();
+        LOG.info(String.format("Task Pool Size: %s", command.getTaskPoolSize()));
+        mTaskExecutorManager.setTaskExecutorPoolSize(command.getTaskPoolSize());
       } else {
         throw new RuntimeException("unsupported command type:" + mCommand.toString());
       }
