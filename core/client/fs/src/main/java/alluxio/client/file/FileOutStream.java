@@ -26,6 +26,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
@@ -193,6 +194,9 @@ public class FileOutStream extends AbstractOutStream {
     } finally {
       mClosed = true;
       mCloser.close();
+      if (mCanceled) {
+        deleteFile(mUri);
+      }
     }
   }
 
@@ -293,6 +297,15 @@ public class FileOutStream extends AbstractOutStream {
     try (CloseableResource<FileSystemMasterClient> masterClient = mContext
         .acquireMasterClientResource()) {
       return masterClient.get().getNewBlockIdForFile(mUri);
+    }
+  }
+
+  private void deleteFile(AlluxioURI uri) throws IOException {
+    try (CloseableResource<FileSystemMasterClient> masterClient = mContext
+        .acquireMasterClientResource()) {
+      DeletePOptions options = DeletePOptions.newBuilder()
+          .setRecursive(false).setAlluxioOnly(true).setUnchecked(true).build();
+      masterClient.get().delete(uri, options);
     }
   }
 
