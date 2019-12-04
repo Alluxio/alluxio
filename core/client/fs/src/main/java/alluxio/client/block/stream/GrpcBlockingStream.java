@@ -117,7 +117,8 @@ public class GrpcBlockingStream<ReqT, ResT> {
   }
 
   /**
-   * Sends a request. Will not wait for the stream to be ready.
+   * Sends a request. Will not wait for the stream to be ready. If the stream is closed or cancelled
+   * this method will return without an error.
    *
    * @param request the request
    * @throws IOException if any error occurs
