@@ -691,9 +691,16 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public long getFileId(AlluxioURI path) throws AccessControlException, UnavailableException {
+    return getFileIdInternal(path, true);
+  }
+
+  private long getFileIdInternal(AlluxioURI path, boolean checkPermission)
+      throws AccessControlException, UnavailableException {
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.READ)) {
-      mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
+      if (checkPermission) {
+        mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
+      }
       loadMetadataIfNotExist(rpcContext, inodePath, LoadMetadataContext
           .mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
       mInodeTree.ensureFullInodePath(inodePath);
