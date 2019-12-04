@@ -11,10 +11,9 @@
 
 package alluxio.table.under.hive;
 
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.resource.LockResource;
-import alluxio.retry.CountingRetry;
-import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -27,6 +26,7 @@ import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Partition;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.thrift.TException;
+import org.apache.thrift.transport.TTransportException;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -34,8 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import static alluxio.conf.PropertyKey.TABLE_METASTORE_RETRY_TIMEOUT;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * A wrapper around HMS client that does caching and reconnection.
@@ -56,7 +56,7 @@ public class HiveMetaStoreRetryClient implements MetaStoreClient {
     mConnectionUri = connectionUri;
     mHiveDbName = hiveDbName;
     mLock = new ReentrantReadWriteLock();
-    mPolicy = RetryUtils.defaultClientRetry(ServerConfiguration.getDuration(TABLE_METASTORE_RETRY_TIMEOUT),
+    mPolicy = RetryUtils.defaultClientRetry(ServerConfiguration.getDuration(PropertyKey.TABLE_METASTORE_RETRY_TIMEOUT),
         Duration.ofMillis(100), Duration.ofSeconds(5));
   }
 
@@ -73,7 +73,6 @@ public class HiveMetaStoreRetryClient implements MetaStoreClient {
     // Hive uses/saves the thread context class loader.
     ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     try (LockResource w = new LockResource(mLock.writeLock())) {
-
       // use the extension class loader
       Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
       HiveConf conf = new HiveConf();
@@ -95,117 +94,85 @@ public class HiveMetaStoreRetryClient implements MetaStoreClient {
     }
   }
 
-  @Override
-  public List<String> getAllTables(String dbname) throws MetaException, IOException {
+  private void clearHiveClient() {
+    try (LockResource w = new LockResource(mLock.writeLock())) {
+      mHive = null;
+    }
+  }
+
+  @FunctionalInterface
+  public interface SupplierThrowingException<T> {
+
+    /**
+     * Gets a result.
+     *
+     * @return a result
+     */
+    T get() throws IOException, TException;
+  }
+
+  private <T> T retryCall(String action, SupplierThrowingException<T> supplier)
+      throws TException, IOException {
     try {
-      return RetryUtils.retry("getAllTables", () -> {
+      return RetryUtils.retry(action, () -> {
         try {
-          return getHive().getAllTables(dbname);
-        } catch (IOException | MetaException e) {
-          mHive = null;
-          throw new RetryUtils.RetryException("retry exception", e);
+          return supplier.get();
+        } catch (MetaException e) {
+          if (e.getCause() instanceof TTransportException) {
+            // network failure causing MetaException, we retry
+            clearHiveClient();
+            throw new RetryUtils.RetryException("Retry exception", e);
+          } else {
+            throw new RetryUtils.CantRetryException("Cannot retry exception", e);
+          }
+        } catch (IOException e) {
+          // unable to create the client, we retry
+          clearHiveClient();
+          throw new RetryUtils.RetryException("Retry exception", e);
+        } catch (TException e) {
+          // all other cases, likely an actual exception from metastore, we do not retry
+          throw new RetryUtils.CantRetryException("Cannot retry exception", e);
         }
       }, mPolicy);
     } catch (RetryUtils.CantRetryException e) {
-      throw new IOException(e.getCause());
+      if (e.getCause() instanceof TException) {
+        // unwrap any Thrift Exceptions
+        throw (TException) e.getCause();
+      } else {
+        throw new IOException(e.getCause());
+      }
     }
+  }
+  @Override
+  public List<String> getAllTables(String dbname) throws TException, MetaException, IOException {
+    return retryCall("getAllTables", () -> getHive().getAllTables(dbname));
   }
 
   @Override
   public Table getTable(String dbname, String name) throws MetaException, TException,
       NoSuchObjectException, IOException {
-    try {
-      return RetryUtils.retry("getTable", () -> {
-        try {
-          return getHive().getTable(dbname, name);
-        } catch (NoSuchObjectException e) {
-          throw new RetryUtils.CantRetryException("Cannot retry", e);
-        } catch (IOException | TException e) {
-          mHive = null;
-          throw new RetryUtils.RetryException("Retry exception", e);
-        }
-      }, mPolicy);
-    } catch (RetryUtils.CantRetryException e) {
-      if (e.getCause() instanceof  NoSuchObjectException) {
-        // unwrap the NoSuchObjectException if it is the cause for unable to retry
-        throw (NoSuchObjectException)e.getCause();
-      } else {
-        throw new IOException(e.getCause());
-      }
-    }
+    return retryCall("getTable", () -> getHive().getTable(dbname, name));
   }
 
   @Override
   public List<Partition> listPartitions(String dbName, String tblName, short maxParts)
       throws NoSuchObjectException, MetaException, TException, IOException {
-    try {
-      return RetryUtils.retry("listPartitions", () -> {
-        try {
-          return getHive().listPartitions(dbName, tblName, maxParts);
-        } catch (NoSuchObjectException e) {
-          throw new RetryUtils.CantRetryException("Cannot retry", e);
-        } catch (IOException | TException e) {
-          mHive = null;
-          throw new RetryUtils.RetryException("Retry exception", e);
-        }
-      }, mPolicy);
-    } catch (RetryUtils.CantRetryException e) {
-      if (e.getCause() instanceof  NoSuchObjectException) {
-        // unwrap the NoSuchObjectException if it is the cause for unable to retry
-        throw (NoSuchObjectException)e.getCause();
-      } else {
-        throw new IOException(e.getCause());
-      }
-    }
+    return retryCall("listPartitions", () -> getHive().listPartitions(dbName, tblName, maxParts));
   }
 
   @Override
   public List<ColumnStatisticsObj> getTableColumnStatistics(String dbName, String tableName,
       List<String> colNames) throws NoSuchObjectException, MetaException,
       TException, InvalidInputException, InvalidObjectException, IOException {
-    try {
-      return RetryUtils.retry("getTableColumnStatistics", () -> {
-        try {
-          return getHive().getTableColumnStatistics(dbName, tableName, colNames);
-        } catch (NoSuchObjectException|InvalidInputException|InvalidObjectException e) {
-          throw new RetryUtils.CantRetryException("Cannot retry", e);
-        } catch (IOException | TException e) {
-          mHive = null;
-          throw new RetryUtils.RetryException("Retry exception", e);
-        }
-      }, mPolicy);
-    } catch (RetryUtils.CantRetryException e) {
-      if (e.getCause() instanceof  NoSuchObjectException) {
-        // unwrap the NoSuchObjectException if it is the cause for unable to retry
-        throw (NoSuchObjectException)e.getCause();
-      } else {
-        throw new IOException(e.getCause());
-      }
-    }
+    return retryCall("getTableColumnStatistics",
+        () -> getHive().getTableColumnStatistics(dbName, tableName, colNames));
   }
 
   @Override
   public Map<String, List<ColumnStatisticsObj>> getPartitionColumnStatistics(
       String dbName, String tableName, List<String> partNames, List<String> colNames)
       throws NoSuchObjectException, MetaException, TException, IOException {
-    try {
-      return RetryUtils.retry("getPartitionColumnStatistics", () -> {
-        try {
-          return getHive().getPartitionColumnStatistics(dbName, tableName, partNames, colNames);
-        } catch (NoSuchObjectException|InvalidInputException|InvalidObjectException e) {
-          throw new RetryUtils.CantRetryException("Cannot retry", e);
-        } catch (IOException | TException e) {
-          mHive = null;
-          throw new RetryUtils.RetryException("Retry exception", e);
-        }
-      }, mPolicy);
-    } catch (RetryUtils.CantRetryException e) {
-      if (e.getCause() instanceof  NoSuchObjectException) {
-        // unwrap the NoSuchObjectException if it is the cause for unable to retry
-        throw (NoSuchObjectException)e.getCause();
-      } else {
-        throw new IOException(e.getCause());
-      }
-    }
+    return retryCall("getPartitionColumnStatistics",
+        () -> getHive().getPartitionColumnStatistics(dbName, tableName, partNames, colNames));
   }
 }
