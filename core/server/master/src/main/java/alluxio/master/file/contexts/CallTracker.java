@@ -23,6 +23,10 @@ public interface CallTracker {
   /**
    * Used when call tracking should not be enabled.
    * Invoking it will throw a runtime exception.
+   *
+   * This tracker will be used as default for service implementations that are not modified
+   * for tracking. That way using the tracking functionality without making proper
+   * modifications will throw exceptions.
    */
   CallTracker DISABLED_TRACKER = () -> {
     throw new IllegalStateException("Call tracking is not supported.");
@@ -31,6 +35,8 @@ public interface CallTracker {
   /**
    * Used when call tracking is not desired.
    * It will always return @{code false}.
+   *
+   * This tracker will be used during testing for service implementations that use tracking.
    */
   CallTracker NOOP_TRACKER = () -> false;
 }
