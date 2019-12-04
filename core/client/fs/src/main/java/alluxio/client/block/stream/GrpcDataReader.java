@@ -83,18 +83,24 @@ public final class GrpcDataReader implements DataReader {
 
     try {
       if (alluxioConf.getBoolean(PropertyKey.USER_NETWORK_ZEROCOPY_ENABLED)) {
+        String desc = "Zero Copy GrpcDataReader";
+        if (LOG.isDebugEnabled()) { // More detailed description when debug logging is enabled
+          desc = MoreObjects.toStringHelper(this)
+              .add("request", mReadRequest)
+              .add("address", address)
+              .toString();
+        }
         mStream = new GrpcDataMessageBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
-            MoreObjects.toStringHelper(this)
-                .add("request", mReadRequest)
-                .add("address", address)
-                .toString(),
-            null, mMarshaller);
+            desc, null, mMarshaller);
       } else {
-        mStream = new GrpcBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
-            MoreObjects.toStringHelper(this)
-                .add("request", mReadRequest)
-                .add("address", address)
-                .toString());
+        String desc = "GrpcDataReader";
+        if (LOG.isDebugEnabled()) { // More detailed description when debug logging is enabled
+          desc = MoreObjects.toStringHelper(this)
+              .add("request", mReadRequest)
+              .add("address", address)
+              .toString();
+        }
+        mStream = new GrpcBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages, desc);
       }
       mStream.send(mReadRequest, mDataTimeoutMs);
     } catch (Exception e) {
