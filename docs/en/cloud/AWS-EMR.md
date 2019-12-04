@@ -159,10 +159,7 @@ Using this boostrap script, Alluxio is installed in `/opt/alluxio/` by default.
 Hive and Presto are already configured to connect to Alluxio.
 The cluster also uses AWS Glue as the default metastore for both Presto and Hive.
 This will allow you to maintain table definitions between multiple runs of the Alluxio cluster.
-
 The default Alluxio worker is allocated a third of the instance's available memory.
-If the instance type has less than 20GB of memory, you will need to make your own copy of the `alluxio-emr.sh` script
-and update the divisor value at `mem_div=3`.
 
   {% endcollapsible %}
 {% endaccordion %}
