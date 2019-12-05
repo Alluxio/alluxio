@@ -201,9 +201,9 @@ public final class MigrateDefinition
 
     for (Map.Entry<WorkerInfo, ArrayList<MigrateCommand>> assignment : assignments.entrySet()) {
 
-      // split the list of MigrateCommands for a given worker into JOBS_PER_WORKER.
+      // split the list of MigrateCommands for a given worker into at most equally sized JOBS_PER_WORKER lists
       List<List<MigrateCommand>> splittedCommands = Lists.partition(assignment.getValue(),
-          JOBS_PER_WORKER);
+          Math.round(assignment.getValue().size() * 1.0f / JOBS_PER_WORKER + 0.5f));
 
       for (List<MigrateCommand> commands : splittedCommands) {
         if (!commands.isEmpty()) {
