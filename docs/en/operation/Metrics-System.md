@@ -44,7 +44,7 @@ and guidance of how to specify each property.
 By default, `MetricsServlet` is enabled in Alluxio leading master and workers. 
 
 You can send an HTTP request to `/metrics/json/` of the Alluxio leading master to get a snapshot of all metrics in JSON format. 
-Metrics on the Alluxio leading master is a summary of the cluster-wide aggregated metrics.
+Metrics on the Alluxio leading master contains its own instance metrics and a summary of the cluster-wide aggregated metrics.
 
 ```console
 # Get the metrics in JSON format from Alluxio leading master
