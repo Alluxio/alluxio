@@ -22,6 +22,7 @@ private static final long serialVersionUID = 0L;
     hostname_ = "";
     taskPoolSize_ = 0;
     numActiveTasks_ = 0;
+    unfinishedTasks_ = 0;
   }
 
   @java.lang.Override
@@ -100,6 +101,11 @@ private static final long serialVersionUID = 0L;
           case 48: {
             bitField0_ |= 0x00000010;
             numActiveTasks_ = input.readInt32();
+            break;
+          }
+          case 56: {
+            bitField0_ |= 0x00000020;
+            unfinishedTasks_ = input.readInt32();
             break;
           }
         }
@@ -254,6 +260,21 @@ private static final long serialVersionUID = 0L;
     return numActiveTasks_;
   }
 
+  public static final int UNFINISHEDTASKS_FIELD_NUMBER = 7;
+  private int unfinishedTasks_;
+  /**
+   * <code>optional int32 unfinishedTasks = 7;</code>
+   */
+  public boolean hasUnfinishedTasks() {
+    return ((bitField0_ & 0x00000020) == 0x00000020);
+  }
+  /**
+   * <code>optional int32 unfinishedTasks = 7;</code>
+   */
+  public int getUnfinishedTasks() {
+    return unfinishedTasks_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -283,6 +304,9 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
       output.writeInt32(6, numActiveTasks_);
+    }
+    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      output.writeInt32(7, unfinishedTasks_);
     }
     unknownFields.writeTo(output);
   }
@@ -316,6 +340,10 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(6, numActiveTasks_);
+    }
+    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt32Size(7, unfinishedTasks_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -360,6 +388,11 @@ private static final long serialVersionUID = 0L;
       result = result && (getNumActiveTasks()
           == other.getNumActiveTasks());
     }
+    result = result && (hasUnfinishedTasks() == other.hasUnfinishedTasks());
+    if (hasUnfinishedTasks()) {
+      result = result && (getUnfinishedTasks()
+          == other.getUnfinishedTasks());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -396,6 +429,10 @@ private static final long serialVersionUID = 0L;
     if (hasNumActiveTasks()) {
       hash = (37 * hash) + NUMACTIVETASKS_FIELD_NUMBER;
       hash = (53 * hash) + getNumActiveTasks();
+    }
+    if (hasUnfinishedTasks()) {
+      hash = (37 * hash) + UNFINISHEDTASKS_FIELD_NUMBER;
+      hash = (53 * hash) + getUnfinishedTasks();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -538,6 +575,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000010);
       numActiveTasks_ = 0;
       bitField0_ = (bitField0_ & ~0x00000020);
+      unfinishedTasks_ = 0;
+      bitField0_ = (bitField0_ & ~0x00000040);
       return this;
     }
 
@@ -587,6 +626,10 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000010;
       }
       result.numActiveTasks_ = numActiveTasks_;
+      if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+        to_bitField0_ |= 0x00000020;
+      }
+      result.unfinishedTasks_ = unfinishedTasks_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -655,6 +698,9 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasNumActiveTasks()) {
         setNumActiveTasks(other.getNumActiveTasks());
+      }
+      if (other.hasUnfinishedTasks()) {
+        setUnfinishedTasks(other.getUnfinishedTasks());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -950,6 +996,38 @@ private static final long serialVersionUID = 0L;
     public Builder clearNumActiveTasks() {
       bitField0_ = (bitField0_ & ~0x00000020);
       numActiveTasks_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private int unfinishedTasks_ ;
+    /**
+     * <code>optional int32 unfinishedTasks = 7;</code>
+     */
+    public boolean hasUnfinishedTasks() {
+      return ((bitField0_ & 0x00000040) == 0x00000040);
+    }
+    /**
+     * <code>optional int32 unfinishedTasks = 7;</code>
+     */
+    public int getUnfinishedTasks() {
+      return unfinishedTasks_;
+    }
+    /**
+     * <code>optional int32 unfinishedTasks = 7;</code>
+     */
+    public Builder setUnfinishedTasks(int value) {
+      bitField0_ |= 0x00000040;
+      unfinishedTasks_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int32 unfinishedTasks = 7;</code>
+     */
+    public Builder clearUnfinishedTasks() {
+      bitField0_ = (bitField0_ & ~0x00000040);
+      unfinishedTasks_ = 0;
       onChanged();
       return this;
     }

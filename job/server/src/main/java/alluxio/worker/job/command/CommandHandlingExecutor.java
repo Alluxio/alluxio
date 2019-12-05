@@ -86,7 +86,8 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
   public void heartbeat() {
     JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(JobWorkerIdRegistry.getWorkerId(),
         mHealthReporter.getCpuLoadAverage(), mTaskExecutorManager.getTaskExecutorPoolSize(),
-        mTaskExecutorManager.getNumActiveTasks(), mWorkerNetAddress.getHost());
+        mTaskExecutorManager.getNumActiveTasks(), mTaskExecutorManager.unfinishedTasks(),
+        mWorkerNetAddress.getHost());
 
     List<TaskInfo> taskStatusList = mTaskExecutorManager.getAndClearTaskUpdates();
 

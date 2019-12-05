@@ -69,4 +69,13 @@ public interface JobWorkerHealthOrBuilder extends
    * <code>optional int32 numActiveTasks = 6;</code>
    */
   int getNumActiveTasks();
+
+  /**
+   * <code>optional int32 unfinishedTasks = 7;</code>
+   */
+  boolean hasUnfinishedTasks();
+  /**
+   * <code>optional int32 unfinishedTasks = 7;</code>
+   */
+  int getUnfinishedTasks();
 }

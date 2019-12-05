@@ -59,6 +59,8 @@ public class JobServiceMetricsCommand {
     for (JobWorkerHealth workerHealth : allWorkerHealth) {
       mPrintStream.print(String.format("Worker: %-10s  ", workerHealth.getHostname()));
       mPrintStream.print(String.format("Task Pool Size: %-7s", workerHealth.getTaskPoolSize()));
+      mPrintStream.print(String.format("Unfinished Tasks: %-7s",
+          workerHealth.getUnfinishedTasks()));
       mPrintStream.println(String.format("Load Avg: %s",
           StringUtils.join(workerHealth.getLoadAverage(), ", ")));
     }

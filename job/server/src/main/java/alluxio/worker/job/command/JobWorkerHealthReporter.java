@@ -12,20 +12,24 @@
 package alluxio.worker.job.command;
 
 import oshi.SystemInfo;
-import oshi.hardware.CentralProcessor;
+import oshi.hardware.HardwareAbstractionLayer;
+
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 /**
  * The job worker health reporter.
  */
 public class JobWorkerHealthReporter {
 
-  CentralProcessor mProcessor;
+  HardwareAbstractionLayer mHardware;
 
   /**
    * Default constructor.
    */
   public JobWorkerHealthReporter() {
-    mProcessor = new SystemInfo().getHardware().getProcessor();
+    mHardware = new SystemInfo().getHardware();
   }
 
   /**
@@ -34,7 +38,8 @@ public class JobWorkerHealthReporter {
    *
    * @return the system load average of the worker
    */
-  public double[] getCpuLoadAverage() {
-    return mProcessor.getSystemLoadAverage(3);
+  public List<Double> getCpuLoadAverage() {
+    return DoubleStream.of(mHardware.getProcessor().getSystemLoadAverage(3)).boxed()
+        .collect(Collectors.toList());
   }
 }
