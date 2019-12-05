@@ -9,27 +9,26 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, shallow, ShallowWrapper} from 'enzyme';
+import { configure, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import {createBrowserHistory, History, LocationState} from 'history';
+import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
 import sinon from 'sinon';
-import Logs, {AllProps, LogsPresenter} from './Logs';
-import {initialState} from "../../../../master/src/store";
-import {createAlertErrors} from "../../utilities";
+import { AllProps, LogsPresenter } from './Logs';
+import { initialState } from '../../../../master/src/store';
+import { createAlertErrors } from '../../utilities';
 
-
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('Logs', () => {
   let history: History<LocationState>;
   let props: AllProps;
 
   beforeAll(() => {
-    history = createBrowserHistory({keyLength: 0});
+    history = createBrowserHistory({ keyLength: 0 });
     history.push('/logs');
     props = {
-      location: {search: ''},
+      location: { search: '' },
       history: history,
       fetchRequest: sinon.spy(() => {}),
       data: initialState.logs.data,
@@ -40,7 +39,7 @@ describe('Logs', () => {
       loading: false,
       class: '',
       errors: createAlertErrors(false),
-      updateRequestParameter: sinon.spy()
+      updateRequestParameter: sinon.spy(),
     };
   });
 
@@ -52,7 +51,7 @@ describe('Logs', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<LogsPresenter {...props}/>);
+      shallowWrapper = shallow(<LogsPresenter {...props} />);
     });
 
     it('Renders without crashing', () => {
@@ -71,9 +70,9 @@ describe('Logs', () => {
 
     describe('Renders FileView', () => {
       beforeAll(() => {
-        const data = {...props.data};
+        const data = { ...props.data };
         data.fileData = null;
-        shallowWrapper.setProps({data: data});
+        shallowWrapper.setProps({ data: data });
       });
 
       it('Matches snapshot with File', () => {

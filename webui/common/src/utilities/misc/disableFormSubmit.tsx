@@ -11,7 +11,7 @@
 
 import React from 'react';
 
-export const disableFormSubmit = (event: React.KeyboardEvent<HTMLFormElement>) => {
+export const disableFormSubmit = (event: React.KeyboardEvent<HTMLFormElement>): boolean => {
   event.preventDefault();
   return false;
 };

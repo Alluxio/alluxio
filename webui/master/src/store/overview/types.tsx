@@ -9,34 +9,33 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
+import { AxiosResponse } from 'axios';
 
-import {IScopedPropertyInfo, IStorageTierInfo} from '../../constants';
-import {ICommonState} from "@alluxio/common-ui/src/constants";
+import { IScopedPropertyInfo, IStorageTierInfo } from '../../constants';
 
 export interface IOverview {
-  'debug': boolean;
-  'capacity': string;
-  'configCheckErrors': IScopedPropertyInfo[];
-  'configCheckStatus': string;
-  'configCheckWarns': IScopedPropertyInfo[];
-  'diskCapacity': string;
-  'diskFreeCapacity': string;
-  'diskUsedCapacity': string;
-  'freeCapacity': string;
-  'liveWorkerNodes': number;
-  'masterNodeAddress': string;
-  'startTime': string;
-  'storageTierInfos': IStorageTierInfo[];
-  'uptime': string;
-  'usedCapacity': string;
-  'version': string;
+  debug: boolean;
+  capacity: string;
+  configCheckErrors: IScopedPropertyInfo[];
+  configCheckStatus: string;
+  configCheckWarns: IScopedPropertyInfo[];
+  diskCapacity: string;
+  diskFreeCapacity: string;
+  diskUsedCapacity: string;
+  freeCapacity: string;
+  liveWorkerNodes: number;
+  masterNodeAddress: string;
+  startTime: string;
+  storageTierInfos: IStorageTierInfo[];
+  uptime: string;
+  usedCapacity: string;
+  version: string;
 }
 
 export enum OverviewActionTypes {
   FETCH_REQUEST = '@@overview/FETCH_REQUEST',
   FETCH_SUCCESS = '@@overview/FETCH_SUCCESS',
-  FETCH_ERROR = '@@overview/FETCH_ERROR'
+  FETCH_ERROR = '@@overview/FETCH_ERROR',
 }
 
 export interface IOverviewState {

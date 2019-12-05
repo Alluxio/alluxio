@@ -10,18 +10,18 @@
  */
 
 import axios from 'axios';
-import {all, fork, takeLatest} from 'redux-saga/effects';
+import { all, AllEffect, fork, ForkEffect, takeLatest } from 'redux-saga/effects';
 
-import {getSagaRequest} from '../../utilities';
-import {fetchError, fetchSuccess} from './actions';
-import {LogsActionTypes} from './types';
+import { getSagaRequest } from '../../utilities';
+import { fetchError, fetchSuccess } from './actions';
+import { LogsActionTypes } from './types';
 
 const API_ENDPOINT = `${process.env.REACT_APP_API_ROOT}/webui_logs`;
 
-const watchRequest = function* () {
+const watchRequest = function*(): IterableIterator<ForkEffect> {
   yield takeLatest(LogsActionTypes.FETCH_REQUEST, getSagaRequest(axios.get, API_ENDPOINT, fetchSuccess, fetchError));
 };
 
-export const logsSaga = function* () {
+export const logsSaga = function*(): IterableIterator<AllEffect<ForkEffect>> {
   yield all([fork(watchRequest)]);
 };
