@@ -3306,6 +3306,32 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_METADATA_CACHE_ENABLED =
+      new Builder(Name.USER_METADATA_CACHE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If this is enabled, metadata of paths will be cached. "
+              + "The cached metadata will be evicted when it expires after "
+              + Name.USER_METADATA_CACHE_EXPIRATION_TIME
+              + " or the cache size is over the limit of "
+              + Name.USER_METADATA_CACHE_MAX_SIZE + ".")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_METADATA_CACHE_MAX_SIZE =
+      new Builder(Name.USER_METADATA_CACHE_MAX_SIZE)
+          .setDefaultValue(100000)
+          .setDescription("Maximum number of paths with cached metadata.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_METADATA_CACHE_EXPIRATION_TIME =
+      new Builder(Name.USER_METADATA_CACHE_EXPIRATION_TIME)
+          .setDefaultValue("10min")
+          .setDescription("Metadata will expire and be evicted after being cached for this time "
+              + "period.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
 
   //
   // FUSE integration related properties
@@ -4431,6 +4457,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
+    public static final String USER_METADATA_CACHE_ENABLED =
+        "alluxio.user.metadata.cache.enabled";
+    public static final String USER_METADATA_CACHE_MAX_SIZE =
+        "alluxio.user.metadata.cache.max.size";
+    public static final String USER_METADATA_CACHE_EXPIRATION_TIME =
+        "alluxio.user.metadata.cache.expiration.time";
 
     //
     // FUSE integration related properties

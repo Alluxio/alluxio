@@ -25,6 +25,8 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.FileIncompleteException;
+import alluxio.exception.OpenDirectoryException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -505,35 +507,37 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     // File creation flags are the last two bits of flags
     final int flags = fi.flags.get();
     LOG.trace("open({}, 0x{}) [Alluxio: {}]", path, Integer.toHexString(flags), uri);
-
+    if (mOpenFiles.size() >= MAX_OPEN_FILES) {
+      LOG.error("Cannot open {}: too many open files (MAX_OPEN_FILES: {})", path, MAX_OPEN_FILES);
+      return ErrorCodes.EMFILE();
+    }
+    FileInStream is;
     try {
-      final URIStatus status = mFileSystem.getStatus(uri);
-      if (status.isFolder()) {
-        LOG.error("Cannot open folder {}", path);
-        return -ErrorCodes.EISDIR();
+      try {
+        is = mFileSystem.openFile(uri);
+      } catch (FileIncompleteException e) {
+        if (waitForFileCompleted(uri)) {
+          is = mFileSystem.openFile(uri);
+        } else {
+          throw e;
+        }
       }
-
-      if (!status.isCompleted() && !waitForFileCompleted(uri)) {
-        LOG.error("Cannot open incomplete folder {}", path);
-        return -ErrorCodes.EFAULT();
-      }
-
-      if (mOpenFiles.size() >= MAX_OPEN_FILES) {
-        LOG.error("Cannot open {}: too many open files (MAX_OPEN_FILES: {})", path, MAX_OPEN_FILES);
-        return ErrorCodes.EMFILE();
-      }
-
-      FileInStream is = mFileSystem.openFile(uri);
-      long fid = mNextOpenFileId.getAndIncrement();
-      mOpenFiles.add(new OpenFileEntry(fid, path, is, null));
-      fi.fh.set(fid);
+    } catch (OpenDirectoryException e) {
+      LOG.error("Cannot open folder {}", path);
+      return -ErrorCodes.EISDIR();
+    } catch (FileIncompleteException e) {
+      LOG.error("Cannot open incomplete file {}", path);
+      return -ErrorCodes.EFAULT();
     } catch (FileDoesNotExistException | InvalidPathException e) {
-      LOG.debug("Failed to open file {}, path does not exist or is invalid", path);
+      LOG.error("Failed to open file {}, path does not exist or is invalid", path);
       return -ErrorCodes.ENOENT();
     } catch (Throwable t) {
       LOG.error("Failed to open file {}", path, t);
       return AlluxioFuseUtils.getErrorCode(t);
     }
+    long fid = mNextOpenFileId.getAndIncrement();
+    mOpenFiles.add(new OpenFileEntry(fid, path, is, null));
+    fi.fh.set(fid);
 
     return 0;
   }
