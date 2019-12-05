@@ -102,6 +102,13 @@ public class TaskExecutorManager {
   }
 
   /**
+   * @return number of unfinished tasks
+   */
+  public int unfinishedTasks() {
+    return mUnfinishedTasks.size();
+  }
+
+  /**
    * Notifies the completion of the task.
    *
    * @param jobId the job id

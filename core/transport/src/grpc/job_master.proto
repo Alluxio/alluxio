@@ -65,6 +65,7 @@ message JobWorkerHealth {
   optional string hostname = 4;
   optional int32 taskPoolSize = 5;
   optional int32 numActiveTasks = 6;
+  optional int32 unfinishedTasks = 7;
 }
 
 message JobCommand {

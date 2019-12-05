@@ -13,13 +13,19 @@ package alluxio.job.wire;
 
 import static org.junit.Assert.assertEquals;
 
+import com.google.common.collect.Lists;
 import org.junit.Test;
 
 public class JobWorkerHealthTest {
 
   @Test
   public void testToProto() {
-    JobWorkerHealth host = new JobWorkerHealth(1L, new double[]{0.0, 0.0, 0.1}, 10, 1, "host");
+    JobWorkerHealth host = new JobWorkerHealth(1L,
+        Lists.newArrayList(0.0, 0.0, 0.1),
+        10,
+        1,
+        1,
+        "host");
 
     JobWorkerHealth other = new JobWorkerHealth(host.toProto());
 
