@@ -203,8 +203,15 @@ public final class MigrateDefinition
 
       // split the list of MigrateCommands for a given worker into at most JOBS_PER_WORKER
       // equally sized lists
-      List<List<MigrateCommand>> splittedCommands = Lists.partition(assignment.getValue(),
-          Math.round(assignment.getValue().size() * 1.0f / JOBS_PER_WORKER + 0.5f));
+      ArrayList<MigrateCommand> migrateCommands = assignment.getValue();
+      ArrayList<ArrayList<MigrateCommand>> splittedCommands = Lists.newArrayList();
+
+      for (int i = 0; i < JOBS_PER_WORKER; i++) {
+        splittedCommands.add(Lists.newArrayList());
+      }
+      for (int i = 0; i < migrateCommands.size(); i++) {
+        splittedCommands.get(i % JOBS_PER_WORKER).add(migrateCommands.get(i));
+      }
 
       for (List<MigrateCommand> commands : splittedCommands) {
         if (!commands.isEmpty()) {
