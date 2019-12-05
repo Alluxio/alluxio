@@ -56,8 +56,8 @@ public final class RetryUtils {
    * @param policy the retry policy to use
    * @return T return a value
    */
-  public static <T> T retryFunction(String action, RunnableFunctionThrowsException<T> f, RetryPolicy policy)
-      throws CantRetryException {
+  public static <T> T retryFunction(String action, RunnableFunctionThrowsException<T> f,
+      RetryPolicy policy) throws CantRetryException {
     RetryException e = null;
     while (policy.attempt()) {
       try {
