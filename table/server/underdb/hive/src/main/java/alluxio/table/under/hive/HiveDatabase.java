@@ -111,7 +111,7 @@ public class HiveDatabase implements UnderDatabase {
   public List<String> getTableNames() throws IOException {
     try {
       return getHive().getAllTables(mHiveDbName);
-    } catch (MetaException e) {
+    } catch (TException e) {
       throw new IOException("Failed to get hive tables: " + e.getMessage(), e);
     }
   }
