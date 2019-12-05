@@ -117,7 +117,7 @@ public class HiveMetaStoreRetryClient implements MetaStoreClient {
   private <T> T retryCall(String action, SupplierThrowingException<T> supplier)
       throws TException, IOException {
     try {
-      return RetryUtils.retry(action, () -> {
+      return RetryUtils.retryFunction(action, () -> {
         try {
           return supplier.get();
         } catch (MetaException e) {
