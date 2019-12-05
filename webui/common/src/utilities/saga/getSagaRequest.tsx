@@ -9,42 +9,51 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {call, put} from 'redux-saga/effects';
-import {ActionType} from 'typesafe-actions';
+import { AxiosResponse } from 'axios';
+import { call, put, Effect } from 'redux-saga/effects';
+import { SagaIterator } from 'redux-saga';
+import { ActionType } from 'typesafe-actions';
 
-const performRequest = (axiosMethod: Function, endpoint: string, payload: any) => axiosMethod(endpoint, payload)
-  .then((response: any) => ({response}))
-  .catch((error: any) => ({error}));
+const performRequest = (axiosMethod: Function, endpoint: string, payload: {}): Function =>
+  axiosMethod(endpoint, payload)
+    .then((response: AxiosResponse) => ({ response }))
+    .catch((error: Error) => ({ error }));
 
-export const getSagaRequest = (AxiosFunction: Function, endpoint: string, successFunction: ActionType<any>, errorFunction: ActionType<any>) => function* (params: any) {
-  let apiEndpoint = endpoint;
+export const getSagaRequest = (
+  AxiosFunction: Function,
+  endpoint: string,
+  successFunction: ActionType<Effect>,
+  errorFunction: ActionType<Effect>,
+) =>
+  function*(params: {}): SagaIterator {
+    let apiEndpoint = endpoint;
+    const payload = (params as { payload: { pathSuffix: string; queryString: { [key: string]: string } } }).payload;
+    if (params && payload) {
+      if (payload.pathSuffix) {
+        apiEndpoint += `/${payload.pathSuffix}`;
+      }
 
-  if (params && params.payload) {
-    if (params.payload.pathSuffix) {
-      apiEndpoint += `/${params.payload.pathSuffix}`;
+      if (payload.queryString) {
+        const queryString = Object.keys(payload.queryString)
+          .filter(key => payload.queryString[key] !== undefined)
+          .map(key => key + '=' + encodeURIComponent(payload.queryString[key]))
+          .join('&');
+        apiEndpoint += queryString.length ? `?${queryString}` : '';
+      }
     }
 
-    if (params.payload.queryString) {
-      const queryString = Object.keys(params.payload.queryString)
-        .filter(key => params.payload.queryString[key] !== undefined)
-        .map(key => key + '=' + encodeURIComponent(params.payload.queryString[key]))
-        .join('&');
-      apiEndpoint += queryString.length ? `?${queryString}` : '';
+    try {
+      const response = yield call(performRequest, AxiosFunction, apiEndpoint, payload || {});
+      if (response.error) {
+        yield put(errorFunction(response.error.response));
+      } else {
+        yield put(successFunction(response.response));
+      }
+    } catch (err) {
+      if (err instanceof Error && err.stack !== undefined) {
+        yield put(errorFunction(err.stack));
+      } else {
+        yield put(errorFunction('An unknown fetch error occurred in versions.'));
+      }
     }
-  }
-
-  try {
-    const response = yield call(performRequest, AxiosFunction, apiEndpoint, params.payload || {});
-    if (response.error) {
-      yield put(errorFunction(response.error.response));
-    } else {
-      yield put(successFunction(response.response));
-    }
-  } catch (err) {
-    if (err instanceof Error) {
-      yield put(errorFunction(err.stack!));
-    } else {
-      yield put(errorFunction('An unknown fetch error occurred in versions.'));
-    }
-  }
-};
+  };

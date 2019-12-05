@@ -9,28 +9,28 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {Reducer} from 'redux';
+import { Reducer } from 'redux';
 
-import {IWorkersState, WorkersActionTypes} from './types';
+import { IWorkersState, WorkersActionTypes } from './types';
 
 export const initialWorkersState: IWorkersState = {
   data: {
-    'debug': false,
-    'failedNodeInfos': [],
-    'normalNodeInfos': []
+    debug: false,
+    failedNodeInfos: [],
+    normalNodeInfos: [],
   },
   errors: undefined,
-  loading: false
+  loading: false,
 };
 
 export const workersReducer: Reducer<IWorkersState> = (state = initialWorkersState, action) => {
   switch (action.type) {
     case WorkersActionTypes.FETCH_REQUEST:
-      return {...state, loading: true};
+      return { ...state, loading: true };
     case WorkersActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
+      return { ...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined };
     case WorkersActionTypes.FETCH_ERROR:
-      return {...state, loading: false, errors: action.payload};
+      return { ...state, loading: false, errors: action.payload };
     default:
       return state;
   }
