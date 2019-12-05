@@ -21,10 +21,12 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.grpc.Bits;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.resource.CloseableResource;
+import alluxio.util.FileSystemOptions;
 import alluxio.wire.FileInfo;
 
 import org.junit.After;
@@ -108,6 +110,16 @@ public class CachingFileSystemTest {
     verifyGetStatusThroughRPC(FILE, 1);
     // File status has been cached, will try to asynchronously update the file's access time.
     mFs.openFile(FILE, OpenFilePOptions.getDefaultInstance());
+    verify(mFs, times(1)).asyncUpdateFileAccessTime(FILE);
+  }
+
+  @Test
+  public void updateAccessTimeOfCachedFile() throws Exception {
+    mFs.getStatus(FILE, GET_STATUS_OPTIONS);
+    mFs.getStatus(FILE, FileSystemOptions.getStatusDefaults(mConf).toBuilder()
+        .setAccessMode(Bits.READ)
+        .setUpdateTimestamps(true)
+        .build());
     verify(mFs, times(1)).asyncUpdateFileAccessTime(FILE);
   }
 
