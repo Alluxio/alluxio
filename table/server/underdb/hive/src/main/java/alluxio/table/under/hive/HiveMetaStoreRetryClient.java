@@ -138,11 +138,12 @@ public class HiveMetaStoreRetryClient implements MetaStoreClient {
         }
       }, mPolicy);
     } catch (RetryUtils.CantRetryException e) {
-      if (e.getCause() instanceof TException) {
+      Throwable exception = e.getCause();
+      if (exception instanceof TException) {
         // unwrap any Thrift Exceptions
-        throw (TException) e.getCause();
+        throw (TException) exception;
       } else {
-        throw new IOException(e.getCause());
+        throw new IOException(exception);
       }
     }
   }
