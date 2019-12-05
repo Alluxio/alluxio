@@ -190,7 +190,8 @@ public abstract class AbstractBackupRole implements BackupRole {
           LOG.error("Failed to clean up failed backup at {}", backupFilePath, e2);
           e.addSuppressed(e2);
         }
-        throw e;
+        throw new IOException(String.format("Backup failed. BackupUri: %s, LastEntryCount: %d",
+            backupUri, entryCounter.get()), e);
       }
     }
     return backupUri;

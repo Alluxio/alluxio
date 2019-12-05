@@ -204,7 +204,7 @@ public class BufferedJournalApplier {
       Preconditions.checkState(!mResumeInProgress, "Resume in progress");
       Preconditions.checkState(mCatchupThread == null || !mCatchupThread.isAlive(),
           "Catch-up task in progress.");
-      Preconditions.checkState(sequence >= 0, "Invalid sequence: %d", sequence);
+      Preconditions.checkState(sequence >= 0, "Invalid negative sequence: %d", sequence);
       Preconditions.checkState(mLastAppliedSequence <= sequence,
           "Can't catchup to past. Current: %d, Requested: %d", mLastAppliedSequence, sequence);
       LOG.info("Catching up state machine to sequence: {}", sequence);

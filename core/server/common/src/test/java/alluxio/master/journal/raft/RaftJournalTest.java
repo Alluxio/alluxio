@@ -87,6 +87,7 @@ public class RaftJournalTest {
     mFollowerJournalSystem.suspend();
     try {
       mFollowerJournalSystem.suspend();
+      Assert.fail("Suspend succeeded for already suspended journal.");
     } catch (Exception e) {
       // Expected to fail when suspending a suspended journal.
     }
