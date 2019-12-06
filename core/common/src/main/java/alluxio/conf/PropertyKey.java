@@ -1525,7 +1525,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_WORKER_HEARTBEAT_INTERVAL =
       new Builder(Name.MASTER_WORKER_HEARTBEAT_INTERVAL)
-          .setDefaultValue("10sec")
+          .setDefaultValue("1sec")
           .setDescription("The interval between Alluxio master and worker heartbeats.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -2110,7 +2110,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)
           .setAlias("alluxio.worker.block.heartbeat.interval.ms")
-          .setDefaultValue("10sec")
+          .setDefaultValue("1sec")
           .setDescription("The interval between block workers' heartbeats.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
