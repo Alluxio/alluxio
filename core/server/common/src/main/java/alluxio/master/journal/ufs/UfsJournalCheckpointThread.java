@@ -11,7 +11,6 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.Master;
@@ -71,6 +70,9 @@ public final class UfsJournalCheckpointThread extends Thread {
   /** Controls whether the thread will wait for a quiet period to elapse before terminating. */
   private volatile boolean mWaitQuietPeriod = true;
 
+  /** The error in this thread. */
+  private volatile Throwable mFatalError = null;
+
   /** The journal reader. */
   private JournalReader mJournalReader;
 
@@ -113,6 +115,8 @@ public final class UfsJournalCheckpointThread extends Thread {
     mCheckpointPeriodEntries =
         ServerConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     mJournalSinks = journalSinks;
+    setName("UfsJournalCheckpoint-" + mMaster.getName());
+    setDaemon(true);
   }
 
   /**
@@ -124,6 +128,9 @@ public final class UfsJournalCheckpointThread extends Thread {
     LOG.info("{}: Journal checkpointer shutdown has been initiated.", mMaster.getName());
     mWaitQuietPeriod = waitQuietPeriod;
     mShutdownInitiated = true;
+    if (mFatalError != null) {
+      throw new RuntimeException(mFatalError);
+    }
     // Actively interrupt to cancel slow checkpoints.
     synchronized (mCheckpointingLock) {
       if (mCheckpointing) {
@@ -162,9 +169,8 @@ public final class UfsJournalCheckpointThread extends Thread {
     try {
       runInternal();
     } catch (Throwable e) {
-      ProcessUtils.fatalError(LOG, e, "%s: Failed to run journal checkpoint thread, crashing.",
-          mMaster.getName());
-      System.exit(-1);
+      LOG.error("{}: Failed to run journal checkpoint thread.", mMaster.getName(), e);
+      mFatalError = e;
     }
   }
 

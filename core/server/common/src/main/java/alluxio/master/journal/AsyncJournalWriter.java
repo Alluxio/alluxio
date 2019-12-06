@@ -162,6 +162,7 @@ public final class AsyncJournalWriter {
         ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS),
         TimeUnit.MILLISECONDS);
     mJournalSinks = journalSinks;
+    mFlushThread.setDaemon(true);
     mFlushThread.start();
   }
 
