@@ -158,7 +158,8 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
       final Pair<String, UfsStatus> pathToProcessPair = pathsToProcess.remove();
       final String pathToProcess = pathToProcessPair.getFirst();
       UfsStatus pathStatus = pathToProcessPair.getSecond();
-      returnPaths.add(pathStatus.setName(pathToProcess.substring(path.length() + 1)));
+      int beginIndex = path.endsWith(AlluxioURI.SEPARATOR) ? path.length() : path.length() + 1;
+      returnPaths.add(pathStatus.setName(pathToProcess.substring(beginIndex)));
 
       if (pathStatus.isDirectory()) {
         // Add all of its subpaths
