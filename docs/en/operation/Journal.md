@@ -161,24 +161,24 @@ Users can set this property to the number of backup files they want to keep in t
 
 ### Backup delegation on HA cluster
 Alluxio supports taking backup without causing service unavailability on a HA cluster configuration.
-When enabled, Alluxio leader master delegates backups to standby masters in cluster.
+When enabled, Alluxio leading master delegates backups to backup masters in cluster.
 After configuring backup delegation, both manual and scheduled backups will run in delegated mode.
 
 Backup delegation can be configured with below properties:
-- `alluxio.master.backup.delegation.enabled`: Whether to delegate backups to stand-by masters. Default: `false`.
-- `alluxio.master.backup.heartbeat.interval`: Interval at which stand-by master that is taking the backup will update the leader master with status. Default: `1sec`.
+- `alluxio.master.backup.delegation.enabled`: Whether to delegate backups to backup masters. Default: `false`.
+- `alluxio.master.backup.heartbeat.interval`: Interval at which backup master that is taking the backup will update the leading master with current backup status. Default: `1sec`.
 
 There are some advanced properties that controls the communication between Alluxio masters for coordinating the backup:
 - `alluxio.master.backup.transport.timeout`: Communication timeout for messaging between masters for coordinating backup. Default: `5sec`.
-- `alluxio.master.backup.connect.interval.min`: Minimum duration to sleep before retrying after unsuccessful handshake between stand-by master with leader master. Default: `1sec`.
-- `alluxio.master.backup.connect.interval.max`: Maximum duration to sleep before retrying after unsuccessful handshake between stand-by master with leader master. Default: `10sec`.
-- `alluxio.master.backup.abandon.timeout`: Specifies how long the leader master waits for a heart-beat before abandoning the backup. Default: `2min`.
-
+- `alluxio.master.backup.connect.interval.min`: Minimum duration to sleep before retrying after unsuccessful handshake between backup master and leading master. Default: `1sec`.
+- `alluxio.master.backup.connect.interval.max`: Maximum duration to sleep before retrying after unsuccessful handshake between backup master and leading master. Default: `10sec`.
+- `alluxio.master.backup.abandon.timeout`: Specifies how long the leading master waits for a heart-beat before abandoning the backup. Default: `2min`.
 
 Since it is uncertain which host will take the backup, it is suggested to use shared paths for taking backups with backup delegation.
 
-Backup attempt will fail if delegation fails to find a standby master, thus favoring service availability.
-For manual backups, you can pass `--allow-leader` option to allow leader to take backup when there are no stand-by masters to delegate the backup. 
+Backup attempt will fail if delegation fails to find a backup master, thus favoring service availability.
+For manual backups, you can pass `--allow-leader` option to allow leading master to take backup when there are no backup masters to delegate the backup. 
+This will causes temporary service unavailability while the backup is written on leading master. 
 
 ### Restoring from a backup
 
