@@ -185,9 +185,9 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
     try (SnapshotWriterStream sws = new SnapshotWriterStream(writer)) {
       writer.writeLong(snapshotId);
       JournalUtils.writeToCheckpoint(sws, getStateMachines());
-    } catch (Throwable t) {
-      ProcessUtils.fatalError(LOG, t, "Failed to snapshot");
-      throw new RuntimeException(t);
+    } catch (Exception e) {
+      ProcessUtils.fatalError(LOG, e, "Failed to take snapshot: %s", snapshotId);
+      throw new RuntimeException(e);
     }
     LOG.info("Completed snapshot up to SN {} in {}ms", snapshotId,
         System.currentTimeMillis() - mLastSnapshotStartTime);
@@ -208,9 +208,8 @@ public class JournalStateMachine extends StateMachine implements Snapshottable {
     try (InputStream srs = new SnapshotReaderStream(snapshotReader)) {
       snapshotId = snapshotReader.readLong();
       JournalUtils.restoreFromCheckpoint(new CheckpointInputStream(srs), getStateMachines());
-    } catch (Throwable t) {
-      JournalUtils.handleJournalReplayFailure(LOG, t,
-          "Failed to install snapshot");
+    } catch (Exception e) {
+      JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to install snapshot: %s", snapshotId);
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_TOLERATE_CORRUPTION)) {
         return;
       }

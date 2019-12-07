@@ -171,7 +171,7 @@ public class BufferedJournalApplier {
         mStateLock.lock();
       }
 
-      while (mSuspendBuffer.size() > 0) {
+      while (!mSuspendBuffer.isEmpty()) {
         applyToMaster(mSuspendBuffer.remove());
 
         // Check whether to lock the state now.
@@ -204,9 +204,9 @@ public class BufferedJournalApplier {
       Preconditions.checkState(!mResumeInProgress, "Resume in progress");
       Preconditions.checkState(mCatchupThread == null || !mCatchupThread.isAlive(),
           "Catch-up task in progress.");
-      Preconditions.checkState(sequence >= 0, String.format("Invalid sequence: %d", sequence));
-      Preconditions.checkState(mLastAppliedSequence <= sequence, String.format(
-          "Can't catchup to past. Current: %d, Requested: %d", mLastAppliedSequence, sequence));
+      Preconditions.checkState(sequence >= 0, "Invalid negative sequence: %d", sequence);
+      Preconditions.checkState(mLastAppliedSequence <= sequence,
+          "Can't catchup to past. Current: %d, Requested: %d", mLastAppliedSequence, sequence);
       LOG.info("Catching up state machine to sequence: {}", sequence);
 
       // Complete the request if already at target sequence.
@@ -229,7 +229,7 @@ public class BufferedJournalApplier {
     String masterName;
     try {
       masterName = JournalEntryAssociation.getMasterForEntry(entry);
-    } catch (Throwable t) {
+    } catch (Exception t) {
       ProcessUtils.fatalError(LOG, t, "Unrecognized journal entry: %s", entry);
       throw new IllegalStateException();
     }
@@ -238,7 +238,7 @@ public class BufferedJournalApplier {
       LOG.trace("Applying entry to master {}: {} ", masterName, entry);
       master.processJournalEntry(entry);
       JournalUtils.sinkAppend(mJournalSinks, entry);
-    } catch (Throwable t) {
+    } catch (Exception t) {
       JournalUtils.handleJournalReplayFailure(LOG, t,
           "Failed to apply journal entry to master %s. Entry: %s", masterName, entry);
     }
@@ -262,7 +262,7 @@ public class BufferedJournalApplier {
      */
     public RaftJournalCatchupThread(long sequence) {
       mCatchUpEndSequence = sequence;
-      setName(String.format("raft-catchup-thread"));
+      setName("raft-catchup-thread");
     }
 
     @Override
@@ -283,12 +283,13 @@ public class BufferedJournalApplier {
             try {
               mSuspendBuffer.wait();
             } catch (InterruptedException e) {
+              Thread.currentThread().interrupt();
               throw new RuntimeException("Interrupted while catching up.");
             }
           }
 
           // Catch up as much as possible.
-          while (mSuspendBuffer.size() > 0 && mLastAppliedSequence < mCatchUpEndSequence) {
+          while (!mSuspendBuffer.isEmpty() && mLastAppliedSequence < mCatchUpEndSequence) {
             applyToMaster(mSuspendBuffer.remove());
           }
         }
