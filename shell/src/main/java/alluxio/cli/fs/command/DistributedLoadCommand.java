@@ -120,9 +120,8 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
         case FAILED:
           return false;
         default:
-          throw new IllegalStateException(String.format("Unexpected Status: %s", jobInfo.getStatus());
+          throw new IllegalStateException(String.format("Unexpected Status: %s", jobInfo.getStatus()));
       }
-
     }
   }
 
