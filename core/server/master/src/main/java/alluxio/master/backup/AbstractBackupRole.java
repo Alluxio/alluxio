@@ -186,11 +186,12 @@ public abstract class AbstractBackupRole implements BackupRole {
       } catch (IOException e) {
         try {
           ufs.deleteExistingFile(backupFilePath);
-        } catch (Throwable t) {
-          LOG.error("Failed to clean up failed backup at {}", backupFilePath, t);
-          e.addSuppressed(t);
+        } catch (Exception e2) {
+          LOG.error("Failed to clean up failed backup at {}", backupFilePath, e2);
+          e.addSuppressed(e2);
         }
-        throw e;
+        throw new IOException(String.format("Backup failed. BackupUri: %s, LastEntryCount: %d",
+            backupUri, entryCounter.get()), e);
       }
     }
     return backupUri;

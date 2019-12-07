@@ -85,6 +85,13 @@ public class RaftJournalTest {
 
     // Suspend follower journal system.
     mFollowerJournalSystem.suspend();
+    try {
+      mFollowerJournalSystem.suspend();
+      Assert.fail("Suspend succeeded for already suspended journal.");
+    } catch (Exception e) {
+      // Expected to fail when suspending a suspended journal.
+    }
+
     // Catch up follower journal system to target-index:5.
     final long catchupIndex = 5;
     Map<String, Long> backupSequences = new HashMap<>();
@@ -166,6 +173,10 @@ public class RaftJournalTest {
 
     // Wait for sequence to be caught up.
     catchupFuture.waitTermination();
+    Assert.assertEquals(entryBatchCount * 2, countingMaster.getApplyCount());
+
+    // Catchup on the already met sequence.
+    mFollowerJournalSystem.catchup(backupSequences);
     Assert.assertEquals(entryBatchCount * 2, countingMaster.getApplyCount());
   }
 
