@@ -629,4 +629,11 @@ public class BaseFileSystem implements FileSystem {
       throw e.toAlluxioException();
     }
   }
+
+  @Override
+  protected void finalize() throws Throwable {
+    LOG.debug("finalize() called.");
+    close();
+    super.finalize();
+  }
 }

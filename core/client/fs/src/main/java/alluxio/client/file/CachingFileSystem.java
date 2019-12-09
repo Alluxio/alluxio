@@ -122,4 +122,11 @@ public class CachingFileSystem extends BaseFileSystem {
       super.close();
     }
   }
+
+  @Override
+  protected void finalize() throws Throwable {
+    LOG.debug("finalize() called.");
+    close();
+    super.finalize();
+  }
 }
