@@ -22,4 +22,6 @@ public abstract class AbstractInfoCollectorCommand implements Command {
   }
 
   // TODO(jiacheng): check for previously complete work
+
+  // TODO(jiacheng): Use context instead of mConf
 }

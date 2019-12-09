@@ -29,15 +29,18 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
     String mName;
     String mCmd;
     String mAlternative;
+
     AlluxioCommand(String name, String cmd, String alternative) {
       mName = name;
       mCmd = cmd;
       mAlternative = alternative;
     }
+
     String[] getCommand() {
       // TODO(jiacheng): where to get bin/ from?
       return String.format("bin/alluxio %s", mCmd).split(" ");
     }
+
     String[] getAlternativeCommand() {
       if (mAlternative == null) {
         return new String[]{};
@@ -74,10 +77,8 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
     StringWriter output = new StringWriter();
 
     for(AlluxioCommand cmd : mCommands) {
-      //TODO(jiacheng): Output with format
-
       RunCommandUtils.CommandReturn cr = RunCommandUtils.runCommandNoFail(cmd.getCommand());
-      output.write(cr.getOutput());
+      output.write(cr.getFormattedOutput());
 
       if (cr.getStatusCode() != 0) {
         LOG.error(String.format("Command %s returned status %s. Try alternative command.", Arrays.toString(cmd.getCommand()),
@@ -90,8 +91,9 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
         output.write("Running alternative command " + Arrays.toString(alternativeCmd));
         LOG.info(String.format("Alternative command: %s", Arrays.toString(alternativeCmd)));
         cr = RunCommandUtils.runCommandNoFail(alternativeCmd);
-        output.write(cr.getOutput());
+        output.write(cr.getFormattedOutput());
 
+        // TODO(jiacheng): What status code makes sense?
         ret |= cr.getStatusCode();
       }
     }

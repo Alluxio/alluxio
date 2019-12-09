@@ -29,11 +29,13 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
     String mName;
     String mCmd;
     String mBetterVersion;
+
     UnixCommand(String name, String cmd, String betterVersion) {
       mName = name;
       mCmd = cmd;
       mBetterVersion = betterVersion;
     }
+
     String[] getCommand() {
       String[] bashCmd = new String[]{"bash", "-c"};
       if (mBetterVersion != null) {
@@ -84,19 +86,21 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     int ret = 0;
 
-    // TODO(jiacheng): Output with format
     // Output buffer stream
     StringWriter output = new StringWriter();
 
     for (UnixCommand cmd : mCommands) {
-      RunCommandUtils.CommandReturn cr = RunCommandUtils.runCommandNoFail(cmd.getCommand());
-      output.write(cr.getOutput());
+      String[] command = cmd.getCommand();
+      output.write(String.format("Running cmd %s", Arrays.toString(command)));
+      RunCommandUtils.CommandReturn cr = RunCommandUtils.runCommandNoFail(command);
+      String cmdResult = String.format("StatusCode:%s\nStdOut:\n%s\nStdErr:\n%s", cr.getStatusCode(),
+              cr.getStdOut(), cr.getStdErr());
+      output.write(cmdResult);
     }
 
     // output the buffer
-    LOG.info("Finished all commands. Writing to output file.");
     File outputFile = new File(Paths.get(this.getWorkingDirectory(), this.getCommandName()).toUri());
-    // TODO(jiacheng): error handling?
+    LOG.info(String.format("Finished all commands. Writing to output file %s", outputFile));
     FileUtils.writeStringToFile(outputFile, output.toString());
 
     return ret;

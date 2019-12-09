@@ -3,6 +3,7 @@ package alluxio.cli.bundler.command;
 import alluxio.cli.bundler.RunCommandUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.util.SleepUtils;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -43,23 +44,23 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
       int ret = 0;
       for(int i = 0; i < COLLECT_JSTACK_TIMES; i++) {
+        LOG.info("Checking current JPS");
         Map<String, String> procs = getJps();
+
 
         // TODO(jiacheng): ret value
         dumpJstack(procs);
-        // interval
-        try {
-          TimeUnit.SECONDS.sleep(COLLECT_JSTACK_INTERVAL);
-        } catch (InterruptedException e) {
 
-        }
+        // Interval
+        LOG.info(String.format("Wait for an interval of %s seconds", COLLECT_JSTACK_INTERVAL));
+        SleepUtils.sleepMs(LOG, COLLECT_JSTACK_INTERVAL * 1000);
       }
 
       // TODO(jiacheng); return code
       return ret;
   }
 
-  public Map<String, String> getJps() throws IOException, InterruptedException {
+  public Map<String, String> getJps() {
     Map<String, String> procs = new HashMap<>();
 
     // Get Jps output
@@ -82,6 +83,7 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
         LOG.info(String.format("Row %s has no process name", row));
         procs.put(parts[0], "unknown");
       } else {
+        LOG.info(String.format("Found JVM %s %s", parts[0], parts[1]));
         procs.put(parts[0], parts[1]);
       }
     }
@@ -89,22 +91,28 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
     return procs;
   }
 
-  public void dumpJstack(Map<String, String> procs) {
+  public void dumpJstack(Map<String, String> procs) throws IOException {
     // Output file
+    StringWriter outputBuffer = new StringWriter();
     String outputFilePath = Paths.get(this.getWorkingDirectory(), getOutputPath()).toString();
     File outputFile = new File(outputFilePath);
 
     for (String k : procs.keySet()) {
       LOG.info("Dumping jstack on pid %s name %s", k, procs.get(k));
+      outputBuffer.write(String.format("Jstack PID:%s Name:%s", k, procs.get(k)));
 
       String[] jstackCmd = new String[]{"jstack", k};
       RunCommandUtils.CommandReturn cr = RunCommandUtils.runCommandNoFail(jstackCmd);
 
       // Output
-      // TODO(jiacheng): format
-      String cmdResult = String.format("");
-      // TODO(jiacheng): exception
-      FileUtils.writeStringToFile(outputFile, cmdResult);
+      String cmdResult = String.format("StatusCode:%s\nStdOut:\n%s\nStdErr:\n%s", cr.getStatusCode(),
+              cr.getStdOut(), cr.getStdErr());
+      try {
+        FileUtils.writeStringToFile(outputFile, cmdResult);
+      } catch (IOException e) {
+        LOG.error(String.format("Failed to output jstack to %s", outputFilePath));
+        e.printStackTrace();
+      }
     }
 
     return;

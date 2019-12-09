@@ -33,6 +33,11 @@ public class RunCommandUtils {
     public int getStatusCode() {
       return mStatusCode;
     }
+
+    public String getFormattedOutput() {
+      return String.format("StatusCode:%s\nStdOut:\n%s\nStdErr:\n%s", this.getStatusCode(),
+              this.getStdOut(), this.getStdErr());
+    }
   }
 
   public static CommandReturn runCommandNoFail(String[] command) {

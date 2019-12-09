@@ -5,10 +5,6 @@ import alluxio.cli.bundler.InfoCollector;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-import alluxio.metrics.Metric;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.json.MetricsModule;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpClient;
@@ -53,6 +49,7 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
 
   public String getMetricsJson() {
     // Generate URL
+    // TODO(jiacheng): master addr
     String url = String.format("localhost:%s/metrics/json/", mConf.get(PropertyKey.MASTER_WEB_PORT));
 
     // Create an instance of HttpClient.
