@@ -1523,10 +1523,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_WORKER_HEARTBEAT_INTERVAL =
-      new Builder(Name.MASTER_WORKER_HEARTBEAT_INTERVAL)
-          .setDefaultValue("1sec")
-          .setDescription("The interval between Alluxio master heartbeats to detect lost workers "
+  public static final PropertyKey MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
+      new Builder(Name.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)
+          .setDefaultValue("10sec")
+          .setDescription("The interval between Alluxio master detections to find lost workers "
               + "and files based on updates from Alluxio workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -4054,8 +4054,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file.prefix";
     public static final String MASTER_STANDBY_HEARTBEAT_INTERVAL =
         "alluxio.master.standby.heartbeat.interval";
-    public static final String MASTER_WORKER_HEARTBEAT_INTERVAL =
-        "alluxio.master.worker.heartbeat.interval";
+    public static final String MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
+        "alluxio.master.lost.worker.file.detection.interval";
     public static final String MASTER_HEARTBEAT_TIMEOUT =
         "alluxio.master.heartbeat.timeout";
     public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
