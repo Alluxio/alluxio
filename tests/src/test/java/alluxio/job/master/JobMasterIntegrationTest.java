@@ -37,6 +37,7 @@ import alluxio.worker.JobWorkerProcess;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -187,6 +188,7 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.JOB_MASTER_JOB_CAPACITY, "20"})
+  @Ignore("flaky test")
   public void throttleJobWorkerTasks() throws Exception {
     mJobMaster.setTaskPoolSize(1);
 
