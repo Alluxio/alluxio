@@ -28,6 +28,7 @@ import alluxio.job.wire.JobInfo;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.worker.job.JobMasterClientContext;
+
 import com.google.common.collect.Lists;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -64,7 +65,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
 
   private static final int DEFAULT_BATCH_SIZE = 1000;
 
-  private final List<JobAttempt> submittedJobAttempts;
+  private final List<JobAttempt> mSubmittedJobAttempts;
 
   private class JobAttempt {
     private final JobConfig mJobConfig;
@@ -125,7 +126,8 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
         case FAILED:
           return false;
         default:
-          throw new IllegalStateException(String.format("Unexpected Status: %s", jobInfo.getStatus()));
+          throw new IllegalStateException(String.format("Unexpected Status: %s",
+              jobInfo.getStatus()));
       }
     }
   }
@@ -137,7 +139,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
    */
   public DistributedLoadCommand(FileSystemContext fsContext) {
     super(fsContext);
-    submittedJobAttempts = Lists.newArrayList();
+    mSubmittedJobAttempts = Lists.newArrayList();
   }
 
   @Override
@@ -194,7 +196,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   private void waitJob() {
     boolean removed = false;
     while (true) {
-      Iterator<JobAttempt> iterator = submittedJobAttempts.iterator();
+      Iterator<JobAttempt> iterator = mSubmittedJobAttempts.iterator();
 
       while (iterator.hasNext()) {
         JobAttempt jobAttempt = iterator.next();
@@ -226,11 +228,11 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
       System.out.println(filePath + " is already fully loaded in Alluxio");
       return;
     }
-    if (submittedJobAttempts.size() >= DEFAULT_BATCH_SIZE) {
+    if (mSubmittedJobAttempts.size() >= DEFAULT_BATCH_SIZE) {
       // Wait one job to complete.
       waitJob();
     }
-    submittedJobAttempts.add(newJob(filePath, replication));
+    mSubmittedJobAttempts.add(newJob(filePath, replication));
     System.out.println(filePath + " loading");
   }
 
@@ -244,7 +246,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
       throws AlluxioException, IOException, InterruptedException, ExecutionException {
     load(filePath, replication);
     // Wait remaining jobs to complete.
-    while (!submittedJobAttempts.isEmpty()) {
+    while (!mSubmittedJobAttempts.isEmpty()) {
       waitJob();
     }
   }
