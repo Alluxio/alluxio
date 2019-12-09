@@ -26,8 +26,7 @@
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
-    <hive-hadoop.version>2.7.2</hive-hadoop.version>
-    <parquet.verison>1.10.1</parquet.verison>
+    <hive-metastore.version>2.3.6</hive-metastore.version>
   </properties>
 
   <dependencies>
@@ -39,6 +38,7 @@
     <dependency>
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-metastore</artifactId>
+      <version>${hive-metastore.version}</version>
       <scope>compile</scope>
       <exclusions>
         <exclusion>
@@ -74,12 +74,6 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-server-common</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-table-base</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
