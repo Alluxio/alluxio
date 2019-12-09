@@ -1523,10 +1523,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_WORKER_HEARTBEAT_INTERVAL =
-      new Builder(Name.MASTER_WORKER_HEARTBEAT_INTERVAL)
+  public static final PropertyKey MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
+      new Builder(Name.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)
+          .setAlias("alluxio.master.worker.heartbeat.interval")
           .setDefaultValue("10sec")
-          .setDescription("The interval between Alluxio master and worker heartbeats.")
+          .setDescription("The interval between Alluxio master detections to find lost workers "
+              + "and files based on updates from Alluxio workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -2110,8 +2112,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)
           .setAlias("alluxio.worker.block.heartbeat.interval.ms")
-          .setDefaultValue("10sec")
-          .setDescription("The interval between block workers' heartbeats.")
+          .setDefaultValue("1sec")
+          .setDescription("The interval between block workers' heartbeats to update "
+              + "block status, storage health and other workers' information to Alluxio Master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -4052,8 +4055,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file.prefix";
     public static final String MASTER_STANDBY_HEARTBEAT_INTERVAL =
         "alluxio.master.standby.heartbeat.interval";
-    public static final String MASTER_WORKER_HEARTBEAT_INTERVAL =
-        "alluxio.master.worker.heartbeat.interval";
+    public static final String MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
+        "alluxio.master.lost.worker.file.detection.interval";
     public static final String MASTER_HEARTBEAT_TIMEOUT =
         "alluxio.master.heartbeat.timeout";
     public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
