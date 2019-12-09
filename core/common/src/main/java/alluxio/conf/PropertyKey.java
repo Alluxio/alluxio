@@ -1526,7 +1526,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_WORKER_HEARTBEAT_INTERVAL =
       new Builder(Name.MASTER_WORKER_HEARTBEAT_INTERVAL)
           .setDefaultValue("1sec")
-          .setDescription("The interval between Alluxio master and worker heartbeats.")
+          .setDescription("The interval between Alluxio master heartbeats to detect lost workers "
+              + "and files based on updates from Alluxio workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -2111,7 +2112,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)
           .setAlias("alluxio.worker.block.heartbeat.interval.ms")
           .setDefaultValue("1sec")
-          .setDescription("The interval between block workers' heartbeats.")
+          .setDescription("The interval between block workers' heartbeats to update "
+              + "block status, storage health and other workers' information to Alluxio Master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
