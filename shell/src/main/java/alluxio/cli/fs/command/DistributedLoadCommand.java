@@ -116,6 +116,11 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
           return null;
         case CANCELED:
         case COMPLETED:
+          try {
+            mClient.close();
+          } catch (IOException e) {
+            // ignore IOException
+          }
           return true;
         case FAILED:
           return false;
