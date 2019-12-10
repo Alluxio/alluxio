@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Default implementation of the metrics master.
@@ -59,6 +60,7 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
       new HashSet<>();
   private final MetricsStore mMetricsStore;
   private final HeartbeatThread mClusterMetricsUpdater;
+  private final ExecutorService mExecutorService;
 
   /**
    * Creates a new instance of {@link MetricsMaster}.
@@ -67,7 +69,8 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
    */
   DefaultMetricsMaster(MasterContext masterContext) {
     this(masterContext, new SystemClock(), ExecutorServiceFactories
-        .fixedThreadPoolExecutorServiceFactory(Constants.METRICS_MASTER_NAME, 2));
+        .fixedThreadPoolExecutorServiceFactory(Constants.METRICS_MASTER_NAME,
+            Configuration.getInt(PropertyKey.MASTER_METRICS_SERVICE_THREADS)));
   }
 
   /**
@@ -87,6 +90,7 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
         new HeartbeatThread(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER,
             new ClusterMetricsUpdater(),
             Configuration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL));
+    mExecutorService = executorServiceFactory.create();
   }
 
   @VisibleForTesting
@@ -206,7 +210,7 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
 
   @Override
   public void clientHeartbeat(String clientId, String hostname, List<Metric> metrics) {
-    mMetricsStore.putClientMetrics(hostname, clientId, metrics);
+    submitMetrics(hostname, clientId, metrics);
   }
 
   @Override
@@ -216,7 +220,24 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
 
   @Override
   public void workerHeartbeat(String hostname, List<Metric> metrics) {
-    mMetricsStore.putWorkerMetrics(hostname, metrics);
+    submitMetrics(hostname, null, metrics);
+  }
+
+  /**
+   * Submits the worker or client metrics to executor service.
+   *
+   * @param clientId the client id, or null if submitting worker metrics
+   * @param hostname the worker or client hostname
+   * @param metrics worker or client metrics
+   */
+  private void submitMetrics(String hostname, String clientId, List<Metric> metrics) {
+    mExecutorService.submit(() -> {
+      if (clientId == null) {
+        mMetricsStore.putWorkerMetrics(hostname, metrics);
+      } else {
+        mMetricsStore.putClientMetrics(hostname, clientId, metrics);
+      }
+    });
   }
 
   /**

@@ -1124,7 +1124,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setAlias(new String[]{"alluxio.master.heartbeat.interval.ms",
               "alluxio.master.heartbeat.interval"})
           .setDefaultValue("10sec")
-          .setDescription("The interval between Alluxio master and worker heartbeats.")
+          .setDescription("The interval between Alluxio master detections to find lost workers "
+              + "and files based on updates from Alluxio workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -1304,6 +1305,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)
           .setDefaultValue("1h")
           .setDescription("The interval for periodically logging the configuration check report.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METRICS_SERVICE_THREADS =
+      new Builder(Name.MASTER_METRICS_SERVICE_THREADS)
+          .setDefaultValue(5)
+          .setDescription("The number of threads in executor pool for parallel processing "
+              + "metrics submitted by workers or clients")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1536,8 +1545,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)
           .setAlias(new String[]{"alluxio.worker.block.heartbeat.interval.ms"})
-          .setDefaultValue("10sec")
-          .setDescription("The interval between block workers' heartbeats.")
+          .setDefaultValue("1sec")
+          .setDescription("The interval between block workers' heartbeats to update "
+              + "block status, pin list and other workers' information to Alluxio Master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3438,6 +3448,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.inherit.owner.and.group";
     public static final String MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
         "alluxio.master.log.config.report.heartbeat.interval";
+    public static final String MASTER_METRICS_SERVICE_THREADS =
+        "alluxio.master.metrics.service.threads";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
         "alluxio.master.periodic.block.integrity.check.repair";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
