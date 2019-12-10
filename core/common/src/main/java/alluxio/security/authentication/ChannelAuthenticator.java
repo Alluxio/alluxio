@@ -26,7 +26,6 @@ import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
 import io.grpc.ClientInterceptors;
-import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
@@ -160,11 +159,8 @@ public class ChannelAuthenticator {
             SaslAuthenticationServiceGrpc.newStub(mManagedChannel).authenticate(mClientDriver);
         mClientDriver.setServerObserver(requestObserver);
         // Start authentication traffic with the target.
+        // Successful return from this method means success.
         mClientDriver.start();
-        // Authentication succeeded!
-        mManagedChannel.notifyWhenStateChanged(ConnectivityState.READY, () -> {
-          mAuthenticated.set(false);
-        });
         // Intercept authenticated channel with channel-Id injector.
         mChannel = ClientInterceptors.intercept(mManagedChannel,
             new ChannelIdInjector(mChannelKey.getChannelId()));
