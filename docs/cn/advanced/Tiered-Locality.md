@@ -22,7 +22,7 @@ priority: 1
 alluxio.locality.[tiername]=...
 ```
 
-请参阅[配置项设置](Configuration-Settings.html)页面以获取详细信息来设置配置属性。
+请参阅[配置项设置]({{ '/cn/operation/Configuration.html' | relativize_url }})页面以获取详细信息来设置配置属性。
 
 也可以通过脚本配置层级标识。默认情况下Alluxio在classpath下搜索名为`alluxio-locality.sh`脚本。你可以通过设置指定其他位置的脚本
 

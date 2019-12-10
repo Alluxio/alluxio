@@ -57,7 +57,7 @@ Kodo 存储空间和对应端点域名可以参考
 ### 嵌套目录安装
 
 Kodo 可以安装在 Alluxio 命名空间中的嵌套目录中，以统一访问多个存储系统。
-[Mount 命令](Command-Line-Interface.html#mount)可以实现这一目的。例如，下面的命令将Kodo容器内部的目录挂载到 Alluxio的`/kodo`目录:
+[Mount 命令]({{ '/cn/operation/User-CLI.html' | relativize_url }}#mount)可以实现这一目的。例如，下面的命令将Kodo容器内部的目录挂载到 Alluxio的`/kodo`目录:
 
 ```console
 $ ./bin/alluxio fs mount --option fs.kodo.accesskey=<KODO_ACCESS_KEY> \

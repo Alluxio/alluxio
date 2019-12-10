@@ -133,7 +133,7 @@ $ spark-submit \
 ...
 ```
 
-如果需要自定义 Spark 作业中的 Alluxio 客户端侧属性，请参见[如何配置 Spark 作业]({{ '/cn/basic/Configuration-Settings.html' | relativize_url }}#spark)。
+如果需要自定义 Spark 作业中的 Alluxio 客户端侧属性，请参见[如何配置 Spark 作业]({{ '/cn/operation/Configuration.html' | relativize_url }}#spark)。
 
 请注意，在客户端模式中，你需要设置`--driver-java-options "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"`，而不是`--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH`（见[解释](https://spark.apache.org/docs/2.3.2/configuration.html))。
 

@@ -60,13 +60,13 @@ categoryInfo:
     cn: 用户指南
   Core Services:
     en: Core Services
-    cn: TODO
+    cn: 核心功能
   Install Alluxio:
     en: Install Alluxio
     cn: 部署 Alluxio
   Alluxio in the Cloud:
     en: Alluxio in the Cloud
-    cn: TODO
+    cn: Alluxio云端部署与应用
   Compute Integrations:
     en: Compute Integrations
     cn: 计算应用

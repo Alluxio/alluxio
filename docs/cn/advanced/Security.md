@@ -21,7 +21,7 @@ Alluxio还支持其它身份验证模式，如`NOSASL`和`CUSTOM`。
 1. [审计](#auditing): 如果是 `alluxio.master.audit.logging.enabled=true`， Alluxio 文件系统
 维护用户访问文件元数据的审计日志(audit log)。
 
-参考[安全性配置项](Configuration-Settings.html#security-configuration)的信息以启用不同安全特性。
+参考[安全性配置项]({{ '/cn/operation/Configuration.html' | relativize_url }}#security-configuration)的信息以启用不同安全特性。
 
 ## 安全认证 {#authentication}
 
@@ -100,9 +100,9 @@ drwxr-xr-x jack           staff                       24       PERSISTED 11-20-2
 
 1. 用户应用可以调用`FileSystem API`或`Hadoop API`的`setAttribute(...)`方法，参考[文件系统API](File-System-API.html)。
 2. CLI命令，参考
-[chown](Command-Line-Interface.html#chown)，
-[chgrp](Command-Line-Interface.html#chgrp)，
-[chmod](Command-Line-Interface.html#chmod)。
+[chown](({{ '/cn/operation/User-CLI.html' | relativize_url }}#chown)，
+[chgrp](({{ '/cn/operation/User-CLI.html' | relativize_url }}#chgrp)，
+[chmod](({{ '/cn/operation/User-CLI.html' | relativize_url }}#chmod)。
 
 所属用户只能由超级用户修改。
 所属组和访问权限只能由超级用户和文件所有者修改。
@@ -186,7 +186,7 @@ Alluxio审计日志格式如下表所示：
 
 它和HDFS审计日志的格式[wiki](https://wiki.apache.org/hadoop/HowToConfigure)很像。
 
-为了使用Alluxio的审计功能，你需要将JVM参数`alluxio.master.audit.logging.enabled`设置为true，具体可见[Configuration settings](Configuration-Settings.html)。
+为了使用Alluxio的审计功能，你需要将JVM参数`alluxio.master.audit.logging.enabled`设置为true，具体可见[Configuration settings]({{ '/cn/operation/Configuration.html' | relativize_url }})。
 
 ## 加密
 

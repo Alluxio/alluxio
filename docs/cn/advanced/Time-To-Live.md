@@ -26,7 +26,7 @@ TTL间隔延迟。间隔长度由 `alluxio.master.ttl.checker.interval` 属性�
 alluxio.master.ttl.checker.interval=10m
 ```
 
-查看[配置页](Configuration-Settings.html)获取有关Alluxio设置的更多配置
+查看[配置页]({{ '/cn/operation/Configuration.html' | relativize_url }})获取有关Alluxio设置的更多配置
 
 虽然master节点负责执行TTL，但是TTL值的设置取决于客户端
 
@@ -50,7 +50,7 @@ SetTTL(path, duration, action)
 
 ### 使用命令行
 
-查看[命令行文档](Command-Line-Interface.html#setttl).
+查看[命令行文档](({{ '/cn/operation/User-CLI.html' | relativize_url }}#setttl).
 
 ### Java 文件系统接口
 

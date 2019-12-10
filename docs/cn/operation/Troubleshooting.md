@@ -125,7 +125,7 @@ $ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 - 请确保Alluxio的master节点和client节点的安全设置保持一致.
 Alluxio通过配置`alluxio.security.authentication.type`来提供不同的用户身份验证(Security.html#authentication)的方法。
 如果客户端和服务器的这项配置属性不一致，这种错误将会发生。(例如，客户端的属性为默认值`NOSASL`,而服务器端设为`SIMPLE`)
-有关如何设定Alluxio的集群和应用的问题，用户请参照[Configuration-Settings](Configuration-Settings.html)
+有关如何设定Alluxio的集群和应用的问题，用户请参照[Configuration-Settings]({{ '/cn/operation/Configuration.html' | relativize_url }})
 - Spark调用Alluxio-1.3.0文件时报错，如果是直接下载编译好的alluxio文件进行安装的，一般会出现该错误。
 解决办法：需要Alluxio client需要在编译时指定Spark选项，具体参考[Running-Spark-on-Alluxio](Running-Spark-on-Alluxio.html)；
 编译好的依赖包也可以直接下载，下载地址：<a href="http://downloads.alluxio.io/downloads/files/1.3.0/alluxio-1.3.0-spark-client-jar-with-dependencies.jar"> 依赖包下载 </a>。
@@ -134,8 +134,8 @@ Alluxio通过配置`alluxio.security.authentication.type`来提供不同的用�
 
 解决办法: 这种错误说明alluxio空间不足，无法完成用户写请求。
 
-- 检查一下内存中是否有多余的文件并从内存中释放这些文件。查看[Command-Line-Interface](Command-Line-Interface.html)获取更多信息。
-- 通过改变`alluxio.worker.memory.size`属性值增加worker节点可用内存的容量，查看[Configuration](Configuration-Settings.html#common-configuration) 获取更多信息。
+- 检查一下内存中是否有多余的文件并从内存中释放这些文件。查看[用户CLI]({{ '/cn/operation/User-CLI.html' | relativize_url }})获取更多信息。
+- 通过改变`alluxio.worker.memory.size`属性值增加worker节点可用内存的容量，查看[Configuration]({{ '/cn/operation/Configuration.html' | relativize_url }}#common-configuration) 获取更多信息。
 
 ### 问题： 当我正在写一个新的文件/目录，我的应用程序中出现日志错误。
 
