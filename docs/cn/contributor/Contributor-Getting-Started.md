@@ -180,14 +180,6 @@ $ git push origin awesome_feature
 
 对于这个pull request的标题，它应该像**Awesome Feature**这样（在标题里面，请用和你的request相关的信息替换掉 Awesome Feature，例如，"Fix format in error message"或者"Improve java doc of method Foo"）。
 
-If this pull request is addressing a Github issue,
-please add a link back to the issue in the first line of the description box.
-For example, if this pull request aims to solve Github Issue 1234
-include "Fixes #1234", "Fixed #1234", "Fix #1234", "Closes #1234",
-"Closed #1234", or "Close #1234" in your pull request message.
-If the issue is from new contributor tasks, prefix the number "#1234" with repository name
-"Alluxio/new-contributor-tasks".
-
 如果这个pull request是解决某一个Github Issue，
 在描述框的第一行，请添加一个该Issue的链接，例如
 "Fixes #1234"，"Fixed #1234"，"Fix #1234"，"Closes #1234"，
