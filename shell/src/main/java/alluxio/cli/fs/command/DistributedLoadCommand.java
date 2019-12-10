@@ -73,8 +73,6 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
           .desc("Maximum number of active outgoing jobs, default: " + DEFAULT_ACTIVE_JOBS)
           .build();
 
-  private final List<JobAttempt> mSubmittedJobAttempts;
-
   private class JobAttempt {
     private final JobConfig mJobConfig;
     private final RetryPolicy mRetryPolicy;
@@ -142,6 +140,9 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
     }
   }
 
+  private final List<JobAttempt> mSubmittedJobAttempts;
+  private int mActiveJobs;
+
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
@@ -172,6 +173,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
+    mActiveJobs = FileSystemShellUtils.getIntArg(cl, ACTIVE_JOBS_OPTION, DEFAULT_ACTIVE_JOBS);
     distributedLoad(path, replication);
     return 0;
   }
@@ -229,7 +231,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
       System.out.println(filePath + " is already fully loaded in Alluxio");
       return;
     }
-    if (mSubmittedJobAttempts.size() >= DEFAULT_ACTIVE_JOBS) {
+    if (mSubmittedJobAttempts.size() >= mActiveJobs) {
       // Wait one job to complete.
       waitJob();
     }
