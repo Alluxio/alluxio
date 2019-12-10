@@ -81,7 +81,7 @@ $ ./bin/alluxio validateEnv local
 
 该命令将汇报在本地环境运行 Alluxio 可能出现的问题。
 
-你可以在[这里]({{ '/en/basic/User-CLI.html' | relativize_url }})查看更多关于`validateEnv`命令的信息。
+你可以在[这里]({{ '/en/operation/User-CLI.html' | relativize_url }})查看更多关于`validateEnv`命令的信息。
 
 ## 启动 Alluxio
 
@@ -101,7 +101,7 @@ $ ./bin/alluxio-start.sh local SudoMount
 
 ## 使用 Alluxio Shell
 
-[Alluxio shell]({{ '/en/basic/User-CLI.html' | relativize_url }}) 包含多种与 Alluxio 交互的命令行操作。如果要查看文件系统操作命令列表，运行：
+[Alluxio shell]({{ '/en/operation/User-CLI.html' | relativize_url }}) 包含多种与 Alluxio 交互的命令行操作。如果要查看文件系统操作命令列表，运行：
 
 ```console
 $ ./bin/alluxio fs
