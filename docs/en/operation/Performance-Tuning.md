@@ -82,7 +82,7 @@ ALLUXIO_JAVA_OPTS=" -XX:+PrintGCDetails -XX:+PrintTenuringDistribution -XX:+Prin
 Also check out the [metrics system][2] for better insight in how jobs are performing.
 
 [1]: {{ '/en/api/FS-API.html' | relativize_url }}#location-policy
-[2]: {{ '/en/operations/Metrics-System.html' | relativize_url }}
+[2]: {{ '/en/operation/Metrics-System.html' | relativize_url }}
 
 ## General Tuning
 

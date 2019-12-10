@@ -16,7 +16,7 @@ This is the simplest way to deploy Alluxio on a cluster, meanwhile this single
 master may also become the single point of failure (SPOF) in an Alluxio cluster. If that machine or
 process became unavailable, the cluster as a whole would be unavailable.
 To deploy Alluxio in production, we highly recommend running Alluxio masters in
-[High Availability]({{ '/en/install/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}) mode.
+[High Availability]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}) mode.
 
 ## Prerequisites
 

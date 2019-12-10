@@ -25,7 +25,7 @@ Usage: alluxio [COMMAND]
 ## General operations
 
 This section lists usages and examples of general Alluxio operations with the exception of file
-system commands which are covered in the [Admin CLI doc]({{ '/en/operations/Admin-CLI.html' | relativize_url }}).
+system commands which are covered in the [Admin CLI doc]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
 
 ### extensions
 
@@ -107,7 +107,7 @@ See [File System Operations](#File-System-Operations).
 
 The `fsadmin` command is meant for administrators of the Alluxio cluster.
 It provides added tools for diagnostics and troubleshooting.
-For more information see the [main page]({{ '/en/operations/Admin-CLI.html' | relativize_url }}).
+For more information see the [main page]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
 
 ### getConf
 

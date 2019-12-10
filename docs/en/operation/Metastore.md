@@ -112,5 +112,5 @@ Then restart the masters with the `-i ${BACKUP_PATH}` argument, replacing
 $ ./bin/alluxio-start.sh -i ${BACKUP_PATH} masters
 ```
 
-See [here]({{ '/en/operations/Journal.html' | relativize_url }}#backing-up-the-journal)
+See [here]({{ '/en/operation/Journal.html' | relativize_url }}#backing-up-the-journal)
 for more information regarding journal backup.

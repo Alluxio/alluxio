@@ -267,7 +267,7 @@ $ docker exec ${container_id} cat /opt/alluxio/conf/alluxio-env.sh
 ### Run in High-Availability Mode
 
 A lone Alluxio master is a single point of failure. To guard against this, a production
-cluster should run multiple Alluxio masters in [High Availability mode]({{ '/en/install/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}).
+cluster should run multiple Alluxio masters in [High Availability mode]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}).
 
 #### Option A: Internal Leader Election
 
@@ -291,7 +291,7 @@ $ docker run -d \
   alluxio worker
 ```
 
-You can find more on Embedded Journal configuration [here]({{ '/en/install/Running-Alluxio-On-a-HA-Cluster.html#option1-raft-based-embedded-journal' | relativize_url }}).
+You can find more on Embedded Journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#option1-raft-based-embedded-journal' | relativize_url }}).
 
 #### Option B: Zookeeper and Shared Journal Storage
 
@@ -317,7 +317,7 @@ $ docker run -d \
   alluxio worker
 ```
 
-You can find more on ZooKeeper and shared journal configuration [here]({{ '/en/install/Running-Alluxio-On-a-HA-Cluster.html#option2-zookeeper-and-shared-journal-storage' | relativize_url }}).
+You can find more on ZooKeeper and shared journal configuration [here]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html#option2-zookeeper-and-shared-journal-storage' | relativize_url }}).
 
 ### Enable short-circuit reads and writes
 

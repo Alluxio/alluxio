@@ -50,7 +50,7 @@ supported under storage systems locations can be served and read through Alluxio
 ## Using The Alluxio Catalog Service
 
 Here are the basic configuration parameters and ways to interact with the Alluxio Catalog Service. More details
-can be found in the [command line interface documentation]({{ '/en/operations/User-CLI.html' | relativize_url }}#table-operations).
+can be found in the [command line interface documentation]({{ '/en/operation/User-CLI.html' | relativize_url }}#table-operations).
 
 ### Alluxio Server Configuration
 

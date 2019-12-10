@@ -15,7 +15,7 @@ This page summarizes Alluxio's logging system for servers, such as the master an
 processes. We include tips for modifying Alluxio's log4j properties file to best suit
 deployment needs. If you are a user of Alluxio looking for logging information about clients
 that are utilizing the Alluxio API, we recommend looking at the
-[client logging documentation]({{ '/en/operations/Client-Logging.html' | relativize_url }})
+[client logging documentation]({{ '/en/operation/Client-Logging.html' | relativize_url }})
 
 Alluxio's logging behavior can be fully configured through the `log4j.properties` file found in the
 `conf` folder.
@@ -31,7 +31,7 @@ By default Alluxio processes' log files can be found under `${ALLUXIO_HOME}/logs
 The location of the logs is determined by the `alluxio.logs.dir` property. This can only be set via JVM
 property; it cannot be set in the `alluxio-site.properties` file.
 See the
-[configuration settings page]({{ '/en/operations/Configuration.html' | relativize_url }}#configuration-sources)
+[configuration settings page]({{ '/en/operation/Configuration.html' | relativize_url }}#configuration-sources)
 for more information on how to set JVM properties for Alluxio.
 
 Each Alluxio process (master, worker, FUSE, proxy) will log to a separate file within the

@@ -98,7 +98,7 @@ $ ./bin/alluxio validateEnv local
 
 This reports potential problems that might prevent Alluxio from starting locally.
 
-Check out [this page]({{ '/en/operations/User-CLI.html' | relativize_url }}) for detailed
+Check out [this page]({{ '/en/operation/User-CLI.html' | relativize_url }}) for detailed
 usage information regarding the `validateEnv` command.
 
 ## Starting Alluxio
@@ -123,7 +123,7 @@ to see the status of the Alluxio master and worker respectively.
 
 ## Using the Alluxio Shell
 
-The [Alluxio shell]({{ '/en/operations/User-CLI.html' | relativize_url }}) provides
+The [Alluxio shell]({{ '/en/operation/User-CLI.html' | relativize_url }}) provides
 command line operations for interacting with Alluxio. To see a list of filesystem operations, run
 
 ```console

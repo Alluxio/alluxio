@@ -116,7 +116,7 @@ alluxio.locality.node=node_name
 alluxio.locality.rack=rack_name
 ```
 
-See the [Configuration-Settings]({{ '/en/operations/Configuration.html' | relativize_url }})
+See the [Configuration-Settings]({{ '/en/operation/Configuration.html' | relativize_url }})
 page for the different ways to set configuration properties.
 
 ### Tier value priority order

@@ -69,7 +69,7 @@ you can [Run Alluxio Locally with GCS](#running-alluxio-locally-with-gcs).
 ### Nested Mount Point
 
 An GCS location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operations/User-CLI.html' | relativize_url }}) can be used for this purpose.
+to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
 
 First, within `conf/alluxio-site.properties`, specify the master host:
 ```properties

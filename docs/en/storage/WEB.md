@@ -50,7 +50,7 @@ Here, alluxio.underfs.web.connnection.timeout is the timeout setting for a http 
 
 ### NESTED MOUNT
 
-An WEB location can be mounted at a nested directory in the Alluxio namespace to have unified access to multiple under storage systems. Alluxio's [Mount Command]({{ '/en/operations/User-CLI.html' | relativize_url }}#mount) can be used for this purpose.
+An WEB location can be mounted at a nested directory in the Alluxio namespace to have unified access to multiple under storage systems. Alluxio's [Mount Command]({{ '/en/operation/User-CLI.html' | relativize_url }}#mount) can be used for this purpose.
 For example, the following command mounts a directory inside an WEB directory into Alluxio directory
 `/web`:
 

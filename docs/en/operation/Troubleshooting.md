@@ -31,7 +31,7 @@ in the case the problem has been discussed before.
 The client-side logs are also helpful when Alluxio service is running but the client cannot connect to the servers.
 Alluxio client emits logging messages through log4j, so the location of the logs is determined by the client side
 log4j configuration used by the application. For more information about logging, please check out
-[this page]({{ '/en/operations/Client-Logging.html' | relativize_url }}).
+[this page]({{ '/en/operation/Client-Logging.html' | relativize_url }}).
 
 ## Alluxio remote debug
 
@@ -156,17 +156,17 @@ A: This problem can be caused by different possible reasons.
 - Please double check if the port of Alluxio master address is correct. The default listening port for Alluxio master is port 19998,
 while a common mistake causing this error message is due to using a wrong port in master address (e.g., using port 19999 which is the default Web UI port for Alluxio master).
 - Please ensure that the security settings of Alluxio client and master are consistent.
-Alluxio provides different approaches to [authenticate]({{ '/en/operations/Security.html' | relativize_url }}#authentication) users by configuring `alluxio.security.authentication.type`.
+Alluxio provides different approaches to [authenticate]({{ '/en/operation/Security.html' | relativize_url }}#authentication) users by configuring `alluxio.security.authentication.type`.
 This error happens if this property is configured with different values across servers and clients
 (e.g., one uses the default value `NOSASL` while the other is customized to `SIMPLE`).
-Please read [Configuration-Settings]({{ '/en/operations/Configuration.html' | relativize_url }}) for how to customize Alluxio clusters and applications.
+Please read [Configuration-Settings]({{ '/en/operation/Configuration.html' | relativize_url }}) for how to customize Alluxio clusters and applications.
 
 ### Q: I'm copying or writing data to Alluxio while seeing error messages like "Failed to cache: Not enough space to store block on worker". Why?
 
 A: This error indicates insufficient space left on Alluxio workers to complete your write request.
 
 - Check if you have any files unnecessarily pinned in memory and unpin them to release space.
-See [Command-Line-Interface]({{ '/en/operations/User-CLI.html' | relativize_url }}) for more details.
+See [Command-Line-Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) for more details.
 - Increase the capacity of workers by changing `alluxio.worker.memory.size` property.
 See [Configuration]({{ '/en/reference/Properties-List.html' | relativize_url }}#common-configuration) for more description.
 
@@ -223,7 +223,7 @@ node by default).
 A: Alluxio accelerates your system performance by leveraging temporal or spatial locality using distributed in-memory storage
 (and tiered storage). If your workloads don't have any locality, you will not see noticeable performance boost.
 
-**For a comprehensive guide on tuning performance of Alluxio cluster, please check out [this page]({{ '/en/operations/Performance-Tuning.html' | relativize_url }}).**
+**For a comprehensive guide on tuning performance of Alluxio cluster, please check out [this page]({{ '/en/operation/Performance-Tuning.html' | relativize_url }}).**
 
 ## Environment
 
