@@ -1,19 +1,20 @@
 package alluxio.cli.bundler.command;
 
 import alluxio.cli.bundler.RunCommandUtils;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.StringWriter;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,8 +22,24 @@ import java.util.List;
 public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CollectAlluxioInfoCommand.class);
 
-  public CollectAlluxioInfoCommand(@Nullable InstancedConfiguration conf) {
-    super(conf);
+  private List<AlluxioCommand> mCommands;
+
+  private static final Option FORCE_OPTION =
+          Option.builder("f")
+                  .required(false)
+                  .hasArg(false)
+                  .desc("ignores existing work")
+                  .build();
+
+  @Override
+  public Options getOptions() {
+    return new Options()
+            .addOption(FORCE_OPTION);
+  }
+
+  public CollectAlluxioInfoCommand(@Nullable FileSystemContext fsContext) {
+    super(fsContext);
+    registerCommands();
   }
 
   private static class AlluxioCommand {
@@ -49,8 +66,6 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
     }
   }
 
-  private List<AlluxioCommand> mCommands;
-
   private void registerCommands() {
     mCommands = new ArrayList<>();
     mCommands.add(new AlluxioCommand("getConf", "getConf --master --source",
@@ -61,8 +76,8 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
     mCommands.add(new AlluxioCommand("job", "job ls", null));
     mCommands.add(new AlluxioCommand("fsadmin", "fsadmin report", null));
     mCommands.add(new AlluxioCommand("journal",
-            String.format("fs ls -R %s", mConf.get(PropertyKey.MASTER_JOURNAL_FOLDER)),
-            String.format("ls -al -R %s", mConf.get(PropertyKey.MASTER_JOURNAL_FOLDER))));
+            String.format("fs ls -R %s", mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER)),
+            String.format("ls -al -R %s", mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER))));
     // TODO(jiacheng): a command to find lost blocks
   }
 
@@ -74,6 +89,17 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     int ret = 0;
+
+    // Determine the working dir path
+    String targetDir = getDestDir(cl);
+    boolean force = cl.hasOption("f");
+
+    // Skip if previous work can be reused.
+    if (!force && foundPreviousWork(targetDir)) {
+      LOG.info("Found previous work. Skipped.");
+      return ret;
+    }
+
     StringWriter output = new StringWriter();
 
     for(AlluxioCommand cmd : mCommands) {
@@ -98,6 +124,9 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
       }
     }
 
+    File outputFile = getOutputFile(targetDir, "alluxioInfo.txt");
+    FileUtils.writeStringToFile(outputFile, output.toString());
+
     return ret;
   }
 
@@ -109,11 +138,5 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
   @Override
   public String getDescription() {
     return null;
-  }
-
-  @Override
-  public String getWorkingDirectory() {
-    // TODO(jiacheng): create if not exist
-    return Paths.get(super.getWorkingDirectory(), this.getCommandName()).toString();
   }
 }

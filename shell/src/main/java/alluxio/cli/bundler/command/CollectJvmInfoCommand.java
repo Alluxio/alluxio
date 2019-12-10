@@ -1,29 +1,25 @@
 package alluxio.cli.bundler.command;
 
 import alluxio.cli.bundler.RunCommandUtils;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.util.SleepUtils;
+
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.StringWriter;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CollectJvmInfoCommand.class);
@@ -31,8 +27,21 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
   private static int COLLECT_JSTACK_TIMES = 3;
   private static int COLLECT_JSTACK_INTERVAL = 3;
 
-  public CollectJvmInfoCommand(@Nullable InstancedConfiguration conf) {
-    super(conf);
+  private static final Option FORCE_OPTION =
+          Option.builder("f")
+                  .required(false)
+                  .hasArg(false)
+                  .desc("ignores existing work")
+                  .build();
+
+  @Override
+  public Options getOptions() {
+    return new Options()
+            .addOption(FORCE_OPTION);
+  }
+
+  public CollectJvmInfoCommand(@Nullable FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -42,22 +51,33 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-      int ret = 0;
-      for(int i = 0; i < COLLECT_JSTACK_TIMES; i++) {
-        LOG.info("Checking current JPS");
-        Map<String, String> procs = getJps();
+    int ret = 0;
 
+    // Determine the working dir path
+    String targetDir = getDestDir(cl);
+    boolean force = cl.hasOption("f");
 
-        // TODO(jiacheng): ret value
-        dumpJstack(procs);
-
-        // Interval
-        LOG.info(String.format("Wait for an interval of %s seconds", COLLECT_JSTACK_INTERVAL));
-        SleepUtils.sleepMs(LOG, COLLECT_JSTACK_INTERVAL * 1000);
-      }
-
-      // TODO(jiacheng); return code
+    // Skip if previous work can be reused.
+    if (!force && foundPreviousWork(targetDir)) {
+      LOG.info("Found previous work. Skipped.");
       return ret;
+    }
+
+    for(int i = 0; i < COLLECT_JSTACK_TIMES; i++) {
+      LOG.info("Checking current JPS");
+      Map<String, String> procs = getJps();
+      String jstackContent = dumpJstack(procs);
+
+      File outputFile = getOutputFile(targetDir, String.format("%s-%s", getCommandName(), i));
+      FileUtils.writeStringToFile(outputFile, jstackContent);
+
+      // Interval
+      LOG.info(String.format("Wait for an interval of %s seconds", COLLECT_JSTACK_INTERVAL));
+      SleepUtils.sleepMs(LOG, COLLECT_JSTACK_INTERVAL * 1000);
+    }
+
+    // TODO(jiacheng); return code
+    return ret;
   }
 
   public Map<String, String> getJps() {
@@ -91,11 +111,15 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
     return procs;
   }
 
-  public void dumpJstack(Map<String, String> procs) throws IOException {
+  public String dumpJstack(Map<String, String> procs) throws IOException {
     // Output file
     StringWriter outputBuffer = new StringWriter();
-    String outputFilePath = Paths.get(this.getWorkingDirectory(), getOutputPath()).toString();
-    File outputFile = new File(outputFilePath);
+
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+    LocalDateTime now = LocalDateTime.now();
+    String timeString = dtf.format(now);
+    LOG.info(String.format("Dumping jstack time %s", timeString));
+    outputBuffer.write(String.format("Dumping jstack at approximately %s", timeString));
 
     for (String k : procs.keySet()) {
       LOG.info("Dumping jstack on pid %s name %s", k, procs.get(k));
@@ -107,27 +131,11 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
       // Output
       String cmdResult = String.format("StatusCode:%s\nStdOut:\n%s\nStdErr:\n%s", cr.getStatusCode(),
               cr.getStdOut(), cr.getStdErr());
-      try {
-        FileUtils.writeStringToFile(outputFile, cmdResult);
-      } catch (IOException e) {
-        LOG.error(String.format("Failed to output jstack to %s", outputFilePath));
-        e.printStackTrace();
-      }
+      outputBuffer.write(cmdResult);
     }
 
-    return;
-  }
-
-  private String getOutputPath() {
-    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
-    LocalDateTime now = LocalDateTime.now();
-    return Paths.get(this.getWorkingDirectory(), this.getCommandName(), "jstacks_" + dtf.format(now)).toString();
-  }
-
-  @Override
-  public String getWorkingDirectory() {
-    // TODO(jiacheng): create if not exist
-    return Paths.get(super.getWorkingDirectory(), this.getCommandName()).toString();
+    LOG.info("Jstack dump finished");
+    return outputBuffer.toString();
   }
 
   @Override

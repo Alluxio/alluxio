@@ -11,6 +11,7 @@
 
 package alluxio.cli.validation;
 
+import alluxio.cli.CommandUtils;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.ShellUtils;
@@ -22,10 +23,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -83,24 +80,7 @@ public final class Utils {
   @Nullable
   public static List<String> readNodeList(String fileName) {
     String confDir = ServerConfiguration.get(PropertyKey.CONF_DIR);
-    List<String> lines;
-    try {
-      lines = Files.readAllLines(Paths.get(confDir, fileName), StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      System.err.format("Failed to read file %s/%s.%n", confDir, fileName);
-      return null;
-    }
-
-    List<String> nodes = new ArrayList<>();
-    for (String line : lines) {
-      String node = line.trim();
-      if (node.startsWith("#") || node.length() == 0) {
-        continue;
-      }
-      nodes.add(node);
-    }
-
-    return nodes;
+    return CommandUtils.readNodeList(confDir, fileName);
   }
 
   /**

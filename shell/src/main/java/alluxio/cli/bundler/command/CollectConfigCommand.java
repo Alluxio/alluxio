@@ -1,22 +1,37 @@
 package alluxio.cli.bundler.command;
 
-import alluxio.cli.Command;
-import alluxio.cli.bundler.InfoCollector;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-import alluxio.util.ConfigurationUtils;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 
 public class CollectConfigCommand extends AbstractInfoCollectorCommand {
-  public CollectConfigCommand(@Nullable InstancedConfiguration conf) {
-    super(conf);
+  private static final Logger LOG = LoggerFactory.getLogger(CollectConfigCommand.class);
+
+  private static final Option FORCE_OPTION =
+          Option.builder("f")
+                  .required(false)
+                  .hasArg(false)
+                  .desc("ignores existing work")
+                  .build();
+
+  @Override
+  public Options getOptions() {
+    return new Options()
+            .addOption(FORCE_OPTION);
+  }
+
+  public CollectConfigCommand(@Nullable FileSystemContext fsContext) {
+    super(fsContext);
   }
 
   @Override
@@ -31,13 +46,25 @@ public class CollectConfigCommand extends AbstractInfoCollectorCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    String workingDir = this.getWorkingDirectory();
-    String confDir = mConf.get(PropertyKey.CONF_DIR);
+    int ret = 0;
+
+    // Determine the working dir path
+    String targetDir = getDestDir(cl);
+    boolean force = cl.hasOption("f");
+
+    // Skip if previous work can be reused.
+    if (!force && foundPreviousWork(targetDir)) {
+      LOG.info("Found previous work. Skipped.");
+      return ret;
+    }
+
+    String workingDir = this.getWorkingDirectory(targetDir);
+    String confDir = mFsContext.getClusterConf().get(PropertyKey.CONF_DIR);
 
     // TODO(jiacheng): Copy intelligently
     FileUtils.copyDirectory(new File(confDir), new File(workingDir), true);
 
-    return 0;
+    return ret;
   }
 
   @Override
@@ -48,10 +75,5 @@ public class CollectConfigCommand extends AbstractInfoCollectorCommand {
   @Override
   public String getDescription() {
     return "Collect configurations";
-  }
-
-  @Override
-  public String getWorkingDirectory() {
-    return Paths.get(super.getWorkingDirectory(), this.getCommandName()).toString();
   }
 }
