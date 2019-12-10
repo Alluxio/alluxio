@@ -33,14 +33,12 @@ import com.google.common.collect.Lists;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -63,7 +61,17 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
           .desc("Number of block replicas of each loaded file, default: " + DEFAULT_REPLICATION)
           .build();
 
-  private static final int DEFAULT_BATCH_SIZE = 1000;
+  private static final int DEFAULT_ACTIVE_JOBS = 1000;
+  private static final Option ACTIVE_JOBS_OPTION =
+      Option.builder()
+          .longOpt("active_jobs")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .type(Number.class)
+          .argName("jobs")
+          .desc("Maximum number of active outgoing jobs, default: " + DEFAULT_ACTIVE_JOBS)
+          .build();
 
   private final List<JobAttempt> mSubmittedJobAttempts;
 
@@ -87,6 +95,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
         try {
           mJobId = mClient.run(mJobConfig);
         } catch (IOException e) {
+          LOG.warn("Failed to get status for job (jobId={})", mJobId, e);
           // Do nothing. This will be counted as a failed attempt
         }
         return true;
@@ -104,11 +113,12 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
         return false;
       }
 
-      JobInfo jobInfo = null;
+      JobInfo jobInfo;
       try {
         jobInfo = mClient.getJobStatus(mJobId);
       } catch (IOException e) {
-        return null;
+        LOG.warn("Failed to get status for job (jobId={})", mJobId, e);
+        return false;
       }
 
       switch (jobInfo.getStatus()) {
@@ -117,11 +127,6 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
           return null;
         case CANCELED:
         case COMPLETED:
-          try {
-            mClient.close();
-          } catch (IOException e) {
-            // ignore IOException
-          }
           return true;
         case FAILED:
           return false;
@@ -129,6 +134,11 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
           throw new IllegalStateException(String.format("Unexpected Status: %s",
               jobInfo.getStatus()));
       }
+    }
+
+    private void close() throws IOException {
+      // propagate failing to close up to prevent potential memory leak
+      mClient.close();
     }
   }
 
@@ -149,7 +159,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(REPLICATION_OPTION);
+    return new Options().addOption(REPLICATION_OPTION).addOption(ACTIVE_JOBS_OPTION);
   }
 
   @Override
@@ -162,16 +172,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
-    try {
-      distributedLoad(path, replication);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return -1;
-    } catch (ExecutionException e) {
-      System.out.println(e.getMessage());
-      LOG.error("Error running " + StringUtils.join(args, " "), e);
-      return -1;
-    }
+    distributedLoad(path, replication);
     return 0;
   }
 
@@ -193,7 +194,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   /**
    * Waits one job to complete.
    */
-  private void waitJob() {
+  private void waitJob() throws IOException {
     boolean removed = false;
     while (true) {
       Iterator<JobAttempt> iterator = mSubmittedJobAttempts.iterator();
@@ -206,6 +207,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
           continue;
         } else if (check) {
           removed = true;
+          jobAttempt.close();
           iterator.remove();
         } else {
           jobAttempt.run();
@@ -220,15 +222,14 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   /**
    * Add one job.
    */
-  private void addJob(URIStatus status, int replication)
-      throws ExecutionException, InterruptedException {
+  private void addJob(URIStatus status, int replication) throws IOException {
     AlluxioURI filePath = new AlluxioURI(status.getPath());
     if (status.getInAlluxioPercentage() == 100) {
       // The file has already been fully loaded into Alluxio.
       System.out.println(filePath + " is already fully loaded in Alluxio");
       return;
     }
-    if (mSubmittedJobAttempts.size() >= DEFAULT_BATCH_SIZE) {
+    if (mSubmittedJobAttempts.size() >= DEFAULT_ACTIVE_JOBS) {
       // Wait one job to complete.
       waitJob();
     }
@@ -243,7 +244,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
    * @param replication The replication of file to load into Alluxio memory
    */
   private void distributedLoad(AlluxioURI filePath, int replication)
-      throws AlluxioException, IOException, InterruptedException, ExecutionException {
+      throws AlluxioException, IOException {
     load(filePath, replication);
     // Wait remaining jobs to complete.
     while (!mSubmittedJobAttempts.isEmpty()) {
@@ -259,7 +260,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
    * @throws IOException      when non-Alluxio exception occurs
    */
   private void load(AlluxioURI filePath, int replication)
-      throws IOException, AlluxioException, ExecutionException, InterruptedException {
+      throws IOException, AlluxioException {
     URIStatus status = mFileSystem.getStatus(filePath);
     if (status.isFolder()) {
       List<URIStatus> statuses = mFileSystem.listStatus(filePath);
