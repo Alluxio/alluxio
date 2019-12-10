@@ -686,5 +686,31 @@ public final class CommonUtils {
         mins, secs);
   }
 
+  /**
+   * Memoize implementation for java.util.function.supplier.
+   *
+   * @param original the original supplier
+   * @param <T> the object type
+   * @return the supplier with memorization
+   */
+  public static <T> Supplier<T> memoize(Supplier<T> original) {
+    return new Supplier<T>() {
+      Supplier<T> mDelegate = this::firstTime;
+      boolean mInitialized;
+      public T get() {
+        return mDelegate.get();
+      }
+
+      private synchronized T firstTime() {
+        if (!mInitialized) {
+          T value = original.get();
+          mDelegate = () -> value;
+          mInitialized = true;
+        }
+        return mDelegate.get();
+      }
+    };
+  }
+
   private CommonUtils() {} // prevent instantiation
 }

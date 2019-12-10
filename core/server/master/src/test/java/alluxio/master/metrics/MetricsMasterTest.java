@@ -93,7 +93,7 @@ public class MetricsMasterTest {
     List<Metric> metrics3 = Lists.newArrayList(Metric.from("worker.192_1_1_2.metricA", 3));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics3);
     checkMetricValue("metricA", 13L);
-    checkMetricValue("metricB", 20L);
+    checkMetricValue("metricB", 22L);
   }
 
   @Test
