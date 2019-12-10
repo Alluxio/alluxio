@@ -25,6 +25,7 @@ import alluxio.job.JobConfig;
 import alluxio.job.plan.load.LoadConfig;
 
 import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.Status;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.worker.job.JobMasterClientContext;
@@ -106,9 +107,9 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
      * @return True if finished successfully or cancelled, False if FAILED and should be retried,
      *              null if the status should be checked again later
      */
-    private Boolean check() {
+    private Status check() {
       if (mJobId == null) {
-        return false;
+        return Status.FAILED;
       }
 
       JobInfo jobInfo;
@@ -116,22 +117,10 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
         jobInfo = mClient.getJobStatus(mJobId);
       } catch (IOException e) {
         LOG.warn("Failed to get status for job (jobId={})", mJobId, e);
-        return false;
+        return Status.FAILED;
       }
 
-      switch (jobInfo.getStatus()) {
-        case CREATED:
-        case RUNNING:
-          return null;
-        case CANCELED:
-        case COMPLETED:
-          return true;
-        case FAILED:
-          return false;
-        default:
-          throw new IllegalStateException(String.format("Unexpected Status: %s",
-              jobInfo.getStatus()));
-      }
+      return jobInfo.getStatus();
     }
 
     private void close() throws IOException {
@@ -203,16 +192,23 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
 
       while (iterator.hasNext()) {
         JobAttempt jobAttempt = iterator.next();
-        Boolean check = jobAttempt.check();
+        Status check = jobAttempt.check();
 
-        if (check == null) {
-          continue;
-        } else if (check) {
-          removed = true;
-          jobAttempt.close();
-          iterator.remove();
-        } else {
-          jobAttempt.run();
+        switch (check) {
+          case CREATED:
+          case RUNNING:
+            continue;
+          case CANCELED:
+          case COMPLETED:
+            removed = true;
+            jobAttempt.close();
+            iterator.remove();
+            continue;
+          case FAILED:
+            jobAttempt.run();
+            continue;
+          default:
+            throw new IllegalStateException(String.format("Unexpected Status: %s", check));
         }
       }
       if (removed) {
