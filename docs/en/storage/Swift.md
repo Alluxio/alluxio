@@ -60,7 +60,7 @@ value of `<swift-use-public>`  to `false`.
 ### Nested Mount Point
 
 An Swift location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operations/User-CLI.html' | relativize_url }}) can be used for this purpose.
+to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
 
 ```console
 $ ./bin/alluxio fs mount \

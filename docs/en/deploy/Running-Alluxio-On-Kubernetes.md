@@ -50,11 +50,11 @@ $ cd kubernetes
 
 ### (Optional) Provision a Persistent Volume
 
-Note: [Embedded Journal]({{ '/en/operations/Journal.html' | relativize_url }}#embedded-journal-configuration)
+Note: [Embedded Journal]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
 does not require a Persistent Volume to be provisioned and is the preferred HA mechanism for
 Alluxio on Kubernetes. If using this mechanism, the remainder of this section can be skipped.
 
-When using the [UFS Journal]({{ '/en/operations/Journal.html' | relativize_url }}#ufs-journal-configuration}})
+When using the [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration}})
 an Alluxio master can be configured to use a [persistent volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
 for storing the journal. The volume, once claimed, is persisted across restarts of the master process.
 
@@ -124,7 +124,7 @@ properties:
 
 ***Example: Single Master and Journal in a Persistent Volume***
 
-The following configures [UFS Journal]({{ '/en/operations/Journal.html' | relativize_url }}#ufs-journal-configuration}})
+The following configures [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration}})
 with a persistent volume claim `alluxio-pv-claim` mounted locally to the master Pod at location
 `/journal`.
 
@@ -176,7 +176,7 @@ journal:
   folder: "/journal"
 ```
 
-> Limitation: [Embedded Journal]({{ '/en/operations/Journal.html' | relativize_url }}#embedded-journal-configuration)
+> Limitation: [Embedded Journal]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
 configuration using `helm` uses `emptyDir` volumes by default.
 This type of volume is lost on Pod restart.
 To prevent meta-data loss, [local persistent volumes](https://kubernetes.io/docs/concepts/storage/volumes/#local)
@@ -311,7 +311,7 @@ The specification directory contains a set of YAML templates for common deployme
 the sub-directories: *singleMaster-localJournal*, *singleMaster-hdfsJournal* and
 *multiMaster-embeddedJournal*.
 > *singleMaster* means the templates generate 1 Alluxio master process, while *multiMaster* means 3.
-*embedded* and *ufs* are the 2 [journal modes]({{ '/en/operations/Journal.html' | relativize_url }}) that Alluxio supports.
+*embedded* and *ufs* are the 2 [journal modes]({{ '/en/operation/Journal.html' | relativize_url }}) that Alluxio supports.
 
 - *singleMaster-localJournal* directory gives you the necessary Kubernetes ConfigMap, 1 Alluxio
 master process and a set of Alluxio workers.
@@ -539,7 +539,7 @@ You should verify the Alluxio Pods are back up in Running status.
 $ kubectl get pods
 ```
 
-You can do more comprehensive verification following [Verify Alluxio]({{ '/en/install/Running-Alluxio-Locally.html?q=verify#verify-alluxio-is-running' | relativize_url }})
+You can do more comprehensive verification following [Verify Alluxio]({{ '/en/deploy/Running-Alluxio-Locally.html?q=verify#verify-alluxio-is-running' | relativize_url }})
 
 ### Access the Web UI
 
@@ -724,9 +724,9 @@ Compute application containers **must** mount the domain socket volume to the sa
 
 To verify short-circuit reads and writes monitor the metrics displayed under:
 1. the metrics tab of the web UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`
-1. or, the [metrics json]({{ '/en/operations/Metrics-System.html' | relativize_url }}) as
+1. or, the [metrics json]({{ '/en/operation/Metrics-System.html' | relativize_url }}) as
 `cluster.BytesReadDomain` and `cluster.BytesWrittenDomain`
-1. or, the [fsadmin metrics CLI]({{ '/en/operations/Admin-CLI.html' | relativize_url }}) as
+1. or, the [fsadmin metrics CLI]({{ '/en/operation/Admin-CLI.html' | relativize_url }}) as
 `Short-circuit Read (Domain Socket)` and `Alluxio Write (Domain Socket)`
 
 ### POSIX API

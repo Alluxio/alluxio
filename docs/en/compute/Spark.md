@@ -157,7 +157,7 @@ $ spark-submit \
 ```
 
 To customize Alluxio client-side properties for a Spark job, see
-[how to configure Spark Jobs]({{ '/en/operations/Configuration.html' | relativize_url }}#spark).
+[how to configure Spark Jobs]({{ '/en/operation/Configuration.html' | relativize_url }}#spark).
 
 Note that in client mode you need to set `--driver-java-options "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"` instead of `--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH`
 (see [explanation](https://spark.apache.org/docs/2.3.2/configuration.html)).

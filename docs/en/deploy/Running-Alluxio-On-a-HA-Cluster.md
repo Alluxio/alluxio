@@ -33,7 +33,7 @@ dependency on external services.
 - [Option2](#option2-zookeeper-and-shared-journal-storage):
 Leverage an external Zookeeper service for leader election on the leading master
 and a shared storage (e.g., the root UFS) for shared journal.
-See [journal management documentation]({{ '/en/operations/Journal.html' | relativize_url }}) for more information about choosing and configuring Alluxio journal system.
+See [journal management documentation]({{ '/en/operation/Journal.html' | relativize_url }}) for more information about choosing and configuring Alluxio journal system.
 
 ## Prerequisites
 
@@ -79,7 +79,7 @@ Explanation:
 Note that embedded journal feature relies on [Copycat](https://github.com/atomix/copycat) which has built-in leader election.
 The built-in leader election cannot work with Zookeeper since we cannot have two leaders which might not match.
 Enabling embedded journal enables Alluxio's internal leader election.
-See [embedded journal configuration documentation]({{ '/en/operations/Journal.html' | relativize_url }}#embedded-journal-configuration)
+See [embedded journal configuration documentation]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
 for more details and alternative ways to set up HA cluster with internal leader election.
 
 ### Option2: Zookeeper and Shared Journal Storage
@@ -331,7 +331,7 @@ will consider the worker as "lost", and no longer consider it as part of the clu
 In order to add a master, the Alluxio cluster must operate in HA mode. If you are running the cluster as
 a single master cluster, you must configure it to be an HA cluster before having more than one master.
 
-See [journal management documentation]({{ '/en/operations/Journal.html' | relativize_url }}) for more information about 
+See [journal management documentation]({{ '/en/operation/Journal.html' | relativize_url }}) for more information about 
 adding and removing masters.
 
 ### Update Master-side Configuration

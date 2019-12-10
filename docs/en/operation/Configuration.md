@@ -167,7 +167,7 @@ If the administrator updates path defaults by
 `bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.default=THROUGH /tmp`,
 afterwards, all `createFile` will by default have write type `THROUGH`.
 
-See [fsadmin pathConf]({{ '/en/operations/Admin-CLI.html' | relativize_url }}#pathConf) on how to
+See [fsadmin pathConf]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#pathConf) on how to
 show, add, update, and remove path defaults.
 
 ## Configuration Sources

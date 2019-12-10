@@ -13,7 +13,7 @@ priority: 4
 
 [Alluxio](https://www.alluxio.io/), formerly Tachyon, is an open source, memory speed, virtual
 distributed storage. It enables any application to interact with any data from any storage system
-at memory speed. Read more about Alluxio [here]({{ '/en/overview/Introduction.html' | relativize_url }}).
+at memory speed. Read more about Alluxio [here]({{ '/en/Overview.html' | relativize_url }}).
 
 ## What platforms and Java versions can Alluxio run on?
 

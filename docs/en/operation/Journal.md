@@ -132,7 +132,7 @@ backup directory can be configured by setting `alluxio.master.backup.directory`
 alluxio.master.backup.directory=/alluxio/backups
 ```
 
-See the [backup command documentation]({{ '/en/operations/Admin-CLI.html' | relativize_url }}#backup)
+See the [backup command documentation]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#backup)
 for additional backup options.
 
 ### Automatically backing up the journal
@@ -208,7 +208,7 @@ Note: Adding to an already shut down cluster still requires adding only single m
 Note: When adding a master to a single master cluster, you should shut down and update configuration for the existing master.
 Then both masters could be started together.
 
-See [here]({{ '/en/operations/Journal.html' | relativize_url }}) for configuring embedded journal.
+See [here]({{ '/en/operation/Journal.html' | relativize_url }}) for configuring embedded journal.
 
 ##### Removing a master
 Embedded journal cluster will take a notice when a member is not available anymore. Such masters will count

@@ -67,7 +67,7 @@ system's total memory. This ramdisk will be used as the only storage medium allo
 Alluxio worker.
 
 Alluxio storage is configured through Alluxio's configuration in `alluxio-site.properties`. See
-[configuration settings]({{ '/en/operations/Configuration.html' | relativize_url }}) for detailed
+[configuration settings]({{ '/en/operation/Configuration.html' | relativize_url }}) for detailed
 information.
 
 A common modification to the default is to explicitly set the ramdisk size. For example, to set the
@@ -153,7 +153,7 @@ explicitly moving hot data to higher tiers.
 #### Configuring Tiered Storage
 
 Tiered storage can be enabled in Alluxio using
-[configuration parameters]({{ '/en/operations/Configuration.html' | relativize_url }}).
+[configuration parameters]({{ '/en/operation/Configuration.html' | relativize_url }}).
 To specify additional tiers for Alluxio, use the following configuration parameters:
 
 ```properties
@@ -296,7 +296,7 @@ $ ./bin/alluxio fs free ${PATH_TO_UNUSED_DATA}
 
 This will remove the data at the given path from Alluxio storage. The data is still accessible if
 it is persisted to a UFS. For more information refer to the
-[command line interface documentation]({{ '/en/operations/User-CLI.html' | relativize_url }}#free)
+[command line interface documentation]({{ '/en/operation/User-CLI.html' | relativize_url }}#free)
 
 Note that a user typically should not need to manually free data from Alluxio as the
 configured [eviction policy](#eviction-policies) will take care of removing unused or old data.
@@ -304,14 +304,14 @@ configured [eviction policy](#eviction-policies) will take care of removing unus
 ### Loading Data into Alluxio Storage
 
 If the data is already in a UFS, use
-[`alluxio fs load`]({{ '/en/operations/User-CLI.html' | relativize_url }}#load)
+[`alluxio fs load`]({{ '/en/operation/User-CLI.html' | relativize_url }}#load)
 
 ```console
 $ ./bin/alluxio fs load ${PATH_TO_FILE}
 ```
 
 To load data from the local file system, use the command
-[`alluxio fs copyFromLocal`]({{ '/en/operations/User-CLI.html' | relativize_url
+[`alluxio fs copyFromLocal`]({{ '/en/operation/User-CLI.html' | relativize_url
 }}#copyfromlocal).
 This will only load the file into Alluxio storage, but may not persist the data to a UFS.
 Setting the write type to `MUST_CACHE` write type will _not_ persist data to a UFS,
@@ -320,7 +320,7 @@ will automatically load data into the Alluxio cache when a file is used for the 
 
 ### Persisting Data in Alluxio
 
-The command [`alluxio fs persist`]({{ '/en/operations/User-CLI.html' | relativize_url
+The command [`alluxio fs persist`]({{ '/en/operation/User-CLI.html' | relativize_url
 }}#persist)
 allows a user to push data from the Alluxio cache to a UFS.
 
@@ -354,7 +354,7 @@ To set the interval to 10 minutes, add the following to `alluxio-site.properties
 alluxio.master.ttl.checker.interval=10m
 ```
 
-Refer to the [configuration page]({{ '/en/operations/Configuration.html' | relativize_url }})
+Refer to the [configuration page]({{ '/en/operation/Configuration.html' | relativize_url }})
 for more details on setting Alluxio configurations.
 
 #### APIs
@@ -381,7 +381,7 @@ SetTTL(path, duration, action)
 #### Command Line Usage
 
 See the detailed
-[command line documentation]({{ '/en/operations/User-CLI.html' | relativize_url }}#setttl)
+[command line documentation]({{ '/en/operation/User-CLI.html' | relativize_url }}#setttl)
 to see how to use the `setTtl` command within the Alluxio shell to modify TTL attribute.
 
 #### Passively on load metadata or create file
@@ -527,4 +527,4 @@ $ ./bin/alluxio fs getCapacityBytes
 The Alluxio master web interface gives the user a visual overview of the cluster and how much
 storage space is used. It can be found at `http:/{MASTER_IP}:${alluxio.master.web.port}/`.
 More detailed information about the Alluxio web interface can be
-[found in our documentation]({{ '/en/operations/Web-Interface.html' | relativize_url }}).
+[found in our documentation]({{ '/en/operation/Web-Interface.html' | relativize_url }}).

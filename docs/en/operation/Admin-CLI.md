@@ -180,7 +180,7 @@ UFS URI like `hdfs://<name-service>/`, and not `hdfs://<name-service>/<folder>`.
 
 ### pathConf
 
-The `pathConf` command manages [path defaults]({{ '/en/operations/Configuration.html' | relativize_url }}#path-defaults).
+The `pathConf` command manages [path defaults]({{ '/en/operation/Configuration.html' | relativize_url }}#path-defaults).
 
 #### list
 
