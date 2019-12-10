@@ -132,7 +132,7 @@ Clicking on the master instance group will show you the public DNS.
 SSH into the master instance using the key pair provided in the previous command.
 Use `hadoop` as the username.
 ```console
-$ ssh -i /path/to/keypair.pem hadoop@masterPublicDns
+$ ssh -i /path/to/keypair.pem hadoop@<masterPublicDns>
 ```
 
 If a security group isn't specified in the `create-cluster` command,
@@ -159,7 +159,7 @@ Using this boostrap script, Alluxio is installed in `/opt/alluxio/` by default.
 Hive and Presto are already configured to connect to Alluxio.
 The cluster also uses AWS Glue as the default metastore for both Presto and Hive.
 This will allow you to maintain table definitions between multiple runs of the Alluxio cluster.
-The default Alluxio worker is allocated a third of the instance's available memory.
+By default, the Alluxio worker is allocated one third of the instance's maximum available memory.
 
   {% endcollapsible %}
 {% endaccordion %}
@@ -172,7 +172,7 @@ The simplest step to using EMR with Alluxio is to create a table on Alluxio and 
   {% collapsible SSH into the master node %}
 From your terminal, SSH into the master instance using the key pair provided in the `create-cluster` command.
 ```console
-$ ssh -i /path/to/keypair.pem hadoop@masterPublicDns
+$ ssh -i /path/to/keypair.pem hadoop@<masterPublicDns>
 ```
 Note that we are connecting as the `hadoop` user.
 All subsequent commands assume they are being executed from within the instance.
