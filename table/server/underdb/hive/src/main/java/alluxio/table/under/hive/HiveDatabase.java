@@ -30,6 +30,7 @@ import alluxio.table.under.hive.util.PathTranslator;
 import alluxio.util.io.PathUtils;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.HiveMetaHookLoader;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.RetryingMetaStoreClient;
@@ -55,6 +56,7 @@ import java.util.stream.Collectors;
  */
 public class HiveDatabase implements UnderDatabase {
   private static final Logger LOG = LoggerFactory.getLogger(HiveDatabase.class);
+  private static final HiveMetaHookLoader NOOP_HOOK = table -> null;
 
   private final UdbContext mUdbContext;
   private final UdbConfiguration mConfiguration;
@@ -252,7 +254,8 @@ public class HiveDatabase implements UnderDatabase {
       Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
       HiveConf conf = new HiveConf();
       conf.verifyAndSet("hive.metastore.uris", mConnectionUri);
-      mHive = RetryingMetaStoreClient.getProxy(conf, null, HiveMetaStoreClient.class.getName());
+      mHive =
+          RetryingMetaStoreClient.getProxy(conf, NOOP_HOOK, HiveMetaStoreClient.class.getName());
       mHive.getDatabase(mHiveDbName);
       return mHive;
     } catch (NoSuchObjectException e) {
