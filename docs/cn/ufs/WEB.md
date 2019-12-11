@@ -17,7 +17,7 @@ priority: 5
 
 ## 配置Alluxio
 
-Alluxio通过[统一命名空间]({{ '/cn/advanced/Namespace-Management.html' | relativize_url }})统一访问不同存储系统。 WEB的安装位置可以在Alluxio命名空间的根目录或嵌套目录下。
+Alluxio通过[统一命名空间]({{ '/cn/core-services/Unified-Namespace.html' | relativize_url }})统一访问不同存储系统。 WEB的安装位置可以在Alluxio命名空间的根目录或嵌套目录下。
 
 ### 根目录安装
 您需要修改`conf/alluxio-site.properties`配置Alluxio，以使用WEB作为其底层存储系统。如果该配置文件不存在，请从模板创建该配置文件。

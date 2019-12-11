@@ -54,8 +54,8 @@ Alluxio 是发展最快的开源大数据项目之一，已经吸引了超过 30
 
 Alluxio 将三个关键领域的创新结合在一起，提供了一套独特的功能。
 
-1. **全局命名空间**：Alluxio 能够对多个独立存储系统提供单点访问，无论这些存储系统的物理位置在何处。这提供了所有数据源的统一视图和应用程序的标准接口。有关详细信息，请参阅[命名空间管理]({{ '/en/advanced/Namespace-Management.html' | relativize_url }})。
-1. **智能多层级缓存**：Alluxio 集群能够充当底层存储系统中数据的读写缓存。可配置自动优化数据放置策略，以实现跨内存和磁盘（SSD/HDD）的性能和可靠性。缓存对用户是透明的，使用缓冲来保持与持久存储的一致性。有关详细信息，请参阅 [Alluxio 存储管理]({{ '/en/advanced/Alluxio-Storage-Management.html' | relativize_url }})。
+1. **全局命名空间**：Alluxio 能够对多个独立存储系统提供单点访问，无论这些存储系统的物理位置在何处。这提供了所有数据源的统一视图和应用程序的标准接口。有关详细信息，请参阅[统一命名空间文档]({{ '/cn/core-services/Unified-Namespace.html' | relativize_url }})。
+1. **智能多层级缓存**：Alluxio 集群能够充当底层存储系统中数据的读写缓存。可配置自动优化数据放置策略，以实现跨内存和磁盘（SSD/HDD）的性能和可靠性。缓存对用户是透明的，使用缓冲来保持与持久存储的一致性。有关详细信息，请参阅 [缓存功能文档]({{ '/cn/core-services/Caching.html' | relativize_url }})。
 1. **服务器端 API 翻译转换**：Alluxio支持工业界场景的API接口，例如HDFS API, S3 API, FUSE API, REST API。它能够透明地从标准客户端接口转换到任何存储接口。Alluxio 负责管理应用程序和文件或对象存储之间的通信，从而消除了对复杂系统进行配置和管理的需求。文件数据可以看起来像对象数据，反之亦然。
 
 要了解有关 Alluxio 内部的更多详细信息，请阅读 [Alluxio 架构和数据流]({{ '/en/Architecture-DataFlow.html' | relativize_url }})。
