@@ -126,6 +126,8 @@ public class SaslStreamClientDriver implements StreamObserver<SaslMessage> {
     } else {
       LOG.warn(errorMsg);
     }
+    // Authentication failed either during or after handshake.
+    mAuthenticated.set(false);
   }
 
   @Override
