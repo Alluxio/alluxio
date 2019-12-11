@@ -26,7 +26,7 @@ TTL间隔延迟。间隔长度由 `alluxio.master.ttl.checker.interval` 属性�
 alluxio.master.ttl.checker.interval=10m
 ```
 
-查看[配置页]({{ '/cn/operation/Configuration.html' | relativize_url }})获取有关Alluxio设置的更多配置
+查看[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }})获取有关Alluxio设置的更多配置
 
 虽然master节点负责执行TTL，但是TTL值的设置取决于客户端
 

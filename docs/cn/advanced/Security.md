@@ -21,7 +21,7 @@ Alluxio还支持其它身份验证模式，如`NOSASL`和`CUSTOM`。
 1. [审计](#auditing): 如果是 `alluxio.master.audit.logging.enabled=true`， Alluxio 文件系统
 维护用户访问文件元数据的审计日志(audit log)。
 
-参考[安全性配置项]({{ '/cn/reference/Properties-List.html' | relativize_url }}#security-configuration)的信息以启用不同安全特性。
+参考[系统安全相关的配置参数列表]({{ '/cn/reference/Properties-List.html' | relativize_url }}#security-configuration)的信息以启用不同安全特性。
 
 ## 安全认证 {#authentication}
 
@@ -186,7 +186,7 @@ Alluxio审计日志格式如下表所示：
 
 它和HDFS审计日志的格式[wiki](https://wiki.apache.org/hadoop/HowToConfigure)很像。
 
-为了使用Alluxio的审计功能，你需要将JVM参数`alluxio.master.audit.logging.enabled`设置为true，具体可见[Configuration settings]({{ '/cn/operation/Configuration.html' | relativize_url }})。
+为了使用Alluxio的审计功能，你需要将JVM参数`alluxio.master.audit.logging.enabled`设置为true，具体可见[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }})。
 
 ## 加密
 
