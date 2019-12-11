@@ -72,6 +72,8 @@ public final class TaskExecutor implements Runnable {
       LOG.error("The job definition for config {} does not exist.", mJobConfig.getName());
       return;
     }
+
+    mTaskExecutorManager.notifyTaskRunning(mJobId, mTaskId);
     Serializable result;
     try {
       result = definition.runTask(mJobConfig, mTaskArgs, mContext);

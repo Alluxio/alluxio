@@ -205,9 +205,9 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
     // wait a bit more to make sure other jobs aren't completing
     CommonUtils.sleepMs(300);
 
-    assertFalse(mJobMaster.getStatus(jobId1).getStatus().isFinished());
-    assertFalse(mJobMaster.getStatus(jobId2).getStatus().isFinished());
-    assertFalse(mJobMaster.getStatus(jobId3).getStatus().isFinished());
+    assertEquals(Status.RUNNING, mJobMaster.getStatus(jobId1).getStatus());
+    assertEquals(Status.CREATED, mJobMaster.getStatus(jobId2).getStatus());
+    assertEquals(Status.CREATED, mJobMaster.getStatus(jobId3).getStatus());
 
     assertEquals(1, mJobMaster.getAllWorkerHealth().get(0).getTaskPoolSize());
     assertEquals(1, mJobMaster.getAllWorkerHealth().get(0).getNumActiveTasks());

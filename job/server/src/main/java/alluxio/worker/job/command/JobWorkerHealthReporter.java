@@ -12,9 +12,12 @@
 package alluxio.worker.job.command;
 
 import alluxio.util.CommonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import oshi.SystemInfo;
 import oshi.hardware.HardwareAbstractionLayer;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
@@ -23,8 +26,9 @@ import java.util.stream.DoubleStream;
  * The job worker health reporter.
  */
 public class JobWorkerHealthReporter {
+  private static final Logger LOG = LoggerFactory.getLogger(JobWorkerHealthReporter.class);
 
-  private static final double cpuLoadAverageHealthyFactor = 0.1;
+  private static final double cpuLoadAverageHealthyFactor = 0.9;
 
   private HardwareAbstractionLayer mHardware;
 
