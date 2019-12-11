@@ -106,6 +106,11 @@ public class TaskExecutorManager {
     mTaskExecutionService.setCorePoolSize(taskExecutorPoolSize);
   }
 
+  /**
+   * Sets the number of threads in the task executor pool when not throttled.
+   *
+   * @param defaultTaskExecutorPoolSize number of threads in the task executor pool
+   */
   public synchronized void setDefaultTaskExecutorPoolSize(int defaultTaskExecutorPoolSize) {
     mDefaultTaskExecutorPoolSize = defaultTaskExecutorPoolSize;
     if (!mThrottled) {
@@ -113,11 +118,19 @@ public class TaskExecutorManager {
     }
   }
 
+  /**
+   * Throttle the TaskExecutorManager. This sets the internal thread pool size to 0 until
+   * unthrottled.
+   */
   public synchronized void throttle() {
     mThrottled = true;
     setTaskExecutorPoolSize(0);
   }
 
+  /**
+   * Unthrottle the TaskExecutorManager. This sets the internal thread pool size back to the
+   * default thread pool size.
+   */
   public synchronized void unthrottle() {
     mThrottled = false;
     setTaskExecutorPoolSize(mDefaultTaskExecutorPoolSize);
