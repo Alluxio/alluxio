@@ -20,6 +20,7 @@ public final class MasterMetrics {
   public static final String LAST_BACKUP_RESTORE_COUNT = "LastBackupRestoreCount";
   public static final String BACKUP_ENTRIES_PROCESS_TIME = "BackupEntriesProcessTime";
   public static final String BACKUP_RESTORE_PROCESS_TIME = "BackupRestoreProcessTime";
+
   // metrics names for FileSystemMaster
   public static final String DIRECTORIES_CREATED = "DirectoriesCreated";
   public static final String FILE_BLOCK_INFOS_GOT = "FileBlockInfosGot";
@@ -51,6 +52,7 @@ public final class MasterMetrics {
   public static final String UFS_CAPACITY_TOTAL = "UfsCapacityTotal";
   public static final String UFS_CAPACITY_USED = "UfsCapacityUsed";
   public static final String UFS_CAPACITY_FREE = "UfsCapacityFree";
+
   // metrics names for journal
   public static final String JOURNAL_FLUSH_FAILURE = "JournalFlushFailure";
   public static final String JOURNAL_FLUSH_TIMER = "JournalFlushTimer";
