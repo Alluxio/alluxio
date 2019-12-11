@@ -37,7 +37,6 @@ import alluxio.worker.JobWorkerProcess;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -188,12 +187,14 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.JOB_MASTER_JOB_CAPACITY, "20"})
-  @Ignore("flaky test")
   public void throttleJobWorkerTasks() throws Exception {
     mJobMaster.setTaskPoolSize(1);
 
     long jobId0 = mJobMaster.run(new SleepJobConfig(1));
+    JobTestUtils.waitForJobStatus(mJobMaster, jobId0, Status.RUNNING);
+
     long jobId1 = mJobMaster.run(new SleepJobConfig(5000));
+    JobTestUtils.waitForJobStatus(mJobMaster, jobId1, Status.RUNNING);
     JobTestUtils.waitForJobStatus(mJobMaster, jobId0, Status.COMPLETED);
 
     long jobId2 = mJobMaster.run(new SleepJobConfig(1));
