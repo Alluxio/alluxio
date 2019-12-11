@@ -11,6 +11,7 @@
 
 package alluxio.worker.job.command;
 
+import alluxio.util.CommonUtils;
 import oshi.SystemInfo;
 import oshi.hardware.HardwareAbstractionLayer;
 
@@ -23,7 +24,14 @@ import java.util.stream.DoubleStream;
  */
 public class JobWorkerHealthReporter {
 
-  HardwareAbstractionLayer mHardware;
+  private static final double cpuLoadAverageHealthyFactor = 0.1;
+
+  private HardwareAbstractionLayer mHardware;
+
+  private List<Double> mCpuLoadAverage;
+  private int mLogicalProcessorCount;
+
+  private long lastComputed;
 
   /**
    * Default constructor.
@@ -39,7 +47,21 @@ public class JobWorkerHealthReporter {
    * @return the system load average of the worker
    */
   public List<Double> getCpuLoadAverage() {
-    return DoubleStream.of(mHardware.getProcessor().getSystemLoadAverage(3)).boxed()
+    return mCpuLoadAverage;
+  }
+
+  public boolean isHealthy() {
+    if (mCpuLoadAverage.isEmpty()) {
+      // report healthy if cpu load average is not computable
+      return true;
+    }
+    return mLogicalProcessorCount * cpuLoadAverageHealthyFactor > mCpuLoadAverage.get(0);
+  }
+
+  public void compute() {
+    lastComputed = CommonUtils.getCurrentMs();
+    mCpuLoadAverage = DoubleStream.of(mHardware.getProcessor().getSystemLoadAverage(3)).boxed()
         .collect(Collectors.toList());
+    mLogicalProcessorCount = mHardware.getProcessor().getLogicalProcessorCount();
   }
 }

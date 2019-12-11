@@ -84,6 +84,12 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
+    mHealthReporter.compute();
+
+    if (!mHealthReporter.isHealthy()) {
+      mTaskExecutorManager.
+    }
+
     JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(JobWorkerIdRegistry.getWorkerId(),
         mHealthReporter.getCpuLoadAverage(), mTaskExecutorManager.getTaskExecutorPoolSize(),
         mTaskExecutorManager.getNumActiveTasks(), mTaskExecutorManager.unfinishedTasks(),
