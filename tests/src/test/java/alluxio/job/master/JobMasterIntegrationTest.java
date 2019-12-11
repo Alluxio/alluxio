@@ -35,6 +35,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.wire.WorkerInfo;
 import alluxio.worker.JobWorkerProcess;
 
+import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -191,7 +192,11 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
     mJobMaster.setTaskPoolSize(1);
 
     long jobId0 = mJobMaster.run(new SleepJobConfig(1));
+    JobTestUtils.waitForJobStatus(mJobMaster, jobId0,
+        Sets.newHashSet(Status.RUNNING, Status.COMPLETED));
+
     long jobId1 = mJobMaster.run(new SleepJobConfig(5000));
+    JobTestUtils.waitForJobStatus(mJobMaster, jobId1, Status.RUNNING);
     JobTestUtils.waitForJobStatus(mJobMaster, jobId0, Status.COMPLETED);
 
     long jobId2 = mJobMaster.run(new SleepJobConfig(1));
