@@ -23,6 +23,7 @@ import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -289,7 +290,7 @@ public final class AsyncJournalWriter {
 
         // Either written new entries or previous flush had been failed.
         if (mFlushCounter.get() < mWriteCounter) {
-          try (Timer.Context ctx = MetricsSystem.timer(MasterMetrics.JOURNAL_FLUSH_TIME).time()) {
+          try (Timer.Context ctx = Metrics.JOURNAL_FLUSH_TIMER.time()) {
             mJournalWriter.flush();
           }
           JournalUtils.sinkFlush(mJournalSinks);
@@ -306,6 +307,7 @@ public final class AsyncJournalWriter {
           }
         }
       } catch (IOException | JournalClosedException exc) {
+        Metrics.JOURNAL_FLUSH_FAILURE.inc();
         // Release only tickets that have been flushed. Fail the rest.
         Iterator<FlushTicket> ticketIterator = mTicketSet.iterator();
         while (ticketIterator.hasNext()) {
@@ -364,5 +366,18 @@ public final class AsyncJournalWriter {
        */
       mFlushSemaphore.tryAcquire();
     }
+  }
+
+  /**
+   * Class that contains metrics about AsyncJournalWriter.
+   */
+  @ThreadSafe
+  private static final class Metrics {
+    private static final Counter JOURNAL_FLUSH_FAILURE =
+        MetricsSystem.counter(MasterMetrics.JOURNAL_FLUSH_FAILURE);
+    private static final Timer JOURNAL_FLUSH_TIMER =
+        MetricsSystem.timer(MasterMetrics.JOURNAL_FLUSH_TIMER);
+
+    private Metrics() {} // prevent instantiation
   }
 }
