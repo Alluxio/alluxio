@@ -99,6 +99,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
         }
         return true;
       }
+      LOG.warn("Failed to complete job after retries: {}", mJobConfig);
       return false;
     }
 
@@ -205,7 +206,10 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
             iterator.remove();
             continue;
           case FAILED:
-            jobAttempt.run();
+            if (!jobAttempt.run()) {
+              removed = true;
+              iterator.remove();
+            }
             continue;
           default:
             throw new IllegalStateException(String.format("Unexpected Status: %s", check));
