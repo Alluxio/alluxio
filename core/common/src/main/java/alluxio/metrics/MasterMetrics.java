@@ -15,7 +15,7 @@ package alluxio.metrics;
  * Metrics of Alluxio master.
  */
 public final class MasterMetrics {
-  // metrics for BackupManager
+  // metrics names for BackupManager
   public static final String LAST_BACKUP_ENTRIES_COUNT = "LastBackupEntriesCount";
   public static final String LAST_BACKUP_RESTORE_COUNT = "LastBackupRestoreCount";
   public static final String BACKUP_ENTRIES_PROCESS_TIME = "BackupEntriesProcessTime";
@@ -51,6 +51,7 @@ public final class MasterMetrics {
   public static final String UFS_CAPACITY_TOTAL = "UfsCapacityTotal";
   public static final String UFS_CAPACITY_USED = "UfsCapacityUsed";
   public static final String UFS_CAPACITY_FREE = "UfsCapacityFree";
-
+  // metrics names for journal
+  public static final String JOURNAL_FLUSH_TIME = "JournalFlushTime";
   private MasterMetrics() {} // prevent instantiation
 }
