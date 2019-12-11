@@ -21,7 +21,7 @@ Alluxio管理了Alluxio workers节点的包括内存在内的本地存储，来�
 
 默认配置下的Alluxio将为每个worker提供一个ramdisk，并占用一定的百分比的系统总内存。这个ramdisk将被用作分配给每个Alluxio worker的唯一存储介质。
 
-Alluxio存储通过Alluxio的`alluxio-site.properties`配置。详细配置请参考[配置文档](Configuration-Settings.html)。
+Alluxio存储通过Alluxio的`alluxio-site.properties`配置。详细配置请参考[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }})。
 
 默认情况的一个常见修改是显式设置ramdisk的大小。例如，设置每个worker的ramdisk大小为16GB：
 
@@ -115,7 +115,7 @@ Alluxio支持自定义回收策略，已有的实现包括：
 
 ### 开启和配置分层存储
 
-在Alluxio中，使用[配置参数](Configuration-Settings.html)开启分层存储。使用如下配置参数可以指定Alluxio的额外存储层：
+分层存储的配置与其余Alluxio配置一样，也是在`alluxio-site.properties`中完成。相关内容请参考[配置参数]({{ '/cn/operation/Configuration.html' | relativize_url }})。使用如下配置参数可以指定Alluxio的额外存储层：
 
 ```
 alluxio.worker.tieredstore.levels

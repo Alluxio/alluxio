@@ -18,7 +18,7 @@ priority: 4
 **下载到本地的 [Alluxio](https://alluxio.io/download)**
 
 ## 配置
-通过一些特定的属性来定制Alluxio master和worker(比如，在各个worker节点上设置分层存储)，查阅[Configuration settings](Configuration-Settings.html)
+通过一些特定的属性来定制Alluxio master和worker(比如，在各个worker节点上设置分层存储)，查阅[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }})
 为了确保你的配置能够被ApplicationMaster和Alluxio master/workers都读到，将`alluxio-site.properties` 放到`/etc/alluxio/alluxio-site.properties`中。
 
 ## 运行Alluxio应用

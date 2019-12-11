@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 使用FUSE挂载Alluxio
-nickname: Alluxio-FUSE
+title: FUSE基础上的POSIX API
+nickname: POSIX API
 group: Client APIs
 priority: 7
 ---

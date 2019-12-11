@@ -83,7 +83,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 如果首选的是数据持久性的部署，所有的作业都需要写到UFS和Alluxio，那么就可以使用Alluxio v1.8或更高版本的admin命令来简单地添加`alluxio.user.file.writetype.default=CACHE_THROUGH` 到master端`${ALLUXIO_HOME}/conf/alluxio-site.properties`。重新启动集群后，所有新的作业都将自动将属性`alluxio.user.file.writetype.default`设置为`CACHE_THROUGH` 
 
 客户端仍然可以忽略或覆盖集群范围内的默认值，通过指定属性`alluxio.user.conf.cluster.default.enabled=false`，
-以更改加载集群范围内的默认值，或者遵循前面描述的方法[为应用程序配置文件](Configuration-Settings.html#configure-applications)覆盖相同的属性。
+以更改加载集群范围内的默认值，或者遵循前面描述的方法[为应用程序配置文件]({{ '/cn/operation/Configuration.html' | relativize_url }}#configure-applications)覆盖相同的属性。
 
 >注意到，在v1.8之前，`${ALLUXIO_HOME}/conf/alluxio-site.properties`属性的文件只被加载Alluxio服务器
 >进程，并将被应用程序通过Alluxio客户端与Alluxio服务交互所忽略，
