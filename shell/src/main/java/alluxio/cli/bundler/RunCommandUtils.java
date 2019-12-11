@@ -71,7 +71,10 @@ public class RunCommandUtils {
     // TODO(jiacheng): Any exception to this?
     catch (Exception e) {
       stdErr.write(String.format("Failed to run %s, error: %s", Arrays.toString(command), e.getStackTrace()));
-      ret = 1;
+      // If return is not updated, change to 1.
+      if (ret == 0) {
+        ret = 1;
+      }
     }
 
     LOG.info(String.format("Command finished with status %s", ret));

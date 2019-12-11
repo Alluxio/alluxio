@@ -61,6 +61,7 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
     return false;
   }
 
+  // TODO(jiacheng): format this method
   public String getMetricsJson() {
     // Generate URL
     String masterAddr;

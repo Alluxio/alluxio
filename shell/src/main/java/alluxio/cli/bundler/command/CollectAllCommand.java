@@ -1,13 +1,6 @@
 package alluxio.cli.bundler.command;
 
-import alluxio.cli.Command;
-import alluxio.cli.fsadmin.command.Context;
-import alluxio.cli.fsadmin.pathconf.AddCommand;
-import alluxio.cli.fsadmin.pathconf.ListCommand;
-import alluxio.cli.fsadmin.pathconf.RemoveCommand;
-import alluxio.cli.fsadmin.pathconf.ShowCommand;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -61,7 +54,7 @@ public class CollectAllCommand extends AbstractInfoCollectorCommand {
 
   @Override
   public String getCommandName() {
-    return null;
+    return "collectAll";
   }
 
   // TODO(jiacheng): This method needs rewriting
@@ -178,11 +171,12 @@ public class CollectAllCommand extends AbstractInfoCollectorCommand {
 
   @Override
   public String getUsage() {
-    return null;
+    return "collectAll";
   }
 
   @Override
+  // TODO(jiacheng): desc
   public String getDescription() {
-    return null;
+    return "Collect all information.";
   }
 }

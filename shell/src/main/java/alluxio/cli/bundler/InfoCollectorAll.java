@@ -69,9 +69,7 @@ public class InfoCollectorAll extends AbstractShell {
     // TODO(jiacheng): get hosts from static util call
     Set<String> allHosts = shellAll.getHosts();
 
-    // Threadpool to execute on each host
-
-
+    // TODO(jiacheng): move this to RunCommandUtils
     for (String host : allHosts) {
       LOG.info(String.format("Execute InfoCollector on host %s", host));
 

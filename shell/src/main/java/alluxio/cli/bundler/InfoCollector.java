@@ -2,8 +2,8 @@ package alluxio.cli.bundler;
 
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
+import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShell;
-import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -46,13 +46,7 @@ public class InfoCollector extends AbstractShell {
     conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);
     InfoCollector shell = new InfoCollector(conf);
 
-    // TODO(jiacheng): For each InfoCollector run it
-    String[] commandStrs = new String[]{"metric", "config", "alluxio", "info", "env"};
-    for (String s : commandStrs) {
-      argv[0] = s;
-      // TODO(jiacheng): What is the ret value?
-      ret = shell.run(argv);
-    }
+    ret = shell.run(argv);
 
     System.exit(ret);
   }
@@ -72,15 +66,9 @@ public class InfoCollector extends AbstractShell {
   }
 
   @Override
-  // TODO(jiacheng): Load commands
   protected Map<String, Command> loadCommands() {
-    // TODO(jiacheng): Each command should have the FsContext
-
-
     // Give each command the configuration
-    // TODO(jiacheng): How is each command loaded
-    return FileSystemShellUtils
-            .loadCommands(
-                    mCloser.register(FileSystemContext.create(mConfiguration)));
+      return CommandUtils.loadCommands(InfoCollector.class.getPackage().getName(),
+              new Class[] {FileSystemContext.class}, new Object[] {FileSystemContext.create(mConfiguration)});
   }
 }

@@ -22,6 +22,8 @@ import java.util.List;
 public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CollectAlluxioInfoCommand.class);
 
+  private static String OUTPUT_FILE_NAME = "alluxioInfo.txt";
+
   private List<AlluxioCommand> mCommands;
 
   private static final Option FORCE_OPTION =
@@ -124,7 +126,7 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
       }
     }
 
-    File outputFile = getOutputFile(targetDir, "alluxioInfo.txt");
+    File outputFile = getOutputFile(targetDir, OUTPUT_FILE_NAME);
     FileUtils.writeStringToFile(outputFile, output.toString());
 
     return ret;
@@ -132,11 +134,11 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
 
   @Override
   public String getUsage() {
-    return null;
+    return "runAlluxioCheck";
   }
 
   @Override
   public String getDescription() {
-    return null;
+    return "Run a list of Alluxio commands";
   }
 }

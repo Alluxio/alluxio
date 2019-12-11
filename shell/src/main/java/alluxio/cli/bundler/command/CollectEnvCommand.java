@@ -1,10 +1,7 @@
 package alluxio.cli.bundler.command;
 
-import alluxio.cli.CommandUtils;
-import alluxio.cli.ConfigurationDocGenerator;
 import alluxio.cli.bundler.RunCommandUtils;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import org.apache.commons.cli.CommandLine;

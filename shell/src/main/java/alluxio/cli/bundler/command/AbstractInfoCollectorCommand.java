@@ -30,8 +30,7 @@ public abstract class AbstractInfoCollectorCommand implements Command {
   public String getDestDir(CommandLine cl) {
     String[] args = cl.getArgs();
     LOG.info(String.format("Args for %s: %s", getCommandName(), Arrays.toString(args)));
-    String targetDir = getWorkingDirectory(args[0]);
-    return targetDir;
+    return args[0];
   }
 
   public String getWorkingDirectory(String baseDirPath) {
@@ -40,14 +39,9 @@ public abstract class AbstractInfoCollectorCommand implements Command {
     return workingDirPath;
   }
 
-  public void createWorkingDirIfNotExisting(String path) {
-    // mkdirs checks existence of the path
-    File workingDir = new File(path);
-    workingDir.mkdirs();
-  }
-
   public boolean foundPreviousWork(String baseDirPath) {
     String workingDirPath = getWorkingDirectory(baseDirPath);
+    // TODO(jiacheng): this is wrong!
     File workingDir = new File(workingDirPath);
 
     // TODO(jiacheng): better idea?
@@ -69,5 +63,9 @@ public abstract class AbstractInfoCollectorCommand implements Command {
     return outputFile;
   }
 
-  // TODO(jiacheng): Use context instead of mConf
+  private void createWorkingDirIfNotExisting(String path) {
+    // mkdirs checks existence of the path
+    File workingDir = new File(path);
+    workingDir.mkdirs();
+  }
 }
