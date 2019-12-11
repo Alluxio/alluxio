@@ -114,7 +114,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
 
       JobInfo jobInfo;
       try {
-        jobInfo = mClient.getJobStatus(mJobId);
+        jobInfo = mClient.getStatus(mJobId);
       } catch (IOException e) {
         LOG.warn("Failed to get status for job (jobId={})", mJobId, e);
         return Status.FAILED;
