@@ -28,7 +28,7 @@ import java.util.stream.DoubleStream;
 public class JobWorkerHealthReporter {
   private static final Logger LOG = LoggerFactory.getLogger(JobWorkerHealthReporter.class);
 
-  private static final double CPU_LOAD_AVERAGE_HEALTHY_FACTOR = 0.9;
+  private static final double CPU_LOAD_AVERAGE_HEALTHY_FACTOR = 1.0;
 
   private HardwareAbstractionLayer mHardware;
 
