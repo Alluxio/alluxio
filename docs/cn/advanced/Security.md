@@ -100,9 +100,9 @@ drwxr-xr-x jack           staff                       24       PERSISTED 11-20-2
 
 1. 用户应用可以调用`FileSystem API`或`Hadoop API`的`setAttribute(...)`方法，参考[文件系统API](File-System-API.html)。
 2. CLI命令，参考
-[chown](({{ '/cn/operation/User-CLI.html' | relativize_url }}#chown)，
-[chgrp](({{ '/cn/operation/User-CLI.html' | relativize_url }}#chgrp)，
-[chmod](({{ '/cn/operation/User-CLI.html' | relativize_url }}#chmod)。
+[chown]({{ '/cn/operation/User-CLI.html' | relativize_url }}#chown)，
+[chgrp]({{ '/cn/operation/User-CLI.html' | relativize_url }}#chgrp)，
+[chmod]({{ '/cn/operation/User-CLI.html' | relativize_url }}#chmod)。
 
 所属用户只能由超级用户修改。
 所属组和访问权限只能由超级用户和文件所有者修改。

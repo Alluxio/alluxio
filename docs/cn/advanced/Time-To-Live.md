@@ -50,7 +50,7 @@ SetTTL(path, duration, action)
 
 ### 使用命令行
 
-查看[命令行文档](({{ '/cn/operation/User-CLI.html' | relativize_url }}#setttl).
+查看[命令行文档]({{ '/cn/operation/User-CLI.html' | relativize_url }}#setttl).
 
 ### Java 文件系统接口
 

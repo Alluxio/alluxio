@@ -226,7 +226,7 @@ $ git push origin awesome_feature
 
 1. [本地运行Alluxio](Running-Alluxio-Locally.html)
 1. [集群上运行Alluxio](Running-Alluxio-on-a-Cluster.html)
-1. 阅读[配置设置]({{ '/cn/operation/Configuration.html' | relativize_url }})和[命令行相关操作](({{ '/cn/operation/User-CLI.html' | relativize_url }})
+1. 阅读[配置设置]({{ '/cn/operation/Configuration.html' | relativize_url }})和[命令行相关操作]({{ '/cn/operation/User-CLI.html' | relativize_url }})
 1. 阅读[示范代码](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
 1. [从源码编译Alluxio](Building-Alluxio-From-Source.html)
 1. Fork Alluxio源代码库，为一两个文件添加单元测试或者javadoc，并提交一个pr。您也可以在我们的[Github Issues](https://github
