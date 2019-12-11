@@ -123,7 +123,7 @@ $ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 - 请仔细检查Alluxio的master节点的端口(port)是否正确，Alluxio的master节点默认的监听端口号为19998。
 通常情况下master地址的端口号错误会导致这种错误提示的出现(例如端口号写成了19999,而19999是Alluxio的master节点的web用户界面的端口号)
 - 请确保Alluxio的master节点和client节点的安全设置保持一致.
-Alluxio通过配置`alluxio.security.authentication.type`来提供不同的用户身份验证(Security.html#authentication)的方法。
+Alluxio通过配置`alluxio.security.authentication.type`来提供不同的[用户身份验证]({{ '/cn/operation/Security.html' | relativize_url }}#authentication)的方法。
 如果客户端和服务器的这项配置属性不一致，这种错误将会发生。(例如，客户端的属性为默认值`NOSASL`,而服务器端设为`SIMPLE`)
 有关如何设定Alluxio的集群和应用的问题，用户请参照[Configuration-Settings](Configuration-Settings.html)
 - Spark调用Alluxio-1.3.0文件时报错，如果是直接下载编译好的alluxio文件进行安装的，一般会出现该错误。

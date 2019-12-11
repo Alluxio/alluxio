@@ -45,7 +45,7 @@ priority: 10
 9. 如果数据集不适合存储在内存中该怎么办？
 
    这取决于系统设置。Alluxio 会使用本地SSD和HDD进行存储，热数据被保存在Alluxio中而冷数据被保存在底层存储系统中。
-   可以[在此](Alluxio-Storage.html)阅读有关Alluxio存储设置的更多信息。
+   可以在[缓存功能文档]({{ '/cn/core-services/Caching.html' | relativize_url }})阅读有关Alluxio存储设置的更多信息。
 
 10. Alluxio可以作为一个单机系统运行以进行实验和验证吗？
 
