@@ -15,11 +15,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.master.journal.JournalWriter;
-import alluxio.metrics.MasterMetrics;
-import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 
-import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
 import io.atomix.copycat.client.CopycatClient;
 import org.slf4j.Logger;
