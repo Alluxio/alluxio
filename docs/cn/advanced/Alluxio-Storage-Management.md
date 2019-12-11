@@ -115,7 +115,7 @@ Alluxio支持自定义回收策略，已有的实现包括：
 
 ### 开启和配置分层存储
 
-在Alluxio中，使用[配置参数]({{ '/cn/operation/Configuration.html' | relativize_url }})开启分层存储。使用如下配置参数可以指定Alluxio的额外存储层：
+分层存储的配置与其余Alluxio配置一样，也是在`alluxio-site.properties`中完成。相关内容请参考[配置参数]({{ '/cn/operation/Configuration.html' | relativize_url }})。使用如下配置参数可以指定Alluxio的额外存储层：
 
 ```
 alluxio.worker.tieredstore.levels

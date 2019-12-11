@@ -21,7 +21,7 @@ Alluxio还支持其它身份验证模式，如`NOSASL`和`CUSTOM`。
 1. [审计](#auditing): 如果是 `alluxio.master.audit.logging.enabled=true`， Alluxio 文件系统
 维护用户访问文件元数据的审计日志(audit log)。
 
-参考[安全性配置项]({{ '/cn/operation/Configuration.html' | relativize_url }}#security-configuration)的信息以启用不同安全特性。
+参考[安全性配置项]({{ '/cn/reference/Properties-List.html' | relativize_url }}#security-configuration)的信息以启用不同安全特性。
 
 ## 安全认证 {#authentication}
 

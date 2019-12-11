@@ -124,7 +124,7 @@ spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2
 
 ### 为单个 Spark 作业自定义 Alluxio 用户属性
 
-Spark 用户可以将 JVM 系统设置传递给 Spark 作业，通过将`"-Dproperty=value"`添加到`spark.executor.extraJavaOptions`来设置 Spark executor，将`"-Dproperty=value"`添加到`spark.driver.extraJavaOptions`中来设置 spark driver。例如，要在写入 Alluxio 时提交`CACHE_THROUGH`写模式的 Spark 作业，请执行以下操作：
+Spark 用户可以将 JVM 系统设置传递给 Spark 任务，通过将`"-Dproperty=value"`添加到`spark.executor.extraJavaOptions`来设置 Spark executor，将`"-Dproperty=value"`添加到`spark.driver.extraJavaOptions`中来设置 spark driver。例如，要在写入 Alluxio 时提交`CACHE_THROUGH`写模式的 Spark 任务，请执行以下操作：
 
 ```console
 $ spark-submit \
@@ -133,7 +133,7 @@ $ spark-submit \
 ...
 ```
 
-如果需要自定义 Spark 作业中的 Alluxio 客户端侧属性，请参见[如何配置 Spark 作业]({{ '/cn/operation/Configuration.html' | relativize_url }}#spark)。
+如果需要自定义 Spark 任务中的 Alluxio 客户端侧属性，请参见[如何配置 Spark 任务]({{ '/cn/operation/Configuration.html' | relativize_url }}#spark)。
 
 请注意，在客户端模式中，你需要设置`--driver-java-options "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"`，而不是`--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH`（见[解释](https://spark.apache.org/docs/2.3.2/configuration.html))。
 

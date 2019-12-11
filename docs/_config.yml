@@ -53,7 +53,6 @@ categoryList:
 # Each language has a particular version of category names
 # When supporting a new language version, do not change the 'group' attribute in .md page files
 # Instead, just add the group name of that language below
-# TODO: review/fill in chinese category names to match new layout
 categoryInfo:
   Overview:
     en: Overview
