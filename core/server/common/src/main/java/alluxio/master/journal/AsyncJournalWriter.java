@@ -19,8 +19,11 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.journal.sink.JournalSink;
+import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 
+import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.SettableFuture;
@@ -286,7 +289,9 @@ public final class AsyncJournalWriter {
 
         // Either written new entries or previous flush had been failed.
         if (mFlushCounter.get() < mWriteCounter) {
-          mJournalWriter.flush();
+          try (Timer.Context ctx = MetricsSystem.timer(MasterMetrics.JOURNAL_FLUSH_TIME).time()) {
+            mJournalWriter.flush();
+          }
           JournalUtils.sinkFlush(mJournalSinks);
           mFlushCounter.set(mWriteCounter);
         }

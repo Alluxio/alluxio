@@ -53,5 +53,6 @@ public final class MasterMetrics {
   public static final String UFS_CAPACITY_FREE = "UfsCapacityFree";
   // metrics names for journal
   public static final String JOURNAL_FLUSH_TIME = "JournalFlushTime";
+  public static final String UFS_JOURNAL_FAILURE_RECOVER_TIME = "UfsJournalFailureRecoverTime";
   private MasterMetrics() {} // prevent instantiation
 }

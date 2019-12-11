@@ -87,28 +87,26 @@ public class RaftJournalWriter implements JournalWriter {
       throw new JournalClosedException("Cannot flush. Journal writer has been closed");
     }
     if (mJournalEntryBuilder != null) {
-      try (Timer.Context ctx = MetricsSystem.timer(MasterMetrics.JOURNAL_FLUSH_TIME).time()) {
-        long flushSN = mNextSequenceNumberToWrite.get() - 1;
-        try {
-          // It is ok to submit the same entries multiple times because we de-duplicate by sequence
-          // number when applying them. This could happen if submit fails and we re-submit the same
-          // entry on retry.
-          mLastSubmittedSequenceNumber.set(flushSN);
-          mClient.submit(new JournalEntryCommand(mJournalEntryBuilder.build())).get(mWriteTimeoutMs,
-              TimeUnit.MILLISECONDS);
-          mLastCommittedSequenceNumber.set(flushSN);
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          throw new IOException(e);
-        } catch (ExecutionException e) {
-          throw new IOException(e.getCause());
-        } catch (TimeoutException e) {
-          throw new IOException(String.format(
-              "Timed out after waiting %s milliseconds for journal entries to be processed",
-              mWriteTimeoutMs), e);
-        }
-        mJournalEntryBuilder = null;
+      long flushSN = mNextSequenceNumberToWrite.get() - 1;
+      try {
+        // It is ok to submit the same entries multiple times because we de-duplicate by sequence
+        // number when applying them. This could happen if submit fails and we re-submit the same
+        // entry on retry.
+        mLastSubmittedSequenceNumber.set(flushSN);
+        mClient.submit(new JournalEntryCommand(mJournalEntryBuilder.build())).get(mWriteTimeoutMs,
+            TimeUnit.MILLISECONDS);
+        mLastCommittedSequenceNumber.set(flushSN);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new IOException(e);
+      } catch (ExecutionException e) {
+        throw new IOException(e.getCause());
+      } catch (TimeoutException e) {
+        throw new IOException(String.format(
+            "Timed out after waiting %s milliseconds for journal entries to be processed",
+            mWriteTimeoutMs), e);
       }
+      mJournalEntryBuilder = null;
     }
   }
 

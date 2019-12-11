@@ -338,7 +338,7 @@ final class UfsJournalLogWriter implements JournalWriter {
       // There is nothing to flush.
       return;
     }
-    try (Timer.Context ctx = MetricsSystem.timer(MasterMetrics.JOURNAL_FLUSH_TIME).time()) {
+    try {
       mJournalOutputStream.flush();
       // Since flush has succeeded, it's safe to clear the mEntriesToFlush queue
       // because they are considered "persisted" in UFS.
