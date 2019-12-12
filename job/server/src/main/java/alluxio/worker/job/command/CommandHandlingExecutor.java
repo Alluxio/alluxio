@@ -11,6 +11,8 @@
 
 package alluxio.worker.job.command;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.CancelTaskCommand;
@@ -79,7 +81,11 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
     mTaskExecutorManager = Preconditions.checkNotNull(taskExecutorManager, "taskExecutorManager");
     mMasterClient = Preconditions.checkNotNull(masterClient, "masterClient");
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress, "workerNetAddress");
-    mHealthReporter = new JobWorkerHealthReporter();
+    if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+      mHealthReporter = new AlwaysHealthyJobWorkerHealthReporter();
+    } else {
+      mHealthReporter = new JobWorkerHealthReporter();
+    }
   }
 
   @Override
