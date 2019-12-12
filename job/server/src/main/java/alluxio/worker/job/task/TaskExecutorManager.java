@@ -124,7 +124,7 @@ public class TaskExecutorManager {
    */
   public synchronized void throttle() {
     mThrottled = true;
-    setTaskExecutorPoolSize(0);
+    setTaskExecutorPoolSize(Math.min(mDefaultTaskExecutorPoolSize, 1));
   }
 
   /**
