@@ -112,7 +112,7 @@ The remainder of this section describes various configuration options with examp
 
 ***Example: Amazon S3 as the under store***
 
-To [mount S3]({{ '/en/storage/S3.html' | relativize_url }}#root-mount-point}}) at the root of Alluxio
+To [mount S3]({{ '/en/ufs/S3.html' | relativize_url }}#root-mount-point}}) at the root of Alluxio
 namespace specify all required properties as a key-value pair under `properties`.
 
 ```properties

@@ -345,16 +345,16 @@ Alluxio can be deployed in many different environments.
 
 Various under storage systems can be accessed through Alluxio.
 
-* [Alluxio with Azure Blob Store]({{ '/en/storage/Azure-Blob-Store.html' | relativize_url }})
-* [Alluxio with S3]({{ '/en/storage/S3.html' | relativize_url }})
-* [Alluxio with GCS]({{ '/en/storage/GCS.html' | relativize_url }})
-* [Alluxio with Minio]({{ '/en/storage/Minio.html' | relativize_url }})
-* [Alluxio with Ceph]({{ '/en/storage/Ceph.html' | relativize_url }})
-* [Alluxio with Swift]({{ '/en/storage/Swift.html' | relativize_url }})
-* [Alluxio with GlusterFS]({{ '/en/storage/GlusterFS.html' | relativize_url }})
-* [Alluxio with HDFS]({{ '/en/storage/HDFS.html' | relativize_url }})
-* [Alluxio with OSS]({{ '/en/storage/OSS.html' | relativize_url }})
-* [Alluxio with NFS]({{ '/en/storage/NFS.html' | relativize_url }})
+* [Alluxio with Azure Blob Store]({{ '/en/ufs/Azure-Blob-Store.html' | relativize_url }})
+* [Alluxio with S3]({{ '/en/ufs/S3.html' | relativize_url }})
+* [Alluxio with GCS]({{ '/en/ufs/GCS.html' | relativize_url }})
+* [Alluxio with Minio]({{ '/en/ufs/Minio.html' | relativize_url }})
+* [Alluxio with Ceph]({{ '/en/ufs/Ceph.html' | relativize_url }})
+* [Alluxio with Swift]({{ '/en/ufs/Swift.html' | relativize_url }})
+* [Alluxio with GlusterFS]({{ '/en/ufs/GlusterFS.html' | relativize_url }})
+* [Alluxio with HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }})
+* [Alluxio with OSS]({{ '/en/ufs/OSS.html' | relativize_url }})
+* [Alluxio with NFS]({{ '/en/ufs/NFS.html' | relativize_url }})
 
 ### Frameworks and Applications
 

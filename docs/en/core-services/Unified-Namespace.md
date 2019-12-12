@@ -123,7 +123,7 @@ Note that mount points can be nested as well. For example, if a UFS is mounted a
 
 Alluxio v{{site.ALLUXIO_RELEASED_VERSION}} supports mounting HDFS with specified versions.
 As a result, users can mount HDFS with different versions into a single Alluxio namespace. Please
-refer to [HDFS Under Store]({{ '/en/storage/HDFS.html' | relativize_url }}) for more details.
+refer to [HDFS Under Store]({{ '/en/ufs/HDFS.html' | relativize_url }}) for more details.
 
 ## Relationship Between Alluxio and UFS Namespace
 Alluxio provides a unified namespace, acting as a cache for data in one or more
@@ -291,7 +291,7 @@ In version 2.0, we introduced a new feature for maintaining synchronization betw
 The feature, called active sync, listens for HDFS events and periodically synchronizes the metadata between the UFS and Alluxio namespace as a background task on the master. 
 Because active sync feature depends on HDFS events, this feature is only available when the UFS HDFS versions is later than 2.6.1.
 You might need to change the value for `alluxio.underfs.version` in your configuration file.
-Please refer to [HDFS Under Store]({{ '/en/storage/HDFS.html#supported-hdfs-versions' | relativize_url }}) for a list of supported Hdfs versions.
+Please refer to [HDFS Under Store]({{ '/en/ufs/HDFS.html#supported-hdfs-versions' | relativize_url }}) for a list of supported Hdfs versions.
 
 To enable active sync on a directory, issue the following Alluxio command.
 

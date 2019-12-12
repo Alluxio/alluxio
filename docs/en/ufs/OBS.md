@@ -35,7 +35,7 @@ Execute the following command on master to install the extension to all masters 
 $ ./bin/alluxio extensions install /PATH/TO/OBS/jar
 ```
 
-See [here]({{ '/en/storage/Ufs-Extensions.html' | relativize_url }}) for more details on Alluxio extension management.
+See [here]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}) for more details on Alluxio extension management.
 
 In preparation for using OBS with Alluxio, follow the [OBS quick start guide](https://support-intl.huaweicloud.com/usermanual-obs/en-us_topic_0069825929.html)
 to create a OBS bucket.

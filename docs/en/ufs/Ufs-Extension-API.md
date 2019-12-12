@@ -7,7 +7,7 @@ priority: 101
 ---
 
 This page is intended for developers of under storage extensions. Please look at
-[managing extensions]({{ '/en/storage/Ufs-Extensions.html' | relativize_url }}) for a
+[managing extensions]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}) for a
 guide to using existing extensions.
 
 * Table of Contents
@@ -156,7 +156,7 @@ $ ./bin/alluxio runUfsTests --path <scheme>://<path>/ -D<key>=<value>
 ```
 
 In addition, one can also mount the under storage and run other kinds of tests on it. Please refer to 
-[managing extensions]({{ '/en/storage/Ufs-Extensions.html' | relativize_url }}).
+[managing extensions]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}).
 
 ## How it Works
 
@@ -180,6 +180,6 @@ extensions.
 
 Congratulations! You have developed a new under storage extension to Alluxio. Let the community
 know by submitting a pull request to the Alluxio
-[repository](https://github.com/Alluxio/alluxio/blob/master/docs/en/storage/Ufs-Extensions.md) to edit the
+[repository](https://github.com/Alluxio/alluxio/blob/master/docs/en/ufs/Ufs-Extensions.md) to edit the
 list of extensions section on the
-[documentation page]({{ '/en/storage/Ufs-Extensions.html' | relativize_url }}).
+[documentation page]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}).

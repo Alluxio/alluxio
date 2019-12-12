@@ -131,5 +131,5 @@ $ ./bin/alluxio-stop.sh local
 
 If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying Ceph
 Object Storage. Depending on the interace used, refer to
-[S3 Access Control]({{ '/en/storage/S3.html' | relativize_url }}#s3-access-control) or
-[Swift Access Control]({{ '/en/storage/Swift.html' | relativize_url }}#swift-access-control) for more information.
+[S3 Access Control]({{ '/en/ufs/S3.html' | relativize_url }}#s3-access-control) or
+[Swift Access Control]({{ '/en/ufs/Swift.html' | relativize_url }}#swift-access-control) for more information.
