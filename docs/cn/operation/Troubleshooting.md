@@ -44,7 +44,7 @@ $ export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server
 
 ### 问题: 在本地机器上初次安装使用Alluxio失败，应该怎么办？
 
-解决办法: 首先检查目录`{ALLUXIO_HOME}/logs`下是否存在master和worker日志，然后按照日志提示的错误信息进行操作。否则，再次检查是否遗漏了[本地运行Alluxio](Running-Alluxio-Locally.html)里的配置步骤
+解决办法: 首先检查目录`{ALLUXIO_HOME}/logs`下是否存在master和worker日志，然后按照日志提示的错误信息进行操作。否则，再次检查是否遗漏了[本地运行Alluxio]({{ '/cn/deploy/Running-Alluxio-Locally.html' | relativize_url }})里的配置步骤
 
 典型问题:
 
@@ -53,8 +53,8 @@ $ export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server
 
 ### 问题: 打算在Spark/HDFS集群中部署Alluxio，有什么建议？
 
-解决办法: 按照[集群环境运行Alluxio](Running-Alluxio-on-a-Cluster.html),
- [Alluxio配置HDFS](Configuring-Alluxio-with-HDFS.html)提示操作。
+解决办法: 按照[集群环境运行Alluxio]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }}),
+ [Alluxio配置HDFS]({{ '/cn/ufs/HDFS.html' | relativize_url }})提示操作。
 
 提示:
 
@@ -64,7 +64,7 @@ $ export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server
 
 ### 问题: 在EC2上安装Alluxio遇到问题，有什么建议？
 
-解决办法: 可按照[EC2上运行Alluxio](Running-Alluxio-on-EC2.html)提示操作。
+解决办法: 可按照[EC2上运行Alluxio]({{ '/cn/deploy/Running-Alluxio-on-EC2.html' | relativize_url }})提示操作。
 
 典型问题:
 
@@ -125,9 +125,9 @@ $ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 - 请确保Alluxio的master节点和client节点的安全设置保持一致.
 Alluxio通过配置`alluxio.security.authentication.type`来提供不同的[用户身份验证]({{ '/cn/operation/Security.html' | relativize_url }}#authentication)的方法。
 如果客户端和服务器的这项配置属性不一致，这种错误将会发生。(例如，客户端的属性为默认值`NOSASL`,而服务器端设为`SIMPLE`)
-有关如何设定Alluxio的集群和应用的问题，用户请参照[Configuration-Settings]({{ '/cn/operation/Configuration.html' | relativize_url }})
+有关如何设定Alluxio的集群和应用的问题，用户请参照[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }})
 - Spark调用Alluxio-1.3.0文件时报错，如果是直接下载编译好的alluxio文件进行安装的，一般会出现该错误。
-解决办法：需要Alluxio client需要在编译时指定Spark选项，具体参考[Running-Spark-on-Alluxio](Running-Spark-on-Alluxio.html)；
+解决办法：需要Alluxio client需要在编译时指定Spark选项，具体参考[Running-Spark-on-Alluxio]({{ '/cn/compute/Spark.html' | relativize_url }})；
 编译好的依赖包也可以直接下载，下载地址：<a href="http://downloads.alluxio.io/downloads/files/1.3.0/alluxio-1.3.0-spark-client-jar-with-dependencies.jar"> 依赖包下载 </a>。
 
 ### 问题: 向Alluxio拷贝数据或者写数据时出现如下问题 "Failed to cache: Not enough space to store block on worker",为什么？

@@ -65,7 +65,7 @@ Read more about Alluxio storage setup
 ## Does Alluxio support a high availability mode?
 
 Yes. See instructions about
-[Deploy Alluxio on a Cluster with HA]({{ '/en/install/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}).
+[Deploy Alluxio on a Cluster with HA]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}).
 
 ## Will Alluxio rebalance cached blocks to the newly added nodes in order to balance memory space utilization?
 

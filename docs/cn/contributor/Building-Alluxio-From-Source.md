@@ -13,7 +13,7 @@ priority: 1
 
 该指南介绍如何从头编译Alluxio。
 
-这部分内容的前提条件是你已安装[Java JDK 8或以上](Java-Setup.html)、[Maven 3.3.9或以上](Maven.html)。
+这部分内容的前提条件是你已安装Java JDK 8或以上、Maven 3.3.9或以上。
 
 ### Checkout源码
 

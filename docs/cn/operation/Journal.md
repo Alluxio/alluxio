@@ -56,7 +56,7 @@ $ ./bin/alluxio fsadmin backup
 alluxio.master.backup.directory=/alluxio/backups
 ```
 
-查看 [backup command documentation](Admin-CLI.html#backup) 获取写备份文件具体位置的额外配置。
+查看 [backup command documentation]({{ '/cn/operation/Admin-CLI.html' | relativize_url }}#backup 获取写备份文件具体位置的额外配置。
 
 # 恢复
 
