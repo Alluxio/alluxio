@@ -8,7 +8,7 @@ priority: 1
 * Table of Contents
 {:toc}
 
-可以通过设置受支持的[configuration properties](Configuration-Properties.html)的值来配置Alluxio。了解用户如何定制应用程序
+可以通过设置受支持的[系统配置参数](({{ '/en/reference/Properties-List.html' | relativize_url }}))来配置Alluxio。了解用户如何定制应用程序
 (例如，Spark或MapReduce作业)与Alluxio交互，参见[如何配置引用应用程序](#configure-applications);要了解冲浪者管理员如何定制冲浪者服务，请参见[如何配置Alluxio集群](#configure-alluxio-cluster)。
 
 # 配置应用 {#application-settings}
@@ -181,7 +181,7 @@ Alluxio属性可以在多个资源中配置。在这种情况下，它的最终�
  , 当 `alluxio-site.properties` 文件被找到，将跳过剩余路径的查找.
 4. [集群默认值](#use-cluster-default). Alluxio客户端可以根据master节点提供的集群范围的默认配置初始化其配置。
 
-如果没有为属性找到上面用户指定的配置，那么会回到它的[默认属性值](Configuration-Properties.html)。
+如果没有为属性找到上面用户指定的配置，那么会回到它的[默认参数值]({{ '/cn/reference/Properties-List.html' | relativize_url }})。
 
 要检查特定配置属性的值及其值的来源，用户可以使用以下命令行:
 

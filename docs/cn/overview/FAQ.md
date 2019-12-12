@@ -11,7 +11,7 @@ priority: 10
 1. 什么是Alluxio?
 
    [Alluxio](https://www.alluxio.io/)（之前名为Tachyon），是一个开源的具有内存级速度的虚拟分布式存储系统，
-   使得应用程序可以以内存级速度与任何存储系统中的数据进行交互。
+   使得应用程序可以以内存级速度与任何存储系统中的数据进行交互。关于Alluxio的更多信息请见[Alluxio总览文档]({{ '/cn/Overview.html' | relativize_url }})。
 
 2. Alluxio可以运行在哪些平台和Java版本上?
 
@@ -27,16 +27,16 @@ priority: 10
 
 5. Alluxio master节点是否具备容错能力？
 
-   是的。请参考[此页](Running-Alluxio-on-a-Cluster.html#running-alluxio-with-high-availability)。
+   是的。请参考[以集群模式运行Alluxio文档]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }}#running-alluxio-with-high-availability)。
 
 6. 什么是底层存储系统？Alluxio支持多少种底层存储系统？
 
-   Alluxio 使用底层存储系统作为其持久化存储系统，当前支持 [Amazon S3](Configuring-Alluxio-with-S3.html),
-   [Swift](Configuring-Alluxio-with-Swift.html), [GCS](Configuring-Alluxio-with-GCS.html), [HDFS](Configuring-Alluxio-with-HDFS.html)以及很多其他存储系统。
+   Alluxio 使用底层存储系统作为其持久化存储系统，当前支持 [Amazon S3]({{ '/cn/ufs/S3.html' | relativize_url }}),
+   [Swift]({{ '/cn/ufs/Swift.html' | relativize_url }}), [GCS]({{ '/cn/ufs/GCS.html' | relativize_url }}), [HDFS]({{ '/cn/ufs/HDFS.html' | relativize_url }})以及很多其他存储系统。
 
 7. 是否可以支持其他底层存储系统？
 
-   可以，事实上许多Alluxio贡献者正在进行相关工作以支持其他底层存储系统。请参考该[创建新Alluxio底层存储系统文档]({{ '/cn/storage/Ufs-Extension-API.html' | relativize_url }})。
+   可以，事实上许多Alluxio贡献者正在进行相关工作以支持其他底层存储系统。请参考该[创建新Alluxio底层存储系统文档]({{ '/cn/ufs/Ufs-Extension-API.html' | relativize_url }})。
 
 8. Alluxio使用何种语言进行开发？
 
@@ -49,11 +49,11 @@ priority: 10
 
 10. Alluxio可以作为一个单机系统运行以进行实验和验证吗？
 
-    是的，Alluxio可以作为一个单机系统运行。[这里](Running-Alluxio-Locally.html)是操作指南。
+    是的，Alluxio可以作为一个单机系统运行。[以本地模式运行Alluxio文档]({{ '/cn/deploy/Running-Alluxio-Locally.html' | relativize_url }})是相关操作指南。
 
 11. Alluxio可以以集群模式运行吗？
 
-    是的，Alluxio可以以集群模式运行。[这里](Running-Alluxio-on-a-Cluster.html)是操作指南。
+    是的，Alluxio可以以集群模式运行。[以本地模式运行Alluxio文档]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }})是相关操作指南。
 
 12. Alluxio必须在HDFS上运行吗？
 
@@ -61,8 +61,8 @@ priority: 10
 
 13. Alluxio可以和其他框架一起工作吗？
 
-    是的, Alluxio 可以和[Spark](Running-Spark-on-Alluxio.html), [Flink](Running-Flink-on-Alluxio.html), [Hadoop](Running-Hadoop-MapReduce-on-Alluxio.html),
-      [HBase](Running-HBase-on-Alluxio.html), [Hive](Running-Hive-with-Alluxio.html)等框架一起工作。
+    是的, Alluxio 可以和[Spark]({{ '/cn/compute/Spark.html' | relativize_url }}), [Flink]({{ '/cn/compute/Flink.html' | relativize_url }}), [Hadoop]({{ '/cn/compute/Hadoop-MapReduce.html' | relativize_url }}),
+      [HBase]({{ '/cn/compute/HBase.html' | relativize_url }}), [Hive]({{ '/cn/compute/Hive.html' | relativize_url }})等框架一起工作。
 
 14. 如何了解Alluxio更多相关信息？
 

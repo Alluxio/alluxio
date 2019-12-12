@@ -58,11 +58,11 @@ Alluxio 将三个关键领域的创新结合在一起，提供了一套独特的
 1. **智能多层级缓存**：Alluxio 集群能够充当底层存储系统中数据的读写缓存。可配置自动优化数据放置策略，以实现跨内存和磁盘（SSD/HDD）的性能和可靠性。缓存对用户是透明的，使用缓冲来保持与持久存储的一致性。有关详细信息，请参阅 [缓存功能文档]({{ '/cn/core-services/Caching.html' | relativize_url }})。
 1. **服务器端 API 翻译转换**：Alluxio支持工业界场景的API接口，例如HDFS API, S3 API, FUSE API, REST API。它能够透明地从标准客户端接口转换到任何存储接口。Alluxio 负责管理应用程序和文件或对象存储之间的通信，从而消除了对复杂系统进行配置和管理的需求。文件数据可以看起来像对象数据，反之亦然。
 
-要了解有关 Alluxio 内部的更多详细信息，请阅读 [Alluxio 架构和数据流]({{ '/en/Architecture-DataFlow.html' | relativize_url }})。
+要了解有关 Alluxio 内部的更多详细信息，请阅读 [Alluxio 架构和数据流]({{ '/cn/overview/Architecture.html' | relativize_url }})。
 
 ## 快速上手指南
 
-如果打算快速地搭建 Alluxio 并运行，请阅读[快速上手指南]({{ '/cn/Getting-Started.html' | relativize_url }})页面，该页面描述了如何部署 Alluxio 并在本地环境下运行示例。
+如果打算快速地搭建 Alluxio 并运行，请阅读[快速上手指南]({{ '/cn/overview/Getting-Started.html' | relativize_url }})页面，该页面描述了如何部署 Alluxio 并在本地环境下运行示例。
 
 或者，你也可以尝试我们为Presto & Alluxio制作好的快速上手教程，具体点击如下图片链接:
 <p align="center">
@@ -91,7 +91,7 @@ Alluxio微信公众号二维码（下图）
 </p>
 
 [下载](https://alluxio.io/download/) | 
-[用户文档]({{ '/cn/Getting-Started.html' | relativize_url }}) | 
+[用户文档]({{ '/cn/overview/Getting-Started.html' | relativize_url }}) | 
 [开发者文档]({{ '/cn/contributor/Contributor-Getting-Started.html' | relativize_url }}) | 
 [Meetup](https://www.meetup.com/Alluxio/) | 
 [Issue Tracking](https://github.com/Alluxio/alluxio/issues) | 

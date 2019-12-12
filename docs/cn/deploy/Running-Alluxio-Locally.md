@@ -46,7 +46,7 @@ $ ./bin/alluxio-start.sh local
 
 > 注意：用户在linux系统下运行上述命令需要输入密码来获取sudo权限,
 > 以便启动RAMFS。如果用户不想每次运行命令输入密码，
-> 或者没有sudo权限，可以使用[FAQ](#faq)中介绍的其他方法。
+> 或者没有sudo权限，可以使用[常见问题]({{ '/cn/overview/FAQ.html' | relativize_url }})中介绍的其他方法。
 
 ## 验证Alluxio是否运行
 
