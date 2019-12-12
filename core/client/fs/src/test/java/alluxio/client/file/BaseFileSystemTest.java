@@ -412,7 +412,7 @@ public final class BaseFileSystemTest {
   @Test
   public void openFile() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    URIStatus status = new URIStatus(new FileInfo());
+    URIStatus status = new URIStatus(new FileInfo().setCompleted(true));
     GetStatusPOptions getStatusOptions = getOpenOptions(GetStatusPOptions.getDefaultInstance());
     when(mFileSystemMasterClient.getStatus(file, getStatusOptions))
         .thenReturn(status);
