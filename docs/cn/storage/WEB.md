@@ -2,7 +2,7 @@
 layout: global
 title: 在WEB上配置Alluxio
 nickname: Alluxio使用WEB
-group: Under Stores
+group: Storage Integrations
 priority: 5
 ---
 

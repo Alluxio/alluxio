@@ -2,7 +2,7 @@
 layout: global
 title: 在OBS上配置Alluxio
 nickname: Alluxio使用OBS
-group: Under Stores
+group: Storage Integrations
 priority: 5
 ---
 

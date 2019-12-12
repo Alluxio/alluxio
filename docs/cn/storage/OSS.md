@@ -2,7 +2,7 @@
 layout: global
 title: 在OSS上配置Alluxio
 nickname: Alluxio使用OSS
-group: Under Stores
+group: Storage Integrations
 priority: 4
 ---
 

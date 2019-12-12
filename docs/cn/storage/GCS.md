@@ -2,7 +2,7 @@
 layout: global
 title: 在GCS上配置Alluxio
 nickname: Alluxio使用GCS
-group: Under Stores
+group: Storage Integrations
 priority: 0
 ---
 

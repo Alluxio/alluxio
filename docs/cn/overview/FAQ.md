@@ -36,7 +36,7 @@ priority: 10
 
 7. 是否可以支持其他底层存储系统？
 
-   可以，事实上许多Alluxio贡献者正在进行相关工作以支持其他底层存储系统。请参考该[文档](DevelopingUFSExtensions.html)。
+   可以，事实上许多Alluxio贡献者正在进行相关工作以支持其他底层存储系统。请参考该[创建新Alluxio底层存储系统文档]({{ '/cn/storage/Ufs-Extension-API.html' | relativize_url }})。
 
 8. Alluxio使用何种语言进行开发？
 

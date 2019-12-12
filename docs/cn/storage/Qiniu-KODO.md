@@ -2,7 +2,7 @@
 layout: global
 title: 在Kodo上配置Alluxio
 nickname: Alluxio使用Kodo
-group: Under Store
+group: Storage Integrations
 priority: 4
 ---
 
