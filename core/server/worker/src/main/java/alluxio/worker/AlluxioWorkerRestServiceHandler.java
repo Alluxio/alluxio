@@ -323,9 +323,9 @@ public final class AlluxioWorkerRestServiceHandler {
       try {
         int offset = Integer.parseInt(requestOffset);
         int limit = Integer.parseInt(requestLimit);
-        // make the limit equal to the total number of files if request limit is > than what is available
+        // make the limit the total number of files if request limit is > than what is available
         limit = offset == 0 && limit > fileIds.size() ? fileIds.size() : limit;
-        // if offset+limit is greater than the size of the list, then simply return the max amount of files available, otherwise the original value
+        // offset+limit can't be greater than the size of the list
         limit = offset + limit > fileIds.size() ? fileIds.size() - offset : limit;
         int sum = Math.addExact(offset, limit);
         List<Long> subFileIds = fileIds.subList(offset, sum);
