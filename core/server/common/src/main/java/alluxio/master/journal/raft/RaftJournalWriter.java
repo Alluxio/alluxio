@@ -134,9 +134,9 @@ public class RaftJournalWriter implements JournalWriter {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     } catch (ExecutionException e) {
-      LOG.debug("Failed to close raft client: {}", e.toString());
+      LOG.warn("Failed to close raft client: {}", e.toString());
     } catch (TimeoutException e) {
-      LOG.debug("Failed to close raft client after 10 seconds");
+      LOG.warn("Timed out while closing raft client.");
     }
   }
 }
