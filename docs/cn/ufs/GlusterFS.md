@@ -2,7 +2,7 @@
 layout: global
 title: 在GlusterFS上配置Alluxio
 nickname: Alluxio使用GlusterFS
-group: Under Stores
+group: Storage Integrations
 priority: 2
 ---
 

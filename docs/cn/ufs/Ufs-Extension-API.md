@@ -1,14 +1,15 @@
 ---
 layout: global
-title: 如何开发底层存储扩展
-group: Client APIs
-priority: 3
+title: 新底层存储系统扩展软件
+nickname: 创建新底层存储系统
+group: Storage Integrations
+priority: 101
 ---
 
 * 内容列表
 {:toc}
 
-该页是面向底层存储扩展的开发者的。请浏览[managing extensions](UFSExtensions.html)来获取使用已有扩展的指导。
+该页是面向底层存储扩展的开发者的。请浏览[管理使用新底层存储系统扩展文档]({{ '/cn/storage/Ufs-Extension.html' | relativize_url }})来获取使用已有扩展的指导。
 
 底层存储扩展被构建为jar，并包含在一个特定的扩展位置，由Alluxio core提取。这一页描述了在Alluxio中的扩展如何工作的机制，并提供了开发底层存储扩展的详细说明。扩展提供了一个框架，使更多的存储库能够使用Alluxio，并使开发Alluxio不支持的模块变得方便。
 

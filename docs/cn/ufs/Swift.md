@@ -2,7 +2,7 @@
 layout: global
 title: 在Swift上配置Alluxio
 nickname: Alluxio使用Swift
-group: Under Stores
+group: Storage Integrations
 priority: 1
 ---
 

@@ -2,7 +2,7 @@
 layout: global
 title: 在COS上配置Alluxio
 nickname: Alluxio使用COS
-group: Under Stores
+group: Storage Integrations
 priority: 4
 ---
 
