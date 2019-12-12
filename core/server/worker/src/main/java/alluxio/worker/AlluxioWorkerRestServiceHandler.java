@@ -323,7 +323,9 @@ public final class AlluxioWorkerRestServiceHandler {
       try {
         int offset = Integer.parseInt(requestOffset);
         int limit = Integer.parseInt(requestLimit);
+        // make the limit the total number of files if request limit is > than what is available
         limit = offset == 0 && limit > fileIds.size() ? fileIds.size() : limit;
+        // offset+limit can't be greater than the size of the list
         limit = offset + limit > fileIds.size() ? fileIds.size() - offset : limit;
         int sum = Math.addExact(offset, limit);
         List<Long> subFileIds = fileIds.subList(offset, sum);
@@ -344,7 +346,7 @@ public final class AlluxioWorkerRestServiceHandler {
                     .addBlock(blockMeta.getBlockLocation().tierAlias(), blockId, blockSize, -1);
               }
             }
-            if (uiFileInfo.getBlockIds().isEmpty()) {
+            if (!uiFileInfo.getBlockIds().isEmpty()) {
               uiFileInfos.add(uiFileInfo);
             }
           } catch (Exception e) {
