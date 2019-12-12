@@ -3,7 +3,7 @@ layout: global
 title: FUSE基础上的POSIX API
 nickname: POSIX API
 group: Client APIs
-priority: 7
+priority: 3
 ---
 
 * 内容列表

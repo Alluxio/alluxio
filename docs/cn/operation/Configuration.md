@@ -2,7 +2,7 @@
 layout: global
 title: 配置项设置
 group: Basic
-priority: 1
+priority: 0
 ---
 
 * Table of Contents

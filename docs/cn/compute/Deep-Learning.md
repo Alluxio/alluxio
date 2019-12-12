@@ -2,8 +2,8 @@
 layout: global
 title: 在Alluxio上运行深度学习框架
 nickname: 深度学习框架
-group: Data Applications
-priority: 5
+group: Compute Integrations
+priority: 4
 ---
 
 * 内容列表

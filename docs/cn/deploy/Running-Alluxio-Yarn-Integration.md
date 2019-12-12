@@ -2,8 +2,8 @@
 layout: global
 title: Alluxio与YARN整合运行
 nickname: Alluxio与YARN整合
-group: Deploying Alluxio
-priority: 4
+group: Install Alluxio
+priority: 5
 ---
 
 * 内容列表

@@ -1,8 +1,8 @@
 ---
 layout: global
 title: 命令行接口
-group: Basic
-priority: 0
+group: Operations
+priority: 1
 ---
 
 * 内容列表

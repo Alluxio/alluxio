@@ -3,7 +3,7 @@ layout: global
 title: REST API
 nickname: REST API
 group: Client APIs
-priority: 3
+priority: 4
 ---
 
 为了其他语言的可移植性，[Alluxio API](Clients-Alluxio-Java.html)也可以通过REST API形式的HTTP代理访问。

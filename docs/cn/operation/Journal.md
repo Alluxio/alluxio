@@ -3,7 +3,7 @@ layout: global
 title: 日志
 nickname: 日志
 group: Operations
-priority: 0
+priority: 4
 ---
 
 * Table of Contents

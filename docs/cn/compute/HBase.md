@@ -2,8 +2,8 @@
 layout: global
 title: 在Alluxio上运行Apache HBase
 nickname: Apache HBase
-group: Data Applications
-priority: 2
+group: Compute Integrations
+priority: 5
 ---
 
 * 内容列表

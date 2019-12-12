@@ -2,7 +2,7 @@
 layout: global
 title: Apache Spark 使用 Alluxio
 nickname: Apache Spark
-group: Data Applications
+group: Compute Integrations
 priority: 0
 ---
 

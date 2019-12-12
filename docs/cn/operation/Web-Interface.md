@@ -1,8 +1,8 @@
 ---
 layout: global
 title: Web界面
-group: Basic
-priority: 6
+group: Operations
+priority: 3
 ---
 
 * 内容列表

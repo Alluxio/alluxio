@@ -2,8 +2,8 @@
 layout: global
 title: 在Alluxio上运行Hadoop MapReduce
 nickname: Apache Hadoop MapReduce
-group: Data Applications
-priority: 1
+group: Compute Integrations
+priority: 2
 ---
 
 * 内容列表

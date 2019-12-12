@@ -2,8 +2,8 @@
 layout: global
 title: FAQ
 nickname: FAQ
-group: Home
-priority: 10
+group: Overview
+priority: 2
 ---
 
 ## Alluxio 常见问题

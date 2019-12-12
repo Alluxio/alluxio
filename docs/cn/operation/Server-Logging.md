@@ -2,7 +2,7 @@
 layout: global
 title: 远程记录日志
 group: Operations
-priority: 0
+priority: 6
 ---
 
 * 内容列表

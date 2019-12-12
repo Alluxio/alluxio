@@ -2,8 +2,8 @@
 layout: global
 title: 在Alluxio上运行Apache Flink
 nickname: Apache Flink
-group: Data Applications
-priority: 2
+group: Compute Integrations
+priority: 6
 ---
 
 * 内容列表

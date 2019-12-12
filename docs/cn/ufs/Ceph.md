@@ -3,7 +3,7 @@ layout: global
 title: 在Ceph上配置Alluxio
 nickname: Alluxio使用Ceph
 group: Storage Integrations
-priority: 1
+priority: 5
 ---
 
 * 内容列表
