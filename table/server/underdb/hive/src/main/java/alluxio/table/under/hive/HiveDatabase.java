@@ -30,6 +30,7 @@ import alluxio.table.under.hive.util.PathTranslator;
 import alluxio.util.io.PathUtils;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.RetryingMetaStoreClient;
 import org.apache.hadoop.hive.metastore.Warehouse;
@@ -250,8 +251,8 @@ public class HiveDatabase implements UnderDatabase {
       // use the extension class loader
       Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
       HiveConf conf = new HiveConf();
-      conf.set("hive.metastore.uris", mConnectionUri);
-      mHive = RetryingMetaStoreClient.getProxy(conf, true);
+      conf.verifyAndSet("hive.metastore.uris", mConnectionUri);
+      mHive = RetryingMetaStoreClient.getProxy(conf, null, HiveMetaStoreClient.class.getName());
       mHive.getDatabase(mHiveDbName);
       return mHive;
     } catch (NoSuchObjectException e) {
