@@ -29,7 +29,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 更新`conf/alluxio-site.properties`中的`alluxio.master.hostname`为你将运行Alluxio Master的机器的主机名。添加所有worker节点的IP地址到`conf/workers`文件。
 如果集群中存在多节点，你不可以使用本地文件系统作为Allxuio底层存储层。你需要在所有Alluxio服务端连接的节点启动共享存储，共享存储可以是
-网络文件系统（NFS），HDFS，S3等。例如。你可以参照[Configuring Alluxio with S3]({{ '/cn/ufs/S3.html' | relativize_url }})按照说明启动S3作为Alluxio底层存储。
+网络文件系统（NFS），HDFS，S3等。例如。你可以参照[S3底层存储系统设置文档]({{ '/cn/ufs/S3.html' | relativize_url }})按照说明启动S3作为Alluxio底层存储。
 
 最后，同步所有信息到worker节点。你可以使用
 

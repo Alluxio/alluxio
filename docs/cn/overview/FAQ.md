@@ -27,7 +27,7 @@ priority: 10
 
 5. Alluxio master节点是否具备容错能力？
 
-   是的。请参考[此页]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }}#running-alluxio-with-high-availability)。
+   是的。请参考[以集群模式运行Alluxio文档]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }}#running-alluxio-with-high-availability)。
 
 6. 什么是底层存储系统？Alluxio支持多少种底层存储系统？
 
@@ -49,11 +49,11 @@ priority: 10
 
 10. Alluxio可以作为一个单机系统运行以进行实验和验证吗？
 
-    是的，Alluxio可以作为一个单机系统运行。[这里]({{ '/cn/deploy/Running-Alluxio-Locally.html' | relativize_url }})是操作指南。
+    是的，Alluxio可以作为一个单机系统运行。[以本地模式运行Alluxio文档]({{ '/cn/deploy/Running-Alluxio-Locally.html' | relativize_url }})是相关操作指南。
 
 11. Alluxio可以以集群模式运行吗？
 
-    是的，Alluxio可以以集群模式运行。[这里]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }})是操作指南。
+    是的，Alluxio可以以集群模式运行。[以本地模式运行Alluxio文档]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }})是相关操作指南。
 
 12. Alluxio必须在HDFS上运行吗？
 

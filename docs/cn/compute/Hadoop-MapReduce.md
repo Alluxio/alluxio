@@ -23,7 +23,7 @@ priority: 1
 为了使MapReduce应用可以与Alluxio进行通信，你需要将Alluxio Client的Jar包包含在MapReduce的classpaths中。我们建议你从Alluxio [download page](http://www.alluxio.io/download) 下载压缩包。
 
 同时，高级用户可以选择使用源代码来编译生成Alluxio Client的Jar包。
-你可以运行以下命令[here]({{ '/cn/contributor/Building-Alluxio-From-Source.html' | relativize_url }}#compute-framework-support)。
+你可以运行以下命令[编译Alluxio源代码]({{ '/cn/contributor/Building-Alluxio-From-Source.html' | relativize_url }}#compute-framework-support)。
 
 新的Alluxio客户端Jar包可以在`{{site.ALLUXIO_CLIENT_JAR_PATH}}`中发现。
 

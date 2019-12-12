@@ -127,7 +127,7 @@ Alluxio通过配置`alluxio.security.authentication.type`来提供不同的[用�
 如果客户端和服务器的这项配置属性不一致，这种错误将会发生。(例如，客户端的属性为默认值`NOSASL`,而服务器端设为`SIMPLE`)
 有关如何设定Alluxio的集群和应用的问题，用户请参照[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }})
 - Spark调用Alluxio-1.3.0文件时报错，如果是直接下载编译好的alluxio文件进行安装的，一般会出现该错误。
-解决办法：需要Alluxio client需要在编译时指定Spark选项，具体参考[Running-Spark-on-Alluxio]({{ '/cn/compute/Spark.html' | relativize_url }})；
+解决办法：需要Alluxio client需要在编译时指定Spark选项，具体参考[Spark应用配置文档]({{ '/cn/compute/Spark.html' | relativize_url }})；
 编译好的依赖包也可以直接下载，下载地址：<a href="http://downloads.alluxio.io/downloads/files/1.3.0/alluxio-1.3.0-spark-client-jar-with-dependencies.jar"> 依赖包下载 </a>。
 
 ### 问题: 向Alluxio拷贝数据或者写数据时出现如下问题 "Failed to cache: Not enough space to store block on worker",为什么？

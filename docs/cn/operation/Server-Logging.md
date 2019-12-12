@@ -114,7 +114,7 @@ log4j.appender.USER_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%
 Alluxio支持通过网络向远程的日志服务器发送日志。这个特性对于必须完成日志收集任务的系统管理者来说十分有用。得益于远程日志汇总功能，所有Alluxio服务器上的日志文件，例如master.log, worker
 .log等，可以在日志服务器上的指定路径轻松获取，且该路径可配置。
 
-如要获取在集群上部署Alluxio的指导，请参考 [Running Alluxio on a cluster]({{ '/en/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }})
+如要获取在集群上部署Alluxio的指导，请参考[以集群模式运行Alluxio文档]({{ '/en/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }})
 
 在默认情况下，远程日志汇总功能未被开启。如果要使用该功能，您可以设置三个环境变量： `ALLUXIO_LOGSERVER_HOSTNAME`, `ALLUXIO_LOGSERVER_PORT` 和
 `ALLUXIO_LOGSERVER_LOGS_DIR`。
