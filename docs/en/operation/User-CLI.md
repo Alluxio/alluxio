@@ -30,7 +30,7 @@ system commands which are covered in the [Admin CLI doc]({{ '/en/operation/Admin
 ### extensions
 
 The `extensions` command is for managing UFS extensions to Alluxio. For additional information, refer
-to the [main page]({{ '/en/storage/Ufs-Extensions.html' | relativize_url }}).
+to the [main page]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}).
 
 ### format
 

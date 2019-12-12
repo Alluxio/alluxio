@@ -71,7 +71,7 @@ Typical issues:
 ### Q: I'm trying to deploy Alluxio in a cluster with Spark and HDFS. Are there any suggestions?
 
 A: Please follow [Running-Alluxio-on-a-Cluster]({{ '/en/install/Running-Alluxio-On-a-Cluster.html' | relativize_url }}),
-[Configuring-Alluxio-with-HDFS]({{ '/en/storage/HDFS.html' | relativize_url }}).
+[Configuring-Alluxio-with-HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }}).
 
 Tips:
 
