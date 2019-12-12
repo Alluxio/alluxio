@@ -2,7 +2,7 @@
 layout: global
 title: Alluxio存储管理
 nickname: Alluxio存储管理
-group: Advanced
+group: Core Services
 priority: 0
 ---
 

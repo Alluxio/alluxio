@@ -3,7 +3,7 @@ layout: global
 title: 编译Alluxio源代码
 nickname: 编译Alluxio源代码
 group: Contributor Resources
-priority: 1
+priority: 0
 ---
 
 * 内容列表

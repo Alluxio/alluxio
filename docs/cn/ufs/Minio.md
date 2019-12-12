@@ -3,7 +3,7 @@ layout: global
 title: Alluxio使用Minio
 nickname: Alluxio使用Minio
 group: Storage Integrations
-priority: 0
+priority: 5
 ---
 
 * 内容列表

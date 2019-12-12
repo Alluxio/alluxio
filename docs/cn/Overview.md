@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Alluxio概览
-group: Home
+group: Overview
 priority: 0
 ---
 

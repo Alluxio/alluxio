@@ -1,8 +1,8 @@
 ---
 layout: global
 title: 快速上手指南
-group: Home
-priority: 3
+group: Overview
+priority: 1
 ---
 
 * 内容列表

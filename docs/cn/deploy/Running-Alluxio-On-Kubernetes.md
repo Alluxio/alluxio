@@ -2,8 +2,8 @@
 layout: global
 title: 在Kubernetes上运行Alluxio
 nickname: Kubernetes上的Alluxio
-group: Deploying Alluxio
-priority: 3
+group: Install Alluxio
+priority: 4
 ---
 
 Alluxio可以在Kubernetes上运行。这个指南演示了如何使用Alluxio Github库中的说明来在Kubernetes上运行Alluxio。

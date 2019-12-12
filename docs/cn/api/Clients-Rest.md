@@ -3,7 +3,7 @@ layout: global
 title: REST API
 nickname: REST API
 group: Client APIs
-priority: 3
+priority: 4
 ---
 
 为了其他语言的可移植性，除使用[原生文件系统Java客户端]({{ '/cn/api/FS-API.html' | relativize_url }})外，也可以通过REST API形式的HTTP代理访问Alluxio文件系统。

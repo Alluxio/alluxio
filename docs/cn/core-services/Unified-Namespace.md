@@ -2,8 +2,8 @@
 layout: global
 title: 命名空间管理
 nickname: 命名空间管理
-group: Advanced
-priority: 0
+group: Core Services
+priority: 1
 ---
 
 * 内容列表

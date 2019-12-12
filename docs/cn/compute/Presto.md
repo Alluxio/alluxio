@@ -2,8 +2,8 @@
 layout: global
 title: Presto 使用 Alluxio
 nickname: Presto
-group: Data Applications
-priority: 2
+group: Compute Integrations
+priority: 1
 ---
 
 [Presto](https://prestosql.io/) 是一个开源的分布式 SQL 查询引擎，用于对数据进行大规模的交互式分析查询。

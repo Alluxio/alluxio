@@ -3,7 +3,7 @@ layout: global
 title: 开发指南
 nickname: 开发指南
 group: Contributor Resources
-priority: 2
+priority: 1
 ---
 
 * 内容列表

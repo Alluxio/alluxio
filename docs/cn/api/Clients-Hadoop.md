@@ -3,7 +3,7 @@ layout: global
 title: 兼容Hadoop的Java客户端
 nickname: 兼容Hadoop的Java
 group: Client APIs
-priority: 2
+priority: 7
 ---
 
 * 内容列表

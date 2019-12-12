@@ -3,7 +3,7 @@ layout: global
 title: 异常诊断与调试
 group: Resources
 group: Operations
-priority: 0
+priority: 8
 ---
 
 * 内容列表
