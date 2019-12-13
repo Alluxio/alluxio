@@ -56,6 +56,7 @@ public final class MasterMetrics {
   // metrics names for journal
   public static final String JOURNAL_FLUSH_FAILURE = "JournalFlushFailure";
   public static final String JOURNAL_FLUSH_TIMER = "JournalFlushTimer";
+  public static final String JOURNAL_GAIN_PRIMACY_TIMER = "JournalGainPrimacyTimer";
   public static final String UFS_JOURNAL_FAILURE_RECOVER_TIMER = "UfsJournalFailureRecoverTime";
 
   private MasterMetrics() {} // prevent instantiation
