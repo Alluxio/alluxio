@@ -80,7 +80,7 @@ public class JobServiceMetricsCommandTest {
 
     // Worker Health Section
     assertEquals("Worker: testHost    Task Pool Size: 10     Unfinished Tasks: 2"
-        + "      Load Avg: 1.2, 0.9, 0.7",
+        + "      Active Tasks: 2      Load Avg: 1.2, 0.9, 0.7",
         lineByLine[0]);
     assertEquals("", lineByLine[1]);
 
