@@ -3309,6 +3309,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_SHORT_CIRCUIT_PREFERRED =
+      new Builder(Name.USER_SHORT_CIRCUIT_PREFERRED)
+          .setDefaultValue(false)
+          .setDescription("When short circuit and domain socket both enabled, "
+              + "prefer to use short circuit.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_METADATA_CACHE_ENABLED =
       new Builder(Name.USER_METADATA_CACHE_ENABLED)
           .setDefaultValue(false)
@@ -4458,6 +4466,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
+    public static final String USER_SHORT_CIRCUIT_PREFERRED =
+        "alluxio.user.short.circuit.preferred";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
     public static final String USER_METADATA_CACHE_ENABLED =
