@@ -257,15 +257,15 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   }
 
   /**
-   * Cancels a job.
+   * Cancels a job. Does nothing if the job doesn't exist.
    *
    * @param jobId the id of the job
-   * @throws JobDoesNotExistException when the job does not exist
    */
-  public void cancel(long jobId) throws JobDoesNotExistException {
+  public void cancel(long jobId) {
     PlanCoordinator planCoordinator = mPlanTracker.getCoordinator(jobId);
     if (planCoordinator == null) {
-      throw new JobDoesNotExistException(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
+      mWorkflowTracker.cancel(jobId);
+      return;
     }
     planCoordinator.cancel();
   }

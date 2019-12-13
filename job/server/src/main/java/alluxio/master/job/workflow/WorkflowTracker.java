@@ -77,6 +77,17 @@ public class WorkflowTracker {
     next(jobId);
   }
 
+  public synchronized void cancel(long jobId) {
+    ConcurrentHashSet<Long> children = mChildren.get(jobId);
+    if (children == null) {
+      return;
+    }
+
+    for (Long child : children) {
+      mJobMaster.cancel(child);
+    }
+  }
+
   /**
    * Gets information of the given job id.
    *
