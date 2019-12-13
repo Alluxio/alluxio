@@ -61,6 +61,8 @@ public class JobServiceMetricsCommand {
       mPrintStream.print(String.format("Task Pool Size: %-7s", workerHealth.getTaskPoolSize()));
       mPrintStream.print(String.format("Unfinished Tasks: %-7s",
           workerHealth.getUnfinishedTasks()));
+      mPrintStream.print(String.format("Active Tasks: %-7s",
+          workerHealth.getNumActiveTasks()));
       mPrintStream.println(String.format("Load Avg: %s",
           StringUtils.join(workerHealth.getLoadAverage(), ", ")));
     }
