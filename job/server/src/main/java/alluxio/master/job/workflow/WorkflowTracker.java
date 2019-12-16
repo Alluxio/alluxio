@@ -61,10 +61,6 @@ public class WorkflowTracker {
     mParentWorkflow = new ConcurrentHashMap<>();
   }
 
-  public String name() {
-    return "Workflow";
-  }
-
   /**
    * Runs a workflow with the given configuration and job id.
    *
@@ -85,6 +81,7 @@ public class WorkflowTracker {
    * Gets information of the given job id.
    *
    * @param jobId the id of the job
+   * @param verbose whether the output should be verbose
    * @return null if the job id isn't know by the workflow tracker. WorkflowInfo otherwise
    */
   public WorkflowInfo getStatus(long jobId, boolean verbose) {

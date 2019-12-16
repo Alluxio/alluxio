@@ -40,6 +40,7 @@ public class CompositeExecution extends WorkflowExecution {
     mPosition = 0;
   }
 
+  @Override
   public String getName() {
     return "Composite";
   }

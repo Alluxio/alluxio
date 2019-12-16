@@ -271,7 +271,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   }
 
   /**
-   * @return list all the job ids
+   * @return list of all job ids
    */
   public List<Long> list() {
     ArrayList<Long> allIds = Lists.newArrayList(mPlanTracker.list());
@@ -280,6 +280,9 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     return allIds;
   }
 
+  /**
+   * @return list of all job infos
+   */
   public List<JobInfo> listDetailed() {
     List<JobInfo> jobInfos = new ArrayList<>();
 

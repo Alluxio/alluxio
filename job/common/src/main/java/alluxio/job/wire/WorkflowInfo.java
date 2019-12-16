@@ -42,6 +42,7 @@ public class WorkflowInfo implements JobInfo {
   /**
    * Default constructor.
    * @param id id of the workflow
+   * @param name name of the workflow
    * @param status {@link Status} of the workflow
    * @param lastUpdated lastUpdated time in milliseconds
    * @param errorMessage error message

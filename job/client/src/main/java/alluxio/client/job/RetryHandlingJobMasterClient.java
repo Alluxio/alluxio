@@ -116,11 +116,13 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
 
   @Override
   public List<JobInfo> listDetailed() throws IOException {
-    List<alluxio.grpc.JobInfo> jobProtoInfos = retryRPC(new RpcCallable<List<alluxio.grpc.JobInfo>>() {
-      public List<alluxio.grpc.JobInfo> call() {
-        return mClient.listDetailed(ListDetailedPRequest.getDefaultInstance()).getJobInfosList();
-      }
-    });
+    List<alluxio.grpc.JobInfo> jobProtoInfos = retryRPC(
+        new RpcCallable<List<alluxio.grpc.JobInfo>>() {
+          public List<alluxio.grpc.JobInfo> call() {
+            return mClient.listDetailed(ListDetailedPRequest.getDefaultInstance())
+                .getJobInfosList();
+          }
+        });
     ArrayList<JobInfo> result = Lists.newArrayList();
     for (alluxio.grpc.JobInfo jobProtoInfo : jobProtoInfos) {
       result.add(ProtoUtils.fromProto(jobProtoInfo));

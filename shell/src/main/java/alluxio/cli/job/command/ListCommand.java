@@ -17,7 +17,6 @@ import alluxio.cli.fs.command.AbstractFileSystemCommand;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobContext;
 import alluxio.client.job.JobMasterClient;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.wire.JobInfo;
 import alluxio.resource.CloseableResource;
@@ -26,7 +25,6 @@ import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;

@@ -93,7 +93,8 @@ public class JobMasterClientServiceHandler
   }
 
   @Override
-  public void listDetailed(ListDetailedPRequest request, StreamObserver<ListDetailedPResponse> responseObserver) {
+  public void listDetailed(ListDetailedPRequest request,
+                           StreamObserver<ListDetailedPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<ListDetailedPResponse>) () -> {
       ListDetailedPResponse.Builder builder = ListDetailedPResponse.newBuilder();
       for (JobInfo jobInfo : mJobMaster.listDetailed()) {

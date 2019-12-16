@@ -37,6 +37,9 @@ public abstract class WorkflowExecution {
     mErrorMessage = null;
   }
 
+  /**
+   * @return name of the workflow
+   */
   public abstract String getName();
 
   /**

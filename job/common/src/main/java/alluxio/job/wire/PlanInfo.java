@@ -61,6 +61,12 @@ public final class PlanInfo implements JobInfo {
     mResult = null;
   }
 
+  /**
+   * Constructs the plan info from the job master's internal representation of job info.
+   *
+   * @param planInfo the job master's internal job info
+   * @param verbose whether the representation should be verbose
+   */
   public PlanInfo(alluxio.job.plan.meta.PlanInfo planInfo, boolean verbose) {
     mId = planInfo.getId();
     mName = planInfo.getJobConfig().getName();
