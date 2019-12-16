@@ -75,6 +75,10 @@ public final class TaskExecutor implements Runnable {
     Serializable result;
     try {
       result = definition.runTask(mJobConfig, mTaskArgs, mContext);
+    } catch (InterruptedException e) {
+      // Cleanup around the interruption should already have been handled by a different thread
+      Thread.currentThread().interrupt();
+      return;
     } catch (Throwable t) {
       if (ServerConfiguration.getBoolean(PropertyKey.DEBUG)) {
         mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId, ExceptionUtils.getStackTrace(t));
