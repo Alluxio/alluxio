@@ -37,6 +37,8 @@ public abstract class WorkflowExecution {
     mErrorMessage = null;
   }
 
+  public abstract String getName();
+
   /**
    * Given the previous set of jobs were completed successfully,
    * returns a list of jobs to execute next. Updating status accordingly.

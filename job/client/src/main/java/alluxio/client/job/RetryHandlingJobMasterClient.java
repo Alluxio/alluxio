@@ -19,6 +19,7 @@ import alluxio.grpc.GetJobServiceSummaryPRequest;
 import alluxio.grpc.GetJobStatusPRequest;
 import alluxio.grpc.JobMasterClientServiceGrpc;
 import alluxio.grpc.ListAllPRequest;
+import alluxio.grpc.ListDetailedPRequest;
 import alluxio.grpc.RunPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.job.JobConfig;
@@ -29,10 +30,12 @@ import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.worker.job.JobMasterClientContext;
 
+import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import io.grpc.StatusRuntimeException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -109,6 +112,20 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
         return mClient.listAll(ListAllPRequest.getDefaultInstance()).getJobIdsList();
       }
     });
+  }
+
+  @Override
+  public List<JobInfo> listDetailed() throws IOException {
+    List<alluxio.grpc.JobInfo> jobProtoInfos = retryRPC(new RpcCallable<List<alluxio.grpc.JobInfo>>() {
+      public List<alluxio.grpc.JobInfo> call() {
+        return mClient.listDetailed(ListDetailedPRequest.getDefaultInstance()).getJobInfosList();
+      }
+    });
+    ArrayList<JobInfo> result = Lists.newArrayList();
+    for (alluxio.grpc.JobInfo jobProtoInfo : jobProtoInfos) {
+      result.add(ProtoUtils.fromProto(jobProtoInfo));
+    }
+    return result;
   }
 
   @Override

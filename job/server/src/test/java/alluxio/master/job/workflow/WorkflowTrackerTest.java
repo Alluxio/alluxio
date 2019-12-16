@@ -90,7 +90,7 @@ public class WorkflowTrackerTest {
 
     verify(mMockJobMaster).run(child1, 100);
 
-    WorkflowInfo info = mWorkflowTracker.getStatus(0);
+    WorkflowInfo info = mWorkflowTracker.getStatus(0, true);
 
     assertEquals(Status.RUNNING, info.getStatus());
 
@@ -105,7 +105,7 @@ public class WorkflowTrackerTest {
 
     verify(mMockJobMaster).run(child2, 101);
 
-    assertEquals(Status.RUNNING, mWorkflowTracker.getStatus(0).getStatus());
+    assertEquals(Status.RUNNING, mWorkflowTracker.getStatus(0, true).getStatus());
 
     TaskInfo task101 = new TaskInfo(101, 0, Status.COMPLETED, new WorkerNetAddress());
     taskInfos = Lists.newArrayList(task101);
@@ -113,7 +113,7 @@ public class WorkflowTrackerTest {
     when(mMockJobMaster.getStatus(101)).thenReturn(plan101);
     mWorkflowTracker.workerHeartbeat(taskInfos);
 
-    assertEquals(Status.COMPLETED, mWorkflowTracker.getStatus(0).getStatus());
+    assertEquals(Status.COMPLETED, mWorkflowTracker.getStatus(0, true).getStatus());
   }
 
   @Test
@@ -158,7 +158,7 @@ public class WorkflowTrackerTest {
 
     mPlanTracker.run(new SleepJobConfig(1), mCommandManager, mMockJobServerContext, mWorkers, 4);
 
-    assertNotNull(mWorkflowTracker.getStatus(0));
+    assertNotNull(mWorkflowTracker.getStatus(0, true));
 
     try {
       mPlanTracker.run(new SleepJobConfig(1), mCommandManager, mMockJobServerContext, mWorkers, 5);
@@ -172,6 +172,6 @@ public class WorkflowTrackerTest {
 
     mPlanTracker.run(new SleepJobConfig(1), mCommandManager, mMockJobServerContext, mWorkers, 5);
 
-    assertNull(mWorkflowTracker.getStatus(100));
+    assertNull(mWorkflowTracker.getStatus(100, true));
   }
 }

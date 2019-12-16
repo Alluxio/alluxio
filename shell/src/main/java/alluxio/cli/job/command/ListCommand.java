@@ -19,6 +19,7 @@ import alluxio.client.job.JobContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.job.wire.JobInfo;
 import alluxio.resource.CloseableResource;
 
 import org.apache.commons.cli.CommandLine;
@@ -58,13 +59,14 @@ public final class ListCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public int run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) {
     try (CloseableResource<JobMasterClient> client = JobContext
         .create(mFsContext.getClusterConf(), mFsContext.getClientContext().getUserState())
         .acquireMasterClientResource()) {
-      List<Long> ids = client.get().list();
-      for (long id : ids) {
-        System.out.println(id);
+      List<JobInfo> jobInfos = client.get().listDetailed();
+      for (JobInfo jobInfo : jobInfos) {
+        System.out.println(String.format("%-15s %-10s %-10s", jobInfo.getId(), jobInfo.getName(),
+            jobInfo.getStatus()));
       }
     } catch (Exception e) {
       LOG.error("Failed to list the jobs ", e);

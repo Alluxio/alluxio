@@ -280,6 +280,20 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     return allIds;
   }
 
+  public List<JobInfo> listDetailed() {
+    List<JobInfo> jobInfos = new ArrayList<>();
+
+    for (PlanCoordinator coordinator : mPlanTracker.coordinators()) {
+      jobInfos.add(coordinator.getPlanInfoWire(false));
+    }
+
+    jobInfos.addAll(mWorkflowTracker.getAllInfo());
+
+    jobInfos.sort(Comparator.comparingLong(JobInfo::getId));
+
+    return jobInfos;
+  }
+
   /**
    * Gets information of the given job id.
    *
@@ -291,14 +305,14 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     PlanCoordinator planCoordinator = mPlanTracker.getCoordinator(jobId);
     if (planCoordinator == null) {
 
-      WorkflowInfo status = mWorkflowTracker.getStatus(jobId);
+      WorkflowInfo status = mWorkflowTracker.getStatus(jobId, true);
 
       if (status == null) {
         throw new JobDoesNotExistException(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
       }
       return status;
     }
-    return planCoordinator.getPlanInfoWire();
+    return planCoordinator.getPlanInfoWire(true);
   }
 
   /**
@@ -307,15 +321,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    * @return {@link JobServiceSummary}
    */
   public alluxio.job.wire.JobServiceSummary getSummary() {
-    List<JobInfo> jobInfos = new ArrayList<>();
-
-    for (PlanCoordinator coordinator : mPlanTracker.coordinators()) {
-      jobInfos.add(coordinator.getPlanInfoWire());
-    }
-
-    jobInfos.addAll(mWorkflowTracker.getAllInfo());
-
-    return new JobServiceSummary(jobInfos);
+    return new JobServiceSummary(listDetailed());
   }
 
   /**

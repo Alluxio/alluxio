@@ -228,8 +228,8 @@ public final class PlanCoordinator {
   /**
    * @return the on the wire job info for the job being coordinated
    */
-  public synchronized alluxio.job.wire.PlanInfo getPlanInfoWire() {
-    return new alluxio.job.wire.PlanInfo(mPlanInfo);
+  public synchronized alluxio.job.wire.PlanInfo getPlanInfoWire(boolean verbose) {
+    return new alluxio.job.wire.PlanInfo(mPlanInfo, verbose);
   }
 
   /**

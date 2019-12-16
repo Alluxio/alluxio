@@ -40,6 +40,10 @@ public class CompositeExecution extends WorkflowExecution {
     mPosition = 0;
   }
 
+  public String getName() {
+    return "Composite";
+  }
+
   @Override
   protected Set<JobConfig> nextJobs() {
     if (mPosition >= mJobs.size()) {

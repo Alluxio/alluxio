@@ -33,6 +33,7 @@ import java.util.List;
 public class WorkflowInfo implements JobInfo {
 
   private final long mId;
+  private final String mName;
   private final Status mStatus;
   private final long mLastUpdated;
   private final String mErrorMessage;
@@ -46,9 +47,10 @@ public class WorkflowInfo implements JobInfo {
    * @param errorMessage error message
    * @param children list of child job infos
    */
-  public WorkflowInfo(long id, Status status, long lastUpdated, String errorMessage,
+  public WorkflowInfo(long id, String name, Status status, long lastUpdated, String errorMessage,
       List<JobInfo> children) {
     mId = id;
+    mName = name;
     mStatus = status;
     mLastUpdated = lastUpdated;
     mErrorMessage = (errorMessage == null) ? "" : errorMessage;
@@ -63,6 +65,7 @@ public class WorkflowInfo implements JobInfo {
     Preconditions.checkArgument(jobInfo.getType().equals(JobType.WORKFLOW), "Invalid type");
 
     mId = jobInfo.getId();
+    mName = jobInfo.getName();
     mStatus = Status.valueOf(jobInfo.getStatus().name());
     mLastUpdated = jobInfo.getLastUpdated();
     mErrorMessage = jobInfo.getErrorMessage();
@@ -86,7 +89,7 @@ public class WorkflowInfo implements JobInfo {
   @Nonnull
   @Override
   public String getName() {
-    return "Workflow";
+    return mName;
   }
 
   @Nonnull
@@ -128,8 +131,8 @@ public class WorkflowInfo implements JobInfo {
   @Override
   public alluxio.grpc.JobInfo toProto() throws IOException {
     alluxio.grpc.JobInfo.Builder builder = alluxio.grpc.JobInfo.newBuilder().setId(mId)
-        .setStatus(mStatus.toProto()).setLastUpdated(mLastUpdated).setErrorMessage(mErrorMessage)
-        .setType(JobType.WORKFLOW);
+        .setName(mName).setStatus(mStatus.toProto()).setLastUpdated(mLastUpdated)
+        .setErrorMessage(mErrorMessage).setType(JobType.WORKFLOW);
 
     for (JobInfo child : mChildren) {
       builder.addChildren(child.toProto());
