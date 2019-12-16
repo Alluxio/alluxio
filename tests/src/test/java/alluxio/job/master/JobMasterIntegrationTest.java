@@ -195,7 +195,7 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
     JobTestUtils.waitForJobStatus(mJobMaster, jobId0,
         Sets.newHashSet(Status.RUNNING, Status.COMPLETED));
 
-    long jobId1 = mJobMaster.run(new SleepJobConfig(5000));
+    long jobId1 = mJobMaster.run(new SleepJobConfig(50000));
     JobTestUtils.waitForJobStatus(mJobMaster, jobId1, Status.RUNNING);
     JobTestUtils.waitForJobStatus(mJobMaster, jobId0, Status.COMPLETED);
 
@@ -211,5 +211,10 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
 
     assertEquals(1, mJobMaster.getAllWorkerHealth().get(0).getTaskPoolSize());
     assertEquals(1, mJobMaster.getAllWorkerHealth().get(0).getNumActiveTasks());
+
+    mJobMaster.cancel(jobId1);
+
+    JobTestUtils.waitForJobStatus(mJobMaster, jobId2, Status.COMPLETED);
+    JobTestUtils.waitForJobStatus(mJobMaster, jobId3, Status.COMPLETED);
   }
 }

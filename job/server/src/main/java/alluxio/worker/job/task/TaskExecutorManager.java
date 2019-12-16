@@ -143,20 +143,6 @@ public class TaskExecutorManager {
   }
 
   /**
-   * Notifies the cancellation of the task.
-   *
-   * @param jobId the job id
-   * @param taskId the task id
-   */
-  public synchronized void notifyTaskCancellation(long jobId, long taskId) {
-    Pair<Long, Long> id = new Pair<>(jobId, taskId);
-    TaskInfo taskInfo = mUnfinishedTasks.get(id);
-    taskInfo.setStatus(Status.CANCELED);
-    finishTask(id);
-    LOG.info("Task {} for job {} canceled", taskId, jobId);
-  }
-
-  /**
    * Executes the given task.
    *
    * @param jobId the job id
@@ -192,10 +178,14 @@ public class TaskExecutorManager {
       return;
     }
 
+    LOG.info("Task {} for job {} canceled", taskId, jobId);
     Future<?> future = mTaskFutures.get(id);
     if (!future.cancel(true)) {
       taskInfo.setStatus(Status.FAILED);
       taskInfo.setErrorMessage("Failed to cancel the task");
+      finishTask(id);
+    } else {
+      taskInfo.setStatus(Status.CANCELED);
       finishTask(id);
     }
   }
