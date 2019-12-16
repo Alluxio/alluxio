@@ -75,11 +75,9 @@ public final class TaskExecutor implements Runnable {
     Object result;
     try {
       result = definition.runTask(mJobConfig, mTaskArgs, mContext);
-      if (Thread.interrupted()) {
-        mTaskExecutorManager.notifyTaskCancellation(mJobId, mTaskId);
-      }
     } catch (InterruptedException e) {
-      mTaskExecutorManager.notifyTaskCancellation(mJobId, mTaskId);
+      // Cleanup around the interruption should already have been handled by a different thread
+      Thread.currentThread().interrupt();
       return;
     } catch (Throwable t) {
       if (ServerConfiguration.getBoolean(PropertyKey.DEBUG)) {
