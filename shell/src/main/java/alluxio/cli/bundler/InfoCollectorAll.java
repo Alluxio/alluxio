@@ -9,6 +9,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.util.ConfigurationUtils;
 
+import alluxio.util.ShellUtils;
+import alluxio.util.io.PathUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
@@ -69,20 +71,23 @@ public class InfoCollectorAll extends AbstractShell {
     // TODO(jiacheng): get hosts from static util call
     Set<String> allHosts = shellAll.getHosts();
 
-    // TODO(jiacheng): move this to RunCommandUtils
+    // TODO(jiacheng): move this to ShellUtils
     for (String host : allHosts) {
       LOG.info(String.format("Execute InfoCollector on host %s", host));
 
       // TODO(jiacheng): Execute InfoCollector
-      // TODO(jiacheng): 1. Test local invocation no ssh
-      // TODO(jiacheng): 2. Test local invocation ssh
-      // TODO(jiacheng): 3. Test multi nodes invocation ssh
-      // TODO(jiacheng): 4. Test threadpool
 
-
-      InfoCollector shell = new InfoCollector(conf);
-      shell.run(argv);
+      LOG.info(String.format("Info bundle finished on host %s", host));
     }
+
+    // TODO(jiacheng): Invoke this with ShellUtils
+    for (String host : allHosts) {
+      LOG.info(String.format("Collecting tarball from host %s", host));
+
+      // TODO(jiacheng): SCP collect tarball
+    }
+
+    // TODO(jiacheng): Generate final tarball
 
     System.exit(ret);
   }

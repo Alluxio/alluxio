@@ -61,9 +61,8 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
     return false;
   }
 
-  // TODO(jiacheng): format this method
   public String getMetricsJson() {
-    // Generate URL
+    // Generate URL from parameters
     String masterAddr;
     try {
       masterAddr = mFsContext.getMasterAddress().getHostName();
@@ -72,14 +71,13 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
       e.printStackTrace();
       return String.format("%s", e.getStackTrace());
     }
+    // TODO(jiacheng): Where to get /metrics/json/ ?
     String url = String.format("%s:%s/metrics/json/", masterAddr,
             mFsContext.getClusterConf().get(PropertyKey.MASTER_WEB_PORT));
     LOG.info(String.format("Metric address URL: %s", url));
 
-    // Create an instance of HttpClient.
+    // Create an instance of HttpClient and do Http Get
     HttpClient client = new HttpClient();
-
-    // Create a method instance.
     GetMethod method = new GetMethod(url);
 
     // Provide custom retry handler is necessary
@@ -90,31 +88,19 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
       // Execute the method.
       int statusCode = client.executeMethod(method);
 
-      if (statusCode != HttpStatus.SC_OK) {
-        System.err.println("Method failed: " + method.getStatusLine());
-      }
-
-      // Read the response body.
-      byte[] responseBody = method.getResponseBody();
-
-      // Deal with the response.
-      // Use caution: ensure correct character encoding and is not binary data
-      System.out.println(new String(responseBody));
-
-      return new String(responseBody);
+      return String.format("StatusCode: %s\nResponse%s", statusCode, new String(method.getResponseBody()));
     } catch (HttpException e) {
-      System.err.println("Fatal protocol violation: " + e.getMessage());
+      LOG.error("Fatal protocol violation: " + e.getMessage());
       e.printStackTrace();
+      return String.format("%s", e.getStackTrace());
     } catch (IOException e) {
-      System.err.println("Fatal transport error: " + e.getMessage());
+      LOG.error("Fatal transport error: " + e.getMessage());
       e.printStackTrace();
+      return String.format("%s", e.getStackTrace());
     } finally {
       // Release the connection.
       method.releaseConnection();
     }
-
-    // TODO(jiacheng): how to handle this
-    return "";
   }
 
   @Override
@@ -148,7 +134,6 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
       SleepUtils.sleepMs(LOG, 1000 * COLLECT_METRIC_INTERVAL);
     }
 
-    // TODO(jiacheng): ret
     return ret;
   }
 
