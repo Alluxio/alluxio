@@ -89,25 +89,4 @@ public final class TaskExecutorTest {
     Mockito.verify(mTaskExecutorManager).notifyTaskFailure(Mockito.eq(jobId), Mockito.eq(taskId),
         Mockito.anyString());
   }
-
-  @Test
-  public void runCancelation() throws Exception {
-    long jobId = 1;
-    long taskId = 2;
-    JobConfig jobConfig = Mockito.mock(JobConfig.class);
-    Serializable taskArgs = Lists.newArrayList(1);
-    RunTaskContext context = Mockito.mock(RunTaskContext.class);
-    @SuppressWarnings("unchecked")
-    PlanDefinition<JobConfig, Serializable, Serializable> planDefinition =
-        Mockito.mock(PlanDefinition.class);
-    Mockito.when(mRegistry.getJobDefinition(jobConfig)).thenReturn(planDefinition);
-    Mockito.doThrow(new InterruptedException("interupt")).when(planDefinition).runTask(jobConfig,
-        taskArgs, context);
-
-    TaskExecutor executor =
-        new TaskExecutor(jobId, taskId, jobConfig, taskArgs, context, mTaskExecutorManager);
-    executor.run();
-
-    Mockito.verify(mTaskExecutorManager).notifyTaskCancellation(jobId, taskId);
-  }
 }
