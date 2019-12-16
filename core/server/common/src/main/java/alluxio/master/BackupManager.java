@@ -111,7 +111,7 @@ public class BackupManager {
 
     // Start the timer for backup metrics and reset the entry counter.
     Metrics.LAST_BACKUP_ENTRIES_COUNT.dec(Metrics.LAST_BACKUP_ENTRIES_COUNT.getCount());
-    Timer.Context backup = Metrics.BACKUP_ENTRIES_PROCESS_TIME.time();
+    Timer.Context backup = MetricsSystem.timer(MasterMetrics.BACKUP_ENTRIES_PROCESS_TIME).time();
 
     // Submit master reader task.
     activeTasks.add(completionService.submit(() -> {
@@ -216,7 +216,7 @@ public class BackupManager {
 
       // Start the timer for backup metrics and reset restore entry count.
       Metrics.LAST_BACKUP_RESTORE_COUNT.dec(Metrics.LAST_BACKUP_RESTORE_COUNT.getCount());
-      Timer.Context restore = Metrics.BACKUP_RESTORE_PROCESS_TIME.time();
+      Timer.Context restore = MetricsSystem.timer(MasterMetrics.BACKUP_RESTORE_PROCESS_TIME).time();
 
       // Create backup reader task.
       activeTasks.add(completionService.submit(() -> {
@@ -346,10 +346,6 @@ public class BackupManager {
    * {@link alluxio.web.WebInterfaceAbstractMetricsServlet}.
    */
   public static final class Metrics {
-    private static final Timer BACKUP_ENTRIES_PROCESS_TIME
-        = MetricsSystem.timer(MasterMetrics.BACKUP_ENTRIES_PROCESS_TIME);
-    private static final Timer BACKUP_RESTORE_PROCESS_TIME
-        = MetricsSystem.timer(MasterMetrics.BACKUP_RESTORE_PROCESS_TIME);
     private static final Counter LAST_BACKUP_ENTRIES_COUNT
         = MetricsSystem.counter(MasterMetrics.LAST_BACKUP_ENTRIES_COUNT);
     private static final Counter LAST_BACKUP_RESTORE_COUNT

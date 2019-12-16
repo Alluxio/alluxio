@@ -190,5 +190,6 @@ public class MetricsStore {
   public void clear() {
     mWorkerMetrics.clear();
     mClientMetrics.clear();
+    MetricsSystem.clearAllMetrics();
   }
 }

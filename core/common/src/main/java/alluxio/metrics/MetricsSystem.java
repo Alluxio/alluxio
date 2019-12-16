@@ -28,6 +28,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -109,6 +110,9 @@ public final class MetricsSystem {
   public static final String CLUSTER = "cluster";
 
   public static final MetricRegistry METRIC_REGISTRY;
+
+  // Avoid concurrent reset metrics registry
+  public static volatile boolean sIsResetting;
 
   static {
     METRIC_REGISTRY = new MetricRegistry();
@@ -383,6 +387,9 @@ public final class MetricsSystem {
   // Some helper functions.
 
   /**
+   * Get or add counter with the given name.
+   * The counter stores in the metrics system is never removed but may reset to zero.
+   *
    * @param name the name of the metric
    * @return a counter object with the qualified metric name
    */
@@ -391,6 +398,9 @@ public final class MetricsSystem {
   }
 
   /**
+   * Get or add meter with the given name.
+   * The returned meter may be changed due to {@link #resetAllMetrics}
+   *
    * @param name the name of the metric
    * @return a meter object with the qualified metric name
    */
@@ -399,6 +409,9 @@ public final class MetricsSystem {
   }
 
   /**
+   * Get or add timer with the given name.
+   * The returned timer may be changed due to {@link #resetAllMetrics}
+   *
    * @param name the name of the metric
    * @return a timer object with the qualified metric name
    */
@@ -416,18 +429,6 @@ public final class MetricsSystem {
   public static synchronized <T> void registerGaugeIfAbsent(String name, Gauge<T> metric) {
     if (!METRIC_REGISTRY.getGauges().containsKey(name)) {
       METRIC_REGISTRY.register(name, metric);
-    }
-  }
-
-  /**
-   * Resets all counters to 0 and unregisters gauges for testing.
-   */
-  public static void resetCountersAndGauges() {
-    for (Map.Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
-      entry.getValue().dec(entry.getValue().getCount());
-    }
-    for (String gauge : METRIC_REGISTRY.getGauges().keySet()) {
-      METRIC_REGISTRY.remove(gauge);
     }
   }
 
@@ -532,11 +533,55 @@ public final class MetricsSystem {
   }
 
   /**
+   * Resets all the metrics in the MetricsSystem.
+   *
+   * This method is not thread-safe and should be used sparingly.
+   */
+  public static void resetAllMetrics() {
+    if (sIsResetting) {
+      return;
+    }
+    sIsResetting = true;
+    // Gauge metrics don't need to be changed because they calculate value when getting them
+    // Counters can be reset to zero values.
+    for (Counter counter : METRIC_REGISTRY.getCounters().values()) {
+      counter.dec(counter.getCount());
+    }
+
+    // No reset logic exist in Meter, a remove and add combination is needed
+    for (String meterName : METRIC_REGISTRY.getMeters().keySet()) {
+      METRIC_REGISTRY.remove(meterName);
+      METRIC_REGISTRY.meter(meterName);
+    }
+
+    // No reset logic exist in Timer, a remove and add combination is needed
+    for (String timerName : METRIC_REGISTRY.getTimers().keySet()) {
+      METRIC_REGISTRY.remove(timerName);
+      METRIC_REGISTRY.timer(timerName);
+    }
+    sIsResetting = false;
+  }
+
+  /**
    * Resets the metric registry and removes all the metrics.
    */
+  @VisibleForTesting
   public static void clearAllMetrics() {
     for (String name : METRIC_REGISTRY.getNames()) {
       METRIC_REGISTRY.remove(name);
+    }
+  }
+
+  /**
+   * Resets all counters to 0 and unregisters gauges for testing.
+   */
+  @VisibleForTesting
+  public static void resetCountersAndGauges() {
+    for (Map.Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
+      entry.getValue().dec(entry.getValue().getCount());
+    }
+    for (String gauge : METRIC_REGISTRY.getGauges().keySet()) {
+      METRIC_REGISTRY.remove(gauge);
     }
   }
 

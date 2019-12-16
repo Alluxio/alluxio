@@ -161,7 +161,8 @@ final class UfsJournalLogWriter implements JournalWriter {
       return;
     }
 
-    try (Timer.Context ctx = Metrics.UFS_JOURNAL_FAILURE_RECOVER_TIMER.time()) {
+    try (Timer.Context ctx = MetricsSystem
+        .timer(MasterMetrics.UFS_JOURNAL_FAILURE_RECOVER_TIMER).time()) {
       long lastPersistSeq = recoverLastPersistedJournalEntry();
       if (lastPersistSeq == -1) {
         throw new RuntimeException("Cannot find any journal entry to recover from.");
@@ -478,16 +479,5 @@ final class UfsJournalLogWriter implements JournalWriter {
   @VisibleForTesting
   synchronized JournalOutputStream getJournalOutputStream() {
     return mJournalOutputStream;
-  }
-
-  /**
-   * Class that contains metrics about UfsJournalLogWriter.
-   */
-  @ThreadSafe
-  private static final class Metrics {
-    private static final Timer UFS_JOURNAL_FAILURE_RECOVER_TIMER =
-        MetricsSystem.timer(MasterMetrics.UFS_JOURNAL_FAILURE_RECOVER_TIMER);
-
-    private Metrics() {} // prevent instantiation
   }
 }
