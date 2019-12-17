@@ -260,6 +260,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    * Cancels a job.
    *
    * @param jobId the id of the job
+   * @throws JobDoesNotExistException when the job does not exist
    */
   public void cancel(long jobId) throws JobDoesNotExistException {
     PlanCoordinator planCoordinator = mPlanTracker.getCoordinator(jobId);
