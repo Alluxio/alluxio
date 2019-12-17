@@ -69,8 +69,8 @@ public final class LocalFileDataReader implements DataReader {
     ByteBuffer buffer = mReader.read(mPos, Math.min(mChunkSize, mEnd - mPos));
     DataBuffer dataBuffer = new NioDataBuffer(buffer, buffer.remaining());
     mPos += dataBuffer.getLength();
-    MetricsSystem.counter(MetricKey.BYTES_READ_LOCAL.getName()).inc(dataBuffer.getLength());
-    MetricsSystem.meter(MetricKey.BYTES_READ_LOCAL_THROUGHPUT.getName())
+    MetricsSystem.counter(MetricKey.CLIENT_BYTES_READ_LOCAL.getName()).inc(dataBuffer.getLength());
+    MetricsSystem.meter(MetricKey.CLIENT_BYTES_READ_LOCAL_THROUGHPUT.getName())
         .mark(dataBuffer.getLength());
     return dataBuffer;
   }

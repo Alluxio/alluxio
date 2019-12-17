@@ -315,7 +315,7 @@ public class FileOutStream extends AbstractOutStream {
   @ThreadSafe
   private static final class Metrics {
     private static final Counter BYTES_WRITTEN_UFS =
-        MetricsSystem.counter(MetricKey.BYTES_WRITTEN_UFS.getName());
+        MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_UFS.getName());
 
     private Metrics() {} // prevent instantiation
   }

@@ -16,7 +16,6 @@ import alluxio.grpc.MetricValue;
 import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.WorkerMetrics;
 
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.After;
@@ -69,34 +68,41 @@ public class MetricsCommandTest {
    */
   private Map<String, MetricValue> generateMetricsMap() {
     Map<String, MetricValue> map = new HashMap<>();
-    map.put(MetricsSystem.getClusterMetricName(MetricKey.BYTES_READ_LOCAL.getName()),
+    map.put(MetricsSystem.getClusterMetricName(MetricKey.CLIENT_BYTES_READ_LOCAL.getName()),
         MetricValue.newBuilder().setLongValue(12312312312L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO),
+    map.put(MetricsSystem.getClusterMetricName(MetricKey.WORKER_BYTES_READ_ALLUXIO.getName()),
         MetricValue.newBuilder().setLongValue(421312312L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN),
+    map.put(MetricsSystem.getClusterMetricName(MetricKey.WORKER_BYTES_READ_DOMAIN.getName()),
         MetricValue.newBuilder().setLongValue(4245232L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL),
+    map.put(MetricsSystem.getClusterMetricName(MetricKey.WORKER_BYTES_READ_UFS_ALL.getName()),
         MetricValue.newBuilder().setLongValue(534214123L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO),
+    map.put(MetricsSystem.getClusterMetricName(MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO.getName()),
         MetricValue.newBuilder().setLongValue(23532L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_DOMAIN),
+    map.put(MetricsSystem.getClusterMetricName(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName()),
         MetricValue.newBuilder().setLongValue(65463532L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_ALL),
+    map.put(MetricsSystem.getClusterMetricName(MetricKey.WORKER_BYTES_WRITTEN_UFS_ALL.getName()),
         MetricValue.newBuilder().setLongValue(325324L).build());
 
-    map.put(MetricsSystem.getClusterMetricName(MetricKey.BYTES_READ_LOCAL_THROUGHPUT.getName()),
+    map.put(MetricsSystem.getClusterMetricName(
+        MetricKey.CLIENT_BYTES_READ_LOCAL_THROUGHPUT.getName()),
         MetricValue.newBuilder().setLongValue(123125324L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT),
+    map.put(MetricsSystem.getClusterMetricName(
+        MetricKey.WORKER_BYTES_READ_ALLUXIO_THROUGHPUT.getName()),
         MetricValue.newBuilder().setLongValue(543534623L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN_THROUGHPUT),
+    map.put(MetricsSystem.getClusterMetricName(
+        MetricKey.WORKER_BYTES_READ_DOMAIN_THROUGHPUT.getName()),
         MetricValue.newBuilder().setLongValue(31423412L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT),
+    map.put(MetricsSystem.getClusterMetricName(
+        MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName()),
         MetricValue.newBuilder().setLongValue(745632L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT),
+    map.put(MetricsSystem.getClusterMetricName(
+        MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName()),
         MetricValue.newBuilder().setLongValue(8423432L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_DOMAIN_THROUGHPUT),
+    map.put(MetricsSystem.getClusterMetricName(
+        MetricKey.WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()),
         MetricValue.newBuilder().setLongValue(1231231L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT),
+    map.put(MetricsSystem.getClusterMetricName(
+        MetricKey.WORKER_BYTES_WRITTEN_UFS_THROUGHPUT.getName()),
         MetricValue.newBuilder().setLongValue(34264L).build());
 
     map.put(MasterMetrics.DIRECTORIES_CREATED, MetricValue.newBuilder().setLongValue(121L).build());

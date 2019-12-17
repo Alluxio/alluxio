@@ -60,27 +60,6 @@ public final class WorkerMetrics {
     }
   }
 
-  /**
-   * Total number of bytes read/written from Alluxio storage through this worker. This does not
-   * include UFS reads.
-   */
-  public static final String BYTES_READ_ALLUXIO = "BytesReadAlluxio";
-  public static final String BYTES_READ_ALLUXIO_THROUGHPUT = "BytesReadAlluxioThroughput";
-  public static final String BYTES_WRITTEN_ALLUXIO = "BytesWrittenAlluxio";
-  public static final String BYTES_WRITTEN_ALLUXIO_THROUGHPUT = "BytesWrittenAlluxioThroughput";
-  public static final String BYTES_READ_DOMAIN = "BytesReadDomain";
-  public static final String BYTES_READ_DOMAIN_THROUGHPUT = "BytesReadDomainThroughput";
-  public static final String BYTES_WRITTEN_DOMAIN = "BytesWrittenDomain";
-  public static final String BYTES_WRITTEN_DOMAIN_THROUGHPUT = "BytesWrittenDomainThroughput";
-
-  /** Total number of bytes read/written from UFS through this worker. */
-  public static final String BYTES_READ_UFS = "BytesReadPerUfs";
-  public static final String BYTES_READ_UFS_ALL = "BytesReadUfsAll";
-  public static final String BYTES_READ_UFS_THROUGHPUT = "BytesReadUfsThroughput";
-  public static final String BYTES_WRITTEN_UFS = "BytesWrittenPerUfs";
-  public static final String BYTES_WRITTEN_UFS_ALL = "BytesWrittenUfsAll";
-  public static final String BYTES_WRITTEN_UFS_THROUGHPUT = "BytesWrittenUfsThroughput";
-
   public static final String UFS_OP_PREFIX = "UfsOp";
 
   // Tags
