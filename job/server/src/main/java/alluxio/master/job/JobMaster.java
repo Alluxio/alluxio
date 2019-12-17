@@ -257,7 +257,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   }
 
   /**
-   * Cancels a job. Does nothing if the job doesn't exist.
+   * Cancels a job.
    *
    * @param jobId the id of the job
    */
