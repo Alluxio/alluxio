@@ -241,8 +241,8 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
     long child2 = children.get(2).getId();
 
     mJobMaster.cancel(child0);
-    JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.CANCELED);
     JobTestUtils.waitForJobStatus(mJobMaster, child0, Status.CANCELED);
+    JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.CANCELED);
     JobTestUtils.waitForJobStatus(mJobMaster, child1, Status.RUNNING);
     JobTestUtils.waitForJobStatus(mJobMaster, child2, Status.RUNNING);
 
