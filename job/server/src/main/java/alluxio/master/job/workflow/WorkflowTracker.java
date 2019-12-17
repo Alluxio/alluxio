@@ -92,7 +92,7 @@ public class WorkflowTracker {
       try {
         mJobMaster.cancel(child);
       } catch (JobDoesNotExistException e) {
-        LOG.info("Tried to cancel jobId: {} but did not exist", child);
+        LOG.info("Tried to cancel jobId: {} but the job did not exist", child);
       }
     }
     return true;
