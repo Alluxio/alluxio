@@ -26,7 +26,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
-import alluxio.metrics.ClientMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
@@ -315,7 +315,7 @@ public class FileOutStream extends AbstractOutStream {
   @ThreadSafe
   private static final class Metrics {
     private static final Counter BYTES_WRITTEN_UFS =
-        MetricsSystem.counter(ClientMetrics.BYTES_WRITTEN_UFS);
+        MetricsSystem.counter(MetricKey.BYTES_WRITTEN_UFS.getName());
 
     private Metrics() {} // prevent instantiation
   }

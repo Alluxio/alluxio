@@ -23,8 +23,8 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.journal.NoopJournaled;
-import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsAggregator;
 import alluxio.metrics.MetricsFilter;
 import alluxio.metrics.MetricsSystem;
@@ -154,10 +154,10 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
         MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT));
 
     // client metrics
-    addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_READ_LOCAL,
-        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL));
-    addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT,
-        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT));
+    addAggregator(new SumInstancesAggregator(MetricKey.BYTES_READ_LOCAL.getName(),
+        MetricsSystem.InstanceType.CLIENT, MetricKey.BYTES_READ_LOCAL.getName()));
+    addAggregator(new SumInstancesAggregator(MetricKey.BYTES_READ_LOCAL_THROUGHPUT.getName(),
+        MetricsSystem.InstanceType.CLIENT, MetricKey.BYTES_READ_LOCAL_THROUGHPUT.getName()));
 
     // multi-value aggregators
     addAggregator(new SingleTagValueAggregator(WorkerMetrics.BYTES_READ_UFS,

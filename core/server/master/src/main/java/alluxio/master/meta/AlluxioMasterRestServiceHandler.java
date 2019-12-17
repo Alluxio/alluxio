@@ -41,8 +41,8 @@ import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.meta.MountTable;
-import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -878,7 +878,7 @@ public final class AlluxioMasterRestServiceHandler {
 
       // cluster read size
       Long bytesReadLocal = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL)).getValue();
+          .get(MetricsSystem.getClusterMetricName(MetricKey.BYTES_READ_LOCAL.getName())).getValue();
       Long bytesReadRemote = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO)).getValue();
       Long bytesReadDomainSocket = (Long) mr.getGauges()
@@ -917,7 +917,7 @@ public final class AlluxioMasterRestServiceHandler {
 
       // cluster read throughput
       Long bytesReadLocalThroughput = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT))
+          .get(MetricsSystem.getClusterMetricName(MetricKey.BYTES_READ_LOCAL_THROUGHPUT.getName()))
           .getValue();
       Long bytesReadDomainSocketThroughput = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN_THROUGHPUT))

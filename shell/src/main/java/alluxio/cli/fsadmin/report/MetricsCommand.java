@@ -13,8 +13,8 @@ package alluxio.cli.fsadmin.report;
 
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.grpc.MetricValue;
-import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.util.FormatUtils;
@@ -59,8 +59,8 @@ public class MetricsCommand {
    */
   public int run() throws IOException {
     mMetricsMap = new TreeMap<>(mMetaMasterClient.getMetrics());
-    Long bytesReadLocal =
-        mMetricsMap.getOrDefault(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL),
+    Long bytesReadLocal = mMetricsMap
+        .getOrDefault(MetricsSystem.getClusterMetricName(MetricKey.BYTES_READ_LOCAL.getName()),
             MetricValue.newBuilder().setLongValue(0L).build()).getLongValue();
     Long bytesReadRemote = mMetricsMap
         .getOrDefault(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO),
@@ -72,7 +72,7 @@ public class MetricsCommand {
         .getLongValue();
 
     mPrintStream.println("Total IO: ");
-    printMetric(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL),
+    printMetric(MetricsSystem.getClusterMetricName(MetricKey.BYTES_READ_LOCAL.getName()),
         "Short-circuit Read", true);
     printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN),
         "Short-circuit Read (Domain Socket)", true);
@@ -88,7 +88,7 @@ public class MetricsCommand {
         "Under Filesystem Write", true);
 
     mPrintStream.println("\nTotal IO Throughput (Last Minute): ");
-    printMetric(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT),
+    printMetric(MetricsSystem.getClusterMetricName(MetricKey.BYTES_READ_LOCAL_THROUGHPUT.getName()),
         "Short-circuit Read", true);
     printMetric(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN_THROUGHPUT),
         "Short-circuit Read (Domain Socket)", true);

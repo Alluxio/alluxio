@@ -13,8 +13,8 @@ package alluxio.cli.fsadmin.report;
 
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.grpc.MetricValue;
-import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 
@@ -69,7 +69,7 @@ public class MetricsCommandTest {
    */
   private Map<String, MetricValue> generateMetricsMap() {
     Map<String, MetricValue> map = new HashMap<>();
-    map.put(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL),
+    map.put(MetricsSystem.getClusterMetricName(MetricKey.BYTES_READ_LOCAL.getName()),
         MetricValue.newBuilder().setLongValue(12312312312L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO),
         MetricValue.newBuilder().setLongValue(421312312L).build());
@@ -84,7 +84,7 @@ public class MetricsCommandTest {
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_ALL),
         MetricValue.newBuilder().setLongValue(325324L).build());
 
-    map.put(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT),
+    map.put(MetricsSystem.getClusterMetricName(MetricKey.BYTES_READ_LOCAL_THROUGHPUT.getName()),
         MetricValue.newBuilder().setLongValue(123125324L).build());
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT),
         MetricValue.newBuilder().setLongValue(543534623L).build());
