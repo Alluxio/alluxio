@@ -290,7 +290,7 @@ public final class AsyncJournalWriter {
 
         // Either written new entries or previous flush had been failed.
         if (mFlushCounter.get() < mWriteCounter) {
-          try (Timer.Context ctx = Metrics.JOURNAL_FLUSH_TIMER.time()) {
+          try (Timer.Context ctx = MetricsSystem.timer(MasterMetrics.JOURNAL_FLUSH_TIMER).time()) {
             mJournalWriter.flush();
           }
           JournalUtils.sinkFlush(mJournalSinks);
@@ -375,8 +375,6 @@ public final class AsyncJournalWriter {
   private static final class Metrics {
     private static final Counter JOURNAL_FLUSH_FAILURE =
         MetricsSystem.counter(MasterMetrics.JOURNAL_FLUSH_FAILURE);
-    private static final Timer JOURNAL_FLUSH_TIMER =
-        MetricsSystem.timer(MasterMetrics.JOURNAL_FLUSH_TIMER);
 
     private Metrics() {} // prevent instantiation
   }
