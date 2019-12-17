@@ -111,9 +111,6 @@ public final class MetricsSystem {
 
   public static final MetricRegistry METRIC_REGISTRY;
 
-  // Avoid concurrent reset metrics registry
-  public static volatile boolean sIsResetting;
-
   static {
     METRIC_REGISTRY = new MetricRegistry();
     METRIC_REGISTRY.registerAll(new JvmAttributeGaugeSet());
@@ -537,11 +534,7 @@ public final class MetricsSystem {
    *
    * This method is not thread-safe and should be used sparingly.
    */
-  public static void resetAllMetrics() {
-    if (sIsResetting) {
-      return;
-    }
-    sIsResetting = true;
+  public static synchronized void resetAllMetrics() {
     // Gauge metrics don't need to be changed because they calculate value when getting them
     // Counters can be reset to zero values.
     for (Counter counter : METRIC_REGISTRY.getCounters().values()) {
@@ -559,7 +552,6 @@ public final class MetricsSystem {
       METRIC_REGISTRY.remove(timerName);
       METRIC_REGISTRY.timer(timerName);
     }
-    sIsResetting = false;
   }
 
   /**
