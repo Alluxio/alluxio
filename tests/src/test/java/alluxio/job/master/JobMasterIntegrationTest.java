@@ -222,10 +222,12 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void cancel() throws Exception {
-    SleepJobConfig innerJob = new SleepJobConfig(50000);
+    SleepJobConfig childJob1 = new SleepJobConfig(50000);
+    SleepJobConfig childJob2 = new SleepJobConfig(45000);
+    SleepJobConfig childJob3 = new SleepJobConfig(40000);
 
     CompositeConfig jobConfig = new CompositeConfig(
-        Lists.newArrayList(innerJob, innerJob, innerJob), false);
+        Lists.newArrayList(childJob1, childJob2, childJob3), false);
 
     long jobId = mJobMaster.run(jobConfig);
 
