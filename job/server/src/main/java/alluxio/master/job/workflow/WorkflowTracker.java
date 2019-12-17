@@ -78,6 +78,27 @@ public class WorkflowTracker {
   }
 
   /**
+   * Cancels a job with a particular job id.
+   * @param jobId the job id
+   * @return true if job exists, false otherwise
+   */
+  public synchronized boolean cancel(long jobId) {
+    ConcurrentHashSet<Long> children = mChildren.get(jobId);
+    if (children == null) {
+      return false;
+    }
+
+    for (Long child : children) {
+      try {
+        mJobMaster.cancel(child);
+      } catch (JobDoesNotExistException e) {
+        LOG.info("Tried to cancel jobId: {} but the job did not exist", child);
+      }
+    }
+    return true;
+  }
+
+  /**
    * Gets information of the given job id.
    *
    * @param jobId the id of the job
