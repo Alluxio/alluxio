@@ -19,7 +19,6 @@ import alluxio.grpc.GetJobServiceSummaryPRequest;
 import alluxio.grpc.GetJobStatusPRequest;
 import alluxio.grpc.JobMasterClientServiceGrpc;
 import alluxio.grpc.ListAllPRequest;
-import alluxio.grpc.ListDetailedPRequest;
 import alluxio.grpc.RunPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.job.JobConfig;
@@ -119,7 +118,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     List<alluxio.grpc.JobInfo> jobProtoInfos = retryRPC(
         new RpcCallable<List<alluxio.grpc.JobInfo>>() {
           public List<alluxio.grpc.JobInfo> call() {
-            return mClient.listDetailed(ListDetailedPRequest.getDefaultInstance())
+            return mClient.listAll(ListAllPRequest.getDefaultInstance())
                 .getJobInfosList();
           }
         });

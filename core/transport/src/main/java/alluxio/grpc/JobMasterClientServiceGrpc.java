@@ -159,38 +159,6 @@ public final class JobMasterClientServiceGrpc {
      return getListAllMethod;
   }
 
-  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.ListDetailedPRequest,
-      alluxio.grpc.ListDetailedPResponse> getListDetailedMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "ListDetailed",
-      requestType = alluxio.grpc.ListDetailedPRequest.class,
-      responseType = alluxio.grpc.ListDetailedPResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<alluxio.grpc.ListDetailedPRequest,
-      alluxio.grpc.ListDetailedPResponse> getListDetailedMethod() {
-    io.grpc.MethodDescriptor<alluxio.grpc.ListDetailedPRequest, alluxio.grpc.ListDetailedPResponse> getListDetailedMethod;
-    if ((getListDetailedMethod = JobMasterClientServiceGrpc.getListDetailedMethod) == null) {
-      synchronized (JobMasterClientServiceGrpc.class) {
-        if ((getListDetailedMethod = JobMasterClientServiceGrpc.getListDetailedMethod) == null) {
-          JobMasterClientServiceGrpc.getListDetailedMethod = getListDetailedMethod = 
-              io.grpc.MethodDescriptor.<alluxio.grpc.ListDetailedPRequest, alluxio.grpc.ListDetailedPResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.job.JobMasterClientService", "ListDetailed"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  alluxio.grpc.ListDetailedPRequest.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  alluxio.grpc.ListDetailedPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new JobMasterClientServiceMethodDescriptorSupplier("ListDetailed"))
-                  .build();
-          }
-        }
-     }
-     return getListDetailedMethod;
-  }
-
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.RunPRequest,
       alluxio.grpc.RunPResponse> getRunMethod;
 
@@ -333,17 +301,6 @@ public final class JobMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Lists all info of all known jobs.
-     * </pre>
-     */
-    public void listDetailed(alluxio.grpc.ListDetailedPRequest request,
-        io.grpc.stub.StreamObserver<alluxio.grpc.ListDetailedPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getListDetailedMethod(), responseObserver);
-    }
-
-    /**
-     * <pre>
-     **
      * Starts the given job, returning a job id.
      * </pre>
      */
@@ -393,13 +350,6 @@ public final class JobMasterClientServiceGrpc {
                 alluxio.grpc.ListAllPRequest,
                 alluxio.grpc.ListAllPResponse>(
                   this, METHODID_LIST_ALL)))
-          .addMethod(
-            getListDetailedMethod(),
-            asyncUnaryCall(
-              new MethodHandlers<
-                alluxio.grpc.ListDetailedPRequest,
-                alluxio.grpc.ListDetailedPResponse>(
-                  this, METHODID_LIST_DETAILED)))
           .addMethod(
             getRunMethod(),
             asyncUnaryCall(
@@ -491,18 +441,6 @@ public final class JobMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Lists all info of all known jobs.
-     * </pre>
-     */
-    public void listDetailed(alluxio.grpc.ListDetailedPRequest request,
-        io.grpc.stub.StreamObserver<alluxio.grpc.ListDetailedPResponse> responseObserver) {
-      asyncUnaryCall(
-          getChannel().newCall(getListDetailedMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     * <pre>
-     **
      * Starts the given job, returning a job id.
      * </pre>
      */
@@ -589,17 +527,6 @@ public final class JobMasterClientServiceGrpc {
     public alluxio.grpc.ListAllPResponse listAll(alluxio.grpc.ListAllPRequest request) {
       return blockingUnaryCall(
           getChannel(), getListAllMethod(), getCallOptions(), request);
-    }
-
-    /**
-     * <pre>
-     **
-     * Lists all info of all known jobs.
-     * </pre>
-     */
-    public alluxio.grpc.ListDetailedPResponse listDetailed(alluxio.grpc.ListDetailedPRequest request) {
-      return blockingUnaryCall(
-          getChannel(), getListDetailedMethod(), getCallOptions(), request);
     }
 
     /**
@@ -698,18 +625,6 @@ public final class JobMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Lists all info of all known jobs.
-     * </pre>
-     */
-    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.ListDetailedPResponse> listDetailed(
-        alluxio.grpc.ListDetailedPRequest request) {
-      return futureUnaryCall(
-          getChannel().newCall(getListDetailedMethod(), getCallOptions()), request);
-    }
-
-    /**
-     * <pre>
-     **
      * Starts the given job, returning a job id.
      * </pre>
      */
@@ -736,9 +651,8 @@ public final class JobMasterClientServiceGrpc {
   private static final int METHODID_GET_JOB_STATUS = 1;
   private static final int METHODID_GET_JOB_SERVICE_SUMMARY = 2;
   private static final int METHODID_LIST_ALL = 3;
-  private static final int METHODID_LIST_DETAILED = 4;
-  private static final int METHODID_RUN = 5;
-  private static final int METHODID_GET_ALL_WORKER_HEALTH = 6;
+  private static final int METHODID_RUN = 4;
+  private static final int METHODID_GET_ALL_WORKER_HEALTH = 5;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -772,10 +686,6 @@ public final class JobMasterClientServiceGrpc {
         case METHODID_LIST_ALL:
           serviceImpl.listAll((alluxio.grpc.ListAllPRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.ListAllPResponse>) responseObserver);
-          break;
-        case METHODID_LIST_DETAILED:
-          serviceImpl.listDetailed((alluxio.grpc.ListDetailedPRequest) request,
-              (io.grpc.stub.StreamObserver<alluxio.grpc.ListDetailedPResponse>) responseObserver);
           break;
         case METHODID_RUN:
           serviceImpl.run((alluxio.grpc.RunPRequest) request,
@@ -850,7 +760,6 @@ public final class JobMasterClientServiceGrpc {
               .addMethod(getGetJobStatusMethod())
               .addMethod(getGetJobServiceSummaryMethod())
               .addMethod(getListAllMethod())
-              .addMethod(getListDetailedMethod())
               .addMethod(getRunMethod())
               .addMethod(getGetAllWorkerHealthMethod())
               .build();

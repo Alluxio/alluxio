@@ -115,14 +115,7 @@ message ListAllPRequest {
 }
 message ListAllPResponse {
   repeated int64 jobIds = 1;
-}
-
-message ListDetailedPOptions {}
-message ListDetailedPRequest {
-  optional ListDetailedPOptions options = 1;
-}
-message ListDetailedPResponse {
-  repeated JobInfo jobInfos = 1;
+  repeated JobInfo jobInfos = 2;
 }
 
 message RunPOptions {}
@@ -174,11 +167,6 @@ service JobMasterClientService {
    * Lists ids of all known jobs.
    */
   rpc ListAll(ListAllPRequest) returns (ListAllPResponse);
-
-  /**
-   * Lists all info of all known jobs.
-   */
-  rpc ListDetailed(ListDetailedPRequest) returns (ListDetailedPResponse);
 
   /**
    * Starts the given job, returning a job id.
