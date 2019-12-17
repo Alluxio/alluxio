@@ -35,7 +35,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The fault tolerant version of {@link AlluxioMaster} that uses zookeeper and standby masters.
@@ -115,7 +114,8 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       }
       stopMasters();
       LOG.info("Secondary stopped");
-      try (Timer.Context ctx = Metrics.JOURNAL_GAIN_PRIMACY_TIMER.time()) {
+      try (Timer.Context ctx = MetricsSystem
+          .timer(MasterMetrics.JOURNAL_GAIN_PRIMACY_TIMER).time()) {
         mJournalSystem.gainPrimacy();
       }
       // We only check unstable here because mJournalSystem.gainPrimacy() is the only slow method
@@ -190,16 +190,5 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     } catch (TimeoutException e) {
       return false;
     }
-  }
-
-  /**
-   * Class that contains metrics about FaultTolerantAlluxioMasterProcess.
-   */
-  @ThreadSafe
-  private static final class Metrics {
-    private static final Timer JOURNAL_GAIN_PRIMACY_TIMER =
-        MetricsSystem.timer(MasterMetrics.JOURNAL_GAIN_PRIMACY_TIMER);
-
-    private Metrics() {} // prevent instantiation
   }
 }
