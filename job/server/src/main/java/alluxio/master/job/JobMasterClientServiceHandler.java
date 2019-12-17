@@ -86,7 +86,8 @@ public class JobMasterClientServiceHandler
   @Override
   public void listAll(ListAllPRequest request, StreamObserver<ListAllPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<ListAllPResponse>) () -> {
-      ListAllPResponse.Builder builder = ListAllPResponse.newBuilder().addAllJobIds(mJobMaster.list());
+      ListAllPResponse.Builder builder = ListAllPResponse.newBuilder()
+          .addAllJobIds(mJobMaster.list());
       for (JobInfo jobInfo : mJobMaster.listDetailed()) {
         builder.addJobInfos(jobInfo.toProto());
       }
