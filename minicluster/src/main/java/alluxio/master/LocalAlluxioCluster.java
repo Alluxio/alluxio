@@ -130,6 +130,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
       ServerConfiguration.set(entry.getKey(), entry.getValue());
     }
     ServerConfiguration.set(PropertyKey.TEST_MODE, true);
+    ServerConfiguration.set(PropertyKey.JOB_WORKER_THROTTLING, false);
     ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT, 0);
     ServerConfiguration.set(PropertyKey.WORKER_RPC_PORT, 0);
     ServerConfiguration.set(PropertyKey.WORKER_WEB_PORT, 0);

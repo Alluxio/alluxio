@@ -81,10 +81,10 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
     mTaskExecutorManager = Preconditions.checkNotNull(taskExecutorManager, "taskExecutorManager");
     mMasterClient = Preconditions.checkNotNull(masterClient, "masterClient");
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress, "workerNetAddress");
-    if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
-      mHealthReporter = new AlwaysHealthyJobWorkerHealthReporter();
-    } else {
+    if (ServerConfiguration.getBoolean(PropertyKey.JOB_WORKER_THROTTLING)) {
       mHealthReporter = new JobWorkerHealthReporter();
+    } else {
+      mHealthReporter = new AlwaysHealthyJobWorkerHealthReporter();
     }
   }
 

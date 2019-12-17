@@ -92,6 +92,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     }
     ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, 0);
     ServerConfiguration.set(PropertyKey.TEST_MODE, true);
+    ServerConfiguration.set(PropertyKey.JOB_WORKER_THROTTLING, false);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, 0);
     ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT, 0);
