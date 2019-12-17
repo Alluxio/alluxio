@@ -26,6 +26,7 @@ import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
+import alluxio.job.workflow.composite.CompositeConfig;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
 import alluxio.testutils.BaseIntegrationTest;
@@ -35,6 +36,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.wire.WorkerInfo;
 import alluxio.worker.JobWorkerProcess;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
@@ -216,5 +218,34 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
 
     JobTestUtils.waitForJobStatus(mJobMaster, jobId2, Status.COMPLETED);
     JobTestUtils.waitForJobStatus(mJobMaster, jobId3, Status.COMPLETED);
+  }
+
+  @Test
+  public void cancel() throws Exception {
+    SleepJobConfig innerJob = new SleepJobConfig(50000);
+
+    CompositeConfig jobConfig = new CompositeConfig(
+        Lists.newArrayList(innerJob, innerJob, innerJob), false);
+
+    long jobId = mJobMaster.run(jobConfig);
+
+    JobInfo status = mJobMaster.getStatus(jobId);
+    List<JobInfo> children = status.getChildren();
+
+    assertEquals(3, children.size());
+
+    long child0 = children.get(0).getId();
+    long child1 = children.get(1).getId();
+    long child2 = children.get(2).getId();
+
+    mJobMaster.cancel(child0);
+    JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.CANCELED);
+    JobTestUtils.waitForJobStatus(mJobMaster, child0, Status.CANCELED);
+    JobTestUtils.waitForJobStatus(mJobMaster, child1, Status.RUNNING);
+    JobTestUtils.waitForJobStatus(mJobMaster, child2, Status.RUNNING);
+
+    mJobMaster.cancel(jobId);
+    JobTestUtils.waitForJobStatus(mJobMaster, child1, Status.CANCELED);
+    JobTestUtils.waitForJobStatus(mJobMaster, child2, Status.CANCELED);
   }
 }
