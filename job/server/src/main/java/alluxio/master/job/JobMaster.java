@@ -348,6 +348,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
         for (PlanCoordinator planCoordinator : mPlanTracker.coordinators()) {
           planCoordinator.failTasksForWorker(deadWorker.getId());
         }
+        mWorkerHealth.remove(deadWorker.getId());
         mWorkers.remove(deadWorker);
       }
       // Generate a new worker id.
@@ -467,6 +468,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
             // waiting for exclusive lock.
             final long lastUpdate = mClock.millis() - lostWorker.getLastUpdatedTimeMs();
             if (lastUpdate > masterWorkerTimeoutMs) {
+              mWorkerHealth.remove(lostWorker.getId());
               mWorkers.remove(lostWorker);
             }
           }
