@@ -11,8 +11,6 @@
 
 package alluxio.worker.job.command;
 
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
 
 import org.slf4j.Logger;
@@ -61,9 +59,6 @@ public class JobWorkerHealthReporter {
    * @return true if system is deemed healthy, false otherwise
    */
   public boolean isHealthy() {
-    if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
-      return true;
-    }
     if (mCpuLoadAverage.isEmpty()) {
       // report healthy if cpu load average is not computable
       return true;
