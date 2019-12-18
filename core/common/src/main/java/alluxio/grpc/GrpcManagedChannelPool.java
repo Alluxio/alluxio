@@ -94,7 +94,7 @@ public class GrpcManagedChannelPool {
         existingRefCount = chHolder.getRefCount();
         LOG.debug("Shutting down an existing unhealthy managed channel. "
             + "ChannelKey: {}. Existing Ref-count: {}", key, existingRefCount);
-        shutdownManagedChannel(chHolder.get(), shutdownTimeoutMs);
+        shutdownManagedChannel(chHolder.get(), true, shutdownTimeoutMs);
       }
 
       LOG.debug("Creating a new managed channel. ChannelKey: {}. Ref-count:{}", key,
@@ -115,7 +115,7 @@ public class GrpcManagedChannelPool {
       Preconditions.checkNotNull(chHolder, "Releasing nonexistent channel");
       if (chHolder.dereference() == 0) {
         LOG.debug("Released managed channel for: {}. Ref-count: {}", key, chHolder.getRefCount());
-        shutdownManagedChannel(chHolder.get(), shutdownTimeoutMs);
+        shutdownManagedChannel(chHolder.get(), false, shutdownTimeoutMs);
         return null;
       }
       return chHolder;
@@ -202,15 +202,24 @@ public class GrpcManagedChannelPool {
   /**
    * Shuts down the managed channel.
    */
-  private void shutdownManagedChannel(ManagedChannel managedChannel, long shutdownTimeoutMs) {
-    managedChannel.shutdown();
+  private void shutdownManagedChannel(ManagedChannel managedChannel, boolean shutdownNow,
+      long shutdownTimeoutMs) {
+    // Shutdown channel forcefully if requested.
+    if (shutdownNow) {
+      managedChannel.shutdownNow();
+    } else {
+      managedChannel.shutdown();
+    }
     try {
       managedChannel.awaitTermination(shutdownTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       // Allow thread to exit.
     } finally {
-      managedChannel.shutdownNow();
+      // Ensure shutdown if not not closed forcefully.
+      if (!shutdownNow) {
+        managedChannel.shutdownNow();
+      }
     }
   }
 
