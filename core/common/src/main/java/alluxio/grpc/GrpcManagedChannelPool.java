@@ -95,7 +95,7 @@ public class GrpcManagedChannelPool {
         LOG.debug("Shutting down an existing unhealthy managed channel. "
             + "ChannelKey: {}. Existing Ref-count: {}", key, existingRefCount);
         // Shutdown the channel forcefully as it's already unhealthy.
-        shutdownManagedChannel(chHolder.get(), true, shutdownTimeoutMs);
+        forceShutdownManagedChannel(chHolder.get(), shutdownTimeoutMs);
       }
 
       LOG.debug("Creating a new managed channel. ChannelKey: {}. Ref-count:{}", key,
@@ -117,7 +117,7 @@ public class GrpcManagedChannelPool {
       if (chHolder.dereference() == 0) {
         LOG.debug("Released managed channel for: {}. Ref-count: {}", key, chHolder.getRefCount());
         // Shutdown the channel gracefully.
-        shutdownManagedChannel(chHolder.get(), false, shutdownTimeoutMs);
+        shutdownManagedChannel(chHolder.get(), shutdownTimeoutMs);
         return null;
       }
       return chHolder;
@@ -202,23 +202,31 @@ public class GrpcManagedChannelPool {
   }
 
   /**
-   * Shuts down the managed channel.
+   * Tries to gracefully shut down the managed channel.
+   * If falls back to forceful shutdown if graceful shutdown times out.
    */
-  private void shutdownManagedChannel(ManagedChannel managedChannel, boolean shutdownNow,
-      long shutdownTimeoutMs) {
-    // Shutdown channel forcefully if requested.
-    if (shutdownNow) {
-      managedChannel.shutdownNow();
-    } else {
-      managedChannel.shutdown();
-    }
+  private void shutdownManagedChannel(ManagedChannel managedChannel, long shutdownTimeoutMs) {
+    managedChannel.shutdown();
     try {
       if (!managedChannel.awaitTermination(shutdownTimeoutMs, TimeUnit.MILLISECONDS)) {
-        LOG.warn("Timed out shutting down managed channel: {}. ", managedChannel);
-        // Forcefully shut down before returning if did not already.
-        if (!shutdownNow) {
-          managedChannel.shutdownNow();
-        }
+        LOG.warn("Timed out gracefully shutting down managed channel: {}. ", managedChannel);
+        // Forcefully shut down.
+        forceShutdownManagedChannel(managedChannel, shutdownTimeoutMs);
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      // Allow thread to exit.
+    }
+  }
+
+  /**
+   * Forcefully shuts down the managed channel.
+   */
+  private void forceShutdownManagedChannel(ManagedChannel managedChannel, long shutdownTimeoutMs){
+    managedChannel.shutdownNow();
+    try {
+      if (!managedChannel.awaitTermination(shutdownTimeoutMs, TimeUnit.MILLISECONDS)) {
+        LOG.warn("Timed out forcefully shutting down managed channel: {}. ", managedChannel);
       }
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
