@@ -11,6 +11,8 @@
 
 package alluxio.worker.job.command;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.CancelTaskCommand;
@@ -79,11 +81,23 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
     mTaskExecutorManager = Preconditions.checkNotNull(taskExecutorManager, "taskExecutorManager");
     mMasterClient = Preconditions.checkNotNull(masterClient, "masterClient");
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress, "workerNetAddress");
-    mHealthReporter = new JobWorkerHealthReporter();
+    if (ServerConfiguration.getBoolean(PropertyKey.JOB_WORKER_THROTTLING)) {
+      mHealthReporter = new JobWorkerHealthReporter();
+    } else {
+      mHealthReporter = new AlwaysHealthyJobWorkerHealthReporter();
+    }
   }
 
   @Override
   public void heartbeat() {
+    mHealthReporter.compute();
+
+    if (mHealthReporter.isHealthy()) {
+      mTaskExecutorManager.unthrottle();
+    } else {
+      mTaskExecutorManager.throttle();
+    }
+
     JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(JobWorkerIdRegistry.getWorkerId(),
         mHealthReporter.getCpuLoadAverage(), mTaskExecutorManager.getTaskExecutorPoolSize(),
         mTaskExecutorManager.getNumActiveTasks(), mTaskExecutorManager.unfinishedTasks(),
@@ -161,7 +175,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
       } else if (mCommand.hasSetTaskPoolSizeCommand()) {
         SetTaskPoolSizeCommand command = mCommand.getSetTaskPoolSizeCommand();
         LOG.info(String.format("Task Pool Size: %s", command.getTaskPoolSize()));
-        mTaskExecutorManager.setTaskExecutorPoolSize(command.getTaskPoolSize());
+        mTaskExecutorManager.setDefaultTaskExecutorPoolSize(command.getTaskPoolSize());
       } else {
         throw new RuntimeException("unsupported command type:" + mCommand.toString());
       }
