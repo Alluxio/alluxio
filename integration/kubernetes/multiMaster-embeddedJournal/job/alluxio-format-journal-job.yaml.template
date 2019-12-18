@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
         - name: alluxio-master
-          image: alluxio/alluxio:2.1.1-SNAPSHOT
+          image: alluxio/alluxio:2.1.1
           imagePullPolicy: IfNotPresent
           resources:
             limits:
