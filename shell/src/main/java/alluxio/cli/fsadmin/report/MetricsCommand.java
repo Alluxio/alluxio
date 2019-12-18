@@ -13,7 +13,6 @@ package alluxio.cli.fsadmin.report;
 
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.grpc.MetricValue;
-import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.FormatUtils;
@@ -125,33 +124,37 @@ public class MetricsCommand {
         + String.format(mInfoFormat, "Miss", cacheMissPercentage));
 
     mPrintStream.println("\nLogical Operations: ");
-    printMetric(MasterMetrics.DIRECTORIES_CREATED, "Directories Created", false);
-    printMetric(MasterMetrics.FILE_BLOCK_INFOS_GOT, "File Block Infos Got", false);
-    printMetric(MasterMetrics.FILE_INFOS_GOT, "File Infos Got", false);
-    printMetric(MasterMetrics.FILES_COMPLETED, "Files Completed", false);
-    printMetric(MasterMetrics.FILES_CREATED, "Files Created", false);
-    printMetric(MasterMetrics.FILES_FREED, "Files Freed", false);
-    printMetric(MasterMetrics.FILES_PERSISTED, "Files Persisted", false);
-    printMetric(MasterMetrics.NEW_BLOCKS_GOT, "New Blocks Got", false);
-    printMetric(MasterMetrics.PATHS_DELETED, "Paths Deleted", false);
-    printMetric(MasterMetrics.PATHS_MOUNTED, "Paths Mounted", false);
-    printMetric(MasterMetrics.PATHS_RENAMED, "Paths Renamed", false);
-    printMetric(MasterMetrics.PATHS_UNMOUNTED, "Paths Unmounted", false);
+    printMetric(MetricKey.MASTER_DIRECTORIES_CREATED.getName(), "Directories Created", false);
+    printMetric(MetricKey.MASTER_FILE_BLOCK_INFOS_GOT.getName(), "File Block Infos Got", false);
+    printMetric(MetricKey.MASTER_FILE_INFOS_GOT.getName(), "File Infos Got", false);
+    printMetric(MetricKey.MASTER_FILES_COMPLETED.getName(), "Files Completed", false);
+    printMetric(MetricKey.MASTER_FILES_CREATED.getName(), "Files Created", false);
+    printMetric(MetricKey.MASTER_FILES_FREED.getName(), "Files Freed", false);
+    printMetric(MetricKey.MASTER_FILES_PERSISTED.getName(), "Files Persisted", false);
+    printMetric(MetricKey.MASTER_NEW_BLOCKS_GOT.getName(), "New Blocks Got", false);
+    printMetric(MetricKey.MASTER_PATHS_DELETED.getName(), "Paths Deleted", false);
+    printMetric(MetricKey.MASTER_PATHS_MOUNTED.getName(), "Paths Mounted", false);
+    printMetric(MetricKey.MASTER_PATHS_RENAMED.getName(), "Paths Renamed", false);
+    printMetric(MetricKey.MASTER_PATHS_UNMOUNTED.getName(), "Paths Unmounted", false);
 
     mPrintStream.println("\nRPC Invocations: ");
-    printMetric(MasterMetrics.COMPLETE_FILE_OPS, "Complete File Operations", false);
-    printMetric(MasterMetrics.CREATE_DIRECTORIES_OPS, "Create Directory Operations", false);
-    printMetric(MasterMetrics.CREATE_FILES_OPS, "Create File Operations", false);
-    printMetric(MasterMetrics.DELETE_PATHS_OPS, "Delete Path Operations", false);
-    printMetric(MasterMetrics.FREE_FILE_OPS, "Free File Operations", false);
-    printMetric(MasterMetrics.GET_FILE_BLOCK_INFO_OPS, "Get File Block Info Operations", false);
-    printMetric(MasterMetrics.GET_FILE_INFO_OPS, "Get File Info Operations", false);
-    printMetric(MasterMetrics.GET_NEW_BLOCK_OPS, "Get New Block Operations", false);
-    printMetric(MasterMetrics.MOUNT_OPS, "Mount Operations", false);
-    printMetric(MasterMetrics.RENAME_PATH_OPS, "Rename Path Operations", false);
-    printMetric(MasterMetrics.SET_ACL_OPS, "Set ACL Operations", false);
-    printMetric(MasterMetrics.SET_ATTRIBUTE_OPS, "Set Attribute Operations", false);
-    printMetric(MasterMetrics.UNMOUNT_OPS, "Unmount Operations", false);
+    printMetric(MetricKey.MASTER_COMPLETE_FILE_OPS.getName(), "Complete File Operations", false);
+    printMetric(MetricKey.MASTER_CREATE_DIRECTORIES_OPS.getName(),
+        "Create Directory Operations", false);
+    printMetric(MetricKey.MASTER_CREATE_FILES_OPS.getName(), "Create File Operations", false);
+    printMetric(MetricKey.MASTER_DELETE_PATHS_OPS.getName(),
+        "Delete Path Operations", false);
+    printMetric(MetricKey.MASTER_FREE_FILE_OPS.getName(),
+        "Free File Operations", false);
+    printMetric(MetricKey.MASTER_GET_FILE_BLOCK_INFO_OPS.getName(),
+        "Get File Block Info Operations", false);
+    printMetric(MetricKey.MASTER_GET_FILE_INFO_OPS.getName(), "Get File Info Operations", false);
+    printMetric(MetricKey.MASTER_GET_NEW_BLOCK_OPS.getName(), "Get New Block Operations", false);
+    printMetric(MetricKey.MASTER_MOUNT_OPS.getName(), "Mount Operations", false);
+    printMetric(MetricKey.MASTER_RENAME_PATH_OPS.getName(), "Rename Path Operations", false);
+    printMetric(MetricKey.MASTER_SET_ACL_OPS.getName(), "Set ACL Operations", false);
+    printMetric(MetricKey.MASTER_SET_ATTRIBUTE_OPS.getName(), "Set Attribute Operations", false);
+    printMetric(MetricKey.MASTER_UNMOUNT_OPS.getName(), "Unmount Operations", false);
 
     // TODO(lu) improve printout info to sync with web UI
     mPrintStream.println("\nOther Metrics: ");

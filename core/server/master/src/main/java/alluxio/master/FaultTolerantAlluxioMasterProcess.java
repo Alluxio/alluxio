@@ -17,7 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
-import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadUtils;
@@ -115,7 +115,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       stopMasters();
       LOG.info("Secondary stopped");
       try (Timer.Context ctx = MetricsSystem
-          .timer(MasterMetrics.JOURNAL_GAIN_PRIMACY_TIMER).time()) {
+          .timer(MetricKey.MASTER_JOURNAL_GAIN_PRIMACY_TIMER.getName()).time()) {
         mJournalSystem.gainPrimacy();
       }
       // We only check unstable here because mJournalSystem.gainPrimacy() is the only slow method

@@ -22,7 +22,7 @@ import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalSnapshot;
-import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.util.URIUtils;
@@ -109,7 +109,7 @@ public class TriggeredCheckpointTest {
     }
     MetaMasterClient meta = cluster.getMetaMasterClient();
     assertEquals(numFiles + 1,
-        meta.getMetrics().get("Master." + MasterMetrics.TOTAL_PATHS).getLongValue());
+        meta.getMetrics().get("Master." + MetricKey.MASTER_TOTAL_PATHS.getName()).getLongValue());
   }
 
   /**
@@ -124,6 +124,6 @@ public class TriggeredCheckpointTest {
     cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
     assertEquals(100, cluster.getFileSystemClient().listStatus(new AlluxioURI("/")).size());
     assertEquals(101, cluster.getMetaMasterClient().getMetrics()
-        .get("Master." + MasterMetrics.TOTAL_PATHS).getLongValue());
+        .get("Master." + MetricKey.MASTER_TOTAL_PATHS.getName()).getLongValue());
   }
 }

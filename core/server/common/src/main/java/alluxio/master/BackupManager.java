@@ -16,7 +16,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalEntryStreamReader;
-import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.ThreadFactoryUtils;
@@ -81,9 +81,9 @@ public class BackupManager {
    */
   public BackupManager(MasterRegistry registry) {
     mRegistry = registry;
-    MetricsSystem.registerGaugeIfAbsent(MasterMetrics.LAST_BACKUP_ENTRIES_COUNT,
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_ENTRIES_COUNT.getName(),
         () -> mBackupEntriesCount);
-    MetricsSystem.registerGaugeIfAbsent(MasterMetrics.LAST_BACKUP_RESTORE_COUNT,
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_RESTORE_COUNT.getName(),
         () -> mRestoreEntriesCount);
   }
 
@@ -116,7 +116,8 @@ public class BackupManager {
     AtomicBoolean bufferingActive = new AtomicBoolean(true);
 
     // Start the timer for backup metrics.
-    Timer.Context backup = MetricsSystem.timer(MasterMetrics.BACKUP_ENTRIES_PROCESS_TIME).time();
+    Timer.Context backup = MetricsSystem
+        .timer(MetricKey.MASTER_BACKUP_ENTRIES_PROCESS_TIME.getName()).time();
 
     // Submit master reader task.
     activeTasks.add(completionService.submit(() -> {
@@ -220,7 +221,8 @@ public class BackupManager {
       }, 30, 30, TimeUnit.SECONDS);
 
       // Start the timer for backup metrics.
-      Timer.Context restore = MetricsSystem.timer(MasterMetrics.BACKUP_RESTORE_PROCESS_TIME).time();
+      Timer.Context restore = MetricsSystem
+          .timer(MetricKey.MASTER_BACKUP_RESTORE_PROCESS_TIME.getName()).time();
 
       // Create backup reader task.
       activeTasks.add(completionService.submit(() -> {

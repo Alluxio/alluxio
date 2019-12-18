@@ -192,231 +192,233 @@ public final class MetricKey implements Comparable<MetricKey> {
   // Master metrics
   public static final MetricKey MASTER_LAST_BACKUP_ENTRIES_COUNT =
       new MetricKey.Builder(Name.MASTER_LAST_BACKUP_ENTRIES_COUNT)
-          .setDescription("")
-          .setMetricType(MetricType.COUNTER)
+          .setDescription("The total number of entries written "
+              + "in last leading master metadata backup")
+          .setMetricType(MetricType.GAUGE)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_LAST_BACKUP_RESTORE_COUNT =
       new MetricKey.Builder(Name.MASTER_LAST_BACKUP_RESTORE_COUNT)
-          .setDescription("")
-          .setMetricType(MetricType.COUNTER)
+          .setDescription("The total number of entries restored from backup "
+              + "when a leading master initializes its metadata")
+          .setMetricType(MetricType.GAUGE)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_BACKUP_ENTRIES_PROCESS_TIME =
       new MetricKey.Builder(Name.MASTER_BACKUP_ENTRIES_PROCESS_TIME)
-          .setDescription("")
+          .setDescription("The process time of the last backup")
           .setMetricType(MetricType.TIMER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_BACKUP_RESTORE_PROCESS_TIME =
       new MetricKey.Builder(Name.MASTER_BACKUP_RESTORE_PROCESS_TIME)
-          .setDescription("")
+          .setDescription("The process time of the last restore from backup")
           .setMetricType(MetricType.TIMER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_DIRECTORIES_CREATED =
       new MetricKey.Builder(Name.MASTER_DIRECTORIES_CREATED)
-          .setDescription("")
+          .setDescription("Total number of the succeed CreateDirectory operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_FILE_BLOCK_INFOS_GOT =
       new MetricKey.Builder(Name.MASTER_FILE_BLOCK_INFOS_GOT)
-          .setDescription("")
+          .setDescription("Total number of succeed GetFileBlockInfo operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_FILE_INFOS_GOT =
       new MetricKey.Builder(Name.MASTER_FILE_INFOS_GOT)
-          .setDescription("")
+          .setDescription("Total number of the succeed GetFileInfo operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_FILES_COMPLETED =
       new MetricKey.Builder(Name.MASTER_FILES_COMPLETED)
-          .setDescription("")
+          .setDescription("Total number of the succeed CompleteFile operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_FILES_CREATED =
       new MetricKey.Builder(Name.MASTER_FILES_CREATED)
-          .setDescription("")
+          .setDescription("Total number of the succeed CreateFile operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_FILES_FREED =
       new MetricKey.Builder(Name.MASTER_FILES_FREED)
-          .setDescription("")
+          .setDescription("Total number of succeed FreeFile operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_FILES_PERSISTED =
       new MetricKey.Builder(Name.MASTER_FILES_PERSISTED)
-          .setDescription("")
+          .setDescription("Total number of successfully persisted files")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_NEW_BLOCKS_GOT =
       new MetricKey.Builder(Name.MASTER_NEW_BLOCKS_GOT)
-          .setDescription("")
+          .setDescription("Total number of the succeed GetNewBlock operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_PATHS_DELETED =
       new MetricKey.Builder(Name.MASTER_PATHS_DELETED)
-          .setDescription("")
+          .setDescription("Total number of the succeed Delete operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_PATHS_MOUNTED =
       new MetricKey.Builder(Name.MASTER_PATHS_MOUNTED)
-          .setDescription("")
+          .setDescription("Total number of succeed Mount operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_PATHS_RENAMED =
       new MetricKey.Builder(Name.MASTER_PATHS_RENAMED)
-          .setDescription("")
+          .setDescription("Total number of succeed Rename operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_PATHS_UNMOUNTED =
       new MetricKey.Builder(Name.MASTER_PATHS_UNMOUNTED)
-          .setDescription("")
+          .setDescription("Total number of succeed Unmount operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_COMPLETE_FILE_OPS =
       new MetricKey.Builder(Name.MASTER_COMPLETE_FILE_OPS)
-          .setDescription("")
+          .setDescription("Total number of the CompleteFile operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_CREATE_DIRECTORIES_OPS =
       new MetricKey.Builder(Name.MASTER_CREATE_DIRECTORIES_OPS)
-          .setDescription("")
+          .setDescription("Total number of the CreateDirectory operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_CREATE_FILES_OPS =
       new MetricKey.Builder(Name.MASTER_CREATE_FILES_OPS)
-          .setDescription("")
+          .setDescription("Total number of the CreateFile operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_DELETE_PATHS_OPS =
       new MetricKey.Builder(Name.MASTER_DELETE_PATHS_OPS)
-          .setDescription("")
+          .setDescription("Total number of the Delete operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_FREE_FILE_OPS =
       new MetricKey.Builder(Name.MASTER_FREE_FILE_OPS)
-          .setDescription("")
+          .setDescription("Total number of FreeFile operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_GET_FILE_BLOCK_INFO_OPS =
       new MetricKey.Builder(Name.MASTER_GET_FILE_BLOCK_INFO_OPS)
-          .setDescription("")
+          .setDescription("Total number of GetFileBlockInfo operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_GET_FILE_INFO_OPS =
       new MetricKey.Builder(Name.MASTER_GET_FILE_INFO_OPS)
-          .setDescription("")
+          .setDescription("Total number of the GetFileInfo operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_GET_NEW_BLOCK_OPS =
       new MetricKey.Builder(Name.MASTER_GET_NEW_BLOCK_OPS)
-          .setDescription("")
+          .setDescription("Total number of the GetNewBlock operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_MOUNT_OPS =
       new MetricKey.Builder(Name.MASTER_MOUNT_OPS)
-          .setDescription("")
+          .setDescription("Total number of Mount operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_RENAME_PATH_OPS =
       new MetricKey.Builder(Name.MASTER_RENAME_PATH_OPS)
-          .setDescription("")
+          .setDescription("Total number of Rename operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
-  public static final MetricKey MASTER_SET_ACL_OPSS =
+  public static final MetricKey MASTER_SET_ACL_OPS =
       new MetricKey.Builder(Name.MASTER_SET_ACL_OPS)
-          .setDescription("")
+          .setDescription("Total number of SetAcl operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_SET_ATTRIBUTE_OPS =
       new MetricKey.Builder(Name.MASTER_SET_ATTRIBUTE_OPS)
-          .setDescription("")
+          .setDescription("Total number of SetAttribute operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_UNMOUNT_OPS =
       new MetricKey.Builder(Name.MASTER_UNMOUNT_OPS)
-          .setDescription("")
+          .setDescription("Total number of Unmount operations")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_FILES_PINNED =
       new MetricKey.Builder(Name.MASTER_FILES_PINNED)
-          .setDescription("")
-          .setMetricType(MetricType.COUNTER)
+          .setDescription("Total number of currently pinned files")
+          .setMetricType(MetricType.GAUGE)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_TOTAL_PATHS =
       new MetricKey.Builder(Name.MASTER_TOTAL_PATHS)
-          .setDescription("")
-          .setMetricType(MetricType.COUNTER)
+          .setDescription("Total number of files and directory in Alluxio namespace")
+          .setMetricType(MetricType.GAUGE)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
       new MetricKey.Builder(Name.MASTER_JOURNAL_FLUSH_FAILURE)
-          .setDescription("")
+          .setDescription("Total number of failed journal flush")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_TIMER =
       new MetricKey.Builder(Name.MASTER_JOURNAL_FLUSH_TIMER)
-          .setDescription("")
-          .setMetricType(MetricType.COUNTER)
+          .setDescription("The timer statistics of journal flush")
+          .setMetricType(MetricType.TIMER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_JOURNAL_GAIN_PRIMACY_TIMER =
       new MetricKey.Builder(Name.MASTER_JOURNAL_GAIN_PRIMACY_TIMER)
-          .setDescription("")
-          .setMetricType(MetricType.COUNTER)
+          .setDescription("The timer statistics of journal gain primacy")
+          .setMetricType(MetricType.TIMER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER =
       new MetricKey.Builder(Name.MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER)
-          .setDescription("")
-          .setMetricType(MetricType.COUNTER)
+          .setDescription("The timer statistics of ufs journal failure recover")
+          .setMetricType(MetricType.TIMER)
           .setIsClusterAggreagated(false)
           .build();
 
   // Cluster metrics
   public static final MetricKey CLUSTER_UFS_CAPACITY_TOTAL =
       new MetricKey.Builder(Name.CLUSTER_UFS_CAPACITY_TOTAL)
-          .setDescription("")
+          .setDescription("Total capacity of the under file system in bytes")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey CLUSTER_UFS_CAPACITY_USED =
       new MetricKey.Builder(Name.CLUSTER_UFS_CAPACITY_USED)
-          .setDescription("")
+          .setDescription("Used capacity of the under file system in bytes")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey CLUSTER_UFS_CAPACITY_FREE =
       new MetricKey.Builder(Name.CLUSTER_UFS_CAPACITY_FREE)
-          .setDescription("")
+          .setDescription("Free capacity of the under file system in bytes")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
@@ -600,8 +602,10 @@ public final class MetricKey implements Comparable<MetricKey> {
     // metrics names for BackupManager
     public static final String MASTER_LAST_BACKUP_ENTRIES_COUNT = "MasterLastBackupEntriesCount";
     public static final String MASTER_LAST_BACKUP_RESTORE_COUNT = "MasterLastBackupRestoreCount";
-    public static final String MASTER_BACKUP_ENTRIES_PROCESS_TIME = "MasterBackupEntriesProcessTime";
-    public static final String MASTER_BACKUP_RESTORE_PROCESS_TIME = "MasterBackupRestoreProcessTime";
+    public static final String MASTER_BACKUP_ENTRIES_PROCESS_TIME
+        = "MasterBackupEntriesProcessTime";
+    public static final String MASTER_BACKUP_RESTORE_PROCESS_TIME
+        = "MasterBackupRestoreProcessTime";
 
     // metrics names for FileSystemMaster
     public static final String MASTER_DIRECTORIES_CREATED = "MasterDirectoriesCreated";
@@ -636,7 +640,8 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String MASTER_JOURNAL_FLUSH_FAILURE = "MasterJournalFlushFailure";
     public static final String MASTER_JOURNAL_FLUSH_TIMER = "MasterJournalFlushTimer";
     public static final String MASTER_JOURNAL_GAIN_PRIMACY_TIMER = "MasterJournalGainPrimacyTimer";
-    public static final String MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER = "MasterUfsJournalFailureRecoverTime";
+    public static final String MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER
+        = "MasterUfsJournalFailureRecoverTime";
 
     // Cluster metrics
     public static final String CLUSTER_UFS_CAPACITY_TOTAL = "ClusterUfsCapacityTotal";
