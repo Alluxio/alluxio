@@ -61,7 +61,7 @@ spec:
                 - alluxio-worker
       containers:
         - name: alluxio-fuse
-          image: alluxio/alluxio-fuse:2.1.1
+          image: alluxio/alluxio-fuse:2.1.2-SNAPSHOT
           imagePullPolicy: IfNotPresent
           resources:
             limits:
