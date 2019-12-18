@@ -28,13 +28,9 @@ Through the `KODO_DOWNLOAD_HOST` you can get objects from the bucket.
 ## Mounting Kodo
 
 Alluxio unifies access to different storage systems through the
-<<<<<<< HEAD
-[unified namespace]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}) feature. The root of Alluxio namespace or its subdirectories are all available for the mount point of Kodo.
-=======
-[unified namespace]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) feature.
+[unified namespace]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}) feature.
 The root of Alluxio namespace or its subdirectories are all available for the mount point of Kodo.
 
->>>>>>> upstream/master
 ### Root Mount
 
 If you want to use Qiniu Kodo as its under storage system in Alluxio, `conf/alluxio-site.properties` must be modified.
