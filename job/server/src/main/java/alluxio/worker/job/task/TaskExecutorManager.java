@@ -199,7 +199,7 @@ public class TaskExecutorManager {
    * @param context the context of the worker
    */
   public synchronized void executeTask(long jobId, long taskId, RunTaskCommand runTaskCommand,
-                                       RunTaskContext context) {
+      RunTaskContext context) {
     Future<?> future = mTaskExecutionService
         .submit(new TaskExecutor(jobId, taskId, runTaskCommand, context, this));
     Pair<Long, Long> id = new Pair<>(jobId, taskId);
@@ -220,7 +220,6 @@ public class TaskExecutorManager {
   public synchronized void cancelTask(long jobId, long taskId) {
     Pair<Long, Long> id = new Pair<>(jobId, taskId);
     TaskInfo taskInfo = mUnfinishedTasks.get(id);
-    LOG.info("Task {} for job {} attempting to be cancelled", taskId, jobId);
     if (!mTaskFutures.containsKey(id) || taskInfo.getStatus().equals(Status.CANCELED)) {
       // job has finished, or failed, or canceled
       return;
