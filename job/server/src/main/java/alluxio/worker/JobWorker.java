@@ -59,7 +59,7 @@ public final class JobWorker extends AbstractWorker {
   /** Client for job master communication. */
   private final JobMasterClient mJobMasterClient;
   /** The manager for the all the local task execution. */
-  private final TaskExecutorManager mTaskExecutorManager;
+  private TaskExecutorManager mTaskExecutorManager;
   /** The service that handles commands sent from master. */
   private Future<?> mCommandHandlingService;
 
@@ -74,8 +74,6 @@ public final class JobWorker extends AbstractWorker {
     mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
     mJobMasterClient = JobMasterClient.Factory.create(JobMasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
-    mTaskExecutorManager = new TaskExecutorManager(
-        ServerConfiguration.getInt(PropertyKey.JOB_WORKER_THREADPOOL_SIZE));
   }
 
   @Override
@@ -104,6 +102,9 @@ public final class JobWorker extends AbstractWorker {
       LOG.error("Failed to get a worker id from job master", e);
       throw Throwables.propagate(e);
     }
+
+    mTaskExecutorManager = new TaskExecutorManager(
+        ServerConfiguration.getInt(PropertyKey.JOB_WORKER_THREADPOOL_SIZE), address);
 
     mCommandHandlingService = getExecutorService().submit(
         new HeartbeatThread(HeartbeatContext.JOB_WORKER_COMMAND_HANDLING,

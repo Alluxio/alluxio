@@ -17,12 +17,14 @@ import alluxio.grpc.ChannelAuthenticationScheme;
 import io.grpc.BindableService;
 
 import javax.security.sasl.SaslException;
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.UUID;
 
 /**
  * Interface for authentication server implementations.
  */
-public interface AuthenticationServer extends BindableService {
+public interface AuthenticationServer extends BindableService, Closeable {
   /**
    * Registers new user against given channel.
    *
@@ -62,5 +64,5 @@ public interface AuthenticationServer extends BindableService {
   /**
    * Closes the server, releases all authentication sessions.
    */
-  void close();
+  void close() throws IOException;
 }

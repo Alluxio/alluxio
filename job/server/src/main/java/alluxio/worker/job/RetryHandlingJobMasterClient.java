@@ -20,6 +20,7 @@ import alluxio.grpc.JobMasterWorkerServiceGrpc;
 import alluxio.grpc.RegisterJobWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.GrpcUtils;
+import alluxio.job.wire.JobWorkerHealth;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
@@ -72,14 +73,15 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public List<JobCommand> heartbeat(final long workerId,
+  public List<JobCommand> heartbeat(final JobWorkerHealth jobWorkerHealth,
       final List<JobInfo> taskInfoList) throws IOException {
     return retryRPC(new RpcCallable<List<JobCommand>>() {
 
       @Override
       public List<JobCommand> call() {
-        return mClient.heartbeat(JobHeartbeatPRequest.newBuilder().setWorkerId(workerId)
-            .addAllTaskInfos(taskInfoList).build()).getCommandsList();
+        return mClient.heartbeat(JobHeartbeatPRequest.newBuilder()
+            .setJobWorkerHealth(jobWorkerHealth.toProto()).addAllTaskInfos(taskInfoList).build())
+            .getCommandsList();
       }
     });
   }

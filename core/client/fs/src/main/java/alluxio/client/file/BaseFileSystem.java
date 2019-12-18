@@ -18,17 +18,18 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.OpenDirectoryException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.FailedPreconditionException;
@@ -92,7 +93,7 @@ public class BaseFileSystem implements FileSystem {
   protected final AlluxioBlockStore mBlockStore;
   protected final boolean mCachingEnabled;
 
-  private volatile boolean mClosed = false;
+  protected volatile boolean mClosed = false;
 
   /**
    * @param context the {@link FileSystemContext} to use for client operations
@@ -400,30 +401,32 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public FileInStream openFile(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+      IOException, AlluxioException {
     return openFile(path, OpenFilePOptions.getDefaultInstance());
   }
 
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+      IOException, AlluxioException {
     checkUri(path);
-    return rpc(client -> {
-      AlluxioConfiguration conf = mFsContext.getPathConf(path);
-      URIStatus status = client.getStatus(path,
-          FileSystemOptions.getStatusDefaults(conf).toBuilder()
-              .setAccessMode(Bits.READ)
-              .setUpdateTimestamps(options.getUpdateLastAccessTime())
-              .build());
-      if (status.isFolder()) {
-        throw new FileDoesNotExistException(
-            ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
-      }
-      OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(conf)
-          .toBuilder().mergeFrom(options).build();
-      InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions, conf);
-      return new FileInStream(status, inStreamOptions, mFsContext);
-    });
+    AlluxioConfiguration conf = mFsContext.getPathConf(path);
+    URIStatus status = getStatus(path,
+        FileSystemOptions.getStatusDefaults(conf).toBuilder()
+            .setAccessMode(Bits.READ)
+            .setUpdateTimestamps(options.getUpdateLastAccessTime())
+            .build());
+    if (status.isFolder()) {
+      throw new OpenDirectoryException(path);
+    }
+    if (!status.isCompleted()) {
+      throw new FileIncompleteException(path);
+    }
+    OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(conf)
+        .toBuilder().mergeFrom(options).build();
+    InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions, conf);
+    return new FileInStream(status, inStreamOptions, mFsContext);
   }
 
   @Override
@@ -547,7 +550,7 @@ public class BaseFileSystem implements FileSystem {
    * Checks an {@link AlluxioURI} for scheme and authority information. Warn the user and throw an
    * exception if necessary.
    */
-  private void checkUri(AlluxioURI uri) {
+  protected void checkUri(AlluxioURI uri) {
     Preconditions.checkNotNull(uri, "uri");
     if (!mFsContext.getUriValidationEnabled()) {
       return;

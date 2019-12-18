@@ -18,6 +18,7 @@ import alluxio.grpc.JobMasterWorkerServiceGrpc;
 import alluxio.grpc.RegisterJobWorkerPRequest;
 import alluxio.grpc.RegisterJobWorkerPResponse;
 import alluxio.grpc.GrpcUtils;
+import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.TaskInfo;
 
 import com.google.common.base.Preconditions;
@@ -62,8 +63,9 @@ public final class JobMasterWorkerServiceHandler
           LOG.error("task info deserialization failed " + e);
         }
       }
+      JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(request.getJobWorkerHealth());
       return JobHeartbeatPResponse.newBuilder()
-              .addAllCommands(mJobMaster.workerHeartbeat(request.getWorkerId(), wireTaskInfoList))
+              .addAllCommands(mJobMaster.workerHeartbeat(jobWorkerHealth, wireTaskInfoList))
               .build();
     }, "heartbeat", "request=%s", responseObserver, request);
   }

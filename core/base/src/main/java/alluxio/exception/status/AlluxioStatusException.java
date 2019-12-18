@@ -13,6 +13,9 @@ package alluxio.exception.status;
 
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.BackupAbortedException;
+import alluxio.exception.BackupDelegationException;
+import alluxio.exception.BackupException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.BlockInfoException;
@@ -236,6 +239,12 @@ public class AlluxioStatusException extends IOException {
       return new FailedPreconditionException(e);
     } catch (WorkerOutOfSpaceException e) {
       return new ResourceExhaustedException(e);
+    } catch (BackupDelegationException e) {
+      return new FailedPreconditionException(e);
+    } catch (BackupAbortedException e) {
+      return new AbortedException(e);
+    } catch (BackupException e) {
+      return new InternalException(e);
     } catch (AlluxioException e) {
       return new UnknownException(e);
     }

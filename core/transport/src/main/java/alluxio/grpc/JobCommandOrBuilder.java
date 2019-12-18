@@ -45,4 +45,17 @@ public interface JobCommandOrBuilder extends
    * <code>optional .alluxio.grpc.job.RegisterCommand registerCommand = 3;</code>
    */
   alluxio.grpc.RegisterCommandOrBuilder getRegisterCommandOrBuilder();
+
+  /**
+   * <code>optional .alluxio.grpc.job.SetTaskPoolSizeCommand setTaskPoolSizeCommand = 4;</code>
+   */
+  boolean hasSetTaskPoolSizeCommand();
+  /**
+   * <code>optional .alluxio.grpc.job.SetTaskPoolSizeCommand setTaskPoolSizeCommand = 4;</code>
+   */
+  alluxio.grpc.SetTaskPoolSizeCommand getSetTaskPoolSizeCommand();
+  /**
+   * <code>optional .alluxio.grpc.job.SetTaskPoolSizeCommand setTaskPoolSizeCommand = 4;</code>
+   */
+  alluxio.grpc.SetTaskPoolSizeCommandOrBuilder getSetTaskPoolSizeCommandOrBuilder();
 }

@@ -26,11 +26,10 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
- * The job descriptor.
+ * The plan description.
  */
 public final class PlanInfo implements JobInfo {
   private final long mId;
@@ -142,7 +141,7 @@ public final class PlanInfo implements JobInfo {
   }
 
   @Override
-  public Collection<JobInfo> getChildren() {
+  public List<JobInfo> getChildren() {
     return mChildren;
   }
 

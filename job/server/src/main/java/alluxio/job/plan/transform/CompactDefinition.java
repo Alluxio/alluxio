@@ -13,6 +13,7 @@ package alluxio.job.plan.transform;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.Pair;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
@@ -27,6 +28,7 @@ import alluxio.wire.WorkerInfo;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The job definition for compacting files representing a structured table under a directory.
@@ -68,7 +71,7 @@ public final class CompactDefinition
   }
 
   @Override
-  public Map<WorkerInfo, ArrayList<CompactTask>> selectExecutors(CompactConfig config,
+  public Set<Pair<WorkerInfo, ArrayList<CompactTask>>> selectExecutors(CompactConfig config,
       List<WorkerInfo> jobWorkers, SelectExecutorsContext context) throws Exception {
     Preconditions.checkState(!jobWorkers.isEmpty(), "No job worker");
     AlluxioURI inputDir = new AlluxioURI(config.getInput());
@@ -105,7 +108,13 @@ public final class CompactDefinition
         group = new ArrayList<>(groupSize);
       }
     }
-    return assignments;
+
+    Set<Pair<WorkerInfo, ArrayList<CompactTask>>> result = Sets.newHashSet();
+    for (Map.Entry<WorkerInfo, ArrayList<CompactTask>> assignment : assignments.entrySet()) {
+      result.add(new Pair<>(assignment.getKey(), assignment.getValue()));
+    }
+
+    return result;
   }
 
   @Override

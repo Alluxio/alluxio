@@ -12,7 +12,7 @@
 package alluxio.client.rest;
 
 import alluxio.Constants;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
 import alluxio.job.SleepJobConfig;
@@ -20,6 +20,8 @@ import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
 import alluxio.master.job.JobMasterClientRestServiceHandler;
+import alluxio.security.authentication.AuthType;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -31,7 +33,10 @@ import com.google.common.collect.Maps;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -49,6 +54,19 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
   private LocalAlluxioJobCluster mJobCluster;
   private JobMaster mJobMaster;
 
+  // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to
+  // fix the test setup in SIMPLE mode.
+  @ClassRule
+  public static LocalAlluxioClusterResource sResource = new LocalAlluxioClusterResource.Builder()
+      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
+      .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
+      .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "10ms")
+      .build();
+
+  @Rule
+  public TestRule mResetRule = sResource.getResetResource();
+
   @Before
   public void before() throws Exception {
     mJobCluster = new LocalAlluxioJobCluster();
@@ -62,7 +80,6 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
   @After
   public void after() throws Exception {
     mJobCluster.stop();
-    ServerConfiguration.reset();
   }
 
   @Test
@@ -79,7 +96,7 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
 
   @Test
   public void run() throws Exception {
-    final long jobId = startJob(new SleepJobConfig(Constants.SECOND_MS));
+    final long jobId = startJob(new SleepJobConfig(200));
     Assert.assertEquals(1, mJobMaster.list().size());
     waitForStatus(jobId, Status.COMPLETED);
   }
@@ -89,7 +106,7 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
     long jobId = startJob(new SleepJobConfig(10 * Constants.SECOND_MS));
     // Sleep to make sure the run request and the cancel request are separated by a job worker
     // heartbeat. If not, job service will not handle that case correctly.
-    CommonUtils.sleepMs(Constants.SECOND_MS);
+    CommonUtils.sleepMs(30);
     Map<String, String> params = Maps.newHashMap();
     params.put("jobId", Long.toString(jobId));
     new TestCase(mHostname, mPort, getEndpoint(ServiceConstants.CANCEL),

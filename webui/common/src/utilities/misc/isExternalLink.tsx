@@ -9,4 +9,4 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export const isExternalLink = (url: string | undefined) => !!url && !/^\/[^/].*/.test(url);
+export const isExternalLink = (url: string | undefined): boolean => !!url && !/^\/[^/].*/.test(url);

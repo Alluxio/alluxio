@@ -30,7 +30,10 @@ import alluxio.table.under.hive.util.PathTranslator;
 import alluxio.util.io.PathUtils;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.HiveMetaHookLoader;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
+import org.apache.hadoop.hive.metastore.IMetaStoreClient;
+import org.apache.hadoop.hive.metastore.RetryingMetaStoreClient;
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
@@ -53,6 +56,7 @@ import java.util.stream.Collectors;
  */
 public class HiveDatabase implements UnderDatabase {
   private static final Logger LOG = LoggerFactory.getLogger(HiveDatabase.class);
+  private static final HiveMetaHookLoader NOOP_HOOK = table -> null;
 
   private final UdbContext mUdbContext;
   private final UdbConfiguration mConfiguration;
@@ -62,7 +66,7 @@ public class HiveDatabase implements UnderDatabase {
   private final String mHiveDbName;
 
   /** The cached hive client. This should not be used directly, but via {@link #getHive()}. */
-  private HiveMetaStoreClient mHive = null;
+  private IMetaStoreClient mHive = null;
 
   private HiveDatabase(UdbContext udbContext, UdbConfiguration configuration,
       String connectionUri, String hiveDbName) {
@@ -112,7 +116,7 @@ public class HiveDatabase implements UnderDatabase {
   public List<String> getTableNames() throws IOException {
     try {
       return getHive().getAllTables(mHiveDbName);
-    } catch (MetaException e) {
+    } catch (TException  e) {
       throw new IOException("Failed to get hive tables: " + e.getMessage(), e);
     }
   }
@@ -219,6 +223,7 @@ public class HiveDatabase implements UnderDatabase {
           .setTableName(tableName)
           .addAllDataCols(HiveUtils.toProto(table.getSd().getCols()))
           .setStorage(HiveUtils.toProto(table.getSd(), pathTranslator))
+          .putAllParameters(table.getParameters())
           // ignore partition name
           .build();
       Layout layout = Layout.newBuilder()
@@ -237,7 +242,7 @@ public class HiveDatabase implements UnderDatabase {
     }
   }
 
-  HiveMetaStoreClient getHive() throws IOException {
+  IMetaStoreClient getHive() throws IOException {
     if (mHive != null) {
       return mHive;
     }
@@ -248,8 +253,9 @@ public class HiveDatabase implements UnderDatabase {
       // use the extension class loader
       Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
       HiveConf conf = new HiveConf();
-      conf.set("hive.metastore.uris", mConnectionUri);
-      mHive = new HiveMetaStoreClient(conf);
+      conf.verifyAndSet("hive.metastore.uris", mConnectionUri);
+      mHive =
+          RetryingMetaStoreClient.getProxy(conf, NOOP_HOOK, HiveMetaStoreClient.class.getName());
       mHive.getDatabase(mHiveDbName);
       return mHive;
     } catch (NoSuchObjectException e) {

@@ -11,10 +11,12 @@
 
 package alluxio.client.rest;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.metrics.MetricsSystem;
+import alluxio.security.authentication.AuthType;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
@@ -23,7 +25,10 @@ import alluxio.worker.AlluxioWorkerRestServiceHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 import javax.ws.rs.HttpMethod;
 
@@ -32,10 +37,22 @@ import javax.ws.rs.HttpMethod;
  */
 public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
+  // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to
+  // fix the test setup in SIMPLE mode.
+  @ClassRule
+  public static LocalAlluxioClusterResource sResource = new LocalAlluxioClusterResource.Builder()
+      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
+      .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
+      .build();
+
+  @Rule
+  public TestRule mResetRule = sResource.getResetResource();
+
   @Before
   public void before() {
-    mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getWorkerProcess().getWebLocalPort();
+    mHostname = sResource.get().getHostname();
+    mPort = sResource.get().getWorkerProcess().getWebLocalPort();
     mServicePrefix = AlluxioWorkerRestServiceHandler.SERVICE_PREFIX;
   }
 

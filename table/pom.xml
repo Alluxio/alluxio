@@ -33,16 +33,5 @@
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
     <build.path>${project.parent.basedir}/build</build.path>
-    <hive-metastore.verison>2.3.6</hive-metastore.verison>
   </properties>
-
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.apache.hive</groupId>
-        <artifactId>hive-metastore</artifactId>
-        <version>${hive-metastore.verison}</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
 </project>

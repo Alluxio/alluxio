@@ -11,6 +11,7 @@
 
 package alluxio.job.plan;
 
+import alluxio.collections.Pair;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.SleepJobConfig;
@@ -18,9 +19,10 @@ import alluxio.job.util.SerializableVoid;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 /**
  * The definition for a job which sleeps for the specified number of milliseconds on each worker.
@@ -39,12 +41,15 @@ public final class SleepPlanDefinition
   }
 
   @Override
-  public Map<WorkerInfo, SerializableVoid> selectExecutors(SleepJobConfig config,
+  public Set<Pair<WorkerInfo, SerializableVoid>> selectExecutors(SleepJobConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
       throws Exception {
-    Map<WorkerInfo, SerializableVoid> executors = new HashMap<>();
+    Set<Pair<WorkerInfo, SerializableVoid>> executors =
+        Collections.newSetFromMap(new IdentityHashMap<>());
     for (WorkerInfo jobWorker : jobWorkerInfoList) {
-      executors.put(jobWorker, null);
+      for (int i = 0; i < config.getTasksPerWorker(); i++) {
+        executors.add(new Pair<>(jobWorker, null));
+      }
     }
     return executors;
   }

@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.collections.Pair;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
@@ -22,21 +23,24 @@ import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.load.LoadDefinition.LoadTask;
 import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
-import alluxio.job.util.SerializationUtils;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -57,7 +61,7 @@ public final class LoadDefinition
   }
 
   @Override
-  public Map<WorkerInfo, ArrayList<LoadTask>> selectExecutors(LoadConfig config,
+  public Set<Pair<WorkerInfo, ArrayList<LoadTask>>> selectExecutors(LoadConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context)
       throws Exception {
     Map<String, WorkerInfo> jobWorkersByAddress = jobWorkerInfoList.stream()
@@ -98,7 +102,13 @@ public final class LoadDefinition
         assignments.put(jobWorker, new LoadTask(blockInfo.getBlockInfo().getBlockId()));
       }
     }
-    return SerializationUtils.makeValuesSerializable(assignments.asMap());
+
+    Set<Pair<WorkerInfo, ArrayList<LoadTask>>> result = Sets.newHashSet();
+    for (Map.Entry<WorkerInfo, Collection<LoadTask>> assignment : assignments.asMap().entrySet()) {
+      result.add(new Pair<>(assignment.getKey(), Lists.newArrayList(assignment.getValue())));
+    }
+
+    return result;
   }
 
   /**

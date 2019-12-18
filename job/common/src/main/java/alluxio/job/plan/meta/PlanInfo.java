@@ -81,7 +81,8 @@ public final class PlanInfo implements Comparable<PlanInfo> {
    * @param workerInfo the worker info
    */
   public void addTask(long taskId, WorkerInfo workerInfo) {
-    TaskInfo oldValue = mTaskIdToInfo.putIfAbsent(taskId, new TaskInfo(mId, taskId, workerInfo));
+    TaskInfo oldValue = mTaskIdToInfo.putIfAbsent(taskId,
+        new TaskInfo(mId, taskId, Status.CREATED, workerInfo.getAddress()));
     // the task is expected to not exist in the map.
     Preconditions.checkState(oldValue == null,
         String.format("JobId %d cannot add duplicate taskId %d", mId, taskId));

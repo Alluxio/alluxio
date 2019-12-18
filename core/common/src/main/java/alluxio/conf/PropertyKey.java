@@ -534,6 +534,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY =
+      new Builder(Name.ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY)
+          .setDefaultValue("SESSION")
+          .setDescription("Connection error policy defines how errors on zookeeper connections "
+              + "to be treated in leader election. "
+              + "STANDARD policy treats every connection event as failure."
+              + "SESSION policy relies on zookeeper sessions for judging failures, "
+              + "helping leader to retain its status, as long as its session is protected.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   /**
    * UFS related properties.
    */
@@ -1194,19 +1205,48 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_BIND_HOST =
-      new Builder(Name.MASTER_BIND_HOST)
-          .setDefaultValue("0.0.0.0")
-          .setDescription("The hostname that Alluxio master binds to.")
+  public static final PropertyKey MASTER_BACKUP_DELEGATION_ENABLED =
+      new Builder(Name.MASTER_BACKUP_DELEGATION_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to delegate journals to stand-by masters in HA cluster.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
-      new Builder(Name.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL)
-          .setDefaultValue("1m")
-          .setDescription("The interval for periodically updating the cluster level metrics.")
+  public static final PropertyKey MASTER_BACKUP_TRANSPORT_TIMEOUT =
+      new Builder(Name.MASTER_BACKUP_TRANSPORT_TIMEOUT)
+          .setDefaultValue("5sec")
+          .setDescription("Request timeout for backup messaging.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
+          .build();
+  public static final PropertyKey MASTER_BACKUP_HEARTBEAT_INTERVAL =
+      new Builder(Name.MASTER_BACKUP_HEARTBEAT_INTERVAL)
+          .setDefaultValue("1sec")
+          .setDescription("Interval at which follower updates the leader on ongoing backup.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BACKUP_CONNECT_INTERVAL_MIN =
+      new Builder(Name.MASTER_BACKUP_CONNECT_INTERVAL_MIN)
+          .setDefaultValue("1sec")
+          .setDescription("Minimum delay between each connection attempt to leader backup master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BACKUP_CONNECT_INTERVAL_MAX =
+      new Builder(Name.MASTER_BACKUP_CONNECT_INTERVAL_MAX)
+          .setDefaultValue("10sec")
+          .setDescription("Maximum delay between each connection attempt to leader backup master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BACKUP_ABANDON_TIMEOUT =
+      new Builder(Name.MASTER_BACKUP_ABANDON_TIMEOUT)
+          .setDefaultValue("2min")
+          .setDescription("Duration after which leader will abandon the backup"
+              + " if not received heartbeat from backup-worker.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_ENABLED =
       new Builder(Name.MASTER_DAILY_BACKUP_ENABLED)
@@ -1234,6 +1274,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "to avoid interfering with other users of the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_BIND_HOST =
+      new Builder(Name.MASTER_BIND_HOST)
+          .setDefaultValue("0.0.0.0")
+          .setDescription("The hostname that Alluxio master binds to.")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
+      new Builder(Name.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL)
+          .setDefaultValue("1m")
+          .setDescription("The interval for periodically updating the cluster level metrics.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
@@ -1469,10 +1523,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_WORKER_HEARTBEAT_INTERVAL =
-      new Builder(Name.MASTER_WORKER_HEARTBEAT_INTERVAL)
+  public static final PropertyKey MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
+      new Builder(Name.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)
+          .setAlias("alluxio.master.worker.heartbeat.interval")
           .setDefaultValue("10sec")
-          .setDescription("The interval between Alluxio master and worker heartbeats.")
+          .setDescription("The interval between Alluxio master detections to find lost workers "
+              + "and files based on updates from Alluxio workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -2056,8 +2112,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)
           .setAlias("alluxio.worker.block.heartbeat.interval.ms")
-          .setDefaultValue("10sec")
-          .setDescription("The interval between block workers' heartbeats.")
+          .setDefaultValue("1sec")
+          .setDescription("The interval between block workers' heartbeats to update "
+              + "block status, storage health and other workers' information to Alluxio Master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3252,6 +3309,40 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_SHORT_CIRCUIT_PREFERRED =
+      new Builder(Name.USER_SHORT_CIRCUIT_PREFERRED)
+          .setDefaultValue(false)
+          .setDescription("When short circuit and domain socket both enabled, "
+              + "prefer to use short circuit.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_METADATA_CACHE_ENABLED =
+      new Builder(Name.USER_METADATA_CACHE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If this is enabled, metadata of paths will be cached. "
+              + "The cached metadata will be evicted when it expires after "
+              + Name.USER_METADATA_CACHE_EXPIRATION_TIME
+              + " or the cache size is over the limit of "
+              + Name.USER_METADATA_CACHE_MAX_SIZE + ".")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_METADATA_CACHE_MAX_SIZE =
+      new Builder(Name.USER_METADATA_CACHE_MAX_SIZE)
+          .setDefaultValue(100000)
+          .setDescription("Maximum number of paths with cached metadata.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_METADATA_CACHE_EXPIRATION_TIME =
+      new Builder(Name.USER_METADATA_CACHE_EXPIRATION_TIME)
+          .setDefaultValue("10min")
+          .setDescription("Metadata will expire and be evicted after being cached for this time "
+              + "period.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
 
   //
   // FUSE integration related properties
@@ -3817,6 +3908,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
     public static final String ZOOKEEPER_SESSION_TIMEOUT = "alluxio.zookeeper.session.timeout";
     public static final String ZOOKEEPER_AUTH_ENABLED = "alluxio.zookeeper.auth.enabled";
+    public static final String ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY =
+        "alluxio.zookeeper.leader.connection.error.policy";
     //
     // UFS related properties
     //
@@ -3940,15 +4033,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.backup.directory";
     public static final String MASTER_BACKUP_ENTRY_BUFFER_COUNT =
         "alluxio.master.backup.entry.buffer.count";
-    public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
-    public static final String MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
-        "alluxio.master.cluster.metrics.update.interval";
+    public static final String MASTER_BACKUP_DELEGATION_ENABLED =
+        "alluxio.master.backup.delegation.enabled";
+    public static final String MASTER_BACKUP_TRANSPORT_TIMEOUT =
+        "alluxio.master.backup.transport.timeout";
+    public static final String MASTER_BACKUP_HEARTBEAT_INTERVAL =
+        "alluxio.master.backup.heartbeat.interval";
+    public static final String MASTER_BACKUP_CONNECT_INTERVAL_MIN =
+        "alluxio.master.backup.connect.interval.min";
+    public static final String MASTER_BACKUP_CONNECT_INTERVAL_MAX =
+        "alluxio.master.backup.connect.interval.max";
+    public static final String MASTER_BACKUP_ABANDON_TIMEOUT =
+        "alluxio.master.backup.abandon.timeout";
     public static final String MASTER_DAILY_BACKUP_ENABLED =
         "alluxio.master.daily.backup.enabled";
     public static final String MASTER_DAILY_BACKUP_FILES_RETAINED =
         "alluxio.master.daily.backup.files.retained";
     public static final String MASTER_DAILY_BACKUP_TIME =
         "alluxio.master.daily.backup.time";
+    public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
+    public static final String MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
+        "alluxio.master.cluster.metrics.update.interval";
     public static final String MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
         "alluxio.master.file.access.time.journal.flush.interval";
     public static final String MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION =
@@ -3958,8 +4063,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file.prefix";
     public static final String MASTER_STANDBY_HEARTBEAT_INTERVAL =
         "alluxio.master.standby.heartbeat.interval";
-    public static final String MASTER_WORKER_HEARTBEAT_INTERVAL =
-        "alluxio.master.worker.heartbeat.interval";
+    public static final String MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
+        "alluxio.master.lost.worker.file.detection.interval";
     public static final String MASTER_HEARTBEAT_TIMEOUT =
         "alluxio.master.heartbeat.timeout";
     public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
@@ -4361,8 +4466,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
+    public static final String USER_SHORT_CIRCUIT_PREFERRED =
+        "alluxio.user.short.circuit.preferred";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
+    public static final String USER_METADATA_CACHE_ENABLED =
+        "alluxio.user.metadata.cache.enabled";
+    public static final String USER_METADATA_CACHE_MAX_SIZE =
+        "alluxio.user.metadata.cache.max.size";
+    public static final String USER_METADATA_CACHE_EXPIRATION_TIME =
+        "alluxio.user.metadata.cache.expiration.time";
 
     //
     // FUSE integration related properties

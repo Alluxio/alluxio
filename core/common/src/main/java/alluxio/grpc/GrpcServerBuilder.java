@@ -19,6 +19,7 @@ import alluxio.security.authentication.DefaultAuthenticationServer;
 import alluxio.security.user.UserState;
 import alluxio.util.SecurityUtils;
 
+import com.google.common.io.Closer;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.ServerInterceptor;
 import io.grpc.ServerInterceptors;
@@ -46,6 +47,8 @@ public final class GrpcServerBuilder {
   private Set<ServiceType> mServices;
   /** Authentication server instance that will be used by this server. */
   private AuthenticationServer mAuthenticationServer;
+  /** Used to register closers that needs to be called during server shut-down. */
+  private Closer mCloser = Closer.create();
   /** Alluxio configuration.  */
   private AlluxioConfiguration mConfiguration;
 
@@ -65,7 +68,8 @@ public final class GrpcServerBuilder {
         mAuthenticationServer =
             new DefaultAuthenticationServer(serverAddress.getHostName(), mConfiguration);
       }
-      addService(new GrpcService(mAuthenticationServer).disableAuthentication());
+      addService(new GrpcService(mAuthenticationServer).disableAuthentication()
+          .withCloseable(mAuthenticationServer));
     }
   }
 
@@ -225,6 +229,7 @@ public final class GrpcServerBuilder {
           new AuthenticatedUserInjector(mAuthenticationServer));
     }
     mNettyServerBuilder = mNettyServerBuilder.addService(service);
+    mCloser.register(serviceDefinition.getCloser());
     return this;
   }
 
@@ -248,7 +253,7 @@ public final class GrpcServerBuilder {
   public GrpcServer build() {
     addService(new GrpcService(new ServiceVersionClientServiceHandler(mServices))
         .disableAuthentication());
-    return new GrpcServer(mNettyServerBuilder.build(), mAuthenticationServer,
+    return new GrpcServer(mNettyServerBuilder.build(), mAuthenticationServer, mCloser,
         mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT));
   }
 }

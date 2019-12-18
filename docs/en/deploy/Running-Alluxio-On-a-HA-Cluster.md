@@ -121,19 +121,32 @@ Zookeeper cannot work with journal type `EMBEDDED` (use a journal embedded in th
   accessible by all master nodes.
   Examples include `alluxio.master.journal.folder=hdfs://1.2.3.4:9000/alluxio/journal/`
 
-For clusters with large namespaces, increased CPU overhead on leader could cause delays on Zookeeper client heartbeats.
-For this reason, we recommend setting Zookeeper client session timeout to at least 2 minutes on large clusters with namespace
-size more than several hundred millions of files.
-- `alluxio.zookeeper.session.timeout=120s`
-  - Zookeeper server's tick time must also be configured as such to allow
-    this timeout. The current implementation requires that the timeout be a minimum of 2 times the tickTime (as set in the server configuration)
-    and a maximum of 20 times the tickTime.
-
 Make sure all master nodes and all worker nodes have configured their respective
 `conf/alluxio-site.properties` configuration file appropriately.
 
 Once all the Alluxio masters and workers are configured in this way, Alluxio is ready to
 be formatted started.
+
+#### Advanced Zookeeper setup
+For clusters with large namespaces, increased CPU overhead on leader could cause delays on Zookeeper client heartbeats.
+For this reason, we recommend setting Zookeeper client session timeout to at least 2 minutes on large clusters with namespace
+size more than several hundred millions of files.
+- `alluxio.zookeeper.session.timeout=120s`
+  - Zookeeper server's min/max session timeout values must also be configured as such to allow
+    this timeout. The defaults requires that the timeout be a minimum of 2 times the `tickTime` (as set in the server configuration)
+    and a maximum of 20 times the tickTime. You could also manually configure `minSessionTimeout` and `maxSessionTimeout`.
+
+Alluxio supports pluggable error handling policy on zookeeper leader election.
+- `alluxio.zookeeper.leader.connection.error.policy` specifies how connection errors are handled.
+It can be either `SESSION` or `STANDARD`. It is set `SESSION` as default.
+ 
+The `SESSION` policy makes use of Zookeeper sessions to determine whether leader state is dirty. 
+This means suspended connections won't trigger stepping down of a current leader as long as it was able to reestablish the zookeeper connection with the same session.
+It provides more stability in maintaining the leadership state.
+
+The `STANDARD` policy treats any interruption to zookeeper server as an error. 
+Thus leader will step down upon missing a heartbeat, even though its internal zookeeper session was still intact with the zookeeper server.
+It provides more security against bugs and issues in zookeeper setup.
 
 ## Start an Alluxio Cluster with HA
 

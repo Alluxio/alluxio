@@ -9,20 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import { configure, mount, ReactWrapper, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import React from 'react';
 
 import App from './App';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('App', () => {
   describe('Shallow component', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<App/>);
+      shallowWrapper = shallow(<App />);
     });
 
     it('Renders without crashing', () => {
@@ -38,7 +38,7 @@ describe('App', () => {
     let reactWrapper: ReactWrapper;
 
     beforeAll(() => {
-      reactWrapper = mount(<App/>);
+      reactWrapper = mount(<App />);
     });
 
     it('Renders without crashing', () => {
