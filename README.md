@@ -34,6 +34,7 @@ Please use the following to reach members of the community:
 [New York Meetup](https://www.meetup.com/Alluxio-Open-Source-New-York-Meetup),
 [Beijing Alluxio Meetup](https://www.meetup.com/meetup-group-iLMBZGhS/), [Austin Meetup](https://www.meetup.com/Cloud-Data-Orchestration-Austin/)
 * Twitter: [@alluxio](https://twitter.com/alluxio)
+* Youtube Channel: [Alluxio](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA)
 * Mailing List: [alluxio-users](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
 
 ## Download Alluxio
