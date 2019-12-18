@@ -40,7 +40,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -83,7 +82,6 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   public void multipleTasksPerWorker() throws Exception {
     long jobId = mJobMaster.run(new SleepJobConfig(1, 2));
 
@@ -97,7 +95,6 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.JOB_MASTER_JOB_CAPACITY, "1",
       PropertyKey.Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME, "0"})
   public void flowControl() throws Exception {
@@ -115,7 +112,6 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   public void restartMasterAndLoseWorker() throws Exception {
     long jobId = mJobMaster.run(new SleepJobConfig(1));
     JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.COMPLETED);
@@ -130,7 +126,6 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.JOB_MASTER_LOST_WORKER_INTERVAL, "10000000"})
   public void restartMasterAndReregisterWorker() throws Exception {
@@ -152,7 +147,6 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   public void getAllWorkerHealth() throws Exception {
     final AtomicReference<List<JobWorkerHealth>> singleton = new AtomicReference<>();
     CommonUtils.waitFor("allWorkerHealth", () -> {
@@ -168,7 +162,6 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.JOB_MASTER_JOB_CAPACITY, "20"})
   public void stopJobWorkerTasks() throws Exception {
     long jobId0 = mJobMaster.run(new SleepJobConfig(5000));
@@ -196,7 +189,6 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.JOB_MASTER_JOB_CAPACITY, "20"})
   public void throttleJobWorkerTasks() throws Exception {
     mJobMaster.setTaskPoolSize(1);
@@ -252,7 +244,7 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
     try {
       JobTestUtils.waitForJobStatus(mJobMaster, child0, Status.CANCELED);
     } catch (Exception e) {
-      assertEquals(mJobMaster.getStatus(child0).getStatus(), Status.CANCELED);
+      assertEquals(Status.CANCELED, mJobMaster.getStatus(child0).getStatus());
     }
     JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.CANCELED);
     JobTestUtils.waitForJobStatus(mJobMaster, child1, Status.RUNNING);

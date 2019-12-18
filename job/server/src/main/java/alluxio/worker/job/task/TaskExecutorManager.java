@@ -12,7 +12,7 @@
 package alluxio.worker.job.task;
 
 import alluxio.collections.Pair;
-import alluxio.job.JobConfig;
+import alluxio.grpc.RunTaskCommand;
 import alluxio.job.RunTaskContext;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
@@ -195,14 +195,13 @@ public class TaskExecutorManager {
    *
    * @param jobId the job id
    * @param taskId the task id
-   * @param jobConfig the job configuration
-   * @param taskArgs the arguments
+   * @param runTaskCommand the run task command
    * @param context the context of the worker
    */
-  public synchronized void executeTask(long jobId, long taskId, JobConfig jobConfig,
-      Serializable taskArgs, RunTaskContext context) {
+  public synchronized void executeTask(long jobId, long taskId, RunTaskCommand runTaskCommand,
+                                       RunTaskContext context) {
     Future<?> future = mTaskExecutionService
-        .submit(new TaskExecutor(jobId, taskId, jobConfig, taskArgs, context, this));
+        .submit(new TaskExecutor(jobId, taskId, runTaskCommand, context, this));
     Pair<Long, Long> id = new Pair<>(jobId, taskId);
     mTaskFutures.put(id, future);
     TaskInfo taskInfo = new TaskInfo(jobId, taskId, Status.CREATED, mAddress);
@@ -221,6 +220,7 @@ public class TaskExecutorManager {
   public synchronized void cancelTask(long jobId, long taskId) {
     Pair<Long, Long> id = new Pair<>(jobId, taskId);
     TaskInfo taskInfo = mUnfinishedTasks.get(id);
+    LOG.info("Task {} for job {} attempting to be cancelled", taskId, jobId);
     if (!mTaskFutures.containsKey(id) || taskInfo.getStatus().equals(Status.CANCELED)) {
       // job has finished, or failed, or canceled
       return;

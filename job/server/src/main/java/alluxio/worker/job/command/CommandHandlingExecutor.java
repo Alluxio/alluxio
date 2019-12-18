@@ -27,7 +27,6 @@ import alluxio.job.RunTaskContext;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.TaskInfo;
 import alluxio.worker.job.JobMasterClient;
-import alluxio.job.util.SerializationUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.JobWorkerIdRegistry;
@@ -39,7 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -54,7 +52,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class CommandHandlingExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(CommandHandlingExecutor.class);
-  private static final int DEFAULT_COMMAND_HANDLING_POOL_SIZE = 4;
 
   private final JobServerContext mServerContext;
   private final JobMasterClient mMasterClient;
@@ -62,9 +59,10 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
   private final WorkerNetAddress mWorkerNetAddress;
   private final JobWorkerHealthReporter mHealthReporter;
 
+  // Keep this single threaded to keep the order of command execution consistent
   private final ExecutorService mCommandHandlingService =
-      Executors.newFixedThreadPool(DEFAULT_COMMAND_HANDLING_POOL_SIZE,
-          ThreadFactoryUtils.build("command-handling-service-%d", true));
+      Executors.newSingleThreadExecutor(
+          ThreadFactoryUtils.build("command-handling-service", true));
 
   /**
    * Creates a new instance of {@link CommandHandlingExecutor}.
@@ -144,22 +142,10 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
         RunTaskCommand command = mCommand.getRunTaskCommand();
         long jobId = command.getJobId();
         long taskId = command.getTaskId();
-        JobConfig jobConfig;
-        try {
-          jobConfig =
-              (JobConfig) SerializationUtils.deserialize(command.getJobConfig().toByteArray());
-          Serializable taskArgs = null;
-          if (command.hasTaskArgs()) {
-            taskArgs = SerializationUtils.deserialize(command.getTaskArgs().toByteArray());
-          }
-          RunTaskContext context = new RunTaskContext(jobId, taskId, mServerContext);
-          LOG.info("Received run task " + taskId + " for job " + jobId + " on worker "
-              + JobWorkerIdRegistry.getWorkerId());
-          mTaskExecutorManager.executeTask(jobId, taskId, jobConfig, taskArgs, context);
-        } catch (ClassNotFoundException | IOException e) {
-          // TODO(yupeng) better error handling
-          LOG.error("Failed to deserialize ", e);
-        }
+        RunTaskContext context = new RunTaskContext(jobId, taskId, mServerContext);
+        LOG.info("Received run task " + taskId + " for job " + jobId + " on worker "
+            + JobWorkerIdRegistry.getWorkerId());
+        mTaskExecutorManager.executeTask(jobId, taskId, command, context);
       } else if (mCommand.hasCancelTaskCommand()) {
         CancelTaskCommand command = mCommand.getCancelTaskCommand();
         long jobId = command.getJobId();
