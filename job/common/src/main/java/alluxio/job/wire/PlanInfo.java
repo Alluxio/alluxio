@@ -65,18 +65,22 @@ public final class PlanInfo implements JobInfo {
    * Constructs the plan info from the job master's internal representation of job info.
    *
    * @param planInfo the job master's internal job info
+   * @param verbose whether the representation should be verbose
    */
-  public PlanInfo(alluxio.job.plan.meta.PlanInfo planInfo) {
+  public PlanInfo(alluxio.job.plan.meta.PlanInfo planInfo, boolean verbose) {
     mId = planInfo.getId();
     mName = planInfo.getJobConfig().getName();
-    mDescription = planInfo.getJobConfig().toString();
-    mErrorMessage = planInfo.getErrorMessage();
-    mChildren = Lists.newArrayList();
+    mDescription = verbose ? planInfo.getJobConfig().toString() : "";
+    mErrorMessage = verbose ? planInfo.getErrorMessage() : "";
     mStatus = Status.valueOf(planInfo.getStatus().name());
-    mResult = planInfo.getResult();
+    mResult = verbose ? planInfo.getResult() : "";
     mLastUpdated = planInfo.getLastStatusChangeMs();
-    for (TaskInfo taskInfo : planInfo.getTaskInfoList()) {
-      mChildren.add(taskInfo);
+
+    mChildren = Lists.newArrayList();
+    if (verbose) {
+      for (TaskInfo taskInfo : planInfo.getTaskInfoList()) {
+        mChildren.add(taskInfo);
+      }
     }
   }
 

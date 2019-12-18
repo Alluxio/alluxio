@@ -41,6 +41,11 @@ public class CompositeExecution extends WorkflowExecution {
   }
 
   @Override
+  public String getName() {
+    return "Composite";
+  }
+
+  @Override
   protected Set<JobConfig> nextJobs() {
     if (mPosition >= mJobs.size()) {
       return Sets.newHashSet();

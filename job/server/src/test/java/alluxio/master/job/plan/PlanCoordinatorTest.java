@@ -108,9 +108,9 @@ public final class PlanCoordinatorTest {
         mWorkerInfoList, mJobId, mJobconfig, null);
     setTasksWithStatuses(planCoordinator, Status.RUNNING, Status.FAILED, Status.COMPLETED);
 
-    Assert.assertEquals(Status.FAILED, planCoordinator.getPlanInfoWire().getStatus());
+    Assert.assertEquals(Status.FAILED, planCoordinator.getPlanInfoWire(true).getStatus());
     Assert.assertTrue(
-        planCoordinator.getPlanInfoWire().getErrorMessage().contains("Task execution failed"));
+        planCoordinator.getPlanInfoWire(true).getErrorMessage().contains("Task execution failed"));
   }
 
   @Test
@@ -120,7 +120,7 @@ public final class PlanCoordinatorTest {
         mWorkerInfoList, mJobId, mJobconfig, null);
     setTasksWithStatuses(planCoordinator, Status.RUNNING, Status.FAILED, Status.COMPLETED);
 
-    Assert.assertEquals(Status.FAILED, planCoordinator.getPlanInfoWire().getStatus());
+    Assert.assertEquals(Status.FAILED, planCoordinator.getPlanInfoWire(true).getStatus());
   }
 
   @Test
@@ -130,7 +130,7 @@ public final class PlanCoordinatorTest {
         mWorkerInfoList, mJobId, mJobconfig, null);
     setTasksWithStatuses(planCoordinator, Status.CANCELED, Status.RUNNING, Status.COMPLETED);
 
-    Assert.assertEquals(Status.CANCELED, planCoordinator.getPlanInfoWire().getStatus());
+    Assert.assertEquals(Status.CANCELED, planCoordinator.getPlanInfoWire(true).getStatus());
   }
 
   @Test
@@ -140,7 +140,7 @@ public final class PlanCoordinatorTest {
         mWorkerInfoList, mJobId, mJobconfig, null);
     setTasksWithStatuses(planCoordinator, Status.COMPLETED, Status.RUNNING, Status.COMPLETED);
 
-    Assert.assertEquals(Status.RUNNING, planCoordinator.getPlanInfoWire().getStatus());
+    Assert.assertEquals(Status.RUNNING, planCoordinator.getPlanInfoWire(true).getStatus());
   }
 
   @Test
@@ -150,7 +150,7 @@ public final class PlanCoordinatorTest {
         mWorkerInfoList, mJobId, mJobconfig, null);
     setTasksWithStatuses(planCoordinator, Status.COMPLETED, Status.COMPLETED, Status.COMPLETED);
 
-    Assert.assertEquals(Status.COMPLETED, planCoordinator.getPlanInfoWire().getStatus());
+    Assert.assertEquals(Status.COMPLETED, planCoordinator.getPlanInfoWire(true).getStatus());
   }
 
   @Test
@@ -164,8 +164,8 @@ public final class PlanCoordinatorTest {
         mWorkerInfoList, mJobId, mJobconfig, null);
     setTasksWithStatuses(planCoordinator, Status.COMPLETED, Status.COMPLETED, Status.COMPLETED);
 
-    Assert.assertEquals(Status.FAILED, planCoordinator.getPlanInfoWire().getStatus());
-    Assert.assertEquals("test exception", planCoordinator.getPlanInfoWire().getErrorMessage());
+    Assert.assertEquals(Status.FAILED, planCoordinator.getPlanInfoWire(true).getStatus());
+    Assert.assertEquals("test exception", planCoordinator.getPlanInfoWire(true).getErrorMessage());
   }
 
   @Test
@@ -173,7 +173,7 @@ public final class PlanCoordinatorTest {
     mockSelectExecutors();
     PlanCoordinator planCoordinator = PlanCoordinator.create(mCommandManager, mJobServerContext,
         mWorkerInfoList, mJobId, mJobconfig, null);
-    Assert.assertEquals(Status.COMPLETED, planCoordinator.getPlanInfoWire().getStatus());
+    Assert.assertEquals(Status.COMPLETED, planCoordinator.getPlanInfoWire(true).getStatus());
   }
 
   @Test
@@ -182,7 +182,7 @@ public final class PlanCoordinatorTest {
     PlanCoordinator planCoordinator = PlanCoordinator.create(mCommandManager, mJobServerContext,
         mWorkerInfoList, mJobId, mJobconfig, null);
     planCoordinator.failTasksForWorker(mWorkerInfo.getId());
-    Assert.assertEquals(Status.FAILED, planCoordinator.getPlanInfoWire().getStatus());
+    Assert.assertEquals(Status.FAILED, planCoordinator.getPlanInfoWire(true).getStatus());
   }
 
   /**

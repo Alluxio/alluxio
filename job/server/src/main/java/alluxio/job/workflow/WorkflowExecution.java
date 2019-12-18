@@ -38,6 +38,11 @@ public abstract class WorkflowExecution {
   }
 
   /**
+   * @return name of the workflow
+   */
+  public abstract String getName();
+
+  /**
    * Given the previous set of jobs were completed successfully,
    * returns a list of jobs to execute next. Updating status accordingly.
    * @return list of {@link JobConfig} to execute next, empty when there is no more work
