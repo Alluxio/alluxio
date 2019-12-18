@@ -265,7 +265,10 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   public void cancel(long jobId) throws JobDoesNotExistException {
     PlanCoordinator planCoordinator = mPlanTracker.getCoordinator(jobId);
     if (planCoordinator == null) {
-      throw new JobDoesNotExistException(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
+      if (!mWorkflowTracker.cancel(jobId)) {
+        throw new JobDoesNotExistException(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
+      }
+      return;
     }
     planCoordinator.cancel();
   }
@@ -348,6 +351,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
         for (PlanCoordinator planCoordinator : mPlanTracker.coordinators()) {
           planCoordinator.failTasksForWorker(deadWorker.getId());
         }
+        mWorkerHealth.remove(deadWorker.getId());
         mWorkers.remove(deadWorker);
       }
       // Generate a new worker id.
@@ -467,6 +471,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
             // waiting for exclusive lock.
             final long lastUpdate = mClock.millis() - lostWorker.getLastUpdatedTimeMs();
             if (lastUpdate > masterWorkerTimeoutMs) {
+              mWorkerHealth.remove(lostWorker.getId());
               mWorkers.remove(lostWorker);
             }
           }
