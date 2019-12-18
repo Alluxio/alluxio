@@ -2,7 +2,7 @@
 layout: global
 title: WEB
 nickname: WEB
-group: Under Stores
+group: Storage Integrations
 priority: 10
 ---
 * Table of Contents
@@ -15,10 +15,10 @@ storage system.
 
 The Alluxio binaries must be on your machine. You can either
 [compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
-[download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+[download the binaries locally]({{ '/en/install/Running-Alluxio-Locally.html' | relativize_url }}).
 
 ## Configuring Alluxio
-Alluxio unifies access to different storage systems through the [unified namespace]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) feature. An WEB location can be either mounted at the root of the Alluxio namespace or at a nested directory.
+Alluxio unifies access to different storage systems through the [unified namespace]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}) feature. An WEB location can be either mounted at the root of the Alluxio namespace or at a nested directory.
 
 ### ROOT MOUNT
 Configure Alluxio to use under storage systems by modifying
@@ -50,7 +50,7 @@ Here, alluxio.underfs.web.connnection.timeout is the timeout setting for a http 
 
 ### NESTED MOUNT
 
-An WEB location can be mounted at a nested directory in the Alluxio namespace to have unified access to multiple under storage systems. Alluxio's [Mount Command]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#mount) can be used for this purpose.
+An WEB location can be mounted at a nested directory in the Alluxio namespace to have unified access to multiple under storage systems. Alluxio's [Mount Command]({{ '/en/operation/User-CLI.html' | relativize_url }}#mount) can be used for this purpose.
 For example, the following command mounts a directory inside an WEB directory into Alluxio directory
 `/web`:
 

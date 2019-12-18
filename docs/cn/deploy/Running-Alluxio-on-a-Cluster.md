@@ -2,7 +2,7 @@
 layout: global
 title: 在集群上独立运行Alluxio
 nickname: 在集群上独立运行Alluxio
-group: Deploying Alluxio
+group: Install Alluxio
 priority: 2
 ---
 
@@ -29,7 +29,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 更新`conf/alluxio-site.properties`中的`alluxio.master.hostname`为你将运行Alluxio Master的机器的主机名。添加所有worker节点的IP地址到`conf/workers`文件。
 如果集群中存在多节点，你不可以使用本地文件系统作为Allxuio底层存储层。你需要在所有Alluxio服务端连接的节点启动共享存储，共享存储可以是
-网络文件系统（NFS），HDFS，S3等。例如。你可以参照[Configuring Alluxio with S3](Configuring-Alluxio-with-S3.html)按照说明启动S3作为Alluxio底层存储。
+网络文件系统（NFS），HDFS，S3等。例如。你可以参照[S3底层存储系统设置文档]({{ '/cn/ufs/S3.html' | relativize_url }})按照说明启动S3作为Alluxio底层存储。
 
 最后，同步所有信息到worker节点。你可以使用
 
@@ -78,8 +78,8 @@ master时，客户端会有短暂的延迟或瞬态错误。
 Alluxio使用Zookeeper实现leader选举，可以保证在任何时间最多只有一个leader。
 
 Alluxio使用共享底层文件系统存放日志。共享文件系统必须可以被所有master访问，可以选择
-[HDFS](Configuring-Alluxio-with-HDFS.html)和
-[GlusterFS](Configuring-Alluxio-with-GlusterFS.html)作为共享文件系统。leader master将日志写到共享文件
+[HDFS]({{ '/cn/ufs/HDFS.html' | relativize_url }})和
+[GlusterFS]({{ '/cn/ufs/GlusterFS.html' | relativize_url }})作为共享文件系统。leader master将日志写到共享文件
 系统，其它(备用) master持续地重播日志条目与leader的最新状态保持一致。
 
 #### ZooKeeper

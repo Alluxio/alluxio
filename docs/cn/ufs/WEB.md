@@ -2,8 +2,8 @@
 layout: global
 title: 在WEB上配置Alluxio
 nickname: Alluxio使用WEB
-group: Under Stores
-priority: 5
+group: Storage Integrations
+priority: 6
 ---
 
 * 内容列表
@@ -17,7 +17,7 @@ priority: 5
 
 ## 配置Alluxio
 
-Alluxio通过[统一命名空间]({{ '/cn/advanced/Namespace-Management.html' | relativize_url }})统一访问不同存储系统。 WEB的安装位置可以在Alluxio命名空间的根目录或嵌套目录下。
+Alluxio通过[统一命名空间]({{ '/cn/core-services/Unified-Namespace.html' | relativize_url }})统一访问不同存储系统。 WEB的安装位置可以在Alluxio命名空间的根目录或嵌套目录下。
 
 ### 根目录安装
 您需要修改`conf/alluxio-site.properties`配置Alluxio，以使用WEB作为其底层存储系统。如果该配置文件不存在，请从模板创建该配置文件。
@@ -49,7 +49,7 @@ alluxio.underfs.web.titles=<WEB_TITLES>
 ### 嵌套目录安装
 
 WEB可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多个存储系统。 
-[Mount 命令]({{ '/cn/basic/Command-Line-Interface.html' | relativize_url }}#mount)可以实现这一目的。例如，下面的命令将WEB容器内部的目录挂载到Alluxio的`/web`目录
+[Mount 命令]({{ '/cn/operation/User-CLI.html' | relativize_url }}#mount)可以实现这一目的。例如，下面的命令将WEB容器内部的目录挂载到Alluxio的`/web`目录
 
 ```console
 $ ./bin/alluxio fs mount --option alluxio.underfs.web.connnection.timeout=<WEB_CONNECTION_TIMEOUT> \

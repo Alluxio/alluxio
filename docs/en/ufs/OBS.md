@@ -2,7 +2,7 @@
 layout: global
 title: OBS
 nickname: OBS
-group: Under Stores
+group: Storage Integrations
 priority: 10
 ---
 
@@ -18,7 +18,7 @@ Service (OBS) is a massive, secure and highly reliable cloud storage service pro
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
 machines. You can either
 [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}),
-or [download the precompiled binaries directly]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+or [download the precompiled binaries directly]({{ '/en/install/Running-Alluxio-Locally.html' | relativize_url }}).
 
 [OBS under storage](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs) is implemented as an under storage extension.
 Clone the [alluxio-extensions](https://github.com/Alluxio/alluxio-extensions/) repo and run the following command under `<alluxio_extensions_home>/underfs/obs`:
@@ -109,7 +109,7 @@ $ ./bin/alluxio-stop.sh local
 
 An OBS location can be mounted at a nested directory in the Alluxio namespace to have unified
 access to multiple under storage systems. Alluxio's
-[Mount Command]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#mount) can be used for
+[Mount Command]({{ '/en/operation/User-CLI.html' | relativize_url }}#mount) can be used for
 this purpose. 
 
 For example, the following command mounts a folder inside an OBS bucket into Alluxio

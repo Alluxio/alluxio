@@ -3,7 +3,7 @@ layout: global
 title: Metastore Management
 nickname: Metastore Management
 group: Operations
-priority: 0
+priority: 6
 ---
 
 * Table of Contents

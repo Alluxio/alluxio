@@ -2,7 +2,7 @@
 layout: global
 title: Swift
 nickname: Swift
-group: Under Stores
+group: Storage Integrations
 priority: 10
 ---
 
@@ -16,7 +16,7 @@ This guide describes how to configure Alluxio with an under storage system suppo
 
 The Alluxio binaries must be on your machine. You can either
 [compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
-[download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+[download the binaries locally]({{ '/en/install/Running-Alluxio-Locally.html' | relativize_url }}).
 
 ## Basic Setup
 
@@ -60,7 +60,7 @@ value of `<swift-use-public>`  to `false`.
 ### Nested Mount Point
 
 An Swift location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) can be used for this purpose.
+to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
 
 ```console
 $ ./bin/alluxio fs mount \

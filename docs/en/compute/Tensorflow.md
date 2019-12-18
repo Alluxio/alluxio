@@ -2,7 +2,7 @@
 layout: global
 title: Running Tensorflow on Alluxio-FUSE
 nickname: Tensorflow
-group: Data Applications
+group: Compute Integrations
 priority: 6
 ---
 

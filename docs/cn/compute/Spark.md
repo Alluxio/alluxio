@@ -2,7 +2,7 @@
 layout: global
 title: Apache Spark 使用 Alluxio
 nickname: Apache Spark
-group: Data Applications
+group: Compute Integrations
 priority: 0
 ---
 
@@ -27,7 +27,7 @@ Spark 1.1 或更高版本的 Spark 应用程序可以通过其与 HDFS 兼容的
   本指南假设底层持久存储为本地部署的 HDFS。例如，`${ALLUXIO_HOME}/conf/alluxio-site.properties`中包含`alluxio.master.mount.table.root.ufs=hdfs://localhost:9000/alluxio/`这一行。
   请注意，除了 HDFS，Alluxio 还支持许多其他底层存储系统。
   从任意数量的这些系统中访问数据与本指南的重点是垂直的，
-  [统一和透明的名称空间]({{ '/cn/advanced/Namespace-Management.html' | relativize_url }})介绍了相关内容。
+  [统一命名空间文档]({{ '/cn/core-services/Unified-Namespace.html' | relativize_url }})介绍了相关内容。
 * 确保 Alluxio 客户端 jar 包是可用的。
   在从 Alluxio [下载页面](http://www.alluxio.io/download)下载的压缩包的`{{site.ALLUXIO_CLIENT_JAR_PATH}}`中，可以找到 Alluxio 客户端 jar 包。
   高级用户也可以从源代码编译该客户端 jar 包，可以参考[从源代码构建 Alluxio 的步骤]({{ '/cn/contributor/Building-Alluxio-From-Source.html' | relativize_url }})。
@@ -124,7 +124,7 @@ spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2
 
 ### 为单个 Spark 作业自定义 Alluxio 用户属性
 
-Spark 用户可以将 JVM 系统设置传递给 Spark 作业，通过将`"-Dproperty=value"`添加到`spark.executor.extraJavaOptions`来设置 Spark executor，将`"-Dproperty=value"`添加到`spark.driver.extraJavaOptions`中来设置 spark driver。例如，要在写入 Alluxio 时提交`CACHE_THROUGH`写模式的 Spark 作业，请执行以下操作：
+Spark 用户可以将 JVM 系统设置传递给 Spark 任务，通过将`"-Dproperty=value"`添加到`spark.executor.extraJavaOptions`来设置 Spark executor，将`"-Dproperty=value"`添加到`spark.driver.extraJavaOptions`中来设置 spark driver。例如，要在写入 Alluxio 时提交`CACHE_THROUGH`写模式的 Spark 任务，请执行以下操作：
 
 ```console
 $ spark-submit \
@@ -133,7 +133,7 @@ $ spark-submit \
 ...
 ```
 
-如果需要自定义 Spark 作业中的 Alluxio 客户端侧属性，请参见[如何配置 Spark 作业]({{ '/cn/basic/Configuration-Settings.html' | relativize_url }}#spark)。
+如果需要自定义 Spark 任务中的 Alluxio 客户端侧属性，请参见[如何配置 Spark 任务]({{ '/cn/operation/Configuration.html' | relativize_url }}#spark)。
 
 请注意，在客户端模式中，你需要设置`--driver-java-options "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"`，而不是`--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH`（见[解释](https://spark.apache.org/docs/2.3.2/configuration.html))。
 

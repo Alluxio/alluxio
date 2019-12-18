@@ -2,8 +2,8 @@
 layout: global
 title: 在GCE上运行Alluxio
 nickname: 在GCE上运行Alluxio
-group: Deploying Alluxio
-priority: 4
+group: Install Alluxio
+priority: 5
 ---
 
 * 内容列表

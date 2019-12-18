@@ -2,7 +2,7 @@
 layout: global
 title: Deploy an Alluxio Cluster with a Single Master
 nickname: Cluster
-group: Deploying Alluxio
+group: Install Alluxio
 priority: 2
 ---
 
