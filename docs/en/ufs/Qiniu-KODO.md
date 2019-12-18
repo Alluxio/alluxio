@@ -25,22 +25,10 @@ is called `KODO_BUCKET`, and the directory in the bucket is called `KODO_DIRECTO
 In addition, you should provide a domain to identify the specified bucket, which is called `KODO_DOWNLOAD_HOST`.
 Through the `KODO_DOWNLOAD_HOST` you can get objects from the bucket.
 
-<<<<<<< HEAD
-A Qiniu Kodo bucket is necessary before using Kodo with Alluxio. In this guide, the Qiniu Kodo bucket
-is called `KODO_BUCKET`, and the directory in the bucket is called `KODO_DIRECTORY`.
-In addition, you should provide a domain to identify the specified bucket, which is called `KODO_DOWNLOAD_HOST`.
-Through the `KODO_DOWNLOAD_HOST` you can get objects from the bucket.
-
-## Mounting Kodo
-
-Alluxio unifies access to different storage systems through the
-[unified namespace]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) feature.
-=======
 ## Mounting Kodo
 
 Alluxio unifies access to different storage systems through the
 [unified namespace]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}) feature.
->>>>>>> upstream/docs
 The root of Alluxio namespace or its subdirectories are all available for the mount point of Kodo.
 
 ### Root Mount
@@ -75,19 +63,8 @@ alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT>
 
 An Kodo location can be mounted at a nested directory in the Alluxio namespace to have unified
 access to multiple under storage systems. Alluxio's
-<<<<<<< HEAD
-[mount command]({{ 'en/basic/Command-Line-Interface.html' | relativize_url}}#mount) can be used for this purpose.
-For example, the following command mounts a directory inside a Kodo bucket into Alluxio directory
-=======
-<<<<<<< HEAD
 [mount command]({{ '/en/operation/User-CLI.html' | relativize_url}}#mount) can be used for this purpose.
 For example, the following command mounts a directory inside an Kodo bucket into Alluxio directory
-=======
-[mount command]({{ 'en/basic/Command-Line-Interface.html' | relativize_url}}#mount) can be used for this purpose.
-For example, the following command mounts a directory inside a Kodo bucket into Alluxio directory
->>>>>>> upstream/master
->>>>>>> upstream/docs
-
 ```console 
 $ ./bin/alluxio fs mount --option fs.kodo.accessKey=<KODO_ACCESS_KEY> \
   --option fs.kodo.secretkey=<KODO_SECRET_KET> \
