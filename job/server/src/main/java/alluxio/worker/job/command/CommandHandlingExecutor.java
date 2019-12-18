@@ -21,7 +21,6 @@ import alluxio.grpc.JobInfo;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.grpc.SetTaskPoolSizeCommand;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.RunTaskContext;
 import alluxio.job.wire.JobWorkerHealth;
