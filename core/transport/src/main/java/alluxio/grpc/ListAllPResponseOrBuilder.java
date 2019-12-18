@@ -19,4 +19,28 @@ public interface ListAllPResponseOrBuilder extends
    * <code>repeated int64 jobIds = 1;</code>
    */
   long getJobIds(int index);
+
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+   */
+  java.util.List<alluxio.grpc.JobInfo> 
+      getJobInfosList();
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+   */
+  alluxio.grpc.JobInfo getJobInfos(int index);
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+   */
+  int getJobInfosCount();
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+   */
+  java.util.List<? extends alluxio.grpc.JobInfoOrBuilder> 
+      getJobInfosOrBuilderList();
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+   */
+  alluxio.grpc.JobInfoOrBuilder getJobInfosOrBuilder(
+      int index);
 }

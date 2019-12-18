@@ -72,6 +72,11 @@ public interface JobMasterClient extends Client {
   List<Long> list() throws IOException;
 
   /**
+   * @return the list of all jobInfos
+   */
+  List<JobInfo> listDetailed() throws IOException;
+
+  /**
    * Starts a plan based on the given configuration.
    *
    * @param jobConfig the job configuration

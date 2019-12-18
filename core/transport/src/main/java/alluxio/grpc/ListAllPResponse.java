@@ -17,6 +17,7 @@ private static final long serialVersionUID = 0L;
   }
   private ListAllPResponse() {
     jobIds_ = java.util.Collections.emptyList();
+    jobInfos_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -71,6 +72,15 @@ private static final long serialVersionUID = 0L;
             input.popLimit(limit);
             break;
           }
+          case 18: {
+            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+              jobInfos_ = new java.util.ArrayList<alluxio.grpc.JobInfo>();
+              mutable_bitField0_ |= 0x00000002;
+            }
+            jobInfos_.add(
+                input.readMessage(alluxio.grpc.JobInfo.PARSER, extensionRegistry));
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -81,6 +91,9 @@ private static final long serialVersionUID = 0L;
     } finally {
       if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
         jobIds_ = java.util.Collections.unmodifiableList(jobIds_);
+      }
+      if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+        jobInfos_ = java.util.Collections.unmodifiableList(jobInfos_);
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -120,6 +133,41 @@ private static final long serialVersionUID = 0L;
     return jobIds_.get(index);
   }
 
+  public static final int JOBINFOS_FIELD_NUMBER = 2;
+  private java.util.List<alluxio.grpc.JobInfo> jobInfos_;
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+   */
+  public java.util.List<alluxio.grpc.JobInfo> getJobInfosList() {
+    return jobInfos_;
+  }
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+   */
+  public java.util.List<? extends alluxio.grpc.JobInfoOrBuilder> 
+      getJobInfosOrBuilderList() {
+    return jobInfos_;
+  }
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+   */
+  public int getJobInfosCount() {
+    return jobInfos_.size();
+  }
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+   */
+  public alluxio.grpc.JobInfo getJobInfos(int index) {
+    return jobInfos_.get(index);
+  }
+  /**
+   * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+   */
+  public alluxio.grpc.JobInfoOrBuilder getJobInfosOrBuilder(
+      int index) {
+    return jobInfos_.get(index);
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -134,6 +182,9 @@ private static final long serialVersionUID = 0L;
                       throws java.io.IOException {
     for (int i = 0; i < jobIds_.size(); i++) {
       output.writeInt64(1, jobIds_.get(i));
+    }
+    for (int i = 0; i < jobInfos_.size(); i++) {
+      output.writeMessage(2, jobInfos_.get(i));
     }
     unknownFields.writeTo(output);
   }
@@ -151,6 +202,10 @@ private static final long serialVersionUID = 0L;
       }
       size += dataSize;
       size += 1 * getJobIdsList().size();
+    }
+    for (int i = 0; i < jobInfos_.size(); i++) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(2, jobInfos_.get(i));
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -170,6 +225,8 @@ private static final long serialVersionUID = 0L;
     boolean result = true;
     result = result && getJobIdsList()
         .equals(other.getJobIdsList());
+    result = result && getJobInfosList()
+        .equals(other.getJobInfosList());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -184,6 +241,10 @@ private static final long serialVersionUID = 0L;
     if (getJobIdsCount() > 0) {
       hash = (37 * hash) + JOBIDS_FIELD_NUMBER;
       hash = (53 * hash) + getJobIdsList().hashCode();
+    }
+    if (getJobInfosCount() > 0) {
+      hash = (37 * hash) + JOBINFOS_FIELD_NUMBER;
+      hash = (53 * hash) + getJobInfosList().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -310,12 +371,19 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
+        getJobInfosFieldBuilder();
       }
     }
     public Builder clear() {
       super.clear();
       jobIds_ = java.util.Collections.emptyList();
       bitField0_ = (bitField0_ & ~0x00000001);
+      if (jobInfosBuilder_ == null) {
+        jobInfos_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000002);
+      } else {
+        jobInfosBuilder_.clear();
+      }
       return this;
     }
 
@@ -344,6 +412,15 @@ private static final long serialVersionUID = 0L;
         bitField0_ = (bitField0_ & ~0x00000001);
       }
       result.jobIds_ = jobIds_;
+      if (jobInfosBuilder_ == null) {
+        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+          jobInfos_ = java.util.Collections.unmodifiableList(jobInfos_);
+          bitField0_ = (bitField0_ & ~0x00000002);
+        }
+        result.jobInfos_ = jobInfos_;
+      } else {
+        result.jobInfos_ = jobInfosBuilder_.build();
+      }
       onBuilt();
       return result;
     }
@@ -394,6 +471,32 @@ private static final long serialVersionUID = 0L;
           jobIds_.addAll(other.jobIds_);
         }
         onChanged();
+      }
+      if (jobInfosBuilder_ == null) {
+        if (!other.jobInfos_.isEmpty()) {
+          if (jobInfos_.isEmpty()) {
+            jobInfos_ = other.jobInfos_;
+            bitField0_ = (bitField0_ & ~0x00000002);
+          } else {
+            ensureJobInfosIsMutable();
+            jobInfos_.addAll(other.jobInfos_);
+          }
+          onChanged();
+        }
+      } else {
+        if (!other.jobInfos_.isEmpty()) {
+          if (jobInfosBuilder_.isEmpty()) {
+            jobInfosBuilder_.dispose();
+            jobInfosBuilder_ = null;
+            jobInfos_ = other.jobInfos_;
+            bitField0_ = (bitField0_ & ~0x00000002);
+            jobInfosBuilder_ = 
+              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
+                 getJobInfosFieldBuilder() : null;
+          } else {
+            jobInfosBuilder_.addAllMessages(other.jobInfos_);
+          }
+        }
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -487,6 +590,246 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
       onChanged();
       return this;
+    }
+
+    private java.util.List<alluxio.grpc.JobInfo> jobInfos_ =
+      java.util.Collections.emptyList();
+    private void ensureJobInfosIsMutable() {
+      if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+        jobInfos_ = new java.util.ArrayList<alluxio.grpc.JobInfo>(jobInfos_);
+        bitField0_ |= 0x00000002;
+       }
+    }
+
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.JobInfo, alluxio.grpc.JobInfo.Builder, alluxio.grpc.JobInfoOrBuilder> jobInfosBuilder_;
+
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public java.util.List<alluxio.grpc.JobInfo> getJobInfosList() {
+      if (jobInfosBuilder_ == null) {
+        return java.util.Collections.unmodifiableList(jobInfos_);
+      } else {
+        return jobInfosBuilder_.getMessageList();
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public int getJobInfosCount() {
+      if (jobInfosBuilder_ == null) {
+        return jobInfos_.size();
+      } else {
+        return jobInfosBuilder_.getCount();
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public alluxio.grpc.JobInfo getJobInfos(int index) {
+      if (jobInfosBuilder_ == null) {
+        return jobInfos_.get(index);
+      } else {
+        return jobInfosBuilder_.getMessage(index);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public Builder setJobInfos(
+        int index, alluxio.grpc.JobInfo value) {
+      if (jobInfosBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureJobInfosIsMutable();
+        jobInfos_.set(index, value);
+        onChanged();
+      } else {
+        jobInfosBuilder_.setMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public Builder setJobInfos(
+        int index, alluxio.grpc.JobInfo.Builder builderForValue) {
+      if (jobInfosBuilder_ == null) {
+        ensureJobInfosIsMutable();
+        jobInfos_.set(index, builderForValue.build());
+        onChanged();
+      } else {
+        jobInfosBuilder_.setMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public Builder addJobInfos(alluxio.grpc.JobInfo value) {
+      if (jobInfosBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureJobInfosIsMutable();
+        jobInfos_.add(value);
+        onChanged();
+      } else {
+        jobInfosBuilder_.addMessage(value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public Builder addJobInfos(
+        int index, alluxio.grpc.JobInfo value) {
+      if (jobInfosBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureJobInfosIsMutable();
+        jobInfos_.add(index, value);
+        onChanged();
+      } else {
+        jobInfosBuilder_.addMessage(index, value);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public Builder addJobInfos(
+        alluxio.grpc.JobInfo.Builder builderForValue) {
+      if (jobInfosBuilder_ == null) {
+        ensureJobInfosIsMutable();
+        jobInfos_.add(builderForValue.build());
+        onChanged();
+      } else {
+        jobInfosBuilder_.addMessage(builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public Builder addJobInfos(
+        int index, alluxio.grpc.JobInfo.Builder builderForValue) {
+      if (jobInfosBuilder_ == null) {
+        ensureJobInfosIsMutable();
+        jobInfos_.add(index, builderForValue.build());
+        onChanged();
+      } else {
+        jobInfosBuilder_.addMessage(index, builderForValue.build());
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public Builder addAllJobInfos(
+        java.lang.Iterable<? extends alluxio.grpc.JobInfo> values) {
+      if (jobInfosBuilder_ == null) {
+        ensureJobInfosIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, jobInfos_);
+        onChanged();
+      } else {
+        jobInfosBuilder_.addAllMessages(values);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public Builder clearJobInfos() {
+      if (jobInfosBuilder_ == null) {
+        jobInfos_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+      } else {
+        jobInfosBuilder_.clear();
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public Builder removeJobInfos(int index) {
+      if (jobInfosBuilder_ == null) {
+        ensureJobInfosIsMutable();
+        jobInfos_.remove(index);
+        onChanged();
+      } else {
+        jobInfosBuilder_.remove(index);
+      }
+      return this;
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public alluxio.grpc.JobInfo.Builder getJobInfosBuilder(
+        int index) {
+      return getJobInfosFieldBuilder().getBuilder(index);
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public alluxio.grpc.JobInfoOrBuilder getJobInfosOrBuilder(
+        int index) {
+      if (jobInfosBuilder_ == null) {
+        return jobInfos_.get(index);  } else {
+        return jobInfosBuilder_.getMessageOrBuilder(index);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public java.util.List<? extends alluxio.grpc.JobInfoOrBuilder> 
+         getJobInfosOrBuilderList() {
+      if (jobInfosBuilder_ != null) {
+        return jobInfosBuilder_.getMessageOrBuilderList();
+      } else {
+        return java.util.Collections.unmodifiableList(jobInfos_);
+      }
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public alluxio.grpc.JobInfo.Builder addJobInfosBuilder() {
+      return getJobInfosFieldBuilder().addBuilder(
+          alluxio.grpc.JobInfo.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public alluxio.grpc.JobInfo.Builder addJobInfosBuilder(
+        int index) {
+      return getJobInfosFieldBuilder().addBuilder(
+          index, alluxio.grpc.JobInfo.getDefaultInstance());
+    }
+    /**
+     * <code>repeated .alluxio.grpc.job.JobInfo jobInfos = 2;</code>
+     */
+    public java.util.List<alluxio.grpc.JobInfo.Builder> 
+         getJobInfosBuilderList() {
+      return getJobInfosFieldBuilder().getBuilderList();
+    }
+    private com.google.protobuf.RepeatedFieldBuilderV3<
+        alluxio.grpc.JobInfo, alluxio.grpc.JobInfo.Builder, alluxio.grpc.JobInfoOrBuilder> 
+        getJobInfosFieldBuilder() {
+      if (jobInfosBuilder_ == null) {
+        jobInfosBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
+            alluxio.grpc.JobInfo, alluxio.grpc.JobInfo.Builder, alluxio.grpc.JobInfoOrBuilder>(
+                jobInfos_,
+                ((bitField0_ & 0x00000002) == 0x00000002),
+                getParentForChildren(),
+                isClean());
+        jobInfos_ = null;
+      }
+      return jobInfosBuilder_;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

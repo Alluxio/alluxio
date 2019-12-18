@@ -102,9 +102,10 @@ public class WorkflowTracker {
    * Gets information of the given job id.
    *
    * @param jobId the id of the job
+   * @param verbose whether the output should be verbose
    * @return null if the job id isn't know by the workflow tracker. WorkflowInfo otherwise
    */
-  public WorkflowInfo getStatus(long jobId) {
+  public WorkflowInfo getStatus(long jobId, boolean verbose) {
     WorkflowExecution workflowExecution = mWorkflows.get(jobId);
 
     if (workflowExecution == null) {
@@ -116,16 +117,19 @@ public class WorkflowTracker {
 
     List<JobInfo> jobInfos = Lists.newArrayList();
 
-    for (long child : children) {
-      try {
-        jobInfos.add(mJobMaster.getStatus(child));
-      } catch (JobDoesNotExistException e) {
-        LOG.info(String.format("No job info on child job id %s. Skipping", child));
+    if (verbose) {
+      for (long child : children) {
+        try {
+          jobInfos.add(mJobMaster.getStatus(child));
+        } catch (JobDoesNotExistException e) {
+          LOG.info(String.format("No job info on child job id %s. Skipping", child));
+        }
       }
     }
 
-    WorkflowInfo workflowInfo = new WorkflowInfo(jobId, workflowExecution.getStatus(),
-        workflowExecution.getLastUpdated(), workflowExecution.getErrorMessage(), jobInfos);
+    WorkflowInfo workflowInfo = new WorkflowInfo(jobId, workflowExecution.getName(),
+        workflowExecution.getStatus(), workflowExecution.getLastUpdated(),
+        workflowExecution.getErrorMessage(), jobInfos);
     return workflowInfo;
   }
 
@@ -136,7 +140,7 @@ public class WorkflowTracker {
     ArrayList<WorkflowInfo> res = Lists.newArrayList();
 
     for (Long workflowId : mWorkflows.keySet()) {
-      res.add(getStatus(workflowId));
+      res.add(getStatus(workflowId, false));
     }
     return res;
   }
