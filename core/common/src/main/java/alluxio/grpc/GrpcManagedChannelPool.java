@@ -222,7 +222,7 @@ public class GrpcManagedChannelPool {
   /**
    * Forcefully shuts down the managed channel.
    */
-  private void forceShutdownManagedChannel(ManagedChannel managedChannel, long shutdownTimeoutMs){
+  private void forceShutdownManagedChannel(ManagedChannel managedChannel, long shutdownTimeoutMs) {
     managedChannel.shutdownNow();
     try {
       if (!managedChannel.awaitTermination(shutdownTimeoutMs, TimeUnit.MILLISECONDS)) {
