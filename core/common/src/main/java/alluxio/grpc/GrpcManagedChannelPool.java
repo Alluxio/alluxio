@@ -94,6 +94,7 @@ public class GrpcManagedChannelPool {
         existingRefCount = chHolder.getRefCount();
         LOG.debug("Shutting down an existing unhealthy managed channel. "
             + "ChannelKey: {}. Existing Ref-count: {}", key, existingRefCount);
+        // Shutdown the channel forcefully as it's already unhealthy.
         shutdownManagedChannel(chHolder.get(), true, shutdownTimeoutMs);
       }
 
@@ -115,6 +116,7 @@ public class GrpcManagedChannelPool {
       Preconditions.checkNotNull(chHolder, "Releasing nonexistent channel");
       if (chHolder.dereference() == 0) {
         LOG.debug("Released managed channel for: {}. Ref-count: {}", key, chHolder.getRefCount());
+        // Shutdown the channel gracefully.
         shutdownManagedChannel(chHolder.get(), false, shutdownTimeoutMs);
         return null;
       }
