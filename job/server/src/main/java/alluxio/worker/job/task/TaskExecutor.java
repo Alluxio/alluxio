@@ -73,7 +73,7 @@ public final class TaskExecutor implements Runnable {
         taskArgs = SerializationUtils.deserialize(mRunTaskCommand.getTaskArgs().toByteArray());
       }
     } catch (IOException | ClassNotFoundException e) {
-      fail(e, jobConfig, taskArgs);
+      fail(e, jobConfig, null);
     }
 
     PlanDefinition<JobConfig, Serializable, Serializable> definition;
