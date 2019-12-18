@@ -213,15 +213,16 @@ public class GrpcManagedChannelPool {
       managedChannel.shutdown();
     }
     try {
-      managedChannel.awaitTermination(shutdownTimeoutMs, TimeUnit.MILLISECONDS);
+      if (!managedChannel.awaitTermination(shutdownTimeoutMs, TimeUnit.MILLISECONDS)) {
+        LOG.warn("Timed out shutting down managed channel: {}. ", managedChannel);
+        // Forcefully shut down before returning if did not already.
+        if (!shutdownNow) {
+          managedChannel.shutdownNow();
+        }
+      }
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       // Allow thread to exit.
-    } finally {
-      // Ensure shutdown if not not closed forcefully.
-      if (!shutdownNow) {
-        managedChannel.shutdownNow();
-      }
     }
   }
 
