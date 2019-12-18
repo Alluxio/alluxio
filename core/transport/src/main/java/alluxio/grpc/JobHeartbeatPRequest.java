@@ -16,7 +16,6 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private JobHeartbeatPRequest() {
-    workerId_ = 0L;
     taskInfos_ = java.util.Collections.emptyList();
   }
 
@@ -51,9 +50,17 @@ private static final long serialVersionUID = 0L;
             }
             break;
           }
-          case 8: {
+          case 10: {
+            alluxio.grpc.JobWorkerHealth.Builder subBuilder = null;
+            if (((bitField0_ & 0x00000001) == 0x00000001)) {
+              subBuilder = jobWorkerHealth_.toBuilder();
+            }
+            jobWorkerHealth_ = input.readMessage(alluxio.grpc.JobWorkerHealth.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(jobWorkerHealth_);
+              jobWorkerHealth_ = subBuilder.buildPartial();
+            }
             bitField0_ |= 0x00000001;
-            workerId_ = input.readInt64();
             break;
           }
           case 18: {
@@ -106,19 +113,25 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int WORKERID_FIELD_NUMBER = 1;
-  private long workerId_;
+  public static final int JOBWORKERHEALTH_FIELD_NUMBER = 1;
+  private alluxio.grpc.JobWorkerHealth jobWorkerHealth_;
   /**
-   * <code>optional int64 workerId = 1;</code>
+   * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
    */
-  public boolean hasWorkerId() {
+  public boolean hasJobWorkerHealth() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional int64 workerId = 1;</code>
+   * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
    */
-  public long getWorkerId() {
-    return workerId_;
+  public alluxio.grpc.JobWorkerHealth getJobWorkerHealth() {
+    return jobWorkerHealth_ == null ? alluxio.grpc.JobWorkerHealth.getDefaultInstance() : jobWorkerHealth_;
+  }
+  /**
+   * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
+   */
+  public alluxio.grpc.JobWorkerHealthOrBuilder getJobWorkerHealthOrBuilder() {
+    return jobWorkerHealth_ == null ? alluxio.grpc.JobWorkerHealth.getDefaultInstance() : jobWorkerHealth_;
   }
 
   public static final int TASKINFOS_FIELD_NUMBER = 2;
@@ -190,7 +203,7 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      output.writeInt64(1, workerId_);
+      output.writeMessage(1, getJobWorkerHealth());
     }
     for (int i = 0; i < taskInfos_.size(); i++) {
       output.writeMessage(2, taskInfos_.get(i));
@@ -208,7 +221,7 @@ private static final long serialVersionUID = 0L;
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeInt64Size(1, workerId_);
+        .computeMessageSize(1, getJobWorkerHealth());
     }
     for (int i = 0; i < taskInfos_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
@@ -234,10 +247,10 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.JobHeartbeatPRequest other = (alluxio.grpc.JobHeartbeatPRequest) obj;
 
     boolean result = true;
-    result = result && (hasWorkerId() == other.hasWorkerId());
-    if (hasWorkerId()) {
-      result = result && (getWorkerId()
-          == other.getWorkerId());
+    result = result && (hasJobWorkerHealth() == other.hasJobWorkerHealth());
+    if (hasJobWorkerHealth()) {
+      result = result && getJobWorkerHealth()
+          .equals(other.getJobWorkerHealth());
     }
     result = result && getTaskInfosList()
         .equals(other.getTaskInfosList());
@@ -257,10 +270,9 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasWorkerId()) {
-      hash = (37 * hash) + WORKERID_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getWorkerId());
+    if (hasJobWorkerHealth()) {
+      hash = (37 * hash) + JOBWORKERHEALTH_FIELD_NUMBER;
+      hash = (53 * hash) + getJobWorkerHealth().hashCode();
     }
     if (getTaskInfosCount() > 0) {
       hash = (37 * hash) + TASKINFOS_FIELD_NUMBER;
@@ -395,13 +407,18 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
+        getJobWorkerHealthFieldBuilder();
         getTaskInfosFieldBuilder();
         getOptionsFieldBuilder();
       }
     }
     public Builder clear() {
       super.clear();
-      workerId_ = 0L;
+      if (jobWorkerHealthBuilder_ == null) {
+        jobWorkerHealth_ = null;
+      } else {
+        jobWorkerHealthBuilder_.clear();
+      }
       bitField0_ = (bitField0_ & ~0x00000001);
       if (taskInfosBuilder_ == null) {
         taskInfos_ = java.util.Collections.emptyList();
@@ -442,7 +459,11 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.workerId_ = workerId_;
+      if (jobWorkerHealthBuilder_ == null) {
+        result.jobWorkerHealth_ = jobWorkerHealth_;
+      } else {
+        result.jobWorkerHealth_ = jobWorkerHealthBuilder_.build();
+      }
       if (taskInfosBuilder_ == null) {
         if (((bitField0_ & 0x00000002) == 0x00000002)) {
           taskInfos_ = java.util.Collections.unmodifiableList(taskInfos_);
@@ -502,8 +523,8 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.JobHeartbeatPRequest other) {
       if (other == alluxio.grpc.JobHeartbeatPRequest.getDefaultInstance()) return this;
-      if (other.hasWorkerId()) {
-        setWorkerId(other.getWorkerId());
+      if (other.hasJobWorkerHealth()) {
+        mergeJobWorkerHealth(other.getJobWorkerHealth());
       }
       if (taskInfosBuilder_ == null) {
         if (!other.taskInfos_.isEmpty()) {
@@ -562,36 +583,122 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private long workerId_ ;
+    private alluxio.grpc.JobWorkerHealth jobWorkerHealth_ = null;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.JobWorkerHealth, alluxio.grpc.JobWorkerHealth.Builder, alluxio.grpc.JobWorkerHealthOrBuilder> jobWorkerHealthBuilder_;
     /**
-     * <code>optional int64 workerId = 1;</code>
+     * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
      */
-    public boolean hasWorkerId() {
+    public boolean hasJobWorkerHealth() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional int64 workerId = 1;</code>
+     * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
      */
-    public long getWorkerId() {
-      return workerId_;
+    public alluxio.grpc.JobWorkerHealth getJobWorkerHealth() {
+      if (jobWorkerHealthBuilder_ == null) {
+        return jobWorkerHealth_ == null ? alluxio.grpc.JobWorkerHealth.getDefaultInstance() : jobWorkerHealth_;
+      } else {
+        return jobWorkerHealthBuilder_.getMessage();
+      }
     }
     /**
-     * <code>optional int64 workerId = 1;</code>
+     * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
      */
-    public Builder setWorkerId(long value) {
+    public Builder setJobWorkerHealth(alluxio.grpc.JobWorkerHealth value) {
+      if (jobWorkerHealthBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        jobWorkerHealth_ = value;
+        onChanged();
+      } else {
+        jobWorkerHealthBuilder_.setMessage(value);
+      }
       bitField0_ |= 0x00000001;
-      workerId_ = value;
-      onChanged();
       return this;
     }
     /**
-     * <code>optional int64 workerId = 1;</code>
+     * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
      */
-    public Builder clearWorkerId() {
-      bitField0_ = (bitField0_ & ~0x00000001);
-      workerId_ = 0L;
-      onChanged();
+    public Builder setJobWorkerHealth(
+        alluxio.grpc.JobWorkerHealth.Builder builderForValue) {
+      if (jobWorkerHealthBuilder_ == null) {
+        jobWorkerHealth_ = builderForValue.build();
+        onChanged();
+      } else {
+        jobWorkerHealthBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000001;
       return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
+     */
+    public Builder mergeJobWorkerHealth(alluxio.grpc.JobWorkerHealth value) {
+      if (jobWorkerHealthBuilder_ == null) {
+        if (((bitField0_ & 0x00000001) == 0x00000001) &&
+            jobWorkerHealth_ != null &&
+            jobWorkerHealth_ != alluxio.grpc.JobWorkerHealth.getDefaultInstance()) {
+          jobWorkerHealth_ =
+            alluxio.grpc.JobWorkerHealth.newBuilder(jobWorkerHealth_).mergeFrom(value).buildPartial();
+        } else {
+          jobWorkerHealth_ = value;
+        }
+        onChanged();
+      } else {
+        jobWorkerHealthBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x00000001;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
+     */
+    public Builder clearJobWorkerHealth() {
+      if (jobWorkerHealthBuilder_ == null) {
+        jobWorkerHealth_ = null;
+        onChanged();
+      } else {
+        jobWorkerHealthBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000001);
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
+     */
+    public alluxio.grpc.JobWorkerHealth.Builder getJobWorkerHealthBuilder() {
+      bitField0_ |= 0x00000001;
+      onChanged();
+      return getJobWorkerHealthFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
+     */
+    public alluxio.grpc.JobWorkerHealthOrBuilder getJobWorkerHealthOrBuilder() {
+      if (jobWorkerHealthBuilder_ != null) {
+        return jobWorkerHealthBuilder_.getMessageOrBuilder();
+      } else {
+        return jobWorkerHealth_ == null ?
+            alluxio.grpc.JobWorkerHealth.getDefaultInstance() : jobWorkerHealth_;
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.JobWorkerHealth, alluxio.grpc.JobWorkerHealth.Builder, alluxio.grpc.JobWorkerHealthOrBuilder> 
+        getJobWorkerHealthFieldBuilder() {
+      if (jobWorkerHealthBuilder_ == null) {
+        jobWorkerHealthBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.JobWorkerHealth, alluxio.grpc.JobWorkerHealth.Builder, alluxio.grpc.JobWorkerHealthOrBuilder>(
+                getJobWorkerHealth(),
+                getParentForChildren(),
+                isClean());
+        jobWorkerHealth_ = null;
+      }
+      return jobWorkerHealthBuilder_;
     }
 
     private java.util.List<alluxio.grpc.JobInfo> taskInfos_ =

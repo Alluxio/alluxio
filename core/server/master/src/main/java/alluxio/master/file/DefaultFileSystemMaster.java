@@ -105,9 +105,9 @@ import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.DelegatingJournaled;
-import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
+import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
@@ -602,7 +602,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
               new LostFileDetector(this, mInodeTree),
-              (int) ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_HEARTBEAT_INTERVAL),
+              (int) ServerConfiguration.getMs(PropertyKey
+                  .MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL),
               ServerConfiguration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_REPLICATION_CHECK,
@@ -691,9 +692,16 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public long getFileId(AlluxioURI path) throws AccessControlException, UnavailableException {
+    return getFileIdInternal(path, true);
+  }
+
+  private long getFileIdInternal(AlluxioURI path, boolean checkPermission)
+      throws AccessControlException, UnavailableException {
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree.lockInodePath(path, LockPattern.READ)) {
-      mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
+      if (checkPermission) {
+        mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
+      }
       loadMetadataIfNotExist(rpcContext, inodePath, LoadMetadataContext
           .mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)));
       mInodeTree.ensureFullInodePath(inodePath);
@@ -869,7 +877,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       auditContext.setSrcInode(inode);
       DescendantType descendantTypeForListStatus =
           (context.getOptions().getRecursive()) ? DescendantType.ALL : DescendantType.ONE;
-      listStatusInternal(rpcContext, inodePath, auditContext, descendantTypeForListStatus,
+      listStatusInternal(context, rpcContext, inodePath, auditContext, descendantTypeForListStatus,
           resultStream, 0);
       auditContext.setSucceeded(true);
       Metrics.FILE_INFOS_GOT.inc();
@@ -889,18 +897,23 @@ public final class DefaultFileSystemMaster extends CoreMaster
    * descendantType. The result is returned via a list specified by statusList, in postorder
    * traversal order.
    *
+   * @param context call context
    * @param rpcContext the context for the RPC call
    * @param currInodePath the inode path to find the status
    * @param auditContext the audit context to return any access exceptions
    * @param descendantType if the currInodePath is a directory, how many levels of its descendant
-   *                       should be returned
+   *        should be returned
    * @param resultStream the stream to receive individual results
    * @param depth internal use field for tracking depth relative to root item
    */
-  private void listStatusInternal(RpcContext rpcContext, LockedInodePath currInodePath,
-      AuditContext auditContext, DescendantType descendantType, ResultStream<FileInfo> resultStream,
-      int depth) throws FileDoesNotExistException, UnavailableException, AccessControlException,
-      InvalidPathException {
+  private void listStatusInternal(ListStatusContext context, RpcContext rpcContext,
+      LockedInodePath currInodePath, AuditContext auditContext, DescendantType descendantType,
+      ResultStream<FileInfo> resultStream, int depth) throws FileDoesNotExistException,
+      UnavailableException, AccessControlException, InvalidPathException {
+    // Fail if the client has cancelled the rpc.
+    if (context.isCancelled()) {
+      throw new RuntimeException("Call cancelled by the client.");
+    }
     Inode inode = currInodePath.getInode();
     if (inode.isDirectory() && descendantType != DescendantType.NONE) {
       try {
@@ -931,7 +944,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
         try (LockedInodePath childInodePath =
             currInodePath.lockChild(child, LockPattern.READ, childComponentsHint)) {
-          listStatusInternal(rpcContext, childInodePath, auditContext, nextDescendantType,
+          listStatusInternal(context, rpcContext, childInodePath, auditContext, nextDescendantType,
               resultStream, depth + 1);
         } catch (InvalidPathException | FileDoesNotExistException e) {
           LOG.debug("Path \"{}\" is invalid, has been ignored.",
@@ -3046,6 +3059,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
     if (context.getOptions().getRecursive()) {
       try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
         for (LockedInodePath childPath : descendants) {
+          // Fail if the client has cancelled the rpc.
+          if (context.isCancelled()) {
+            throw new RuntimeException("Call cancelled by the client.");
+          }
           setAclSingleInode(rpcContext, action, childPath, entries, replay, opTimeMs);
         }
       }
@@ -3155,6 +3172,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
     if (context.getOptions().getRecursive() && targetInode.isDirectory()) {
       try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
         for (LockedInodePath childPath : descendants) {
+          // Fail if the client has cancelled the rpc.
+          if (context.isCancelled()) {
+            throw new RuntimeException("Call cancelled by the client.");
+          }
           setAttributeSingleFile(rpcContext, childPath, true, opTimeMs, context);
         }
       }
@@ -3211,19 +3232,21 @@ public final class DefaultFileSystemMaster extends CoreMaster
       return;
     }
 
-    Map<AlluxioURI, UfsStatus> statusCache;
     try (RpcContext rpcContext = createRpcContext()) {
-      statusCache = populateStatusCache(path, DescendantType.ALL);
       if (changedFiles == null) {
+        // full sync
         LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, true);
         try (LockedInodePath inodePath =
             mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern())) {
           syncMetadataInternal(rpcContext, inodePath, lockingScheme, DescendantType.ALL,
-              statusCache);
+              populateStatusCache(path, DescendantType.ALL));
         }
         LOG.info("Ended an active full sync of {}", path.toString());
         return;
       } else {
+        // incremental sync
+        Map<AlluxioURI, UfsStatus> statusCache = populateStatusCache(
+            PathUtils.findLowestCommonAncestor(changedFiles), DescendantType.ALL);
         Set<Callable<Void>> callables = new HashSet<>();
         for (AlluxioURI changedFile : changedFiles) {
           callables.add(() -> {
@@ -4646,5 +4669,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throw new InvalidPathException(ufsUri.toString() + " is not a valid ufs uri");
     }
     return resolution.getUri();
+  }
+
+  @Override
+  @Nullable
+  public String getRootInodeOwner() {
+    return mInodeTree.getRootUserName();
   }
 }

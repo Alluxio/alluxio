@@ -28,7 +28,7 @@ public final class UnixMountInfo {
     mDeviceSpec = Optional.fromNullable(deviceSpec);
     mMountPoint = Optional.fromNullable(mountPoint);
     mFsType = Optional.fromNullable(fsType);
-    mMountOptions = options;
+    mMountOptions = options == null ? new Options.Builder().build() : options;
   }
 
   /**

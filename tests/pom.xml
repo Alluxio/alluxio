@@ -320,6 +320,40 @@
         </plugins>
       </build>
     </profile>
+
+    <profile>
+      <id>jacoco</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+            <!-- integration tests shouldn't use PowerMock, so recommended prepare-agent goal can be used, instead of offline-instrumentation -->
+            <executions>
+              <execution>
+                <id>jacoco-unit-instrument-classes</id>
+                <configuration>
+                  <skip>true</skip>
+                </configuration>
+              </execution>
+              <execution>
+                <id>jacoco-unit-restore-instrumented-classes</id>
+                <configuration>
+                  <skip>true</skip>
+                </configuration>
+              </execution>
+              <execution>
+                <id>jacoco-prepare-agent</id>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <build>

@@ -2,7 +2,11 @@ export interface TranformableData {
   [key: string]: string | number;
 }
 
-export const transformToNivoFormat = (data: TranformableData[], xKeyName: string, yKeyName: string) => {
+export const transformToNivoFormat = (
+  data: TranformableData[],
+  xKeyName: string,
+  yKeyName: string,
+): TranformableData[] => {
   data.forEach((item: TranformableData, index: number) => {
     item.x = item[xKeyName];
     item.y = item[yKeyName];

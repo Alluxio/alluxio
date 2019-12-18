@@ -10,24 +10,28 @@
  */
 
 import React from 'react';
-import {getDisplayName} from "../../../utilities";
-import {LoadingMessage} from "../..";
+import { getDisplayName } from '../../../utilities';
+import { LoadingMessage } from '../..';
 
 export interface ILoadingProps {
-    loading: boolean;
-    class: string;
+  loading: boolean;
+  class: string;
 }
 
-export function withLoadingMessage<T extends ILoadingProps>(WrappedComponent: React.ComponentType<T>) {
-    const loaderHoc = (props: T) => {
-        return props.loading
-            ? (
-                <div className={props.class}>
-                    <LoadingMessage />
-                </div>
-            )
-            : <WrappedComponent {...props} />;
-    };
-    (loaderHoc as React.FunctionComponent).displayName = `withLoadingMessage(${getDisplayName(WrappedComponent)})`;
-    return loaderHoc;
+export function withLoadingMessage<T extends ILoadingProps>(
+  WrappedComponent: React.ComponentType<T>,
+): React.ComponentType<T> {
+  class LoaderHoc extends React.Component<T> {
+    render(): JSX.Element {
+      return this.props.loading ? (
+        <div className={this.props.class}>
+          <LoadingMessage />
+        </div>
+      ) : (
+        <WrappedComponent {...this.props} />
+      );
+    }
+  }
+  (LoaderHoc as React.ComponentType<T>).displayName = `withLoadingMessage(${getDisplayName(WrappedComponent)})`;
+  return LoaderHoc;
 }

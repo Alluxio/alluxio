@@ -351,15 +351,13 @@ public class AlluxioMasterProcess extends MasterProcess {
       }
     }
     if (mRPCExecutor != null) {
-      mRPCExecutor.shutdown();
+      mRPCExecutor.shutdownNow();
       try {
         mRPCExecutor.awaitTermination(
             ServerConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT),
             TimeUnit.MILLISECONDS);
       } catch (InterruptedException ie) {
         Thread.currentThread().interrupt();
-      } finally {
-        mRPCExecutor.shutdownNow();
       }
     }
     if (mJvmPauseMonitor != null) {

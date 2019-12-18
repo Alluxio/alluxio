@@ -21,10 +21,8 @@ import alluxio.metrics.MetricsSystem.InstanceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -95,9 +93,7 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
-    synchronized (mWorkerMetrics) {
-      putReportedMetrics(mWorkerMetrics, getFullInstanceId(hostname, null), metrics);
-    }
+    putReportedMetrics(mWorkerMetrics, getFullInstanceId(hostname, null), metrics);
   }
 
   /**
@@ -112,10 +108,7 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
-    LOG.debug("Removing metrics for id {} to replace with {}", clientId, metrics);
-    synchronized (mClientMetrics) {
-      putReportedMetrics(mClientMetrics, getFullInstanceId(hostname, clientId), metrics);
-    }
+    putReportedMetrics(mClientMetrics, getFullInstanceId(hostname, clientId), metrics);
   }
 
   /**
@@ -132,7 +125,6 @@ public class MetricsStore {
    */
   private static void putReportedMetrics(IndexedSet<Metric> metricSet, String instanceId,
       List<Metric> reportedMetrics) {
-    List<Metric> newMetrics = new ArrayList<>(reportedMetrics.size());
     for (Metric metric : reportedMetrics) {
       if (metric.getHostname() == null) {
         continue; // ignore metrics whose hostname is null
@@ -141,25 +133,17 @@ public class MetricsStore {
       // If a metric is COUNTER, the value sent via RPC should be the incremental value; i.e.
       // the amount the value has changed since the last RPC. The master should equivalently
       // increment its value based on the received metric rather than replacing it.
-      if (metric.getMetricType() == MetricType.COUNTER) {
-        // FULL_NAME_INDEX is a unique index, so getFirstByField will return the same results as
-        // getByField
+      if (!metricSet.add(metric)) {
         Metric oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
-        double oldVal = oldMetric == null ? 0.0 : oldMetric.getValue();
-        Metric newMetric = new Metric(metric.getInstanceType(), metric.getHostname(),
-            metric.getMetricType(), metric.getName(), oldVal + metric.getValue());
-        for (Map.Entry<String, String> tag : metric.getTags().entrySet()) {
-          newMetric.addTag(tag.getKey(), tag.getValue());
+        if (metric.getMetricType() == MetricType.COUNTER) {
+          if (metric.getValue() != 0L) {
+            oldMetric.addValue(metric.getValue());
+          }
+        } else {
+          oldMetric.setValue(metric.getValue());
         }
-        metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
-        newMetrics.add(newMetric);
-      } else {
-        metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
-        newMetrics.add(metric);
       }
     }
-    metricSet.removeByField(ID_INDEX, instanceId);
-    metricSet.addAll(newMetrics);
   }
 
   /**
@@ -177,13 +161,9 @@ public class MetricsStore {
     }
 
     if (instanceType == InstanceType.WORKER) {
-      synchronized (mWorkerMetrics) {
-        return mWorkerMetrics.getByField(NAME_INDEX, name);
-      }
+      return mWorkerMetrics.getByField(NAME_INDEX, name);
     } else if (instanceType == InstanceType.CLIENT) {
-      synchronized (mClientMetrics) {
-        return mClientMetrics.getByField(NAME_INDEX, name);
-      }
+      return mClientMetrics.getByField(NAME_INDEX, name);
     } else {
       throw new IllegalArgumentException("Unsupported instance type " + instanceType);
     }
@@ -201,13 +181,15 @@ public class MetricsStore {
 
   /**
    * Clears all the metrics.
+   *
+   * This method should only be called when starting the {@link DefaultMetricsMaster}
+   * and before starting the metrics updater to avoid conflicts with
+   * other methods in this class which updates or accesses
+   * the metrics inside metrics sets.
    */
   public void clear() {
-    synchronized (mWorkerMetrics) {
-      mWorkerMetrics.clear();
-    }
-    synchronized (mClientMetrics) {
-      mClientMetrics.clear();
-    }
+    mWorkerMetrics.clear();
+    mClientMetrics.clear();
+    MetricsSystem.resetAllMetrics();
   }
 }

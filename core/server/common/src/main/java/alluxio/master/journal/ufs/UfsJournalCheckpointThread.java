@@ -91,14 +91,27 @@ public final class UfsJournalCheckpointThread extends Thread {
    */
   public UfsJournalCheckpointThread(Master master, UfsJournal journal,
       Supplier<Set<JournalSink>> journalSinks) {
+    this(master, journal, 0L, journalSinks);
+  }
+
+  /**
+   * Creates a new instance of {@link UfsJournalCheckpointThread}.
+   *
+   * @param master the master to apply the journal entries to
+   * @param journal the journal
+   * @param startSequence the journal start sequence
+   * @param journalSinks a supplier for journal sinks
+   */
+  public UfsJournalCheckpointThread(Master master, UfsJournal journal, long startSequence,
+      Supplier<Set<JournalSink>> journalSinks) {
     mMaster = Preconditions.checkNotNull(master, "master");
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mShutdownQuietWaitTimeMs = journal.getQuietPeriodMs();
     mJournalCheckpointSleepTimeMs =
         (int) ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
-    mJournalReader = new UfsJournalReader(mJournal, 0, false);
-    mCheckpointPeriodEntries = ServerConfiguration.getLong(
-        PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+    mJournalReader = new UfsJournalReader(mJournal, startSequence, false);
+    mCheckpointPeriodEntries =
+        ServerConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     mJournalSinks = journalSinks;
   }
 

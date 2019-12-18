@@ -1167,6 +1167,19 @@ This command will invoke a transformation on the table. The transformation is pe
 asynchronously, and will coalesce to a fewer number of files, and convert into the parquet file
 format.
 
-> In 2.1.0, the types of files which can be transformed are the parquet file format and the csv
-> file format. The output file format is only parquet. Additional formats for input and output
-> will be implemented in future versions.
+> In 2.1.0, the supported file formats which can be transformed are: parquet and csv
+> file formats. The resulting transformations are in the parquet file format. Additional formats
+> for input and output will be implemented in future versions.
+> For the coalesce feature, if a partition contains more than 100 files, then the coalesce
+> transformation will result in 100 files.
+
+### transformStatus
+
+The `transformStatus` command will display information about a table transformation.
+Here is an example usage:
+
+```console
+$ ./bin/alluxio table transformStatus transform_id
+```
+
+This command will display status details on the transformation identified by `transform_id`.

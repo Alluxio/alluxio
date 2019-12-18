@@ -11,6 +11,7 @@
 
 package alluxio.master.job.plan;
 
+import alluxio.collections.Pair;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.PlanDefinition;
@@ -25,6 +26,7 @@ import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -66,7 +68,7 @@ public final class PlanCoordinator {
    * Mapping from workers running tasks for this job to the ids of those tasks. If this coordinator
    * was created to represent an already-completed job, this map will be empty.
    */
-  private final Map<Long, Long> mWorkerIdToTaskId = Maps.newHashMap();
+  private final Map<Long, List<Long>> mWorkerIdToTaskIds = Maps.newHashMap();
 
   private PlanCoordinator(CommandManager commandManager, JobServerContext jobServerContext,
                           List<WorkerInfo> workerInfoList, Long jobId, JobConfig jobConfig,
@@ -109,7 +111,7 @@ public final class PlanCoordinator {
         PlanDefinitionRegistry.INSTANCE.getJobDefinition(mPlanInfo.getJobConfig());
     SelectExecutorsContext context =
         new SelectExecutorsContext(mPlanInfo.getId(), mJobServerContext);
-    Map<WorkerInfo, ?> taskAddressToArgs;
+    Set<? extends Pair<WorkerInfo, ?>> taskAddressToArgs;
     try {
       taskAddressToArgs =
           definition.selectExecutors(mPlanInfo.getJobConfig(), mWorkersInfoList, context);
@@ -125,16 +127,17 @@ public final class PlanCoordinator {
       updateStatus();
     }
 
-    for (Entry<WorkerInfo, ?> entry : taskAddressToArgs.entrySet()) {
-      LOG.debug("Selected executor {} with parameters {}.", entry.getKey(), entry.getValue());
+    for (Pair<WorkerInfo, ?> pair : taskAddressToArgs) {
+      LOG.debug("Selected executor {} with parameters {}.", pair.getFirst(), pair.getSecond());
       int taskId = mTaskIdToWorkerInfo.size();
       // create task
-      mPlanInfo.addTask(taskId, entry.getKey());
+      mPlanInfo.addTask(taskId, pair.getFirst());
       // submit commands
       mCommandManager.submitRunTaskCommand(mPlanInfo.getId(), taskId, mPlanInfo.getJobConfig(),
-          entry.getValue(), entry.getKey().getId());
-      mTaskIdToWorkerInfo.put((long) taskId, entry.getKey());
-      mWorkerIdToTaskId.put(entry.getKey().getId(), (long) taskId);
+          pair.getSecond(), pair.getFirst().getId());
+      mTaskIdToWorkerInfo.put((long) taskId, pair.getFirst());
+      mWorkerIdToTaskIds.putIfAbsent(pair.getFirst().getId(), Lists.newArrayList());
+      mWorkerIdToTaskIds.get(pair.getFirst().getId()).add((long) taskId);
     }
   }
 
@@ -197,17 +200,26 @@ public final class PlanCoordinator {
    */
   public void failTasksForWorker(long workerId) {
     synchronized (mPlanInfo) {
-      Long taskId = mWorkerIdToTaskId.get(workerId);
-      if (taskId == null) {
+      if (mPlanInfo.getStatus().isFinished()) {
         return;
       }
-      TaskInfo taskInfo = mPlanInfo.getTaskInfo(taskId);
-      if (taskInfo.getStatus().isFinished()) {
+
+      List<Long> taskIds = mWorkerIdToTaskIds.get(workerId);
+      if (taskIds == null) {
         return;
       }
-      if (!mPlanInfo.getStatus().isFinished()) {
+
+      boolean statusChanged = false;
+      for (Long taskId : taskIds) {
+        TaskInfo taskInfo = mPlanInfo.getTaskInfo(taskId);
+        if (taskInfo == null || taskInfo.getStatus().isFinished()) {
+          continue;
+        }
         taskInfo.setStatus(Status.FAILED);
         taskInfo.setErrorMessage("Job worker was lost before the task could complete");
+        statusChanged = true;
+      }
+      if (statusChanged) {
         updateStatus();
       }
     }

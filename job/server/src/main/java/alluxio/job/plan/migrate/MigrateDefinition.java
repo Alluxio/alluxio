@@ -20,6 +20,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
@@ -42,15 +43,16 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentMap;
 
@@ -105,6 +107,9 @@ import java.util.concurrent.ConcurrentMap;
 public final class MigrateDefinition
     extends AbstractVoidPlanDefinition<MigrateConfig, ArrayList<MigrateCommand>> {
   private static final Logger LOG = LoggerFactory.getLogger(MigrateDefinition.class);
+
+  private static final int JOBS_PER_WORKER = 10;
+
   private final Random mRandom = new Random();
 
   /**
@@ -156,14 +161,15 @@ public final class MigrateDefinition
    *
    * Assigns each worker to migrate whichever files it has the most blocks for.
    * If no worker has blocks for a file, a random worker is chosen.
+   * @return
    */
   @Override
-  public Map<WorkerInfo, ArrayList<MigrateCommand>> selectExecutors(MigrateConfig config,
+  public Set<Pair<WorkerInfo, ArrayList<MigrateCommand>>> selectExecutors(MigrateConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context) throws Exception {
     AlluxioURI source = new AlluxioURI(config.getSource());
     AlluxioURI destination = new AlluxioURI(config.getDestination());
     if (source.equals(destination)) {
-      return new HashMap<>();
+      return Sets.newHashSet();
     }
     checkMigrateValid(config, context.getFileSystem());
     Preconditions.checkState(!jobWorkerInfoList.isEmpty(), "No workers are available");
@@ -190,7 +196,31 @@ public final class MigrateDefinition
         assignments.get(bestJobWorker).add(new MigrateCommand(status.getPath(), destinationPath));
       }
     }
-    return assignments;
+
+    Set<Pair<WorkerInfo, ArrayList<MigrateCommand>>> result = Sets.newHashSet();
+
+    for (Map.Entry<WorkerInfo, ArrayList<MigrateCommand>> assignment : assignments.entrySet()) {
+
+      // split the list of MigrateCommands for a given worker into at most JOBS_PER_WORKER
+      // equally sized lists
+      ArrayList<MigrateCommand> migrateCommands = assignment.getValue();
+      ArrayList<ArrayList<MigrateCommand>> splittedCommands = Lists.newArrayList();
+
+      for (int i = 0; i < JOBS_PER_WORKER; i++) {
+        splittedCommands.add(Lists.newArrayList());
+      }
+      for (int i = 0; i < migrateCommands.size(); i++) {
+        splittedCommands.get(i % JOBS_PER_WORKER).add(migrateCommands.get(i));
+      }
+
+      for (List<MigrateCommand> commands : splittedCommands) {
+        if (!commands.isEmpty()) {
+          result.add(new Pair<>(assignment.getKey(), Lists.newArrayList(commands)));
+        }
+      }
+    }
+
+    return result;
   }
 
   private WorkerInfo getBestJobWorker(URIStatus status, List<BlockWorkerInfo> alluxioWorkerInfoList,

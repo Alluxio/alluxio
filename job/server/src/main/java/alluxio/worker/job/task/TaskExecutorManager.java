@@ -17,7 +17,9 @@ import alluxio.job.RunTaskContext;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
@@ -26,9 +28,9 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -39,7 +41,9 @@ import javax.annotation.concurrent.ThreadSafe;
 public class TaskExecutorManager {
   private static final Logger LOG = LoggerFactory.getLogger(TaskExecutorManager.class);
 
-  private final ExecutorService mTaskExecutionService;
+  private static final int MAX_TASK_EXECUTOR_POOL_SIZE = 10000;
+
+  private final PausableThreadPoolExecutor mTaskExecutionService;
 
   // These maps are all indexed by <Job ID, Task ID> pairs.
   /** Stores the futures for all running tasks. */
@@ -47,18 +51,61 @@ public class TaskExecutorManager {
   /** Stores the task info for all running tasks. */
   private final Map<Pair<Long, Long>, TaskInfo> mUnfinishedTasks;
   /** Stores the updated tasks since the last call to {@link #getAndClearTaskUpdates()}. */
-  private final Map<Pair<Long, Long>, alluxio.grpc.JobInfo> mTaskUpdates;
+  private final Map<Pair<Long, Long>, TaskInfo> mTaskUpdates;
+
+  private final WorkerNetAddress mAddress;
 
   /**
    * Constructs a new instance of {@link TaskExecutorManager}.
    * @param taskExecutorPoolSize number of task executors in the pool
+   * @param address the worker address
    */
-  public TaskExecutorManager(int taskExecutorPoolSize) {
+  public TaskExecutorManager(int taskExecutorPoolSize, WorkerNetAddress address) {
     mTaskFutures = Maps.newHashMap();
     mUnfinishedTasks = Maps.newHashMap();
     mTaskUpdates = Maps.newHashMap();
-    mTaskExecutionService = Executors.newFixedThreadPool(taskExecutorPoolSize,
-      ThreadFactoryUtils.build("task-execution-service-%d", true));
+    mTaskExecutionService = new PausableThreadPoolExecutor(taskExecutorPoolSize,
+        MAX_TASK_EXECUTOR_POOL_SIZE, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(),
+        ThreadFactoryUtils.build("task-execution-service-%d", true));
+    mAddress = address;
+  }
+
+  /**
+   * @return number of active tasks
+   */
+  public int getNumActiveTasks() {
+    return mTaskExecutionService.getNumActiveTasks();
+  }
+
+  /**
+   * @return task executor pool size
+   */
+  public int getTaskExecutorPoolSize() {
+    return mTaskExecutionService.getCorePoolSize();
+  }
+
+  /**
+   * @param taskExecutorPoolSize number of threads in the task executor pool
+   */
+  public void setTaskExecutorPoolSize(int taskExecutorPoolSize) {
+    Preconditions.checkArgument(taskExecutorPoolSize >= 0);
+    Preconditions.checkArgument(taskExecutorPoolSize <= MAX_TASK_EXECUTOR_POOL_SIZE);
+
+    if (taskExecutorPoolSize == 0) {
+      // treat 0 as a special case because ThreadedTaskExecutorService can't seem to have 0 threads
+      mTaskExecutionService.pause();
+    } else {
+      mTaskExecutionService.resume();
+    }
+
+    mTaskExecutionService.setCorePoolSize(taskExecutorPoolSize);
+  }
+
+  /**
+   * @return number of unfinished tasks
+   */
+  public int unfinishedTasks() {
+    return mUnfinishedTasks.size();
   }
 
   /**
@@ -96,20 +143,6 @@ public class TaskExecutorManager {
   }
 
   /**
-   * Notifies the cancellation of the task.
-   *
-   * @param jobId the job id
-   * @param taskId the task id
-   */
-  public synchronized void notifyTaskCancellation(long jobId, long taskId) {
-    Pair<Long, Long> id = new Pair<>(jobId, taskId);
-    TaskInfo taskInfo = mUnfinishedTasks.get(id);
-    taskInfo.setStatus(Status.CANCELED);
-    finishTask(id);
-    LOG.info("Task {} for job {} canceled", taskId, jobId);
-  }
-
-  /**
    * Executes the given task.
    *
    * @param jobId the job id
@@ -124,10 +157,10 @@ public class TaskExecutorManager {
         .submit(new TaskExecutor(jobId, taskId, jobConfig, taskArgs, context, this));
     Pair<Long, Long> id = new Pair<>(jobId, taskId);
     mTaskFutures.put(id, future);
-    TaskInfo taskInfo = new TaskInfo(jobId, taskId, Status.RUNNING);
+    TaskInfo taskInfo = new TaskInfo(jobId, taskId, Status.RUNNING, mAddress);
 
     mUnfinishedTasks.put(id, taskInfo);
-    mTaskUpdates.put(id, taskInfo.toProto());
+    mTaskUpdates.put(id, taskInfo);
     LOG.info("Task {} for job {} started", taskId, jobId);
   }
 
@@ -145,10 +178,14 @@ public class TaskExecutorManager {
       return;
     }
 
+    LOG.info("Task {} for job {} canceled", taskId, jobId);
     Future<?> future = mTaskFutures.get(id);
     if (!future.cancel(true)) {
       taskInfo.setStatus(Status.FAILED);
       taskInfo.setErrorMessage("Failed to cancel the task");
+      finishTask(id);
+    } else {
+      taskInfo.setStatus(Status.CANCELED);
       finishTask(id);
     }
   }
@@ -156,7 +193,7 @@ public class TaskExecutorManager {
   /**
    * @return the list of task information
    */
-  public synchronized List<alluxio.grpc.JobInfo> getAndClearTaskUpdates() {
+  public synchronized List<TaskInfo> getAndClearTaskUpdates() {
     try {
       return ImmutableList.copyOf(mTaskUpdates.values());
     } finally {
@@ -170,8 +207,8 @@ public class TaskExecutorManager {
    *
    * @param tasks the tasks to restore
    */
-  public synchronized void restoreTaskUpdates(List<alluxio.grpc.JobInfo> tasks) {
-    for (alluxio.grpc.JobInfo task : tasks) {
+  public synchronized void restoreTaskUpdates(List<TaskInfo> tasks) {
+    for (TaskInfo task : tasks) {
       Pair<Long, Long> id = new Pair<>(task.getParentId(), task.getId());
       if (!mTaskUpdates.containsKey(id)) {
         mTaskUpdates.put(id, task);
@@ -183,6 +220,6 @@ public class TaskExecutorManager {
     TaskInfo taskInfo = mUnfinishedTasks.get(id);
     mTaskFutures.remove(id);
     mUnfinishedTasks.remove(id);
-    mTaskUpdates.put(id, taskInfo.toProto());
+    mTaskUpdates.put(id, taskInfo);
   }
 }

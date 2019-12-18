@@ -22,14 +22,17 @@ import alluxio.job.plan.PlanConfig;
 import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.master.job.command.CommandManager;
+import alluxio.master.job.workflow.WorkflowTracker;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 import net.jcip.annotations.ThreadSafe;
+import org.apache.commons.compress.utils.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -77,15 +80,18 @@ public class PlanTracker {
   /** A FIFO queue used to track jobs which have status {@link Status#isFinished()} as true. */
   private final LinkedBlockingQueue<PlanInfo> mFinished;
 
+  private final WorkflowTracker mWorkflowTracker;
+
   /**
    * Create a new instance of {@link PlanTracker}.
    *
    * @param capacity the capacity of jobs that can be handled
    * @param retentionMs the minimum amount of time to retain jobs
    * @param maxJobPurgeCount the max amount of jobs to purge when reaching max capacity
+   * @param workflowTracker the workflow tracker instance
    */
   public PlanTracker(long capacity, long retentionMs,
-                     long maxJobPurgeCount) {
+                     long maxJobPurgeCount, WorkflowTracker workflowTracker) {
     Preconditions.checkArgument(capacity >= 0);
     mCapacity = capacity;
     Preconditions.checkArgument(retentionMs >= 0);
@@ -94,6 +100,7 @@ public class PlanTracker {
     mCoordinators = new ConcurrentHashMap<>(0,
         0.95f, ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM));
     mFinished = new LinkedBlockingQueue<>();
+    mWorkflowTracker = workflowTracker;
   }
 
   private void statusChangeCallback(PlanInfo planInfo) {
@@ -177,6 +184,8 @@ public class PlanTracker {
       // The job master is at full capacity and no job has finished.
       return false;
     }
+
+    ArrayList<Long> removedJobIds = Lists.newArrayList();
     int removeCount = 0;
     while (!mFinished.isEmpty() && removeCount < mMaxJobPurgeCount) {
       PlanInfo oldestJob = mFinished.peek();
@@ -202,14 +211,25 @@ public class PlanTracker {
         LOG.warn("Polling the queue resulted in a null element");
         break;
       }
-      // Remove from the job coordinator
-      if (mCoordinators.remove(oldestJob.getId()) == null) {
-        LOG.warn("Did not find a coordinator with id {}", oldestJob.getId());
+
+      long oldestJobId = oldestJob.getId();
+      removedJobIds.add(oldestJobId);
+      // Don't remove from the plan coordinator yet because WorkflowTracker may need these job info
+      if (mCoordinators.get(oldestJobId) == null) {
+        LOG.warn("Did not find a coordinator with id {}", oldestJobId);
       } else {
         removedJob = true;
         removeCount++;
       }
     }
+
+    mWorkflowTracker.cleanup(removedJobIds);
+
+    // Remove from the plan coordinator
+    for (long removedJobId : removedJobIds) {
+      mCoordinators.remove(removedJobId);
+    }
+
     return removedJob;
   }
 
@@ -219,7 +239,7 @@ public class PlanTracker {
    *
    * @return An unmodifiable collection of all tracked Job Ids
    */
-  public Collection<Long> jobs() {
+  public Collection<Long> list() {
     return Collections.unmodifiableCollection(mCoordinators.keySet());
   }
 

@@ -579,4 +579,9 @@ public interface FileSystemMaster extends Master {
    * @return alluxio path
    */
   AlluxioURI reverseResolve(AlluxioURI ufsUri) throws InvalidPathException;
+
+  /**
+   * @return the owner of the root inode, null if the inode tree is not initialized
+   */
+  String getRootInodeOwner();
 }

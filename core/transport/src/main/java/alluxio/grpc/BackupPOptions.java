@@ -16,8 +16,9 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private BackupPOptions() {
-    targetDirectory_ = "";
     localFileSystem_ = false;
+    runAsync_ = false;
+    allowLeader_ = false;
   }
 
   @java.lang.Override
@@ -51,15 +52,19 @@ private static final long serialVersionUID = 0L;
             }
             break;
           }
-          case 10: {
-            com.google.protobuf.ByteString bs = input.readBytes();
+          case 8: {
             bitField0_ |= 0x00000001;
-            targetDirectory_ = bs;
+            localFileSystem_ = input.readBool();
             break;
           }
           case 16: {
             bitField0_ |= 0x00000002;
-            localFileSystem_ = input.readBool();
+            runAsync_ = input.readBool();
+            break;
+          }
+          case 24: {
+            bitField0_ |= 0x00000004;
+            allowLeader_ = input.readBool();
             break;
           }
         }
@@ -87,61 +92,49 @@ private static final long serialVersionUID = 0L;
   }
 
   private int bitField0_;
-  public static final int TARGETDIRECTORY_FIELD_NUMBER = 1;
-  private volatile java.lang.Object targetDirectory_;
+  public static final int LOCALFILESYSTEM_FIELD_NUMBER = 1;
+  private boolean localFileSystem_;
   /**
-   * <code>optional string targetDirectory = 1;</code>
+   * <code>optional bool localFileSystem = 1;</code>
    */
-  public boolean hasTargetDirectory() {
+  public boolean hasLocalFileSystem() {
     return ((bitField0_ & 0x00000001) == 0x00000001);
   }
   /**
-   * <code>optional string targetDirectory = 1;</code>
-   */
-  public java.lang.String getTargetDirectory() {
-    java.lang.Object ref = targetDirectory_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      if (bs.isValidUtf8()) {
-        targetDirectory_ = s;
-      }
-      return s;
-    }
-  }
-  /**
-   * <code>optional string targetDirectory = 1;</code>
-   */
-  public com.google.protobuf.ByteString
-      getTargetDirectoryBytes() {
-    java.lang.Object ref = targetDirectory_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      targetDirectory_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
-  }
-
-  public static final int LOCALFILESYSTEM_FIELD_NUMBER = 2;
-  private boolean localFileSystem_;
-  /**
-   * <code>optional bool localFileSystem = 2;</code>
-   */
-  public boolean hasLocalFileSystem() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
-  }
-  /**
-   * <code>optional bool localFileSystem = 2;</code>
+   * <code>optional bool localFileSystem = 1;</code>
    */
   public boolean getLocalFileSystem() {
     return localFileSystem_;
+  }
+
+  public static final int RUNASYNC_FIELD_NUMBER = 2;
+  private boolean runAsync_;
+  /**
+   * <code>optional bool runAsync = 2;</code>
+   */
+  public boolean hasRunAsync() {
+    return ((bitField0_ & 0x00000002) == 0x00000002);
+  }
+  /**
+   * <code>optional bool runAsync = 2;</code>
+   */
+  public boolean getRunAsync() {
+    return runAsync_;
+  }
+
+  public static final int ALLOWLEADER_FIELD_NUMBER = 3;
+  private boolean allowLeader_;
+  /**
+   * <code>optional bool allowLeader = 3;</code>
+   */
+  public boolean hasAllowLeader() {
+    return ((bitField0_ & 0x00000004) == 0x00000004);
+  }
+  /**
+   * <code>optional bool allowLeader = 3;</code>
+   */
+  public boolean getAllowLeader() {
+    return allowLeader_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -157,10 +150,13 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, targetDirectory_);
+      output.writeBool(1, localFileSystem_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
-      output.writeBool(2, localFileSystem_);
+      output.writeBool(2, runAsync_);
+    }
+    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      output.writeBool(3, allowLeader_);
     }
     unknownFields.writeTo(output);
   }
@@ -171,11 +167,16 @@ private static final long serialVersionUID = 0L;
 
     size = 0;
     if (((bitField0_ & 0x00000001) == 0x00000001)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, targetDirectory_);
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(1, localFileSystem_);
     }
     if (((bitField0_ & 0x00000002) == 0x00000002)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(2, localFileSystem_);
+        .computeBoolSize(2, runAsync_);
+    }
+    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(3, allowLeader_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -193,15 +194,20 @@ private static final long serialVersionUID = 0L;
     alluxio.grpc.BackupPOptions other = (alluxio.grpc.BackupPOptions) obj;
 
     boolean result = true;
-    result = result && (hasTargetDirectory() == other.hasTargetDirectory());
-    if (hasTargetDirectory()) {
-      result = result && getTargetDirectory()
-          .equals(other.getTargetDirectory());
-    }
     result = result && (hasLocalFileSystem() == other.hasLocalFileSystem());
     if (hasLocalFileSystem()) {
       result = result && (getLocalFileSystem()
           == other.getLocalFileSystem());
+    }
+    result = result && (hasRunAsync() == other.hasRunAsync());
+    if (hasRunAsync()) {
+      result = result && (getRunAsync()
+          == other.getRunAsync());
+    }
+    result = result && (hasAllowLeader() == other.hasAllowLeader());
+    if (hasAllowLeader()) {
+      result = result && (getAllowLeader()
+          == other.getAllowLeader());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -214,14 +220,20 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
-    if (hasTargetDirectory()) {
-      hash = (37 * hash) + TARGETDIRECTORY_FIELD_NUMBER;
-      hash = (53 * hash) + getTargetDirectory().hashCode();
-    }
     if (hasLocalFileSystem()) {
       hash = (37 * hash) + LOCALFILESYSTEM_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getLocalFileSystem());
+    }
+    if (hasRunAsync()) {
+      hash = (37 * hash) + RUNASYNC_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getRunAsync());
+    }
+    if (hasAllowLeader()) {
+      hash = (37 * hash) + ALLOWLEADER_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getAllowLeader());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -352,10 +364,12 @@ private static final long serialVersionUID = 0L;
     }
     public Builder clear() {
       super.clear();
-      targetDirectory_ = "";
-      bitField0_ = (bitField0_ & ~0x00000001);
       localFileSystem_ = false;
+      bitField0_ = (bitField0_ & ~0x00000001);
+      runAsync_ = false;
       bitField0_ = (bitField0_ & ~0x00000002);
+      allowLeader_ = false;
+      bitField0_ = (bitField0_ & ~0x00000004);
       return this;
     }
 
@@ -383,11 +397,15 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
         to_bitField0_ |= 0x00000001;
       }
-      result.targetDirectory_ = targetDirectory_;
+      result.localFileSystem_ = localFileSystem_;
       if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
         to_bitField0_ |= 0x00000002;
       }
-      result.localFileSystem_ = localFileSystem_;
+      result.runAsync_ = runAsync_;
+      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        to_bitField0_ |= 0x00000004;
+      }
+      result.allowLeader_ = allowLeader_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -430,13 +448,14 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.BackupPOptions other) {
       if (other == alluxio.grpc.BackupPOptions.getDefaultInstance()) return this;
-      if (other.hasTargetDirectory()) {
-        bitField0_ |= 0x00000001;
-        targetDirectory_ = other.targetDirectory_;
-        onChanged();
-      }
       if (other.hasLocalFileSystem()) {
         setLocalFileSystem(other.getLocalFileSystem());
+      }
+      if (other.hasRunAsync()) {
+        setRunAsync(other.getRunAsync());
+      }
+      if (other.hasAllowLeader()) {
+        setAllowLeader(other.getAllowLeader());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -466,110 +485,98 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.lang.Object targetDirectory_ = "";
+    private boolean localFileSystem_ ;
     /**
-     * <code>optional string targetDirectory = 1;</code>
+     * <code>optional bool localFileSystem = 1;</code>
      */
-    public boolean hasTargetDirectory() {
+    public boolean hasLocalFileSystem() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional string targetDirectory = 1;</code>
-     */
-    public java.lang.String getTargetDirectory() {
-      java.lang.Object ref = targetDirectory_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          targetDirectory_ = s;
-        }
-        return s;
-      } else {
-        return (java.lang.String) ref;
-      }
-    }
-    /**
-     * <code>optional string targetDirectory = 1;</code>
-     */
-    public com.google.protobuf.ByteString
-        getTargetDirectoryBytes() {
-      java.lang.Object ref = targetDirectory_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        targetDirectory_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    /**
-     * <code>optional string targetDirectory = 1;</code>
-     */
-    public Builder setTargetDirectory(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
-      targetDirectory_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string targetDirectory = 1;</code>
-     */
-    public Builder clearTargetDirectory() {
-      bitField0_ = (bitField0_ & ~0x00000001);
-      targetDirectory_ = getDefaultInstance().getTargetDirectory();
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string targetDirectory = 1;</code>
-     */
-    public Builder setTargetDirectoryBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000001;
-      targetDirectory_ = value;
-      onChanged();
-      return this;
-    }
-
-    private boolean localFileSystem_ ;
-    /**
-     * <code>optional bool localFileSystem = 2;</code>
-     */
-    public boolean hasLocalFileSystem() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
-    }
-    /**
-     * <code>optional bool localFileSystem = 2;</code>
+     * <code>optional bool localFileSystem = 1;</code>
      */
     public boolean getLocalFileSystem() {
       return localFileSystem_;
     }
     /**
-     * <code>optional bool localFileSystem = 2;</code>
+     * <code>optional bool localFileSystem = 1;</code>
      */
     public Builder setLocalFileSystem(boolean value) {
-      bitField0_ |= 0x00000002;
+      bitField0_ |= 0x00000001;
       localFileSystem_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional bool localFileSystem = 2;</code>
+     * <code>optional bool localFileSystem = 1;</code>
      */
     public Builder clearLocalFileSystem() {
-      bitField0_ = (bitField0_ & ~0x00000002);
+      bitField0_ = (bitField0_ & ~0x00000001);
       localFileSystem_ = false;
+      onChanged();
+      return this;
+    }
+
+    private boolean runAsync_ ;
+    /**
+     * <code>optional bool runAsync = 2;</code>
+     */
+    public boolean hasRunAsync() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional bool runAsync = 2;</code>
+     */
+    public boolean getRunAsync() {
+      return runAsync_;
+    }
+    /**
+     * <code>optional bool runAsync = 2;</code>
+     */
+    public Builder setRunAsync(boolean value) {
+      bitField0_ |= 0x00000002;
+      runAsync_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional bool runAsync = 2;</code>
+     */
+    public Builder clearRunAsync() {
+      bitField0_ = (bitField0_ & ~0x00000002);
+      runAsync_ = false;
+      onChanged();
+      return this;
+    }
+
+    private boolean allowLeader_ ;
+    /**
+     * <code>optional bool allowLeader = 3;</code>
+     */
+    public boolean hasAllowLeader() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional bool allowLeader = 3;</code>
+     */
+    public boolean getAllowLeader() {
+      return allowLeader_;
+    }
+    /**
+     * <code>optional bool allowLeader = 3;</code>
+     */
+    public Builder setAllowLeader(boolean value) {
+      bitField0_ |= 0x00000004;
+      allowLeader_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional bool allowLeader = 3;</code>
+     */
+    public Builder clearAllowLeader() {
+      bitField0_ = (bitField0_ & ~0x00000004);
+      allowLeader_ = false;
       onChanged();
       return this;
     }

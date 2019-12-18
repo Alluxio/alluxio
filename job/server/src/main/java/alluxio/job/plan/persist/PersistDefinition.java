@@ -36,7 +36,7 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.wire.WorkerInfo;
 
-import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.io.Closer;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -45,8 +45,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -68,7 +68,7 @@ public final class PersistDefinition
   }
 
   @Override
-  public Map<WorkerInfo, SerializableVoid> selectExecutors(PersistConfig config,
+  public Set<Pair<WorkerInfo, SerializableVoid>> selectExecutors(PersistConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context)
       throws Exception {
     if (jobWorkerInfoList.isEmpty()) {
@@ -82,20 +82,21 @@ public final class PersistDefinition
         context.getFileSystem().getStatus(uri).getFileBlockInfos());
 
     // Map the best Alluxio worker to a job worker.
-    Map<WorkerInfo, SerializableVoid> result = Maps.newHashMap();
+    Set<Pair<WorkerInfo, SerializableVoid>> result = Sets.newHashSet();
     boolean found = false;
     if (workerWithMostBlocks != null) {
       for (WorkerInfo workerInfo : jobWorkerInfoList) {
         if (workerInfo.getAddress().getHost()
             .equals(workerWithMostBlocks.getNetAddress().getHost())) {
-          result.put(workerInfo, null);
+          result.add(new Pair<>(workerInfo, null));
           found = true;
           break;
         }
       }
     }
     if (!found) {
-      result.put(jobWorkerInfoList.get(new Random().nextInt(jobWorkerInfoList.size())), null);
+      result.add(new Pair<>(
+          jobWorkerInfoList.get(new Random().nextInt(jobWorkerInfoList.size())), null));
     }
     return result;
   }

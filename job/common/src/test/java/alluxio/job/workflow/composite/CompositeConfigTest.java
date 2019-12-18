@@ -36,7 +36,7 @@ public final class CompositeConfigTest {
 
   static {
     PartitionInfo pInfo = new PartitionInfo("serde", "inputformat", new HashMap<>(),
-        new ArrayList<>());
+        new HashMap<>(), new ArrayList<>());
     ArrayList<JobConfig> jobs = new ArrayList<>();
     jobs.add(new CompositeConfig(new ArrayList<>(), true));
     jobs.add(new CompositeConfig(new ArrayList<>(), false));
