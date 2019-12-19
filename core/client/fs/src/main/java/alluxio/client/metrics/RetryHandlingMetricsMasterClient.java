@@ -46,17 +46,17 @@ public class RetryHandlingMetricsMasterClient extends AbstractMasterClient
 
   @Override
   protected ServiceType getRemoteServiceType() {
-    return ServiceType.META_MASTER_CLIENT_SERVICE;
+    return ServiceType.METRICS_MASTER_CLIENT_SERVICE;
   }
 
   @Override
   protected String getServiceName() {
-    return Constants.META_MASTER_CLIENT_SERVICE_NAME;
+    return Constants.METRICS_MASTER_CLIENT_SERVICE_NAME;
   }
 
   @Override
   protected long getServiceVersion() {
-    return Constants.META_MASTER_CLIENT_SERVICE_VERSION;
+    return Constants.METRICS_MASTER_CLIENT_SERVICE_VERSION;
   }
 
   @Override

@@ -78,15 +78,20 @@ public final class ClearCommand extends AbstractFsAdminCommand {
     mMetricsClient.clearMetrics();
     System.out.println("CLEARED！");
     if (cl.hasOption(ALL_OPTION_NAME)) {
-      FileSystemContext context = FileSystemContext.create(mAlluxioConf);
-      AlluxioBlockStore store = AlluxioBlockStore.create(FileSystemContext.create(mAlluxioConf));
-      List<WorkerNetAddress> addressList = store.getEligibleWorkers().stream()
-          .map(BlockWorkerInfo::getNetAddress).collect(Collectors.toList());
-      for (WorkerNetAddress worker : addressList) {
-        System.out.printf("Clearing metrics of worker %s ...", worker.getHost());
-        BlockWorkerClient client = context.acquireBlockWorkerClient(worker);
-        client.clearMetrics(ClearMetricsRequest.newBuilder().build());
-        System.out.println("CLEARED！");
+      try (FileSystemContext context = FileSystemContext.create(mAlluxioConf)) {
+        AlluxioBlockStore store = AlluxioBlockStore.create(FileSystemContext.create(mAlluxioConf));
+        List<WorkerNetAddress> addressList = store.getEligibleWorkers().stream()
+            .map(BlockWorkerInfo::getNetAddress).collect(Collectors.toList());
+        for (WorkerNetAddress worker : addressList) {
+          System.out.printf("Clearing metrics of worker %s ...", worker.getHost());
+          BlockWorkerClient blockWorkerClient = context.acquireBlockWorkerClient(worker);
+          try {
+            blockWorkerClient.clearMetrics(ClearMetricsRequest.newBuilder().build());
+          } finally {
+            context.releaseBlockWorkerClient(worker, blockWorkerClient);
+          }
+          System.out.println("CLEARED！");
+        }
       }
     }
     return 0;

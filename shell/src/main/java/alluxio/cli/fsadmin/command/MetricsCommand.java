@@ -53,7 +53,7 @@ public class MetricsCommand extends AbstractFsAdminCommand {
    */
   @VisibleForTesting
   public static String description() {
-    return "Provide operations for the Alluxio metric system. "
+    return "Provide operations for the Alluxio metrics system. "
         + "See sub-commands' descriptions for more details.";
   }
 

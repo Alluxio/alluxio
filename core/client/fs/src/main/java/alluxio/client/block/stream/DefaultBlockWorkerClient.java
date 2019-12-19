@@ -180,7 +180,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public ClearMetricsResponse clearMetrics(ClearMetricsRequest request) {
-    // Default time out is 30 secs, may need to adjust this if block move takes longer
+    // Default time out is 30 secs, may need to adjust this if metrics clear takes longer
     return mRpcBlockingStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
         .clearMetrics(request);
   }
