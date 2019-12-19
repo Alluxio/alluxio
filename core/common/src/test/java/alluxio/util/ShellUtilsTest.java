@@ -13,6 +13,7 @@ package alluxio.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
@@ -153,8 +154,7 @@ public final class ShellUtilsTest {
     String[] testCommandFail = new String[]{"ls",
             String.format("%saaaa", testDir.getAbsolutePath())};
     ShellUtils.CommandReturn crf = ShellUtils.execCommandTolerateFailure(testCommandFail);
-    System.out.println(crf.getFormattedOutput());
-    assertFalse(crf.getExitCode() == 0);
+    assertNotEquals(0, crf.getExitCode());
 
     // if there's no such command there will be IOException
     mExceptionRule.expect(IOException.class);
@@ -187,13 +187,13 @@ public final class ShellUtilsTest {
             testCommandFail);
     assertFalse(crf.getExitCode() == 0);
 
-    // if there's no such command there will be IOException
+    // if there's no such command there will be no IOException because ssh is a valid cmd
     String[] testCommandExcept = new String[]{"lsa",
             String.format("%s", testDir.getAbsolutePath())};
-    mExceptionRule.expect(IOException.class);
-    mExceptionRule.expectMessage("No such file or directory");
+
     // lsa is not a valid executable
     ShellUtils.CommandReturn cre = ShellUtils.sshExecCommandTolerateFailure("localhost",
             testCommandExcept);
+    assertNotEquals(0, cre);
   }
 }

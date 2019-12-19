@@ -203,13 +203,12 @@ public final class ShellUtils {
      */
     protected CommandReturn runTolerateFailure() throws IOException {
       Process process = new ProcessBuilder(mCommand).start();
+      CommandReturn cr = null;
 
-      BufferedReader inReader =
-              new BufferedReader(new InputStreamReader(process.getInputStream()));
-      BufferedReader errReader =
-              new BufferedReader(new InputStreamReader(process.getErrorStream()));
-
-      try {
+      try (BufferedReader inReader =
+                   new BufferedReader(new InputStreamReader(process.getInputStream()));
+           BufferedReader errReader =
+                   new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
         // read the output of the command
         StringBuilder stdout = new StringBuilder();
         String outLine = inReader.readLine();
@@ -236,37 +235,21 @@ public final class ShellUtils {
                   Arrays.toString(mCommand), exitCode, stderr.toString()));
         }
 
-        return new CommandReturn(exitCode, stdout.toString(), stderr.toString());
+        cr = new CommandReturn(exitCode, stdout.toString(), stderr.toString());
+
+        // destroy the process
+        if (process != null) {
+          process.destroy();
+        }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         throw new IOException(e);
       } finally {
-        try {
-          // JDK 7 tries to automatically drain the input streams for us
-          // when the process exits, but since close is not synchronized,
-          // it creates a race if we close the stream first and the same
-          // fd is recycled. the stream draining thread will attempt to
-          // drain that fd!! it may block, OOM, or cause bizarre behavior
-          // see: https://bugs.openjdk.java.net/browse/JDK-8024521
-          // issue is fixed in build 7u60
-          InputStream stdoutStream = process.getInputStream();
-
-          synchronized (stdoutStream) {
-            inReader.close();
-          }
-        } catch (IOException e) {
-          LOG.warn("Error while closing the input stream", e);
+        if (process != null) {
+          process.destroy();
         }
-        try {
-          InputStream stderrStream = process.getErrorStream();
-          synchronized (stderrStream) {
-            errReader.close();
-          }
-        } catch (IOException e) {
-          LOG.warn("Error while closing the error stream", e);
-        }
-        process.destroy();
       }
+      return cr;
     }
   }
 
