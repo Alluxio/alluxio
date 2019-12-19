@@ -109,9 +109,10 @@ public final class MigrateDefinitionRunTaskTest {
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH);
     Assert.assertArrayEquals(TEST_SOURCE_CONTENTS, mMockOutStream.toByteArray());
     if (mDeleteSource) {
-      verify(mMockFileSystem).delete(new AlluxioURI(TEST_SOURCE));
+      DeletePOptions options = DeletePOptions.newBuilder().setUnchecked(true).build();
+      verify(mMockFileSystem).delete(new AlluxioURI(TEST_SOURCE), options);
     } else {
-      verify(mMockFileSystem, never()).delete(new AlluxioURI(TEST_SOURCE));
+      verify(mMockFileSystem, never()).delete(eq(new AlluxioURI(TEST_SOURCE)), any());
     }
   }
 
