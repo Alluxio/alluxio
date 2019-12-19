@@ -2,8 +2,8 @@
 layout: global
 title: Presto 使用 Alluxio
 nickname: Presto
-group: Data Applications
-priority: 2
+group: Compute Integrations
+priority: 1
 ---
 
 [Presto](https://prestosql.io/) 是一个开源的分布式 SQL 查询引擎，用于对数据进行大规模的交互式分析查询。
@@ -117,7 +117,7 @@ Presto 服务器日志：
 
 ### 自定义 Alluxio 用户属性
 
-要配置其他 Alluxio 属性，可以将包含[`alluxio-site.properties`]({{ '/en/basic/Configuration-Settings.html' | relativize_url }})的配置路径（即`${ALLUXIO_HOME}/conf`）追加到 Presto 文件夹下的`etc/jvm.config`的 JVM 配置中。
+要配置其他 Alluxio 属性，可以将包含[`alluxio-site.properties`]({{ '/cn/operation/Configuration.html' | relativize_url }})的配置路径（即`${ALLUXIO_HOME}/conf`）追加到 Presto 文件夹下的`etc/jvm.config`的 JVM 配置中。
 这种方法的优点是能够在同一个`alluxio-site.properties`文件中设置所有的 Alluxio 属性。
 
 ```bash

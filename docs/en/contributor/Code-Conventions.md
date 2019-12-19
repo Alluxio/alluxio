@@ -20,7 +20,7 @@ We greatly appreciate any contribution; whether new features or bug fixes.
 ## Submitting Code
 
 Submitting changes to Alluxio is done via pull requests. Please read our
-[pull request guidelines]({{ 'en/contributor/Contributor-Getting-Started.html' | relativize_url }}#sending-a-pull-request)
+[pull request guidelines]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }}#sending-a-pull-request)
 for details on how to submit a pull request to the Alluxio repository. Below are some tips for
 the pull requests.
 
@@ -33,7 +33,7 @@ Open a ticket detailing the proposed change and what purpose it serves.
 please include a link to the Github Issue in the last line of the description field of the pull request,
 like `Fixes #1234`, `Fixed #1234`, `Fix #1234`, `Closes #1234`, `Closed #1234`, or `Close #1234`.
 - Please read our
-[pull request guidelines]({{ 'en/contributor/Contributor-Getting-Started.html' | relativize_url }}#sending-a-pull-request)
+[pull request guidelines]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }}#sending-a-pull-request)
 for details.
 
 ## Coding Style

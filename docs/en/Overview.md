@@ -1,8 +1,8 @@
 ---
 layout: global
-title: Overview
-group: Home
-priority: 0
+title: Introduction
+group: Overview
+priority: 1
 ---
 
 * Table of Contents
@@ -69,13 +69,13 @@ Alluxio brings three key areas of innovation together to provide a unique set of
 1. **Global Namespace**: Alluxio serves as a single point of access to multiple independent storage
 systems regardless of physical location. This provides a unified view of all data sources and a
 standard interface for applications. See
-[Namespace Management]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) for more details.
+[Namespace Management]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}) for more details.
 
 1. **Intelligent Multi-tiering Caching**: Alluxio clusters act as a read and write cache for data in
 connected storage systems. Configurable policies automatically optimize data placement for
 performance and reliability across both memory and disk (SSD/HDD). Caching is transparent to the
 user and uses buffering to maintain consistency with persistent storage. See
-[Alluxio Storage Management]({{ '/en/advanced/Alluxio-Storage-Management.html' | relativize_url }}) for more details.
+[Alluxio Storage Management]({{ '/en/core-services/Caching.html' | relativize_url }}) for more details.
 
 1. **Server-Side API Translation**: Alluxio supports industry common APIs, such as HDFS API, S3 API,
 FUSE API, REST API. It transparently converts from a standard client-side interface to any storage
@@ -84,12 +84,12 @@ eliminating the need for complex system configuration and management. File data 
 data and vice versa.
 
 To understand more details on Alluxio internals, please read
-[Alluxio architecture and data flow]({{ '/en/Architecture-DataFlow.html' | relativize_url }}).
+[Alluxio architecture and data flow]({{ '/en/overview/Architecture.html' | relativize_url }}).
 
 ## Getting Started
 
 To quickly get Alluxio up and running, take a look at our
-[Getting Started]({{ '/en/Getting-Started.html' | relativize_url }}) page,
+[Getting Started]({{ '/en/overview/Getting-Started.html' | relativize_url }}) page,
 which explains how to deploy Alluxio and run examples in a local environment.
 
 Also try our getting started tutorials for Presto & Alluxio via:
@@ -115,7 +115,7 @@ explains how to build the project from source code. Questions can be directed to
 or our [Community Slack Channel](https://alluxio.io/slack).
 
 [Downloads](https://www.alluxio.io/download/)
-| [User Guide]({{ '/en/Getting-Started.html' | relativize_url }})
+| [User Guide]({{ '/en/overview/Getting-Started.html' | relativize_url }})
 | [Developer Guide]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }})
 | [Meetup Group](https://www.meetup.com/Alluxio/)
 | [Issue Tracking](https://github.com/Alluxio/alluxio/issues)
