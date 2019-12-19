@@ -339,6 +339,14 @@ public final class MigrateDefinition
     String destination = command.getDestination();
     LOG.debug("Migrating {} to {}", source, destination);
 
+    // If the write type is async through and the source is being deleted but source is persisted,
+    // keep the destination to be persisted by changing its write type
+    if (deleteSource && writeType.equals(WritePType.ASYNC_THROUGH)) {
+      if (fileSystem.getStatus(new AlluxioURI(source)).isPersisted()) {
+        writeType = WritePType.THROUGH;
+      }
+    }
+
     CreateFilePOptions createOptions =
         CreateFilePOptions.newBuilder().setWriteType(writeType).build();
     OpenFilePOptions openFileOptions =
@@ -357,7 +365,7 @@ public final class MigrateDefinition
       }
     }
     if (deleteSource) {
-      fileSystem.delete(new AlluxioURI(source));
+      fileSystem.delete(new AlluxioURI(source), DeletePOptions.newBuilder().setUnchecked(true).build());
     }
   }
 
