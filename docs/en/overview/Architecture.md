@@ -194,7 +194,7 @@ short-circuit is not feasible, Alluxio provides domain socket based short-circui
 in which the worker transfers data to the client through a
 predesignated domain socket path. For more information on this topic, please
 check out the instructions on
-[running Alluxio on Docker]({{ '/en/install/Running-Alluxio-On-Docker.html' | relativize_url }}).
+[running Alluxio on Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }}).
 
 Also, note that Alluxio can manage other storage media (e.g. SSD, HDD) in
 addition to memory, so local data access speed may vary depending on the local
