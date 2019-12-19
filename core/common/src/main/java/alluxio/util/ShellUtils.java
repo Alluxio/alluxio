@@ -387,7 +387,7 @@ public final class ShellUtils {
    *
    * @param cmd shell command to execute
    * @return the output of the executed command
-   * @throws {@link IOException} in various situations:
+   * @throws IOException in various situations:
    *  1. {@link ExitCodeException} when exit code is non-zero
    *  2. when the executable is not valid, i.e. running ls in Windows
    *  3. execution interrupted
@@ -403,7 +403,7 @@ public final class ShellUtils {
    *
    * @param cmd shell command to execute
    * @return the output of the executed command
-   * @throws {@link IOException} in various situations:
+   * @throws IOException in various situations:
    *  1. when the executable is not valid, i.e. running ls in Windows
    *  2. execution interrupted
    *  3. other normal reasons for IOException
@@ -420,7 +420,7 @@ public final class ShellUtils {
    * @param hostname Hostname where the command should execute
    * @param cmd shell command to execute
    * @return the output of the executed command
-   * @throws {@link IOException} in various situations:
+   * @throws IOException in various situations:
    *  1. when the executable is not valid, i.e. running ls in Windows
    *  2. execution interrupted
    *  3. other normal reasons for IOException
