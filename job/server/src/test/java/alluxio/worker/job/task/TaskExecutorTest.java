@@ -25,8 +25,8 @@ import alluxio.job.plan.PlanDefinition;
 import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.JobServerContext;
 import alluxio.job.RunTaskContext;
-
 import alluxio.job.util.SerializationUtils;
+
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import org.junit.Before;
@@ -70,7 +70,6 @@ public final class TaskExecutorTest {
     when(mRegistry.getJobDefinition(any(JobConfig.class))).thenReturn(planDefinition);
     when(planDefinition.runTask(any(JobConfig.class), eq(taskArgs), any(RunTaskContext.class)))
         .thenReturn(taskResult);
-
 
     RunTaskCommand command = RunTaskCommand.newBuilder()
         .setJobConfig(ByteString.copyFrom(SerializationUtils.serialize(jobConfig)))
