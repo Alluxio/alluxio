@@ -56,7 +56,7 @@ public final class RuntimeConstants {
 
   /** The URL of Alluxio security documentation. */
   public static final String ALLUXIO_SECURITY_DOCS_URL = ALLUXIO_DOCS_URL
-      + "/en/advanced/Security.html";
+      + "/en/operation/Security.html";
 
   private RuntimeConstants() {} // prevent instantiation
 }

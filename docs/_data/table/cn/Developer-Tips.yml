@@ -5,7 +5,7 @@ formatWorker:
 bootstrapConf:
   如果引导程序配置文件<code>alluxio-env.sh</code>不存在，利用<code>ALLUXIO_MASTER_HOSTNAME</code>生成。
 fs:
-  在命令行中与Alluxio进行交互，从而完成基本的文件系统操作。详情见<a href="Command-Line-Interface.html">Command Line</a>。
+  在命令行中与Alluxio进行交互，从而完成基本的文件系统操作。详情见[用户命令行]({{ '/cn/operation/User-CLI.html' | relativize_url }})。
 runTest:
   在一个Alluxio集群上运行一个端到端的测试。<code>Example</code>为"Basic"或者"BasicNonByteBuffer"。<code>ReadType</code>为"CACHE_PROMOTE", "CACHE",或者"NO_CACHE"。<code>WriteType</code>为"MUST_CACHE", "CACHE_THROUGH"或"THROUGH"。
 runTests:

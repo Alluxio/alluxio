@@ -152,7 +152,7 @@ Using Alluxio's Java API, users can set the policy in `CreateFilePOptions` for w
 `OpenFilePOptions` for reading files into Alluxio.
 
 Users can override the default policy class in the
-[configuration file]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}) at property
+[configuration file]({{ '/en/operation/Configuration.html' | relativize_url }}) at property
 `alluxio.user.block.write.location.policy.class`. The built-in policies include:
 
 * **LocalFirstPolicy (alluxio.client.block.policy.LocalFirstPolicy)**
@@ -185,7 +185,7 @@ this policy preference exists only for local workers, not remote workers; remote
 blocks to the highest tier.
 
 By default, data is written to the top tier. Users can modify the default setting through the
-`alluxio.user.file.write.tier.default` [configuration]({{ '/en/basic/Configuration-Settings.html' | relativize_url }})
+`alluxio.user.file.write.tier.default` [configuration]({{ '/en/operation/Configuration.html' | relativize_url }})
 property or override it through an option to the `FileSystem#createFile(AlluxioURI)` API call.
 
 #### Accessing an existing file in Alluxio

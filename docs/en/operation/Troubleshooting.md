@@ -3,7 +3,7 @@ layout: global
 title: Troubleshooting
 nickname: Troubleshooting
 group: Operations
-priority: 0
+priority: 14
 ---
 
 * Table of Contents
@@ -31,7 +31,7 @@ in the case the problem has been discussed before.
 The client-side logs are also helpful when Alluxio service is running but the client cannot connect to the servers.
 Alluxio client emits logging messages through log4j, so the location of the logs is determined by the client side
 log4j configuration used by the application. For more information about logging, please check out
-[this page]({{ '/en/advanced/Client-Logging.html' | relativize_url }}).
+[this page]({{ '/en/operation/Client-Logging.html' | relativize_url }}).
 
 ## Alluxio remote debug
 
@@ -62,7 +62,7 @@ evaluation.
 
 A: Check `${ALLUXIO_HOME}/logs` to see if there are any master or worker logs. Look for any errors
 in these logs. Double check if you missed any configuration
-steps in [Running-Alluxio-Locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+steps in [Running-Alluxio-Locally]({{ '/en/install/Running-Alluxio-Locally.html' | relativize_url }}).
 
 Typical issues:
 - `ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS` is not configured correctly.
@@ -70,7 +70,7 @@ Typical issues:
 
 ### Q: I'm trying to deploy Alluxio in a cluster with Spark and HDFS. Are there any suggestions?
 
-A: Please follow [Running-Alluxio-on-a-Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}),
+A: Please follow [Running-Alluxio-on-a-Cluster]({{ '/en/install/Running-Alluxio-On-a-Cluster.html' | relativize_url }}),
 [Configuring-Alluxio-with-HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }}).
 
 Tips:
@@ -156,17 +156,17 @@ A: This problem can be caused by different possible reasons.
 - Please double check if the port of Alluxio master address is correct. The default listening port for Alluxio master is port 19998,
 while a common mistake causing this error message is due to using a wrong port in master address (e.g., using port 19999 which is the default Web UI port for Alluxio master).
 - Please ensure that the security settings of Alluxio client and master are consistent.
-Alluxio provides different approaches to [authenticate]({{ '/en/advanced/Security.html' | relativize_url }}#authentication) users by configuring `alluxio.security.authentication.type`.
+Alluxio provides different approaches to [authenticate]({{ '/en/operation/Security.html' | relativize_url }}#authentication) users by configuring `alluxio.security.authentication.type`.
 This error happens if this property is configured with different values across servers and clients
 (e.g., one uses the default value `NOSASL` while the other is customized to `SIMPLE`).
-Please read [Configuration-Settings]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}) for how to customize Alluxio clusters and applications.
+Please read [Configuration-Settings]({{ '/en/operation/Configuration.html' | relativize_url }}) for how to customize Alluxio clusters and applications.
 
 ### Q: I'm copying or writing data to Alluxio while seeing error messages like "Failed to cache: Not enough space to store block on worker". Why?
 
 A: This error indicates insufficient space left on Alluxio workers to complete your write request.
 
 - Check if you have any files unnecessarily pinned in memory and unpin them to release space.
-See [Command-Line-Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) for more details.
+See [Command-Line-Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) for more details.
 - Increase the capacity of workers by changing `alluxio.worker.memory.size` property.
 See [Configuration]({{ '/en/reference/Properties-List.html' | relativize_url }}#common-configuration) for more description.
 
@@ -187,7 +187,7 @@ To reveal new files from under file system, you can use the command
 configuration property in masters' `alluxio-site.properties`.
 The value for the configuration property is used to determine the minimum interval between two syncs.
 You can read more about loading files from underfile system 
-[here]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}#ufs-metadata-sync).
+[here]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}#ufs-metadata-sync).
 
 ### Q: I see an error "Block ?????? is unavailable in both Alluxio and UFS" while reading some file. Where is my file?
 
@@ -223,7 +223,7 @@ node by default).
 A: Alluxio accelerates your system performance by leveraging temporal or spatial locality using distributed in-memory storage
 (and tiered storage). If your workloads don't have any locality, you will not see noticeable performance boost.
 
-**For a comprehensive guide on tuning performance of Alluxio cluster, please check out [this page]({{ '/en/advanced/Performance-Tuning.html' | relativize_url }}).**
+**For a comprehensive guide on tuning performance of Alluxio cluster, please check out [this page]({{ '/en/operation/Performance-Tuning.html' | relativize_url }}).**
 
 ## Environment
 

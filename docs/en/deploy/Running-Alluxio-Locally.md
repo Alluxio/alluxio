@@ -2,7 +2,7 @@
 layout: global
 title: Deploy Alluxio Locally
 nickname: Local Machine
-group: Deploying Alluxio
+group: Install Alluxio
 priority: 1
 ---
 

@@ -2,7 +2,7 @@
 layout: global
 title: Aliyun Object Storage Service
 nickname: Aliyun Object Storage Service
-group: Under Stores
+group: Storage Integrations
 priority: 10
 ---
 
@@ -15,7 +15,7 @@ Object Storage Service (OSS) is a massive, secure and highly reliable cloud stor
 ## Prerequisites
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
-machines. You can either [download the precompiled binaries directly]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
+machines. You can either [download the precompiled binaries directly]({{ '/en/install/Running-Alluxio-Locally.html' | relativize_url }})
 with the correct Hadoop version (recommended), or 
 [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) (for advanced users).
 
@@ -89,7 +89,7 @@ $ ./bin/alluxio-stop.sh local
 
 An OSS location can be mounted at a nested directory in the Alluxio namespace to have unified
 access to multiple under storage systems. Alluxio's
-[Mount Command]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#mount) can be used for this purpose.
+[Mount Command]({{ '/en/operation/User-CLI.html' | relativize_url }}#mount) can be used for this purpose.
 For example, the following command mounts a directory inside an OSS bucket into Alluxio directory
 `/oss`:
 

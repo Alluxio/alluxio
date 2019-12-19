@@ -2,7 +2,7 @@
 layout: global
 title: 度量指标系统
 group: Operations
-priority: 0
+priority: 5
 ---
 
 * 内容列表
