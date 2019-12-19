@@ -365,7 +365,8 @@ public final class MigrateDefinition
       }
     }
     if (deleteSource) {
-      fileSystem.delete(new AlluxioURI(source), DeletePOptions.newBuilder().setUnchecked(true).build());
+      fileSystem.delete(new AlluxioURI(source),
+          DeletePOptions.newBuilder().setUnchecked(true).build());
     }
   }
 
