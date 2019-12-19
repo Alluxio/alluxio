@@ -137,7 +137,7 @@ public final class ShellUtils {
 
   @NotThreadSafe
   private static class Command {
-    private String[] mCommand;
+    protected String[] mCommand;
 
     private Command(String[] execString) {
       mCommand = execString.clone();
@@ -202,7 +202,7 @@ public final class ShellUtils {
      * @return {@link CommandReturn} object representation of stdout, stderr and exit code
      */
     protected CommandReturn runTolerateFailure() throws IOException {
-      Process process = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
+      Process process = new ProcessBuilder(mCommand).start();
 
       BufferedReader inReader =
               new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -232,7 +232,7 @@ public final class ShellUtils {
         int exitCode = process.waitFor();
         if (exitCode != 0) {
           // log error instead of throwing exception
-          LOG.warn(String.format("Failed to run command %s\nExit Code: %s\nStderr: %s",
+          LOG.warn(String.format("Failed to run command %s%nExit Code: %s%nStderr: %s",
                   Arrays.toString(mCommand), exitCode, stderr.toString()));
         }
 
@@ -267,8 +267,7 @@ public final class ShellUtils {
 
   @NotThreadSafe
   private static class SshCommand extends Command {
-    private String mHostName;
-    private String[] mCommand;
+    protected String mHostName;
 
     private SshCommand(String[] execString) {
       this("localhost", execString);
@@ -280,6 +279,10 @@ public final class ShellUtils {
       mCommand = new String[]{"bash", "-c",
               String.format("ssh %s %s %s", ShellUtils.COMMON_SSH_OPTS, hostname,
                       String.join(" ", execString))};
+    }
+
+    protected String getHostName() {
+      return mHostName;
     }
   }
 
@@ -376,7 +379,7 @@ public final class ShellUtils {
      * @return pretty formatted output
      */
     public String getFormattedOutput() {
-      return String.format("StatusCode:%s\nStdOut:\n%s\nStdErr:\n%s", getExitCode(),
+      return String.format("StatusCode:%s%nStdOut:%n%s%nStdErr:%n%s", getExitCode(),
               getStdOut(), getStdErr());
     }
   }
