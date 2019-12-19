@@ -8,6 +8,12 @@ package alluxio.grpc.metric;
 
 import "grpc/common.proto";
 
+message ClearMetricsPOptions {
+  optional bool all = 1;
+}
+
+message ClearMetricsPResponse {}
+
 message MetricsHeartbeatPOptions {
   repeated ClientMetrics clientMetrics = 1;
 }
@@ -28,6 +34,12 @@ message MetricsHeartbeatPResponse {}
  * This interface contains metrics master service endpoints for Alluxio clients.
  */
 service MetricsMasterClientService {
+
+
+  /**
+   * Clears the metrics in the cluster.
+   */
+  rpc  ClearMetrics(ClearMetricsPOptions) returns (ClearMetricsPResponse);
 
   /**
    * Periodic metrics master client heartbeat.

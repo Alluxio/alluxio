@@ -87,6 +87,7 @@ public final class FileSystemAdminShell extends AbstractShell {
         new RetryHandlingBlockMasterClient(masterConfig),
         new RetryHandlingMetaMasterClient(masterConfig),
         new RetryHandlingMetaMasterConfigClient(masterConfig),
+        new RetryHandlingMetricsMasterClient(masterConfig),
         new RetryHandlingJournalMasterClient(masterConfig),
         new RetryHandlingJournalMasterClient(jobMasterConfig),
         new RetryHandlingJobMasterClient(jobMasterConfig),
