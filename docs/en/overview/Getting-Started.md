@@ -337,9 +337,9 @@ mounting existing storage systems, and configuring existing applications to inte
 
 Alluxio can be deployed in many different environments.
 
-* [Alluxio on Local Machine]({{ '/en/install/Running-Alluxio-Locally.html' | relativize_url }})
-* [Alluxio Standalone on a Cluster]({{ '/en/install/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
-* [Alluxio on Docker]({{ '/en/install/Running-Alluxio-On-Docker.html' | relativize_url }})
+* [Alluxio on Local Machine]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
+* [Alluxio Standalone on a Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
+* [Alluxio on Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }})
 
 ### Under Storage Systems
 
