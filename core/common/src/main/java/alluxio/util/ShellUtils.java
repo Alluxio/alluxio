@@ -196,8 +196,8 @@ public final class ShellUtils {
     }
 
     /**
-     * Runs a command and returns its stdout, stderr and exit code,
-     * no matter it succeeds or not
+     * Runs a command and returns its stdout, stderr and exit code.
+     * No matter it succeeds or not.
      *
      * @return {@link CommandReturn} object representation of stdout, stderr and exit code
      */
@@ -322,7 +322,7 @@ public final class ShellUtils {
   }
 
   /**
-   * Object representation of a command execution
+   * Object representation of a command execution.
    */
   public static class CommandReturn {
     private int mExitCode;
@@ -330,7 +330,11 @@ public final class ShellUtils {
     private String mStdErr;
 
     /**
-     * Constructor
+     * Creates object from the contents.
+     *
+     * @param code exit code
+     * @param stdOut stdout content
+     * @param stdErr stderr content
      */
     public CommandReturn(int code, String stdOut, String stdErr) {
       mExitCode = code;
@@ -339,7 +343,7 @@ public final class ShellUtils {
     }
 
     /**
-     * Gets the stdout content
+     * Gets the stdout content.
      *
      * @return stdout content
      */
@@ -348,7 +352,7 @@ public final class ShellUtils {
     }
 
     /**
-     * Gets the stderr content
+     * Gets the stderr content.
      *
      * @return stderr content
      */
@@ -357,7 +361,7 @@ public final class ShellUtils {
     }
 
     /**
-     * Gets the exit code
+     * Gets the exit code.
      *
      * @return exit code of execution
      */
@@ -369,7 +373,7 @@ public final class ShellUtils {
      * Formats the object to more readable format.
      * This is not done in toString() because stdout and stderr may be long.
      *
-     * @return
+     * @return pretty formatted output
      */
     public String getFormattedOutput() {
       return String.format("StatusCode:%s\nStdOut:\n%s\nStdErr:\n%s", getExitCode(),
@@ -421,7 +425,8 @@ public final class ShellUtils {
    *  2. execution interrupted
    *  3. other normal reasons for IOException
    */
-  public static CommandReturn sshExecCommandTolerateFailure(String hostname, String... cmd) throws IOException {
+  public static CommandReturn sshExecCommandTolerateFailure(String hostname, String... cmd)
+          throws IOException {
     return new SshCommand(hostname, cmd).runTolerateFailure();
   }
 
