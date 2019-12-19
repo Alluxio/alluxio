@@ -16,7 +16,7 @@ storage system.
 
 The Alluxio binaries must be on your machine. You can either
 [compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
-[download the binaries locally]({{ '/en/install/Running-Alluxio-Locally.html' | relativize_url }}).
+[download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
 ## Configuring Alluxio
 

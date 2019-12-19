@@ -15,7 +15,7 @@ Object Storage Service (OSS) is a massive, secure and highly reliable cloud stor
 ## Prerequisites
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
-machines. You can either [download the precompiled binaries directly]({{ '/en/install/Running-Alluxio-Locally.html' | relativize_url }})
+machines. You can either [download the precompiled binaries directly]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
 with the correct Hadoop version (recommended), or 
 [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) (for advanced users).
 

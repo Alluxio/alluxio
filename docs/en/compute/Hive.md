@@ -18,7 +18,7 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 * [Download and setup Hive](https://cwiki.apache.org/confluence/display/Hive/GettingStarted). If you are using Hive2.1+, 
   make sure to [run the schematool](https://cwiki.apache.org/confluence/display/Hive/GettingStarted#GettingStarted-RunningHiveServer2andBeeline.1)
   before starting Hive. `$HIVE_HOME/bin/schematool -dbType derby -initSchema`
-* Alluxio has been [set up and is running](https://docs.alluxio.io/os/user/2.0/en/install/Running-Alluxio-Locally.html).
+* Alluxio has been [set up and is running](https://docs.alluxio.io/os/user/2.0/en/deploy/Running-Alluxio-Locally.html).
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
   downloaded from Alluxio [download page](https://www.alluxio.io/download).
@@ -245,7 +245,7 @@ Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
 ```
 
 For information about how to connect to Alluxio HA cluster using Zookeeper-based leader election,
-please refer to [HA mode client configuration parameters]({{ '/en/install/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters).
+please refer to [HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters).
 
 If Hive is set up by adding the above HA mode configuration, one can write URIs using the "`alluxio://`" scheme:
 
@@ -254,7 +254,7 @@ hive> alter table u_user set location "alluxio:///ml-100k";
 ```
 
 Since Alluxio 2.0, one can directly use Alluxio HA-style authorities in Hive queries without any configuration setup.
-See [HA authority]({{ '/en/install/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority) for more details.
+See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority) for more details.
 
 ### Experimental: Use Alluxio as the Default Filesystem
 
