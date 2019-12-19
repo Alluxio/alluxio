@@ -21,18 +21,13 @@ import alluxio.exception.BackupException;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupState;
 import alluxio.grpc.BackupStatusPRequest;
-import alluxio.grpc.GrpcChannel;
-import alluxio.grpc.GrpcChannelBuilder;
-import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcService;
-import alluxio.grpc.MessagingServiceGrpc;
 import alluxio.grpc.ServiceType;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.master.journal.CatchupFuture;
-import alluxio.master.transport.GrpcMessagingClientConnection;
-import alluxio.master.transport.GrpcMessagingConnection;
+import alluxio.master.transport.GrpcMessagingClient;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.network.NetworkAddressUtils;
@@ -346,26 +341,16 @@ public class BackupWorkerRole extends AbstractBackupRole {
         // Get leader address.
         Address leaderAddress = new Address(inquireClient.getPrimaryRpcAddress());
 
-        // Create a new gRPC channel for connection with leader.
-        GrpcChannel channel = GrpcChannelBuilder
-            .newBuilder(
-                GrpcServerAddress.create(leaderAddress.host(), leaderAddress.socketAddress()),
-                ServerConfiguration.global())
-            .setClientType("BackupWorker").setSubject(mServerUserState.getSubject())
-            .build();
+        // Create messaging client for backup-leader.
+        GrpcMessagingClient messagingClient = new GrpcMessagingClient(ServerConfiguration.global(),
+            mServerUserState, mExecutorService, "BackupWorker");
 
-        // Create stub for receiving stream from leader.
-        MessagingServiceGrpc.MessagingServiceStub messageClientStub =
-            MessagingServiceGrpc.newStub(channel);
-
-        // Create a client connection to leader.
-        GrpcMessagingConnection leaderConnection = new GrpcMessagingClientConnection(
-            mCatalystContext, mExecutorService, channel, mCatalystRequestTimeout);
-        leaderConnection.setTargetObserver(messageClientStub.connect(leaderConnection));
+        // Initiate the connection to backup-leader on catalyst context and wait.
+        mLeaderConnection =
+            mCatalystContext.execute(() -> messagingClient.connect(leaderAddress)).get().get();
 
         // Activate the connection.
-        activateLeaderConnection(leaderConnection);
-        mLeaderConnection = leaderConnection;
+        activateLeaderConnection(mLeaderConnection);
         LOG.info("Established connection to backup-leader: {}", leaderAddress);
         break;
       } catch (Exception e) {
