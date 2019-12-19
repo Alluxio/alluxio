@@ -120,6 +120,6 @@ public class JobServiceSummaryTest {
   }
 
   private WorkflowInfo createWorkflowInfo(int id, Status status, long lastStatusChangeMs) {
-    return new WorkflowInfo(id, status, lastStatusChangeMs, "", Lists.newArrayList());
+    return new WorkflowInfo(id, "name", status, lastStatusChangeMs, "", Lists.newArrayList());
   }
 }
