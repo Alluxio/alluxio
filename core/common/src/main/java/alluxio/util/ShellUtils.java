@@ -196,7 +196,7 @@ public final class ShellUtils {
     }
 
     /**
-     * Runs a command and returns its stdout, stderr and exit code
+     * Runs a command and returns its stdout, stderr and exit code,
      * no matter it succeeds or not
      *
      * @return {@link CommandReturn} object representation of stdout, stderr and exit code
@@ -278,7 +278,8 @@ public final class ShellUtils {
       super(execString);
       mHostName = hostname;
       mCommand = new String[]{"bash", "-c",
-              String.format("ssh %s %s %s", ShellUtils.COMMON_SSH_OPTS, hostname, String.join(" ", execString))};
+              String.format("ssh %s %s %s", ShellUtils.COMMON_SSH_OPTS, hostname,
+                      String.join(" ", execString))};
     }
   }
 
@@ -320,32 +321,59 @@ public final class ShellUtils {
     }
   }
 
+  /**
+   * Object representation of a command execution
+   */
   public static class CommandReturn {
-    int mStatusCode;
-    String mStdOut;
-    String mStdErr;
+    private int mExitCode;
+    private String mStdOut;
+    private String mStdErr;
 
+    /**
+     * Constructor
+     */
     public CommandReturn(int code, String stdOut, String stdErr) {
-      mStatusCode = code;
+      mExitCode = code;
       mStdOut = stdOut;
       mStdErr = stdErr;
     }
 
+    /**
+     * Gets the stdout content
+     *
+     * @return stdout content
+     */
     public String getStdOut() {
       return mStdOut;
     }
 
+    /**
+     * Gets the stderr content
+     *
+     * @return stderr content
+     */
     public String getStdErr() {
       return mStdErr;
     }
 
-    public int getStatusCode() {
-      return mStatusCode;
+    /**
+     * Gets the exit code
+     *
+     * @return exit code of execution
+     */
+    public int getExitCode() {
+      return mExitCode;
     }
 
+    /**
+     * Formats the object to more readable format.
+     * This is not done in toString() because stdout and stderr may be long.
+     *
+     * @return
+     */
     public String getFormattedOutput() {
-      return String.format("StatusCode:%s\nStdOut:\n%s\nStdErr:\n%s", this.getStatusCode(),
-              this.getStdOut(), this.getStdErr());
+      return String.format("StatusCode:%s\nStdOut:\n%s\nStdErr:\n%s", getExitCode(),
+              getStdOut(), getStdErr());
     }
   }
 
@@ -385,6 +413,7 @@ public final class ShellUtils {
    * Preserve exit code, stderr and stdout in object.
    * SSH must be password-less.
    *
+   * @param hostname Hostname where the command should execute
    * @param cmd shell command to execute
    * @return the output of the executed command
    * @throws {@link IOException} in various situations:

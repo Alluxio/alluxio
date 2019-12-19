@@ -19,23 +19,15 @@ import static org.junit.Assume.assumeTrue;
 import alluxio.AlluxioTestDirectory;
 import alluxio.Constants;
 
-import alluxio.grpc.Command;
 import com.google.common.base.Optional;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.powermock.api.mockito.PowerMockito;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 /**
  * Tests the {@link ShellUtils} class.
@@ -153,14 +145,14 @@ public final class ShellUtilsTest {
     // ls temp file
     String[] testCommandSucceed = new String[]{"ls", String.format("%s", testDir.getAbsolutePath())};
     ShellUtils.CommandReturn crs = ShellUtils.execCommandTolerateFailure(testCommandSucceed);
-    assertEquals(0, crs.getStatusCode());
+    assertEquals(0, crs.getExitCode());
     assertTrue(crs.getStdOut().contains(testFile.getName()));
 
     // do sth wrong
     String[] testCommandFail = new String[]{"ls", String.format("%saaaa", testDir.getAbsolutePath())};
     ShellUtils.CommandReturn crf = ShellUtils.execCommandTolerateFailure(testCommandFail);
     System.out.println(crf.getFormattedOutput());
-    assertFalse(crf.getStatusCode() == 0);
+    assertFalse(crf.getExitCode() == 0);
 
     // if there's no such command there will be IOException
     exceptionRule.expect(IOException.class);
@@ -180,13 +172,13 @@ public final class ShellUtilsTest {
     // the temp file is found
     String[] testCommandSucceed = new String[]{"ls", String.format("%s", testDir.getAbsolutePath())};
     ShellUtils.CommandReturn crs = ShellUtils.sshExecCommandTolerateFailure("localhost", testCommandSucceed);
-    assertEquals(0, crs.getStatusCode());
+    assertEquals(0, crs.getExitCode());
     assertTrue(crs.getStdOut().contains(testFile.getName()));
 
     // do sth wrong
     String[] testCommandFail = new String[]{"ls", String.format("%saaaa", testDir.getAbsolutePath())};
     ShellUtils.CommandReturn crf = ShellUtils.sshExecCommandTolerateFailure("localhost", testCommandFail);
-    assertFalse(crf.getStatusCode() == 0);
+    assertFalse(crf.getExitCode() == 0);
 
     // if there's no such command there will be IOException
     String[] testCommandExcept = new String[]{"lsa", String.format("%s", testDir.getAbsolutePath())};
