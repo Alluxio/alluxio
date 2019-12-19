@@ -64,6 +64,15 @@ public final class ShellUtilsTest {
     assertEquals(testString + "\n", result);
   }
 
+  @Test
+  public void execCommandFail() throws Exception {
+    String testString = "false";
+    exceptionRule.expect(ShellUtils.ExitCodeException.class);
+    // run a command that guarantees to fail
+    String result = ShellUtils.execCommand("bash", "-c", " " + testString);
+    assertEquals(testString + "\n", result);
+  }
+
   /**
    * Tests the {@link ShellUtils#execCommand(String...)} method for a group of commands.
    *

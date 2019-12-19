@@ -149,7 +149,7 @@ public final class ShellUtils {
      * @return the output
      * @throws ExitCodeException if the command returns a non-zero exit code
      */
-    String run() throws ExitCodeException, IOException {
+    protected String run() throws ExitCodeException, IOException {
       Process process = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
 
       BufferedReader inReader =
@@ -201,7 +201,7 @@ public final class ShellUtils {
      *
      * @return {@link CommandReturn} object representation of stdout, stderr and exit code
      */
-    CommandReturn runTolerateFailure() throws IOException {
+    protected CommandReturn runTolerateFailure() throws IOException {
       Process process = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
 
       BufferedReader inReader =
