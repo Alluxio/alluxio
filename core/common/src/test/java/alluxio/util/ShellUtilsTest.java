@@ -35,7 +35,7 @@ import java.util.List;
 public final class ShellUtilsTest {
 
   @Rule
-  public ExpectedException exceptionRule = ExpectedException.none();
+  public ExpectedException mExceptionRule = ExpectedException.none();
 
   public static File createFileInDir(File dir, String fileName) throws IOException {
     File newFile = new File(Paths.get(dir.getAbsolutePath(), fileName).toString());
@@ -59,7 +59,7 @@ public final class ShellUtilsTest {
   @Test
   public void execCommandFail() throws Exception {
     String testString = "false";
-    exceptionRule.expect(ShellUtils.ExitCodeException.class);
+    mExceptionRule.expect(ShellUtils.ExitCodeException.class);
     // run a command that guarantees to fail
     String result = ShellUtils.execCommand("bash", "-c", " " + testString);
     assertEquals(testString + "\n", result);
@@ -143,21 +143,24 @@ public final class ShellUtilsTest {
     File testFile = createFileInDir(testDir, "testFile");
 
     // ls temp file
-    String[] testCommandSucceed = new String[]{"ls", String.format("%s", testDir.getAbsolutePath())};
+    String[] testCommandSucceed = new String[]{"ls",
+            String.format("%s", testDir.getAbsolutePath())};
     ShellUtils.CommandReturn crs = ShellUtils.execCommandTolerateFailure(testCommandSucceed);
     assertEquals(0, crs.getExitCode());
     assertTrue(crs.getStdOut().contains(testFile.getName()));
 
     // do sth wrong
-    String[] testCommandFail = new String[]{"ls", String.format("%saaaa", testDir.getAbsolutePath())};
+    String[] testCommandFail = new String[]{"ls",
+            String.format("%saaaa", testDir.getAbsolutePath())};
     ShellUtils.CommandReturn crf = ShellUtils.execCommandTolerateFailure(testCommandFail);
     System.out.println(crf.getFormattedOutput());
     assertFalse(crf.getExitCode() == 0);
 
     // if there's no such command there will be IOException
-    exceptionRule.expect(IOException.class);
-    exceptionRule.expectMessage("No such file or directory");
-    String[] testCommandExcept = new String[]{"lsa", String.format("%s", testDir.getAbsolutePath())};
+    mExceptionRule.expect(IOException.class);
+    mExceptionRule.expectMessage("No such file or directory");
+    String[] testCommandExcept = new String[]{"lsa",
+            String.format("%s", testDir.getAbsolutePath())};
     // lsa is not a valid executable
     ShellUtils.execCommandTolerateFailure(testCommandExcept);
   }
@@ -170,21 +173,27 @@ public final class ShellUtilsTest {
     File testFile = createFileInDir(testDir, "testFile");
 
     // the temp file is found
-    String[] testCommandSucceed = new String[]{"ls", String.format("%s", testDir.getAbsolutePath())};
-    ShellUtils.CommandReturn crs = ShellUtils.sshExecCommandTolerateFailure("localhost", testCommandSucceed);
+    String[] testCommandSucceed = new String[]{"ls",
+            String.format("%s", testDir.getAbsolutePath())};
+    ShellUtils.CommandReturn crs = ShellUtils.sshExecCommandTolerateFailure("localhost",
+            testCommandSucceed);
     assertEquals(0, crs.getExitCode());
     assertTrue(crs.getStdOut().contains(testFile.getName()));
 
     // do sth wrong
-    String[] testCommandFail = new String[]{"ls", String.format("%saaaa", testDir.getAbsolutePath())};
-    ShellUtils.CommandReturn crf = ShellUtils.sshExecCommandTolerateFailure("localhost", testCommandFail);
+    String[] testCommandFail = new String[]{"ls",
+            String.format("%saaaa", testDir.getAbsolutePath())};
+    ShellUtils.CommandReturn crf = ShellUtils.sshExecCommandTolerateFailure("localhost",
+            testCommandFail);
     assertFalse(crf.getExitCode() == 0);
 
     // if there's no such command there will be IOException
-    String[] testCommandExcept = new String[]{"lsa", String.format("%s", testDir.getAbsolutePath())};
-    exceptionRule.expect(IOException.class);
-    exceptionRule.expectMessage("No such file or directory");
+    String[] testCommandExcept = new String[]{"lsa",
+            String.format("%s", testDir.getAbsolutePath())};
+    mExceptionRule.expect(IOException.class);
+    mExceptionRule.expectMessage("No such file or directory");
     // lsa is not a valid executable
-    ShellUtils.CommandReturn cre = ShellUtils.sshExecCommandTolerateFailure("localhost", testCommandExcept);
+    ShellUtils.CommandReturn cre = ShellUtils.sshExecCommandTolerateFailure("localhost",
+            testCommandExcept);
   }
 }
