@@ -164,36 +164,4 @@ public final class ShellUtilsTest {
     // lsa is not a valid executable
     ShellUtils.execCommandTolerateFailure(testCommandExcept);
   }
-
-  @Test
-  public void sshExecuteCommandTolerateFailure() throws Exception {
-    // create temp file
-    File testDir = AlluxioTestDirectory.createTemporaryDirectory("command");
-
-    File testFile = createFileInDir(testDir, "testFile");
-
-    // the temp file is found
-    String[] testCommandSucceed = new String[]{"ls",
-            String.format("%s", testDir.getAbsolutePath())};
-    ShellUtils.CommandReturn crs = ShellUtils.sshExecCommandTolerateFailure("localhost",
-            testCommandSucceed);
-    assertEquals(0, crs.getExitCode());
-    assertTrue(crs.getStdOut().contains(testFile.getName()));
-
-    // do sth wrong
-    String[] testCommandFail = new String[]{"ls",
-            String.format("%saaaa", testDir.getAbsolutePath())};
-    ShellUtils.CommandReturn crf = ShellUtils.sshExecCommandTolerateFailure("localhost",
-            testCommandFail);
-    assertFalse(crf.getExitCode() == 0);
-
-    // if there's no such command there will be no IOException because ssh is a valid cmd
-    String[] testCommandExcept = new String[]{"lsa",
-            String.format("%s", testDir.getAbsolutePath())};
-
-    // lsa is not a valid executable
-    ShellUtils.CommandReturn cre = ShellUtils.sshExecCommandTolerateFailure("localhost",
-            testCommandExcept);
-    assertNotEquals(0, cre);
-  }
 }
