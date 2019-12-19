@@ -2,8 +2,8 @@
 layout: global
 title: Deploy Alluxio on a Cluster with HA
 nickname: Cluster with HA
-group: Deploying Alluxio
-priority: 2.5
+group: Install Alluxio
+priority: 3
 ---
 
 * Table of Contents

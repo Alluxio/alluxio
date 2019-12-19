@@ -2,7 +2,7 @@
 layout: global
 title: Running Apache Hive with Alluxio
 nickname: Apache Hive
-group: Data Applications
+group: Compute Integrations
 priority: 2
 ---
 
@@ -18,7 +18,7 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 * [Download and setup Hive](https://cwiki.apache.org/confluence/display/Hive/GettingStarted). If you are using Hive2.1+, 
   make sure to [run the schematool](https://cwiki.apache.org/confluence/display/Hive/GettingStarted#GettingStarted-RunningHiveServer2andBeeline.1)
   before starting Hive. `$HIVE_HOME/bin/schematool -dbType derby -initSchema`
-* Alluxio has been [set up and is running](https://docs.alluxio.io/os/user/2.0/en/deploy/Running-Alluxio-Locally.html).
+* Alluxio has been [set up and is running](https://docs.alluxio.io/os/user/2.0/en/install/Running-Alluxio-Locally.html).
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
   downloaded from Alluxio [download page](https://www.alluxio.io/download).
@@ -125,7 +125,7 @@ Alluxio can also serve them for Hive if HDFS is mounted as the under storage of 
 In this example, we assume a HDFS cluster is mounted as the under storage of
 Alluxio root directory (i.e., property `alluxio.master.mount.table.root.ufs=hdfs://namenode:port/`
 is set in `conf/alluxio-site.properties`). Please refer to
-[unified namespace]({{ '/en/advanced/Namespace-Management.html' | relativize_url }})
+[unified namespace]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }})
 for more details about Alluxio `mount` operation.
 
 ### Move an Internal Table from HDFS to Alluxio
@@ -245,7 +245,7 @@ Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
 ```
 
 For information about how to connect to Alluxio HA cluster using Zookeeper-based leader election,
-please refer to [HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters).
+please refer to [HA mode client configuration parameters]({{ '/en/install/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters).
 
 If Hive is set up by adding the above HA mode configuration, one can write URIs using the "`alluxio://`" scheme:
 
@@ -254,7 +254,7 @@ hive> alter table u_user set location "alluxio:///ml-100k";
 ```
 
 Since Alluxio 2.0, one can directly use Alluxio HA-style authorities in Hive queries without any configuration setup.
-See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority) for more details.
+See [HA authority]({{ '/en/install/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority) for more details.
 
 ### Experimental: Use Alluxio as the Default Filesystem
 

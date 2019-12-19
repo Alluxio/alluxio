@@ -2,8 +2,8 @@
 layout: global
 title: Deploy Alluxio on Kubernetes
 nickname: Kubernetes
-group: Deploying Alluxio
-priority: 3
+group: Install Alluxio
+priority: 5
 ---
 
 Alluxio can be run on Kubernetes. This guide demonstrates how to run Alluxio
@@ -235,7 +235,7 @@ secrets:
 ***Examples: Alluxio Storage Management***
 
 Alluxio manages local storage, including memory, on the worker Pods.
-[Multiple-Tier Storage]({{ '/en/advanced/Alluxio-Storage-Management.html#multiple-tier-storage' | relativize_url }})
+[Multiple-Tier Storage]({{ '/en/core-services/Caching.html#multiple-tier-storage' | relativize_url }})
 can be configured using the following reference configurations.
 
 **Memory Tier Only**
@@ -513,7 +513,7 @@ $ kubectl apply -f ./job/alluxio-format-journal-job.yaml
 After the Job completes, it will be deleted by Kubernetes after the defined `ttlSecondsAfterFinished`.
 Then the clean journal will be ready for a new Alluxio master(s) to start with.
 
-If you are running Alluxio workers with [tiered storage]({{ '/en/advanced/Alluxio-Storage-Management.html#multiple-tier-storage' | relativize_url }}),
+If you are running Alluxio workers with [tiered storage]({{ '/en/core-services/Caching.html#multiple-tier-storage' | relativize_url }}),
 and you have Persistent Volumes configured for Alluxio, the storage should be cleaned up too.
 You should delete and recreate the Persistent Volumes.
 

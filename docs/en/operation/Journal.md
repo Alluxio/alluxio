@@ -3,7 +3,7 @@ layout: global
 title: Journal Management
 nickname: Journal Management
 group: Operations
-priority: 0
+priority: 5
 ---
 
 * Table of Contents

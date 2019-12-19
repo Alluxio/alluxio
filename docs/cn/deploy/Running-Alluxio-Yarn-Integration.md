@@ -2,14 +2,14 @@
 layout: global
 title: Alluxio与YARN整合运行
 nickname: Alluxio与YARN整合
-group: Deploying Alluxio
-priority: 4
+group: Install Alluxio
+priority: 5
 ---
 
 * 内容列表
 {:toc}
 
-注意：YARN 不是非常适合像 Alluxio 这样长时间运行的应用，我们推荐根据[该指南](Running-Alluxio-Yarn-Standalone.html)来将 Alluxio 与 YARN 一起运行，而不是作为 YARN 内的一个应用来运行。
+注意：YARN 不是非常适合像 Alluxio 这样长时间运行的应用，我们推荐根据[在YARN Standalone模式上运行Alluxio]({{ '/cn/deploy/Running-Alluxio-Yarn-Standalone.html' | relativize_url }})来将 Alluxio 与 YARN 一起运行，而不是作为 YARN 内的一个应用来运行。
 
 ## 前期准备
 
@@ -18,7 +18,7 @@ priority: 4
 **下载到本地的 [Alluxio](https://alluxio.io/download)**
 
 ## 配置
-通过一些特定的属性来定制Alluxio master和worker(比如，在各个worker节点上设置分层存储)，查阅[Configuration settings](Configuration-Settings.html)
+通过一些特定的属性来定制Alluxio master和worker(比如，在各个worker节点上设置分层存储)，查阅[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }})
 为了确保你的配置能够被ApplicationMaster和Alluxio master/workers都读到，将`alluxio-site.properties` 放到`/etc/alluxio/alluxio-site.properties`中。
 
 ## 运行Alluxio应用

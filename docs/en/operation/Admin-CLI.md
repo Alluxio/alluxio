@@ -3,7 +3,7 @@ layout: global
 title: Admin Command Line Interface
 nickname: Admin CLI
 group: Operations
-priority: 0
+priority: 2
 ---
 
 * Table of Contents
@@ -180,7 +180,7 @@ UFS URI like `hdfs://<name-service>/`, and not `hdfs://<name-service>/<folder>`.
 
 ### pathConf
 
-The `pathConf` command manages [path defaults]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}#path-defaults).
+The `pathConf` command manages [path defaults]({{ '/en/operation/Configuration.html' | relativize_url }}#path-defaults).
 
 #### list
 
