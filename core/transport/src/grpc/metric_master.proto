@@ -8,9 +8,7 @@ package alluxio.grpc.metric;
 
 import "grpc/common.proto";
 
-message ClearMetricsPOptions {
-  optional bool all = 1;
-}
+message ClearMetricsPRequest {}
 
 message ClearMetricsPResponse {}
 
@@ -35,11 +33,10 @@ message MetricsHeartbeatPResponse {}
  */
 service MetricsMasterClientService {
 
-
   /**
    * Clears the metrics in the cluster.
    */
-  rpc  ClearMetrics(ClearMetricsPOptions) returns (ClearMetricsPResponse);
+  rpc  ClearMetrics(ClearMetricsPRequest) returns (ClearMetricsPResponse);
 
   /**
    * Periodic metrics master client heartbeat.

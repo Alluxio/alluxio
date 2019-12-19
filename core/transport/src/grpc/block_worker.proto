@@ -23,6 +23,9 @@ service BlockWorker {
   rpc AsyncCache (AsyncCacheRequest) returns (AsyncCacheResponse);
   rpc RemoveBlock (RemoveBlockRequest) returns (RemoveBlockResponse);
   rpc MoveBlock (MoveBlockRequest) returns (MoveBlockResponse);
+
+  // TODO(lu) Move to metrics worker
+  rpc ClearMetrics (ClearMetricsRequest) returns (ClearMetricsResponse);
 }
 
 // The check request
@@ -157,3 +160,7 @@ message MoveBlockRequest {
 }
 
 message MoveBlockResponse {}
+
+message ClearMetricsRequest {}
+
+message ClearMetricsResponse {}

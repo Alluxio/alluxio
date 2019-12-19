@@ -11,10 +11,11 @@
 
 package alluxio.client.metrics;
 
-import alluxio.grpc.ClearMetricsPOptions;
+import alluxio.grpc.ClientMetrics;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Interface for a metrics master client.
@@ -22,9 +23,14 @@ import java.io.IOException;
 public interface MetricsMasterClient extends Closeable {
 
   /**
-   * Clear the metrics stored in metrics system and metrics store.
-   *
-   * @param clearMetricsOptions the options to clear metrics
+   * Clear the master metrics.
    */
-  void clearMetrics(ClearMetricsPOptions clearMetricsOptions) throws IOException;
+  void clearMetrics() throws IOException;
+
+  /**
+   * The method the worker should periodically execute to heartbeat back to the master.
+   *
+   * @param metrics a list of client metrics
+   */
+  void heartbeat(final List<ClientMetrics> metrics) throws IOException;
 }

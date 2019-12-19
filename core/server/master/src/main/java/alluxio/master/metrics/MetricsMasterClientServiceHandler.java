@@ -12,7 +12,7 @@
 package alluxio.master.metrics;
 
 import alluxio.RpcUtils;
-import alluxio.grpc.ClearMetricsPOptions;
+import alluxio.grpc.ClearMetricsPRequest;
 import alluxio.grpc.ClearMetricsPResponse;
 import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsHeartbeatPResponse;
@@ -50,12 +50,12 @@ public final class MetricsMasterClientServiceHandler
   }
 
   @Override
-  public void clearMetrics(ClearMetricsPOptions options,
+  public void clearMetrics(ClearMetricsPRequest request,
       StreamObserver<ClearMetricsPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mMetricsMaster.clearMetrics(options);
+      mMetricsMaster.clearMetrics();
       return ClearMetricsPResponse.newBuilder().build();
-    }, "clearMetrics", "request=%s", responseObserver, options);
+    }, "clearMetrics", "request=%s", responseObserver, request);
   }
 
   @Override

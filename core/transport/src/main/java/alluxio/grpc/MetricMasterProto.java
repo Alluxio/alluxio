@@ -15,10 +15,10 @@ public final class MetricMasterProto {
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
   static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_alluxio_grpc_metric_ClearMetricsPOptions_descriptor;
+    internal_static_alluxio_grpc_metric_ClearMetricsPRequest_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_alluxio_grpc_metric_ClearMetricsPOptions_fieldAccessorTable;
+      internal_static_alluxio_grpc_metric_ClearMetricsPRequest_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_grpc_metric_ClearMetricsPResponse_descriptor;
   static final 
@@ -54,23 +54,23 @@ public final class MetricMasterProto {
   static {
     java.lang.String[] descriptorData = {
       "\n\030grpc/metric_master.proto\022\023alluxio.grpc" +
-      ".metric\032\021grpc/common.proto\"#\n\024ClearMetri" +
-      "csPOptions\022\013\n\003all\030\001 \001(\010\"\027\n\025ClearMetricsP" +
-      "Response\"U\n\030MetricsHeartbeatPOptions\0229\n\r" +
-      "clientMetrics\030\001 \003(\0132\".alluxio.grpc.metri" +
-      "c.ClientMetrics\"Z\n\rClientMetrics\022\020\n\010clie" +
-      "ntId\030\001 \001(\t\022\020\n\010hostname\030\002 \001(\t\022%\n\007metrics\030" +
-      "\003 \003(\0132\024.alluxio.grpc.Metric\"Z\n\030MetricsHe" +
-      "artbeatPRequest\022>\n\007options\030\001 \001(\0132-.allux" +
-      "io.grpc.metric.MetricsHeartbeatPOptions\"" +
-      "\033\n\031MetricsHeartbeatPResponse2\366\001\n\032Metrics" +
-      "MasterClientService\022e\n\014ClearMetrics\022).al" +
-      "luxio.grpc.metric.ClearMetricsPOptions\032*" +
-      ".alluxio.grpc.metric.ClearMetricsPRespon" +
-      "se\022q\n\020MetricsHeartbeat\022-.alluxio.grpc.me" +
-      "tric.MetricsHeartbeatPRequest\032..alluxio." +
-      "grpc.metric.MetricsHeartbeatPResponseB#\n" +
-      "\014alluxio.grpcB\021MetricMasterProtoP\001"
+      ".metric\032\021grpc/common.proto\"\026\n\024ClearMetri" +
+      "csPRequest\"\027\n\025ClearMetricsPResponse\"U\n\030M" +
+      "etricsHeartbeatPOptions\0229\n\rclientMetrics" +
+      "\030\001 \003(\0132\".alluxio.grpc.metric.ClientMetri" +
+      "cs\"Z\n\rClientMetrics\022\020\n\010clientId\030\001 \001(\t\022\020\n" +
+      "\010hostname\030\002 \001(\t\022%\n\007metrics\030\003 \003(\0132\024.allux" +
+      "io.grpc.Metric\"Z\n\030MetricsHeartbeatPReque" +
+      "st\022>\n\007options\030\001 \001(\0132-.alluxio.grpc.metri" +
+      "c.MetricsHeartbeatPOptions\"\033\n\031MetricsHea" +
+      "rtbeatPResponse2\366\001\n\032MetricsMasterClientS" +
+      "ervice\022e\n\014ClearMetrics\022).alluxio.grpc.me" +
+      "tric.ClearMetricsPRequest\032*.alluxio.grpc" +
+      ".metric.ClearMetricsPResponse\022q\n\020Metrics" +
+      "Heartbeat\022-.alluxio.grpc.metric.MetricsH" +
+      "eartbeatPRequest\032..alluxio.grpc.metric.M" +
+      "etricsHeartbeatPResponseB#\n\014alluxio.grpc" +
+      "B\021MetricMasterProtoP\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -85,12 +85,12 @@ public final class MetricMasterProto {
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           alluxio.grpc.CommonProto.getDescriptor(),
         }, assigner);
-    internal_static_alluxio_grpc_metric_ClearMetricsPOptions_descriptor =
+    internal_static_alluxio_grpc_metric_ClearMetricsPRequest_descriptor =
       getDescriptor().getMessageTypes().get(0);
-    internal_static_alluxio_grpc_metric_ClearMetricsPOptions_fieldAccessorTable = new
+    internal_static_alluxio_grpc_metric_ClearMetricsPRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_alluxio_grpc_metric_ClearMetricsPOptions_descriptor,
-        new java.lang.String[] { "All", });
+        internal_static_alluxio_grpc_metric_ClearMetricsPRequest_descriptor,
+        new java.lang.String[] { });
     internal_static_alluxio_grpc_metric_ClearMetricsPResponse_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_alluxio_grpc_metric_ClearMetricsPResponse_fieldAccessorTable = new

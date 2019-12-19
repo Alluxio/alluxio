@@ -15,6 +15,7 @@ import alluxio.ClientContext;
 import alluxio.client.job.RetryHandlingJobMasterClient;
 import alluxio.client.journal.RetryHandlingJournalMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.client.metrics.RetryHandlingMetricsMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;

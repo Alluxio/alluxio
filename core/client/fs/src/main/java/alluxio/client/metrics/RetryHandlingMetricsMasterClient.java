@@ -14,7 +14,7 @@ package alluxio.client.metrics;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.ClearMetricsPOptions;
+import alluxio.grpc.ClearMetricsPRequest;
 import alluxio.grpc.ClientMetrics;
 import alluxio.grpc.MetricsHeartbeatPOptions;
 import alluxio.grpc.MetricsHeartbeatPRequest;
@@ -65,15 +65,11 @@ public class RetryHandlingMetricsMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public void clearMetrics(ClearMetricsPOptions clearMetricsOptions) throws IOException {
-    retryRPC(() -> mClient.clearMetrics(clearMetricsOptions));
+  public void clearMetrics() throws IOException {
+    retryRPC(() -> mClient.clearMetrics(ClearMetricsPRequest.newBuilder().build()));
   }
 
-  /**
-   * The method the worker should periodically execute to heartbeat back to the master.
-   *
-   * @param metrics a list of client metrics
-   */
+  @Override
   public void heartbeat(final List<ClientMetrics> metrics) throws IOException {
     connect();
     try {
