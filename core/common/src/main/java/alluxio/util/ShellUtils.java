@@ -250,15 +250,20 @@ public final class ShellUtils {
           // see: https://bugs.openjdk.java.net/browse/JDK-8024521
           // issue is fixed in build 7u60
           InputStream stdoutStream = process.getInputStream();
-          InputStream stderrStream = process.getErrorStream();
+
           synchronized (stdoutStream) {
             inReader.close();
           }
+        } catch (IOException e) {
+          LOG.warn("Error while closing the input stream", e);
+        }
+        try {
+          InputStream stderrStream = process.getErrorStream();
           synchronized (stderrStream) {
             errReader.close();
           }
         } catch (IOException e) {
-          LOG.warn("Error while closing the input stream and error stream", e);
+          LOG.warn("Error while closing the error stream", e);
         }
         process.destroy();
       }
