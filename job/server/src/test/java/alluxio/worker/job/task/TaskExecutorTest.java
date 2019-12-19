@@ -11,17 +11,27 @@
 
 package alluxio.worker.job.task;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import alluxio.grpc.RunTaskCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.PlanDefinition;
 import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.JobServerContext;
 import alluxio.job.RunTaskContext;
 
+import alluxio.job.util.SerializationUtils;
 import com.google.common.collect.Lists;
+import com.google.protobuf.ByteString;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -49,44 +59,53 @@ public final class TaskExecutorTest {
   public void runCompletion() throws Exception {
     long jobId = 1;
     long taskId = 2;
-    JobConfig jobConfig = Mockito.mock(JobConfig.class);
+    JobConfig jobConfig = mock(JobConfig.class);
+
     Serializable taskArgs = Lists.newArrayList(1);
-    RunTaskContext context = Mockito.mock(RunTaskContext.class);
+    RunTaskContext context = mock(RunTaskContext.class);
     Integer taskResult = 1;
     @SuppressWarnings("unchecked")
     PlanDefinition<JobConfig, Serializable, Serializable> planDefinition =
-        Mockito.mock(PlanDefinition.class);
-    Mockito.when(mRegistry.getJobDefinition(jobConfig)).thenReturn(planDefinition);
-    Mockito.when(planDefinition.runTask(Mockito.eq(jobConfig), Mockito.eq(taskArgs),
-        Mockito.any(RunTaskContext.class))).thenReturn(taskResult);
+        mock(PlanDefinition.class);
+    when(mRegistry.getJobDefinition(any(JobConfig.class))).thenReturn(planDefinition);
+    when(planDefinition.runTask(any(JobConfig.class), eq(taskArgs), any(RunTaskContext.class)))
+        .thenReturn(taskResult);
+
+
+    RunTaskCommand command = RunTaskCommand.newBuilder()
+        .setJobConfig(ByteString.copyFrom(SerializationUtils.serialize(jobConfig)))
+        .setTaskArgs(ByteString.copyFrom(SerializationUtils.serialize(taskArgs))).build();
 
     TaskExecutor executor =
-        new TaskExecutor(jobId, taskId, jobConfig, taskArgs, context, mTaskExecutorManager);
+        new TaskExecutor(jobId, taskId, command, context, mTaskExecutorManager);
     executor.run();
 
-    Mockito.verify(planDefinition).runTask(jobConfig, taskArgs, context);
-    Mockito.verify(mTaskExecutorManager).notifyTaskCompletion(jobId, taskId, taskResult);
+    verify(planDefinition).runTask(any(JobConfig.class), eq(taskArgs), eq(context));
+    verify(mTaskExecutorManager).notifyTaskCompletion(jobId, taskId, taskResult);
   }
 
   @Test
   public void runFailure() throws Exception {
     long jobId = 1;
     long taskId = 2;
-    JobConfig jobConfig = Mockito.mock(JobConfig.class);
+    JobConfig jobConfig = mock(JobConfig.class);
     Serializable taskArgs = Lists.newArrayList(1);
-    RunTaskContext context = Mockito.mock(RunTaskContext.class);
+    RunTaskContext context = mock(RunTaskContext.class);
     @SuppressWarnings("unchecked")
     PlanDefinition<JobConfig, Serializable, Serializable> planDefinition =
-        Mockito.mock(PlanDefinition.class);
-    Mockito.when(mRegistry.getJobDefinition(jobConfig)).thenReturn(planDefinition);
-    Mockito.doThrow(new UnsupportedOperationException("failure")).when(planDefinition)
+        mock(PlanDefinition.class);
+    when(mRegistry.getJobDefinition(jobConfig)).thenReturn(planDefinition);
+    doThrow(new UnsupportedOperationException("failure")).when(planDefinition)
         .runTask(jobConfig, taskArgs, context);
 
+    RunTaskCommand command = RunTaskCommand.newBuilder()
+        .setJobConfig(ByteString.copyFrom(SerializationUtils.serialize(jobConfig)))
+        .setTaskArgs(ByteString.copyFrom(SerializationUtils.serialize(taskArgs))).build();
+
     TaskExecutor executor =
-        new TaskExecutor(jobId, taskId, jobConfig, taskArgs, context, mTaskExecutorManager);
+        new TaskExecutor(jobId, taskId, command, context, mTaskExecutorManager);
     executor.run();
 
-    Mockito.verify(mTaskExecutorManager).notifyTaskFailure(Mockito.eq(jobId), Mockito.eq(taskId),
-        Mockito.anyString());
+    verify(mTaskExecutorManager).notifyTaskFailure(eq(jobId), eq(taskId), anyString());
   }
 }
