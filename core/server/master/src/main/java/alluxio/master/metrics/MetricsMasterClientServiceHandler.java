@@ -12,6 +12,8 @@
 package alluxio.master.metrics;
 
 import alluxio.RpcUtils;
+import alluxio.grpc.ClearMetricsPOptions;
+import alluxio.grpc.ClearMetricsPResponse;
 import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsHeartbeatPResponse;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
@@ -45,6 +47,15 @@ public final class MetricsMasterClientServiceHandler
   public MetricsMasterClientServiceHandler(MetricsMaster metricsMaster) {
     Preconditions.checkNotNull(metricsMaster, "metricsMaster");
     mMetricsMaster = metricsMaster;
+  }
+
+  @Override
+  public void clearMetrics(ClearMetricsPOptions options,
+      StreamObserver<ClearMetricsPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mMetricsMaster.clearMetrics(options);
+      return ClearMetricsPResponse.newBuilder().build();
+    }, "clearMetrics", "request=%s", responseObserver, options);
   }
 
   @Override

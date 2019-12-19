@@ -11,6 +11,8 @@
 
 package alluxio.client.metrics;
 
+import alluxio.grpc.ClearMetricsPOptions;
+
 import java.io.Closeable;
 import java.io.IOException;
 
@@ -22,7 +24,7 @@ public interface MetricsMasterClient extends Closeable {
   /**
    * Clear the metrics stored in metrics system and metrics store.
    *
-   * @param clearMetricsRequest the request to clear metrics
+   * @param clearMetricsOptions the options to clear metrics
    */
-  void clearMetrics(ClearMetricsPRequest clearMetricsRequest) throws IOException;
+  void clearMetrics(ClearMetricsPOptions clearMetricsOptions) throws IOException;
 }

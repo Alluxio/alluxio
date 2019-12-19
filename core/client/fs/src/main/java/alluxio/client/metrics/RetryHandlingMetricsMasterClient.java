@@ -13,32 +13,17 @@ package alluxio.client.metrics;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.BackupPRequest;
-import alluxio.grpc.BackupStatusPRequest;
-import alluxio.grpc.CheckpointPOptions;
+import alluxio.grpc.ClearMetricsPOptions;
 import alluxio.grpc.ClientMetrics;
-import alluxio.grpc.GetConfigReportPOptions;
-import alluxio.grpc.GetMasterInfoPOptions;
-import alluxio.grpc.GetMetricsPOptions;
-import alluxio.grpc.MasterInfo;
-import alluxio.grpc.MasterInfoField;
-import alluxio.grpc.MetaMasterClientServiceGrpc;
-import alluxio.grpc.MetricValue;
 import alluxio.grpc.MetricsHeartbeatPOptions;
 import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
-import alluxio.wire.BackupStatus;
-import alluxio.wire.ConfigCheckReport;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -80,8 +65,8 @@ public class RetryHandlingMetricsMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public void clearMetrics(ClearMetricsPRequest clearMetricsRequest) throws IOException {
-    return retryRPC(() -> BackupStatus.fromProto(mClient.clearMetrics(clearMetricsRequest)));
+  public void clearMetrics(ClearMetricsPOptions clearMetricsOptions) throws IOException {
+    retryRPC(() -> mClient.clearMetrics(clearMetricsOptions));
   }
 
   /**

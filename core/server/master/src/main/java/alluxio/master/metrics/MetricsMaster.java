@@ -11,6 +11,7 @@
 
 package alluxio.master.metrics;
 
+import alluxio.grpc.ClearMetricsPOptions;
 import alluxio.master.Master;
 import alluxio.metrics.Metric;
 
@@ -21,6 +22,13 @@ import java.util.List;
  * clients.
  */
 public interface MetricsMaster extends Master {
+  /**
+   * Handles the client's clear metrics request.
+   *
+   * @param options clear metrics options
+   */
+  void clearMetrics(ClearMetricsPOptions options);
+
   /**
    * Handles the client's heartbeat request for metrics collection.
    *

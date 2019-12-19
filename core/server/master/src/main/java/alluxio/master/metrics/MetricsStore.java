@@ -17,6 +17,7 @@ import alluxio.grpc.MetricType;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MetricsSystem.InstanceType;
+import alluxio.resource.LockResource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -73,12 +75,15 @@ public class MetricsStore {
     return str;
   }
 
+  // The lock for worker and client metrics set
+  private final ReentrantReadWriteLock mLock = new ReentrantReadWriteLock();
+
   // Although IndexedSet is threadsafe, it lacks an update operation, so we need locking to
   // implement atomic update using remove + add.
-  @GuardedBy("itself")
+  @GuardedBy("mLock")
   private final IndexedSet<Metric> mWorkerMetrics =
       new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
-  @GuardedBy("itself")
+  @GuardedBy("mLock")
   private final IndexedSet<Metric> mClientMetrics =
       new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
 
@@ -93,7 +98,10 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
-    putReportedMetrics(mWorkerMetrics, getFullInstanceId(hostname, null), metrics);
+    try (LockResource r = new LockResource(mLock.readLock())) {
+      putReportedMetrics(mWorkerMetrics,
+          getFullInstanceId(hostname, null), metrics);
+    }
   }
 
   /**
@@ -108,7 +116,9 @@ public class MetricsStore {
     if (metrics.isEmpty()) {
       return;
     }
-    putReportedMetrics(mClientMetrics, getFullInstanceId(hostname, clientId), metrics);
+    try (LockResource r = new LockResource(mLock.readLock())) {
+      putReportedMetrics(mClientMetrics, getFullInstanceId(hostname, clientId), metrics);
+    }
   }
 
   /**
@@ -125,7 +135,7 @@ public class MetricsStore {
    */
   private static void putReportedMetrics(IndexedSet<Metric> metricSet, String instanceId,
       List<Metric> reportedMetrics) {
-    for (Metric metric : reportedMetrics) {
+    for (Metric metric :reportedMetrics) {
       if (metric.getHostname() == null) {
         continue; // ignore metrics whose hostname is null
       }
@@ -156,16 +166,17 @@ public class MetricsStore {
    */
   public Set<Metric> getMetricsByInstanceTypeAndName(
       MetricsSystem.InstanceType instanceType, String name) {
-    if (instanceType == InstanceType.MASTER) {
-      return getMasterMetrics(name);
-    }
-
-    if (instanceType == InstanceType.WORKER) {
-      return mWorkerMetrics.getByField(NAME_INDEX, name);
-    } else if (instanceType == InstanceType.CLIENT) {
-      return mClientMetrics.getByField(NAME_INDEX, name);
-    } else {
-      throw new IllegalArgumentException("Unsupported instance type " + instanceType);
+    try (LockResource r = new LockResource(mLock.readLock())) {
+      if (instanceType == InstanceType.MASTER) {
+        return getMasterMetrics(name);
+      }
+      if (instanceType == InstanceType.WORKER) {
+        return mWorkerMetrics.getByField(NAME_INDEX, name);
+      } else if (instanceType == InstanceType.CLIENT) {
+        return mClientMetrics.getByField(NAME_INDEX, name);
+      } else {
+        throw new IllegalArgumentException("Unsupported instance type " + instanceType);
+      }
     }
   }
 
@@ -188,8 +199,10 @@ public class MetricsStore {
    * the metrics inside metrics sets.
    */
   public void clear() {
-    mWorkerMetrics.clear();
-    mClientMetrics.clear();
-    MetricsSystem.resetAllMetrics();
+    try (LockResource r = new LockResource(mLock.writeLock())) {
+      mWorkerMetrics.clear();
+      mClientMetrics.clear();
+      MetricsSystem.resetAllMetrics();
+    }
   }
 }

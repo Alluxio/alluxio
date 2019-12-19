@@ -11,25 +11,19 @@
 
 package alluxio.cli.fsadmin.metric;
 
-import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.Scope;
+import alluxio.grpc.ClearMetricsPOptions;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Clear the leading master (and workers) metrics.
@@ -70,8 +64,11 @@ public final class ClearCommand extends AbstractFsAdminCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    mMetricsClient.clearMetrics();
-    mMetaClient.backup();
+    ClearMetricsPOptions.Builder optionsBuilder = ClearMetricsPOptions.newBuilder();
+    if (cl.hasOption(ALL_OPTION_NAME)) {
+      optionsBuilder.setAll(true);
+    }
+    mMetricsClient.clearMetrics(optionsBuilder.build());
     return 0;
   }
 

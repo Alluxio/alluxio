@@ -14,7 +14,6 @@ package alluxio.cli.fsadmin.command;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.Command;
 import alluxio.cli.fsadmin.journal.CheckpointCommand;
-import alluxio.cli.fsadmin.journal.QuorumCommand;
 import alluxio.conf.AlluxioConfiguration;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -27,7 +26,7 @@ import java.util.function.BiFunction;
  * Command for managing Alluxio metric system.
  */
 @PublicApi
-public class MetricCommand extends AbstractFsAdminCommand {
+public class MetricsCommand extends AbstractFsAdminCommand {
 
   private static final Map<String, BiFunction<Context, AlluxioConfiguration, ? extends Command>>
       SUB_COMMANDS = new HashMap<>();
@@ -42,7 +41,7 @@ public class MetricCommand extends AbstractFsAdminCommand {
    * @param context fsadmin command context
    * @param alluxioConf Alluxio configuration
    */
-  public MetricCommand(Context context, AlluxioConfiguration alluxioConf) {
+  public MetricsCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
     SUB_COMMANDS.forEach((name, constructor) -> {
       mSubCommands.put(name, constructor.apply(context, alluxioConf));
@@ -70,7 +69,7 @@ public class MetricCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getCommandName() {
-    return "journal";
+    return "metrics";
   }
 
   @Override

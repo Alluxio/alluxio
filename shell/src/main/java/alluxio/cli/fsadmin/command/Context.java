@@ -17,8 +17,8 @@ import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.meta.MetaMasterConfigClient;
-
 import alluxio.client.metrics.MetricsMasterClient;
+
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
