@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -135,7 +136,7 @@ public final class ShellUtils {
   }
 
   @NotThreadSafe
-  private static final class Command {
+  private static class Command {
     private String[] mCommand;
 
     private Command(String[] execString) {
@@ -148,7 +149,7 @@ public final class ShellUtils {
      * @return the output
      * @throws ExitCodeException if the command returns a non-zero exit code
      */
-    private String run() throws ExitCodeException, IOException {
+    String run() throws ExitCodeException, IOException {
       Process process = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
 
       BufferedReader inReader =
@@ -193,6 +194,92 @@ public final class ShellUtils {
         process.destroy();
       }
     }
+
+    /**
+     * Runs a command and returns its stdout, stderr and exit code
+     * no matter it succeeds or not
+     *
+     * @return {@link CommandReturn} object representation of stdout, stderr and exit code
+     */
+    CommandReturn runTolerateFailure() throws IOException {
+      Process process = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
+
+      BufferedReader inReader =
+              new BufferedReader(new InputStreamReader(process.getInputStream()));
+      BufferedReader errReader =
+              new BufferedReader(new InputStreamReader(process.getErrorStream()));
+
+      try {
+        // read the output of the command
+        StringBuilder stdout = new StringBuilder();
+        String outLine = inReader.readLine();
+        while (outLine != null) {
+          stdout.append(outLine);
+          stdout.append("\n");
+          outLine = inReader.readLine();
+        }
+
+        // read the stderr of the command
+        StringBuilder stderr = new StringBuilder();
+        String errLine = errReader.readLine();
+        while (errLine != null) {
+          stderr.append(errLine);
+          stderr.append("\n");
+          errLine = inReader.readLine();
+        }
+
+        // wait for the process to finish and check the exit code
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+          // log error instead of throwing exception
+          LOG.warn(String.format("Failed to run command %s\nExit Code: %s\nStderr: %s",
+                  Arrays.toString(mCommand), exitCode, stderr.toString()));
+        }
+
+        return new CommandReturn(exitCode, stdout.toString(), stderr.toString());
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new IOException(e);
+      } finally {
+        try {
+          // JDK 7 tries to automatically drain the input streams for us
+          // when the process exits, but since close is not synchronized,
+          // it creates a race if we close the stream first and the same
+          // fd is recycled. the stream draining thread will attempt to
+          // drain that fd!! it may block, OOM, or cause bizarre behavior
+          // see: https://bugs.openjdk.java.net/browse/JDK-8024521
+          // issue is fixed in build 7u60
+          InputStream stdoutStream = process.getInputStream();
+          InputStream stderrStream = process.getErrorStream();
+          synchronized (stdoutStream) {
+            inReader.close();
+          }
+          synchronized (stderrStream) {
+            errReader.close();
+          }
+        } catch (IOException e) {
+          LOG.warn("Error while closing the input stream and error stream", e);
+        }
+        process.destroy();
+      }
+    }
+  }
+
+  @NotThreadSafe
+  private static class SshCommand extends Command {
+    private String mHostName;
+    private String[] mCommand;
+
+    private SshCommand(String[] execString) {
+      this("localhost", execString);
+    }
+
+    private SshCommand(String hostname, String[] execString) {
+      super(execString);
+      mHostName = hostname;
+      mCommand = new String[]{"bash", "-c",
+              String.format("ssh %s %s %s", ShellUtils.COMMON_SSH_OPTS, hostname, String.join(" ", execString))};
+    }
   }
 
   /**
@@ -233,14 +320,80 @@ public final class ShellUtils {
     }
   }
 
+  public static class CommandReturn {
+    int mStatusCode;
+    String mStdOut;
+    String mStdErr;
+
+    public CommandReturn(int code, String stdOut, String stdErr) {
+      mStatusCode = code;
+      mStdOut = stdOut;
+      mStdErr = stdErr;
+    }
+
+    public String getStdOut() {
+      return mStdOut;
+    }
+
+    public String getStdErr() {
+      return mStdErr;
+    }
+
+    public int getStatusCode() {
+      return mStatusCode;
+    }
+
+    public String getFormattedOutput() {
+      return String.format("StatusCode:%s\nStdOut:\n%s\nStdErr:\n%s", this.getStatusCode(),
+              this.getStdOut(), this.getStdErr());
+    }
+  }
+
   /**
-   * Static method to execute a shell command.
+   * Static method to execute a shell command. The StdErr is not returned.
+   * If execution failed
    *
    * @param cmd shell command to execute
    * @return the output of the executed command
+   * @throws {@link IOException} in various situations:
+   *  1. {@link ExitCodeException} when exit code is non-zero
+   *  2. when the executable is not valid, i.e. running ls in Windows
+   *  3. execution interrupted
+   *  4. other normal reasons for IOException
    */
   public static String execCommand(String... cmd) throws IOException {
     return new Command(cmd).run();
+  }
+
+  /**
+   * Static method to execute a shell command and tolerate non-zero exit code.
+   * Preserve exit code, stderr and stdout in object.
+   *
+   * @param cmd shell command to execute
+   * @return the output of the executed command
+   * @throws {@link IOException} in various situations:
+   *  1. when the executable is not valid, i.e. running ls in Windows
+   *  2. execution interrupted
+   *  3. other normal reasons for IOException
+   */
+  public static CommandReturn execCommandTolerateFailure(String... cmd) throws IOException {
+    return new Command(cmd).runTolerateFailure();
+  }
+
+  /**
+   * Static method to execute a shell command remotely via ssh.
+   * Preserve exit code, stderr and stdout in object.
+   * SSH must be password-less.
+   *
+   * @param cmd shell command to execute
+   * @return the output of the executed command
+   * @throws {@link IOException} in various situations:
+   *  1. when the executable is not valid, i.e. running ls in Windows
+   *  2. execution interrupted
+   *  3. other normal reasons for IOException
+   */
+  public static CommandReturn sshExecCommandTolerateFailure(String hostname, String... cmd) throws IOException {
+    return new SshCommand(hostname, cmd).runTolerateFailure();
   }
 
   private ShellUtils() {} // prevent instantiation
