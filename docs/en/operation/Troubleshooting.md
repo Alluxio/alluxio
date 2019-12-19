@@ -62,7 +62,7 @@ evaluation.
 
 A: Check `${ALLUXIO_HOME}/logs` to see if there are any master or worker logs. Look for any errors
 in these logs. Double check if you missed any configuration
-steps in [Running-Alluxio-Locally]({{ '/en/install/Running-Alluxio-Locally.html' | relativize_url }}).
+steps in [Running-Alluxio-Locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
 Typical issues:
 - `ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS` is not configured correctly.
@@ -70,7 +70,7 @@ Typical issues:
 
 ### Q: I'm trying to deploy Alluxio in a cluster with Spark and HDFS. Are there any suggestions?
 
-A: Please follow [Running-Alluxio-on-a-Cluster]({{ '/en/install/Running-Alluxio-On-a-Cluster.html' | relativize_url }}),
+A: Please follow [Running-Alluxio-on-a-Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}),
 [Configuring-Alluxio-with-HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }}).
 
 Tips:

@@ -23,7 +23,7 @@ We refer to this job as `count` in the following text.
 
 - A Kubernetes cluster (version >= 1.8).
 - Alluxio is deployed on the Kubernetes cluster. For instructions on how to deploy Alluxio, refer to
-[this page]({{ '/en/install/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
+[this page]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
 
 ## Basic Setup
 
@@ -86,7 +86,7 @@ worker storage on the host machine directly.
 This improves performance by not communicating with the Alluxio worker using the networking stack.
 
 If domain sockets were not setup when deploying Alluxio as per instructions on
-[this page]({{ '/en/install/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#short-circuit-access),
+[this page]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#short-circuit-access),
 you can skip mounting the `hostPath` volumes to the Spark executors.
 
 If a domain socket location was setup on hosts running the Alluxio worker process at location
