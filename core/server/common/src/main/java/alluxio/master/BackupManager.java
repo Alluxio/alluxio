@@ -81,10 +81,10 @@ public class BackupManager {
    */
   public BackupManager(MasterRegistry registry) {
     mRegistry = registry;
-    MetricsSystem.registerGaugeIfAbsent(MasterMetrics.LAST_BACKUP_ENTRIES_COUNT,
-        () -> mBackupEntriesCount);
-    MetricsSystem.registerGaugeIfAbsent(MasterMetrics.LAST_BACKUP_RESTORE_COUNT,
-        () -> mRestoreEntriesCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem
+        .getMetricName(MasterMetrics.LAST_BACKUP_ENTRIES_COUNT), () -> mBackupEntriesCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem
+        .getMetricName(MasterMetrics.LAST_BACKUP_RESTORE_COUNT), () -> mRestoreEntriesCount);
   }
 
   /**
