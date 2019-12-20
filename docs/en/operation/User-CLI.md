@@ -101,7 +101,7 @@ $ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
 
 ### fs
 
-See [File System Operations](#File-System-Operations).
+See [File System Operations](#file-system-operations).
 
 ### fsadmin
 
@@ -297,7 +297,7 @@ The `confDocGen` autogenerates configuration documentation based on the current 
 
 ### table
 
-See [Table Operations](#Table-Operations).
+See [Table Operations](#table-operations).
 
 ### version
 

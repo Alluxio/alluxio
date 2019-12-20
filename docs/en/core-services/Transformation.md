@@ -34,7 +34,7 @@ $ ${ALLUXIO_HOME}/bin/alluxio table attachdb hive thrift://localhost:9083 defaul
 Transformations are invoked via the command-line interface.
 The following command coalesce files under each partition of table "test" to one file.
 Additional details on the transform command can be found in the
-[command line interface documentation]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#table-operations).
+[command line interface documentation]({{ '/en/operation/User-CLI.html' | relativize_url }}#table-operations).
 
 ```console
 $ ${ALLUXIO_HOME}/bin/alluxio table transform default test

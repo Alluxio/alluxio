@@ -16,7 +16,7 @@ with this POSIX API, applications which can interact with the local filesystem, 
 (C, C++, Python, Ruby, Perl, or Java) they are written in, can interact with Alluxio and its under storages
 without any Alluxio client integration or set up. 
 
-Note that, different from projects like [s3fs](https://s3fs.readthedocs.io/en/latest/), [mountableHdfs](https://wiki.apache.org/hadoop/MountableHDFS) 
+Note that, different from projects like [s3fs](https://s3fs.readthedocs.io/en/latest/), [mountableHdfs](https://cwiki.apache.org/confluence/display/HADOOP2/MountableHDFS)
 which can mount specific storage service like S3 or HDFS as local filesystem, the Alluxio POSIX API 
 is a generic solution for all storage systems supported by Alluxio. The rich data orchestration 
 and caching service inherited from Alluxio speeds up the I/O access to frequently used data in Alluxio worker memory space.
