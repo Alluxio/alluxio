@@ -140,7 +140,7 @@ Alternatively you can add the property to the Hadoop configuration file
 Users can also configure Spark to connect to an Alluxio HA cluster using Zookeeper-based
 leader election.
 Refer to
-[HA mode client configuration parameters]({{ '/en/install/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters).
+[HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters).
 
 ### Customize Alluxio User Properties for Individual Spark Jobs
 
@@ -190,7 +190,7 @@ double.saveAsTextFile("alluxio://master_hostname_1:19998;master_hostname_2:19998
 > Note that you must use semicolons rather than commas to separate different addresses to
 refer a URI of Alluxio in HA mode in Spark.
 Otherwise, the URI will be considered invalid by Spark. Please refer to the instructions in
-[HA authority]({{ '/en/install/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority).
+[HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority).
 
 ### Cache RDD into Alluxio
 
