@@ -2,8 +2,8 @@
 layout: global
 title: 在Kubernetes上运行Alluxio
 nickname: Kubernetes上的Alluxio
-group: Deploying Alluxio
-priority: 3
+group: Install Alluxio
+priority: 4
 ---
 
 Alluxio可以在Kubernetes上运行。这个指南演示了如何使用Alluxio Github库中的说明来在Kubernetes上运行Alluxio。
@@ -16,7 +16,7 @@ Alluxio可以在Kubernetes上运行。这个指南演示了如何使用Alluxio G
 
 - 一个Kubernetes集群 (版本 >= 1.8). Alluxio workers将使用`sizeLimit`参数来限制使用`emptyDir`卷的大小。这是Kubernetes 1.8的一个alpha特性。
 请确保该功能已启用。
-- 一个Alluxio Docker镜像。请参阅[本页](Running-Alluxio-On-Docker.html)了解如何构建镜像。该镜像必须可以从运行Alluxio进程的所有Kubernetes主机提取。这可以通过将镜像推送到可访问的Docker注册表来实现，或者将镜像单独推送到所有主机。如果使用私人Docker注册表，请参阅Kubernetes [文档](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)。
+- 一个Alluxio Docker镜像。请参阅[用Docker运行Alluxio]({{ '/cn/deploy/Running-Alluxio-On-Docker.html' | relativize_url }})了解如何构建镜像。该镜像必须可以从运行Alluxio进程的所有Kubernetes主机提取。这可以通过将镜像推送到可访问的Docker注册表来实现，或者将镜像单独推送到所有主机。如果使用私人Docker注册表，请参阅Kubernetes [文档](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/)。
 
 ## 克隆Alluxio库
 
@@ -63,7 +63,7 @@ $ kubectl create -f alluxio-journal-volume.yaml
 ```
 
 ## 配置Alluxio属性
-Kubernetes中的Alluxio容器使用环境变量来设置Alluxio属性。有关`conf/alluxio-site.properties`中的Alluxio属性的相应环境变量名称，请参阅[Docker配置](Running-Alluxio-On-Docker.html)。
+Kubernetes中的Alluxio容器使用环境变量来设置Alluxio属性。有关`conf/alluxio-site.properties`中的Alluxio属性的相应环境变量名称，请参阅[用Docker运行Alluxio]({{ '/cn/deploy/Running-Alluxio-On-Docker.html' | relativize_url }})。
 
 在一个文件中定义所有的环境变量。复制`integration/kubernetes/conf`中的属性模板，并根据需要修改或添加配置属性。
 请注意，在与主机联网运行Alluxio时，分配给Alluxio服务的端口不能事先被占用。
