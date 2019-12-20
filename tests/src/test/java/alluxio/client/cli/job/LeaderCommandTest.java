@@ -20,9 +20,9 @@ import org.junit.Test;
 public final class LeaderCommandTest extends JobShellTest {
   @Test
   public void jobLeader() {
-    mJobShell.run("leader");
+    sJobShell.run("leader");
     String expected =
-        mLocalAlluxioCluster.getLocalAlluxioMaster().getAddress().getHostName() + "\n";
+        sLocalAlluxioCluster.getLocalAlluxioMaster().getAddress().getHostName() + "\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 }

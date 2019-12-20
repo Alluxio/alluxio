@@ -42,6 +42,7 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -55,6 +56,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * Integration tests for {@link AlluxioFuseFileSystem}.
  */
+@Ignore
 public class FuseFileSystemIntegrationTest {
   private static final int WAIT_TIMEOUT_MS = 60 * Constants.SECOND_MS;
   private static final int BLOCK_SIZE = 4 * Constants.KB;

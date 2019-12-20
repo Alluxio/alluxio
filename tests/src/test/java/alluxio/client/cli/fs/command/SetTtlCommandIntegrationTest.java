@@ -32,15 +32,15 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
   @Test
   public void setTtl() throws Exception {
     String filePath = "/testFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(sFileSystem, filePath, WritePType.MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL,
-        mFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
+        sFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
 
     AlluxioURI uri = new AlluxioURI("/testFile");
     long[] ttls = new long[] {0L, 1000L};
     for (long ttl : ttls) {
-      Assert.assertEquals(0, mFsShell.run("setTtl", filePath, String.valueOf(ttl)));
-      URIStatus status = mFileSystem.getStatus(uri);
+      Assert.assertEquals(0, sFsShell.run("setTtl", filePath, String.valueOf(ttl)));
+      URIStatus status = sFileSystem.getStatus(uri);
       Assert.assertEquals(ttl, status.getTtl());
       Assert.assertEquals(TtlAction.DELETE, status.getTtlAction());
     }
@@ -49,15 +49,15 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
   @Test
   public void setTtlWithDelete() throws Exception {
     String filePath = "/testFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(sFileSystem, filePath, WritePType.MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL,
-        mFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
+        sFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
 
     AlluxioURI uri = new AlluxioURI("/testFile");
     long ttl = 1000L;
     Assert.assertEquals(0,
-        mFsShell.run("setTtl", "-action", "delete", filePath, String.valueOf(ttl)));
-    URIStatus status = mFileSystem.getStatus(uri);
+        sFsShell.run("setTtl", "-action", "delete", filePath, String.valueOf(ttl)));
+    URIStatus status = sFileSystem.getStatus(uri);
     Assert.assertEquals(ttl, status.getTtl());
     Assert.assertEquals(TtlAction.DELETE, status.getTtlAction());
   }
@@ -65,15 +65,15 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
   @Test
   public void setTtlWithFree() throws Exception {
     String filePath = "/testFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(sFileSystem, filePath, WritePType.MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL,
-        mFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
+        sFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
 
     AlluxioURI uri = new AlluxioURI("/testFile");
     long ttl = 1000L;
     Assert.assertEquals(0,
-        mFsShell.run("setTtl", "-action", "free", filePath, String.valueOf(ttl)));
-    URIStatus status = mFileSystem.getStatus(uri);
+        sFsShell.run("setTtl", "-action", "free", filePath, String.valueOf(ttl)));
+    URIStatus status = sFileSystem.getStatus(uri);
     Assert.assertEquals(ttl, status.getTtl());
     Assert.assertEquals(TtlAction.FREE, status.getTtlAction());
   }
@@ -82,49 +82,49 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
   public void setTtlSameTimeDifferentAction() throws Exception {
     String filePath = "/testFile";
     AlluxioURI uri = new AlluxioURI("/testFile");
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(sFileSystem, filePath, WritePType.MUST_CACHE, 1);
     long ttl = 1000L;
 
     Assert.assertEquals(0,
-        mFsShell.run("setTtl", "-action", "delete", filePath, String.valueOf(ttl)));
-    Assert.assertEquals(ttl, mFileSystem.getStatus(uri).getTtl());
-    Assert.assertEquals(TtlAction.DELETE, mFileSystem.getStatus(uri).getTtlAction());
+        sFsShell.run("setTtl", "-action", "delete", filePath, String.valueOf(ttl)));
+    Assert.assertEquals(ttl, sFileSystem.getStatus(uri).getTtl());
+    Assert.assertEquals(TtlAction.DELETE, sFileSystem.getStatus(uri).getTtlAction());
 
     Assert.assertEquals(0,
-        mFsShell.run("setTtl", "-action", "free", filePath, String.valueOf(ttl)));
-    Assert.assertEquals(ttl, mFileSystem.getStatus(uri).getTtl());
-    Assert.assertEquals(TtlAction.FREE, mFileSystem.getStatus(uri).getTtlAction());
+        sFsShell.run("setTtl", "-action", "free", filePath, String.valueOf(ttl)));
+    Assert.assertEquals(ttl, sFileSystem.getStatus(uri).getTtl());
+    Assert.assertEquals(TtlAction.FREE, sFileSystem.getStatus(uri).getTtlAction());
   }
 
   @Test
   public void setTtlWithNoOperationValue() throws Exception {
     String filePath = "/testFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(sFileSystem, filePath, WritePType.MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL,
-        mFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
+        sFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
 
     long ttl = 1000L;
-    Assert.assertEquals(-1, mFsShell.run("setTtl", "-action", filePath, String.valueOf(ttl)));
+    Assert.assertEquals(-1, sFsShell.run("setTtl", "-action", filePath, String.valueOf(ttl)));
   }
 
   @Test
   public void setTtlWithInvalidOperationValue() throws Exception {
     String filePath = "/testFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(sFileSystem, filePath, WritePType.MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL,
-        mFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
+        sFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
 
     long ttl = 1000L;
     Assert.assertEquals(-1,
-        mFsShell.run("setTtl", "-action", "invalid", filePath, String.valueOf(ttl)));
+        sFsShell.run("setTtl", "-action", "invalid", filePath, String.valueOf(ttl)));
   }
 
   @Test
   public void setTtlWithDifferentUnitTime() throws Exception {
     String filePath = "/testFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(sFileSystem, filePath, WritePType.MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL,
-        mFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
+        sFileSystem.getStatus(new AlluxioURI("/testFile")).getTtl());
 
     AlluxioURI uri = new AlluxioURI("/testFile");
     HashMap<String, Long> timeUnits = new HashMap<String, Long>();
@@ -146,8 +146,8 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
       String timeUnit = entry.getKey();
       long timeUnitInMilliSeconds = entry.getValue();
       String testValueWithTimeUnit = String.valueOf(numericValue) + timeUnit;
-      Assert.assertEquals(0, mFsShell.run("setTtl", filePath, testValueWithTimeUnit));
-      URIStatus status = mFileSystem.getStatus(uri);
+      Assert.assertEquals(0, sFsShell.run("setTtl", filePath, testValueWithTimeUnit));
+      URIStatus status = sFileSystem.getStatus(uri);
       Assert.assertEquals(numericValue * timeUnitInMilliSeconds, status.getTtl());
       Assert.assertEquals(TtlAction.DELETE, status.getTtlAction());
     }
@@ -155,8 +155,8 @@ public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellT
 
   @Test
   public void setTtlWithInvalidTime() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 1);
-    mFsShell.run("setTtl", "/testFile", "some-random-text");
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 1);
+    sFsShell.run("setTtl", "/testFile", "some-random-text");
     Assert.assertTrue(mOutput.toString().contains("is not valid time"));
   }
 }

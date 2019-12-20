@@ -47,7 +47,7 @@ public final class UpdateMountCommandTest extends AbstractFileSystemShellTest {
     Assert.assertTrue(fileExists(testFile));
     // Dir in Alluxio can be persisted to UFS
     AlluxioURI testDir = mountPoint.join("testDir");
-    mFileSystem.createDirectory(testDir,
+    sFileSystem.createDirectory(testDir,
         CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build());
     Assert.assertTrue(fileExists(testDir));
     Assert.assertTrue(Files.exists(Paths.get(ufsPath, "testDir")));
@@ -57,8 +57,8 @@ public final class UpdateMountCommandTest extends AbstractFileSystemShellTest {
   public void updateMount() throws Exception {
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = mFolder.getRoot().getAbsolutePath();
-    Assert.assertEquals(0, mFsShell.run("mount", mountPoint.toString(), ufsPath));
-    Assert.assertEquals(0, mFsShell.run("updateMount", "--option", "k1=v1",
+    Assert.assertEquals(0, sFsShell.run("mount", mountPoint.toString(), ufsPath));
+    Assert.assertEquals(0, sFsShell.run("updateMount", "--option", "k1=v1",
         mountPoint.toString()));
     checkMountPoint(mountPoint, ufsPath);
   }
@@ -67,12 +67,12 @@ public final class UpdateMountCommandTest extends AbstractFileSystemShellTest {
   public void updateMountWithWrongArgs() throws Exception {
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = mFolder.getRoot().getAbsolutePath();
-    Assert.assertEquals(0, mFsShell.run("mount", mountPoint.toString(), ufsPath));
+    Assert.assertEquals(0, sFsShell.run("mount", mountPoint.toString(), ufsPath));
     // extra arg
-    Assert.assertEquals(-1, mFsShell.run("updateMount", mountPoint.toString(), "extraArg"));
+    Assert.assertEquals(-1, sFsShell.run("updateMount", mountPoint.toString(), "extraArg"));
     // --option with wrong argument format
     Assert.assertEquals(-1,
-        mFsShell.run("updateMount", "--option", "wrongArgFormat", mountPoint.toString()));
+        sFsShell.run("updateMount", "--option", "wrongArgFormat", mountPoint.toString()));
   }
 
   @Test
@@ -83,12 +83,12 @@ public final class UpdateMountCommandTest extends AbstractFileSystemShellTest {
     String ufsPath = "ufs://" + mFolder.getRoot().getAbsolutePath();
     try (Closeable closeable =
         new UnderFileSystemFactoryRegistryRule(factory).toResource()) {
-      Assert.assertEquals(0, mFsShell
+      Assert.assertEquals(0, sFsShell
           .run("mount", "--option", "k1=v1", "--option", "k2=v2", mountPoint.toString(), ufsPath));
-      FileSystemTestUtils.createByteFile(mFileSystem,
+      FileSystemTestUtils.createByteFile(sFileSystem,
           "/mnt/testFile1", WritePType.CACHE_THROUGH, 20);
-      Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mnt/testFile1")));
-      URIStatus status = mFileSystem.getStatus(new AlluxioURI("/mnt/testFile1"));
+      Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/mnt/testFile1")));
+      URIStatus status = sFileSystem.getStatus(new AlluxioURI("/mnt/testFile1"));
       Assert.assertTrue(status.isPersisted());
     }
 
@@ -96,12 +96,12 @@ public final class UpdateMountCommandTest extends AbstractFileSystemShellTest {
         new ConfExpectingUnderFileSystemFactory("ufs", ImmutableMap.of("k1", "v3", "k2", "v4"));
     try (Closeable closeable =
              new UnderFileSystemFactoryRegistryRule(newFactory).toResource()) {
-      Assert.assertEquals(0, mFsShell
+      Assert.assertEquals(0, sFsShell
           .run("updateMount", "--option", "k1=v3", "--option", "k2=v4", mountPoint.toString()));
-      FileSystemTestUtils.createByteFile(mFileSystem,
+      FileSystemTestUtils.createByteFile(sFileSystem,
           "/mnt/testFile2", WritePType.CACHE_THROUGH, 20);
-      Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mnt/testFile2")));
-      URIStatus status = mFileSystem.getStatus(new AlluxioURI("/mnt/testFile2"));
+      Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/mnt/testFile2")));
+      URIStatus status = sFileSystem.getStatus(new AlluxioURI("/mnt/testFile2"));
       Assert.assertTrue(status.isPersisted());
     }
   }
@@ -115,34 +115,34 @@ public final class UpdateMountCommandTest extends AbstractFileSystemShellTest {
         new ConfExpectingUnderFileSystemFactory("ufs", options);
     try (Closeable closeable =
              new UnderFileSystemFactoryRegistryRule(factory).toResource()) {
-      Assert.assertEquals(0, mFsShell
+      Assert.assertEquals(0, sFsShell
           .run("mount", "--option", "k1=v1", "--option", "k2=v2", mountPoint.toString(), ufsPath));
-      Assert.assertEquals(-1, mFsShell
+      Assert.assertEquals(-1, sFsShell
           .run("updateMount", "--option", "k1=not_v1", "--option", "k2=v2", mountPoint.toString()));
       boolean gotException = false;
       // check mount point is still usable if updateMount fails
-      FileSystemTestUtils.createByteFile(mFileSystem,
+      FileSystemTestUtils.createByteFile(sFileSystem,
           "/mnt/testFile1", WritePType.CACHE_THROUGH, 20);
       // check mount point options are not changed
       Assert.assertEquals(options,
-          mFileSystem.getMountTable().get(mountPoint.getPath()).getProperties());
+          sFileSystem.getMountTable().get(mountPoint.getPath()).getProperties());
     }
     ImmutableMap<String, String> options2 = ImmutableMap.of("k1", "v3", "k2", "v4");
     ConfExpectingUnderFileSystemFactory factory2 =
         new ConfExpectingUnderFileSystemFactory("ufs", options2);
     try (Closeable closeable =
              new UnderFileSystemFactoryRegistryRule(factory2).toResource()) {
-      Assert.assertEquals(0, mFsShell
+      Assert.assertEquals(0, sFsShell
           .run("updateMount", "--option", "k1=v3", "--option", "k2=v4", mountPoint.toString()));
       // check mount point is in working state after updated with correct options
-      FileSystemTestUtils.createByteFile(mFileSystem,
+      FileSystemTestUtils.createByteFile(sFileSystem,
           "/mnt/testFile2", WritePType.CACHE_THROUGH, 20);
-      Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mnt/testFile2")));
-      URIStatus status = mFileSystem.getStatus(new AlluxioURI("/mnt/testFile2"));
+      Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/mnt/testFile2")));
+      URIStatus status = sFileSystem.getStatus(new AlluxioURI("/mnt/testFile2"));
       Assert.assertTrue(status.isPersisted());
       // check mount point options are not changed
       Assert.assertEquals(options2,
-          mFileSystem.getMountTable().get(mountPoint.getPath()).getProperties());
+          sFileSystem.getMountTable().get(mountPoint.getPath()).getProperties());
     }
   }
 
@@ -150,9 +150,9 @@ public final class UpdateMountCommandTest extends AbstractFileSystemShellTest {
   public void updateMountWithSpaceInOptionValues() throws Exception {
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = mFolder.getRoot().getAbsolutePath();
-    Assert.assertEquals(0, mFsShell
+    Assert.assertEquals(0, sFsShell
         .run("mount", "--option", "key=\" value with spaces\"", mountPoint.toString(), ufsPath));
-    Assert.assertEquals(0, mFsShell
+    Assert.assertEquals(0, sFsShell
         .run("updateMount", "--option", "key=\" value with spaces 2\"", mountPoint.toString()));
   }
 
@@ -160,9 +160,9 @@ public final class UpdateMountCommandTest extends AbstractFileSystemShellTest {
   public void updateMountWithQuotesInOptionValues() throws Exception {
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = mFolder.getRoot().getAbsolutePath();
-    Assert.assertEquals(0, mFsShell
+    Assert.assertEquals(0, sFsShell
         .run("mount", "--option", "key=valueWith\"Quotes\"", mountPoint.toString(), ufsPath));
-    Assert.assertEquals(0, mFsShell
+    Assert.assertEquals(0, sFsShell
         .run("updateMount", "--option", "key=valueWith\"Quotes2\"", mountPoint.toString()));
   }
 
@@ -171,14 +171,14 @@ public final class UpdateMountCommandTest extends AbstractFileSystemShellTest {
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = mFolder.getRoot().getAbsolutePath();
     Assert.assertEquals(0,
-        mFsShell.run("mount", "--option", "key=k=v", mountPoint.toString(), ufsPath));
+        sFsShell.run("mount", "--option", "key=k=v", mountPoint.toString(), ufsPath));
     Assert.assertEquals(0,
-        mFsShell.run("updateMount", "--option", "key=k=v2", mountPoint.toString()));
+        sFsShell.run("updateMount", "--option", "key=k=v2", mountPoint.toString()));
   }
 
   @Test
   public void updateRootMountFailed() throws Exception {
     String ufsPath = mFolder.getRoot().getAbsolutePath();
-    Assert.assertEquals(-1, mFsShell.run("updateMount", "/", ufsPath));
+    Assert.assertEquals(-1, sFsShell.run("updateMount", "/", ufsPath));
   }
 }

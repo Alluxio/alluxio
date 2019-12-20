@@ -27,8 +27,8 @@ public final class CatCommandIntegrationTest extends AbstractFileSystemShellTest
   @Test
   public void catDirectory() throws Exception {
     String[] command = new String[] {"mkdir", "/testDir"};
-    mFsShell.run(command);
-    int ret = mFsShell.run("cat", "/testDir");
+    sFsShell.run(command);
+    int ret = sFsShell.run("cat", "/testDir");
     Assert.assertEquals(-1, ret);
     String expected = getCommandOutput(command);
     expected += "Path \"/testDir\" must be a file.\n";
@@ -37,21 +37,21 @@ public final class CatCommandIntegrationTest extends AbstractFileSystemShellTest
 
   @Test
   public void catNotExist() throws Exception {
-    int ret = mFsShell.run("cat", "/testFile");
+    int ret = sFsShell.run("cat", "/testFile");
     Assert.assertEquals(-1, ret);
   }
 
   @Test
   public void cat() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
-    mFsShell.run("cat", "/testFile");
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+    sFsShell.run("cat", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(10);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
   }
 
   @Test
   public void catWildcard() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
     // the expect contents (remember that the order is based on path)
     byte[] exp1 = BufferUtils.getIncreasingByteArray(30); // testDir/bar/foobar3
     byte[] exp2 = BufferUtils.getIncreasingByteArray(10); // testDir/foo/foobar1
@@ -61,7 +61,7 @@ public final class CatCommandIntegrationTest extends AbstractFileSystemShellTest
     System.arraycopy(exp2, 0, expect, exp1.length, exp2.length);
     System.arraycopy(exp3, 0, expect, exp1.length + exp2.length, exp3.length);
 
-    int ret = mFsShell.run("cat", testDir + "/*/foo*");
+    int ret = sFsShell.run("cat", testDir + "/*/foo*");
     Assert.assertEquals(0, ret);
     Assert.assertArrayEquals(mOutput.toByteArray(), expect);
   }

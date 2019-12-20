@@ -27,36 +27,36 @@ public final class HeadCommandIntegrationTest extends AbstractFileSystemShellTes
 
   @Test
   public void headEmptyFile() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/emptyFile", WritePType.MUST_CACHE, 0);
-    int ret = mFsShell.run("head", "/emptyFile");
+    FileSystemTestUtils.createByteFile(sFileSystem, "/emptyFile", WritePType.MUST_CACHE, 0);
+    int ret = sFsShell.run("head", "/emptyFile");
     Assert.assertEquals(0, ret);
   }
 
   @Test
   public void headLargeFile() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 2048);
-    mFsShell.run("head", "/testFile");
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 2048);
+    sFsShell.run("head", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(1024, 1024);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
   }
 
   @Test
   public void headNotExit() throws Exception {
-    int ret = mFsShell.run("head", "/testFile");
+    int ret = sFsShell.run("head", "/testFile");
     Assert.assertEquals(-1, ret);
   }
 
   @Test
   public void headSmallFile() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
-    mFsShell.run("head", "/testFile");
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+    sFsShell.run("head", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(10);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
   }
 
   @Test
   public void headWildcard() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
 
     // the expect contents (remember that the order is based on the path)
     byte[] exp1 = BufferUtils.getIncreasingByteArray(30); // testDir/bar/foobar3
@@ -67,25 +67,25 @@ public final class HeadCommandIntegrationTest extends AbstractFileSystemShellTes
     System.arraycopy(exp2, 0, expect, exp1.length, exp2.length);
     System.arraycopy(exp3, 0, expect, exp1.length + exp2.length, exp3.length);
 
-    int ret = mFsShell.run("head", testDir + "/*/foo*");
+    int ret = sFsShell.run("head", testDir + "/*/foo*");
     Assert.assertEquals(0, ret);
     Assert.assertArrayEquals(mOutput.toByteArray(), expect);
   }
 
   @Test
   public void headFileWithUserSpecifiedBytes() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE,
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE,
         10000);
-    mFsShell.run("head", "-c", "10000", "/testFile");
+    sFsShell.run("head", "-c", "10000", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(0, 10000);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
   }
 
   @Test
   public void headFileWithUserSpecifiedBytesWithUnit() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE,
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE,
         10000);
-    mFsShell.run("head", "-c", "2KB", "/testFile");
+    sFsShell.run("head", "-c", "2KB", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(0, 2048);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
   }

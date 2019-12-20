@@ -43,9 +43,9 @@ import java.io.IOException;
 public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest {
   // Helper function to create a set of files in the file system
   private void createFiles(String user) throws Exception {
-    FileSystem fs = mFileSystem;
+    FileSystem fs = sFileSystem;
     if (user != null) {
-      fs = mLocalAlluxioCluster.getClient(FileSystemContext
+      fs = sLocalAlluxioCluster.getClient(FileSystemContext
           .create(new TestUserState(user, ServerConfiguration.global()).getSubject(),
               ServerConfiguration.global()));
     }
@@ -61,7 +61,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void lsNoAcl() throws Exception {
     createFiles(null);
-    mFsShell.run("ls", "/testRoot");
+    sFsShell.run("ls", "/testRoot");
     checkOutput(
         "              1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
         "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
@@ -74,7 +74,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void lsMultipleDirs() throws Exception {
     createFiles(null);
-    mFsShell.run("ls", "/testRoot", "/testRoot/testDir/");
+    sFsShell.run("ls", "/testRoot", "/testRoot/testDir/");
     checkOutput(
         "              1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
         "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
@@ -88,7 +88,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void lsHumanReadable() throws Exception {
     createFiles(null);
-    mFsShell.run("ls", "-h", "/testRoot");
+    sFsShell.run("ls", "-h", "/testRoot");
     checkOutput(
         "              1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
         "            10B   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
@@ -103,11 +103,11 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     createFiles(null);
     AlluxioURI fileURI1 = new AlluxioURI("/testRoot/testDir/testFileB");
     AlluxioURI fileURI2 = new AlluxioURI("/testRoot/testFileA");
-    mFileSystem.setAttribute(fileURI1,
+    sFileSystem.setAttribute(fileURI1,
         SetAttributePOptions.newBuilder().setPinned(true).build());
-    mFileSystem.setAttribute(fileURI2,
+    sFileSystem.setAttribute(fileURI2,
         SetAttributePOptions.newBuilder().setPinned(true).build());
-    mFsShell.run("ls", "-pR",  "/testRoot");
+    sFsShell.run("ls", "-pR",  "/testRoot");
     checkOutput(
         "             20   NOT_PERSISTED .+ .+ 100% /testRoot/testDir/testFileB",
         "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA");
@@ -119,7 +119,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void lsDirectoryAsPlainFileNoAcl() throws Exception {
     createFiles(null);
-    mFsShell.run("ls", "-d", "/testRoot");
+    sFsShell.run("ls", "-d", "/testRoot");
     checkOutput("              3       PERSISTED .+ .+  DIR /testRoot");
   }
 
@@ -128,7 +128,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
    */
   @Test
   public void lsRootNoAcl() throws Exception {
-    mFsShell.run("ls", "-d", "/");
+    sFsShell.run("ls", "-d", "/");
     checkOutput("              0       PERSISTED .+ .+  DIR /    ");
   }
 
@@ -137,9 +137,9 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
    */
   @Test
   public void lsWildcardNoAcl() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
 
-    mFsShell.run("ls", testDir + "/*/foo*");
+    sFsShell.run("ls", testDir + "/*/foo*");
     checkOutput(
         "             30   NOT_PERSISTED .+ .+ 100% /testDir/bar/foobar3",
         "             10   NOT_PERSISTED .+ .+ 100% /testDir/foo/foobar1",
@@ -147,7 +147,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
 
     mOutput.reset();
 
-    mFsShell.run("ls", testDir + "/*");
+    sFsShell.run("ls", testDir + "/*");
     checkOutput(
         "             30   NOT_PERSISTED .+ .+ 100% /testDir/bar/foobar3",
         "             10   NOT_PERSISTED .+ .+ 100% /testDir/foo/foobar1",
@@ -161,7 +161,7 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void lsrNoAcl() throws Exception {
     createFiles(null);
-    mFsShell.run("ls", "-R", "/testRoot");
+    sFsShell.run("ls", "-R", "/testRoot");
     checkOutput(
         "              1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
         "             20   NOT_PERSISTED .+ .+ 100% /testRoot/testDir/testFileB",
@@ -175,8 +175,8 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void lsWithFormatSpecifierCharacter() throws IOException, AlluxioException {
     String fileName = "/localhost%2C61764%2C1476207067267..meta.1476207073442.meta";
-    FileSystemTestUtils.createByteFile(mFileSystem, fileName, WritePType.MUST_CACHE, 10);
-    mFsShell.run("ls", "/");
+    FileSystemTestUtils.createByteFile(sFileSystem, fileName, WritePType.MUST_CACHE, 10);
+    sFsShell.run("ls", "/");
     // CHECKSTYLE.OFF: LineLengthExceed - Improve readability
     checkOutput("             10   NOT_PERSISTED .+ .+ 100% /localhost%2C61764%2C1476207067267..meta.1476207073442.meta");
     // CHECKSTYLE.ON: LineLengthExceed
@@ -188,12 +188,12 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void lsWithSortByPath() throws IOException, AlluxioException {
     FileSystemTestUtils
-            .createByteFile(mFileSystem, "/testRoot/testLongFile", WritePType.MUST_CACHE, 100);
+            .createByteFile(sFileSystem, "/testRoot/testLongFile", WritePType.MUST_CACHE, 100);
     FileSystemTestUtils
-            .createByteFile(mFileSystem, "/testRoot/testFileZ", WritePType.MUST_CACHE, 10);
+            .createByteFile(sFileSystem, "/testRoot/testFileZ", WritePType.MUST_CACHE, 10);
     FileSystemTestUtils
-            .createByteFile(mFileSystem, "/testRoot/testFileA", WritePType.MUST_CACHE, 50);
-    mFsShell.run("ls", "--sort", "path", "/testRoot");
+            .createByteFile(sFileSystem, "/testRoot/testFileA", WritePType.MUST_CACHE, 50);
+    sFsShell.run("ls", "--sort", "path", "/testRoot");
     checkOutput(
         "             50   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
         "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileZ",
@@ -208,12 +208,12 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     String oldFileRecentlyAccessed = "/testRoot/testFileRecent";
     String oldFileName = "/testRoot/testFile";
     FileSystemTestUtils
-        .createByteFile(mFileSystem, oldFileRecentlyAccessed, WritePType.MUST_CACHE, 10);
+        .createByteFile(sFileSystem, oldFileRecentlyAccessed, WritePType.MUST_CACHE, 10);
     FileSystemTestUtils
-        .createByteFile(mFileSystem, oldFileName, WritePType.MUST_CACHE, 10);
+        .createByteFile(sFileSystem, oldFileName, WritePType.MUST_CACHE, 10);
 
-    FileSystemTestUtils.loadFile(mFileSystem, oldFileRecentlyAccessed);
-    mFsShell.run("ls", "--sort", "lastAccessTime", "/testRoot");
+    FileSystemTestUtils.loadFile(sFileSystem, oldFileRecentlyAccessed);
+    sFsShell.run("ls", "--sort", "lastAccessTime", "/testRoot");
     checkOutput(
         "             10   NOT_PERSISTED .+ .+ 100% " + oldFileName,
         "             10   NOT_PERSISTED .+ .+ 100% " + oldFileRecentlyAccessed);
@@ -227,12 +227,12 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
     String oldFileRecentlyAccessed = "/testRoot/testFileRecent";
     String oldFileName = "/testRoot/testFile";
     FileSystemTestUtils
-        .createByteFile(mFileSystem, oldFileRecentlyAccessed, WritePType.MUST_CACHE, 10);
+        .createByteFile(sFileSystem, oldFileRecentlyAccessed, WritePType.MUST_CACHE, 10);
     FileSystemTestUtils
-        .createByteFile(mFileSystem, oldFileName, WritePType.MUST_CACHE, 10);
+        .createByteFile(sFileSystem, oldFileName, WritePType.MUST_CACHE, 10);
 
-    FileSystemTestUtils.loadFile(mFileSystem, oldFileRecentlyAccessed);
-    mFsShell.run("ls", "--sort", "creationTime", "/testRoot");
+    FileSystemTestUtils.loadFile(sFileSystem, oldFileRecentlyAccessed);
+    sFsShell.run("ls", "--sort", "creationTime", "/testRoot");
     checkOutput(
         "             10   NOT_PERSISTED .+ .+ 100% " + oldFileRecentlyAccessed,
         "             10   NOT_PERSISTED .+ .+ 100% " + oldFileName);
@@ -244,12 +244,12 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void lsWithSortBySize() throws IOException, AlluxioException {
     FileSystemTestUtils
-            .createByteFile(mFileSystem, "/testRoot/testFileA", WritePType.MUST_CACHE, 50, 50);
+            .createByteFile(sFileSystem, "/testRoot/testFileA", WritePType.MUST_CACHE, 50, 50);
     FileSystemTestUtils
-            .createByteFile(mFileSystem, "/testRoot/testFileZ", WritePType.MUST_CACHE, 10, 10);
+            .createByteFile(sFileSystem, "/testRoot/testFileZ", WritePType.MUST_CACHE, 10, 10);
     FileSystemTestUtils
-            .createByteFile(mFileSystem, "/testRoot/testLongFile", WritePType.MUST_CACHE, 100, 100);
-    mFsShell.run("ls", "--sort", "size", "/testRoot");
+            .createByteFile(sFileSystem, "/testRoot/testLongFile", WritePType.MUST_CACHE, 100, 100);
+    sFsShell.run("ls", "--sort", "size", "/testRoot");
     checkOutput(
         "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileZ",
         "             50   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
@@ -262,12 +262,12 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void lsWithSortBySizeAndReverse() throws IOException, AlluxioException {
     FileSystemTestUtils
-            .createByteFile(mFileSystem, "/testRoot/testFileA", WritePType.MUST_CACHE, 50, 50);
+            .createByteFile(sFileSystem, "/testRoot/testFileA", WritePType.MUST_CACHE, 50, 50);
     FileSystemTestUtils
-            .createByteFile(mFileSystem, "/testRoot/testFileZ", WritePType.MUST_CACHE, 10, 10);
+            .createByteFile(sFileSystem, "/testRoot/testFileZ", WritePType.MUST_CACHE, 10, 10);
     FileSystemTestUtils
-            .createByteFile(mFileSystem, "/testRoot/testLongFile", WritePType.MUST_CACHE, 100, 100);
-    mFsShell.run("ls", "--sort", "size", "-r", "/testRoot");
+            .createByteFile(sFileSystem, "/testRoot/testLongFile", WritePType.MUST_CACHE, 100, 100);
+    sFsShell.run("ls", "--sort", "size", "-r", "/testRoot");
     checkOutput(
         "            100   NOT_PERSISTED .+ .+ 100% /testRoot/testLongFile",
         "             50   NOT_PERSISTED .+ .+ 100% /testRoot/testFileA",
@@ -279,9 +279,9 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
    */
   @Test
   public void lsWithInvalidSortOption() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testFileA",
         WritePType.MUST_CACHE, 50, 50);
-    mFsShell.run("ls", "--sort", "unknownfield", "/testRoot");
+    sFsShell.run("ls", "--sort", "unknownfield", "/testRoot");
     String expected = "Invalid sort option `unknownfield` for --sort\n";
     assertEquals(expected, mOutput.toString());
   }
@@ -292,12 +292,12 @@ public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void lsReverseWithoutSort() throws IOException, AlluxioException {
     FileSystemTestUtils
-            .createByteFile(mFileSystem, "/testRoot/testFileA", WritePType.MUST_CACHE, 50, 50);
+            .createByteFile(sFileSystem, "/testRoot/testFileA", WritePType.MUST_CACHE, 50, 50);
     FileSystemTestUtils
-            .createByteFile(mFileSystem, "/testRoot/testFileZ", WritePType.MUST_CACHE, 10, 10);
+            .createByteFile(sFileSystem, "/testRoot/testFileZ", WritePType.MUST_CACHE, 10, 10);
     FileSystemTestUtils
-            .createByteFile(mFileSystem, "/testRoot/testLongFile", WritePType.MUST_CACHE, 100, 100);
-    mFsShell.run("ls", "-r", "/testRoot");
+            .createByteFile(sFileSystem, "/testRoot/testLongFile", WritePType.MUST_CACHE, 100, 100);
+    sFsShell.run("ls", "-r", "/testRoot");
     checkOutput(
         "            100   NOT_PERSISTED .+ .+ 100% /testRoot/testLongFile",
         "             10   NOT_PERSISTED .+ .+ 100% /testRoot/testFileZ",

@@ -12,7 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;

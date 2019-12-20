@@ -29,16 +29,16 @@ public final class RmCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void rmNotExistingDir() throws IOException {
     StringBuilder toCompare = new StringBuilder();
-    mFsShell.run("mkdir", "/testFolder");
+    sFsShell.run("mkdir", "/testFolder");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));
-    mFsShell.run("rm", "/testFolder");
+    sFsShell.run("rm", "/testFolder");
     toCompare.append("/testFolder is a directory, to remove it, please use \"rm -R <path>\"\n");
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
   }
 
   @Test
   public void rmNotExistingFile() throws IOException {
-    mFsShell.run("rm", "/testFile");
+    sFsShell.run("rm", "/testFile");
     String expected = ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/testFile") + "\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
@@ -46,9 +46,9 @@ public final class RmCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void rm() throws IOException {
     StringBuilder toCompare = new StringBuilder();
-    mFsShell.run("mkdir", "/testFolder1/testFolder2");
+    sFsShell.run("mkdir", "/testFolder1/testFolder2");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1/testFolder2"}));
-    mFsShell.run("touch", "/testFolder1/testFolder2/testFile2");
+    sFsShell.run("touch", "/testFolder1/testFolder2/testFile2");
     toCompare
         .append(getCommandOutput(new String[] {"touch", "/testFolder1/testFolder2/testFile2"}));
     AlluxioURI testFolder1 = new AlluxioURI("/testFolder1");
@@ -57,7 +57,7 @@ public final class RmCommandIntegrationTest extends AbstractFileSystemShellTest 
     Assert.assertTrue(fileExists(testFolder1));
     Assert.assertTrue(fileExists(testFolder2));
     Assert.assertTrue(fileExists(testFile2));
-    mFsShell.run("rm", "/testFolder1/testFolder2/testFile2");
+    sFsShell.run("rm", "/testFolder1/testFolder2/testFile2");
     toCompare.append(getCommandOutput(new String[] {"rm", "/testFolder1/testFolder2/testFile2"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
     Assert.assertTrue(fileExists(testFolder1));
@@ -67,14 +67,14 @@ public final class RmCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Test
   public void rmWildCard() throws IOException, AlluxioException {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
 
-    mFsShell.run("rm", testDir + "/foo/foo*");
+    sFsShell.run("rm", testDir + "/foo/foo*");
     Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foo/foobar1")));
     Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foo/foobar2")));
     Assert.assertTrue(fileExists(new AlluxioURI(testDir + "/bar/foobar3")));
 
-    mFsShell.run("rm", testDir + "/*");
+    sFsShell.run("rm", testDir + "/*");
     Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foobar4")));
     Assert.assertTrue(fileExists(new AlluxioURI(testDir + "/foo")));
     Assert.assertTrue(fileExists(new AlluxioURI(testDir + "/bar")));
@@ -84,9 +84,9 @@ public final class RmCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void rmr() throws IOException {
     StringBuilder toCompare = new StringBuilder();
-    mFsShell.run("mkdir", "/testFolder1/testFolder2");
+    sFsShell.run("mkdir", "/testFolder1/testFolder2");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1/testFolder2"}));
-    mFsShell.run("touch", "/testFolder1/testFolder2/testFile2");
+    sFsShell.run("touch", "/testFolder1/testFolder2/testFile2");
     toCompare
         .append(getCommandOutput(new String[] {"touch", "/testFolder1/testFolder2/testFile2"}));
     AlluxioURI testFolder1 = new AlluxioURI("/testFolder1");
@@ -95,13 +95,13 @@ public final class RmCommandIntegrationTest extends AbstractFileSystemShellTest 
     Assert.assertTrue(fileExists(testFolder1));
     Assert.assertTrue(fileExists(testFolder2));
     Assert.assertTrue(fileExists(testFile2));
-    mFsShell.run("rm", "-R", "/testFolder1/testFolder2/testFile2");
+    sFsShell.run("rm", "-R", "/testFolder1/testFolder2/testFile2");
     toCompare.append(getCommandOutput(new String[] {"rm", "/testFolder1/testFolder2/testFile2"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
     Assert.assertTrue(fileExists(testFolder1));
     Assert.assertTrue(fileExists(testFolder2));
     Assert.assertFalse(fileExists(testFile2));
-    mFsShell.run("rm", "-R", "/testFolder1");
+    sFsShell.run("rm", "-R", "/testFolder1");
     toCompare.append(getCommandOutput(new String[] {"rmr", "/testFolder1"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
     Assert.assertFalse(fileExists(testFolder1));
@@ -111,20 +111,20 @@ public final class RmCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Test
   public void rmrWildCard() throws IOException, AlluxioException {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
 
-    mFsShell.run("rm",  "-R", testDir + "/foo/foo*");
+    sFsShell.run("rm",  "-R", testDir + "/foo/foo*");
     Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foo/foobar1")));
     Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foo/foobar2")));
     Assert.assertTrue(fileExists(new AlluxioURI(testDir + "/foo")));
     Assert.assertTrue(fileExists(new AlluxioURI(testDir + "/bar/foobar3")));
 
-    mFsShell.run("rm", "-R", testDir + "/ba*");
+    sFsShell.run("rm", "-R", testDir + "/ba*");
     Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/bar")));
     Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/bar/foobar3")));
     Assert.assertTrue(fileExists(new AlluxioURI(testDir + "/foobar4")));
 
-    mFsShell.run("rm", "-R", testDir + "/*");
+    sFsShell.run("rm", "-R", testDir + "/*");
     Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/bar")));
     Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foo")));
     Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foobar4")));

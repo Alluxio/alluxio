@@ -26,7 +26,7 @@ public final class StatCommandTest extends JobShellTest {
 
     long jobId = runPersistJob(pathStr);
     waitForJobToFinish(jobId);
-    mJobShell.run("stat", "-v", Long.toString(jobId));
+    sJobShell.run("stat", "-v", Long.toString(jobId));
 
     String[] output = mOutput.toString().split("\n");
 

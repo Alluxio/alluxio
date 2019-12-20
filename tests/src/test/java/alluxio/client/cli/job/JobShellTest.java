@@ -33,19 +33,19 @@ public abstract class JobShellTest extends AbstractFileSystemShellTest {
   protected long runPersistJob(String pathStr) throws Exception {
     // write a file in alluxio only
     AlluxioURI filePath = new AlluxioURI(pathStr);
-    FileOutStream os = mFileSystem.createFile(filePath,
+    FileOutStream os = sFileSystem.createFile(filePath,
         CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
 
     // persist the file
-    URIStatus status = mFileSystem.getStatus(filePath);
-    return mJobMaster.run(new PersistConfig(pathStr, 1, true, status.getUfsPath()));
+    URIStatus status = sFileSystem.getStatus(filePath);
+    return sJobMaster.run(new PersistConfig(pathStr, 1, true, status.getUfsPath()));
   }
 
   protected JobInfo waitForJobToFinish(final long jobId)
       throws InterruptedException, TimeoutException {
-    return JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.COMPLETED);
+    return JobTestUtils.waitForJobStatus(sJobMaster, jobId, Status.COMPLETED);
   }
 }

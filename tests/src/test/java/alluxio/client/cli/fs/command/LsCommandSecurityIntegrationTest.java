@@ -51,7 +51,7 @@ import java.util.function.Function;
 public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemShellTest {
   // Helper function to create a set of files in the file system
   private void createFiles() throws Exception {
-    FileSystem fs = mLocalAlluxioCluster.getClient(FileSystemContext
+    FileSystem fs = sLocalAlluxioCluster.getClient(FileSystemContext
         .create(new TestUserState("test_user_ls", ServerConfiguration.global()).getSubject(),
             ServerConfiguration.global()));
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.MUST_CACHE, 10);
@@ -66,7 +66,7 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
   @Test
   public void ls() throws Exception {
     createFiles();
-    mFsShell.run("ls", "/testRoot");
+    sFsShell.run("ls", "/testRoot");
     // CHECKSTYLE.OFF: LineLengthExceed - Improve readability
     checkOutput(
         "drwxr-xr-x  test_user_ls   test_user_ls                 1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
@@ -80,12 +80,12 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
    */
   @Test
   public void lsWildcard() throws Exception {
-    FileSystem fs = mLocalAlluxioCluster.getClient(FileSystemContext.create(
+    FileSystem fs = sLocalAlluxioCluster.getClient(FileSystemContext.create(
         new TestUserState("test_user_ls", ServerConfiguration.global()).getSubject(),
         ServerConfiguration.global()));
 
     String testDir = FileSystemShellUtilsTest.resetFileHierarchy(fs);
-    mFsShell.run("ls", testDir + "/*/foo*");
+    sFsShell.run("ls", testDir + "/*/foo*");
     // CHECKSTYLE.OFF: LineLengthExceed - Improve readability
     checkOutput(
         "-rw-r--r--  test_user_ls   test_user_ls                30   NOT_PERSISTED .+ .+ 100% /testDir/bar/foobar3",
@@ -93,7 +93,7 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
         "-rw-r--r--  test_user_ls   test_user_ls                20   NOT_PERSISTED .+ .+ 100% /testDir/foo/foobar2");
     mOutput.reset();
 
-    mFsShell.run("ls", testDir + "/*");
+    sFsShell.run("ls", testDir + "/*");
     checkOutput(
         "-rw-r--r--  test_user_ls   test_user_ls                30   NOT_PERSISTED .+ .+ 100% /testDir/bar/foobar3",
         "-rw-r--r--  test_user_ls   test_user_ls                10   NOT_PERSISTED .+ .+ 100% /testDir/foo/foobar1",
@@ -108,7 +108,7 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
   @Test
   public void lsr() throws Exception {
     createFiles();
-    mFsShell.run("ls", "-R", "/testRoot");
+    sFsShell.run("ls", "-R", "/testRoot");
     // CHECKSTYLE.OFF: LineLengthExceed - Improve readability
     checkOutput(
         "drwxr-xr-x  test_user_ls   test_user_ls                 1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",
@@ -144,13 +144,13 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
     String testDir = "/testRoot/testDir";
     String testFileA = "/testRoot/testFileA";
     String testFileC = "/testRoot/testFileC";
-    mFileSystem.listStatus(new AlluxioURI(testDir));
-    FileSystemTestUtils.loadFile(mFileSystem, testFileA);
-    FileSystemTestUtils.loadFile(mFileSystem, testFileC);
-    mFsShell.run("ls", "--timestamp", parameter, "/testRoot");
-    long time1 = timestampFunc.apply(mFileSystem.getStatus(new AlluxioURI(testDir)));
-    long time2 = timestampFunc.apply(mFileSystem.getStatus(new AlluxioURI(testFileA)));
-    long time3 = timestampFunc.apply(mFileSystem.getStatus(new AlluxioURI(testFileC)));
+    sFileSystem.listStatus(new AlluxioURI(testDir));
+    FileSystemTestUtils.loadFile(sFileSystem, testFileA);
+    FileSystemTestUtils.loadFile(sFileSystem, testFileC);
+    sFsShell.run("ls", "--timestamp", parameter, "/testRoot");
+    long time1 = timestampFunc.apply(sFileSystem.getStatus(new AlluxioURI(testDir)));
+    long time2 = timestampFunc.apply(sFileSystem.getStatus(new AlluxioURI(testFileA)));
+    long time3 = timestampFunc.apply(sFileSystem.getStatus(new AlluxioURI(testFileC)));
     // CHECKSTYLE.OFF: LineLengthExceed - Improve readability
     checkOutput(
         "drwxr-xr-x  test_user_ls   test_user_ls                 1   NOT_PERSISTED " +  getDisplayTime(time1) + "  DIR /testRoot/testDir",
@@ -163,7 +163,7 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
   public void lsWithExtendedAcl() throws IOException, AlluxioException {
     int size = 50;
 
-    FileSystem fs = mLocalAlluxioCluster.getClient(FileSystemContext
+    FileSystem fs = sLocalAlluxioCluster.getClient(FileSystemContext
         .create(new TestUserState("test_user_ls", ServerConfiguration.global()).getSubject(),
             ServerConfiguration.global()));
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testDir/testFileB",
@@ -171,7 +171,7 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFile",
         WritePType.MUST_CACHE, size, size);
 
-    mFsShell.run("ls", "--sort", "path", "/testRoot");
+    sFsShell.run("ls", "--sort", "path", "/testRoot");
     // CHECKSTYLE.OFF: LineLengthExceed - Improve readability
     checkOutput(
         "drwxr-xr-x  test_user_ls   test_user_ls                 1   NOT_PERSISTED .+ .+ DIR /testRoot/testDir",
@@ -184,7 +184,7 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
     fs.setAcl(new AlluxioURI("/testRoot/testFile"), SetAclAction.MODIFY,
         Arrays.asList(AclEntry.fromCliString("user:nameduser:rwx")));
 
-    mFsShell.run("ls", "--sort", "path", "/testRoot");
+    sFsShell.run("ls", "--sort", "path", "/testRoot");
     // CHECKSTYLE.OFF: LineLengthExceed - Improve readability
     checkOutput(
         "drwxr-xr-x\\+ test_user_ls   test_user_ls                 1   NOT_PERSISTED .+ .+  DIR /testRoot/testDir",

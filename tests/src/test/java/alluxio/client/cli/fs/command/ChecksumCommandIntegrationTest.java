@@ -31,8 +31,8 @@ public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShel
    */
   @Test
   public void checksum() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
-    mFsShell.run("checksum", "/testFile");
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+    sFsShell.run("checksum", "/testFile");
     String str = mOutput.toString();
     String[] splitString = str.split("\\s+");
 
@@ -50,11 +50,11 @@ public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShel
    */
   @Test
   public void checksumWildCard() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFileA",
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/testFileA",
         WritePType.MUST_CACHE, 10);
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir2/testFileB",
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir2/testFileB",
         WritePType.MUST_CACHE, 10);
-    mFsShell.run("checksum", "/testDir*/testFile*");
+    sFsShell.run("checksum", "/testDir*/testFile*");
     String str = mOutput.toString();
     String[] splitString = str.split("\\s+");
 
@@ -73,11 +73,11 @@ public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShel
    */
   @Test
   public void checksumInvalidArgs() throws Exception {
-    mFsShell.run("checksum", "/testFile");
+    sFsShell.run("checksum", "/testFile");
     String expected = ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/testFile") + "\n";
     Assert.assertEquals(expected, mOutput.toString());
-    mFsShell.run("mkdir", "/testFolder");
-    int ret = mFsShell.run("checksum", "/testFolder");
+    sFsShell.run("mkdir", "/testFolder");
+    int ret = sFsShell.run("checksum", "/testFolder");
     Assert.assertEquals(-1, ret);
   }
 }
