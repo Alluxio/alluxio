@@ -35,6 +35,13 @@ import java.util.List;
 /**
  * Tests for setfacl command.
  */
+@LocalAlluxioClusterResource.ServerConfig(
+    confParams = {
+        PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+        PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+        PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
+        "alluxio.security.group.provider.IdentityUserGroupsMapping",
+        PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "setfacl_test_user"})
 public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShellTest {
   private static final List<String> FACL_STRING_ENTRIES
       = Arrays.asList("user::rw-", "group::r--", "other::r--");
@@ -49,14 +56,8 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
    * Tests setfacl command.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-          PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
-          "alluxio.security.group.provider.IdentityUserGroupsMapping",
-          PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_setfacl"})
   public void setfacl() throws Exception {
-    String testOwner = "test_user_setfacl";
+    String testOwner = "setfacl_test_user";
     String expected = "";
     URIStatus[] files = createFiles(testOwner);
 
@@ -83,15 +84,8 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
    * Tests setfacl command to set default facl.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-          PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
-          "alluxio.security.group.provider.IdentityUserGroupsMapping",
-          PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP,
-          "test_user_setDefaultFacl"})
   public void setDefaultFacl() throws Exception {
-    String testOwner = "test_user_setDefaultFacl";
+    String testOwner = "setfacl_test_user";
     URIStatus[] files = createFiles(testOwner);
     mFsShell.run("setfacl", "-m", "default:user:testuser:rwx", "/testRoot/testDir");
     mFsShell.run("getfacl", "/testRoot/testDir");

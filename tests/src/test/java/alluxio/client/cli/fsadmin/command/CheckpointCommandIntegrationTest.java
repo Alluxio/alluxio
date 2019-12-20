@@ -27,6 +27,6 @@ public final class CheckpointCommandIntegrationTest extends AbstractFsAdminShell
     Assert.assertEquals(0, ret);
     Assert.assertThat(mOutput.toString(), CoreMatchers.containsString(String
         .format("Successfully took a checkpoint on master %s%n",
-        mLocalAlluxioClusterResource.get().getHostname())));
+        sLocalAlluxioClusterResource.get().getHostname())));
   }
 }

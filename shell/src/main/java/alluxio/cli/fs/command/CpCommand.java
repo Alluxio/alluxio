@@ -333,6 +333,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
     }
     if (cl.hasOption(PRESERVE_OPTION.getLongOpt())) {
       mPreservePermissions = true;
+    } else {
+      mPreservePermissions = false;
     }
   }
 

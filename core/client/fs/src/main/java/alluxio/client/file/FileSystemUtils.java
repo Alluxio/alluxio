@@ -163,6 +163,6 @@ public final class FileSystemUtils {
         throw new RuntimeException(e);
       }
     }, WaitForOptions.defaults().setTimeoutMs(timeoutMs)
-        .setInterval(Constants.SECOND_MS));
+        .setInterval(100));
   }
 }

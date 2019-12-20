@@ -52,7 +52,7 @@ public class ListCommandIntegrationTest extends AbstractShellIntegrationTest {
         MasterClientContext.newBuilder(metaCtx.getClientContext()).build());
     client.setPathConfiguration(new AlluxioURI(DIR1), PROPERTY_KEY1, PROPERTY_VALUE1);
     client.setPathConfiguration(new AlluxioURI(DIR2), PROPERTY_KEY2, PROPERTY_VALUE2);
-    InetSocketAddress address = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
+    InetSocketAddress address = sLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
         .getAddress();
     FileSystemContext fsCtx = FileSystemContext.create(ServerConfiguration.global());
     fsCtx.getClientContext().loadConf(address, true, true);

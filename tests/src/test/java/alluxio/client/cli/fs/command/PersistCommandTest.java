@@ -17,6 +17,8 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.TestLoggerRule;
+import alluxio.cli.fs.FileSystemShell;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystemTestUtils;
@@ -45,6 +47,8 @@ import java.util.List;
 /**
  * Tests for persist command.
  */
+@LocalAlluxioClusterResource.ServerConfig(
+    confParams = {PropertyKey.Name.MASTER_PERSISTENCE_BLACKLIST, "foobar_blacklist"})
 public final class PersistCommandTest extends AbstractFileSystemShellTest {
 
   @Rule
@@ -78,55 +82,69 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
     checkFilePersisted(new AlluxioURI(testDir + "/foo/foobar2"), 20);
     checkFilePersisted(new AlluxioURI(testDir + "/bar/foobar3"), 30);
     checkFilePersisted(new AlluxioURI(testDir + "/foobar4"), 40);
-    ServerConfiguration.reset();
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT,
-      "MUST_CACHE", PropertyKey.Name.USER_FILE_PERSIST_ON_RENAME, "true"})
   public void persistOnRenameDirectory() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    String toPersist = testDir + "/foo";
-    String persisted = testDir + "/foo_persisted";
-    String doNotPersist = testDir + "/bar";
-    assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir)).isPersisted());
-    assertFalse(mFileSystem.getStatus(new AlluxioURI(toPersist)).isPersisted());
-    assertFalse(mFileSystem.getStatus(new AlluxioURI(doNotPersist)).isPersisted());
-    int ret = mFsShell.run("mv", toPersist, persisted);
-    Assert.assertEquals(0, ret);
-    CommonUtils.waitFor("Directory to be persisted", () -> {
-      try {
-        return mFileSystem.getStatus(new AlluxioURI(persisted)).isPersisted();
-      } catch (Exception e) {
-        return false;
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(10000));
-    assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir + "/bar")).isPersisted());
-    checkFilePersisted(new AlluxioURI(persisted + "/foobar1"), 10);
-    checkFilePersisted(new AlluxioURI(persisted + "/foobar2"), 20);
+    InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
+    conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    conf.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, "true");
+
+    try (FileSystemShell fsShell = new FileSystemShell(conf)) {
+      String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+      String toPersist = testDir + "/foo";
+      String persisted = testDir + "/foo_persisted";
+      String doNotPersist = testDir + "/bar";
+      assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir)).isPersisted());
+      assertFalse(mFileSystem.getStatus(new AlluxioURI(toPersist)).isPersisted());
+      assertFalse(mFileSystem.getStatus(new AlluxioURI(doNotPersist)).isPersisted());
+      int ret = fsShell.run("mv", toPersist, persisted);
+      Assert.assertEquals(mOutput.toString(), 0, ret);
+      CommonUtils.waitFor("Directory to be persisted", () -> {
+        try {
+          return mFileSystem.getStatus(new AlluxioURI(persisted)).isPersisted();
+        } catch (Exception e) {
+          return false;
+        }
+      }, WaitForOptions.defaults().setTimeoutMs(10000));
+      assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir + "/bar")).isPersisted());
+      checkFilePersisted(new AlluxioURI(persisted + "/foobar1"), 10);
+      checkFilePersisted(new AlluxioURI(persisted + "/foobar2"), 20);
+    }
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT,
-      "MUST_CACHE", PropertyKey.Name.USER_FILE_PERSIST_ON_RENAME, "true",
-      PropertyKey.Name.MASTER_PERSISTENCE_BLACKLIST, "foobar2"})
   public void persistOnRenameDirectoryBlacklist() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    String toPersist = testDir + "/foo";
-    String persisted = testDir + "/foo_persisted";
-    assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir)).isPersisted());
-    assertFalse(mFileSystem.getStatus(new AlluxioURI(toPersist)).isPersisted());
-    int ret = mFsShell.run("mv", toPersist, persisted);
-    Assert.assertEquals(0, ret);
-    CommonUtils.waitFor("Directory to be persisted", () -> {
-      try {
-        return mFileSystem.getStatus(new AlluxioURI(persisted)).isPersisted();
-      } catch (Exception e) {
-        return false;
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(10000));
-    assertFalse(mFileSystem.getStatus(new AlluxioURI(persisted + "/foobar2")).isPersisted());
-    checkFilePersisted(new AlluxioURI(persisted + "/foobar1"), 10);
+    InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
+    conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    conf.set(PropertyKey.USER_FILE_PERSIST_ON_RENAME, "true");
+    // MASTER_PERSISTENCE_BLACKLIST is set to "foobar_blacklist" for the server configuration
+
+    try (FileSystemShell fsShell = new FileSystemShell(conf)) {
+      String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+      String toPersist = testDir + "/foo";
+      String persisted = testDir + "/foo_persisted";
+      // create the file that is blacklisted, under the directory
+      FileSystemTestUtils
+          .createByteFile(mFileSystem, toPersist + "/foobar_blacklist", WritePType.MUST_CACHE, 10);
+
+      assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir)).isPersisted());
+      assertFalse(mFileSystem.getStatus(new AlluxioURI(toPersist)).isPersisted());
+      assertFalse(
+          mFileSystem.getStatus(new AlluxioURI(toPersist + "/foobar_blacklist")).isPersisted());
+      int ret = fsShell.run("mv", toPersist, persisted);
+      Assert.assertEquals(0, ret);
+      CommonUtils.waitFor("Directory to be persisted", () -> {
+        try {
+          return mFileSystem.getStatus(new AlluxioURI(persisted)).isPersisted();
+        } catch (Exception e) {
+          return false;
+        }
+      }, WaitForOptions.defaults().setTimeoutMs(10000));
+      assertFalse(
+          mFileSystem.getStatus(new AlluxioURI(persisted + "/foobar_blacklist")).isPersisted());
+      checkFilePersisted(new AlluxioURI(persisted + "/foobar1"), 10);
+    }
   }
 
   @Test
@@ -173,7 +191,6 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
     checkFilePersisted(new AlluxioURI(testDir + "/foo/foobar1"), 10);
     checkFilePersisted(new AlluxioURI(testDir + "/bar/foobar3"), 30);
     checkFilePersisted(new AlluxioURI(testDir + "/foobar4"), 40);
-    ServerConfiguration.reset();
   }
 
   @Test
@@ -201,8 +218,7 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
 
   @Test
   public void persistWithAncestorPermission() throws Exception {
-    String ufsRoot =
-        PathUtils.concatPath(ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS));
+    String ufsRoot = mFileSystem.getStatus(new AlluxioURI("/")).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     // Skip non-local and non-HDFS UFSs.
     Assume.assumeTrue(UnderFileSystemUtils.isLocal(ufs) || UnderFileSystemUtils.isHdfs(ufs));

@@ -170,34 +170,34 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
     InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
     // avoid chown on UFS since test might not be run with root
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    mFsShell = new FileSystemShell(conf);
-
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    AlluxioURI srcFile = new AlluxioURI(testDir + "/foobar4");
-    String owner = TEST_USER_1.getUser();
-    String group = "staff";
-    short mode = 0422;
-    List<AclEntry> entries = new ArrayList<>();
-    entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_USER)
-        .setSubject(TEST_USER_2.getUser()).addAction(AclAction.READ).addAction(AclAction.WRITE)
-        .addAction(AclAction.EXECUTE).build());
-    entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP).setSubject(group)
-        .addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
-    mFileSystem.setAttribute(srcFile,
-        SetAttributePOptions.newBuilder()
-            .setOwner(owner).setGroup(group)
-            .setMode(new Mode(mode).toProto())
-            .setPinned(true)
-            .setReplicationMin(2)
-            .setReplicationMax(4)
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(12345))
-            .build());
-    mFileSystem.setAcl(srcFile, SetAclAction.MODIFY, entries);
-    int ret = mFsShell.run("cp", "-p", testDir + "/foobar4", testDir + "/bar");
-    AlluxioURI dstFile = new AlluxioURI(testDir + "/bar/foobar4");
-    Assert.assertEquals(0, ret);
-    Assert.assertTrue(mFileSystem.exists(dstFile));
-    verifyPreservedAttributes(srcFile, dstFile);
+    try (FileSystemShell fsShell = new FileSystemShell(conf)) {
+      String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+      AlluxioURI srcFile = new AlluxioURI(testDir + "/foobar4");
+      String owner = TEST_USER_1.getUser();
+      String group = "staff";
+      short mode = 0422;
+      List<AclEntry> entries = new ArrayList<>();
+      entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_USER)
+          .setSubject(TEST_USER_2.getUser()).addAction(AclAction.READ).addAction(AclAction.WRITE)
+          .addAction(AclAction.EXECUTE).build());
+      entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP).setSubject(group)
+          .addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
+      mFileSystem.setAttribute(srcFile,
+          SetAttributePOptions.newBuilder()
+              .setOwner(owner).setGroup(group)
+              .setMode(new Mode(mode).toProto())
+              .setPinned(true)
+              .setReplicationMin(2)
+              .setReplicationMax(4)
+              .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(12345))
+              .build());
+      mFileSystem.setAcl(srcFile, SetAclAction.MODIFY, entries);
+      int ret = fsShell.run("cp", "-p", testDir + "/foobar4", testDir + "/bar");
+      AlluxioURI dstFile = new AlluxioURI(testDir + "/bar/foobar4");
+      Assert.assertEquals(0, ret);
+      Assert.assertTrue(mFileSystem.exists(dstFile));
+      verifyPreservedAttributes(srcFile, dstFile);
+    }
   }
 
   /**
@@ -207,40 +207,40 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
   public void copyDirectoryWithPreservedAttributes() throws Exception {
     InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    mFsShell = new FileSystemShell(conf);
-
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    String newDir = "/copy";
-    String subDir = "/foo";
-    String file = "/foobar4";
-    String owner = TEST_USER_1.getUser();
-    String group = "staff";
-    short mode = 0422;
-    List<AclEntry> entries = new ArrayList<>();
-    entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_USER)
-        .setSubject(TEST_USER_2.getUser()).addAction(AclAction.READ).addAction(AclAction.WRITE)
-        .addAction(AclAction.EXECUTE).build());
-    entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP).setSubject(group)
-        .addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
-    AlluxioURI srcDir = new AlluxioURI(testDir);
-    mFileSystem.setAttribute(srcDir,
-        SetAttributePOptions.newBuilder().setRecursive(true)
-            .setOwner(owner).setGroup(group)
-            .setMode(new Mode(mode).toProto())
-            .setPinned(true)
-            .setReplicationMin(2)
-            .setReplicationMax(4)
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(12345))
-            .build());
-    mFileSystem.setAcl(srcDir, SetAclAction.MODIFY, entries,
-        SetAclPOptions.newBuilder().setRecursive(true).build());
-    int ret = mFsShell.run("cp", "-R",  "-p", testDir, newDir);
-    AlluxioURI dstDir = new AlluxioURI(newDir);
-    Assert.assertEquals(0, ret);
-    Assert.assertTrue(mFileSystem.exists(dstDir));
-    verifyPreservedAttributes(srcDir, dstDir);
-    verifyPreservedAttributes(srcDir.join(subDir), dstDir.join(subDir));
-    verifyPreservedAttributes(srcDir.join(file), dstDir.join(file));
+    try (FileSystemShell fsShell = new FileSystemShell(conf)) {
+      String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+      String newDir = "/copy";
+      String subDir = "/foo";
+      String file = "/foobar4";
+      String owner = TEST_USER_1.getUser();
+      String group = "staff";
+      short mode = 0422;
+      List<AclEntry> entries = new ArrayList<>();
+      entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_USER)
+          .setSubject(TEST_USER_2.getUser()).addAction(AclAction.READ).addAction(AclAction.WRITE)
+          .addAction(AclAction.EXECUTE).build());
+      entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP).setSubject(group)
+          .addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
+      AlluxioURI srcDir = new AlluxioURI(testDir);
+      mFileSystem.setAttribute(srcDir,
+          SetAttributePOptions.newBuilder().setRecursive(true)
+              .setOwner(owner).setGroup(group)
+              .setMode(new Mode(mode).toProto())
+              .setPinned(true)
+              .setReplicationMin(2)
+              .setReplicationMax(4)
+              .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(12345))
+              .build());
+      mFileSystem.setAcl(srcDir, SetAclAction.MODIFY, entries,
+          SetAclPOptions.newBuilder().setRecursive(true).build());
+      int ret = fsShell.run("cp", "-R",  "-p", testDir, newDir);
+      AlluxioURI dstDir = new AlluxioURI(newDir);
+      Assert.assertEquals(0, ret);
+      Assert.assertTrue(mFileSystem.exists(dstDir));
+      verifyPreservedAttributes(srcDir, dstDir);
+      verifyPreservedAttributes(srcDir.join(subDir), dstDir.join(subDir));
+      verifyPreservedAttributes(srcDir.join(file), dstDir.join(file));
+    }
   }
 
   private void verifyPreservedAttributes(AlluxioURI src, AlluxioURI dst)
@@ -279,8 +279,8 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Test
   public void copyAfterWorkersNotAvailable() throws Exception {
-    FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
     File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
+    testFile.delete();
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
     byte[] toWrite = BufferUtils.getIncreasingByteArray(100);
@@ -298,20 +298,20 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
   public void copyAfterWorkersNotAvailableMustCache() throws Exception {
     InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    mFsShell = new FileSystemShell(conf);
+    try (FileSystemShell fsShell = new FileSystemShell(conf)) {
+      File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
+      testFile.createNewFile();
+      FileOutputStream fos = new FileOutputStream(testFile);
+      byte[] toWrite = BufferUtils.getIncreasingByteArray(100);
+      fos.write(toWrite);
+      fos.close();
 
-    File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
-    testFile.createNewFile();
-    FileOutputStream fos = new FileOutputStream(testFile);
-    byte[] toWrite = BufferUtils.getIncreasingByteArray(100);
-    fos.write(toWrite);
-    fos.close();
-
-    mFsShell.run("copyFromLocal", testFile.getPath(), "/");
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testFile")));
-    mLocalAlluxioCluster.stopWorkers();
-    mFsShell.run("cp", "/testFile", "/testFile2");
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testFile2")));
+      fsShell.run("copyFromLocal", testFile.getPath(), "/");
+      Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testFile")));
+      mLocalAlluxioCluster.stopWorkers();
+      fsShell.run("cp", "/testFile", "/testFile2");
+      Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testFile2")));
+    }
   }
 
   private boolean equals(AlluxioURI file1, AlluxioURI file2) throws Exception {
@@ -421,6 +421,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void copyFromLocalLarge() throws Exception {
     File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
+    testFile.delete();
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
     byte[] toWrite = BufferUtils.getIncreasingByteArray(SIZE_BYTES);
@@ -603,7 +604,9 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
   public void copyToLocalWildcardNotDir() throws Exception {
     String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
     new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir").mkdir();
-    new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir/testFile").createNewFile();
+    File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir/testFile");
+    testFile.delete();
+    testFile.createNewFile();
 
     int ret = mFsShell.run("cp", testDir + "/*/foo*",
         "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testDir/testFile");

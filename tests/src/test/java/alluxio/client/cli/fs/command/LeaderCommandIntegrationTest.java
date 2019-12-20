@@ -19,7 +19,7 @@ import org.junit.Test;
 /**
  * Tests for leader command.
  */
-public final class LeaderCommandIntegrationTest extends AbstractFileSystemShellTest {
+public final class  LeaderCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   @Test
   public void leader() {

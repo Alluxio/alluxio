@@ -258,6 +258,13 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
+   * @return true if the workers are started, and not stopped
+   */
+  public boolean isStartedWorkers() {
+    return !mWorkerThreads.isEmpty();
+  }
+
+  /**
    * Creates a default {@link ServerConfiguration} for testing.
    *
    * @param name the name of the test/cluster

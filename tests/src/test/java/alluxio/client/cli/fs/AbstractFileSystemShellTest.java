@@ -36,8 +36,9 @@ import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.Lists;
-import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,12 +55,12 @@ import javax.annotation.Nullable;
  * The base class for all the {@link FileSystemShell} test classes.
  */
 public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrationTest {
-  public LocalAlluxioCluster mLocalAlluxioCluster = null;
-  public FileSystem mFileSystem = null;
-  public FileSystemShell mFsShell = null;
-  protected JobMaster mJobMaster;
-  protected LocalAlluxioJobCluster mLocalAlluxioJobCluster = null;
-  protected JobShell mJobShell = null;
+  public static LocalAlluxioCluster mLocalAlluxioCluster = null;
+  public static FileSystem mFileSystem = null;
+  public static FileSystemShell mFsShell = null;
+  protected static JobMaster mJobMaster;
+  protected static LocalAlluxioJobCluster mLocalAlluxioJobCluster = null;
+  protected static JobShell mJobShell = null;
 
   /*
    * The user and group mappings for testing are:
@@ -116,9 +117,9 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
     }
   }
 
-  @Before
-  public final void before() throws Exception {
-    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    mLocalAlluxioCluster = sLocalAlluxioClusterResource.get();
     mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
     mLocalAlluxioJobCluster.start();
     mFileSystem = mLocalAlluxioCluster.getClient();
@@ -127,8 +128,8 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
     mFsShell = new FileSystemShell(ServerConfiguration.global());
   }
 
-  @After
-  public final void after() throws Exception {
+  @AfterClass
+  public static void afterClass() throws Exception {
     mFsShell.close();
     mLocalAlluxioJobCluster.stop();
     mJobShell.close();
