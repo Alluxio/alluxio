@@ -54,7 +54,7 @@ Note: [Embedded Journal]({{ '/en/operation/Journal.html' | relativize_url }}#emb
 does not require a Persistent Volume to be provisioned and is the preferred HA mechanism for
 Alluxio on Kubernetes. If using this mechanism, the remainder of this section can be skipped.
 
-When using the [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration}})
+When using the [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
 an Alluxio master can be configured to use a [persistent volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
 for storing the journal. The volume, once claimed, is persisted across restarts of the master process.
 
