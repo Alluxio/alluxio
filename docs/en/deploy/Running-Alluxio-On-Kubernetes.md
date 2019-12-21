@@ -54,7 +54,7 @@ Note: [Embedded Journal]({{ '/en/operation/Journal.html' | relativize_url }}#emb
 does not require a Persistent Volume to be provisioned and is the preferred HA mechanism for
 Alluxio on Kubernetes. If using this mechanism, the remainder of this section can be skipped.
 
-When using the [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration}})
+When using the [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
 an Alluxio master can be configured to use a [persistent volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
 for storing the journal. The volume, once claimed, is persisted across restarts of the master process.
 
@@ -112,7 +112,7 @@ The remainder of this section describes various configuration options with examp
 
 ***Example: Amazon S3 as the under store***
 
-To [mount S3]({{ '/en/ufs/S3.html' | relativize_url }}#root-mount-point}}) at the root of Alluxio
+To [mount S3]({{ '/en/ufs/S3.html' | relativize_url }}#root-mount-point) at the root of Alluxio
 namespace specify all required properties as a key-value pair under `properties`.
 
 ```properties
@@ -124,7 +124,7 @@ properties:
 
 ***Example: Single Master and Journal in a Persistent Volume***
 
-The following configures [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration}})
+The following configures [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
 with a persistent volume claim `alluxio-pv-claim` mounted locally to the master Pod at location
 `/journal`.
 
