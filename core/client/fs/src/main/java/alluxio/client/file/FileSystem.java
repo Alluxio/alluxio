@@ -149,7 +149,7 @@ public interface FileSystem extends Closeable {
         }
       }
       if (context.getClusterConf().getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
-        return new CachingFileSystem(context, cachingEnabled);
+        return new MetadataCachingBaseFileSystem(context, cachingEnabled);
       }
       return BaseFileSystem.create(context, cachingEnabled);
     }

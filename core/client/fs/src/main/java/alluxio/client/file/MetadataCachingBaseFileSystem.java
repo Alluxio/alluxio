@@ -39,7 +39,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * FileSystem implementation with the capability of caching metadata of paths.
  */
 @ThreadSafe
-public class CachingFileSystem extends BaseFileSystem {
+public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
   private static final int THREAD_KEEPALIVE_SECOND = 60;
   private static final int THREAD_TERMINATION_TIMEOUT_MS = 10000;
@@ -51,7 +51,7 @@ public class CachingFileSystem extends BaseFileSystem {
    * @param context the fs context
    * @param cachingEnabled enables caching
    */
-  public CachingFileSystem(FileSystemContext context, boolean cachingEnabled) {
+  public MetadataCachingBaseFileSystem(FileSystemContext context, boolean cachingEnabled) {
     super(context, cachingEnabled);
 
     int maxSize = mFsContext.getClusterConf().getInt(PropertyKey.USER_METADATA_CACHE_MAX_SIZE);
