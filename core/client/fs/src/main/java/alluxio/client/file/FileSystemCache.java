@@ -20,6 +20,9 @@ import javax.security.auth.Subject;
 public class FileSystemCache {
   final ConcurrentHashMap<Key, FileSystem> mCacheMap = new ConcurrentHashMap<>();
 
+  /**
+   * Constructs a new cache for file system instances.
+   */
   public FileSystemCache() { }
 
   /**
@@ -27,6 +30,7 @@ public class FileSystemCache {
    * the cache, and returned back to the user.
    *
    * @param key the key to retrieve a {@link FileSystem}
+   * @param func a mapping function to create a new FileSystem given key
    * @return the {@link FileSystem} associated with the key
    */
   public FileSystem get(Key key, Function<Key, FileSystem> func) {
@@ -61,7 +65,8 @@ public class FileSystemCache {
   }
 
   /**
-   * A key which can be used to look up a {@link FileSystem} instance in the {@link FileSystemCache}.
+   * A key which can be used to look up a {@link FileSystem} instance in the
+   * {@link FileSystemCache}.
    */
   public static class Key {
     final Subject mSubject;
@@ -73,12 +78,19 @@ public class FileSystemCache {
      */
     final AlluxioConfiguration mConf;
 
+    /**
+     * @param subject Subject of the user
+     * @param conf Alluxio configuration
+     */
     public Key(Subject subject, AlluxioConfiguration conf) {
       mConf = conf;
       mSubject = subject;
       mAuth = MasterInquireClient.Factory.getConnectDetails(conf).toAuthority();
     }
 
+    /**
+     * @param ctx client context
+     */
     public Key(ClientContext ctx) {
       this(ctx.getSubject(), ctx.getClusterConf());
     }
