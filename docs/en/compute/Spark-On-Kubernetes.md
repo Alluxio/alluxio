@@ -35,20 +35,12 @@ This image should be made available on all Kubernetes nodes.
 [Download](https://spark.apache.org/downloads.html) the desired Spark version.
 We use the pre-built binary for the `spark-submit` command as well as building the Docker image
 using Dockerfile included with Alluxio.
+> Note: Download the package prebuilt for hadoop
 
 ```console
 $ tar -xf spark-2.4.0-bin-hadoop2.7.tgz
 $ cd spark-2.4.0-bin-hadoop2.7
 ```
-
-If running the `count` example, download the Alluxio examples jar.
-
-```console
-$ wget https://alluxio-documentation.s3.amazonaws.com/examples/spark/alluxio-examples_2.12-1.0.jar
-$ cp <path_to_alluxio_examples>/alluxio-examples_2.12-1.0.jar jars/
-```
-
-Note: Any jar copied to the `jars` directory is included in the Spark Docker image when built.
 
 ### Build the Spark Docker Image
 
@@ -67,6 +59,7 @@ pods. Run the following from the Spark distribution directory to add the Alluxio
 ```console
 $ cp <path_to_alluxio_client>/alluxio-{{site.ALLUXIO_VERSION_STRING}}-client.jar jars/
 ```
+> Note: Any jar copied to the `jars` directory is included in the Spark Docker image when built.
 
 Build the Spark Docker image
 
@@ -108,7 +101,7 @@ Note:
 
 ### Run a Spark job
 
-The following command runs an example job to count the number of lines in the Alluxio location
+The following command runs an example word count job in the Alluxio location
 `/LICENSE`.
 The output and time taken can be seen in the logs for Spark driver pod. Refer to Spark
 [documentation](https://spark.apache.org/docs/latest/running-on-kubernetes.html) for further instructions.
@@ -125,14 +118,15 @@ Run the job from the Spark distribution directory
 ```console
 $ ./bin/spark-submit --master k8s://https://<master>:8443 \
 --deploy-mode cluster --name spark-alluxio --conf spark.executor.instances=1 \
---class alluxio.examples.Count --driver-memory 500m --executor-memory 1g \
+--class org.apache.spark.examples.JavaWordCount \
+--driver-memory 500m --executor-memory 1g \
 --conf spark.kubernetes.authenticate.driver.serviceAccountName=spark \
 --conf spark.kubernetes.container.image=spark-alluxio \
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.mount.path=/opt/domain \
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.mount.readOnly=true \
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.path=/tmp/alluxio-domain \
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.type=Directory \
-local:///opt/spark/jars/alluxio-examples_2.12-1.0.jar \
+local:///opt/spark/examples/jars/spark-examples_2.11-2.4.4.jar \
 alluxio://alluxio-master.default.svc.cluster.local:19998/LICENSE
 ```
 
