@@ -21,7 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.security.auth.Subject;
 
@@ -44,8 +44,10 @@ public class FileSystemCache {
    * @param func a mapping function to create a new FileSystem given key
    * @return the {@link FileSystem} associated with the key
    */
-  public FileSystem get(Key key, Function<Key, FileSystem> func) {
-    return mCacheMap.computeIfAbsent(key, func);
+  public FileSystem getOrDefault(Key key, Supplier<FileSystem> func) {
+    return mCacheMap.computeIfAbsent(key, (fsKey) -> {
+      return new InstanceCachingFileSystem(func.get(), this, key);
+    });
   }
 
   /**

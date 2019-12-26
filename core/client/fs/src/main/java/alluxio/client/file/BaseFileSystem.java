@@ -104,15 +104,11 @@ public class BaseFileSystem implements FileSystem {
    * Constructs a new base file system.
    *
    * @param fsContext file system context
-   * @param fsCachePurger a function to remove this instance from fs cache on close
    */
-  protected BaseFileSystem(FileSystemContext fsContext, Runnable fsCachePurger) {
+  protected BaseFileSystem(FileSystemContext fsContext) {
     mFsContext = fsContext;
     mBlockStore = AlluxioBlockStore.create(fsContext);
     mCloser.register(mFsContext);
-    mCloser.register(() -> {
-      if (fsCachePurger != null) fsCachePurger.run();
-    });
   }
 
   /**

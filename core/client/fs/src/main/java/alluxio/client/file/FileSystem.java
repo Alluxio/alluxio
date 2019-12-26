@@ -104,8 +104,8 @@ public interface FileSystem extends Closeable {
       // TODO(gpang): should this key use the UserState instead of subject?
       FileSystemCache.Key key =
           new FileSystemCache.Key(UserState.Factory.create(conf, subject).getSubject(), conf);
-      return FILESYSTEM_CACHE.get(key,
-          (fsKey) -> create(FileSystemContext.create(fsKey.mSubject, fsKey.mConf), true));
+      return FILESYSTEM_CACHE.getOrDefault(key,
+          () -> create(FileSystemContext.create(subject, conf)));
     }
 
     /**
@@ -113,7 +113,7 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(AlluxioConfiguration alluxioConf) {
-      return create(FileSystemContext.create(alluxioConf), false);
+      return create(FileSystemContext.create(alluxioConf));
     }
 
     /**
@@ -121,7 +121,7 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(ClientContext ctx) {
-      return create(FileSystemContext.create(ctx), false);
+      return create(FileSystemContext.create(ctx));
     }
 
     /**
@@ -129,15 +129,6 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context) {
-      return create(context, false);
-    }
-
-    /**
-     * @param context the FileSystemContext to use with the FileSystem
-     * @param cachingEnabled whether to cache created FileSystem instance
-     * @return a new FileSystem instance
-     */
-    private static FileSystem create(FileSystemContext context, boolean cachingEnabled) {
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
         // Sort properties by name to keep output ordered.
         AlluxioConfiguration conf = context.getClusterConf();
@@ -149,14 +140,10 @@ public interface FileSystem extends Closeable {
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
-      Runnable cachePurger = null;
-      if (cachingEnabled)
-        cachePurger =
-            () -> { FILESYSTEM_CACHE.remove(new FileSystemCache.Key(context.getClientContext())); };
       if (context.getClusterConf().getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
-        return new MetadataCachingBaseFileSystem(context, cachePurger);
+        return new MetadataCachingBaseFileSystem(context);
       }
-      return new BaseFileSystem(context, cachePurger);
+      return new BaseFileSystem(context);
     }
   }
 
