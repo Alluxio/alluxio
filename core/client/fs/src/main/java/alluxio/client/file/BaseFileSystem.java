@@ -67,6 +67,7 @@ import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
 import com.google.common.net.HostAndPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +78,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -88,40 +93,26 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class BaseFileSystem implements FileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
-
+  /** Used to manage closeable resources. */
+  private final Closer mCloser = Closer.create();
   protected final FileSystemContext mFsContext;
   protected final AlluxioBlockStore mBlockStore;
-  protected final boolean mCachingEnabled;
 
   protected volatile boolean mClosed = false;
-
-  /**
-   * @param context the {@link FileSystemContext} to use for client operations
-   * @return a {@link BaseFileSystem}
-   */
-  public static BaseFileSystem create(FileSystemContext context) {
-    return new BaseFileSystem(context, false);
-  }
-
-  /**
-   * @param context the {@link FileSystemContext} to use for client operations
-   * @param cachingEnabled whether or not this FileSystem should remove itself from the
-   *                       {@link Factory} cache when closed
-   * @return a {@link BaseFileSystem}
-   */
-  public static BaseFileSystem create(FileSystemContext context, boolean cachingEnabled) {
-    return new BaseFileSystem(context, cachingEnabled);
-  }
 
   /**
    * Constructs a new base file system.
    *
    * @param fsContext file system context
+   * @param fsCachePurger a function to remove this instance from fs cache on close
    */
-  protected BaseFileSystem(FileSystemContext fsContext, boolean cachingEnabled) {
+  protected BaseFileSystem(FileSystemContext fsContext, Runnable fsCachePurger) {
     mFsContext = fsContext;
     mBlockStore = AlluxioBlockStore.create(fsContext);
-    mCachingEnabled = cachingEnabled;
+    mCloser.register(mFsContext);
+    mCloser.register(() -> {
+      if (fsCachePurger != null) fsCachePurger.run();
+    });
   }
 
   /**
@@ -135,11 +126,8 @@ public class BaseFileSystem implements FileSystem {
     // TODO(zac) Determine the behavior when closing the context during operations.
     if (!mClosed) {
       mClosed = true;
-      if (mCachingEnabled) {
-        Factory.FILESYSTEM_CACHE.remove(new FileSystemCache.Key(mFsContext.getClientContext()));
-      }
-      mFsContext.close();
     }
+    mCloser.close();
   }
 
   @Override

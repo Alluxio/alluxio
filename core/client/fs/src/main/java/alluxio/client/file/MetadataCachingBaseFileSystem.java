@@ -51,8 +51,8 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
    * @param context the fs context
    * @param cachingEnabled enables caching
    */
-  public MetadataCachingBaseFileSystem(FileSystemContext context, boolean cachingEnabled) {
-    super(context, cachingEnabled);
+  public MetadataCachingBaseFileSystem(FileSystemContext context, Runnable cachePurger) {
+    super(context, cachePurger);
 
     int maxSize = mFsContext.getClusterConf().getInt(PropertyKey.USER_METADATA_CACHE_MAX_SIZE);
     long expirationTimeMs = mFsContext.getClusterConf()

@@ -105,8 +105,7 @@ public interface FileSystem extends Closeable {
       FileSystemCache.Key key =
           new FileSystemCache.Key(UserState.Factory.create(conf, subject).getSubject(), conf);
       return FILESYSTEM_CACHE.get(key,
-          (fsKey) ->
-              Factory.create(FileSystemContext.create(fsKey.mSubject, fsKey.mConf), true));
+          (fsKey) -> create(FileSystemContext.create(fsKey.mSubject, fsKey.mConf), true));
     }
 
     /**
@@ -133,6 +132,11 @@ public interface FileSystem extends Closeable {
       return create(context, false);
     }
 
+    /**
+     * @param context the FileSystemContext to use with the FileSystem
+     * @param cachingEnabled whether to cache created FileSystem instance
+     * @return a new FileSystem instance
+     */
     private static FileSystem create(FileSystemContext context, boolean cachingEnabled) {
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
         // Sort properties by name to keep output ordered.
@@ -145,10 +149,14 @@ public interface FileSystem extends Closeable {
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
+      Runnable cachePurger = null;
+      if (cachingEnabled)
+        cachePurger =
+            () -> { FILESYSTEM_CACHE.remove(new FileSystemCache.Key(context.getClientContext())); };
       if (context.getClusterConf().getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
-        return new MetadataCachingBaseFileSystem(context, cachingEnabled);
+        return new MetadataCachingBaseFileSystem(context, cachePurger);
       }
-      return BaseFileSystem.create(context, cachingEnabled);
+      return new BaseFileSystem(context, cachePurger);
     }
   }
 
