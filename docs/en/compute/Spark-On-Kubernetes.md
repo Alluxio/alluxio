@@ -38,8 +38,8 @@ using Dockerfile included with Alluxio.
 > Note: Download the package prebuilt for hadoop
 
 ```console
-$ tar -xf spark-2.4.0-bin-hadoop2.7.tgz
-$ cd spark-2.4.0-bin-hadoop2.7
+$ tar -xf spark-2.4.4-bin-hadoop2.7.tgz
+$ cd spark-2.4.4-bin-hadoop2.7
 ```
 
 ### Build the Spark Docker Image
