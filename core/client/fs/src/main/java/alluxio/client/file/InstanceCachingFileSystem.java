@@ -45,8 +45,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A wrapper of a FileSystem instance. This wrapper will remove itself from the cache
- * on close.
+ * A wrapper of a FileSystem instance. This wrapper will remove itself from the cache on close.
  */
 public class InstanceCachingFileSystem implements FileSystem {
   private final FileSystem mFileSystem;
@@ -54,7 +53,7 @@ public class InstanceCachingFileSystem implements FileSystem {
   private final FileSystemCache.Key mKey;
 
   /**
-   * Wraps a file system instance to cache
+   * Wraps a file system instance to cache.
    *
    * @param fs file system context
    * @param FileSystemCache fs instance cache
@@ -71,32 +70,38 @@ public class InstanceCachingFileSystem implements FileSystem {
   }
 
   @Override
-  public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options) throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+  public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     mFileSystem.createDirectory(path, options);
   }
 
   @Override
-  public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options) throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+  public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     return mFileSystem.createFile(path, options);
   }
 
   @Override
-  public void delete(AlluxioURI path, DeletePOptions options) throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
+  public void delete(AlluxioURI path, DeletePOptions options)
+      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
     mFileSystem.delete(path, options);
   }
 
   @Override
-  public boolean exists(AlluxioURI path, ExistsPOptions options) throws InvalidPathException, IOException, AlluxioException {
+  public boolean exists(AlluxioURI path, ExistsPOptions options)
+      throws InvalidPathException, IOException, AlluxioException {
     return mFileSystem.exists(path, options);
   }
 
   @Override
-  public void free(AlluxioURI path, FreePOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+  public void free(AlluxioURI path, FreePOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     mFileSystem.free(path, options);
   }
 
   @Override
-  public List<BlockLocationInfo> getBlockLocations(AlluxioURI path) throws FileDoesNotExistException, IOException, AlluxioException {
+  public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     return mFileSystem.getBlockLocations(path);
   }
 
@@ -106,22 +111,26 @@ public class InstanceCachingFileSystem implements FileSystem {
   }
 
   @Override
-  public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+  public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     return mFileSystem.getStatus(path, options);
   }
 
   @Override
-  public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+  public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     return mFileSystem.listStatus(path, options);
   }
 
   @Override
-  public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options) throws IOException, AlluxioException {
+  public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
+      throws IOException, AlluxioException {
     mFileSystem.mount(alluxioPath, ufsPath);
   }
 
   @Override
-  public void updateMount(AlluxioURI alluxioPath, MountPOptions options) throws IOException, AlluxioException {
+  public void updateMount(AlluxioURI alluxioPath, MountPOptions options)
+      throws IOException, AlluxioException {
     mFileSystem.updateMount(alluxioPath, options);
   }
 
@@ -136,17 +145,21 @@ public class InstanceCachingFileSystem implements FileSystem {
   }
 
   @Override
-  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException, IOException, AlluxioException {
+  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
+      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+      IOException, AlluxioException {
     return mFileSystem.openFile(path, options);
   }
 
   @Override
-  public void persist(AlluxioURI path, ScheduleAsyncPersistencePOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+  public void persist(AlluxioURI path, ScheduleAsyncPersistencePOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     mFileSystem.persist(path, options);
   }
 
   @Override
-  public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+  public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     mFileSystem.rename(src, dst, options);
   }
 
@@ -156,27 +169,32 @@ public class InstanceCachingFileSystem implements FileSystem {
   }
 
   @Override
-  public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+  public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
+      SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
     mFileSystem.setAcl(path, action, entries);
   }
 
   @Override
-  public void startSync(AlluxioURI path) throws FileDoesNotExistException, IOException, AlluxioException {
+  public void startSync(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     mFileSystem.startSync(path);
   }
 
   @Override
-  public void stopSync(AlluxioURI path) throws FileDoesNotExistException, IOException, AlluxioException {
+  public void stopSync(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     mFileSystem.stopSync(path);
   }
 
   @Override
-  public void setAttribute(AlluxioURI path, SetAttributePOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+  public void setAttribute(AlluxioURI path, SetAttributePOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
     mFileSystem.setAttribute(path, options);
   }
 
   @Override
-  public void unmount(AlluxioURI path, UnmountPOptions options) throws IOException, AlluxioException {
+  public void unmount(AlluxioURI path, UnmountPOptions options)
+      throws IOException, AlluxioException {
     mFileSystem.unmount(path, options);
   }
 

@@ -49,7 +49,6 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
 
   /**
    * @param context the fs context
-   * @param cachingEnabled enables caching
    */
   public MetadataCachingBaseFileSystem(FileSystemContext context) {
     super(context);

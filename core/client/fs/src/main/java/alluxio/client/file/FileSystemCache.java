@@ -86,17 +86,10 @@ public class FileSystemCache {
     final Authority mAuth;
 
     /**
-     * Only used to store the configuration. Allows us to compute a {@link FileSystem} directly
-     * from a key.
-     */
-    final AlluxioConfiguration mConf;
-
-    /**
      * @param subject Subject of the user
      * @param conf Alluxio configuration
      */
     public Key(Subject subject, AlluxioConfiguration conf) {
-      mConf = conf;
       mSubject = subject;
       mAuth = MasterInquireClient.Factory.getConnectDetails(conf).toAuthority();
     }
