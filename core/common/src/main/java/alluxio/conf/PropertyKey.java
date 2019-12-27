@@ -3092,6 +3092,39 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_LOCAL_CACHE_ENABLED =
+      new Builder(Name.USER_LOCAL_CACHE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If this is enabled, data will be cached on Alluxio client.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_METADATA_CACHE_ENABLED =
+      new Builder(Name.USER_METADATA_CACHE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If this is enabled, metadata of paths will be cached. "
+              + "The cached metadata will be evicted when it expires after "
+              + Name.USER_METADATA_CACHE_EXPIRATION_TIME
+              + " or the cache size is over the limit of "
+              + Name.USER_METADATA_CACHE_MAX_SIZE + ".")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_METADATA_CACHE_MAX_SIZE =
+      new Builder(Name.USER_METADATA_CACHE_MAX_SIZE)
+          .setDefaultValue(100000)
+          .setDescription("Maximum number of paths with cached metadata.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_METADATA_CACHE_EXPIRATION_TIME =
+      new Builder(Name.USER_METADATA_CACHE_EXPIRATION_TIME)
+          .setDefaultValue("10min")
+          .setDescription("Metadata will expire and be evicted after being cached for this time "
+              + "period.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_METRICS_COLLECTION_ENABLED =
       new Builder(Name.USER_METRICS_COLLECTION_ENABLED)
           .setDefaultValue(false)
@@ -3314,32 +3347,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("When short circuit and domain socket both enabled, "
               + "prefer to use short circuit.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_METADATA_CACHE_ENABLED =
-      new Builder(Name.USER_METADATA_CACHE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("If this is enabled, metadata of paths will be cached. "
-              + "The cached metadata will be evicted when it expires after "
-              + Name.USER_METADATA_CACHE_EXPIRATION_TIME
-              + " or the cache size is over the limit of "
-              + Name.USER_METADATA_CACHE_MAX_SIZE + ".")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_METADATA_CACHE_MAX_SIZE =
-      new Builder(Name.USER_METADATA_CACHE_MAX_SIZE)
-          .setDefaultValue(100000)
-          .setDescription("Maximum number of paths with cached metadata.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_METADATA_CACHE_EXPIRATION_TIME =
-      new Builder(Name.USER_METADATA_CACHE_EXPIRATION_TIME)
-          .setDefaultValue("10min")
-          .setDescription("Metadata will expire and be evicted after being cached for this time "
-              + "period.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -4422,10 +4429,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
+    public static final String USER_LOCAL_CACHE_ENABLED =
+        "alluxio.user.local.cache.enabled";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.reader.chunk.size.bytes";
     public static final String USER_LOCAL_WRITER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.writer.chunk.size.bytes";
+    public static final String USER_METADATA_CACHE_ENABLED =
+        "alluxio.user.metadata.cache.enabled";
+    public static final String USER_METADATA_CACHE_MAX_SIZE =
+        "alluxio.user.metadata.cache.max.size";
+    public static final String USER_METADATA_CACHE_EXPIRATION_TIME =
+        "alluxio.user.metadata.cache.expiration.time";
     public static final String USER_METRICS_COLLECTION_ENABLED =
         "alluxio.user.metrics.collection.enabled";
     public static final String USER_METRICS_HEARTBEAT_INTERVAL_MS =
@@ -4476,12 +4491,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.short.circuit.preferred";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
-    public static final String USER_METADATA_CACHE_ENABLED =
-        "alluxio.user.metadata.cache.enabled";
-    public static final String USER_METADATA_CACHE_MAX_SIZE =
-        "alluxio.user.metadata.cache.max.size";
-    public static final String USER_METADATA_CACHE_EXPIRATION_TIME =
-        "alluxio.user.metadata.cache.expiration.time";
 
     //
     // FUSE integration related properties

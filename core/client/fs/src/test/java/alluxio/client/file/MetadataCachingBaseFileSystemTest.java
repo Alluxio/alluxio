@@ -78,7 +78,7 @@ public class MetadataCachingBaseFileSystemTest {
     when(mFileContext.getClusterConf()).thenReturn(mConf);
     when(mFileContext.getPathConf(any())).thenReturn(mConf);
     when(mFileContext.getUriValidationEnabled()).thenReturn(true);
-    mFs = Mockito.spy(new MetadataCachingBaseFileSystem(mFileContext, false));
+    mFs = Mockito.spy(new MetadataCachingBaseFileSystem(mFileContext));
   }
 
   @After

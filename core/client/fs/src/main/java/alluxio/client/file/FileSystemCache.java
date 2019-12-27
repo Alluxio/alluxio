@@ -29,7 +29,7 @@ import javax.security.auth.Subject;
  * A cache for storing {@link FileSystem} clients. This should only be used by the Factory class.
  */
 public class FileSystemCache {
-  final ConcurrentHashMap<Key, FileSystem> mCacheMap = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<Key, FileSystem> mCacheMap = new ConcurrentHashMap<>();
 
   /**
    * Constructs a new cache for file system instances.
@@ -41,13 +41,10 @@ public class FileSystemCache {
    * the cache, and returned back to the user.
    *
    * @param key the key to retrieve a {@link FileSystem}
-   * @param func a mapping function to create a new FileSystem given key
    * @return the {@link FileSystem} associated with the key
    */
-  public FileSystem getOrDefault(Key key, Supplier<FileSystem> func) {
-    return mCacheMap.computeIfAbsent(key, (fsKey) -> {
-      return new InstanceCachingFileSystem(func.get(), this, key);
-    });
+  public FileSystem getOrCreate(Key key, Supplier<FileSystem> func) {
+    return mCacheMap.computeIfAbsent(key, (fsKey) -> func.get());
   }
 
   /**
@@ -86,10 +83,17 @@ public class FileSystemCache {
     final Authority mAuth;
 
     /**
+     * Only used to store the configuration. Allows us to compute a {@link FileSystem} directly
+     * from a key.
+     */
+    final AlluxioConfiguration mConf;
+
+    /**
      * @param subject Subject of the user
      * @param conf Alluxio configuration
      */
     public Key(Subject subject, AlluxioConfiguration conf) {
+      mConf = conf;
       mSubject = subject;
       mAuth = MasterInquireClient.Factory.getConnectDetails(conf).toAuthority();
     }

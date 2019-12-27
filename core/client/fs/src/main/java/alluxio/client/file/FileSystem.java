@@ -104,8 +104,10 @@ public interface FileSystem extends Closeable {
       // TODO(gpang): should this key use the UserState instead of subject?
       FileSystemCache.Key key =
           new FileSystemCache.Key(UserState.Factory.create(conf, subject).getSubject(), conf);
-      return FILESYSTEM_CACHE.getOrDefault(key,
-          () -> create(FileSystemContext.create(subject, conf)));
+      return FILESYSTEM_CACHE.getOrCreate(key,
+          /* In case cache miss, create a new instance */
+          () -> new InstanceCachingFileSystem(
+              create(FileSystemContext.create(key.mSubject, key.mConf)), FILESYSTEM_CACHE, key));
     }
 
     /**
@@ -140,10 +142,16 @@ public interface FileSystem extends Closeable {
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
+      BaseFileSystem fs;
       if (context.getClusterConf().getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
-        return new MetadataCachingBaseFileSystem(context);
+        fs = new MetadataCachingBaseFileSystem(context);
+      } else {
+        fs = new BaseFileSystem(context);
       }
-      return new BaseFileSystem(context);
+      if (context.getClusterConf().getBoolean(PropertyKey.USER_LOCAL_CACHE_ENABLED)) {
+        return new LocalCacheFileSystem(fs);
+      }
+      return fs;
     }
   }
 
