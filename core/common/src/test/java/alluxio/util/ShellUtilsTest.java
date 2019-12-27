@@ -28,6 +28,7 @@ import org.junit.rules.ExpectedException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -41,6 +42,12 @@ public final class ShellUtilsTest {
   public static File createFileInDir(File dir, String fileName) throws IOException {
     File newFile = new File(Paths.get(dir.getAbsolutePath(), fileName).toString());
     newFile.createNewFile();
+    return newFile;
+  }
+
+  public static File createDirInDir(File dir, String fileName) throws IOException {
+    File newFile = new File(Paths.get(dir.getAbsolutePath(), fileName).toString());
+    newFile.mkdir();
     return newFile;
   }
 

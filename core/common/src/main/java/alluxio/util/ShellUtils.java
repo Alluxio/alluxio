@@ -202,6 +202,8 @@ public final class ShellUtils {
      * @return {@link CommandReturn} object representation of stdout, stderr and exit code
      */
     protected CommandReturn runTolerateFailure() throws IOException {
+      System.out.println(String.join(" ", mCommand));
+
       Process process = new ProcessBuilder(mCommand).start();
       CommandReturn cr = null;
 
@@ -267,6 +269,35 @@ public final class ShellUtils {
       mCommand = new String[]{"bash", "-c",
               String.format("ssh %s %s %s", ShellUtils.COMMON_SSH_OPTS, hostname,
                       String.join(" ", execString))};
+    }
+
+    protected String getHostName() {
+      return mHostName;
+    }
+  }
+
+  @NotThreadSafe
+  private static class ScpCommand extends Command {
+    protected String mHostName;
+
+    private ScpCommand(String remoteHost, String fromFile, String toFile) {
+      this(remoteHost, fromFile, toFile, false);
+    }
+
+    private ScpCommand(String remoteHost, String fromFile, String toFile, boolean isDir) {
+      super(new String[]{});
+
+      String template = "scp %s %s:%s localhost:%s";
+      if (isDir) {
+        System.out.println("Copy dir");
+        template = "scp -r %s %s:%s localhost:%s";
+      }
+
+      // copy from hostname to local
+      mCommand = new String[]{"bash", "-c",
+              String.format(template, ShellUtils.COMMON_SSH_OPTS, remoteHost, fromFile, toFile)
+      };
+      mHostName = remoteHost;
     }
 
     protected String getHostName() {
@@ -419,6 +450,24 @@ public final class ShellUtils {
   public static CommandReturn sshExecCommandTolerateFailure(String hostname, String... cmd)
           throws IOException {
     return new SshCommand(hostname, cmd).runTolerateFailure();
+  }
+
+  /**
+   * Static method to execute an scp command to copy a remote file/dir to local.
+   *
+   * @param hostname Hostname where the command should execute
+   * @param fromFile File path on remote host
+   * @param toFile File path to copy to on localhost
+   * @param isDir Is the file a directory
+   * @return the output of the executed command
+   * @throws IOException in various situations:
+   *  1. when the executable is not valid, i.e. running ls in Windows
+   *  2. execution interrupted
+   *  3. other normal reasons for IOException
+   */
+  public static CommandReturn scpCommandTolerateFailure(String hostname, String fromFile, String toFile, boolean isDir)
+          throws IOException {
+    return new ScpCommand(hostname, fromFile, toFile, isDir).runTolerateFailure();
   }
 
   private ShellUtils() {} // prevent instantiation
