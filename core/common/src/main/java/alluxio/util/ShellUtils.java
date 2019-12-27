@@ -465,8 +465,8 @@ public final class ShellUtils {
    *  2. execution interrupted
    *  3. other normal reasons for IOException
    */
-  public static CommandReturn scpCommandTolerateFailure(String hostname, String fromFile, String toFile, boolean isDir)
-          throws IOException {
+  public static CommandReturn scpCommandTolerateFailure(
+          String hostname, String fromFile, String toFile, boolean isDir) throws IOException {
     return new ScpCommand(hostname, fromFile, toFile, isDir).runTolerateFailure();
   }
 
