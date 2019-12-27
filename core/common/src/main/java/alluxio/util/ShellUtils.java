@@ -202,8 +202,6 @@ public final class ShellUtils {
      * @return {@link CommandReturn} object representation of stdout, stderr and exit code
      */
     protected CommandReturn runTolerateFailure() throws IOException {
-      System.out.println(String.join(" ", mCommand));
-
       Process process = new ProcessBuilder(mCommand).start();
       CommandReturn cr = null;
 
@@ -289,7 +287,6 @@ public final class ShellUtils {
 
       String template = "scp %s %s:%s localhost:%s";
       if (isDir) {
-        System.out.println("Copy dir");
         template = "scp -r %s %s:%s localhost:%s";
       }
 

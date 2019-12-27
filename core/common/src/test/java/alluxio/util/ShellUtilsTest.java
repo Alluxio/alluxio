@@ -155,12 +155,14 @@ public final class ShellUtilsTest {
     ShellUtils.CommandReturn crs = ShellUtils.execCommandTolerateFailure(testCommandSucceed);
     assertEquals(0, crs.getExitCode());
     assertTrue(crs.getStdOut().contains(testFile.getName()));
+    assertEquals("", crs.getStdErr());
 
     // do sth wrong
     String[] testCommandFail = new String[]{"ls",
             String.format("%saaaa", testDir.getAbsolutePath())};
     ShellUtils.CommandReturn crf = ShellUtils.execCommandTolerateFailure(testCommandFail);
     assertNotEquals(0, crf.getExitCode());
+    assertTrue(crf.getStdErr().length() > 0);
 
     // if there's no such command there will be IOException
     mExceptionRule.expect(IOException.class);
