@@ -39,6 +39,7 @@ import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.transport.Address;
 import io.atomix.copycat.client.CopycatClient;
 import io.atomix.copycat.client.RecoveryStrategies;
+import io.atomix.copycat.client.ServerSelectionStrategies;
 import io.atomix.copycat.server.CopycatServer;
 import io.atomix.copycat.server.StateMachine;
 import io.atomix.copycat.server.cluster.Member;
@@ -274,6 +275,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   private CopycatClient createClient() {
     return CopycatClient.builder(getClusterAddresses(mConf))
         .withRecoveryStrategy(RecoveryStrategies.RECOVER)
+        .withServerSelectionStrategy(ServerSelectionStrategies.LEADER)
         .withConnectionStrategy(attempt -> attempt.retry(Duration.ofMillis(
             Math.min(Math.round(100D * Math.pow(2D, (double) attempt.attempt())), 1000L))))
         .withTransport(new GrpcMessagingTransport(
