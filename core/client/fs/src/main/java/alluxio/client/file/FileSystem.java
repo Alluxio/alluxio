@@ -104,10 +104,7 @@ public interface FileSystem extends Closeable {
       // TODO(gpang): should this key use the UserState instead of subject?
       FileSystemCache.Key key =
           new FileSystemCache.Key(UserState.Factory.create(conf, subject).getSubject(), conf);
-      return FILESYSTEM_CACHE.getOrCreate(key,
-          /* In case cache miss, create a new instance */
-          () -> new InstanceCachingFileSystem(
-              create(FileSystemContext.create(key.mSubject, key.mConf)), FILESYSTEM_CACHE, key));
+      return FILESYSTEM_CACHE.get(key);
     }
 
     /**

@@ -20,15 +20,15 @@ import alluxio.grpc.OpenFilePOptions;
 public class LocalCacheFileSystem extends DelegatingFileSystem {
 
   /**
-   * @param fs a BaseFileSystem instance to query on cache miss
+   * @param fs a FileSystem instance to query on local cache miss
    */
-  public LocalCacheFileSystem(BaseFileSystem fs) {
+  public LocalCacheFileSystem(FileSystem fs) {
     super(fs);
   }
 
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) {
+    // TODO(binfan): implement me
     return null;
   }
-
 }

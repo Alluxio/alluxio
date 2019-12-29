@@ -19,17 +19,20 @@ import alluxio.uri.Authority;
 import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
 
 /**
  * A cache for storing {@link FileSystem} clients. This should only be used by the Factory class.
  */
+@ThreadSafe
 public class FileSystemCache {
-  private final ConcurrentHashMap<Key, FileSystem> mCacheMap = new ConcurrentHashMap<>();
+  @GuardedBy("itself")
+  private final HashMap<Key, InstanceCachingFileSystem> mCacheMap = new HashMap<>();
 
   /**
    * Constructs a new cache for file system instances.
@@ -43,8 +46,21 @@ public class FileSystemCache {
    * @param key the key to retrieve a {@link FileSystem}
    * @return the {@link FileSystem} associated with the key
    */
-  public FileSystem getOrCreate(Key key, Supplier<FileSystem> func) {
-    return mCacheMap.computeIfAbsent(key, (fsKey) -> func.get());
+  public FileSystem get(Key key) {
+    synchronized (mCacheMap) {
+      InstanceCachingFileSystem fs;
+      if (mCacheMap.containsKey(key)) {
+        fs = mCacheMap.get(key);
+        fs.incrementCount();
+      } else {
+        // In case cache miss, create a new instance which will decrement the ref count on close;
+        fs = new InstanceCachingFileSystem(
+            FileSystem.Factory.create(FileSystemContext.create(key.mSubject, key.mConf)),
+            this, key);
+        mCacheMap.put(key, fs);
+      }
+      return fs;
+    }
   }
 
   /**
@@ -54,7 +70,9 @@ public class FileSystemCache {
    * @return The removed context or null if there is no client associated with the key
    */
   public FileSystem remove(Key key) {
-    return mCacheMap.remove(key);
+    synchronized (mCacheMap) {
+      return mCacheMap.remove(key);
+    }
   }
 
   /**
@@ -64,14 +82,16 @@ public class FileSystemCache {
    */
   @VisibleForTesting
   void purge() {
-    mCacheMap.forEach((fsKey, fs) -> {
-      try {
-        mCacheMap.remove(fsKey);
-        fs.close();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    });
+    synchronized (mCacheMap) {
+      mCacheMap.forEach((fsKey, fs) -> {
+        try {
+          mCacheMap.remove(fsKey);
+          fs.close();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
+    }
   }
 
   /**

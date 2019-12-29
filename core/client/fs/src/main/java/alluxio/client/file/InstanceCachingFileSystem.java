@@ -12,13 +12,16 @@
 package alluxio.client.file;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A wrapper class that will remove itself from the cache on close.
+ * A ref-counted wrapper class on a FileSystem instance. On Close, if the ref count becomes
+ * zero, this wrapper class will remove itself from the cache; noop otherwise.
  */
 public class InstanceCachingFileSystem extends DelegatingFileSystem {
   private final FileSystemCache mCache;
   private final FileSystemCache.Key mKey;
+  private final AtomicInteger mRefCount;
 
   /**
    * Wraps a file system instance to cache.
@@ -31,12 +34,21 @@ public class InstanceCachingFileSystem extends DelegatingFileSystem {
     super(fs);
     mCache = cache;
     mKey = key;
+    mRefCount = new AtomicInteger(1);
+  }
+
+  /**
+   * Increases the ref count of this instance.
+   */
+  public void incrementCount() {
+    mRefCount.incrementAndGet();
   }
 
   @Override
   public void close() throws IOException {
-    super.close();
-    // TODO(binfan): is this the expected behavior? shouldn't we keep refcount in cache?
-    mCache.remove(mKey);
+    if (mRefCount.decrementAndGet() == 0) {
+      super.close();
+      mCache.remove(mKey);
+    }
   }
 }
