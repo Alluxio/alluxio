@@ -129,6 +129,14 @@ spec:
           volumeMounts:
       restartPolicy: Always
       volumes:
-        - name: alluxio-journal
-          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: alluxio-journal
+      spec:
+        storageClassName: standard
+        accessModes:
+          - ReadWriteMany
+        resources:
+          requests:
+            storage: 1Gi
 

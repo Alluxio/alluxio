@@ -11,10 +11,11 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: alluxio-journal-volume
+  name: alluxio-journal-volume-0
   labels:
     type: local
 spec:
@@ -24,5 +25,6 @@ spec:
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: "/tmp/data"
+    path: /tmp/data-0
+---
 

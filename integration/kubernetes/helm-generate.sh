@@ -61,7 +61,6 @@ function generateFormatJournalJobTemplates {
 
 function generateJournalTemplates {
   helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/journal-pv.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-journal-pv.yaml.template"
-  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/journal-pvc.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-journal-pvc.yaml.template"
 }
 
 function generateWorkerTemplates {
@@ -103,6 +102,7 @@ function generateSingleUfsTemplates {
 
 function generateMultiEmbeddedTemplates {
   dir="multiMaster-embeddedJournal"
+  generateJournalTemplates
   generateTemplates
 }
 

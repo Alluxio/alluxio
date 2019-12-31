@@ -9,17 +9,22 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+{{ $root := . -}}
+{{- $masterCount := int .Values.master.count }}
+{{- range $i := until $masterCount }}
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: alluxio-journal-volume
+  name: {{ printf "alluxio-journal-volume-%v" $i }}
   labels:
     type: local
 spec:
   storageClassName: standard
   capacity:
-    storage: {{ .Values.journal.size }}
+    storage: {{ $root.Values.journal.size }}
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: "/tmp/data"
+    path: {{ printf "/tmp/data-%v" $i }}
+---
+{{- end }}

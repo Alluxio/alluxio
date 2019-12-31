@@ -208,21 +208,12 @@ spec:
           {{- end }}
       restartPolicy: Always
       volumes:
-        {{- if $isSingleUfsLocal }}
-        - name: alluxio-journal
-          persistentVolumeClaim:
-            claimName: {{ .Values.journal.pvcName }}
-        {{- end }}
         {{- if .Values.master.metastore }}
         - name: alluxio-metastore
           emptyDir:
             medium: {{ .Values.master.metastore.medium }}
             sizeLimit: {{ .Values.master.metastore.size | quote }}
         {{- end }}
-        {{- if $isHaEmbedded }}
-        - name: alluxio-journal
-          emptyDir: {}
-        {{- end}}
         {{- if .Values.secrets }}
           {{- if .Values.secrets.master }}
             {{- range $key, $val := .Values.secrets.master }}
@@ -240,3 +231,15 @@ spec:
             claimName: "{{ .name }}"
           {{- end }}
         {{- end }}
+  {{- if $needJournalVolume }}
+  volumeClaimTemplates:
+    - metadata:
+        name: alluxio-journal
+      spec:
+        storageClassName: standard
+        accessModes:
+          - ReadWriteMany
+        resources:
+          requests:
+            storage: {{ .Values.journal.size }}
+  {{- end }}
