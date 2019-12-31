@@ -65,6 +65,13 @@
 #   unit      seconds       Units of poll period
 #   prefix    EMPTY STRING  Prefix to prepend to metric name
 
+# alluxio.metrics.sink.Slf4jSink
+#   Name:     Default:   Description:
+#   period    10         Poll period
+#   unit      seconds    Units of poll period
+#   filter-class null    Contains all metrics
+#   filter-regex null    Contains all metrics
+
 ## Examples
 # Enable JmxSink by class name
 # sink.jmx.class=alluxio.metrics.sink.JmxSink
