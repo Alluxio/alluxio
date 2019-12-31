@@ -10,14 +10,12 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
-
-
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: alluxio-master-0
+  name: alluxio-master
   labels:
-    name: alluxio-master-0
+    name: alluxio-master
     app: alluxio
     chart: alluxio-0.5.2
     release: alluxio
@@ -28,13 +26,12 @@ spec:
     matchLabels:
       app: alluxio
       role: alluxio-master
-      name: alluxio-master-0
-  serviceName: "master-0"
+      name: alluxio-master
   replicas: 1
   template:
     metadata:
       labels:
-        name: alluxio-master-0
+        name: alluxio-master
         app: alluxio
         chart: alluxio-0.5.2
         release: alluxio
@@ -115,5 +112,4 @@ spec:
         - name: alluxio-journal
           persistentVolumeClaim:
             claimName: alluxio-pv-claim
----
 

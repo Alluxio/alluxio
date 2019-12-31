@@ -10,14 +10,12 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
-
-
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: alluxio-master-0
+  name: alluxio-master
   labels:
-    name: alluxio-master-0
+    name: alluxio-master
     app: alluxio
     chart: alluxio-0.5.2
     release: alluxio
@@ -28,13 +26,12 @@ spec:
     matchLabels:
       app: alluxio
       role: alluxio-master
-      name: alluxio-master-0
-  serviceName: "master-0"
-  replicas: 1
+      name: alluxio-master
+  replicas: 3
   template:
     metadata:
       labels:
-        name: alluxio-master-0
+        name: alluxio-master
         app: alluxio
         chart: alluxio-0.5.2
         release: alluxio
@@ -75,10 +72,14 @@ spec:
             - master-only
             - --no-format
           env:
+          - name: POD_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           - name: ALLUXIO_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-0 "
+            value: " -Dalluxio.master.hostname=${POD_HOSTNAME} "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-0 "
+            value: " -Dalluxio.master.hostname=${POD_HOSTNAME} "
           envFrom:
           - configMapRef:
               name: alluxio-config
@@ -109,10 +110,14 @@ spec:
           args:
             - job-master
           env:
+          - name: POD_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-0 "
+            value: " -Dalluxio.master.hostname=${POD_HOSTNAME} "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-0 "
+            value: " -Dalluxio.master.hostname=${POD_HOSTNAME} "
           envFrom:
           - configMapRef:
               name: alluxio-config
@@ -126,235 +131,4 @@ spec:
       volumes:
         - name: alluxio-journal
           emptyDir: {}
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: alluxio-master-1
-  labels:
-    name: alluxio-master-1
-    app: alluxio
-    chart: alluxio-0.5.2
-    release: alluxio
-    heritage: Tiller
-    role: alluxio-master
-spec:
-  selector:
-    matchLabels:
-      app: alluxio
-      role: alluxio-master
-      name: alluxio-master-1
-  serviceName: "master-1"
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        name: alluxio-master-1
-        app: alluxio
-        chart: alluxio-0.5.2
-        release: alluxio
-        heritage: Tiller
-        role: alluxio-master
-    spec:
-      hostNetwork: false
-      dnsPolicy: ClusterFirst
-      nodeSelector:
-      securityContext:
-        fsGroup: 1000
-      initContainers:
-      - name: journal-chown
-        image: alluxio/alluxio:2.2.0-SNAPSHOT
-        imagePullPolicy: IfNotPresent
-        securityContext:
-          runAsUser: 0
-        command: ["/bin/chown","-R", "1000:1000", "/journal"]
-        volumeMounts:
-        - name: alluxio-journal
-          mountPath: /journal
-      containers:
-        - name: alluxio-master
-          image: alluxio/alluxio:2.2.0-SNAPSHOT
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-          resources:
-            limits:
-              cpu: 1
-              memory: 1G
-            requests:
-              cpu: 1
-              memory: 1G
-          command: ["/entrypoint.sh"]
-          args:
-            - master-only
-            - --no-format
-          env:
-          - name: ALLUXIO_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-1 "
-          - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-1 "
-          envFrom:
-          - configMapRef:
-              name: alluxio-config
-          ports:
-          - containerPort: 19998
-            name: rpc
-          - containerPort: 19999
-            name: web
-          - containerPort: 19200
-            name: embedded
-          volumeMounts:
-            - name: alluxio-journal
-              mountPath: /journal
-        - name: alluxio-job-master
-          image: alluxio/alluxio:2.2.0-SNAPSHOT
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-          resources:
-            limits:
-              cpu: 1
-              memory: 1G
-            requests:
-              cpu: 1
-              memory: 1G
-          command: ["/entrypoint.sh"]
-          args:
-            - job-master
-          env:
-          - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-1 "
-          - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-1 "
-          envFrom:
-          - configMapRef:
-              name: alluxio-config
-          ports:
-          - containerPort: 20001
-            name: job-rpc
-          - containerPort: 20002
-            name: job-web
-          volumeMounts:
-      restartPolicy: Always
-      volumes:
-        - name: alluxio-journal
-          emptyDir: {}
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: alluxio-master-2
-  labels:
-    name: alluxio-master-2
-    app: alluxio
-    chart: alluxio-0.5.2
-    release: alluxio
-    heritage: Tiller
-    role: alluxio-master
-spec:
-  selector:
-    matchLabels:
-      app: alluxio
-      role: alluxio-master
-      name: alluxio-master-2
-  serviceName: "master-2"
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        name: alluxio-master-2
-        app: alluxio
-        chart: alluxio-0.5.2
-        release: alluxio
-        heritage: Tiller
-        role: alluxio-master
-    spec:
-      hostNetwork: false
-      dnsPolicy: ClusterFirst
-      nodeSelector:
-      securityContext:
-        fsGroup: 1000
-      initContainers:
-      - name: journal-chown
-        image: alluxio/alluxio:2.2.0-SNAPSHOT
-        imagePullPolicy: IfNotPresent
-        securityContext:
-          runAsUser: 0
-        command: ["/bin/chown","-R", "1000:1000", "/journal"]
-        volumeMounts:
-        - name: alluxio-journal
-          mountPath: /journal
-      containers:
-        - name: alluxio-master
-          image: alluxio/alluxio:2.2.0-SNAPSHOT
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-          resources:
-            limits:
-              cpu: 1
-              memory: 1G
-            requests:
-              cpu: 1
-              memory: 1G
-          command: ["/entrypoint.sh"]
-          args:
-            - master-only
-            - --no-format
-          env:
-          - name: ALLUXIO_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-2 "
-          - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-2 "
-          envFrom:
-          - configMapRef:
-              name: alluxio-config
-          ports:
-          - containerPort: 19998
-            name: rpc
-          - containerPort: 19999
-            name: web
-          - containerPort: 19200
-            name: embedded
-          volumeMounts:
-            - name: alluxio-journal
-              mountPath: /journal
-        - name: alluxio-job-master
-          image: alluxio/alluxio:2.2.0-SNAPSHOT
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-          resources:
-            limits:
-              cpu: 1
-              memory: 1G
-            requests:
-              cpu: 1
-              memory: 1G
-          command: ["/entrypoint.sh"]
-          args:
-            - job-master
-          env:
-          - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-2 "
-          - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=alluxio-master-2 "
-          envFrom:
-          - configMapRef:
-              name: alluxio-config
-          ports:
-          - containerPort: 20001
-            name: job-rpc
-          - containerPort: 20002
-            name: job-web
-          volumeMounts:
-      restartPolicy: Always
-      volumes:
-        - name: alluxio-journal
-          emptyDir: {}
----
 

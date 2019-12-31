@@ -9,9 +9,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-{{ $root := . -}}
-{{- $isRoot := eq (int $root.Values.user) 0 }}
-{{- $ugi := printf "%v:%v" $root.Values.user $root.Values.group }}
+{{- $isRoot := eq (int .Values.user) 0 }}
+{{- $ugi := printf "%v:%v" .Values.user .Values.group }}
 {{- $masterCount := int .Values.master.count }}
 {{- $isSingleMaster := eq $masterCount 1 }}
 {{- $isEmbedded := (eq .Values.journal.type "EMBEDDED") }}
@@ -24,9 +23,8 @@
 {{- $name := include "alluxio.name" . }}
 {{- $fullName := include "alluxio.fullname" . }}
 {{- $chart := include "alluxio.chart" . }}
-{{- range $i := until $masterCount }}
-  {{- $masterName := printf "master-%v" $i }}
-  {{- $masterJavaOpts := printf " -Dalluxio.master.hostname=%v-%v " $fullName $masterName }}
+
+{{- $masterName := "master" }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -44,8 +42,7 @@ spec:
       app: {{ $name }}
       role: alluxio-master
       name: {{ $fullName }}-{{ $masterName }}
-  serviceName: {{ $masterName | quote }}
-  replicas: {{ $root.Values.master.replicas }}
+  replicas: {{ $masterCount }}
   template:
     metadata:
       labels:
@@ -56,21 +53,21 @@ spec:
         heritage: {{ $release.Service }}
         role: alluxio-master
     spec:
-      hostNetwork: {{ $root.Values.master.hostNetwork }}
-      dnsPolicy: {{ $root.Values.master.dnsPolicy }}
+      hostNetwork: {{ .Values.master.hostNetwork }}
+      dnsPolicy: {{ .Values.master.dnsPolicy }}
       nodeSelector:
-      {{- if $root.Values.master.nodeSelector }}
-{{ toYaml $root.Values.master.nodeSelector | trim | indent 8  }}
-      {{- else if $root.Values.nodeSelector }}
-{{ toYaml $root.Values.nodeSelector | trim | indent 8  }}
+      {{- if .Values.master.nodeSelector }}
+{{ toYaml .Values.master.nodeSelector | trim | indent 8  }}
+      {{- else if .Values.nodeSelector }}
+{{ toYaml .Values.nodeSelector | trim | indent 8  }}
       {{- end }}
       securityContext:
-        fsGroup: {{ $root.Values.fsGroup }}
+        fsGroup: {{ .Values.fsGroup }}
       {{- if and $needJournalVolume (not $isRoot) }}
       initContainers:
       - name: journal-chown
-        image: {{ $root.Values.image }}:{{ $root.Values.imageTag }}
-        imagePullPolicy: {{ $root.Values.imagePullPolicy }}
+        image: {{ .Values.image }}:{{ .Values.imageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
         securityContext:
           runAsUser: 0
         command: ["/bin/chown","-R", {{ $ugi | quote }}, "/journal"]
@@ -80,35 +77,39 @@ spec:
       {{- end}}
       containers:
         - name: alluxio-master
-          image: {{ $root.Values.image }}:{{ $root.Values.imageTag }}
-          imagePullPolicy: {{ $root.Values.imagePullPolicy }}
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
           securityContext:
-            runAsUser: {{ $root.Values.user }}
-            runAsGroup: {{ $root.Values.group }}
-          {{- if $root.Values.master.resources  }}
+            runAsUser: {{ .Values.user }}
+            runAsGroup: {{ .Values.group }}
+          {{- if .Values.master.resources  }}
           resources:
-            {{- if $root.Values.master.resources.limits }}
+            {{- if .Values.master.resources.limits }}
             limits:
-              cpu: {{ $root.Values.master.resources.limits.cpu }}
-              memory: {{ $root.Values.master.resources.limits.memory }}
+              cpu: {{ .Values.master.resources.limits.cpu }}
+              memory: {{ .Values.master.resources.limits.memory }}
             {{- end }}
-            {{- if $root.Values.master.resources.requests }}
+            {{- if .Values.master.resources.requests }}
             requests:
-              cpu: {{ $root.Values.master.resources.requests.cpu }}
-              memory: {{ $root.Values.master.resources.requests.memory }}
+              cpu: {{ .Values.master.resources.requests.cpu }}
+              memory: {{ .Values.master.resources.requests.memory }}
             {{- end }}
           {{- end }}
           command: ["/entrypoint.sh"]
-          {{- if $root.Values.master.args }}
+          {{- if .Values.master.args }}
           args:
-{{ toYaml $root.Values.master.args | trim | indent 12 }}
+{{ toYaml .Values.master.args | trim | indent 12 }}
           {{- end }}
           {{- if $isHaEmbedded }}
           env:
+          - name: POD_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           - name: ALLUXIO_MASTER_JAVA_OPTS
-            value: {{ $masterJavaOpts | quote }}
+            value: " -Dalluxio.master.hostname=${POD_HOSTNAME} "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: {{ $masterJavaOpts | quote }}
+            value: " -Dalluxio.master.hostname=${POD_HOSTNAME} "
           {{- end }}
           envFrom:
           - configMapRef:
@@ -127,55 +128,59 @@ spec:
             - name: alluxio-journal
               mountPath: /journal
             {{- end }}
-            {{- if $root.Values.master.metastore }}
+            {{- if .Values.master.metastore }}
             - name: alluxio-metastore
-              mountPath: {{ $root.Values.master.metastore.mountPath }}
+              mountPath: {{ .Values.master.metastore.mountPath }}
             {{- end }}
-            {{- if $root.Values.secrets }}
-              {{- if $root.Values.secrets.master }}
-                {{- range $key, $val := $root.Values.secrets.master }}
+            {{- if .Values.secrets }}
+              {{- if .Values.secrets.master }}
+                {{- range $key, $val := .Values.secrets.master }}
             - name: secret-{{ $key }}-volume
               mountPath: /secrets/{{ $val }}
               readOnly: true
                 {{- end }}
               {{- end }}
             {{- end }}
-            {{- if $root.Values.mounts }}
-              {{- range $root.Values.mounts }}
+            {{- if .Values.mounts }}
+              {{- range .Values.mounts }}
             - name: "{{ .name }}"
               mountPath: "{{ .path }}"
               {{- end }}
             {{- end }}
         - name: alluxio-job-master
-          image: {{ $root.Values.image }}:{{ $root.Values.imageTag }}
-          imagePullPolicy: {{ $root.Values.imagePullPolicy }}
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
           securityContext:
-            runAsUser: {{ $root.Values.user }}
-            runAsGroup: {{ $root.Values.group }}
-          {{- if $root.Values.jobMaster.resources }}
+            runAsUser: {{ .Values.user }}
+            runAsGroup: {{ .Values.group }}
+          {{- if .Values.jobMaster.resources }}
           resources:
-            {{- if $root.Values.jobMaster.resources.limits }}
+            {{- if .Values.jobMaster.resources.limits }}
             limits:
-              cpu: {{ $root.Values.jobMaster.resources.limits.cpu }}
-              memory: {{ $root.Values.jobMaster.resources.limits.memory }}
+              cpu: {{ .Values.jobMaster.resources.limits.cpu }}
+              memory: {{ .Values.jobMaster.resources.limits.memory }}
             {{- end }}
-            {{- if $root.Values.jobMaster.resources.requests }}
+            {{- if .Values.jobMaster.resources.requests }}
             requests:
-              cpu: {{ $root.Values.jobMaster.resources.requests.cpu }}
-              memory: {{ $root.Values.jobMaster.resources.requests.memory }}
+              cpu: {{ .Values.jobMaster.resources.requests.cpu }}
+              memory: {{ .Values.jobMaster.resources.requests.memory }}
             {{- end }}
           {{- end }}
           command: ["/entrypoint.sh"]
-          {{- if $root.Values.jobMaster.args }}
+          {{- if .Values.jobMaster.args }}
           args:
-{{ toYaml $root.Values.jobMaster.args | trim | indent 12 }}
+{{ toYaml .Values.jobMaster.args | trim | indent 12 }}
           {{- end }}
           {{- if $isHaEmbedded }}
           env:
+          - name: POD_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
-            value: {{ $masterJavaOpts | quote }}
+            value: " -Dalluxio.master.hostname=${POD_HOSTNAME} "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: {{ $masterJavaOpts | quote }}
+            value: " -Dalluxio.master.hostname=${POD_HOSTNAME} "
           {{- end }}
           envFrom:
           - configMapRef:
@@ -186,17 +191,17 @@ spec:
           - containerPort: 20002
             name: job-web
           volumeMounts:
-          {{- if $root.Values.secrets }}
-            {{- if $root.Values.secrets.master }}
-              {{- range $key, $val := $root.Values.secrets.master }}
+          {{- if .Values.secrets }}
+            {{- if .Values.secrets.master }}
+              {{- range $key, $val := .Values.secrets.master }}
             - name: secret-{{ $key }}-volume
               mountPath: /secrets/{{ $val }}
               readOnly: true
               {{- end }}
             {{- end }}
           {{- end }}
-          {{- if $root.Values.mounts }}
-            {{- range $root.Values.mounts }}
+          {{- if .Values.mounts }}
+            {{- range .Values.mounts }}
             - name: "{{ .name }}"
               mountPath: "{{ .path }}"
             {{- end }}
@@ -206,21 +211,21 @@ spec:
         {{- if $isSingleUfsLocal }}
         - name: alluxio-journal
           persistentVolumeClaim:
-            claimName: {{ $root.Values.journal.pvcName }}
+            claimName: {{ .Values.journal.pvcName }}
         {{- end }}
-        {{- if $root.Values.master.metastore }}
+        {{- if .Values.master.metastore }}
         - name: alluxio-metastore
           emptyDir:
-            medium: {{ $root.Values.master.metastore.medium }}
-            sizeLimit: {{ $root.Values.master.metastore.size | quote }}
+            medium: {{ .Values.master.metastore.medium }}
+            sizeLimit: {{ .Values.master.metastore.size | quote }}
         {{- end }}
         {{- if $isHaEmbedded }}
         - name: alluxio-journal
           emptyDir: {}
         {{- end}}
-        {{- if $root.Values.secrets }}
-          {{- if $root.Values.secrets.master }}
-            {{- range $key, $val := $root.Values.secrets.master }}
+        {{- if .Values.secrets }}
+          {{- if .Values.secrets.master }}
+            {{- range $key, $val := .Values.secrets.master }}
         - name: secret-{{ $key }}-volume
           secret:
             secretName: {{ $key }}
@@ -228,12 +233,10 @@ spec:
             {{- end }}
           {{- end }}
         {{- end }}
-        {{- if $root.Values.mounts }}
-          {{- range $root.Values.mounts }}
+        {{- if .Values.mounts }}
+          {{- range .Values.mounts }}
         - name: "{{ .name }}"
           persistentVolumeClaim:
             claimName: "{{ .name }}"
           {{- end }}
         {{- end }}
----
-{{- end }}
