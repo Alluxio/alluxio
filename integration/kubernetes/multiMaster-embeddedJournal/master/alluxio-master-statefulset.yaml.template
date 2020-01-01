@@ -28,6 +28,7 @@ spec:
       app: alluxio
       role: alluxio-master
       name: alluxio-master
+  serviceName: alluxio-master
   replicas: 3
   template:
     metadata:

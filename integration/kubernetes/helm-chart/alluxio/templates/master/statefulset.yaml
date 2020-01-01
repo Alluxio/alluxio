@@ -38,6 +38,7 @@ spec:
       app: {{ $name }}
       role: alluxio-master
       name: {{ $fullName }}-master
+  serviceName: {{ $fullName }}-master
   replicas: {{ $masterCount }}
   template:
     metadata:
@@ -101,11 +102,11 @@ spec:
           - configMapRef:
               name: {{ $fullName }}-config
           ports:
-          - containerPort: 19998
+          - containerPort: {{ .Values.master.ports.rpc }}
             name: rpc
-          - containerPort: 19999
+          - containerPort: {{ .Values.master.ports.web }}
             name: web
-          - containerPort: 19200
+          - containerPort: {{ .Values.master.ports.embedded }}
             name: embedded
           volumeMounts:
             {{- if $needJournalVolume }}
@@ -156,9 +157,9 @@ spec:
           - configMapRef:
               name: {{ $fullName }}-config
           ports:
-          - containerPort: 20001
+          - containerPort: {{ .Values.jobMaster.ports.rpc }}
             name: job-rpc
-          - containerPort: 20002
+          - containerPort: {{ .Values.jobMaster.ports.web }}
             name: job-web
           volumeMounts:
           {{- if .Values.secrets }}
