@@ -79,7 +79,7 @@ spec:
             runAsUser: {{ .Values.user }}
             runAsGroup: {{ .Values.group }}
           {{- if .Values.master.resources  }}
-{{ include "alluxio.master.resources" . | indent 10 }}
+{{- include "alluxio.master.resources" . | indent 10 }}
           {{- end }}
           command: ["/entrypoint.sh"]
           {{- if .Values.master.args }}
@@ -118,11 +118,7 @@ spec:
             {{- end }}
             {{- if .Values.secrets }}
               {{- if .Values.secrets.master }}
-                {{- range $key, $val := .Values.secrets.master }}
-            - name: secret-{{ $key }}-volume
-              mountPath: /secrets/{{ $val }}
-              readOnly: true
-                {{- end }}
+{{- include "alluxio.master.secretVolumeMounts" . | indent 10 }}
               {{- end }}
             {{- end }}
             {{- if .Values.mounts }}
@@ -138,7 +134,7 @@ spec:
             runAsUser: {{ .Values.user }}
             runAsGroup: {{ .Values.group }}
           {{- if .Values.jobMaster.resources  }}
-{{ include "alluxio.jobMaster.resources" . | indent 10 }}
+{{- include "alluxio.jobMaster.resources" . | indent 10 }}
           {{- end }}
           command: ["/entrypoint.sh"]
           {{- if .Values.jobMaster.args }}
@@ -167,11 +163,7 @@ spec:
           volumeMounts:
           {{- if .Values.secrets }}
             {{- if .Values.secrets.master }}
-              {{- range $key, $val := .Values.secrets.master }}
-            - name: secret-{{ $key }}-volume
-              mountPath: /secrets/{{ $val }}
-              readOnly: true
-              {{- end }}
+{{- include "alluxio.master.secretVolumeMounts" . | indent 10 }}
             {{- end }}
           {{- end }}
           {{- if .Values.mounts }}

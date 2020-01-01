@@ -50,8 +50,7 @@ spec:
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
-            runAsGroup: 1000
-          resources:
+            runAsGroup: 1000          resources:
             limits:
               cpu: 1
               memory: 1G
@@ -72,17 +71,16 @@ spec:
             name: web
           - containerPort: 19200
             name: embedded
-          volumeMounts:
-            - name: secret-alluxio-hdfs-config-volume
-              mountPath: /secrets/hdfsConfig
-              readOnly: true
+          volumeMounts:          
+          - name: secret-alluxio-hdfs-config-volume
+            mountPath: /secrets/hdfsConfig
+            readOnly: true
         - name: alluxio-job-master
           image: alluxio/alluxio:2.2.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
-            runAsGroup: 1000
-          resources:
+            runAsGroup: 1000          resources:
             limits:
               cpu: 1
               memory: 1G
@@ -100,10 +98,10 @@ spec:
             name: job-rpc
           - containerPort: 20002
             name: job-web
-          volumeMounts:
-            - name: secret-alluxio-hdfs-config-volume
-              mountPath: /secrets/hdfsConfig
-              readOnly: true
+          volumeMounts:          
+          - name: secret-alluxio-hdfs-config-volume
+            mountPath: /secrets/hdfsConfig
+            readOnly: true
       restartPolicy: Always
       volumes:
         - name: secret-alluxio-hdfs-config-volume

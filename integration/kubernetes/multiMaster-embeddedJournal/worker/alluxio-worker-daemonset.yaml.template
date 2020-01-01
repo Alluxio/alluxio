@@ -83,7 +83,7 @@ spec:
             name: web
           volumeMounts:
             - name: alluxio-domain
-              mountPath: /opt/domain
+              mountPath: /opt/domain            
             - mountPath: /dev/shm
               name: mem
         - name: alluxio-job-worker
@@ -91,8 +91,7 @@ spec:
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
-          imagePullPolicy: IfNotPresent
-          resources:
+          imagePullPolicy: IfNotPresent          resources:
             limits:
               cpu: 1
               memory: 1G
@@ -119,7 +118,7 @@ spec:
             name: job-web
           volumeMounts:
             - name: alluxio-domain
-              mountPath: /opt/domain
+              mountPath: /opt/domain            
             - mountPath: /dev/shm
               name: mem
       restartPolicy: Always
@@ -127,7 +126,7 @@ spec:
         - name: alluxio-domain
           hostPath:
             path: /tmp/alluxio-domain
-            type: DirectoryOrCreate
+            type: DirectoryOrCreate        
         - name: mem
           emptyDir:
             medium: "Memory"

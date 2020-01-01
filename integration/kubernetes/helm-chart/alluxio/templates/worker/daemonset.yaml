@@ -90,40 +90,14 @@ spec:
               mountPath: /opt/domain
             {{- if .Values.secrets }}
               {{- if .Values.secrets.worker }}
-                {{- range $key, $val := .Values.secrets.worker }}
-            - name: secret-{{ $key }}-volume
-              mountPath: /secrets/{{ $val }}
-              readOnly: true
-                {{- end }}
+{{ include "alluxio.worker.secretVolumeMounts" . | indent 12 }}
               {{- end }}
             {{- end }}
-            {{- if .Values.tieredstore }} 
-              {{- if .Values.tieredstore.levels }} 
-                {{- range .Values.tieredstore.levels }}
-                  {{- if .mediumtype }}
-                    {{- if contains "," .mediumtype }}
-            {{- $type := .type }}
-            {{- $path := .path }}
-            {{- $split := split "," .mediumtype }}
-                      {{- range $key, $val := $split }} 
-                        {{- if eq $type "hostPath"}}
-            - mountPath:  {{ index ($path | split ",") $key }}
-              name: {{ $val | lower }}-{{ $key | replace "_" "" }}
-                        {{- end}}
-                      {{- end}}
-                    {{- else}}
-            - mountPath: {{ .path }}
-              name: {{ .mediumtype | replace "," "-" | lower }}
-                    {{- end}}
-                  {{- end}}
-                {{- end}} 
-              {{- end}} 
-            {{- end}} 
-            {{- if .Values.mounts }}   
-              {{- range .Values.mounts }}
-            - name: "{{ .name }}"
-              mountPath: "{{ .path }}"
-              {{- end }}
+            {{- if .Values.tieredstore }}
+{{- include "alluxio.worker.tieredstoreVolumeMounts" . | indent 12 }}
+            {{- end }}
+            {{- if .Values.mounts }}
+{{- include "alluxio.worker.otherVolumeMounts" . | indent 12 }}
             {{- end }}
         - name: alluxio-job-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
@@ -132,7 +106,7 @@ spec:
             runAsGroup: {{ .Values.group }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           {{- if .Values.jobWorker.resources  }}
-{{ include "alluxio.jobWorker.resources" . | indent 10 }}
+{{- include "alluxio.jobWorker.resources" . | indent 10 }}
           {{- end }}
           command: ["/entrypoint.sh"]
           {{- if .Values.jobWorker.args }}
@@ -159,40 +133,14 @@ spec:
               mountPath: /opt/domain
             {{- if .Values.secrets }}
               {{- if .Values.secrets.worker }}
-                {{- range $key, $val := .Values.secrets.worker }}
-            - name: secret-{{ $key }}-volume
-              mountPath: /secrets/{{ $val }}
-              readOnly: true
-                {{- end }}
+{{- include "alluxio.worker.secretVolumeMounts" . | indent 12 }}
               {{- end }}
             {{- end }}
-            {{- if .Values.tieredstore }} 
-              {{- if .Values.tieredstore.levels }} 
-                {{- range .Values.tieredstore.levels }}
-                  {{- if .mediumtype }}
-                    {{- if contains "," .mediumtype }}
-            {{- $type := .type }}
-            {{- $path := .path }}
-            {{- $split := split "," .mediumtype }}
-                      {{- range $key, $val := $split }} 
-                        {{- if eq $type "hostPath"}}
-            - mountPath:  {{ index ($path | split ",") $key }}
-              name: {{ $val | lower }}-{{ $key | replace "_" "" }}
-                        {{- end}}
-                      {{- end}}
-                    {{- else}}
-            - mountPath: {{ .path }}
-              name: {{ .mediumtype | replace "," "-" | lower }}
-                    {{- end}}
-                  {{- end}}
-                {{- end}} 
-              {{- end}} 
-            {{- end}} 
-            {{- if .Values.mounts }}   
-              {{- range .Values.mounts }}
-            - name: "{{ .name }}"
-              mountPath: "{{ .path }}"
-              {{- end }}
+            {{- if .Values.tieredstore }}
+{{- include "alluxio.worker.tieredstoreVolumeMounts" . | indent 12 }}
+            {{- end }}
+            {{- if .Values.mounts }}
+{{- include "alluxio.worker.otherVolumeMounts" . | indent 12 }}
             {{- end }}
       restartPolicy: Always
       volumes:
@@ -202,55 +150,11 @@ spec:
             type: DirectoryOrCreate
         {{- if .Values.secrets }}
           {{- if .Values.secrets.worker }}
-            {{- range $key, $val := .Values.secrets.worker }}
-        - name: secret-{{ $key }}-volume
-          secret:
-            secretName: {{ $key }}
-            defaultMode: 256
-            {{- end }}
+{{- include "alluxio.worker.secretVolumes" . | indent 8 }}
           {{- end }}
         {{- end }}
         {{- if .Values.tieredstore }} 
-          {{- if .Values.tieredstore.levels }} 
-            {{- range .Values.tieredstore.levels }}
-              {{- if .mediumtype }}
-                {{- if contains "," .mediumtype }}
-           {{- $split := split "," .mediumtype }}
-           {{- $type := .type }}
-           {{- $path := .path }}
-                  {{- range $key, $val := $split }} 
-                    {{- if eq $type "hostPath"}}
-        - hostPath:
-            path: {{ index ($path | split ",") $key }}
-            type: DirectoryOrCreate
-          name: {{ $val | lower }}-{{ $key | replace "_" "" }}
-                    {{- else }}
-        - name: {{ $val | lower }}-{{ $key | replace "_" "" }}
-          emptyDir:
-            medium: "Memory"
-                      {{- if .quota }} 
-            sizeLimit: {{ .quota }}
-                      {{- end}} 
-                    {{- end}}
-                  {{- end}}
-                {{- else}}
-                  {{- if eq .type "hostPath"}}
-        - hostPath:
-            path: {{ .path }}
-            type: DirectoryOrCreate
-          name: {{ .mediumtype | replace "," "-" | lower }}
-                  {{- else }}
-        - name: {{ .mediumtype | replace "," "-" | lower }}
-          emptyDir:
-            medium: "Memory"
-                    {{- if .quota }}
-            sizeLimit: {{ .quota }}
-                    {{- end}}
-                  {{- end}}
-                {{- end}}
-              {{- end}}
-            {{- end}} 
-          {{- end}} 
+{{- include "alluxio.worker.tieredstoreVolumes" . | indent 8 }}
         {{- end}}
         {{- if .Values.mounts }}   
           {{- range .Values.mounts }}
