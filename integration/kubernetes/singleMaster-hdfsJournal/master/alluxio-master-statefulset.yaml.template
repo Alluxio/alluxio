@@ -10,6 +10,7 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
+
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -69,6 +70,8 @@ spec:
             name: rpc
           - containerPort: 19999
             name: web
+          - containerPort: 19200
+            name: embedded
           volumeMounts:
             - name: secret-alluxio-hdfs-config-volume
               mountPath: /secrets/hdfsConfig

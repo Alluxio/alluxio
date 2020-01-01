@@ -38,7 +38,7 @@ spec:
     - port: 20002
       name: job-web
     - port: 19200
-      name: ej
+      name: embedded
   type: NodePort
   selector:
     role: alluxio-master

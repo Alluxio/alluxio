@@ -65,17 +65,7 @@ spec:
             runAsUser: {{ .Values.user }}
             runAsGroup: {{ .Values.group }}
           {{- if .Values.worker.resources  }}
-          resources:
-            {{- if .Values.worker.resources.limits }}
-            limits:
-              cpu: {{ .Values.worker.resources.limits.cpu }}
-              memory: {{ .Values.worker.resources.limits.memory }}
-            {{- end }}
-            {{- if .Values.worker.resources.requests }}
-            requests:
-              cpu: {{ .Values.worker.resources.requests.cpu }}
-              memory: {{ .Values.worker.resources.requests.memory }}
-            {{- end }}
+{{ include "alluxio.worker.resources" . | indent 10 }}
           {{- end }}
           command: ["/entrypoint.sh"]
           {{- if .Values.worker.args }}
@@ -91,9 +81,9 @@ spec:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
           ports:
-          - containerPort: {{ .Values.worker.resources.ports.rpc }}
+          - containerPort: {{ .Values.worker.ports.rpc }}
             name: rpc
-          - containerPort: {{ .Values.worker.resources.ports.web }}
+          - containerPort: {{ .Values.worker.ports.web }}
             name: web
           volumeMounts:
             - name: alluxio-domain
@@ -141,27 +131,9 @@ spec:
             runAsUser: {{ .Values.user }}
             runAsGroup: {{ .Values.group }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
-          resources:
-            limits:
-              {{- if .Values.jobWorker.resources  }}
-                {{- if .Values.jobWorker.resources.limits }}
-                  {{- if .Values.jobWorker.resources.limits.cpu  }}
-              cpu: {{ .Values.jobWorker.resources.limits.cpu }}
-                  {{- end }}
-                  {{- if .Values.jobWorker.resources.limits.memory  }}
-              memory: {{ .Values.jobWorker.resources.limits.memory }}
-                  {{- end }}
-                {{- end }}
-            requests:
-                {{- if .Values.jobWorker.resources.requests }}
-                  {{- if .Values.jobWorker.resources.requests.cpu  }}
-              cpu: {{ .Values.jobWorker.resources.requests.cpu }}
-                  {{- end }}
-                  {{- if .Values.jobWorker.resources.requests.memory  }}
-              memory: {{ .Values.jobWorker.resources.requests.memory }}
-                  {{- end }}
-                {{- end }}
-              {{- end }}
+          {{- if .Values.jobWorker.resources  }}
+{{ include "alluxio.jobWorker.resources" . | indent 10 }}
+          {{- end }}
           command: ["/entrypoint.sh"]
           {{- if .Values.jobWorker.args }}
           args:
@@ -176,11 +148,11 @@ spec:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
           ports:
-          - containerPort: {{ .Values.jobWorker.resources.ports.rpc }}
+          - containerPort: {{ .Values.jobWorker.ports.rpc }}
             name: job-rpc
-          - containerPort: {{ .Values.jobWorker.resources.ports.data }}
+          - containerPort: {{ .Values.jobWorker.ports.data }}
             name: job-data
-          - containerPort: {{ .Values.jobWorker.resources.ports.web }}
+          - containerPort: {{ .Values.jobWorker.ports.web }}
             name: job-web
           volumeMounts:
             - name: alluxio-domain

@@ -16,41 +16,37 @@
 {{- $isEmbedded := (eq .Values.journal.type "EMBEDDED") }}
 {{- $isHaEmbedded := and $isEmbedded (gt $masterCount 1) }}
 {{- $isUfsLocal := and (eq .Values.journal.type "UFS") (eq .Values.journal.ufsType "local") }}
-{{- $isSingleUfsLocal := and $isUfsLocal $isSingleMaster }}
 {{- $needJournalVolume := or $isEmbedded $isUfsLocal }}
-
-{{- $release := .Release }}
 {{- $name := include "alluxio.name" . }}
 {{- $fullName := include "alluxio.fullname" . }}
 {{- $chart := include "alluxio.chart" . }}
 
-{{- $masterName := "master" }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ $fullName }}-{{ $masterName }}
+  name: {{ $fullName }}-master
   labels:
-    name: {{ $fullName }}-{{ $masterName }}
+    name: {{ $fullName }}-master
     app: {{ $name }}
     chart: {{ $chart }}
-    release: {{ $release.Name }}
-    heritage: {{ $release.Service }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
     role: alluxio-master
 spec:
   selector:
     matchLabels:
       app: {{ $name }}
       role: alluxio-master
-      name: {{ $fullName }}-{{ $masterName }}
+      name: {{ $fullName }}-master
   replicas: {{ $masterCount }}
   template:
     metadata:
       labels:
-        name: {{ $fullName }}-{{ $masterName }}
+        name: {{ $fullName }}-master
         app: {{ $name }}
         chart: {{ $chart }}
-        release: {{ $release.Name }}
-        heritage: {{ $release.Service }}
+        release: {{ .Release.Name }}
+        heritage: {{ .Release.Service }}
         role: alluxio-master
     spec:
       hostNetwork: {{ .Values.master.hostNetwork }}
@@ -83,17 +79,7 @@ spec:
             runAsUser: {{ .Values.user }}
             runAsGroup: {{ .Values.group }}
           {{- if .Values.master.resources  }}
-          resources:
-            {{- if .Values.master.resources.limits }}
-            limits:
-              cpu: {{ .Values.master.resources.limits.cpu }}
-              memory: {{ .Values.master.resources.limits.memory }}
-            {{- end }}
-            {{- if .Values.master.resources.requests }}
-            requests:
-              cpu: {{ .Values.master.resources.requests.cpu }}
-              memory: {{ .Values.master.resources.requests.memory }}
-            {{- end }}
+{{ include "alluxio.master.resources" . | indent 10 }}
           {{- end }}
           command: ["/entrypoint.sh"]
           {{- if .Values.master.args }}
@@ -119,10 +105,8 @@ spec:
             name: rpc
           - containerPort: 19999
             name: web
-          {{- if $isEmbedded }}
           - containerPort: 19200
             name: embedded
-          {{- end}}
           volumeMounts:
             {{- if $needJournalVolume }}
             - name: alluxio-journal
@@ -153,18 +137,8 @@ spec:
           securityContext:
             runAsUser: {{ .Values.user }}
             runAsGroup: {{ .Values.group }}
-          {{- if .Values.jobMaster.resources }}
-          resources:
-            {{- if .Values.jobMaster.resources.limits }}
-            limits:
-              cpu: {{ .Values.jobMaster.resources.limits.cpu }}
-              memory: {{ .Values.jobMaster.resources.limits.memory }}
-            {{- end }}
-            {{- if .Values.jobMaster.resources.requests }}
-            requests:
-              cpu: {{ .Values.jobMaster.resources.requests.cpu }}
-              memory: {{ .Values.jobMaster.resources.requests.memory }}
-            {{- end }}
+          {{- if .Values.jobMaster.resources  }}
+{{ include "alluxio.jobMaster.resources" . | indent 10 }}
           {{- end }}
           command: ["/entrypoint.sh"]
           {{- if .Values.jobMaster.args }}
