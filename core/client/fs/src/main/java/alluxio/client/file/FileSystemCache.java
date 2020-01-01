@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -31,7 +32,7 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public class FileSystemCache {
-  @GuardedBy("itself")
+  @GuardedBy("this")
   private final HashMap<Key, InstanceCachingFileSystem> mCacheMap = new HashMap<>();
 
   /**
@@ -47,17 +48,16 @@ public class FileSystemCache {
    * @return the {@link FileSystem} associated with the key
    */
   public FileSystem get(Key key) {
-    synchronized (mCacheMap) {
-      InstanceCachingFileSystem fs;
-      if (mCacheMap.containsKey(key)) {
-        fs = mCacheMap.get(key);
-        fs.incrementCount();
-      } else {
-        // In case cache miss, create a new instance which will decrement the ref count on close;
+    synchronized (this) {
+      InstanceCachingFileSystem fs = mCacheMap.get(key);
+      if (fs == null) {
+        // In case cache miss, create a new InstanceCachingFileSystem instance,
+        // which will decrement the ref count on close;
         fs = new InstanceCachingFileSystem(
-            FileSystem.Factory.create(FileSystemContext.create(key.mSubject, key.mConf)),
-            this, key);
+            FileSystem.Factory.create(FileSystemContext.create(key.mSubject, key.mConf)), key);
         mCacheMap.put(key, fs);
+      } else {
+        fs.mRefCount.getAndIncrement();
       }
       return fs;
     }
@@ -70,7 +70,7 @@ public class FileSystemCache {
    * @return The removed context or null if there is no client associated with the key
    */
   public FileSystem remove(Key key) {
-    synchronized (mCacheMap) {
+    synchronized (this) {
       return mCacheMap.remove(key);
     }
   }
@@ -82,7 +82,7 @@ public class FileSystemCache {
    */
   @VisibleForTesting
   void purge() {
-    synchronized (mCacheMap) {
+    synchronized (this) {
       mCacheMap.forEach((fsKey, fs) -> {
         try {
           mCacheMap.remove(fsKey);
@@ -138,6 +138,37 @@ public class FileSystemCache {
       Key otherKey = (Key) o;
       return Objects.equals(mSubject, otherKey.mSubject)
           && Objects.equals(mAuth, otherKey.mAuth);
+    }
+  }
+
+  /**
+   * A ref-counted wrapper class on a FileSystem instance. On Close, if the ref count becomes
+   * zero, this wrapper class will remove itself from the cache; noop otherwise.
+   */
+  public class InstanceCachingFileSystem extends DelegatingFileSystem {
+    final Key mKey;
+    final AtomicInteger mRefCount;
+
+    /**
+     * Wraps a file system instance to cache.
+     *
+     * @param fs fs instance
+     * @param key key in fs instance cache
+     */
+    InstanceCachingFileSystem(FileSystem fs, Key key) {
+      super(fs);
+      mKey = key;
+      mRefCount = new AtomicInteger(1);
+    }
+
+    @Override
+    public void close() throws IOException {
+      synchronized (FileSystemCache.this) {
+        if (mRefCount.decrementAndGet() == 0) {
+          FileSystemCache.this.remove(mKey);
+          super.close();
+        }
+      }
     }
   }
 }
