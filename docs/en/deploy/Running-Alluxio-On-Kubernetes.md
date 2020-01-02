@@ -14,8 +14,8 @@ on Kubernetes using the specification included in the Alluxio Docker image or `h
 
 ## Prerequisites
 
-- A Kubernetes cluster (version >= 1.8). With the default specifications, Alluxio services (both
-masters and workers may use `emptyDir` volumes with a restricted size using the `sizeLimit`
+- A Kubernetes cluster (version >= 1.8). With the default specifications, Alluxio 
+workers may use `emptyDir` volumes with a restricted size using the `sizeLimit`
 parameter. This is an alpha feature in Kubernetes 1.8. Please ensure the feature is enabled.
 - An Alluxio Docker image [alluxio/alluxio](https://hub.docker.com/r/alluxio/alluxio/). If using a
 private Docker registry, refer to the Kubernetes [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
@@ -176,12 +176,6 @@ journal:
   folder: "/journal"
 ```
 
-> Limitation: [Embedded Journal]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
-configuration using `helm` uses `emptyDir` volumes by default.
-This type of volume is lost on Pod restart.
-To prevent meta-data loss, [local persistent volumes](https://kubernetes.io/docs/concepts/storage/volumes/#local)
-must be configured manually.
-
 ***Example: HDFS as the under store***
 
 First create secrets for any configuration required by an HDFS client. These are mounted under `/secrets`.
@@ -319,8 +313,8 @@ The Alluxio master writes journal to the PersistentVolume defined in
 *alluxio-master-journal-pv.yaml.template*.
 - *multiMaster-EmbeddedJournal* directory gives you the Kubernetes ConfigMap, 3 Alluxio masters and
 a set of Alluxio workers.
-The Alluxio masters each write to its `alluxio-journal-volume`, which is an `emptyDir` that gets
-wiped out when the Pod is shut down.
+The Alluxio masters each write to its `alluxio-journal-alluxio-master-{index}` volume,
+which is a `PersistentVolumeClaim` that is created automatically for each master Pod in the StatefulSet.
 - *singleMaster-hdfsJournal* directory gives you the Kubernetes ConfigMap, 1 Alluxio master with a
 set of workers.
 The journal is in a shared UFS location. In this template we use HDFS as the UFS.

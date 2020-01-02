@@ -29,9 +29,15 @@
 
 0.5.1
 
-- Fix tiered store issue
-- Fix the issue of the user group of worker is not configurable
+- Fixed tiered store issue
+- Fixed the issue of the user group of worker is not configurable
 
 0.5.2
 
-- Fix apiVersion key in Chart.yaml
+- Fixed apiVersion key in Chart.yaml
+
+0.5.3
+
+- Changed to using one single StatefulSet for all master Pods
+- Changed embedded journal from emptyDir to auto-created PVC
+- Moved a few duplicated blocks into _helpers.tpl
