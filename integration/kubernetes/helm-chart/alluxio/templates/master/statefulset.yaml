@@ -80,7 +80,7 @@ spec:
             runAsUser: {{ .Values.user }}
             runAsGroup: {{ .Values.group }}
           {{- if .Values.master.resources  }}
-{{- include "alluxio.master.resources" . | indent 10 }}
+{{ include "alluxio.master.resources" . | indent 10 }}
           {{- end }}
           command: ["/entrypoint.sh"]
           {{- if .Values.master.args }}
@@ -135,7 +135,7 @@ spec:
             runAsUser: {{ .Values.user }}
             runAsGroup: {{ .Values.group }}
           {{- if .Values.jobMaster.resources  }}
-{{- include "alluxio.jobMaster.resources" . | indent 10 }}
+{{ include "alluxio.jobMaster.resources" . | indent 10 }}
           {{- end }}
           command: ["/entrypoint.sh"]
           {{- if .Values.jobMaster.args }}

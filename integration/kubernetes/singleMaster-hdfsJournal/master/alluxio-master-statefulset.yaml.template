@@ -18,7 +18,7 @@ metadata:
   labels:
     name: alluxio-master
     app: alluxio
-    chart: alluxio-0.5.2
+    chart: alluxio-0.5.3
     release: alluxio
     heritage: Tiller
     role: alluxio-master
@@ -35,7 +35,7 @@ spec:
       labels:
         name: alluxio-master
         app: alluxio
-        chart: alluxio-0.5.2
+        chart: alluxio-0.5.3
         release: alluxio
         heritage: Tiller
         role: alluxio-master
@@ -51,7 +51,8 @@ spec:
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
-            runAsGroup: 1000          resources:
+            runAsGroup: 1000
+          resources:
             limits:
               cpu: 1
               memory: 1G
@@ -81,7 +82,8 @@ spec:
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
-            runAsGroup: 1000          resources:
+            runAsGroup: 1000
+          resources:
             limits:
               cpu: 1
               memory: 1G
