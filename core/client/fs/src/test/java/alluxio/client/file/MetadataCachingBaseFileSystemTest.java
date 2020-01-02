@@ -42,7 +42,7 @@ import java.util.Arrays;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class})
-public class CachingFileSystemTest {
+public class MetadataCachingBaseFileSystemTest {
   private static final AlluxioURI DIR = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
   private static final GetStatusPOptions GET_STATUS_OPTIONS =
@@ -56,7 +56,7 @@ public class CachingFileSystemTest {
   private FileSystemContext mFileContext;
   private ClientContext mClientContext;
   private FileSystemMasterClient mFileSystemMasterClient;
-  private CachingFileSystem mFs;
+  private MetadataCachingBaseFileSystem mFs;
 
   @Before
   public void before() throws Exception {
@@ -78,7 +78,7 @@ public class CachingFileSystemTest {
     when(mFileContext.getClusterConf()).thenReturn(mConf);
     when(mFileContext.getPathConf(any())).thenReturn(mConf);
     when(mFileContext.getUriValidationEnabled()).thenReturn(true);
-    mFs = Mockito.spy(new CachingFileSystem(mFileContext, false));
+    mFs = Mockito.spy(new MetadataCachingBaseFileSystem(mFileContext));
   }
 
   @After
