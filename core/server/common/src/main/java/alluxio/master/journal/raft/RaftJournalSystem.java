@@ -275,6 +275,11 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   private CopycatClient createClient() {
     return CopycatClient.builder(getClusterAddresses(mConf))
         .withRecoveryStrategy(RecoveryStrategies.RECOVER)
+        /*
+         * We use raft clients for journal writes and writes are only allowed on leader. Forcing
+         * client to connect to leader will improve performance by eliminating extra hops and will
+         * make transport level traces less confusing for investigation.
+         */
         .withServerSelectionStrategy(ServerSelectionStrategies.LEADER)
         .withConnectionStrategy(attempt -> attempt.retry(Duration.ofMillis(
             Math.min(Math.round(100D * Math.pow(2D, (double) attempt.attempt())), 1000L))))
