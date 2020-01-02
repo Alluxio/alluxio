@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -83,9 +84,9 @@ public class FileSystemCache {
   @VisibleForTesting
   void purge() {
     synchronized (this) {
-      mCacheMap.forEach((fsKey, fs) -> {
+      new HashSet<>(mCacheMap.values()).forEach(fs -> {
         try {
-          mCacheMap.remove(fsKey);
+          mCacheMap.remove(fs.mKey);
           fs.close();
         } catch (IOException e) {
           throw new RuntimeException(e);
