@@ -11,6 +11,10 @@
 
 package alluxio.util;
 
+import alluxio.shell.CommandReturn;
+import alluxio.shell.ScpCommand;
+import alluxio.shell.ShellCommand;
+import alluxio.shell.SshCommand;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,173 +139,6 @@ public final class ShellUtils {
     return builder.build();
   }
 
-  @NotThreadSafe
-  private static class Command {
-    protected String[] mCommand;
-
-    private Command(String[] execString) {
-      mCommand = execString.clone();
-    }
-
-    /**
-     * Runs a command and returns its stdout on success.
-     *
-     * @return the output
-     * @throws ExitCodeException if the command returns a non-zero exit code
-     */
-    protected String run() throws ExitCodeException, IOException {
-      Process process = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
-
-      BufferedReader inReader =
-          new BufferedReader(new InputStreamReader(process.getInputStream(),
-              Charset.defaultCharset()));
-
-      try {
-        // read the output of the command
-        StringBuilder output = new StringBuilder();
-        String line = inReader.readLine();
-        while (line != null) {
-          output.append(line);
-          output.append("\n");
-          line = inReader.readLine();
-        }
-        // wait for the process to finish and check the exit code
-        int exitCode = process.waitFor();
-        if (exitCode != 0) {
-          throw new ExitCodeException(exitCode, output.toString());
-        }
-        return output.toString();
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new IOException(e);
-      } finally {
-        // close the input stream
-        try {
-          // JDK 7 tries to automatically drain the input streams for us
-          // when the process exits, but since close is not synchronized,
-          // it creates a race if we close the stream first and the same
-          // fd is recycled. the stream draining thread will attempt to
-          // drain that fd!! it may block, OOM, or cause bizarre behavior
-          // see: https://bugs.openjdk.java.net/browse/JDK-8024521
-          // issue is fixed in build 7u60
-          InputStream stdout = process.getInputStream();
-          synchronized (stdout) {
-            inReader.close();
-          }
-        } catch (IOException e) {
-          LOG.warn("Error while closing the input stream", e);
-        }
-        process.destroy();
-      }
-    }
-
-    /**
-     * Runs a command and returns its stdout, stderr and exit code.
-     * No matter it succeeds or not.
-     *
-     * @return {@link CommandReturn} object representation of stdout, stderr and exit code
-     */
-    protected CommandReturn runTolerateFailure() throws IOException {
-      Process process = new ProcessBuilder(mCommand).start();
-      CommandReturn cr = null;
-
-      try (BufferedReader inReader =
-                   new BufferedReader(new InputStreamReader(process.getInputStream()));
-           BufferedReader errReader =
-                   new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-        // read the output of the command
-        StringBuilder stdout = new StringBuilder();
-        String outLine = inReader.readLine();
-        while (outLine != null) {
-          stdout.append(outLine);
-          stdout.append("\n");
-          outLine = inReader.readLine();
-        }
-
-        // read the stderr of the command
-        StringBuilder stderr = new StringBuilder();
-        String errLine = errReader.readLine();
-        while (errLine != null) {
-          stderr.append(errLine);
-          stderr.append("\n");
-          errLine = inReader.readLine();
-        }
-
-        // wait for the process to finish and check the exit code
-        int exitCode = process.waitFor();
-        if (exitCode != 0) {
-          // log error instead of throwing exception
-          LOG.warn(String.format("Failed to run command %s%nExit Code: %s%nStderr: %s",
-                  Arrays.toString(mCommand), exitCode, stderr.toString()));
-        }
-
-        cr = new CommandReturn(exitCode, stdout.toString(), stderr.toString());
-
-        // destroy the process
-        if (process != null) {
-          process.destroy();
-        }
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new IOException(e);
-      } finally {
-        if (process != null) {
-          process.destroy();
-        }
-      }
-      return cr;
-    }
-  }
-
-  @NotThreadSafe
-  private static class SshCommand extends Command {
-    protected String mHostName;
-
-    private SshCommand(String[] execString) {
-      this("localhost", execString);
-    }
-
-    private SshCommand(String hostname, String[] execString) {
-      super(execString);
-      mHostName = hostname;
-      mCommand = new String[]{"bash", "-c",
-              String.format("ssh %s %s %s", ShellUtils.COMMON_SSH_OPTS, hostname,
-                      String.join(" ", execString))};
-    }
-
-    protected String getHostName() {
-      return mHostName;
-    }
-  }
-
-  @NotThreadSafe
-  private static class ScpCommand extends Command {
-    protected String mHostName;
-
-    private ScpCommand(String remoteHost, String fromFile, String toFile) {
-      this(remoteHost, fromFile, toFile, false);
-    }
-
-    private ScpCommand(String remoteHost, String fromFile, String toFile, boolean isDir) {
-      super(new String[]{});
-
-      String template = "scp %s %s:%s localhost:%s";
-      if (isDir) {
-        template = "scp -r %s %s:%s localhost:%s";
-      }
-
-      // copy from hostname to local
-      mCommand = new String[]{"bash", "-c",
-              String.format(template, ShellUtils.COMMON_SSH_OPTS, remoteHost, fromFile, toFile)
-      };
-      mHostName = remoteHost;
-    }
-
-    protected String getHostName() {
-      return mHostName;
-    }
-  }
-
   /**
    * This is an IOException with exit code added.
    */
@@ -341,66 +178,6 @@ public final class ShellUtils {
   }
 
   /**
-   * Object representation of a command execution.
-   */
-  public static class CommandReturn {
-    private int mExitCode;
-    private String mStdOut;
-    private String mStdErr;
-
-    /**
-     * Creates object from the contents.
-     *
-     * @param code exit code
-     * @param stdOut stdout content
-     * @param stdErr stderr content
-     */
-    public CommandReturn(int code, String stdOut, String stdErr) {
-      mExitCode = code;
-      mStdOut = stdOut;
-      mStdErr = stdErr;
-    }
-
-    /**
-     * Gets the stdout content.
-     *
-     * @return stdout content
-     */
-    public String getStdOut() {
-      return mStdOut;
-    }
-
-    /**
-     * Gets the stderr content.
-     *
-     * @return stderr content
-     */
-    public String getStdErr() {
-      return mStdErr;
-    }
-
-    /**
-     * Gets the exit code.
-     *
-     * @return exit code of execution
-     */
-    public int getExitCode() {
-      return mExitCode;
-    }
-
-    /**
-     * Formats the object to more readable format.
-     * This is not done in toString() because stdout and stderr may be long.
-     *
-     * @return pretty formatted output
-     */
-    public String getFormattedOutput() {
-      return String.format("StatusCode:%s%nStdOut:%n%s%nStdErr:%n%s", getExitCode(),
-              getStdOut(), getStdErr());
-    }
-  }
-
-  /**
    * Static method to execute a shell command. The StdErr is not returned.
    * If execution failed
    *
@@ -413,7 +190,7 @@ public final class ShellUtils {
    *  4. other normal reasons for IOException
    */
   public static String execCommand(String... cmd) throws IOException {
-    return new Command(cmd).run();
+    return new ShellCommand(cmd).run();
   }
 
   /**
@@ -428,7 +205,7 @@ public final class ShellUtils {
    *  3. other normal reasons for IOException
    */
   public static CommandReturn execCommandTolerateFailure(String... cmd) throws IOException {
-    return new Command(cmd).runTolerateFailure();
+    return new ShellCommand(cmd).runTolerateFailure();
   }
 
   /**

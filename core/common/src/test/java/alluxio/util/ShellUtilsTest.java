@@ -38,18 +38,6 @@ public final class ShellUtilsTest {
   @Rule
   public ExpectedException mExceptionRule = ExpectedException.none();
 
-  public static File createFileInDir(File dir, String fileName) throws IOException {
-    File newFile = new File(Paths.get(dir.getAbsolutePath(), fileName).toString());
-    newFile.createNewFile();
-    return newFile;
-  }
-
-  public static File createDirInDir(File dir, String fileName) throws IOException {
-    File newFile = new File(Paths.get(dir.getAbsolutePath(), fileName).toString());
-    newFile.mkdir();
-    return newFile;
-  }
-
   /**
    * Tests the {@link ShellUtils#execCommand(String...)} method.
    *
@@ -140,36 +128,5 @@ public final class ShellUtilsTest {
     assumeTrue(OSUtils.isMacOS() || OSUtils.isLinux());
     List<UnixMountInfo> info = ShellUtils.getUnixMountInfo();
     assertTrue(info.size() > 0);
-  }
-
-  @Test
-  public void execCommandTolerateFailure() throws Exception {
-    // create temp file
-    File testDir = AlluxioTestDirectory.createTemporaryDirectory("command");
-
-    File testFile = createFileInDir(testDir, "testFile");
-
-    // ls temp file
-    String[] testCommandSucceed = new String[]{"ls",
-            String.format("%s", testDir.getAbsolutePath())};
-    ShellUtils.CommandReturn crs = ShellUtils.execCommandTolerateFailure(testCommandSucceed);
-    assertEquals(0, crs.getExitCode());
-    assertTrue(crs.getStdOut().contains(testFile.getName()));
-    assertEquals("", crs.getStdErr());
-
-    // do sth wrong
-    String[] testCommandFail = new String[]{"ls",
-            String.format("%saaaa", testDir.getAbsolutePath())};
-    ShellUtils.CommandReturn crf = ShellUtils.execCommandTolerateFailure(testCommandFail);
-    assertNotEquals(0, crf.getExitCode());
-    assertTrue(crf.getStdErr().length() > 0);
-
-    // if there's no such command there will be IOException
-    mExceptionRule.expect(IOException.class);
-    mExceptionRule.expectMessage("No such file or directory");
-    String[] testCommandExcept = new String[]{"lsa",
-            String.format("%s", testDir.getAbsolutePath())};
-    // lsa is not a valid executable
-    ShellUtils.execCommandTolerateFailure(testCommandExcept);
   }
 }
