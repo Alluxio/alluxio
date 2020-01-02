@@ -57,10 +57,9 @@ public class FileSystemCache {
       Value value = mCacheMap.get(key);
       FileSystem fs;
       if (value == null) {
-        // In case cache miss, create a new FileSystem instance,
-        // which will decrement the ref count on close;
+        // On cache miss, create and insert a new FileSystem instance,
         fs = FileSystem.Factory.create(FileSystemContext.create(key.mSubject, key.mConf));
-        mCacheMap.put(key, new Value(fs));
+        mCacheMap.put(key, new Value(fs, 1));
       } else {
         fs = value.mFileSystem;
         value.mRefCount.getAndIncrement();
@@ -136,17 +135,18 @@ public class FileSystemCache {
 
     /**
      * @param fileSystem filesystem instance cached
+     * @param count initial ref count
      */
-    public Value(FileSystem fileSystem) {
+    public Value(FileSystem fileSystem, int count) {
       this.mFileSystem = fileSystem;
-      this.mRefCount = new AtomicInteger(1);
+      this.mRefCount = new AtomicInteger(count);
     }
   }
 
   /**
    * A wrapper class on a FileSystem instance. On Close, it will decrement the refcount of
    * the underlying File System instance in Cache. If this ref count becomes
-   * zero, the underlying cached instance will be removed from the cache.
+   * zero, that cached instance will be removed from the cache.
    */
   public class InstanceCachingFileSystem extends DelegatingFileSystem {
     final Key mKey;
