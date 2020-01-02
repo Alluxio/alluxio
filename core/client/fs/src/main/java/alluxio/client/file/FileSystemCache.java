@@ -138,8 +138,8 @@ public class FileSystemCache {
      * @param count initial ref count
      */
     public Value(FileSystem fileSystem, int count) {
-      this.mFileSystem = fileSystem;
-      this.mRefCount = new AtomicInteger(count);
+      mFileSystem = fileSystem;
+      mRefCount = new AtomicInteger(count);
     }
   }
 
