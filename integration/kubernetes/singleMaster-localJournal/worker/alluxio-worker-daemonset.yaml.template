@@ -91,7 +91,8 @@ spec:
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
-          imagePullPolicy: IfNotPresent          resources:
+          imagePullPolicy: IfNotPresent
+          resources:
             limits:
               cpu: 1
               memory: 1G

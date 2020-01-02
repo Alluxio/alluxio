@@ -106,7 +106,7 @@ spec:
             runAsGroup: {{ .Values.group }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           {{- if .Values.jobWorker.resources  }}
-{{- include "alluxio.jobWorker.resources" . | indent 10 }}
+{{ include "alluxio.jobWorker.resources" . | indent 10 }}
           {{- end }}
           command: ["/entrypoint.sh"]
           {{- if .Values.jobWorker.args }}
