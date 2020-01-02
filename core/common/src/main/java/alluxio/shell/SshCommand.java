@@ -15,10 +15,19 @@ import alluxio.util.ShellUtils;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+/**
+ * Object representation of a remote shell command by SSH.
+ */
 @NotThreadSafe
 public class SshCommand extends ShellCommand {
   protected String mHostName;
 
+  /**
+   * Creates a SshCommand instance from the remote hostname and command.
+   *
+   * @param hostname the remote target hostname
+   * @param execString the command to execute
+   */
   public SshCommand(String hostname, String[] execString) {
     super(execString);
     mHostName = hostname;
@@ -27,7 +36,12 @@ public class SshCommand extends ShellCommand {
                     String.join(" ", execString))};
   }
 
-  protected String getHostName() {
+  /**
+   * Returns the remote target hostname.
+   *
+   * @return target hostname
+   */
+  public String getHostName() {
     return mHostName;
   }
 }

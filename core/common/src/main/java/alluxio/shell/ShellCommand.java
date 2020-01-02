@@ -23,12 +23,20 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
+/**
+ * Object representation of a shell command.
+ */
 @NotThreadSafe
 public class ShellCommand {
   private static final Logger LOG = LoggerFactory.getLogger(ShellCommand.class);
 
   protected String[] mCommand;
 
+  /**
+   * Creates a ShellCommand object with the command to exec.
+   *
+   * @param execString
+   */
   public ShellCommand(String[] execString) {
     mCommand = execString.clone();
   }
@@ -37,9 +45,9 @@ public class ShellCommand {
    * Runs a command and returns its stdout on success.
    *
    * @return the output
-   * @throws ShellUtils.ExitCodeException if the command returns a non-zero exit code
+   * @throws IOException if the command returns a non-zero exit code
    */
-  public String run() throws ShellUtils.ExitCodeException, IOException {
+  public String run() throws IOException {
     Process process = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
 
     BufferedReader inReader =
