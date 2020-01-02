@@ -11,12 +11,12 @@
 
 package alluxio.client.file;
 
-import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.master.MasterInquireClient;
 import alluxio.uri.Authority;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -33,8 +33,10 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public class FileSystemCache {
-  @GuardedBy("this")
-  private final HashMap<Key, InstanceCachingFileSystem> mCacheMap = new HashMap<>();
+  private final Object mLock = new Object();
+
+  @GuardedBy("mLock")
+  private final HashMap<Key, Value> mCacheMap = new HashMap<>();
 
   /**
    * Constructs a new cache for file system instances.
@@ -42,52 +44,42 @@ public class FileSystemCache {
   public FileSystemCache() { }
 
   /**
-   * Gets a {@link FileSystem} from the cache. If there is none, one is created, inserted into
-   * the cache, and returned back to the user.
+   * Gets a {@link FileSystem} instance from the cache. If there is none,
+   * a new instance is created and inserted into the cache.
+   * Note that, the returned instance will be a wrapper of the cached instance which
+   * has its own close state.
    *
    * @param key the key to retrieve a {@link FileSystem}
    * @return the {@link FileSystem} associated with the key
    */
   public FileSystem get(Key key) {
-    synchronized (this) {
-      InstanceCachingFileSystem fs = mCacheMap.get(key);
-      if (fs == null) {
-        // In case cache miss, create a new InstanceCachingFileSystem instance,
+    synchronized (mLock) {
+      Value value = mCacheMap.get(key);
+      FileSystem fs;
+      if (value == null) {
+        // In case cache miss, create a new FileSystem instance,
         // which will decrement the ref count on close;
-        fs = new InstanceCachingFileSystem(
-            FileSystem.Factory.create(FileSystemContext.create(key.mSubject, key.mConf)), key);
-        mCacheMap.put(key, fs);
+        fs = FileSystem.Factory.create(FileSystemContext.create(key.mSubject, key.mConf));
+        mCacheMap.put(key, new Value(fs));
       } else {
-        fs.mRefCount.getAndIncrement();
+        fs = value.mFileSystem;
+        value.mRefCount.getAndIncrement();
       }
-      return fs;
-    }
-  }
-
-  /**
-   * Removes the client with the given key from the cache. Returns the client back to the user.
-   *
-   * @param key the client key to remove
-   * @return The removed context or null if there is no client associated with the key
-   */
-  public FileSystem remove(Key key) {
-    synchronized (this) {
-      return mCacheMap.remove(key);
+      return new InstanceCachingFileSystem(fs, key);
     }
   }
 
   /**
    * Closes and removes all {@link FileSystem} from the cache. Only to be used for testing
-   * purposes. This method operates on the assumption that no concurrent calls to get/remove
-   * will be made while this function is running.
+   * purposes.
    */
   @VisibleForTesting
   void purge() {
-    synchronized (this) {
-      new HashSet<>(mCacheMap.values()).forEach(fs -> {
+    synchronized (mLock) {
+      new HashSet<>(mCacheMap.values()).forEach(value -> {
         try {
-          mCacheMap.remove(fs.mKey);
-          fs.close();
+          value.mRefCount.set(1);
+          value.mFileSystem.close();
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -119,13 +111,6 @@ public class FileSystemCache {
       mAuth = MasterInquireClient.Factory.getConnectDetails(conf).toAuthority();
     }
 
-    /**
-     * @param ctx client context
-     */
-    public Key(ClientContext ctx) {
-      this(ctx.getSubject(), ctx.getClusterConf());
-    }
-
     @Override
     public int hashCode() {
       return Objects.hash(mSubject, mAuth);
@@ -143,12 +128,29 @@ public class FileSystemCache {
   }
 
   /**
-   * A ref-counted wrapper class on a FileSystem instance. On Close, if the ref count becomes
-   * zero, this wrapper class will remove itself from the cache; noop otherwise.
+   * A value wraps a {@link FileSystem} instance and a ref count in the {@link FileSystemCache}.
+   */
+  public static class Value {
+    final FileSystem mFileSystem;
+    final AtomicInteger mRefCount;
+
+    /**
+     * @param fileSystem filesystem instance cached
+     */
+    public Value(FileSystem fileSystem) {
+      this.mFileSystem = fileSystem;
+      this.mRefCount = new AtomicInteger(1);
+    }
+  }
+
+  /**
+   * A wrapper class on a FileSystem instance. On Close, it will decrement the refcount of
+   * the underlying File System instance in Cache. If this ref count becomes
+   * zero, the underlying cached instance will be removed from the cache.
    */
   public class InstanceCachingFileSystem extends DelegatingFileSystem {
     final Key mKey;
-    final AtomicInteger mRefCount;
+    boolean mClosed = false;
 
     /**
      * Wraps a file system instance to cache.
@@ -159,15 +161,25 @@ public class FileSystemCache {
     InstanceCachingFileSystem(FileSystem fs, Key key) {
       super(fs);
       mKey = key;
-      mRefCount = new AtomicInteger(1);
+    }
+
+    @Override
+    public boolean isClosed() {
+      return mClosed;
     }
 
     @Override
     public void close() throws IOException {
-      synchronized (FileSystemCache.this) {
-        if (mRefCount.decrementAndGet() == 0) {
-          FileSystemCache.this.remove(mKey);
-          super.close();
+      if (!mClosed) {
+        mClosed = true;
+        // Decrement the ref count. If the ref count goes zero, remove the entry from cache
+        synchronized (FileSystemCache.this.mLock) {
+          Value value = mCacheMap.get(mKey);
+          Preconditions.checkNotNull(value);
+          if (value.mRefCount.decrementAndGet() == 0) {
+            mCacheMap.remove(mKey);
+            super.close();
+          }
         }
       }
     }

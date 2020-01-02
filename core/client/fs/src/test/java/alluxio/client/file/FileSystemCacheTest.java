@@ -34,54 +34,82 @@ public class FileSystemCacheTest {
 
   private FileSystemCache mFileSystemCache = new FileSystemCache();
 
+  // Helper method to get the underlying delegated file system from cache
+  private FileSystem getDelegatedFileSystem(FileSystem fs) {
+    return ((FileSystemCache.InstanceCachingFileSystem) fs).mDelegatedFileSystem;
+  }
+
   @Test
   public void getSameKey() {
-    FileSystemCache.Key key1 = createTestFSKey("user1");
+    Key key1 = createTestFSKey("user1");
     FileSystem fs1 = mFileSystemCache.get(key1);
     FileSystem fs2 = mFileSystemCache.get(key1);
-    assertSame(fs1, fs2);
+    assertSame(getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs2));
+    assertFalse(fs1.isClosed());
+    assertFalse(fs2.isClosed());
   }
 
   @Test
   public void getDifferentKeys() {
-    FileSystemCache.Key key1 = createTestFSKey("user1");
-    FileSystemCache.Key key2 = createTestFSKey("user2");
+    Key key1 = createTestFSKey("user1");
+    Key key2 = createTestFSKey("user2");
     FileSystem fs1 = mFileSystemCache.get(key1);
     FileSystem fs2 = mFileSystemCache.get(key2);
-    assertNotSame(fs1, fs2);
+    assertNotSame(getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs2));
+    assertFalse(fs1.isClosed());
+    assertFalse(fs2.isClosed());
   }
 
   @Test
   public void getThenClose() throws IOException {
-    FileSystemCache.Key key1 = createTestFSKey("user1");
+    Key key1 = createTestFSKey("user1");
     FileSystem fs1 = mFileSystemCache.get(key1);
     fs1.close();
     FileSystem fs2 = mFileSystemCache.get(key1);
-    assertNotSame(fs1, fs2);
+    assertNotSame(getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs2));
+    assertTrue(fs1.isClosed());
+    assertFalse(fs2.isClosed());
   }
 
   @Test
   public void getTwiceThenClose() throws IOException {
-    FileSystemCache.Key key1 = createTestFSKey("user1");
+    Key key1 = createTestFSKey("user1");
     FileSystem fs1 = mFileSystemCache.get(key1);
     FileSystem fs2 = mFileSystemCache.get(key1);
     fs1.close();
     FileSystem fs3 = mFileSystemCache.get(key1);
-    assertSame(fs2, fs3);
+    assertSame(getDelegatedFileSystem(fs2), getDelegatedFileSystem(fs3));
+    assertTrue(fs1.isClosed());
+    assertFalse(fs2.isClosed());
+    assertFalse(fs3.isClosed());
   }
 
   @Test
   public void getTwiceThenClose2() throws IOException {
-    FileSystemCache.Key key1 = createTestFSKey("user1");
+    Key key1 = createTestFSKey("user1");
     FileSystem fs1 = mFileSystemCache.get(key1);
     FileSystem fs2 = mFileSystemCache.get(key1);
-    assertSame(fs1, fs2);
+    assertSame(getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs2));
     fs1.close();
-    assertFalse(fs1.isClosed());
+    assertTrue(fs1.isClosed());
     assertFalse(fs2.isClosed());
     fs2.close();
     assertTrue(fs1.isClosed());
     assertTrue(fs2.isClosed());
+  }
+
+  @Test
+  public void doubleClose() throws IOException {
+    Key key1 = createTestFSKey("user1");
+    FileSystem fs1 = mFileSystemCache.get(key1);
+    FileSystem fs2 = mFileSystemCache.get(key1);
+    assertSame(getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs2));
+    fs1.close();
+    assertTrue(fs1.isClosed());
+    assertFalse(fs2.isClosed());
+    fs1.close();
+    assertTrue(fs1.isClosed());
+    assertFalse(fs2.isClosed());
   }
 
   private Key createTestFSKey(String username) {
