@@ -102,8 +102,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
   private Closer mCloser;
 
-  protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context)
-      throws IOException {
+  protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
     mCloser = Closer.create();
     // Acquire a resource to block FileSystemContext reinitialization, this needs to be done before
     // using mContext.
@@ -127,7 +126,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       // If there is any exception, including RuntimeException such as thrown by conf.getBoolean,
       // release the acquired resource, otherwise, FileSystemContext reinitialization will be
       // blocked forever.
-      throw CommonUtils.closeAndRethrow(mCloser, t);
+      throw CommonUtils.closeAndRethrowRuntimeException(mCloser, t);
     }
   }
 

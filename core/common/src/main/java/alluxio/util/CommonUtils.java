@@ -579,6 +579,28 @@ public final class CommonUtils {
     }
   }
 
+  /**
+   * Similar to {@link CommonUtils#closeAndRethrow} but always return a RuntimeException.
+   *
+   * @param closer the Closer to close
+   * @param t the Throwable to re-throw
+   * @return this method never returns
+   */
+  public static RuntimeException closeAndRethrowRuntimeException(Closer closer, Throwable t) {
+    try {
+      throw closer.rethrow(t instanceof IOException ? new RuntimeException(t) : t);
+    } catch (IOException e) {
+      // we shall never reach here as no IOException enters rethrow
+    } finally {
+      try {
+        closer.close();
+      } catch (IOException e) {
+        // we shall never reach here as close catches all throwable
+      }
+    }
+    return new IllegalStateException("this method shall never return");
+  }
+
   /** Alluxio process types. */
   public enum ProcessType {
     JOB_MASTER,
