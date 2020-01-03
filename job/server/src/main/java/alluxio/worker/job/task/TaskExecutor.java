@@ -107,8 +107,8 @@ public final class TaskExecutor implements Runnable {
       mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId, t.getMessage());
     }
     LOG.warn("Exception running task for job {}({}) : {}",
-        (jobConfig == null) ? "" : jobConfig.getName(),
-        (taskArgs == null) ? "" : taskArgs.toString(), t.getMessage());
+        (jobConfig == null) ? "Undefined" : jobConfig.getName(),
+        (taskArgs == null) ? "Undefined" : taskArgs.toString(), t.getMessage());
     return;
   }
 }
