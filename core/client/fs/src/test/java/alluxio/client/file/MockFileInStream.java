@@ -23,18 +23,16 @@ import java.io.IOException;
  */
 public final class MockFileInStream extends FileInStream {
   private final ByteArrayInputStream mStream;
+  private final long mLength;
 
   /**
    * Creates a mock {@link FileInStream} which will supply the given bytes.
    *
-   * @param context file system context
    * @param bytes the bytes to supply
    */
-  public MockFileInStream(FileSystemContext context, byte[] bytes, AlluxioConfiguration conf)
-      throws IOException {
-    super(new URIStatus(new FileInfo()), new InStreamOptions(new URIStatus(new FileInfo()),
-        conf), context);
+  public MockFileInStream(byte[] bytes) {
     mStream = new ByteArrayInputStream(bytes);
+    mLength = bytes.length;
   }
 
   @Override
@@ -65,6 +63,15 @@ public final class MockFileInStream extends FileInStream {
   @Override
   public void seek(long n) {
     throw new UnsupportedOperationException("seek not implemented for mock FileInStream");
+  }
+
+  @Override public long getPos() throws IOException {
+    return mLength - remaining();
+  }
+
+  @Override public int positionedRead(long position, byte[] buffer, int offset, int length)
+      throws IOException {
+    throw new UnsupportedOperationException("positionedRead not implemented for mock FileInStream");
   }
 
   @Override
