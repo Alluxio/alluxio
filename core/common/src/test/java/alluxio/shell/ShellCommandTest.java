@@ -32,12 +32,6 @@ public class ShellCommandTest {
     return newFile;
   }
 
-  public static File createDirInDir(File dir, String fileName) throws IOException {
-    File newFile = new File(Paths.get(dir.getAbsolutePath(), fileName).toString());
-    newFile.mkdir();
-    return newFile;
-  }
-
   @Rule
   public ExpectedException mExceptionRule = ExpectedException.none();
 
@@ -64,8 +58,6 @@ public class ShellCommandTest {
     assertEquals( "false\n", result);
   }
 
-  // TODO(jiacheng): Test
-
   @Test
   public void execCommandTolerateFailureSucceed() throws Exception {
     // create temp file
@@ -78,8 +70,7 @@ public class ShellCommandTest {
             String.format("%s", testDir.getAbsolutePath())};
     CommandReturn crs = ShellUtils.execCommandTolerateFailure(testCommandSucceed);
     assertEquals(0, crs.getExitCode());
-    assertTrue(crs.getStdOut().contains(testFile.getName()));
-    assertEquals("", crs.getStdErr());
+    assertTrue(crs.getOutput().contains(testFile.getName()));
   }
 
   @Test
@@ -92,7 +83,9 @@ public class ShellCommandTest {
             String.format("%saaaa", testDir.getAbsolutePath())};
     CommandReturn crf = ShellUtils.execCommandTolerateFailure(testCommandFail);
     assertNotEquals(0, crf.getExitCode());
-    assertTrue(crf.getStdErr().length() > 0);
+    // The error is redirected into stdout
+    assertTrue(crf.getOutput().length() > 0);
+    assertNotEquals("", crf.getOutput());
 
     // if there's no such command there will be IOException
     mExceptionRule.expect(IOException.class);

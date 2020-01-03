@@ -12,6 +12,7 @@
 package alluxio.shell;
 
 import alluxio.util.ShellUtils;
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,13 +101,11 @@ public class ShellCommand {
    * @return {@link CommandReturn} object representation of stdout, stderr and exit code
    */
   public CommandReturn runTolerateFailure() throws IOException {
-    Process process = new ProcessBuilder(mCommand).start();
+    Process process = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
     CommandReturn cr = null;
 
     try (BufferedReader inReader =
-                 new BufferedReader(new InputStreamReader(process.getInputStream()));
-         BufferedReader errReader =
-                 new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                 new BufferedReader(new InputStreamReader(process.getInputStream()))) {
       // read the output of the command
       StringBuilder stdout = new StringBuilder();
       String outLine = inReader.readLine();
@@ -116,24 +115,15 @@ public class ShellCommand {
         outLine = inReader.readLine();
       }
 
-      // read the stderr of the command
-      StringBuilder stderr = new StringBuilder();
-      String errLine = errReader.readLine();
-      while (errLine != null) {
-        stderr.append(errLine);
-        stderr.append("\n");
-        errLine = inReader.readLine();
-      }
-
       // wait for the process to finish and check the exit code
       int exitCode = process.waitFor();
       if (exitCode != 0) {
         // log error instead of throwing exception
-        LOG.warn(String.format("Failed to run command %s%nExit Code: %s%nStderr: %s",
-                Arrays.toString(mCommand), exitCode, stderr.toString()));
+        LOG.warn(String.format("Non-zero exit code from command %s%nExit Code: %s",
+                Arrays.toString(mCommand), exitCode));
       }
 
-      cr = new CommandReturn(exitCode, stdout.toString(), stderr.toString());
+      cr = new CommandReturn(exitCode, stdout.toString());
 
       // destroy the process
       if (process != null) {

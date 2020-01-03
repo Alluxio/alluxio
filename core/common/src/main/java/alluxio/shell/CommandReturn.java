@@ -16,20 +16,17 @@ package alluxio.shell;
  */
 public class CommandReturn {
   private int mExitCode;
-  private String mStdOut;
-  private String mStdErr;
+  private String mOutput;
 
   /**
    * Creates object from the contents.
    *
    * @param code exit code
-   * @param stdOut stdout content
-   * @param stdErr stderr content
+   * @param output stdout content
    */
-  public CommandReturn(int code, String stdOut, String stdErr) {
+  public CommandReturn(int code, String output) {
     mExitCode = code;
-    mStdOut = stdOut;
-    mStdErr = stdErr;
+    mOutput = output;
   }
 
   /**
@@ -37,17 +34,8 @@ public class CommandReturn {
    *
    * @return stdout content
    */
-  public String getStdOut() {
-    return mStdOut;
-  }
-
-  /**
-   * Gets the stderr content.
-   *
-   * @return stderr content
-   */
-  public String getStdErr() {
-    return mStdErr;
+  public String getOutput() {
+    return mOutput;
   }
 
   /**
@@ -66,7 +54,7 @@ public class CommandReturn {
    * @return pretty formatted output
    */
   public String getFormattedOutput() {
-    return String.format("StatusCode:%s%nStdOut:%n%s%nStdErr:%n%s", getExitCode(),
-            getStdOut(), getStdErr());
+    return String.format("StatusCode:%s%nOutput:%n%s", getExitCode(),
+            getOutput());
   }
 }
