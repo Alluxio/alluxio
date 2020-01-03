@@ -24,25 +24,20 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatScheduler;
-import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.testutils.BaseIntegrationTest;
-import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.worker.block.BlockWorker;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * Integration tests for file free and delete with under storage persisted.
@@ -52,11 +47,8 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private static final int LOCK_POOL_LOW_WATERMARK = 50;
   private static final int LOCK_POOL_HIGH_WATERMARK = 100;
-
-  @ClassRule
-  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
-      HeartbeatContext.WORKER_BLOCK_SYNC,
-      HeartbeatContext.MASTER_LOST_FILES_DETECTION);
+  private static final WaitForOptions WAIT_OPTIONS =
+      WaitForOptions.defaults().setTimeoutMs(2000).setInterval(10);
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -78,8 +70,6 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void freeAndDeleteIntegration() throws Exception {
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5, TimeUnit.SECONDS);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5, TimeUnit.SECONDS);
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     FileOutStream os = mFileSystem.createFile(filePath, mWriteBoth);
     os.write((byte) 0);
@@ -103,7 +93,13 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
 
     mFileSystem.free(filePath);
 
-    IntegrationTestUtils.waitForBlocksToBeFreed(bw, blockId);
+    CommonUtils.waitFor("file is freed", () -> {
+      try {
+        return 0 == mFileSystem.getStatus(filePath).getInAlluxioPercentage();
+      } catch (Exception e) {
+        return false;
+      }
+    }, WAIT_OPTIONS);
 
     status = mFileSystem.getStatus(filePath);
     // Verify block metadata in master is still present after block freed.
@@ -126,11 +122,14 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
       // expected
     }
 
-    // Execute the lost files detection.
-    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_FILES_DETECTION);
-
     // Verify the blocks are not in mLostBlocks.
-    assertTrue(bm.getLostBlocks().isEmpty());
+    CommonUtils.waitFor("block is removed from mLostBlocks", () -> {
+      try {
+        return bm.getLostBlocks().isEmpty();
+      } catch (Exception e) {
+        return false;
+      }
+    }, WAIT_OPTIONS);
   }
 
   /**
