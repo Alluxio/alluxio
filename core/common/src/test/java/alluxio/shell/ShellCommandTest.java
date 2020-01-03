@@ -69,7 +69,7 @@ public class ShellCommandTest {
     // ls temp file
     String[] testCommandSucceed = new String[]{"ls",
             String.format("%s", testDir.getAbsolutePath())};
-    CommandReturn crs = ShellUtils.execCommandTolerateFailure(testCommandSucceed);
+    CommandReturn crs = new ShellCommand(testCommandSucceed).runWithOutput();
     assertEquals(0, crs.getExitCode());
     assertTrue(crs.getOutput().contains(testFile.getName()));
   }
@@ -82,19 +82,11 @@ public class ShellCommandTest {
     // do sth wrong
     String[] testCommandFail = new String[]{"ls",
             String.format("%saaaa", testDir.getAbsolutePath())};
-    CommandReturn crf = ShellUtils.execCommandTolerateFailure(testCommandFail);
+    CommandReturn crf = new ShellCommand(testCommandFail).runWithOutput();
     assertNotEquals(0, crf.getExitCode());
     // The error is redirected into stdout
     assertTrue(crf.getOutput().length() > 0);
-    assertNotEquals("", crf.getOutput());
-
-    // if there's no such command there will be IOException
-    mExceptionRule.expect(IOException.class);
-    mExceptionRule.expectMessage("No such file or directory");
-    String[] testCommandExcept = new String[]{"lsa",
-            String.format("%s", testDir.getAbsolutePath())};
-    // lsa is not a valid executable
-    ShellUtils.execCommandTolerateFailure(testCommandExcept);
+    assertNotEquals("", crf.getOutput());;
   }
 
   @Test
@@ -108,6 +100,6 @@ public class ShellCommandTest {
     String[] testCommandExcept = new String[]{"lsa",
             String.format("%s", testDir.getAbsolutePath())};
     // lsa is not a valid executable
-    ShellUtils.execCommandTolerateFailure(testCommandExcept);
+    new ShellCommand(testCommandExcept).runWithOutput();
   }
 }

@@ -31,7 +31,7 @@ import java.util.Arrays;
 public class ShellCommand {
   private static final Logger LOG = LoggerFactory.getLogger(ShellCommand.class);
 
-  protected String[] mCommand;
+  private final String[] mCommand;
 
   /**
    * Creates a ShellCommand object with the command to exec.
@@ -89,22 +89,22 @@ public class ShellCommand {
           inReader.close();
         }
       } catch (IOException e) {
-        LOG.warn("Error while closing the input stream", e);
+        LOG.warn(String.format("Error while closing the input stream of process %s: %s",
+                process, e.getMessage()));
       }
       process.destroy();
     }
   }
 
   /**
-   * Runs a command and returns its output and exit code.
-   * No matter it succeeds or not.
+   * Runs a command and returns its output and exit code in Object.
+   * Preserves the output when the execution fails.
    * Stderr is redirected to stdout.
    *
    * @return {@link CommandReturn} object representation of stdout, stderr and exit code
    */
-  public CommandReturn runTolerateFailure() throws IOException {
+  public CommandReturn runWithOutput() throws IOException {
     Process process = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
-    CommandReturn cr = null;
 
     try (BufferedReader inReader =
                  new BufferedReader(new InputStreamReader(process.getInputStream()))) {
@@ -121,11 +121,11 @@ public class ShellCommand {
       int exitCode = process.waitFor();
       if (exitCode != 0) {
         // log error instead of throwing exception
-        LOG.warn(String.format("Non-zero exit code from command %s%nExit Code: %s",
-                Arrays.toString(mCommand), exitCode));
+        LOG.warn(String.format("Non-zero exit code (%d) from command %s",
+                exitCode, Arrays.toString(mCommand)));
       }
 
-      cr = new CommandReturn(exitCode, stdout.toString());
+      CommandReturn cr = new CommandReturn(exitCode, stdout.toString());
 
       // destroy the process
       if (process != null) {

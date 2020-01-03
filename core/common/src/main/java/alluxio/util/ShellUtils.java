@@ -200,7 +200,7 @@ public final class ShellUtils {
    *  3. other normal reasons for IOException
    */
   public static CommandReturn execCommandTolerateFailure(String... cmd) throws IOException {
-    return new ShellCommand(cmd).runTolerateFailure();
+    return new ShellCommand(cmd).runWithOutput();
   }
 
   /**
@@ -218,7 +218,7 @@ public final class ShellUtils {
    */
   public static CommandReturn sshExecCommandTolerateFailure(String hostname, String... cmd)
           throws IOException {
-    return new SshCommand(hostname, cmd).runTolerateFailure();
+    return new SshCommand(hostname, cmd).runWithOutput();
   }
 
   /**
@@ -237,7 +237,7 @@ public final class ShellUtils {
    */
   public static CommandReturn scpCommandTolerateFailure(
           String hostname, String fromFile, String toFile, boolean isDir) throws IOException {
-    return new ScpCommand(hostname, fromFile, toFile, isDir).runTolerateFailure();
+    return new ScpCommand(hostname, fromFile, toFile, isDir).runWithOutput();
   }
 
   private ShellUtils() {} // prevent instantiation

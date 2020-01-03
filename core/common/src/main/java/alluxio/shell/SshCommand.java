@@ -20,7 +20,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class SshCommand extends ShellCommand {
-  protected String mHostName;
+  private final String mHostName;
 
   /**
    * Creates a SshCommand instance from the remote hostname and command.
@@ -29,11 +29,10 @@ public class SshCommand extends ShellCommand {
    * @param execString the command to execute
    */
   public SshCommand(String hostname, String[] execString) {
-    super(execString);
-    mHostName = hostname;
-    mCommand = new String[]{"bash", "-c",
+    super(new String[]{"bash", "-c",
             String.format("ssh %s %s %s", ShellUtils.COMMON_SSH_OPTS, hostname,
-                    String.join(" ", execString))};
+                    String.join(" ", execString))});
+    mHostName = hostname;
   }
 
   /**

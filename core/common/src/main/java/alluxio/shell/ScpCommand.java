@@ -21,7 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class ScpCommand extends ShellCommand {
-  protected String mHostName;
+  private final String mHostName;
 
   /**
    * Creates a remote scp command to copy a file to local.
@@ -43,17 +43,10 @@ public class ScpCommand extends ShellCommand {
    * @param isDir if true, the remote file is a directory
    */
   public ScpCommand(String remoteHost, String fromFile, String toFile, boolean isDir) {
-    super(new String[]{});
-
-    String template = "scp %s %s:%s localhost:%s";
-    if (isDir) {
-      template = "scp -r %s %s:%s localhost:%s";
-    }
-
-    // copy from hostname to local
-    mCommand = new String[]{"bash", "-c",
-            String.format(template, ShellUtils.COMMON_SSH_OPTS, remoteHost, fromFile, toFile)
-    };
+    super(new String[]{"bash", "-c",
+            String.format(isDir ? "scp -r %s %s:%s localhost:%s" : "scp %s %s:%s localhost:%s",
+                    ShellUtils.COMMON_SSH_OPTS, remoteHost, fromFile, toFile)
+    });
     mHostName = remoteHost;
   }
 
