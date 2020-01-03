@@ -44,6 +44,7 @@ public class ShellCommand {
 
   /**
    * Runs a command and returns its stdout on success.
+   * Stderr is redirected to stdout.
    *
    * @return the output
    * @throws IOException if the command returns a non-zero exit code
@@ -95,8 +96,9 @@ public class ShellCommand {
   }
 
   /**
-   * Runs a command and returns its stdout, stderr and exit code.
+   * Runs a command and returns its output and exit code.
    * No matter it succeeds or not.
+   * Stderr is redirected to stdout.
    *
    * @return {@link CommandReturn} object representation of stdout, stderr and exit code
    */

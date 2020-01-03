@@ -190,7 +190,7 @@ public final class ShellUtils {
 
   /**
    * Static method to execute a shell command and tolerate non-zero exit code.
-   * Preserve exit code, stderr and stdout in object.
+   * Preserves exit code. Stderr is redirected to stdout.
    *
    * @param cmd shell command to execute
    * @return the output of the executed command
@@ -205,7 +205,7 @@ public final class ShellUtils {
 
   /**
    * Static method to execute a shell command remotely via ssh.
-   * Preserve exit code, stderr and stdout in object.
+   * Preserves exit code. Stderr redirected to stdout.
    * SSH must be password-less.
    *
    * @param hostname Hostname where the command should execute
@@ -223,6 +223,7 @@ public final class ShellUtils {
 
   /**
    * Static method to execute an scp command to copy a remote file/dir to local.
+   * Preserves exit code. Stderr redirected to stdout.
    *
    * @param hostname Hostname where the command should execute
    * @param fromFile File path on remote host
