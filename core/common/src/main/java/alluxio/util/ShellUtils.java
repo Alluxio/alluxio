@@ -199,7 +199,7 @@ public final class ShellUtils {
    *  2. execution interrupted
    *  3. other normal reasons for IOException
    */
-  public static CommandReturn execCommandTolerateFailure(String... cmd) throws IOException {
+  public static CommandReturn execCommandWithOutput(String... cmd) throws IOException {
     return new ShellCommand(cmd).runWithOutput();
   }
 
@@ -216,7 +216,7 @@ public final class ShellUtils {
    *  2. execution interrupted
    *  3. other normal reasons for IOException
    */
-  public static CommandReturn sshExecCommandTolerateFailure(String hostname, String... cmd)
+  public static CommandReturn sshExecCommandWithOutput(String hostname, String... cmd)
           throws IOException {
     return new SshCommand(hostname, cmd).runWithOutput();
   }
@@ -235,7 +235,7 @@ public final class ShellUtils {
    *  2. execution interrupted
    *  3. other normal reasons for IOException
    */
-  public static CommandReturn scpCommandTolerateFailure(
+  public static CommandReturn scpCommandWithOutput(
           String hostname, String fromFile, String toFile, boolean isDir) throws IOException {
     return new ScpCommand(hostname, fromFile, toFile, isDir).runWithOutput();
   }
