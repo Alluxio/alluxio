@@ -13,21 +13,17 @@ package alluxio.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
-import alluxio.AlluxioTestDirectory;
 import alluxio.Constants;
 
 import com.google.common.base.Optional;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.List;
 
 /**

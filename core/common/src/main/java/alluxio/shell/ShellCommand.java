@@ -12,7 +12,6 @@
 package alluxio.shell;
 
 import alluxio.util.ShellUtils;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
