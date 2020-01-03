@@ -12,6 +12,7 @@
 package alluxio.shell;
 
 import alluxio.util.ShellUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,7 @@ public class ShellCommand {
   /**
    * Creates a ShellCommand object with the command to exec.
    *
-   * @param execString
+   * @param execString shell command
    */
   public ShellCommand(String[] execString) {
     mCommand = execString.clone();

@@ -11,8 +11,13 @@
 
 package alluxio.shell;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.AlluxioTestDirectory;
 import alluxio.util.ShellUtils;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -20,10 +25,6 @@ import org.junit.rules.ExpectedException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 
 public class ShellCommandTest {
   public static File createFileInDir(File dir, String fileName) throws IOException {
@@ -55,7 +56,7 @@ public class ShellCommandTest {
     // run a command that guarantees to fail
     String[] cmd = new String[]{"bash", "-c", "false"};
     String result = new ShellCommand(cmd).run();
-    assertEquals( "false\n", result);
+    assertEquals("false\n", result);
   }
 
   @Test
