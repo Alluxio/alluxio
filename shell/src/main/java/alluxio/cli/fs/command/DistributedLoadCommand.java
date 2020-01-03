@@ -63,16 +63,6 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
           .build();
 
   private static final int DEFAULT_ACTIVE_JOBS = 1000;
-  private static final Option ACTIVE_JOBS_OPTION =
-      Option.builder()
-          .longOpt("active_jobs")
-          .required(false)
-          .hasArg(true)
-          .numberOfArgs(1)
-          .type(Number.class)
-          .argName("jobs")
-          .desc("Maximum number of active outgoing jobs, default: " + DEFAULT_ACTIVE_JOBS)
-          .build();
 
   private class JobAttempt {
     private final JobConfig mJobConfig;
@@ -149,11 +139,6 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public Options getOptions() {
-    return new Options().addOption(REPLICATION_OPTION).addOption(ACTIVE_JOBS_OPTION);
-  }
-
-  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
@@ -163,7 +148,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
-    mActiveJobs = FileSystemShellUtils.getIntArg(cl, ACTIVE_JOBS_OPTION, DEFAULT_ACTIVE_JOBS);
+    mActiveJobs = DEFAULT_ACTIVE_JOBS;
     distributedLoad(path, replication);
     return 0;
   }
