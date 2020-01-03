@@ -86,7 +86,7 @@ public class ShellCommandTest {
     assertNotEquals(0, crf.getExitCode());
     // The error is redirected into stdout
     assertTrue(crf.getOutput().length() > 0);
-    assertNotEquals("", crf.getOutput());;
+    assertNotEquals("", crf.getOutput());
   }
 
   @Test
