@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
+import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;

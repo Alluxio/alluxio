@@ -9,9 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file;
+package alluxio.client.file.cache;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.DelegatingFileSystem;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystem;
 import alluxio.grpc.OpenFilePOptions;
 
 /**
@@ -19,16 +22,19 @@ import alluxio.grpc.OpenFilePOptions;
  */
 public class LocalCacheFileSystem extends DelegatingFileSystem {
 
+  private final LocalCacheManager mLocalCacheManager;
+
   /**
    * @param fs a FileSystem instance to query on local cache miss
    */
   public LocalCacheFileSystem(FileSystem fs) {
     super(fs);
+    // needs to be moved outside FileSystem constructor
+    mLocalCacheManager = new LocalCacheManager();
   }
 
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) {
-    // TODO(binfan): implement me
-    return null;
+    return new LocalCacheFileInStream(path, options, mDelegatedFileSystem, mLocalCacheManager);
   }
 }

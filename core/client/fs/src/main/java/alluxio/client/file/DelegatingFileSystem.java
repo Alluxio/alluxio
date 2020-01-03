@@ -55,7 +55,7 @@ public class DelegatingFileSystem implements FileSystem {
    *
    * @param fs the underline file system
    */
-  DelegatingFileSystem(FileSystem fs) {
+  public DelegatingFileSystem(FileSystem fs) {
     mDelegatedFileSystem = fs;
   }
 
