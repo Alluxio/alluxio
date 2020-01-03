@@ -135,7 +135,7 @@ public class MetricsStore {
    */
   private static void putReportedMetrics(IndexedSet<Metric> metricSet, String instanceId,
       List<Metric> reportedMetrics) {
-    for (Metric metric :reportedMetrics) {
+    for (Metric metric : reportedMetrics) {
       if (metric.getHostname() == null) {
         continue; // ignore metrics whose hostname is null
       }

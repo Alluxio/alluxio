@@ -28,7 +28,7 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper for the gRPC client to interact with the meta master.
+ * A wrapper for the gRPC client to interact with the metrics master.
  */
 @ThreadSafe
 public class RetryHandlingMetricsMasterClient extends AbstractMasterClient
@@ -36,7 +36,7 @@ public class RetryHandlingMetricsMasterClient extends AbstractMasterClient
   private MetricsMasterClientServiceGrpc.MetricsMasterClientServiceBlockingStub mClient = null;
 
   /**
-   * Creates a new meta master client.
+   * Creates a new metrics master client.
    *
    * @param conf master client configuration
    */
