@@ -98,6 +98,22 @@ BlockInfo{id=16793993216, length=6, locations=[BlockLocation{workerId=8265394007
 This block belongs to file {id=16810770431, path=/test2}
 ```
 
+### metrics
+
+The `metrics` command provides operations for Alluxio metrics system.
+
+`metrics clear` will clear all the metrics stored in Alluxio leading master.
+This command is useful when getting metrics information in short-term testing.
+It should be used sparingly as it may affect the current metrics recording and cause some metrics bias.
+
+If `--all` option is used, all the metrics stored in Alluxio leading master
+and active workers will be cleared.
+
+```console
+$ ./bin/alluxio fsadmin metrics clear
+$ ./bin/alluxio fsadmin metrics clear --all
+```
+
 ### report
 
 The `report` command provides Alluxio running cluster information.

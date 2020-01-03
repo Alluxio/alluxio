@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.fsadmin.metric;
+package alluxio.cli.fsadmin.metrics;
 
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;

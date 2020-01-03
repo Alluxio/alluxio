@@ -18,6 +18,7 @@ import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
+
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
@@ -28,16 +29,16 @@ import java.io.IOException;
  */
 public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
-  public void clearLeadingMasterMetrics() throws IOException, InterruptedException {
-    FileSystemTestUtils.createByteFile(mLocalAlluxioCluster.getClient(), "/file", WritePType.MUST_CACHE, 10);
+  public void clearLeadingMasterMetrics() throws IOException {
+    FileSystemTestUtils.createByteFile(mLocalAlluxioCluster.getClient(),
+        "/file", WritePType.MUST_CACHE, 10);
 
     int errCode = mFsAdminShell.run("report", "metrics");
     assertEquals("", mErrOutput.toString());
     assertEquals(0, errCode);
-    assertThat(mOutput.toString(), CoreMatchers.containsString("Create File Operations                                      1"));
+    assertThat(mOutput.toString(), CoreMatchers.containsString(
+        "Create File Operations                                      1"));
 
-    // run the clear metrics
-    // get the metrics and check
     errCode = mFsAdminShell.run("metrics", "clear");
     assertEquals("", mErrOutput.toString());
     assertEquals(0, errCode);
@@ -46,6 +47,7 @@ public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTes
     errCode = mFsAdminShell.run("report", "metrics");
     assertEquals("", mErrOutput.toString());
     assertEquals(0, errCode);
-    assertThat(mOutput.toString(), CoreMatchers.containsString("aaaCreate File Operations                                      0"));
+    assertThat(mOutput.toString(), CoreMatchers.containsString(
+        "Create File Operations                                      0"));
   }
 }
