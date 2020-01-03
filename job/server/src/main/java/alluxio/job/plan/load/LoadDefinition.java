@@ -54,7 +54,6 @@ public final class LoadDefinition
     extends AbstractVoidPlanDefinition<LoadConfig, ArrayList<LoadTask>> {
   private static final Logger LOG = LoggerFactory.getLogger(LoadDefinition.class);
   private static final int MAX_BUFFER_SIZE = 500 * Constants.MB;
-
   private static final int JOBS_PER_WORKER = 10;
 
   /**

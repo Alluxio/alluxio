@@ -139,6 +139,11 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  public Options getOptions() {
+    return new Options().addOption(REPLICATION_OPTION);
+  }
+
+  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
@@ -266,7 +271,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "distributedLoad [--replication <num>] [--parallelism <num>] <path>";
+    return "distributedLoad [--replication <num>] <path>";
   }
 
   @Override
