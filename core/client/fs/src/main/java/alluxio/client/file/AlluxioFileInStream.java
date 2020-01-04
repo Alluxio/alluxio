@@ -12,10 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Seekable;
 import alluxio.annotation.PublicApi;
-import alluxio.client.BoundedStream;
-import alluxio.client.PositionedReadable;
 import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
@@ -39,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.Map;

@@ -11,10 +11,6 @@
 
 package alluxio.client.file;
 
-import alluxio.client.file.options.InStreamOptions;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.wire.FileInfo;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
