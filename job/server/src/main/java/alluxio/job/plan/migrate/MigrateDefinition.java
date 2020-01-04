@@ -36,6 +36,7 @@ import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerInfo;
 
@@ -200,20 +201,11 @@ public final class MigrateDefinition
     Set<Pair<WorkerInfo, ArrayList<MigrateCommand>>> result = Sets.newHashSet();
 
     for (Map.Entry<WorkerInfo, ArrayList<MigrateCommand>> assignment : assignments.entrySet()) {
-
-      // split the list of MigrateCommands for a given worker into at most JOBS_PER_WORKER
-      // equally sized lists
       ArrayList<MigrateCommand> migrateCommands = assignment.getValue();
-      ArrayList<ArrayList<MigrateCommand>> splittedCommands = Lists.newArrayList();
+      List<List<MigrateCommand>> partitionedCommands =
+          CommonUtils.partition(migrateCommands, JOBS_PER_WORKER);
 
-      for (int i = 0; i < JOBS_PER_WORKER; i++) {
-        splittedCommands.add(Lists.newArrayList());
-      }
-      for (int i = 0; i < migrateCommands.size(); i++) {
-        splittedCommands.get(i % JOBS_PER_WORKER).add(migrateCommands.get(i));
-      }
-
-      for (List<MigrateCommand> commands : splittedCommands) {
+      for (List<MigrateCommand> commands : partitionedCommands) {
         if (!commands.isEmpty()) {
           result.add(new Pair<>(assignment.getKey(), Lists.newArrayList(commands)));
         }

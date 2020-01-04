@@ -23,6 +23,7 @@ import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.load.LoadDefinition.LoadTask;
 import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
+import alluxio.util.CommonUtils;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerInfo;
 
@@ -53,6 +54,7 @@ public final class LoadDefinition
     extends AbstractVoidPlanDefinition<LoadConfig, ArrayList<LoadTask>> {
   private static final Logger LOG = LoggerFactory.getLogger(LoadDefinition.class);
   private static final int MAX_BUFFER_SIZE = 500 * Constants.MB;
+  private static final int JOBS_PER_WORKER = 10;
 
   /**
    * Constructs a new {@link LoadDefinition}.
@@ -105,7 +107,15 @@ public final class LoadDefinition
 
     Set<Pair<WorkerInfo, ArrayList<LoadTask>>> result = Sets.newHashSet();
     for (Map.Entry<WorkerInfo, Collection<LoadTask>> assignment : assignments.asMap().entrySet()) {
-      result.add(new Pair<>(assignment.getKey(), Lists.newArrayList(assignment.getValue())));
+      Collection<LoadTask> loadTasks = assignment.getValue();
+      List<List<LoadTask>> partitionedTasks =
+          CommonUtils.partition(Lists.newArrayList(loadTasks), JOBS_PER_WORKER);
+
+      for (List<LoadTask> tasks : partitionedTasks) {
+        if (!tasks.isEmpty()) {
+          result.add(new Pair<>(assignment.getKey(), Lists.newArrayList(tasks)));
+        }
+      }
     }
 
     return result;
