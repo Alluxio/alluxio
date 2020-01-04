@@ -33,29 +33,32 @@ public interface PageStore {
   /**
    * Writes a new page from a source channel to the store.
    *
-   * @param pageId page ID
+   * @param fileId file identifier
+   * @param pageIndex index of the page within the file
    * @param src source channel to read this new page
    * @throws IOException
    * @return the number of bytes written
    */
-  int put(long pageId, ReadableByteChannel src) throws IOException;
+  int put(long fileId, long pageIndex, ReadableByteChannel src) throws IOException;
 
   /**
    * Gets a page from the store to the destination channel.
    *
-   * @param pageId page ID
+   * @param fileId file indentifier
+   * @param pageIndex index of page within the file
    * @param dst destination channel to read this new page
    * @return the number of bytes read
    * @throws IOException
    */
-  int get(long pageId, WritableByteChannel dst) throws IOException;
+  int get(long fileId, long pageIndex, WritableByteChannel dst) throws IOException;
 
   /**
    * Deletes a page from the store.
    *
-   * @param pageId page ID
+   * @param fileId file identifier
+   * @param pageIndex index of page within the file.
    * @return if the page was deleted
    * @throws IOException
    */
-  boolean delete(long pageId) throws IOException;
+  boolean delete(long fileId, long pageIndex) throws IOException;
 }
