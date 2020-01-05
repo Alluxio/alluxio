@@ -90,8 +90,10 @@ public class MetricsHeartbeatContext {
     // increment and lazily schedule the new heartbeat task if it is the first one
     if (mCtxCount++ == 0) {
       mMetricsMasterHeartbeatTask =
-          sExecutorService.scheduleWithFixedDelay(mClientMasterSync::heartbeat, 0,
-              mConf.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS), TimeUnit.MILLISECONDS);
+          sExecutorService.scheduleWithFixedDelay(mClientMasterSync::heartbeat,
+              mConf.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS),
+              mConf.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS),
+              TimeUnit.MILLISECONDS);
     }
   }
 
@@ -126,6 +128,8 @@ public class MetricsHeartbeatContext {
       mMetricsMasterHeartbeatTask.cancel(false);
     }
     MASTER_METRICS_HEARTBEAT.remove(mConnectDetails);
+    // Trigger the last heartbeat to preserve the client side metrics changes
+    heartbeat();
   }
 
   /**
