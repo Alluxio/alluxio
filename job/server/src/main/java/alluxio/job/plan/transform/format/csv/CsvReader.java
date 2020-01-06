@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.job.plan.transform.Format;
 import alluxio.job.plan.transform.HiveConstants;
 import alluxio.job.plan.transform.PartitionInfo;
-import alluxio.job.plan.transform.format.CachedPath;
+import alluxio.job.plan.transform.format.JobPath;
 import alluxio.job.plan.transform.format.ReadWriterUtils;
 import alluxio.job.plan.transform.format.TableReader;
 import alluxio.job.plan.transform.format.TableRow;
@@ -110,7 +110,7 @@ public final class CsvReader implements TableReader {
    * @throws IOException when failed to create the reader
    */
   public static CsvReader create(AlluxioURI uri, PartitionInfo pInfo) throws IOException {
-    Path path = new CachedPath(uri.getScheme(), uri.getAuthority().toString(), uri.getPath());
+    Path path = new JobPath(uri.getScheme(), uri.getAuthority().toString(), uri.getPath());
     return new CsvReader(path, pInfo);
   }
 

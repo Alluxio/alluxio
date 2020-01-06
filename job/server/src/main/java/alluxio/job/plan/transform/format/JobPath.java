@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Implementation of {@link Path} that has a cache for getting file system.
  */
-public class CachedPath extends Path {
+public class JobPath extends Path {
 
   private static final ConcurrentHashMap<FileSystemKey, FileSystem> CACHE =
       new ConcurrentHashMap<>();
@@ -42,7 +42,7 @@ public class CachedPath extends Path {
     final ReadType mReadType;
     final WriteType mWriteType;
 
-    public FileSystemKey(CachedPath path, Configuration conf) throws IOException {
+    public FileSystemKey(JobPath path, Configuration conf) throws IOException {
       URI uri = path.toUri();
       mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
       mAuthority = uri.getAuthority() == null ? "" : uri.getScheme().toLowerCase();
@@ -86,7 +86,7 @@ public class CachedPath extends Path {
    * @param authority the authority
    * @param path the path
    */
-  public CachedPath(String scheme, String authority, String path) {
+  public JobPath(String scheme, String authority, String path) {
     super(scheme, authority, path);
   }
 

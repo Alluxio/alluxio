@@ -12,7 +12,7 @@
 package alluxio.job.plan.transform.format.parquet;
 
 import alluxio.AlluxioURI;
-import alluxio.job.plan.transform.format.CachedPath;
+import alluxio.job.plan.transform.format.JobPath;
 import alluxio.job.plan.transform.format.ReadWriterUtils;
 import alluxio.job.plan.transform.format.TableRow;
 import alluxio.job.plan.transform.format.TableSchema;
@@ -63,7 +63,7 @@ public final class ParquetWriter implements TableWriter {
     ParquetSchema parquetSchema = schema.toParquet();
     return new ParquetWriter(AvroParquetWriter.<Record>builder(
         HadoopOutputFile.fromPath(
-            new CachedPath(uri.getScheme(), uri.getAuthority().toString(), uri.getPath()), conf))
+            new JobPath(uri.getScheme(), uri.getAuthority().toString(), uri.getPath()), conf))
         .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_2_0)
         .withConf(conf)
         .withCompressionCodec(CompressionCodecName.SNAPPY)
