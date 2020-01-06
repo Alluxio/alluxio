@@ -12,6 +12,8 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.cache.store.LocalPageStore;
+
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -23,11 +25,35 @@ import java.nio.channels.WritableByteChannel;
 public interface PageStore {
 
   /**
+   * This enum represents the different page store implementations that can be instantiated.
+   */
+  enum StoreType {
+    /**
+     * A simple store with pages on the local filesystem
+     */
+    LOCAL,
+    /**
+     * A store that utilizes RocksDB to store and retrieve pages.
+     */
+    ROCKS,
+  }
+
+  /**
+   * Creates a new {@link PageStore}.
+   *
+   * @param type the type of page store to create
+   * @param dir the root storage directory
    * @return a PageStore instance
    */
-  static PageStore create() {
-    // return corresponding DataStore impl
-    return null;
+  static PageStore create(StoreType type, String dir) {
+    switch (type) {
+      case LOCAL:
+        return new LocalPageStore(dir);
+      case ROCKS:
+        throw new RuntimeException("rocksdb local store not yet supported");
+      default:
+        throw new RuntimeException("Incompatible PageStore " + type + " specified");
+    }
   }
 
   /**
@@ -56,9 +82,8 @@ public interface PageStore {
    * Deletes a page from the store.
    *
    * @param fileId file identifier
-   * @param pageIndex index of page within the file.
-   * @return if the page was deleted
+   * @param pageIndex index of page within the file
    * @throws IOException
    */
-  boolean delete(long fileId, long pageIndex) throws IOException;
+  void delete(long fileId, long pageIndex) throws IOException;
 }
