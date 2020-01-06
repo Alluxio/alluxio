@@ -123,13 +123,13 @@ public class MetricsHeartbeatContext {
    * this reference should be discarded.
    */
   private synchronized void close() {
-    mMetricsMasterClient.close();
     if (mMetricsMasterHeartbeatTask != null) {
       mMetricsMasterHeartbeatTask.cancel(false);
     }
     MASTER_METRICS_HEARTBEAT.remove(mConnectDetails);
     // Trigger the last heartbeat to preserve the client side metrics changes
     heartbeat();
+    mMetricsMasterClient.close();
   }
 
   /**
