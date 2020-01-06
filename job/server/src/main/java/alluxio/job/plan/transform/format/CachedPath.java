@@ -21,7 +21,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hadoop.util.StringUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -45,8 +44,8 @@ public class CachedPath extends Path {
 
     public FileSystemKey(CachedPath path, Configuration conf) throws IOException {
       URI uri = path.toUri();
-      mScheme = uri.getScheme() == null ? "" : StringUtils.toLowerCase(uri.getScheme());
-      mAuthority = uri.getAuthority() == null ? "" : StringUtils.toLowerCase(uri.getAuthority());
+      mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
+      mAuthority = uri.getAuthority() == null ? "" : uri.getScheme().toLowerCase();
       mUgi = UserGroupInformation.getCurrentUser();
       mReadType = conf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT.getName(),
           InstancedConfiguration.defaults().getEnum(
