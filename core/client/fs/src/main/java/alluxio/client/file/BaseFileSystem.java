@@ -345,7 +345,7 @@ public class BaseFileSystem implements FileSystem {
     OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(conf)
         .toBuilder().mergeFrom(options).build();
     InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions, conf);
-    return new FileInStream(status, inStreamOptions, mFsContext);
+    return new AlluxioFileInStream(status, inStreamOptions, mFsContext);
   }
 
   @Override

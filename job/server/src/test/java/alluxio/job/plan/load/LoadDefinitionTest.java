@@ -123,8 +123,8 @@ public class LoadDefinitionTest {
     Set<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
         new LoadDefinition().selectExecutors(config, JOB_WORKERS,
             new SelectExecutorsContext(1, mJobServerContext));
-    Assert.assertEquals(1, assignments.size());
-    Assert.assertEquals(10, assignments.iterator().next().getSecond().size());
+    Assert.assertEquals(10, assignments.size());
+    Assert.assertEquals(1, assignments.iterator().next().getSecond().size());
   }
 
   @Test

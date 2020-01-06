@@ -739,5 +739,27 @@ public final class CommonUtils {
     };
   }
 
+  /**
+   * Partitions a list into numLists many lists each with around list.size() / numLists elements.
+   *
+   * @param list the list to partition
+   * @param numLists number of lists to return
+   * @param <T> the object type
+   * @return partitioned list
+   */
+  public static <T> List<List<T>> partition(List<T> list, int numLists) {
+    ArrayList<List<T>> result = new ArrayList<>(numLists);
+
+    for (int i = 0; i < numLists; i++) {
+      result.add(new ArrayList<>(list.size() / numLists + 1));
+    }
+
+    for (int i = 0; i < list.size(); i++) {
+      result.get(i % numLists).add(list.get(i));
+    }
+
+    return result;
+  }
+
   private CommonUtils() {} // prevent instantiation
 }
