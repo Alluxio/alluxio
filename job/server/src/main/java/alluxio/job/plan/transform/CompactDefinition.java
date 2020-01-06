@@ -114,7 +114,7 @@ public final class CompactDefinition
     for (Map.Entry<WorkerInfo, ArrayList<CompactTask>> assignment : assignments.entrySet()) {
       for (List<CompactTask> compactTasks : CommonUtils.partition(assignment.getValue(), 10)) {
         if (!compactTasks.isEmpty()) {
-          result.add(new Pair<>(assignment.getKey(), Lists.newArrayList(compactTasks));
+          result.add(new Pair<>(assignment.getKey(), Lists.newArrayList(compactTasks)));
         }
       }
     }
