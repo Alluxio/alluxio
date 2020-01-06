@@ -182,7 +182,7 @@ public final class MigrateDefinitionRunTaskTest {
 
   /**
    * Tests the edge case where performing an WriteType.AsyncThrough with deleteSource of a
-   * persisted file writes the move synchronously
+   * persisted file writes the move synchronously.
    */
   @Test
   public void writeTypeAsyncThroughPersistedTest() throws Exception {
