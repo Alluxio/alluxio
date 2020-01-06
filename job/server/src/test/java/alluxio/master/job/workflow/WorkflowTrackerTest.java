@@ -85,7 +85,6 @@ public class WorkflowTrackerTest {
     jobs.add(child2);
 
     CompositeConfig config = new CompositeConfig(jobs, true);
-
     mWorkflowTracker.run(config, 0);
 
     verify(mMockJobMaster).run(child1, 100);
@@ -113,6 +112,28 @@ public class WorkflowTrackerTest {
     when(mMockJobMaster.getStatus(101)).thenReturn(plan101);
     mWorkflowTracker.workerHeartbeat(taskInfos);
 
+    assertEquals(Status.COMPLETED, mWorkflowTracker.getStatus(0, true).getStatus());
+  }
+
+  @Test
+  public void testDuplicateSubmission() throws Exception {
+    ArrayList<JobConfig> jobs = Lists.newArrayList();
+    TestPlanConfig child1 = new TestPlanConfig("1");
+    jobs.add(child1);
+
+    CompositeConfig config = new CompositeConfig(jobs, true);
+    mWorkflowTracker.run(config, 0);
+
+    PlanInfo plan100 = new PlanInfo(100, "test", Status.COMPLETED, 0, null);
+    when(mMockJobMaster.getStatus(100)).thenReturn(plan100);
+
+    TaskInfo task100 = new TaskInfo(100, 0, Status.COMPLETED, new WorkerNetAddress());
+    ArrayList<TaskInfo> taskInfos = Lists.newArrayList(task100);
+    mWorkflowTracker.workerHeartbeat(taskInfos);
+    assertEquals(Status.COMPLETED, mWorkflowTracker.getStatus(0, true).getStatus());
+
+    // Submit the same heartbeat again.
+    mWorkflowTracker.workerHeartbeat(taskInfos);
     assertEquals(Status.COMPLETED, mWorkflowTracker.getStatus(0, true).getStatus());
   }
 
