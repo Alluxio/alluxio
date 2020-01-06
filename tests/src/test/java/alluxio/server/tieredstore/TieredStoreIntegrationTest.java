@@ -151,7 +151,6 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
 
     // Pin the file
     mFileSystem.setAttribute(file1, mSetPinned);
-//    HeartbeatScheduler.execute(HeartbeatContext.WORKER_PIN_LIST_SYNC);
     Assert.assertTrue(mFileSystem.getStatus(file1).isPinned());
 
     // Unpin the file
