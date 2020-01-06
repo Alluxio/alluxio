@@ -23,6 +23,7 @@ import alluxio.job.plan.transform.format.TableReader;
 import alluxio.job.plan.transform.format.TableSchema;
 import alluxio.job.plan.transform.format.TableWriter;
 import alluxio.job.util.SerializableVoid;
+import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
@@ -111,7 +112,11 @@ public final class CompactDefinition
 
     Set<Pair<WorkerInfo, ArrayList<CompactTask>>> result = Sets.newHashSet();
     for (Map.Entry<WorkerInfo, ArrayList<CompactTask>> assignment : assignments.entrySet()) {
-      result.add(new Pair<>(assignment.getKey(), assignment.getValue()));
+      for (List<CompactTask> compactTasks : CommonUtils.partition(assignment.getValue(), 10)) {
+        if (!compactTasks.isEmpty()) {
+          result.add(new Pair<>(assignment.getKey(), Lists.newArrayList(compactTasks));
+        }
+      }
     }
 
     return result;
