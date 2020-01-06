@@ -101,8 +101,9 @@ public class CachedPath extends Path {
         }
       });
     } catch (RuntimeException e) {
-      if (e.getCause() instanceof IOException) {
-        throw (IOException) e.getCause();
+      Throwable cause = e.getCause();
+      if (cause instanceof IOException) {
+        throw (IOException) cause;
       }
       throw e;
     }
