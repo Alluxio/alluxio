@@ -194,7 +194,9 @@ public class WorkflowTracker {
 
     ConcurrentHashSet<Long> siblings = mWaitingOn.get(parentJobId);
 
-    siblings.remove(jobId);
+    if (!siblings.remove(jobId)) {
+      return;
+    }
 
     if (siblings.isEmpty()) {
       next(parentJobId);
@@ -218,6 +220,10 @@ public class WorkflowTracker {
 
   private synchronized void next(long jobId) throws ResourceExhaustedException {
     WorkflowExecution workflowExecution = mWorkflows.get(jobId);
+
+    if (workflowExecution.getStatus().isFinished()) {
+      return;
+    }
 
     Set<JobConfig> childJobConfigs = workflowExecution.next();
 
