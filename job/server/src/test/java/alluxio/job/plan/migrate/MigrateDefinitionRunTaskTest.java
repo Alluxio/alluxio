@@ -181,6 +181,28 @@ public final class MigrateDefinitionRunTaskTest {
   }
 
   /**
+   * Tests the edge case where performing an WriteType.AsyncThrough with deleteSource of a
+   * persisted file writes the move synchronously
+   */
+  @Test
+  public void writeTypeAsyncThroughPersistedTest() throws Exception {
+    FileInfo fileInfo = new FileInfo();
+    fileInfo.setPersisted(true);
+    when(mMockFileSystem.getStatus(eq(new AlluxioURI(TEST_SOURCE))))
+        .thenReturn(new URIStatus(fileInfo));
+
+    runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.ASYNC_THROUGH);
+
+    if (mDeleteSource) {
+      verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
+          .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH).build()));
+    } else {
+      verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
+          .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.ASYNC_THROUGH).build()));
+    }
+  }
+
+  /**
    * Runs the task.
    *
    * @param configSource {@link MigrateConfig} source
