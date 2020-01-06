@@ -12,6 +12,7 @@
 package alluxio.job.plan.transform.format.parquet;
 
 import alluxio.AlluxioURI;
+import alluxio.job.plan.transform.format.CachedPath;
 import alluxio.job.plan.transform.format.ReadWriterUtils;
 import alluxio.job.plan.transform.format.TableRow;
 import alluxio.job.plan.transform.format.TableSchema;
@@ -20,7 +21,6 @@ import alluxio.job.plan.transform.format.TableWriter;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetWriter;
 import org.apache.parquet.column.ParquetProperties;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
@@ -63,7 +63,7 @@ public final class ParquetWriter implements TableWriter {
     ParquetSchema parquetSchema = schema.toParquet();
     return new ParquetWriter(AvroParquetWriter.<Record>builder(
         HadoopOutputFile.fromPath(
-            new Path(uri.getScheme(), uri.getAuthority().toString(), uri.getPath()), conf))
+            new CachedPath(uri.getScheme(), uri.getAuthority().toString(), uri.getPath()), conf))
         .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_2_0)
         .withConf(conf)
         .withCompressionCodec(CompressionCodecName.SNAPPY)
