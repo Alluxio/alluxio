@@ -39,7 +39,7 @@ public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTes
     assertThat(mOutput.toString(), CoreMatchers.containsString(
         "Create File Operations                                      1"));
 
-    errCode = mFsAdminShell.run("metrics", "clear");
+    errCode = mFsAdminShell.run("metrics", "clear", "--master");
     assertEquals("", mErrOutput.toString());
     assertEquals(0, errCode);
 

@@ -440,7 +440,8 @@ public final class MetricsSystem {
    * By sending only the difference since the last RPC, this method will allow the master to
    * track the metrics for a given worker, even if the worker is restarted.
    */
-  private static List<alluxio.grpc.Metric> reportMetrics(InstanceType instanceType) {
+  private static synchronized List<alluxio.grpc.Metric> reportMetrics(InstanceType instanceType) {
+    // TODO(lu) If affecting worker/client heartbeat, remove the synchronized block
     List<alluxio.grpc.Metric> rpcMetrics = new ArrayList<>(20);
     for (Metric m : allMetrics(instanceType)) {
       // last reported metrics only need to be tracked for COUNTER metrics
@@ -552,6 +553,7 @@ public final class MetricsSystem {
       METRIC_REGISTRY.remove(timerName);
       METRIC_REGISTRY.timer(timerName);
     }
+    LAST_REPORTED_METRICS.clear();
   }
 
   /**

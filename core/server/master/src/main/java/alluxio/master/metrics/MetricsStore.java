@@ -75,7 +75,8 @@ public class MetricsStore {
     return str;
   }
 
-  // The lock for worker and client metrics set
+  // The lock to guarantee that only one thread is clearing the metrics
+  // and no other interaction with worker/client metrics set is allowed during metrics clearing
   private final ReentrantReadWriteLock mLock = new ReentrantReadWriteLock();
 
   // Although IndexedSet is threadsafe, it lacks an update operation, so we need locking to
