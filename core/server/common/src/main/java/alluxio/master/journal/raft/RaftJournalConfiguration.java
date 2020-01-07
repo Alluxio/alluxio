@@ -32,7 +32,6 @@ public class RaftJournalConfiguration {
   private long mElectionTimeoutMs;
   private long mHeartbeatIntervalMs;
   private InetSocketAddress mLocalAddress;
-  private InetSocketAddress mProxyAddress;
   private long mMaxLogSize;
   private File mPath;
   private StorageLevel mStorageLevel;
@@ -115,7 +114,7 @@ public class RaftJournalConfiguration {
     if (ServerConfiguration.isSet(PropertyKey.MASTER_EMBEDDED_JOURNAL_PROXY_HOST)) {
       return InetSocketAddress.createUnresolved(
           ServerConfiguration.get(PropertyKey.MASTER_EMBEDDED_JOURNAL_PROXY_HOST),
-          mLocalAddress.getPort());
+          getLocalAddress().getPort());
     }
     return null;
   }

@@ -99,7 +99,7 @@ public class GrpcMessagingTransport implements Transport {
    * @param proxy external proxy configuration
    * @return the updated transport instance
    */
-  public GrpcMessagingTransport withServerProxy(GrpcMessagingProxy proxy) {
+  public synchronized GrpcMessagingTransport withServerProxy(GrpcMessagingProxy proxy) {
     mServerProxy = proxy;
     return this;
   }
