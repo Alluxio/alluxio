@@ -65,13 +65,13 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   private static final int DEFAULT_ACTIVE_JOBS = 1000;
 
   private class JobAttempt {
-    private final JobConfig mJobConfig;
+    private final LoadConfig mJobConfig;
     private final RetryPolicy mRetryPolicy;
     private final JobMasterClient mClient;
 
     private Long mJobId;
 
-    private JobAttempt(JobConfig jobConfig, RetryPolicy retryPolicy, ClientContext clientContext) {
+    private JobAttempt(LoadConfig jobConfig, RetryPolicy retryPolicy, ClientContext clientContext) {
       mJobConfig = jobConfig;
       mRetryPolicy = retryPolicy;
       mClient = JobMasterClient.Factory.create(
@@ -89,7 +89,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
         }
         return true;
       }
-      LOG.warn("Failed to complete job after retries: {}", mJobConfig);
+      System.out.println(String.format("Failed to complete loading %s after retries.", mJobConfig.getFilePath()));
       return false;
     }
 
@@ -111,7 +111,24 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
         return Status.FAILED;
       }
 
-      return jobInfo.getStatus();
+      // This make an assumption that this job tree only goes 1 level deep
+      boolean finished = true;
+      for (JobInfo child : jobInfo.getChildren()) {
+        if (!child.getStatus().isFinished()) {
+          finished = false;
+          break;
+        }
+      }
+
+      if (finished) {
+        if (jobInfo.getStatus().equals(Status.FAILED)) {
+          System.out.println(String.format("Attempt %i to load %s failed because: %s",
+              mRetryPolicy.getAttemptCount(), mJobConfig.getFilePath(),
+              jobInfo.getErrorMessage()));
+        }
+        return jobInfo.getStatus();
+      }
+      return Status.RUNNING;
     }
 
     private void close() throws IOException {
