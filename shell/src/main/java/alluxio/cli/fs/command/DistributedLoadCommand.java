@@ -21,7 +21,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.job.JobMasterClient;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.job.JobConfig;
 import alluxio.job.plan.load.LoadConfig;
 
 import alluxio.job.wire.JobInfo;
@@ -89,7 +88,8 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
         }
         return true;
       }
-      System.out.println(String.format("Failed to complete loading %s after retries.", mJobConfig.getFilePath()));
+      System.out.println(String.format("Failed to complete loading %s after retries.",
+          mJobConfig.getFilePath()));
       return false;
     }
 
