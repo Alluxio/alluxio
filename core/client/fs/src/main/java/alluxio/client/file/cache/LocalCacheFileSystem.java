@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.DelegatingFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.OpenFilePOptions;
 
 /**
@@ -23,14 +24,16 @@ import alluxio.grpc.OpenFilePOptions;
 public class LocalCacheFileSystem extends DelegatingFileSystem {
 
   private final LocalCacheManager mLocalCacheManager;
+  private final FileSystemContext mFsContext;
 
   /**
    * @param fs a FileSystem instance to query on local cache miss
    */
-  public LocalCacheFileSystem(FileSystem fs) {
+  public LocalCacheFileSystem(FileSystem fs, FileSystemContext fsContext) {
     super(fs);
+    mFsContext = fsContext;
     // needs to be moved outside FileSystem constructor
-    mLocalCacheManager = new LocalCacheManager();
+    mLocalCacheManager = new LocalCacheManager(mFsContext);
   }
 
   @Override

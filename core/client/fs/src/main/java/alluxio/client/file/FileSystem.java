@@ -146,8 +146,8 @@ public interface FileSystem extends Closeable {
       } else {
         fs = new BaseFileSystem(context);
       }
-      if (context.getClusterConf().getBoolean(PropertyKey.USER_LOCAL_CACHE_ENABLED)) {
-        return new LocalCacheFileSystem(fs);
+      if (context.getClusterConf().getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)) {
+        return new LocalCacheFileSystem(fs, context);
       }
       return fs;
     }

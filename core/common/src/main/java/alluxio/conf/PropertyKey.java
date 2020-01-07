@@ -3046,6 +3046,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_ENABLED =
+      new Builder(Name.USER_CLIENT_CACHE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If this is enabled, data will be cached on Alluxio client.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_SIZE =
+      new Builder(Name.USER_CLIENT_CACHE_SIZE)
+          .setDefaultValue("512MB")
+          .setDescription("Whether client-side cache is enabled.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_PAGE_SIZE =
+      new Builder(Name.USER_CLIENT_CACHE_PAGE_SIZE)
+          .setDefaultValue("1MB")
+          .setDescription("Page size of client-side page cache.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       new Builder(Name.USER_FILE_WRITE_TYPE_DEFAULT)
           .setDefaultValue("ASYNC_THROUGH")
@@ -3089,13 +3110,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES)
           .setDefaultValue("64KB")
           .setDescription("When a client writes to a local worker, the maximum data chunk size.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_LOCAL_CACHE_ENABLED =
-      new Builder(Name.USER_LOCAL_CACHE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("If this is enabled, data will be cached on Alluxio client.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -4393,6 +4407,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.worker.client.read.retry";
     public static final String USER_BLOCK_WRITE_LOCATION_POLICY =
         "alluxio.user.block.write.location.policy.class";
+    public static final String USER_CLIENT_CACHE_ENABLED =
+        "alluxio.user.client.cache.enabled";
+    public static final String USER_CLIENT_CACHE_SIZE =
+        "alluxio.user.client.cache.size";
+    public static final String USER_CLIENT_CACHE_PAGE_SIZE =
+        "alluxio.user.client.cache.page.size";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
@@ -4429,8 +4449,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
-    public static final String USER_LOCAL_CACHE_ENABLED =
-        "alluxio.user.local.cache.enabled";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.reader.chunk.size.bytes";
     public static final String USER_LOCAL_WRITER_CHUNK_SIZE_BYTES =

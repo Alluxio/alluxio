@@ -12,7 +12,7 @@
 
 package alluxio.client.file.cache;
 
-import java.util.List;
+import alluxio.collections.Pair;
 
 public interface CacheEvictor {
 
@@ -24,10 +24,10 @@ public interface CacheEvictor {
     return null;
   }
 
-  void updateOnGet(long pageId);
+  void updateOnGet(long fileId, long pageIndex);
 
-  void updateOnPut(long pageId);
+  void updateOnPut(long fileId, long pageIndex);
 
-  List<Long> getPagesToEvict(int pages);
+  Pair<Long, Long> evict();
 
 }
