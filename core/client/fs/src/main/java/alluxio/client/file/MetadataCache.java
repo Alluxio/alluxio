@@ -17,8 +17,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -27,6 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class MetadataCache {
   private final Cache<String, URIStatus> mCache;
+  private final Cache<String, List<URIStatus>> mDirCache;
 
   /**
    * @param maxSize the max size of the cache
@@ -37,12 +40,17 @@ public final class MetadataCache {
         .maximumSize(maxSize)
         .expireAfterWrite(expirationTimeMs, TimeUnit.MILLISECONDS)
         .build();
+    mDirCache = CacheBuilder.newBuilder()
+        .maximumSize(maxSize)
+        .expireAfterWrite(expirationTimeMs, TimeUnit.MILLISECONDS)
+        .build();
   }
 
   /**
    * @param path the Alluxio path
    * @return the cached status or null
    */
+  @Nullable
   public URIStatus get(AlluxioURI path) {
     return mCache.getIfPresent(path.getPath());
   }
@@ -61,6 +69,28 @@ public final class MetadataCache {
    */
   public void put(String path, URIStatus status) {
     mCache.put(path, status);
+  }
+
+  /**
+   * Caches list status results of a directory.
+   *
+   * @param dir the directory
+   * @param statuses the list status results
+   */
+  public void put(AlluxioURI dir, List<URIStatus> statuses) {
+    mDirCache.put(dir.getPath(), statuses);
+    for (URIStatus status : statuses) {
+      mCache.put(status.getPath(), status);
+    }
+  }
+
+  /**
+   * @param dir the directory
+   * @return the cached list status results or null
+   */
+  @Nullable
+  public List<URIStatus> listStatus(AlluxioURI dir) {
+    return mDirCache.getIfPresent(dir.getPath());
   }
 
   /**

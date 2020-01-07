@@ -87,9 +87,10 @@ public class CachingFileSystem extends BaseFileSystem {
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    List<URIStatus> statuses = super.listStatus(path, options);
-    for (URIStatus status : statuses) {
-      mMetadataCache.put(status.getPath(), status);
+    List<URIStatus> statuses = mMetadataCache.listStatus(path);
+    if (statuses == null) {
+      statuses = super.listStatus(path, options);
+      mMetadataCache.put(path, statuses);
     }
     return statuses;
   }
