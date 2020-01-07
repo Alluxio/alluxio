@@ -198,7 +198,7 @@ public final class ClearCommand extends AbstractFsAdminCommand {
   }
 
   /**
-   * Thread that polls a persist queue and persists files.
+   * Thread that clears the metrics of a specific worker.
    */
   private class ClearCallable implements Callable<Void> {
     private final WorkerNetAddress mWorker;
@@ -223,7 +223,7 @@ public final class ClearCommand extends AbstractFsAdminCommand {
    * @param context the file system context
    */
   private void clearWorkerMetrics(WorkerNetAddress worker,
-                                  FileSystemContext context) throws IOException {
+      FileSystemContext context) throws IOException {
     BlockWorkerClient blockWorkerClient = context.acquireBlockWorkerClient(worker);
     try {
       blockWorkerClient.clearMetrics(ClearMetricsRequest.newBuilder().build());
