@@ -201,7 +201,7 @@ spec:
   {{- if $needJournalVolume }}
   volumeClaimTemplates:
     - metadata:
-        name: alluxio-journal
+        name: journal
       spec:
         storageClassName: standard
         accessModes:
