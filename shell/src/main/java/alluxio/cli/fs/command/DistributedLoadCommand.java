@@ -122,9 +122,12 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
 
       if (finished) {
         if (jobInfo.getStatus().equals(Status.FAILED)) {
-          System.out.println(String.format("Attempt %i to load %s failed because: %s",
+          System.out.println(String.format("Attempt %s to load %s failed because: %s",
               mRetryPolicy.getAttemptCount(), mJobConfig.getFilePath(),
               jobInfo.getErrorMessage()));
+        } else if (jobInfo.getStatus().equals(Status.COMPLETED)) {
+          System.out.println(String.format("Attempt %s to load %s completed",
+              mRetryPolicy.getAttemptCount(), mJobConfig.getFilePath()));
         }
         return jobInfo.getStatus();
       }
