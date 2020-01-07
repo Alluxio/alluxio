@@ -51,29 +51,41 @@ $ cd kubernetes
 ### (Optional) Provision a Persistent Volume
 
 Note: [Embedded Journal]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
-does not require a Persistent Volume to be provisioned and is the preferred HA mechanism for
-Alluxio on Kubernetes. If using this mechanism, the remainder of this section can be skipped.
+require a Persistent Volume for each master Pod to be provisioned and is the preferred HA mechanism for
+Alluxio on Kubernetes. The volume, once claimed, is persisted across restarts of the master process.
 
 When using the [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
-an Alluxio master can be configured to use a [persistent volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
-for storing the journal. The volume, once claimed, is persisted across restarts of the master process.
+an Alluxio master can also be configured to use a [persistent volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
+for storing the journal. If you are using UFS journal and use external journal location like HDFS,
+the rest of this section can be skipped.
 
-Create the persistent volume spec from the template. The access mode `ReadWriteMany` is used to allow
-multiple Alluxio master nodes to access the shared volume. When deploying a single master, the mode
-can be changed to `ReadWriteOnce`.
-
-```console
-$ cp alluxio-master-journal-pv.yaml.template alluxio-master-journal-pv.yaml
+There are multiple ways to create a PersistentVolume. This is an example which defines one with `hostPath`: 
+```yaml
+# Name the file alluxio-master-journal-pv.yaml
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: alluxio-journal-0
+  labels:
+    type: local
+spec:
+  storageClassName: standard
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /tmp/alluxio-journal-0
 ```
+>Note: By default each journal volume should be at least 1Gi, because each Alluxio master Pod
+will have one PersistentVolumeClaim that requests for 1Gi storage.
 
-Note: the spec provided uses a `hostPath` volume for demonstration on a single-node deployment. For a
-multi-node cluster, you may choose to use NFS, AWSElasticBlockStore, GCEPersistentDisk or other available
-persistent volume plugins.
-
-Create the persistent volume.
+Then create the persistent volume with `kubectl`:
 ```console
 $ kubectl create -f alluxio-master-journal-pv.yaml
 ```
+
+There are other ways to create Persistent Volumes as documented [here](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
 
 ### Deploy Using `helm`
 
@@ -309,12 +321,10 @@ the sub-directories: *singleMaster-localJournal*, *singleMaster-hdfsJournal* and
 
 - *singleMaster-localJournal* directory gives you the necessary Kubernetes ConfigMap, 1 Alluxio
 master process and a set of Alluxio workers.
-The Alluxio master writes journal to the PersistentVolume defined in
-*alluxio-master-journal-pv.yaml.template*.
+The Alluxio master writes journal to the journal volume requested by `volumeClaimTemplates`.
 - *multiMaster-EmbeddedJournal* directory gives you the Kubernetes ConfigMap, 3 Alluxio masters and
 a set of Alluxio workers.
-The Alluxio masters each write to its `alluxio-journal-alluxio-master-{index}` volume,
-which is a `PersistentVolumeClaim` that is created automatically for each master Pod in the StatefulSet.
+Each Alluxio master writes journal to its own journal volume requested by `volumeClaimTemplates`.
 - *singleMaster-hdfsJournal* directory gives you the Kubernetes ConfigMap, 1 Alluxio master with a
 set of workers.
 The journal is in a shared UFS location. In this template we use HDFS as the UFS.
@@ -352,16 +362,13 @@ $ kubectl create -f alluxio-configmap.yaml
 Prepare the Alluxio deployment specs from the templates. Modify any parameters required, such as
 location of the **Docker image**, and CPU and memory requirements for Pods.
 
-If using a persistent volume for the journal, create the claim:
-```console
-$ mv master/alluxio-master-journal-pvc.yaml.template master/alluxio-master-journal-pvc.yaml
-```
-
 For the master(s), create the `Service` and `StatefulSet`:
 ```console
 $ mv master/alluxio-master-service.yaml.template master/alluxio-master-service.yaml
 $ mv master/alluxio-master-statefulset.yaml.template master/alluxio-master-statefulset.yaml
 ```
+> Note: `alluxio-master-statefulset.yaml` uses `volumeClaimTemplates` to define the journal volume
+for each master if it needs one.
 
 For the workers, create the `DaemonSet`:
 ```console
@@ -556,10 +563,11 @@ From the master Pod, execute the following:
 $ alluxio runTests
 ```
 
-(Optional) If using persistent volumes for Alluxio master, the status of the volume should change to
-`CLAIMED`.
+(Optional) If using persistent volumes for Alluxio master, the status of the volume(s) should change to
+`CLAIMED`, and the status of the volume claims should be `BOUNDED`. You can validate the status as below:
 ```console
-$ kubectl get pv alluxio-journal-volume
+$ kubectl get pv
+$ kubectl get pvc
 ```
 
 ## Advanced Setup

@@ -205,7 +205,7 @@ spec:
       spec:
         storageClassName: standard
         accessModes:
-          - ReadWriteMany
+          - ReadWriteOnce
         resources:
           requests:
             storage: {{ .Values.journal.size }}

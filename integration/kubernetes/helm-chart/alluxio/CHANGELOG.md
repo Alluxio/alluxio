@@ -40,4 +40,6 @@
 
 - Changed to using one single StatefulSet for all master Pods
 - Changed embedded journal from emptyDir to auto-created PVC
+- Changed values.yaml structure for ports and update configmap
+- Define alluxio.master.hostname individually for each Pod in env variable, and update configmap
 - Moved a few duplicated blocks into _helpers.tpl
