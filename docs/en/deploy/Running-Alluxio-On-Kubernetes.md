@@ -51,7 +51,7 @@ $ cd kubernetes
 ### (Optional) Provision a Persistent Volume
 
 Note: [Embedded Journal]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
-require a Persistent Volume for each master Pod to be provisioned and is the preferred HA mechanism for
+requires a Persistent Volume for each master Pod to be provisioned and is the preferred HA mechanism for
 Alluxio on Kubernetes. The volume, once claimed, is persisted across restarts of the master process.
 
 When using the [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
@@ -78,7 +78,8 @@ spec:
     path: /tmp/alluxio-journal-0
 ```
 >Note: By default each journal volume should be at least 1Gi, because each Alluxio master Pod
-will have one PersistentVolumeClaim that requests for 1Gi storage.
+will have one PersistentVolumeClaim that requests for 1Gi storage. You will see how to configure
+the journal size in later sections.
 
 Then create the persistent volume with `kubectl`:
 ```console
