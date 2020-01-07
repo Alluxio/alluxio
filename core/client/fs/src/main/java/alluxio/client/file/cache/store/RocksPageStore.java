@@ -91,11 +91,12 @@ public class RocksPageStore implements PageStore, AutoCloseable {
   }
 
   @Override
-  public int get(long fileId, long pageIndex, WritableByteChannel dst) throws IOException {
+  public int get(long fileId, long pageIndex, WritableByteChannel dst) throws IOException,
+      PageNotFoundException{
     try {
       byte[] page = mDb.get(getPageKey(fileId, pageIndex));
       if (page == null) {
-        throw new IOException("Page not found");
+        throw new PageNotFoundException(new String(getPageKey(fileId, pageIndex)));
       }
       return dst.write(ByteBuffer.wrap(page));
     } catch (RocksDBException e) {
@@ -104,11 +105,11 @@ public class RocksPageStore implements PageStore, AutoCloseable {
   }
 
   @Override
-  public void delete(long fileId, long pageIndex) throws IOException {
+  public void delete(long fileId, long pageIndex) throws PageNotFoundException {
     try {
       mDb.delete(getPageKey(fileId, pageIndex));
     } catch (RocksDBException e) {
-      throw new IOException("Failed to remove page", e);
+      throw new PageNotFoundException("Failed to remove page", e);
     }
   }
 

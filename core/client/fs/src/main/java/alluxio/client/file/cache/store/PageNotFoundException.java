@@ -22,11 +22,12 @@ import java.nio.channels.WritableByteChannel;
  * {@link alluxio.client.file.cache.PageStore#delete(long, long)}.
  */
 public class PageNotFoundException extends AlluxioException {
-  protected PageNotFoundException(Throwable cause) {
-    super(cause);
-  }
-
   protected PageNotFoundException(String cause) {
     super(cause);
   }
+
+  protected PageNotFoundException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
 }

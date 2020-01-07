@@ -90,11 +90,12 @@ public class LocalPageStore implements PageStore, AutoCloseable {
   }
 
   @Override
-  public int get(long fileId, long pageIndex, WritableByteChannel dst) throws IOException {
+  public int get(long fileId, long pageIndex, WritableByteChannel dst)throws IOException,
+      PageNotFoundException {
     int count = 0;
     Path p = getFilePath(fileId, pageIndex);
     if (!Files.exists(p)) {
-      throw new FileNotFoundException(p.toString());
+      throw new PageNotFoundException(p.toString());
     }
     try (FileInputStream fis = new FileInputStream(p.toFile())) {
       ByteBuffer b = mBuffers.acquire();
