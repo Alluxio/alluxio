@@ -62,18 +62,23 @@ public class GrpcMessagingServer implements Server {
   /** Executor for building server listener. */
   private final ExecutorService mExecutor;
 
+  /** Proxy configuration for server connections. */
+  private final GrpcMessagingProxy mProxy;
+
   /**
    * Creates a transport server that can be used to accept connections from remote clients.
    *
    * @param conf Alluxio configuration
    * @param userState authentication user
    * @param executor transport executor
+   * @param proxy external proxy configuration
    */
   public GrpcMessagingServer(AlluxioConfiguration conf, UserState userState,
-      ExecutorService executor) {
+      ExecutorService executor, GrpcMessagingProxy proxy) {
     mConf = conf;
     mUserState = userState;
     mExecutor = executor;
+    mProxy = proxy;
     mConnections = Collections.synchronizedList(new LinkedList<>());
   }
 
@@ -85,7 +90,8 @@ public class GrpcMessagingServer implements Server {
       return mListenFuture;
     }
 
-    LOG.debug("Messaging server binding to: {}", address);
+    LOG.debug("Opening messaging server for: {}", address);
+
     final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
     mListenFuture = CompletableFuture.runAsync(() -> {
       // Listener that notifies both this server instance and given listener.
@@ -94,10 +100,17 @@ public class GrpcMessagingServer implements Server {
         listener.accept(connection);
       };
 
+      Address bindAddress = address;
+      if (mProxy != null && mProxy.hasProxyFor(address)) {
+        bindAddress = mProxy.getProxyFor(address);
+        LOG.debug("Found proxy: {} for address: {}", bindAddress, address);
+      }
+      LOG.debug("Binding messaging server to: {}", bindAddress);
+
       // Create gRPC server.
       mGrpcServer = GrpcServerBuilder
-          .forAddress(GrpcServerAddress.create(address.host(),
-              new InetSocketAddress(address.host(), address.port())), mConf, mUserState)
+          .forAddress(GrpcServerAddress.create(bindAddress.host(),
+              new InetSocketAddress(bindAddress.host(), bindAddress.port())), mConf, mUserState)
           .maxInboundMessageSize((int) mConf
               .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
           .addService(new GrpcService(ServerInterceptors.intercept(
@@ -109,10 +122,10 @@ public class GrpcMessagingServer implements Server {
       try {
         mGrpcServer.start();
 
-        LOG.info("Successfully started messaging server at: {}", address);
+        LOG.info("Successfully started messaging server at: {}", bindAddress);
       } catch (IOException e) {
         mGrpcServer = null;
-        LOG.debug("Failed to create messaging server for at: {}.", address, e);
+        LOG.debug("Failed to create messaging server for: {}.", address, e);
         throw new RuntimeException(e);
       }
     }, mExecutor);
