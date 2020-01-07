@@ -59,10 +59,6 @@ function generateFormatJournalJobTemplates {
 
 }
 
-function generateJournalTemplates {
-  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/journal-pv.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-journal-pv.yaml.template"
-}
-
 function generateWorkerTemplates {
   echo "Generating worker templates into $dir"
   helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-daemonset.yaml.template"
@@ -85,7 +81,6 @@ function generateSingleUfsTemplates {
     "local")
       echo "Using local journal"
       dir="singleMaster-localJournal"
-      generateJournalTemplates
       generateTemplates
       ;;
     "hdfs")
@@ -102,7 +97,6 @@ function generateSingleUfsTemplates {
 
 function generateMultiEmbeddedTemplates {
   dir="multiMaster-embeddedJournal"
-  generateJournalTemplates
   generateTemplates
 }
 

@@ -127,8 +127,6 @@ resources:
   {{- end }}
 {{- end -}}
 
-
-
 {{- define "alluxio.worker.secretVolumeMounts" -}}
   {{- range $key, $val := .Values.secrets.worker }}
 - name: secret-{{ $key }}-volume
