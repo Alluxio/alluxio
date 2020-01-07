@@ -3056,7 +3056,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_CLIENT_CACHE_SIZE =
       new Builder(Name.USER_CLIENT_CACHE_SIZE)
           .setDefaultValue("512MB")
-          .setDescription("Whether client-side cache is enabled.")
+          .setDescription("The maximum size of the client-side cache.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();

@@ -51,7 +51,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class LocalCacheManager {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheManager.class);
   /** Number of page locks to strip. */
-  private static int PAGE_LOCK_SIZE = 256;
+  private static final int PAGE_LOCK_SIZE = 256;
 
   private final int mPageSize;
   private final int mCacheSize;
@@ -59,7 +59,7 @@ public class LocalCacheManager {
   /** A readwrite lock pool to guard individual pages based on striping. */
   private final ReadWriteLock[] mPageLocks = new ReentrantReadWriteLock[PAGE_LOCK_SIZE];
   private final PageStore mPageStore;
-  /** A readwrite lock to guard metadata operations */
+  /** A readwrite lock to guard metadata operations. */
   private final ReadWriteLock mMetaLock = new ReentrantReadWriteLock();
   @GuardedBy("mMetaLock")
   private final MetaStore mMetaStore;
@@ -78,7 +78,7 @@ public class LocalCacheManager {
   @VisibleForTesting
   LocalCacheManager(FileSystemContext fsContext, MetaStore metaStore,
                     PageStore pageStore, CacheEvictor evictor) {
-    for (int i = 0; i < PAGE_LOCK_SIZE; i ++) {
+    for (int i = 0; i < PAGE_LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock();
     }
     mFsContext = fsContext;
@@ -130,11 +130,13 @@ public class LocalCacheManager {
    * @return the number of bytes written
    */
   public int put(long fileId, long pageIndex, ReadableByteChannel src) throws IOException {
-    long victimFileId = 0, victimPageIndex = 0;
+    long victimFileId = 0;
+    long victimPageIndex = 0;
 
     ReadWriteLock pageLock = getPageLock(fileId, pageIndex);
     try (LockResource r = new LockResource(pageLock.writeLock())) {
-      boolean alreadyCached, needEvict = false;
+      boolean alreadyCached;
+      boolean needEvict = false;
       try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
         alreadyCached = mMetaStore.hasPage(fileId, pageIndex);
         if (!alreadyCached) {
@@ -219,7 +221,7 @@ public class LocalCacheManager {
         ret = mPageStore.get(fileId, pageIndex, dst);
       } else {
         //
-        // TODO: Extend page store API to get offset to avoid copy to use something like
+        // TODO(feng): Extend page store API to get offset to avoid copy to use something like
         // mPageStore.get(fileId, pageIndex, dst, pageOffset, length);
         //
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
@@ -257,5 +259,4 @@ public class LocalCacheManager {
       return removed && mPageStore.delete(fileId, pageIndex);
     }
   }
-
 }

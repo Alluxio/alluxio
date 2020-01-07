@@ -28,6 +28,7 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
 
   /**
    * @param fs a FileSystem instance to query on local cache miss
+   * @param fsContext file system context
    */
   public LocalCacheFileSystem(FileSystem fs, FileSystemContext fsContext) {
     super(fs);
