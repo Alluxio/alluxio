@@ -1289,6 +1289,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setIsHidden(true)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_PROXY_HOST)
+          .setDescription(String.format(
+              "Used to bind embedded journal servers to a proxied host."
+                  + "Proxy hostname will still make use of %s for bind port.",
+              Name.MASTER_EMBEDDED_JOURNAL_PORT))
+          // No default value for proxy-host. Server will bind to "alluxio.master.hostname"
+          // as default.
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
           .setDescription(String.format("A comma-separated list of journal addresses for all "
@@ -4101,6 +4110,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
         "alluxio.master.journal.tailer.sleep.time";
     public static final String MASTER_RPC_ADDRESSES = "alluxio.master.rpc.addresses";
+    public static final String MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
+        "alluxio.master.embedded.journal.bind.host";
     public static final String MASTER_EMBEDDED_JOURNAL_ADDRESSES =
         "alluxio.master.embedded.journal.addresses";
     public static final String MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =

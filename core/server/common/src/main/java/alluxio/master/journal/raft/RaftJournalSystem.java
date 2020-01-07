@@ -26,6 +26,7 @@ import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
+import alluxio.master.transport.GrpcMessagingProxy;
 import alluxio.master.transport.GrpcMessagingTransport;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.user.ServerUserState;
@@ -238,6 +239,12 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       mStateMachine.close();
     }
     mStateMachine = new JournalStateMachine(mJournals, () -> this.getJournalSinks(null));
+    // Read external proxy configuration.
+    GrpcMessagingProxy serverProxy = null;
+    if (mConf.getProxyAddress() != null) {
+      serverProxy = new GrpcMessagingProxy();
+      serverProxy.addProxy(getLocalAddress(mConf), new Address(mConf.getProxyAddress()));
+    }
     mServer = CopycatServer.builder(getLocalAddress(mConf))
         .withStorage(storage)
         .withElectionTimeout(Duration.ofMillis(mConf.getElectionTimeoutMs()))
@@ -245,7 +252,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         .withSnapshotAllowed(mSnapshotAllowed)
         .withSerializer(createSerializer())
         .withTransport(new GrpcMessagingTransport(
-            ServerConfiguration.global(), ServerUserState.global(), RAFTSERVER_CLIENT_TYPE))
+            ServerConfiguration.global(), ServerUserState.global(), RAFTSERVER_CLIENT_TYPE)
+                .withServerProxy(serverProxy))
         // Copycat wants a supplier that will generate *new* state machines. We can't handle
         // generating a new state machine here, so we will throw an exception if copycat tries to
         // call the supplier more than once.
