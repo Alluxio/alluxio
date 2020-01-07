@@ -32,7 +32,7 @@ metadata:
     heritage: {{ .Release.Service }}
 data:
   ALLUXIO_JAVA_OPTS: |-
-    {{if $isSingleMaster}}-Dalluxio.master.hostname={{ $fullName }}-{{ $defaultMasterName }}{{end}} -Dalluxio.master.journal.type={{ .Values.journal.type }} -Dalluxio.master.journal.folder={{ .Values.journal.folder }} {{if $isHaEmbedded}}-Dalluxio.master.embedded.journal.addresses={{range $i := until $masterCount}}{{ $fullName }}-master-{{$i}}:19200,{{end}}{{end}} {{ .Values.jvmOptions }} {{- range $key, $val := .Values.properties }} -D{{ $key }}={{ $val }} {{ end }}
+    -Dalluxio.master.journal.type={{ .Values.journal.type }} -Dalluxio.master.journal.folder={{ .Values.journal.folder }} {{if $isHaEmbedded}}-Dalluxio.master.embedded.journal.addresses={{range $i := until $masterCount}}{{ $fullName }}-master-{{$i}}:19200,{{end}}{{end}} {{ .Values.jvmOptions }} {{- range $key, $val := .Values.properties }} -D{{ $key }}={{ $val }} {{ end }}
   ALLUXIO_MASTER_JAVA_OPTS: |-
     -Dalluxio.master.web.bind.host=0.0.0.0 {{ .Values.master.jvmOptions }} {{- range $key, $val := .Values.master.properties }} -D{{ $key }}={{ $val }} {{ end }}
   ALLUXIO_JOB_MASTER_JAVA_OPTS: |-
