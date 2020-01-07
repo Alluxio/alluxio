@@ -83,8 +83,7 @@ spec:
             name: web
           volumeMounts:
             - name: alluxio-domain
-              mountPath: /opt/domain
-            
+              mountPath: /opt/domain            
             - name: secret-alluxio-hdfs-config-volume
               mountPath: /secrets/hdfsConfig
               readOnly: true            

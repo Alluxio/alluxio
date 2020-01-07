@@ -28,7 +28,7 @@ metadata:
     heritage: Tiller
 data:
   ALLUXIO_JAVA_OPTS: |-
-    -Dalluxio.master.hostname=alluxio-master-0 -Dalluxio.master.journal.type=UFS -Dalluxio.master.journal.folder=hdfs://{$hostname}:{$hostport}/journal   -Dalluxio.master.journal.ufs.option.alluxio.underfs.hdfs.configuration=/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml  -Dalluxio.master.mount.table.root.ufs=hdfs://{$hostname}:{$hostport}/{$underFSStorage}  -Dalluxio.security.stale.channel.purge.interval=365d 
+    -Dalluxio.master.journal.type=UFS -Dalluxio.master.journal.folder=hdfs://{$hostname}:{$hostport}/journal   -Dalluxio.master.journal.ufs.option.alluxio.underfs.hdfs.configuration=/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml  -Dalluxio.master.mount.table.root.ufs=hdfs://{$hostname}:{$hostport}/{$underFSStorage}  -Dalluxio.security.stale.channel.purge.interval=365d 
   ALLUXIO_MASTER_JAVA_OPTS: |-
     -Dalluxio.master.web.bind.host=0.0.0.0 
   ALLUXIO_JOB_MASTER_JAVA_OPTS: |-
