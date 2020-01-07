@@ -55,6 +55,10 @@
       <groupId>io.grpc</groupId>
       <artifactId>grpc-stub</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.rocksdb</groupId>
+      <artifactId>rocksdbjni</artifactId>
+    </dependency>
 
 <!-- Internal dependencies -->
     <dependency>

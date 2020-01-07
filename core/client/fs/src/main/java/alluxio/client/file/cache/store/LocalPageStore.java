@@ -12,10 +12,14 @@
 
 package alluxio.client.file.cache.store;
 
-import alluxio.Constants;
 import alluxio.client.file.cache.PageStore;
 import alluxio.resource.ResourcePool;
 
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -35,7 +39,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * stores all pages in a directory somewhere on the local disk.
  */
 @NotThreadSafe
-public class LocalPageStore implements PageStore {
+public class LocalPageStore implements PageStore, AutoCloseable {
+  private static final Logger LOG = LoggerFactory.getLogger(LocalPageStore.class);
 
   private final ResourcePool<ByteBuffer> mBuffers;
 
@@ -44,30 +49,18 @@ public class LocalPageStore implements PageStore {
   /**
    * Creates a new instance of {@link LocalPageStore}.
    *
-   * @param rootDir the root directory where pages are stored
+   * @param options options for the local page store
    */
-  public LocalPageStore(String rootDir) {
-    this(rootDir, Constants.MB, 32 * Constants.MB);
-  }
-
-  /**
-   * Creates a new instance of {@link LocalPageStore}.
-   *
-   * @param rootDir the root directory where pages are stored
-   * @param bufferSize the size in bytes of the internal buffers used to copy data
-   * @param maxSize the size in bytes that all internal buffers should use
-   */
-  public LocalPageStore(String rootDir, int bufferSize, int maxSize) {
-    mRoot = rootDir;
-    int numBuffers = maxSize / bufferSize;
-    mBuffers = new ResourcePool<ByteBuffer>(numBuffers) {
+  public LocalPageStore(LocalPageStoreOptions options) {
+    mRoot = options.getRootDir();
+    mBuffers = new ResourcePool<ByteBuffer>(options.getBufferPoolSize()) {
       @Override
       public void close() {
       }
 
       @Override
       protected ByteBuffer createNewResource() {
-        return ByteBuffer.wrap(new byte[bufferSize]);
+        return ByteBuffer.wrap(new byte[options.getBufferSize()]);
       }
     };
   }
@@ -120,11 +113,27 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public void delete(long fileId, long pageIndex) throws IOException {
-    Files.delete(getFilePath(fileId, pageIndex));
+  public void delete(long fileId, long pageIndex) throws IOException, PageNotFoundException {
+    Path p = getFilePath(fileId, pageIndex);
+    if (!Files.exists(p)) {
+      throw new PageNotFoundException(p.toString());
+    }
+    Files.delete(p);
+    if (!Files.newDirectoryStream(p.getParent()).iterator().hasNext()) {
+      Files.delete(p.getParent());
+    }
   }
 
   private Path getFilePath(long fileId, long pageIndex) {
     return Paths.get(mRoot, Long.toString(fileId), Long.toString(pageIndex));
+  }
+
+  @Override
+  public void close() {
+    try {
+      FileUtils.deleteDirectory(new File(mRoot));
+    } catch (IOException e) {
+      LOG.warn("Failed to clean up local page store directory", e);
+    }
   }
 }
