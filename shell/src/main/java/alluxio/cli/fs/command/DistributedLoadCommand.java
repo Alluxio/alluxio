@@ -88,8 +88,8 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
         }
         return true;
       }
-      System.out.println(String.format("Failed to complete loading %s after retries.",
-          mJobConfig.getFilePath()));
+      System.out.println(String.format("Failed to complete loading %s after %d retries.",
+          mJobConfig.getFilePath(), mRetryPolicy.getAttemptCount()));
       return false;
     }
 
@@ -122,12 +122,12 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
 
       if (finished) {
         if (jobInfo.getStatus().equals(Status.FAILED)) {
-          System.out.println(String.format("Attempt %s to load %s failed because: %s",
+          System.out.println(String.format("Attempt %d to load %s failed because: %s",
               mRetryPolicy.getAttemptCount(), mJobConfig.getFilePath(),
               jobInfo.getErrorMessage()));
         } else if (jobInfo.getStatus().equals(Status.COMPLETED)) {
-          System.out.println(String.format("Attempt %s to load %s completed",
-              mRetryPolicy.getAttemptCount(), mJobConfig.getFilePath()));
+          System.out.println(String.format("Successfully loaded path %s after %d attempts",
+                  mJobConfig.getFilePath(), mRetryPolicy.getAttemptCount()));
         }
         return jobInfo.getStatus();
       }
