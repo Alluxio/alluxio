@@ -42,15 +42,10 @@ import java.nio.channels.WritableByteChannel;
 
 /**
  * Tests for the {@link LocalCacheManager} class.
- *
- * It is a parameterized test that checks different caching behaviors when the blocks are located at
- * different locations.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class})
 public final class LocalCacheManagerTest {
-  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
-
   private LocalCacheManager mCacheManager;
   private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
   private FileSystemContext mFileContext;
