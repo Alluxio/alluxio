@@ -307,7 +307,6 @@ public class BackupManager {
         safeWaitTasks(activeTasks, completionService);
       } finally {
         mRestoreTimeMs = System.currentTimeMillis() - startRestoreTime;
-        LOG.error("Restore takes {}", System.currentTimeMillis() - startRestoreTime);
         mRestoreEntriesCount = appliedEntryCount.get();
         traceExecutor.shutdownNow();
       }
