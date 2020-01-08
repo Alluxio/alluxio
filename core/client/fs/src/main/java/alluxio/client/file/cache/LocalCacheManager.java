@@ -50,14 +50,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class LocalCacheManager {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheManager.class);
-  /** Number of page locks to strip. */
-  private static final int PAGE_LOCK_SIZE = 256;
 
   private final int mPageSize;
-  private final int mCacheSize;
+  private final long mCacheSize;
+  private final int mLockSize;
   private final CacheEvictor mEvictor;
   /** A readwrite lock pool to guard individual pages based on striping. */
-  private final ReadWriteLock[] mPageLocks = new ReentrantReadWriteLock[PAGE_LOCK_SIZE];
+  private final ReadWriteLock[] mPageLocks;
   private final PageStore mPageStore;
   /** A readwrite lock to guard metadata operations. */
   private final ReadWriteLock mMetaLock = new ReentrantReadWriteLock();
@@ -78,15 +77,17 @@ public class LocalCacheManager {
   @VisibleForTesting
   LocalCacheManager(FileSystemContext fsContext, MetaStore metaStore,
                     PageStore pageStore, CacheEvictor evictor) {
-    for (int i = 0; i < PAGE_LOCK_SIZE; i++) {
-      mPageLocks[i] = new ReentrantReadWriteLock();
-    }
     mFsContext = fsContext;
     mMetaStore = metaStore;
     mPageStore = pageStore;
     mEvictor = evictor;
-    mPageSize = mFsContext.getClusterConf().getInt(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
-    mCacheSize = mFsContext.getClusterConf().getInt(PropertyKey.USER_CLIENT_CACHE_SIZE);
+    mPageSize = (int) mFsContext.getClusterConf().getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+    mCacheSize = mFsContext.getClusterConf().getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE);
+    mLockSize = mFsContext.getClusterConf().getInt(PropertyKey.USER_CLIENT_CACHE_LOCK_SIZE);
+    mPageLocks = new ReentrantReadWriteLock[mLockSize];
+    for (int i = 0; i < mLockSize; i++) {
+      mPageLocks[i] = new ReentrantReadWriteLock();
+    }
   }
 
   /**
@@ -98,7 +99,7 @@ public class LocalCacheManager {
    * @return the corresponding page lock
    */
   private ReadWriteLock getPageLock(long fileId, long pageIndex) {
-    return mPageLocks[(int) (fileId + pageIndex) % PAGE_LOCK_SIZE];
+    return mPageLocks[(int) (fileId + pageIndex) % mLockSize];
   }
 
   /**
@@ -140,7 +141,7 @@ public class LocalCacheManager {
       try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
         alreadyCached = mMetaStore.hasPage(fileId, pageIndex);
         if (!alreadyCached) {
-          needEvict = (mPageSize + mPageStore.size()) > mCacheSize;
+          needEvict = (mPageSize + mMetaStore.size()) > mCacheSize;
           if (needEvict) {
             Pair<Long, Long> victim = mEvictor.evict();
             victimFileId = victim.getFirst();
@@ -226,7 +227,7 @@ public class LocalCacheManager {
         //
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try (WritableByteChannel bufChan = Channels.newChannel(buf)) {
-          ret = mPageStore.get(fileId, pageIndex, bufChan) - pageOffset;
+          ret = Math.min(mPageStore.get(fileId, pageIndex, bufChan) - pageOffset, length);
         }
         if (ret <= 0) {
           return 0;

@@ -13,10 +13,13 @@
 package alluxio.client.file.cache;
 
 /**
- * The metadata store for pages stored in cache
+ * The metadata store for pages stored in cache.
  */
 public class MetaStore {
 
+  /**
+   * Default constructor.
+   */
   public MetaStore() {
   }
 
@@ -51,4 +54,10 @@ public class MetaStore {
     return true;
   }
 
+  /**
+   * @return size of the cache
+   */
+  long size() {
+    return 0;
+  }
 }
