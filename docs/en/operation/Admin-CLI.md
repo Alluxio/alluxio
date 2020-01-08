@@ -102,16 +102,18 @@ This block belongs to file {id=16810770431, path=/test2}
 
 The `metrics` command provides operations for Alluxio metrics system.
 
-`metrics clear` will clear all the metrics stored in Alluxio leading master.
+`metrics clear` will clear the metrics stored in the whole alluxio cluster.
 This command is useful when getting metrics information in short-term testing.
-It should be used sparingly as it may affect the current metrics recording and cause some metrics bias.
+It should be used sparingly as it may affect the current metrics recording and reporting which may lead to metrics incorrectness 
+and affect worker/client heartbeats with leading master.
 
-If `--all` option is used, all the metrics stored in Alluxio leading master
-and active workers will be cleared.
+If `--master` option is used, all the metrics stored in Alluxio leading master will be cleared.
+If `--workers <WORKER_HOSTNAME_1>,<WORKER_HOSTNAME_2>` is used, metrics in specific workers will be cleared.
 
 ```console
 $ ./bin/alluxio fsadmin metrics clear
-$ ./bin/alluxio fsadmin metrics clear --all
+$ ./bin/alluxio fsadmin metrics clear --master
+$ ./bin/alluxio fsadmin metrics clear --workers <WORKER_HOSTNAME_1>,<WORKER_HOSTNAME_2>
 ```
 
 ### report

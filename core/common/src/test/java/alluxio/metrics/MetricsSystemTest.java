@@ -119,4 +119,14 @@ public final class MetricsSystemTest {
     sCounter.inc();
     assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
   }
+
+  @Test
+  public void testResetAllMetrics() {
+    sCounter.inc();
+    assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
+    MetricsSystem.resetAllMetrics();
+    assertEquals(0.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
+    sCounter.inc();
+    assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
+  }
 }

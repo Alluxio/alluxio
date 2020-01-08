@@ -48,7 +48,6 @@ import java.util.stream.Collectors;
 public final class ClearCommand extends AbstractFsAdminCommand {
   private static final String MASTER_OPTION_NAME = "master";
   private static final String WORKERS_OPTION_NAME = "workers";
-  private static final String SPECIFIED_OPTION_NAME = "node";
   private static final int DEFAULT_PARALLELISM = 8;
 
   private static final Option MASTER_OPTION =
@@ -61,12 +60,6 @@ public final class ClearCommand extends AbstractFsAdminCommand {
   private static final Option WORKERS_OPTION =
       Option.builder()
           .longOpt(WORKERS_OPTION_NAME)
-          .required(false)
-          .hasArg(false)
-          .desc("Clear the metrics of all active workers")
-          .build();
-  private static final Option SPECIFIED_OPTION =
-      Option.builder(SPECIFIED_OPTION_NAME)
           .required(false)
           .hasArg(true)
           .desc("Clear metrics of specified workers. "
@@ -92,7 +85,7 @@ public final class ClearCommand extends AbstractFsAdminCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(MASTER_OPTION)
-        .addOption(WORKERS_OPTION).addOption(SPECIFIED_OPTION);
+        .addOption(WORKERS_OPTION);
   }
 
   @Override
@@ -109,9 +102,12 @@ public final class ClearCommand extends AbstractFsAdminCommand {
       System.out.println("Passed in too many options");
       return -1;
     }
-    if (cl.hasOption(SPECIFIED_OPTION_NAME)) {
-      String specifiedOptionValue = cl.getOptionValue(SPECIFIED_OPTION_NAME);
-      Set<String> workerSet = new HashSet<>(Arrays.asList(specifiedOptionValue.split(",")));
+    // By default, metrics clear clears the metrics of the whole cluster
+    // If --master is passed in, clear metrics of the leading master
+    // If --workers a,b,c is passed in, clear metrics of specific workers
+    if (cl.hasOption(WORKERS_OPTION_NAME)) {
+      String workersValue = cl.getOptionValue(WORKERS_OPTION_NAME);
+      Set<String> workerSet = new HashSet<>(Arrays.asList(workersValue.split(",")));
 
       try (FileSystemContext context = FileSystemContext.create(mAlluxioConf)) {
         AlluxioBlockStore store = AlluxioBlockStore.create(FileSystemContext.create(mAlluxioConf));
@@ -132,7 +128,7 @@ public final class ClearCommand extends AbstractFsAdminCommand {
       }
     }
 
-    if (options.length == 0 || cl.hasOption(WORKERS_OPTION_NAME)) {
+    if (options.length == 0) {
       try (FileSystemContext context = FileSystemContext.create(mAlluxioConf)) {
         AlluxioBlockStore store = AlluxioBlockStore.create(FileSystemContext.create(mAlluxioConf));
         List<WorkerNetAddress> addressList = store.getEligibleWorkers().stream()
@@ -235,14 +231,12 @@ public final class ClearCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getUsage() {
-    return String.format("%s [--%s|--%s|--%s <worker_hostnames>]%n"
-            + "\t--%s: %s%n"
+    return String.format("%s [--%s|--%s <worker_hostnames>]%n"
             + "\t--%s: %s%n"
             + "\t--%s: %s%n",
-        getCommandName(), MASTER_OPTION_NAME, WORKERS_OPTION_NAME, SPECIFIED_OPTION_NAME,
+        getCommandName(), MASTER_OPTION_NAME, WORKERS_OPTION_NAME,
         MASTER_OPTION_NAME, MASTER_OPTION.getDescription(),
-        WORKERS_OPTION_NAME, WORKERS_OPTION.getDescription(),
-        SPECIFIED_OPTION_NAME, SPECIFIED_OPTION.getDescription());
+        WORKERS_OPTION_NAME, WORKERS_OPTION.getDescription());
   }
 
   /**
@@ -254,7 +248,8 @@ public final class ClearCommand extends AbstractFsAdminCommand {
         + "Users can pass in options to decide metrics of which nodes to be cleared. "
         + "This command is useful when getting metrics information in short-term testing. "
         + "This command should be used sparingly as it may affect the current metrics "
-        + "recording and reporting which may lead to metrics incorrectness. ";
+        + "recording and reporting which may lead to metrics incorrectness "
+        + "and affect worker/client heartbeats with leading master.";
   }
 
   @Override
