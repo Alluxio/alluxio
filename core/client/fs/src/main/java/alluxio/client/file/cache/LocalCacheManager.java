@@ -141,7 +141,7 @@ public class LocalCacheManager {
       try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
         alreadyCached = mMetaStore.hasPage(fileId, pageIndex);
         if (!alreadyCached) {
-          needEvict = (mPageSize + mMetaStore.size()) > mCacheSize;
+          needEvict = (mPageSize + mPageStore.size()) > mCacheSize;
           if (needEvict) {
             Pair<Long, Long> victim = mEvictor.evict();
             victimFileId = victim.getFirst();

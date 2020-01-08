@@ -53,11 +53,4 @@ public class MetaStore {
   boolean removePage(long fileId, long pageIndex) {
     return true;
   }
-
-  /**
-   * @return size of the cache
-   */
-  long size() {
-    return 0;
-  }
 }

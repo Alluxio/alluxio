@@ -20,13 +20,11 @@ import static org.mockito.Mockito.when;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.util.ClientTestUtils;
 import alluxio.collections.Pair;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.io.BufferUtils;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -79,7 +77,7 @@ public final class LocalCacheManagerTest {
   public void putNew() throws Exception {
     ReadableByteChannel channel = mock(ReadableByteChannel.class);
     when(mMetaStore.hasPage(0L, 0L)).thenReturn(false);
-    when(mMetaStore.size()).thenReturn(0L);
+    when(mPageStore.size()).thenReturn(0L);
     mCacheManager.put(0L, 0L, channel);
     verify(mMetaStore).addPage(0L, 0L);
     verify(mPageStore).put(0L, 0L, channel);
@@ -89,7 +87,7 @@ public final class LocalCacheManagerTest {
   public void putExist() throws Exception {
     ReadableByteChannel channel = mock(ReadableByteChannel.class);
     when(mMetaStore.hasPage(0L, 0L)).thenReturn(true);
-    when(mMetaStore.size()).thenReturn(mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
+    when(mPageStore.size()).thenReturn(mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
     mCacheManager.put(0L, 0L, channel);
     verify(mMetaStore, never()).addPage(0L, 0L);
     verify(mPageStore).delete(0L, 0L);
@@ -101,7 +99,7 @@ public final class LocalCacheManagerTest {
     ReadableByteChannel channel = mock(ReadableByteChannel.class);
     when(mMetaStore.hasPage(0L, 0L)).thenReturn(false);
     when(mMetaStore.hasPage(1L, 1L)).thenReturn(true);
-    when(mMetaStore.size()).thenReturn(mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
+    when(mPageStore.size()).thenReturn(mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
     when(mEvictor.evict()).thenReturn(new Pair(1L, 1L));
     mCacheManager.put(0L, 0L, channel);
     verify(mMetaStore).addPage(0L, 0L);
@@ -115,7 +113,7 @@ public final class LocalCacheManagerTest {
     long pageSize = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     WritableByteChannel channel = mock(WritableByteChannel.class);
     when(mMetaStore.hasPage(0L, 0L)).thenReturn(true);
-    when(mMetaStore.size()).thenReturn(mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
+    when(mPageStore.size()).thenReturn(mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
     when(mPageStore.get(0L, 0L, channel)).thenReturn((int) pageSize);
     int size = mCacheManager.get(0L, 0L, channel);
     Assert.assertEquals(pageSize, size);
@@ -138,7 +136,7 @@ public final class LocalCacheManagerTest {
     long pageSize = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     ByteBuffer buf = BufferUtils.getIncreasingByteBuffer((int) pageSize);
     when(mMetaStore.hasPage(0L, 0L)).thenReturn(true);
-    when(mMetaStore.size()).thenReturn(mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
+    when(mPageStore.size()).thenReturn(mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
     when(mPageStore.get(eq(0L), eq(0L), any(WritableByteChannel.class))).thenAnswer(
         (InvocationOnMock invocation) -> {
           Object[] args = invocation.getArguments();

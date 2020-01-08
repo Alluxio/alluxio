@@ -56,9 +56,14 @@ public interface PageStore {
    * Deletes a page from the store.
    *
    * @param fileId file identifier
-   * @param pageIndex index of page within the file.
+   * @param pageIndex index of page within the file
    * @return if the page was deleted
    * @throws IOException
    */
   boolean delete(long fileId, long pageIndex) throws IOException;
+
+  /**
+   * @return size of the data in store
+   */
+  long size() throws IOException;
 }
