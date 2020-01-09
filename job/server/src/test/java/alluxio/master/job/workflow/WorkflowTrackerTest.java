@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
@@ -61,13 +63,16 @@ public class WorkflowTrackerTest {
   private JobServerContext mMockJobServerContext;
 
   @Before
-  public void before() {
+  public void before() throws Exception {
     mMockJobMaster = mock(JobMaster.class);
     mWorkflowTracker = new WorkflowTracker(mMockJobMaster);
     mPlanTracker = new PlanTracker(CAPACITY, RETENTION_TIME, PURGE_CONUT, mWorkflowTracker);
 
     mJobIdCounter = 100;
     when(mMockJobMaster.getNewJobId()).thenAnswer(invocation -> mJobIdCounter++);
+
+    when(mMockJobMaster.getStatus(anyLong())).thenReturn(
+        new PlanInfo(1, "plan", Status.CREATED, 0, null));
 
     mWorkers = Lists.newArrayList(new WorkerInfo());
     mCommandManager = new CommandManager();
