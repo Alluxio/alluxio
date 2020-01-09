@@ -39,8 +39,8 @@ public final class ConcurrentFileSystemMasterLoadMetadataTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR)
-          .setProperty(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR)
+          .setProperty(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX, CONCURRENCY_FACTOR)
+          .setProperty(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX, CONCURRENCY_FACTOR)
           /**
            * This is to make sure master executor has enough thread to being with. Otherwise, delay
            * on master ForkJoinPool's internal thread count adjustment might take several seconds.
