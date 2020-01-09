@@ -176,7 +176,7 @@ public class TransformManager implements DelegatingJournaled {
         throw new IOException("A concurrent transformation request is going to be executed");
       } else {
         throw new IOException(ExceptionMessage.TABLE_BEING_TRANSFORMED
-            .getMessage(existingJobId, tableName, dbName));
+            .getMessage(existingJobId.toString(), tableName, dbName));
       }
     }
 
