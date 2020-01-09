@@ -21,6 +21,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
@@ -32,19 +33,28 @@ import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileBlockInfo;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
+import org.slf4j.LoggerFactory;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Integration tests for {@link alluxio.client.file.FileInStream}.
@@ -67,7 +77,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   private String mTestPath;
 
   @Rule
-  public Timeout mGlobalTimeout = Timeout.seconds(60);
+  public Timeout mGlobalTimeout = Timeout.seconds(600000);
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -596,5 +606,81 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
     status = mFileSystem.getStatus(uri);
     Assert.assertFalse(status.getFileBlockInfos().get(0).getBlockInfo().getLocations().isEmpty());
     is.close();
+  }
+
+  @Ignore
+  @Test(timeout = 600000000)
+  @LocalAlluxioClusterResource.Config( confParams = {
+      PropertyKey.Name.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX, "1",
+      PropertyKey.Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX, "1"
+  })
+  public void testInterrupt() throws Exception {
+    int numFileReadRounds = 1;
+    int numThreads = 8;
+    int numInterruptRounds = 25;
+    int secondsBeforeInterrupt = 1;
+    int readfBufferSize = 4 * Constants.KB;
+    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/"),
+        ListStatusPOptions.newBuilder().setRecursive(true).build());
+    Runnable target = () -> {
+      try {
+        for (int i = 0; i < numFileReadRounds; i++) {
+          int j = 0;
+          byte[] buf = new byte[readfBufferSize];
+          for (URIStatus stat : statuses) {
+            if (stat.isFolder()) {
+              continue;
+            }
+            try (FileInStream fin = mFileSystem.openFile(new AlluxioURI(stat.getPath()))) {
+              while (fin.read(buf) != -1) {
+                // read whole file
+              }
+            }
+            j++;
+            System.out.println("finished reading " + stat.getPath() + " " + j);
+          }
+        }
+        System.out.println("finished");
+      } catch (Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        System.out.println(String.format("Thread %s got exception at %s",
+            Thread.currentThread().getName(), sw.toString()));
+      }
+    };
+    Function<Integer, List<Thread>> createThreads = (v) -> {
+      List<Thread> threads = new ArrayList<>();
+      for (int i = 0; i < numThreads; i++) {
+        threads.add(new Thread(target, String.format("aaaaaaa-interrupt-test-%d-%d", i, v)));
+      }
+      return threads;
+    };
+    List<Thread> threads;
+    for (int i = 0; i < numInterruptRounds; i++) {
+      threads = createThreads.apply(i);
+      threads.forEach(Thread::start);
+      Thread.sleep(secondsBeforeInterrupt * Constants.SECOND_MS);
+      threads.forEach(Thread::interrupt);
+      threads.forEach(t -> {
+        try {
+          t.join();
+        } catch (InterruptedException e) {
+          System.out.println("Interrupted after joining " + t.getName());
+        }
+      });
+    }
+    System.out.println("Attempting to finish reading all files");
+
+    threads = createThreads.apply(7777);
+    threads.forEach(Thread::start);
+    threads.forEach(t -> {
+      try {
+        t.join();
+      } catch (InterruptedException e) {
+        System.out.println(String.format("Thread %s interrupted: trace: %s", t.getName(),
+            e.toString()));
+      }
+    });
   }
 }
