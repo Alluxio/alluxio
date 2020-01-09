@@ -48,7 +48,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * </ul>
  */
 @ThreadSafe
-public class LocalCacheManager {
+public class LocalCacheManager implements CacheManager {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheManager.class);
 
   private final int mPageSize;
@@ -121,15 +121,7 @@ public class LocalCacheManager {
     }
   }
 
-  /**
-   * Writes a new page from a source channel with best effort.
-   *
-   * @param fileId file identifier
-   * @param pageIndex index of the page within the file
-   * @param src source channel to read this new page
-   * @throws IOException
-   * @return the number of bytes written
-   */
+  @Override
   public int put(long fileId, long pageIndex, ReadableByteChannel src) throws IOException {
     long victimFileId = 0;
     long victimPageIndex = 0;
@@ -186,28 +178,12 @@ public class LocalCacheManager {
     }
   }
 
-  /**
-   * Reads a page to the destination channel.
-   *
-   * @param fileId file identifier
-   * @param pageIndex index of the page within the file
-   * @param dst destination channel to read this new page
-   * @return the number of bytes read
-   */
+  @Override
   public int get(long fileId, long pageIndex, WritableByteChannel dst) throws IOException {
     return get(fileId, pageIndex, 0, mPageSize, dst);
   }
 
-  /**
-   * Reads a part of a page to the destination channel.
-   *
-   * @param fileId file identifier
-   * @param pageIndex index of the page within the file
-   * @param pageOffset offset into the page
-   * @param length length to read
-   * @param dst destination channel to read this new page
-   * @return the number of bytes read
-   */
+  @Override
   public int get(long fileId, long pageIndex, int pageOffset, int length, WritableByteChannel dst)
       throws IOException {
     Preconditions.checkArgument(pageOffset + length <= mPageSize,
@@ -246,14 +222,7 @@ public class LocalCacheManager {
     }
   }
 
-  /**
-   * Deletes a page from the cache.
-   *
-   * @param fileId file identifier
-   * @param pageIndex index of the page within the file
-   * @return if the page was deleted
-   * @throws IOException
-   */
+  @Override
   public boolean delete(long fileId, long pageIndex) throws IOException {
     ReadWriteLock pageLock = getPageLock(fileId, pageIndex);
     try (LockResource r = new LockResource(pageLock.writeLock())) {

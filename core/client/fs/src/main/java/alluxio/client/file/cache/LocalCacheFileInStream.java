@@ -30,7 +30,7 @@ public class LocalCacheFileInStream extends FileInStream {
   private static final long PAGE_SIZE = 1 * Constants.MB;
 
   /** Local store to store pages */
-  private final LocalCacheManager mCacheManager;
+  private final CacheManager mCacheManager;
 
   private FileInStream mExternalFileInStream;
 
@@ -51,7 +51,7 @@ public class LocalCacheFileInStream extends FileInStream {
   private final OpenFilePOptions mOpenOptions;
 
   public LocalCacheFileInStream(AlluxioURI path, OpenFilePOptions options, FileSystem delegatedFs,
-                                LocalCacheManager cacheManager) {
+                                CacheManager cacheManager) {
     mFilePath = path;
     mOpenOptions = options;
     mDelegatedFs = delegatedFs;

@@ -36,6 +36,6 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) {
     return new LocalCacheFileInStream(path, options, mDelegatedFileSystem,
-        mFsContext.getLocalCacheManager());
+        mFsContext.getCacheManager());
   }
 }
