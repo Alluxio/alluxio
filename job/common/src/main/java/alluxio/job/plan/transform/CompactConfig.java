@@ -35,6 +35,8 @@ public final class CompactConfig implements PlanConfig {
 
   private static final String NAME = "Compact";
 
+  public static final int DYNAMIC_NUM_OF_FILES = 0;
+
   private final PartitionInfo mPartitionInfo;
   /**
    * Files directly under this directory are compacted.

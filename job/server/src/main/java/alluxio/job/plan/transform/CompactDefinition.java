@@ -30,6 +30,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.Closer;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +71,23 @@ public final class CompactDefinition
         || status.getName().endsWith(CRC_FILENAME_SUFFIX);
   }
 
+  private static int calcNumOfFiles(int numOfSourceFiles, long averageSize) {
+    long ret = numOfSourceFiles;
+    if (averageSize < FileUtils.ONE_GB) {
+      ret = numOfSourceFiles * averageSize / FileUtils.ONE_GB;
+    }
+    if (ret > 100) {
+      ret = 100;
+    }
+    if (numOfSourceFiles * averageSize / ret > FileUtils.ONE_GB * 10) {
+      ret = numOfSourceFiles * averageSize / (FileUtils.ONE_GB * 10);
+    }
+    if (ret >= numOfSourceFiles) {
+      return numOfSourceFiles;
+    }
+    return (int)ret;
+  }
+
   @Override
   public Set<Pair<WorkerInfo, ArrayList<CompactTask>>> selectExecutors(CompactConfig config,
       List<WorkerInfo> jobWorkers, SelectExecutorsContext context) throws Exception {
@@ -78,13 +96,19 @@ public final class CompactDefinition
     AlluxioURI outputDir = new AlluxioURI(config.getOutput());
 
     List<URIStatus> files = Lists.newArrayList();
+    long sum = 0;
     for (URIStatus status : context.getFileSystem().listStatus(inputDir)) {
       if (!shouldIgnore(status)) {
         files.add(status);
+        sum += status.getLength();
       }
     }
     Map<WorkerInfo, ArrayList<CompactTask>> assignments = Maps.newHashMap();
-    int groupSize = Math.max(1, (files.size() + 1) / config.getNumFiles());
+    int numOfFiles = config.getNumFiles();
+    if (numOfFiles == CompactConfig.DYNAMIC_NUM_OF_FILES) {
+      numOfFiles = calcNumOfFiles(files.size(), sum / files.size());
+    }
+    int groupSize = Math.max(1, (files.size() + 1) / numOfFiles);
     // Files to be compacted are grouped into different groups,
     // each group of files are compacted to one file,
     // one task is to compact one group of files,

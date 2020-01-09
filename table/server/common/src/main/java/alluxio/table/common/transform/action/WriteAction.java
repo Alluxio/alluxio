@@ -56,7 +56,7 @@ public class WriteAction implements TransformAction {
       int numFiles = options.containsKey(NUM_FILES_OPTION)
           ? Integer.parseInt(options.get(NUM_FILES_OPTION))
           : DEFAULT_NUM_FILES;
-      Preconditions.checkArgument(numFiles > 0,
+      Preconditions.checkArgument(numFiles >= 0,
           ExceptionMessage.TRANSFORM_WRITE_ACTION_INVALID_NUM_FILES);
       return new WriteAction(type, numFiles);
     }
