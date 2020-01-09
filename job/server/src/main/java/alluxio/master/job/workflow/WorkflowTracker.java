@@ -18,7 +18,6 @@ import alluxio.job.JobConfig;
 import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
-import alluxio.job.wire.TaskInfo;
 import alluxio.job.workflow.WorkflowConfig;
 import alluxio.job.workflow.WorkflowExecution;
 import alluxio.job.workflow.WorkflowExecutionRegistry;
@@ -29,7 +28,6 @@ import org.apache.commons.compress.utils.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
