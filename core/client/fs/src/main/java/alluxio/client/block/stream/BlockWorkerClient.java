@@ -12,6 +12,8 @@
 package alluxio.client.block.stream;
 
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.ClearMetricsRequest;
+import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcServerAddress;
@@ -129,6 +131,14 @@ public interface BlockWorkerClient extends Closeable {
    * @throws StatusRuntimeException if any error occurs
    */
   MoveBlockResponse moveBlock(MoveBlockRequest request);
+
+  /**
+   * Clear the worker metrics.
+   *
+   * @param request the request to clear metrics
+   * @return the response from server
+   */
+  ClearMetricsResponse clearMetrics(ClearMetricsRequest request);
 
   /**
    * Caches a block asynchronously.
