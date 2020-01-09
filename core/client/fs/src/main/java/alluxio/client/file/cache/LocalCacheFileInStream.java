@@ -25,15 +25,17 @@ import com.google.common.io.Closer;
 import net.jcip.annotations.NotThreadSafe;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
 
 @NotThreadSafe
 public class LocalCacheFileInStream extends FileInStream {
 
   /** Page size in bytes. Needs to be configurable */
-  private static final long PAGE_SIZE = 1 * Constants.MB;
+  protected static final long PAGE_SIZE = 1 * Constants.MB;
 
-  /** Local store to store pages */
-  private final LocalCacheManager mCacheManager;
+  /** Local store to store pages. */
+  private final CacheManager mCacheManager;
 
   private FileInStream mExternalFileInStream;
 
@@ -52,7 +54,7 @@ public class LocalCacheFileInStream extends FileInStream {
   private final OpenFilePOptions mOpenOptions;
 
   public LocalCacheFileInStream(URIStatus status, OpenFilePOptions options, FileSystem delegatedFs,
-      LocalCacheManager cacheManager) {
+      CacheManager cacheManager) {
     mStatus = status;
     mLength = status.getLength();
     mOpenOptions = options;
@@ -80,21 +82,30 @@ public class LocalCacheFileInStream extends FileInStream {
     int bytesRead = 0;
     // for each page, check if it is available in the cache
     while (bytesRead < len) {
+      long currentPage = mPosition / PAGE_SIZE;
       int currentPageOffset = (int) (mPosition % PAGE_SIZE);
       int bytesLeftInPage = (int) Math.min(PAGE_SIZE - currentPageOffset, len - bytesRead);
-      // TODO(calvin): Integrate with get API
-      int cacheRead = mCacheManager.get();
-      if (cacheRead == bytesLeftInPage) { // cache hit
-        bytesRead += cacheRead;
-        mPosition += cacheRead;
-      } else if (cacheRead == 0) { // cache miss
-        byte[] page = readExternalPage(mPosition);
-        // TODO(calvin): Integrate with put API
-        mCacheManager.put();
-        System.arraycopy(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
+      ReadableByteChannel cachedData = mCacheManager.get(mStatus.getFileId(), currentPage);
+      if (cachedData != null) { // cache hit
+        // wrap return byte array in a bytebuffer and set the pos/limit for the page read
+        ByteBuffer buf = ByteBuffer.wrap(b);
+        buf.position(off + bytesRead);
+        buf.limit(off + bytesRead + bytesLeftInPage);
+        // read data from cache
+        while (buf.position() != buf.limit()) {
+          if (cachedData.read(buf) == -1) {
+            break;
+          }
+        }
+        Preconditions.checkState(buf.position() == buf.limit());
+        bytesRead += bytesLeftInPage;
         mPosition += bytesLeftInPage;
-      } else {
-        throw new IOException("Invalid data cached for: " + mStatus.getPath());
+      } else { // cache miss
+        byte[] page = readExternalPage(mPosition);
+        mCacheManager.put(mStatus.getFileId(), currentPage, page);
+        System.arraycopy(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
+        bytesRead += bytesLeftInPage;
+        mPosition += bytesLeftInPage;
       }
     }
     Preconditions.checkState(bytesRead == len, "Invalid number of bytes read");
@@ -124,29 +135,8 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
-    int bytesRead = 0;
-    long currentPos = pos;
-    // for each page, check if it is available in the cache
-    while (bytesRead < len) {
-      int currentPageOffset = (int) (currentPos % PAGE_SIZE);
-      int bytesLeftInPage = (int) Math.min(PAGE_SIZE - currentPageOffset, len - bytesRead);
-      // TODO(calvin): Integrate with get API
-      int cacheRead = mCacheManager.get();
-      if (cacheRead == bytesLeftInPage) { // cache hit
-        bytesRead += cacheRead;
-        currentPos += cacheRead;
-      } else if (cacheRead == 0) { // cache miss
-        byte[] page = readExternalPage(currentPos);
-        // TODO(calvin): Integrate with put API
-        mCacheManager.put();
-        System.arraycopy(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
-        currentPos += bytesLeftInPage;
-      } else {
-        throw new IOException("Invalid data cached for: " + mStatus.getPath());
-      }
-    }
-    Preconditions.checkState(bytesRead == len, "Invalid number of bytes read");
-    return bytesRead;
+    // TODO(calvin): Implement based on read
+    return -1;
   }
 
   @Override

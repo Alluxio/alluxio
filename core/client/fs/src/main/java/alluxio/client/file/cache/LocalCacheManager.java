@@ -27,7 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  */
 @ThreadSafe
-public class LocalCacheManager {
+public class LocalCacheManager implements CacheManager {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheManager.class);
 
   private final CacheEvictor mEvictor = CacheEvictor.create();
@@ -37,47 +37,26 @@ public class LocalCacheManager {
   public LocalCacheManager() {
   }
 
-  /**
-   * Writes a new page from a source channel to the store.
-   *
-   * @param pageId page ID
-   * @param src source channel to read this new page
-   * @throws IOException
-   * @return the number of bytes written
-   */
-  int put(long pageId, ReadableByteChannel src) throws IOException {
+  @Override
+  public int put(long fileId, long pageId, byte[] page) throws IOException {
     mMetaStore.addPage(pageId);
-    mPageStore.put(pageId, src);
+    mPageStore.put(fileId, pageId, page);
     return 0;
   }
 
-  /**
-   * Gets a page from the store to the destination channel.
-   *
-   * @param pageId page ID
-   * @param dst destination channel to read this new page
-   * @return the number of bytes read
-   * @throws IOException
-   */
-  int get(long pageId, WritableByteChannel dst) throws IOException {
-    int ret = 0;
+  @Override
+  public ReadableByteChannel get(long fileId, long pageId) throws IOException {
     if (!mMetaStore.hasPage(pageId)) {
 
     }
     mEvictor.updateOnGet(pageId);
-    return 0;
+    return null;
   }
 
-  /**
-   * Deletes a page from the store.
-   *
-   * @param pageId page ID
-   * @return if the page was deleted
-   * @throws IOException
-   */
-  boolean delete(long pageId) throws IOException {
+  @Override
+  public boolean delete(long fileId, long pageId) throws IOException {
     mMetaStore.removePage(pageId);
-    mPageStore.delete(pageId);
+    mPageStore.delete(fileId, pageId);
     return false;
   }
 
