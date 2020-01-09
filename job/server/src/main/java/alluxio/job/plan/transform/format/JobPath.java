@@ -38,6 +38,7 @@ public class JobPath extends Path {
 
     final String mScheme;
     final String mAuthority;
+    final String mPath;
     final UserGroupInformation mUgi;
     final ReadType mReadType;
     final WriteType mWriteType;
@@ -46,6 +47,7 @@ public class JobPath extends Path {
       URI uri = path.toUri();
       mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
       mAuthority = uri.getAuthority() == null ? "" : uri.getScheme().toLowerCase();
+      mPath = uri.getPath() == null ? "" : uri.getPath().toLowerCase();
       mUgi = UserGroupInformation.getCurrentUser();
       mReadType = conf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT.getName(),
           InstancedConfiguration.defaults().getEnum(
@@ -57,7 +59,7 @@ public class JobPath extends Path {
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(mScheme, mAuthority, mUgi, mReadType, mWriteType);
+      return Objects.hashCode(mScheme, mAuthority, mPath, mUgi, mReadType, mWriteType);
     }
 
     @Override
@@ -74,6 +76,7 @@ public class JobPath extends Path {
       FileSystemKey that = (FileSystemKey) o;
       return Objects.equal(mScheme, that.mScheme)
           && Objects.equal(mAuthority, that.mAuthority)
+          && Objects.equal(mPath, that.mPath)
           && Objects.equal(mUgi, that.mUgi)
           && Objects.equal(mReadType, that.mReadType)
           && Objects.equal(mWriteType, that.mWriteType);

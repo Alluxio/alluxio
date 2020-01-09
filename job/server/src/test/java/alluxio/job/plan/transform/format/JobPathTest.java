@@ -52,26 +52,31 @@ public class JobPathTest {
     Configuration conf = new Configuration();
     JobPath jobPath = new JobPath("foo", "bar", "/baz");
 
-    when(FileSystem.get(eq(jobPath.toUri()), any())).thenAnswer((p) -> mock(FileSystem.class));
+    when(FileSystem.get(any(), any())).thenAnswer((p) -> mock(FileSystem.class));
 
     FileSystem fileSystem = jobPath.getFileSystem(conf);
 
     verifyStatic(times(1));
-    FileSystem.get(eq(jobPath.toUri()), any());
+    FileSystem.get(any(), any());
 
     assertEquals(fileSystem, jobPath.getFileSystem(conf));
     verifyStatic(times(1));
-    FileSystem.get(eq(jobPath.toUri()), any());
+    FileSystem.get(any(), any());
 
     conf.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT.toString(), ReadType.NO_CACHE.toString());
     FileSystem newFileSystem = jobPath.getFileSystem(conf);
     assertNotEquals(fileSystem, newFileSystem);
     verifyStatic(times(2));
-    FileSystem.get(eq(jobPath.toUri()), any());
+    FileSystem.get(any(), any());
 
     conf.set("foo", "bar");
     assertEquals(newFileSystem, jobPath.getFileSystem(conf));
     verifyStatic(times(2));
-    FileSystem.get(eq(jobPath.toUri()), any());
+    FileSystem.get(any(), any());
+
+    jobPath = new JobPath("foo", "bar", "/bar");
+    assertNotEquals(newFileSystem, jobPath.getFileSystem(conf));
+    verifyStatic(times(3));
+    FileSystem.get(any(), any());
   }
 }
