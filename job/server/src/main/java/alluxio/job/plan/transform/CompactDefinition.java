@@ -85,7 +85,7 @@ public final class CompactDefinition
     if (ret >= numOfSourceFiles) {
       return numOfSourceFiles;
     }
-    return (int)ret;
+    return (int) ret;
   }
 
   @Override

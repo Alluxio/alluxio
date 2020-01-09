@@ -167,7 +167,7 @@ public class TransformManagerTest {
   }
 
   /**
-   * This verifies what kind of definition will be used when the default definition is used
+   * This verifies what kind of definition will be used when the default definition is used.
    */
   @Test
   public void defaultJob() throws Exception {
