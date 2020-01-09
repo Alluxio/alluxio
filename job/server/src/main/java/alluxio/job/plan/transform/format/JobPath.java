@@ -45,7 +45,7 @@ public class JobPath extends Path {
     public FileSystemKey(JobPath path, Configuration conf) throws IOException {
       URI uri = path.toUri();
       mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
-      mAuthority = uri.getAuthority() == null ? "" : uri.getScheme().toLowerCase();
+      mAuthority = uri.getAuthority() == null ? "" : uri.getAuthority().toLowerCase();
       mUgi = UserGroupInformation.getCurrentUser();
       mReadType = conf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT.getName(),
           InstancedConfiguration.defaults().getEnum(
@@ -71,6 +71,7 @@ public class JobPath extends Path {
       if (!(o instanceof FileSystemKey)) {
         return false;
       }
+
       FileSystemKey that = (FileSystemKey) o;
       return Objects.equal(mScheme, that.mScheme)
           && Objects.equal(mAuthority, that.mAuthority)
