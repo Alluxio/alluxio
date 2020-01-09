@@ -121,7 +121,7 @@ $ ./bin/alluxio fsadmin metrics clear
 $ ./bin/alluxio fsadmin metrics clear --master
 # Clear metrics of specific workers
 $ ./bin/alluxio fsadmin metrics clear --workers <WORKER_HOSTNAME_1>,<WORKER_HOSTNAME_2>
-# Parallel clear metrics of an alluxio cluster with many workers
+# Clear metrics of an alluxio cluster with many workers in parallel
 $ ./bin/alluxio fsadmin metrics clear --parallelism 10
 ```
 

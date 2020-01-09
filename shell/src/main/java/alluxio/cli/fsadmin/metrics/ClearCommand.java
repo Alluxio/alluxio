@@ -108,7 +108,7 @@ public final class ClearCommand extends AbstractFsAdminCommand {
   @Override
   public int run(CommandLine cl) throws IOException {
     Option[] options = cl.getOptions();
-    // Default + only --parallelism: Clear master + workers metrics
+    // No options or only --parallelism: clear master + workers metrics
     // with --master: clear master metrics
     // with --workers <hostnames>: clear worker metrics
     boolean clearWorkers = options.length == 0 || cl.hasOption(WORKERS_OPTION_NAME)
@@ -176,6 +176,7 @@ public final class ClearCommand extends AbstractFsAdminCommand {
    *
    * @param workers the workers to clear metrics of
    * @param context FileSystemContext
+   * @param globalParallelism the global parallelism value
    * @return true if clear succeed, false otherwise
    */
   private boolean clearWorkers(List<WorkerNetAddress> workers,
@@ -212,10 +213,10 @@ public final class ClearCommand extends AbstractFsAdminCommand {
   }
 
   /**
-   * Get String value of worker address list.
+   * Get string value of worker address list.
    *
    * @param addressList the addressList to transform
-   * @return String value of worker address list
+   * @return string value of worker address list
    */
   private String addressListToString(List<WorkerNetAddress> addressList) {
     return Arrays.toString(addressList.stream()
