@@ -30,7 +30,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.DynamicResourcePool;
-import alluxio.resource.ResourcePool;
 import alluxio.security.authentication.AuthenticationUserUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NettyUtils;
