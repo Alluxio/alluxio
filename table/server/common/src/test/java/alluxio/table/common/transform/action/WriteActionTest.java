@@ -51,10 +51,21 @@ public class WriteActionTest {
   }
 
   @Test
-  public void zeroNumFiles() {
-    mException.expect(IllegalArgumentException.class);
-    mException.expectMessage(ExceptionMessage.TRANSFORM_WRITE_ACTION_INVALID_NUM_FILES.toString());
-    TransformAction.Parser.parse("write(hive).option(hive.num.files, 0)");
+  public void DynamicNumFiles() {
+    TransformAction action = TransformAction.Parser.parse("write(hive).option(hive.num.files, 0)");
+    assertEquals(WriteAction.class, action.getClass());
+    WriteAction writeAction = (WriteAction) action;
+
+    HiveLayout from = TableTestUtils.createLayout("/from");
+    HiveLayout to = TableTestUtils.createLayout("/to");
+    JobConfig job = writeAction.generateJobConfig(from, to);
+    assertEquals(CompactConfig.class, job.getClass());
+
+    CompactConfig compact = (CompactConfig) job;
+    assertEquals("hive", compact.getDatabaseType());
+    assertEquals("/from", compact.getInput());
+    assertEquals("/to", compact.getOutput());
+    assertEquals(0, compact.getNumFiles());
   }
 
   @Test
