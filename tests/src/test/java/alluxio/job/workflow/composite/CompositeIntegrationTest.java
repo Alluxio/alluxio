@@ -13,7 +13,7 @@ package alluxio.job.workflow.composite;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.job.DoNothingConfig;
+import alluxio.job.NoopPlanConfig;
 import alluxio.job.JobIntegrationTest;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.wire.JobInfo;
@@ -96,7 +96,7 @@ public class CompositeIntegrationTest extends JobIntegrationTest {
 
   @Test
   public void testCompositeDoNothing() throws Exception {
-    DoNothingConfig jobConfig = new DoNothingConfig();
+    NoopPlanConfig jobConfig = new NoopPlanConfig();
 
     long jobId = mJobMaster.run(new CompositeConfig(Lists.newArrayList(jobConfig), true));
 

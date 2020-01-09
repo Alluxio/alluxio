@@ -18,18 +18,18 @@ import com.google.common.base.MoreObjects;
 /**
  * Config for a plan that does nothing.
  */
-public class DoNothingConfig implements PlanConfig {
+public class NoopPlanConfig implements PlanConfig {
 
   public static final String NAME = "DoNothing";
 
-  public DoNothingConfig() {}
+  public NoopPlanConfig() {}
 
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
       return false;
     }
-    return obj instanceof DoNothingConfig;
+    return obj instanceof NoopPlanConfig;
   }
 
   @Override

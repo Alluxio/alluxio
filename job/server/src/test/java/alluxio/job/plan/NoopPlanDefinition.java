@@ -12,7 +12,7 @@
 package alluxio.job.plan;
 
 import alluxio.collections.Pair;
-import alluxio.job.DoNothingConfig;
+import alluxio.job.NoopPlanConfig;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
@@ -25,25 +25,25 @@ import java.util.Set;
 /**
  * This definition of a plan that does nothing.
  */
-public class DoNothingPlanDefinition
-    extends AbstractVoidPlanDefinition<DoNothingConfig, SerializableVoid> {
+public class NoopPlanDefinition
+    extends AbstractVoidPlanDefinition<NoopPlanConfig, SerializableVoid> {
 
-  public DoNothingPlanDefinition() {}
+  public NoopPlanDefinition() {}
 
   @Override
-  public Class<DoNothingConfig> getJobConfigClass() {
-    return DoNothingConfig.class;
+  public Class<NoopPlanConfig> getJobConfigClass() {
+    return NoopPlanConfig.class;
   }
 
   @Override
-  public Set<Pair<WorkerInfo, SerializableVoid>> selectExecutors(DoNothingConfig config,
-      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
+  public Set<Pair<WorkerInfo, SerializableVoid>> selectExecutors(NoopPlanConfig config,
+                                                                 List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
       throws Exception {
     return new HashSet<>();
   }
 
   @Override
-  public SerializableVoid runTask(DoNothingConfig config, SerializableVoid args,
+  public SerializableVoid runTask(NoopPlanConfig config, SerializableVoid args,
                                   RunTaskContext runTaskContext) throws Exception {
     throw new IllegalStateException("Should never get here.");
   }
