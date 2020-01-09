@@ -109,9 +109,10 @@ public final class MigrateDefinitionRunTaskTest {
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.THROUGH);
     Assert.assertArrayEquals(TEST_SOURCE_CONTENTS, mMockOutStream.toByteArray());
     if (mDeleteSource) {
-      verify(mMockFileSystem).delete(new AlluxioURI(TEST_SOURCE));
+      DeletePOptions options = DeletePOptions.newBuilder().setUnchecked(true).build();
+      verify(mMockFileSystem).delete(new AlluxioURI(TEST_SOURCE), options);
     } else {
-      verify(mMockFileSystem, never()).delete(new AlluxioURI(TEST_SOURCE));
+      verify(mMockFileSystem, never()).delete(eq(new AlluxioURI(TEST_SOURCE)), any());
     }
   }
 
@@ -177,6 +178,28 @@ public final class MigrateDefinitionRunTaskTest {
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.MUST_CACHE);
     verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
         .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build()));
+  }
+
+  /**
+   * Tests the edge case where performing an WriteType.AsyncThrough with deleteSource of a
+   * persisted file writes the move synchronously.
+   */
+  @Test
+  public void writeTypeAsyncThroughPersistedTest() throws Exception {
+    FileInfo fileInfo = new FileInfo();
+    fileInfo.setPersisted(true);
+    when(mMockFileSystem.getStatus(eq(new AlluxioURI(TEST_SOURCE))))
+        .thenReturn(new URIStatus(fileInfo));
+
+    runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.ASYNC_THROUGH);
+
+    if (mDeleteSource) {
+      verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
+          .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build()));
+    } else {
+      verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
+          .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.ASYNC_THROUGH).build()));
+    }
   }
 
   /**
