@@ -426,7 +426,9 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired file system master client resource
    */
   public CloseableResource<FileSystemMasterClient> acquireMasterClientResource() {
-    return acquireClosableClientResource(mFileSystemMasterClientPool);
+    try (ReinitBlockerResource r = blockReinit()) {
+      return acquireClosableClientResource(mFileSystemMasterClientPool);
+    }
   }
 
   /**
@@ -436,7 +438,9 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired block master client resource
    */
   public CloseableResource<BlockMasterClient> acquireBlockMasterClientResource() {
-    return acquireClosableClientResource(mBlockMasterClientPool);
+    try (ReinitBlockerResource r = blockReinit()) {
+      return acquireClosableClientResource(mBlockMasterClientPool);
+    }
   }
 
   /**
@@ -467,7 +471,7 @@ public final class FileSystemContext implements Closeable {
    * @return a {@link CloseableResource}
    */
   private <T> CloseableResource<T> acquireClosableClientResource(DynamicResourcePool<T> pool) {
-    try (ReinitBlockerResource r = blockReinit()) {
+    try {
       return new CloseableResource<T>(pool.acquire()) {
         @Override
         public void close() {
