@@ -37,7 +37,7 @@ public class NoopPlanDefinition
 
   @Override
   public Set<Pair<WorkerInfo, SerializableVoid>> selectExecutors(NoopPlanConfig config,
-                                                                 List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
+      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
       throws Exception {
     return new HashSet<>();
   }
