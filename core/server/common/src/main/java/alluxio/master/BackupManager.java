@@ -72,11 +72,11 @@ public class BackupManager {
 
   private final MasterRegistry mRegistry;
 
-  private long mBackupEntriesCount;
-  private long mRestoreEntriesCount;
-
-  private long mBackupTimeMs;
-  private long mRestoreTimeMs;
+  // Set initial values to -1 to indicate no backup or restore happened
+  private long mBackupEntriesCount = -1;
+  private long mRestoreEntriesCount = -1;
+  private long mBackupTimeMs = -1;
+  private long mRestoreTimeMs = -1;
 
   /**
    * @param registry a master registry containing the masters to backup or restore
