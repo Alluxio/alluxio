@@ -365,6 +365,8 @@ public final class MigrateDefinition
       }
     }
     if (deleteSource) {
+      // Delete the source unchecked because there is no guarantee that the source
+      // has been fulled persisted yet if the source was written using ASYNC_THROUGH
       fileSystem.delete(new AlluxioURI(source),
           DeletePOptions.newBuilder().setUnchecked(true).build());
     }
