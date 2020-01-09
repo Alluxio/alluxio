@@ -47,16 +47,10 @@ public final class FileSystemContextTest {
     Closer closer = Closer.create();
 
     // Acquire all the clients
-<<<<<<< HEAD
     FileSystemContext fsContext = FileSystemContext.create(
         ClientContext.create(mConf));
-    for (int i = 0; i < mConf.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS); i++) {
+    for (int i = 0; i < mConf.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX); i++) {
       closer.register(fsContext.acquireMasterClientResource());
-=======
-    for (int i = 0; i < Configuration
-        .getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX); i++) {
-      clients.add(FileSystemContext.get().acquireMasterClient());
->>>>>>> 082ccd3594... [ALLUXIO-3394] GC fs master client (#8263)
     }
     Thread acquireThread = new Thread(new AcquireClient(fsContext));
     acquireThread.start();

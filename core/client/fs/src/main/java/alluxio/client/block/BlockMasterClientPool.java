@@ -11,28 +11,17 @@
 
 package alluxio.client.block;
 
-<<<<<<< HEAD
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
-=======
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.master.MasterClientConfig;
-import alluxio.master.MasterInquireClient;
 import alluxio.resource.DynamicResourcePool;
->>>>>>> 082ccd3594... [ALLUXIO-3394] GC fs master client (#8263)
 import alluxio.resource.ResourcePool;
 import alluxio.util.ThreadFactoryUtils;
 
-import sun.misc.GC;
-
 import java.io.IOException;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.Subject;
 
 /**
  * Class for managing block master clients. After obtaining a client with
@@ -40,16 +29,9 @@ import javax.security.auth.Subject;
  * thread is done using the client.
  */
 @ThreadSafe
-<<<<<<< HEAD
-public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
-  private final MasterClientContext mMasterContext;
-  private final Queue<BlockMasterClient> mClientList;
-=======
 public final class BlockMasterClientPool extends DynamicResourcePool<BlockMasterClient> {
+  private final MasterClientContext mMasterContext;
   private final long mGcThresholdMs;
-  private final MasterInquireClient mMasterInquireClient;
-  private final Subject mSubject;
->>>>>>> 082ccd3594... [ALLUXIO-3394] GC fs master client (#8263)
 
   private static final int BLOCK_MASTER_CLIENT_POOL_GC_THREADPOOL_SIZE = 1;
   private static final ScheduledExecutorService GC_EXECUTOR =
@@ -61,33 +43,22 @@ public final class BlockMasterClientPool extends DynamicResourcePool<BlockMaster
    *
    * @param ctx the information required for connecting to Alluxio
    */
-<<<<<<< HEAD
   public BlockMasterClientPool(MasterClientContext ctx) {
-    super(ctx.getClusterConf().getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS));
-    mClientList = new ConcurrentLinkedQueue<>();
-    mMasterContext = ctx;
-=======
-  public BlockMasterClientPool(Subject subject, MasterInquireClient masterInquireClient) {
     super(Options.defaultOptions()
-        .setMinCapacity(Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN))
-        .setMaxCapacity(Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX))
+        .setMinCapacity(ctx.getClusterConf()
+            .getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN))
+        .setMaxCapacity(ctx.getClusterConf()
+            .getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX))
         .setGcIntervalMs(
-            Configuration.getMs(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS))
+            ctx.getClusterConf().getMs(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS))
         .setGcExecutor(GC_EXECUTOR));
+    mMasterContext = ctx;
     mGcThresholdMs =
-        Configuration.getMs(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS);
-    mSubject = subject;
-    mMasterInquireClient = masterInquireClient;
->>>>>>> 082ccd3594... [ALLUXIO-3394] GC fs master client (#8263)
+        ctx.getClusterConf().getMs(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS);
   }
 
   @Override
   protected void closeResource(BlockMasterClient client) {
-    closeResourceSync(client);
-  }
-
-  @Override
-  public void closeResourceSync(BlockMasterClient client) {
     try {
       client.close();
     } catch (IOException e) {
@@ -97,14 +68,7 @@ public final class BlockMasterClientPool extends DynamicResourcePool<BlockMaster
 
   @Override
   protected BlockMasterClient createNewResource() {
-<<<<<<< HEAD
-    BlockMasterClient client = BlockMasterClient.Factory.create(mMasterContext);
-    mClientList.add(client);
-=======
-    BlockMasterClient client = BlockMasterClient.Factory.create(MasterClientConfig.defaults()
-        .withSubject(mSubject).withMasterInquireClient(mMasterInquireClient));
->>>>>>> 082ccd3594... [ALLUXIO-3394] GC fs master client (#8263)
-    return client;
+    return BlockMasterClient.Factory.create(mMasterContext);
   }
 
   @Override
