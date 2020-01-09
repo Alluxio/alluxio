@@ -142,12 +142,14 @@ public final class ClearCommand extends AbstractFsAdminCommand {
             return -1;
           }
           if (!clearWorkers(workersToClear, context, globalParallelism)) {
-            System.out.printf("Failed to clear metrics of workers %s%n", addressListToString(workersToClear));
+            System.out.printf("Failed to clear metrics of workers %s%n",
+                addressListToString(workersToClear));
             return -1;
           }
         } else {
           if (!clearWorkers(addressList, context, globalParallelism)) {
-            System.out.printf("Failed to clear metrics of workers %s%n", addressListToString(addressList));
+            System.out.printf("Failed to clear metrics of workers %s%n",
+                addressListToString(addressList));
             return -1;
           }
         }
