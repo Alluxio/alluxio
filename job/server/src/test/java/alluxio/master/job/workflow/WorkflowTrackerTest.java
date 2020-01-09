@@ -23,7 +23,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
