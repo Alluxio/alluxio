@@ -18,6 +18,7 @@ import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
+import alluxio.client.file.cache.LocalCacheManager;
 import alluxio.client.metrics.MetricsHeartbeatContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -85,6 +86,11 @@ import javax.security.auth.Subject;
 @ThreadSafe
 public final class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
+
+  /**
+   * The local cache manager for the file system.
+   */
+  private static volatile LocalCacheManager sLocalCacheManager;
 
   /**
    * Unique ID for each FileSystemContext.
@@ -582,6 +588,17 @@ public final class FileSystemContext implements Closeable {
     }
 
     return localWorkerNetAddresses.isEmpty() ? workerNetAddresses : localWorkerNetAddresses;
+  }
+
+  public LocalCacheManager getLocalCacheManager() {
+    if (sLocalCacheManager == null) {
+      synchronized (this) {
+        if (sLocalCacheManager == null) {
+          sLocalCacheManager = new LocalCacheManager(this);
+        }
+      }
+    }
+    return sLocalCacheManager;
   }
 
   /**

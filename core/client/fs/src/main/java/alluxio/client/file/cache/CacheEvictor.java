@@ -44,7 +44,15 @@ public interface CacheEvictor {
   void updateOnPut(long fileId, long pageIndex);
 
   /**
-   * Evicts a page.
+   * Updates evictor after a delete operation.
+   *
+   * @param fileId ID of the file
+   * @param pageIndex index of the page within the file
+   */
+  void updateOnDelete(long fileId, long pageIndex);
+
+  /**
+   * Find a page to evict.
    *
    * @return a pair of long values representing (fileId, pageIndex)
    */

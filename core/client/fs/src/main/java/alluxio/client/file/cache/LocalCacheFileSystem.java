@@ -22,8 +22,6 @@ import alluxio.grpc.OpenFilePOptions;
  * A FileSystem implementation with a local cache.
  */
 public class LocalCacheFileSystem extends DelegatingFileSystem {
-
-  private final LocalCacheManager mLocalCacheManager;
   private final FileSystemContext mFsContext;
 
   /**
@@ -33,12 +31,11 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
   public LocalCacheFileSystem(FileSystem fs, FileSystemContext fsContext) {
     super(fs);
     mFsContext = fsContext;
-    // needs to be moved outside FileSystem constructor
-    mLocalCacheManager = new LocalCacheManager(mFsContext);
   }
 
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) {
-    return new LocalCacheFileInStream(path, options, mDelegatedFileSystem, mLocalCacheManager);
+    return new LocalCacheFileInStream(path, options, mDelegatedFileSystem,
+        mFsContext.getLocalCacheManager());
   }
 }

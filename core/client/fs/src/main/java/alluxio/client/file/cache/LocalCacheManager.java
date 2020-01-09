@@ -153,8 +153,10 @@ public class LocalCacheManager {
       }
       if (alreadyCached) {
         mPageStore.delete(fileId, pageIndex);
+        mEvictor.updateOnPut(fileId, pageIndex);
         return mPageStore.put(fileId, pageIndex, src);
       } else if (!needEvict) {
+        mEvictor.updateOnPut(fileId, pageIndex);
         return mPageStore.put(fileId, pageIndex, src);
       }
     }
@@ -175,7 +177,9 @@ public class LocalCacheManager {
           return 0;
         }
         mMetaStore.removePage(victimFileId, victimPageIndex);
+        mEvictor.updateOnDelete(victimFileId, victimPageIndex);
         mMetaStore.addPage(fileId, pageIndex);
+        mEvictor.updateOnPut(fileId, pageIndex);
       }
       mPageStore.delete(victimFileId, victimPageIndex);
       return mPageStore.put(fileId, pageIndex, src);
