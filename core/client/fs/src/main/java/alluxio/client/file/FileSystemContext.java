@@ -404,21 +404,6 @@ public final class FileSystemContext implements Closeable {
     return mUriValidationEnabled;
   }
 
-  private FileSystemMasterClient acquireMasterClient() throws IOException {
-    try (ReinitBlockerResource r = blockReinit()) {
-      return mFileSystemMasterClientPool.acquire();
-    }
-  }
-
-  private void releaseMasterClient(FileSystemMasterClient client) {
-    try (ReinitBlockerResource r = blockReinit()) {
-      if (!client.isClosed()) {
-        // The client might have been closed during reinitialization.
-        mFileSystemMasterClientPool.release(client);
-      }
-    }
-  }
-
   /**
    * Acquires a file system master client from the file system master client pool. The resource is
    * {@code Closeable}.
