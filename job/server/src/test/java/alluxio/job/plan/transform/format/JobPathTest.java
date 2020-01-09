@@ -23,6 +23,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 import alluxio.client.ReadType;
 import alluxio.conf.PropertyKey;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -32,48 +33,45 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.IOException;
-
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystem.class, UserGroupInformation.class})
 public class JobPathTest {
 
-    @Before
-    public void before() throws Exception {
-        mockStatic(UserGroupInformation.class);
+  @Before
+  public void before() throws Exception {
+    mockStatic(UserGroupInformation.class);
 
-        when(UserGroupInformation.getCurrentUser()).thenReturn(null);
-    }
+    when(UserGroupInformation.getCurrentUser()).thenReturn(null);
+  }
 
-    @Test
-    public void testCache() throws Exception {
-        mockStatic(FileSystem.class);
+  @Test
+  public void testCache() throws Exception {
+    mockStatic(FileSystem.class);
 
-        Configuration conf = new Configuration();
-        JobPath jobPath = new JobPath("foo", "bar", "/baz");
+    Configuration conf = new Configuration();
+    JobPath jobPath = new JobPath("foo", "bar", "/baz");
 
-        FileSystem mockFileSystem = mock(FileSystem.class);
+    FileSystem mockFileSystem = mock(FileSystem.class);
 
-        when(FileSystem.get(eq(jobPath.toUri()), any())).thenReturn(mockFileSystem);
+    when(FileSystem.get(eq(jobPath.toUri()), any())).thenReturn(mockFileSystem);
 
-        assertEquals(mockFileSystem, jobPath.getFileSystem(conf));
+    assertEquals(mockFileSystem, jobPath.getFileSystem(conf));
 
-        verifyStatic(times(1));
-        FileSystem.get(eq(jobPath.toUri()), any());
+    verifyStatic(times(1));
+    FileSystem.get(eq(jobPath.toUri()), any());
 
-        assertEquals(mockFileSystem, jobPath.getFileSystem(conf));
-        verifyStatic(times(1));
-        FileSystem.get(eq(jobPath.toUri()), any());
+    assertEquals(mockFileSystem, jobPath.getFileSystem(conf));
+    verifyStatic(times(1));
+    FileSystem.get(eq(jobPath.toUri()), any());
 
-        conf.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT.toString(), ReadType.NO_CACHE.toString());
-        assertEquals(mockFileSystem, jobPath.getFileSystem(conf));
-        verifyStatic(times(2));
-        FileSystem.get(eq(jobPath.toUri()), any());
+    conf.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT.toString(), ReadType.NO_CACHE.toString());
+    assertEquals(mockFileSystem, jobPath.getFileSystem(conf));
+    verifyStatic(times(2));
+    FileSystem.get(eq(jobPath.toUri()), any());
 
-        conf.set("foo", "bar");
-        assertEquals(mockFileSystem, jobPath.getFileSystem(conf));
-        verifyStatic(times(2));
-        FileSystem.get(eq(jobPath.toUri()), any());
-    }
-
+    conf.set("foo", "bar");
+    assertEquals(mockFileSystem, jobPath.getFileSystem(conf));
+    verifyStatic(times(2));
+    FileSystem.get(eq(jobPath.toUri()), any());
+  }
 }
