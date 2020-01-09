@@ -289,7 +289,7 @@ public final class FileSystemContext implements Closeable {
    * fails, if it fails, a RuntimeException will be thrown explaining the
    * reinitialization's failure and automatically closes the resource.
    *
-   * RuntimeException is thrown because this method is called before requiring resources from the
+   * RuntimeException is thrown because this method is called before releasing resources from the
    * context, if reinitialization fails, the resources might be half closed, to prevent resource
    * leaks, we thrown RuntimeException here to force callers to fail since there is no way to
    * recover.
@@ -300,9 +300,11 @@ public final class FileSystemContext implements Closeable {
     try {
       return mReinitializer.block();
     } catch (InterruptedException e) {
+//      LOG.warn("{} interrupted exception while on blockReinit", Thread.currentThread().getName());
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     } catch (IOException e) {
+//      LOG.warn("{} io exception while on blockReinit", Thread.currentThread().getName());
       throw new RuntimeException(e);
     }
   }
@@ -402,18 +404,35 @@ public final class FileSystemContext implements Closeable {
     return mUriValidationEnabled;
   }
 
-  private FileSystemMasterClient acquireMasterClient() throws IOException {
-    try (ReinitBlockerResource r = blockReinit()) {
-      return mFileSystemMasterClientPool.acquire();
-    }
-  }
-
   private void releaseMasterClient(FileSystemMasterClient client) {
+    LOG.info("{} - before reinit - release - FSMasterClient",
+        Thread.currentThread().getName());
     try (ReinitBlockerResource r = blockReinit()) {
+      LOG.info("{} - after reinit - release - FSMasterClient",
+          Thread.currentThread().getName());
       if (!client.isClosed()) {
         // The client might have been closed during reinitialization.
         mFileSystemMasterClientPool.release(client);
+        LOG.info("{} - finished - release - FSMasterClient",
+            Thread.currentThread().getName());
       }
+    } catch (RuntimeException e) {
+      // Thread might have been interrupted - because we don't know if the pool was
+      // re-initialized, close the client and it will be removed/GCed anyways. If the original
+      // pool was never closed the overhead is simply creating+opening a new client.
+      // At worst, if it was already re-initialized then the pool won't contain a key for the
+      // client we're releasing and the IllegalArgumentException can be suppressed.
+      try {
+        client.close();
+      } catch (IOException ex) {
+        e.addSuppressed(ex);
+      }
+      try {
+        mFileSystemMasterClientPool.release(client);
+      } catch (IllegalArgumentException ex) {
+        e.addSuppressed(ex);
+      }
+      throw e;
     }
   }
 
@@ -425,29 +444,49 @@ public final class FileSystemContext implements Closeable {
    */
   public CloseableResource<FileSystemMasterClient> acquireMasterClientResource() {
     try {
-      return new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClientPool.acquire()) {
+      CloseableResource<FileSystemMasterClient> r =
+          new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClientPool.acquire()) {
         @Override
         public void close() {
           releaseMasterClient(get());
         }
       };
+      LOG.info("{} - before - acquire - FSMasterClient", Thread.currentThread().getName());
+      return r;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private BlockMasterClient acquireBlockMasterClient() throws IOException {
-    try (ReinitBlockerResource r = blockReinit()) {
-      return mBlockMasterClientPool.acquire();
-    }
-  }
-
   private void releaseBlockMasterClient(BlockMasterClient client) {
+    LOG.info("{} - before reinit - release - BlockMasterClient",
+        Thread.currentThread().getName());
     try (ReinitBlockerResource r = blockReinit()) {
+      LOG.info("{} - after reinit - release - BlockMasterClient",
+          Thread.currentThread().getName());
       if (!client.isClosed()) {
         // The client might have been closed during reinitialization.
         mBlockMasterClientPool.release(client);
+        LOG.info("{} - finished - release - BlockMasterClient",
+            Thread.currentThread().getName());
       }
+    } catch (RuntimeException e) {
+      // Thread might have been interrupted - because we don't know if the pool was
+      // re-initialized, close the client and it will be removed/GCed anyways. If the original
+      // pool was never closed the overhead is simply creating+opening a new client.
+      // At worst, if it was already re-initialized then the pool won't contain a key for the
+      // client we're releasing and the IllegalArgumentException can be suppressed.
+      try {
+        client.close();
+      } catch (IOException ex) {
+        e.addSuppressed(ex);
+      }
+      try {
+        mBlockMasterClientPool.release(client);
+      } catch (IllegalArgumentException ex) {
+        e.addSuppressed(ex);
+      }
+      throw e;
     }
   }
 
@@ -459,12 +498,15 @@ public final class FileSystemContext implements Closeable {
    */
   public CloseableResource<BlockMasterClient> acquireBlockMasterClientResource() {
     try {
-      return new CloseableResource<BlockMasterClient>(mBlockMasterClientPool.acquire()) {
+      CloseableResource<BlockMasterClient> r =
+          new CloseableResource<BlockMasterClient>(mBlockMasterClientPool.acquire()) {
         @Override
         public void close() {
           releaseBlockMasterClient(get());
         }
       };
+      LOG.info("{} - before - acquire - BlockMasterClient", Thread.currentThread().getName());
+      return r;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
