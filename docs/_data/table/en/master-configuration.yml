@@ -92,6 +92,8 @@ alluxio.master.lock.pool.low.watermark:
   'Low watermark of lock pool size. When the size grows over the high watermark, a background thread will try to evict unused locks until the size reaches the low watermark.'
 alluxio.master.log.config.report.heartbeat.interval:
   'The interval for periodically logging the configuration check report.'
+alluxio.master.lost.worker.file.detection.interval:
+  'The interval between Alluxio master detections to find lost workers and files based on updates from Alluxio workers.'
 alluxio.master.metastore:
   'The type of metastore to use, either HEAP or ROCKS. The heap metastore keeps all metadata on-heap, while the rocks metastore stores some metadata on heap and some metadata on disk. The rocks metastore has the advantage of being able to support a large namespace (1 billion plus files) without needing a massive heap size.'
 alluxio.master.metastore.dir:
@@ -110,6 +112,8 @@ alluxio.master.metastore.inode.inherit.owner.and.group:
   'Whether to inherit the owner/group from the parent when creating a new inode path if empty'
 alluxio.master.metastore.inode.iteration.crawler.count:
   'The number of threads used during inode tree enumeration.'
+alluxio.master.metrics.service.threads:
+  'The number of threads in executor pool for parallel processing metrics submitted by workers or clients'
 alluxio.master.metrics.time.series.interval:
   'Interval for which the master records metrics information. This affects the granularity of the metrics graphed in the UI.'
 alluxio.master.mount.table.root.alluxio:
@@ -204,7 +208,5 @@ alluxio.master.whitelist:
   'A comma-separated list of prefixes of the paths which are cacheable, separated by semi-colons. Alluxio will try to cache the cacheable file when it is read for the first time.'
 alluxio.master.worker.connect.wait.time:
   'Alluxio master will wait a period of time after start up for all workers to register, before it starts accepting client requests. This property determines the wait time.'
-alluxio.master.worker.heartbeat.interval:
-  'The interval between Alluxio master and worker heartbeats.'
 alluxio.master.worker.timeout:
   'Timeout between master and worker indicating a lost worker.'

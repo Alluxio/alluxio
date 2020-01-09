@@ -258,6 +258,8 @@ alluxio.zookeeper.job.election.path:
   'N/A'
 alluxio.zookeeper.job.leader.path:
   'N/A'
+alluxio.zookeeper.leader.connection.error.policy:
+  'Connection error policy defines how errors on zookeeper connections to be treated in leader election. STANDARD policy treats every connection event as failure.SESSION policy relies on zookeeper sessions for judging failures, helping leader to retain its status, as long as its session is protected.'
 alluxio.zookeeper.leader.inquiry.retry:
   'The number of retries to inquire leader from ZooKeeper.'
 alluxio.zookeeper.leader.path:

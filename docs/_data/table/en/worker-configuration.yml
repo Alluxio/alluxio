@@ -3,7 +3,7 @@ alluxio.worker.allocator.class:
 alluxio.worker.bind.host:
   'The hostname Alluxio''s worker node binds to.'
 alluxio.worker.block.heartbeat.interval:
-  'The interval between block workers'' heartbeats.'
+  'The interval between block workers'' heartbeats to update block status, storage health and other workers'' information to Alluxio Master.'
 alluxio.worker.block.heartbeat.timeout:
   'The timeout value of block workers'' heartbeats. If the worker can''t connect to master before this interval expires, the worker will exit.'
 alluxio.worker.block.master.client.pool.size:

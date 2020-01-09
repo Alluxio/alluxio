@@ -2,8 +2,14 @@ alluxio.user.app.id:
   'The custom id to use for labeling this client''s info, such as metrics. If unset, a random long will be used. This value is displayed in the client logs on initialization. Note that using the same app id will cause client info to be aggregated, so different applications must set their own ids or leave this value unset to use a randomly generated id.'
 alluxio.user.block.avoid.eviction.policy.reserved.size.bytes:
   'The portion of space reserved in a worker when using the LocalFirstAvoidEvictionPolicy class as block location policy.'
-alluxio.user.block.master.client.threads:
-  'The number of threads used by a block master client pool to talk to the block master.'
+alluxio.user.block.master.client.pool.gc.interval:
+  'The interval at which block master client GC checks occur.'
+alluxio.user.block.master.client.pool.gc.threshold:
+  'A block master client is closed if it has been idle for more than this threshold.'
+alluxio.user.block.master.client.pool.size.max:
+  'The maximum number of block master clients cached in the block master client pool.'
+alluxio.user.block.master.client.pool.size.min:
+  'The minimum number of block master clients cached in the block master client pool. For long running processes, this should be set to zero.'
 alluxio.user.block.remote.read.buffer.size.bytes:
   'The size of the file buffer to read data from remote Alluxio worker.'
 alluxio.user.block.size.bytes.default:
@@ -32,8 +38,14 @@ alluxio.user.file.create.ttl.action:
   'When file''s ttl is expired, the action performs on it. Options: DELETE (default) or FREE'
 alluxio.user.file.delete.unchecked:
   'Whether to check if the UFS contents are in sync with Alluxio before attempting to delete persisted directories recursively.'
-alluxio.user.file.master.client.threads:
+alluxio.user.file.master.client.pool.gc.interval:
+  'The interval at which file system master client GC checks occur.'
+alluxio.user.file.master.client.pool.gc.threshold:
   'The number of threads used by a file master client to talk to the file master.'
+alluxio.user.file.master.client.pool.size.max:
+  'The maximum number of fs master clients cached in the fs master client pool.'
+alluxio.user.file.master.client.pool.size.min:
+  'The minimum number of fs master clients cached in the fs master client pool. For long running processes, this should be set to zero.'
 alluxio.user.file.metadata.load.type:
   'The behavior of loading metadata from UFS. When information about a path is requested and the path does not exist in Alluxio, metadata can be loaded from the UFS. Valid options are `ALWAYS`, `NEVER`, and `ONCE`. `ALWAYS` will always access UFS to see if the path exists in the UFS. `NEVER` will never consult the UFS. `ONCE` will access the UFS the &quot;first&quot; time (according to a cache), but not after that. This parameter is ignored if a metadata sync is performed, via the parameter &quot;alluxio.user.file.metadata.sync.interval&quot;'
 alluxio.user.file.metadata.sync.interval:
@@ -68,6 +80,12 @@ alluxio.user.local.writer.chunk.size.bytes:
   'When a client writes to a local worker, the maximum data chunk size.'
 alluxio.user.logs.dir:
   'The path to store logs of Alluxio shell. To change its value, one can  set environment variable $ALLUXIO_USER_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.user.logs.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+alluxio.user.metadata.cache.enabled:
+  'If this is enabled, metadata of paths will be cached. The cached metadata will be evicted when it expires after alluxio.user.metadata.cache.expiration.time or the cache size is over the limit of alluxio.user.metadata.cache.max.size.'
+alluxio.user.metadata.cache.expiration.time:
+  'Metadata will expire and be evicted after being cached for this time period.'
+alluxio.user.metadata.cache.max.size:
+  'Maximum number of paths with cached metadata.'
 alluxio.user.metrics.collection.enabled:
   'Enable collecting the client-side metrics and heartbeat them to master'
 alluxio.user.metrics.heartbeat.interval:
