@@ -15,6 +15,7 @@ import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
+import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
@@ -28,6 +29,7 @@ import org.apache.commons.compress.utils.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -185,7 +187,7 @@ public class WorkflowTracker {
     }
   }
 
-  private synchronized void done(long jobId) throws ResourceExhaustedException {
+  private synchronized void done(long jobId) {
     Long parentJobId = mParentWorkflow.get(jobId);
 
     if (parentJobId == null) {
@@ -216,7 +218,7 @@ public class WorkflowTracker {
     return;
   }
 
-  private synchronized void next(long jobId) throws ResourceExhaustedException {
+  private synchronized void next(long jobId) {
     WorkflowExecution workflowExecution = mWorkflows.get(jobId);
 
     Set<JobConfig> childJobConfigs = workflowExecution.next();
@@ -248,10 +250,7 @@ public class WorkflowTracker {
       JobConfig childJobConfig = childJobConfigsIter.next();
       try {
         mJobMaster.run(childJobConfig, childJobId);
-        // typically all job updates happen through a workerHeartbeat, however,
-        // there are cases when jobs fail/succeed immediately
-        checkJobState(childJobId);
-      } catch (JobDoesNotExistException e) {
+      } catch (JobDoesNotExistException | ResourceExhaustedException e) {
         LOG.warn(e.getMessage());
         stop(jobId, Status.FAILED, e.getMessage());
       }
@@ -259,32 +258,16 @@ public class WorkflowTracker {
   }
 
   /**
-   * Updates internal state of the workflows based on the updated state of the tasks.
-   * @param taskInfoList list of tasks that have been updated
-   * @throws ResourceExhaustedException if new jobs can't be scheduled
+   * Updates internal state of the workflows based on the updated state of a plan.
+   * @param planInfo info of the plan that had its status changed
+   * @throws ResourceExhaustedException
    */
-  public synchronized void workerHeartbeat(List<TaskInfo> taskInfoList)
-      throws ResourceExhaustedException {
-
-    for (TaskInfo taskInfo : taskInfoList) {
-      Long planId = taskInfo.getParentId();
-      checkJobState(planId);
-    }
-  }
-
-  private void checkJobState(Long jobId) throws ResourceExhaustedException {
-    JobInfo jobInfo;
-    try {
-      jobInfo = mJobMaster.getStatus(jobId);
-    } catch (JobDoesNotExistException e) {
-      LOG.info("Checking Job State for an unknown job. Skipping.", jobId);
-      return;
-    }
-    Status status = jobInfo.getStatus();
+  public void onPlanStatusChange(PlanInfo planInfo) {
+    Status status = planInfo.getStatus();
     if (status.equals(Status.COMPLETED)) {
-      done(jobId);
+      done(planInfo.getId());
     } else if (status.equals(Status.CANCELED) || status.equals(Status.FAILED)) {
-      stop(jobId, status, jobInfo.getErrorMessage());
+      stop(planInfo.getId(), status, planInfo.getErrorMessage());
     }
   }
 }
