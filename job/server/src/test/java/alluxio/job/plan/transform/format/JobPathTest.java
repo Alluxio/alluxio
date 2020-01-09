@@ -12,6 +12,7 @@
 package alluxio.job.plan.transform.format;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -51,26 +52,25 @@ public class JobPathTest {
     Configuration conf = new Configuration();
     JobPath jobPath = new JobPath("foo", "bar", "/baz");
 
-    FileSystem mockFileSystem = mock(FileSystem.class);
+    when(FileSystem.get(eq(jobPath.toUri()), any())).thenAnswer((p) -> mock(FileSystem.class));
 
-    when(FileSystem.get(eq(jobPath.toUri()), any())).thenReturn(mockFileSystem);
-
-    assertEquals(mockFileSystem, jobPath.getFileSystem(conf));
+    FileSystem fileSystem = jobPath.getFileSystem(conf);
 
     verifyStatic(times(1));
     FileSystem.get(eq(jobPath.toUri()), any());
 
-    assertEquals(mockFileSystem, jobPath.getFileSystem(conf));
+    assertEquals(fileSystem, jobPath.getFileSystem(conf));
     verifyStatic(times(1));
     FileSystem.get(eq(jobPath.toUri()), any());
 
     conf.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT.toString(), ReadType.NO_CACHE.toString());
-    assertEquals(mockFileSystem, jobPath.getFileSystem(conf));
+    FileSystem newFileSystem = jobPath.getFileSystem(conf);
+    assertNotEquals(fileSystem, newFileSystem);
     verifyStatic(times(2));
     FileSystem.get(eq(jobPath.toUri()), any());
 
     conf.set("foo", "bar");
-    assertEquals(mockFileSystem, jobPath.getFileSystem(conf));
+    assertEquals(newFileSystem, jobPath.getFileSystem(conf));
     verifyStatic(times(2));
     FileSystem.get(eq(jobPath.toUri()), any());
   }
