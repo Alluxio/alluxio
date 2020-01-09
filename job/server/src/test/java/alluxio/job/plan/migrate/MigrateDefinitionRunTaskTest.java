@@ -195,7 +195,7 @@ public final class MigrateDefinitionRunTaskTest {
 
     if (mDeleteSource) {
       verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
-          .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH).build()));
+          .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build()));
     } else {
       verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), Matchers
           .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.ASYNC_THROUGH).build()));

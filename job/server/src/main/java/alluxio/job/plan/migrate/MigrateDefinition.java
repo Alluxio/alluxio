@@ -343,7 +343,7 @@ public final class MigrateDefinition
     // keep the destination to be persisted by changing its write type
     if (deleteSource && writeType.equals(WritePType.ASYNC_THROUGH)) {
       if (fileSystem.getStatus(new AlluxioURI(source)).isPersisted()) {
-        writeType = WritePType.THROUGH;
+        writeType = WritePType.CACHE_THROUGH;
       }
     }
 
