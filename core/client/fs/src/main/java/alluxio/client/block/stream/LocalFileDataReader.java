@@ -22,6 +22,7 @@ import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
+import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
@@ -93,7 +94,7 @@ public final class LocalFileDataReader implements DataReader {
    */
   @NotThreadSafe
   public static class Factory implements DataReader.Factory {
-    private final BlockWorkerClient mBlockWorker;
+    private final CloseableResource<BlockWorkerClient> mBlockWorker;
     private final FileSystemContext mContext;
     private final WorkerNetAddress mAddress;
     private final long mBlockId;
@@ -131,7 +132,7 @@ public final class LocalFileDataReader implements DataReader {
 
       mBlockWorker = context.acquireBlockWorkerClient(address);
       try {
-        mStream = new GrpcBlockingStream<>(mBlockWorker::openLocalBlock, mReadBufferSize,
+        mStream = new GrpcBlockingStream<>(mBlockWorker.get()::openLocalBlock, mReadBufferSize,
             MoreObjects.toStringHelper(LocalFileDataReader.class)
                 .add("request", request)
                 .add("address", address)
@@ -141,7 +142,7 @@ public final class LocalFileDataReader implements DataReader {
         Preconditions.checkState(response.hasPath());
         mPath = response.getPath();
       } catch (Exception e) {
-        context.releaseBlockWorkerClient(address, mBlockWorker);
+        mBlockWorker.close();
         throw e;
       }
     }
@@ -174,7 +175,7 @@ public final class LocalFileDataReader implements DataReader {
         mStream.waitForComplete(mDataTimeoutMs);
       } finally {
         mClosed = true;
-        mContext.releaseBlockWorkerClient(mAddress, mBlockWorker);
+        mBlockWorker.close();
       }
     }
   }

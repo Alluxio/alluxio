@@ -476,25 +476,33 @@ public final class FileSystemContext implements Closeable {
    * @param workerNetAddress the network address of the channel
    * @return the acquired block worker
    */
-  public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
+  public CloseableResource<BlockWorkerClient> acquireBlockWorkerClient(
+      final WorkerNetAddress workerNetAddress)
       throws IOException {
     try (ReinitBlockerResource r = blockReinit()) {
-      return acquireBlockWorkerClientInternal(workerNetAddress, getClientContext().getSubject());
+      return acquireBlockWorkerClientInternal(workerNetAddress, getClientContext());
     }
   }
 
-  private BlockWorkerClient acquireBlockWorkerClientInternal(
-      final WorkerNetAddress workerNetAddress, final Subject subject) throws IOException {
-    SocketAddress address =
-        NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress, getClusterConf());
+  private CloseableResource<BlockWorkerClient> acquireBlockWorkerClientInternal(
+      final WorkerNetAddress workerNetAddress, final ClientContext context) throws IOException {
+    SocketAddress address = NetworkAddressUtils
+        .getDataPortSocketAddress(workerNetAddress, context.getClusterConf());
     GrpcServerAddress serverAddress = GrpcServerAddress.create(workerNetAddress.getHost(), address);
-    ClientPoolKey key = new ClientPoolKey(address,
-        AuthenticationUserUtils.getImpersonationUser(subject, getClusterConf()));
-    return mBlockWorkerClientPool.computeIfAbsent(key,
-        k -> new BlockWorkerClientPool(subject, serverAddress,
-            getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE),
-            getClusterConf(), mWorkerGroup))
-        .acquire();
+    ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils
+            .getImpersonationUser(context.getSubject(), context.getClusterConf()));
+    return new CloseableResource<BlockWorkerClient>(mBlockWorkerClientPool.computeIfAbsent(key,
+        k -> new BlockWorkerClientPool(context.getSubject(), serverAddress,
+            context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE),
+            context.getClusterConf(), mWorkerGroup))
+        .acquire()) {
+      // Save the reference to the original pool map.
+      ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> mPoolMap = mBlockWorkerClientPool;
+      @Override
+      public void close() {
+        releaseBlockWorkerClient(workerNetAddress, get(), context, mPoolMap);
+      }
+    };
   }
 
   /**
@@ -503,27 +511,22 @@ public final class FileSystemContext implements Closeable {
    * @param workerNetAddress the address of the channel
    * @param client the client to release
    */
-  public void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
-      BlockWorkerClient client) {
-    if (client.isShutdown()) {
-      // Client might have been shutdown during reinitialization.
-      return;
-    }
-    try (ReinitBlockerResource r = blockReinit()) {
-      SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
-          getClusterConf());
-      ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(
-          getClientContext().getSubject(), getClusterConf()));
-      if (mBlockWorkerClientPool.containsKey(key)) {
-        mBlockWorkerClientPool.get(key).release(client);
-      } else {
-        LOG.warn("No client pool for key {}, closing client instead. Context is closed: {}",
-            key, mClosed.get());
-        try {
-          client.close();
-        } catch (IOException e) {
-          LOG.warn("Error closing block worker client for key {}", key, e);
-        }
+  private static void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
+      BlockWorkerClient client, final ClientContext context, ConcurrentHashMap<ClientPoolKey,
+      BlockWorkerClientPool> poolMap) {
+    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
+        context.getClusterConf());
+    ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(
+        context.getSubject(), context.getClusterConf()));
+    if (poolMap.containsKey(key)) {
+      poolMap.get(key).release(client);
+    } else {
+      LOG.warn("No client pool for key {}, closing client instead. Context may have been closed",
+          key);
+      try {
+        client.close();
+      } catch (IOException e) {
+        LOG.warn("Error closing block worker client for key {}", key, e);
       }
     }
   }
