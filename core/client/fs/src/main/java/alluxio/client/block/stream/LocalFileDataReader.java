@@ -95,8 +95,6 @@ public final class LocalFileDataReader implements DataReader {
   @NotThreadSafe
   public static class Factory implements DataReader.Factory {
     private final CloseableResource<BlockWorkerClient> mBlockWorker;
-    private final FileSystemContext mContext;
-    private final WorkerNetAddress mAddress;
     private final long mBlockId;
     private final String mPath;
     private final long mLocalReaderChunkSize;
@@ -119,8 +117,6 @@ public final class LocalFileDataReader implements DataReader {
     public Factory(FileSystemContext context, WorkerNetAddress address, long blockId,
         long localReaderChunkSize, InStreamOptions options) throws IOException {
       AlluxioConfiguration conf = context.getClusterConf();
-      mContext = context;
-      mAddress = address;
       mBlockId = blockId;
       mLocalReaderChunkSize = localReaderChunkSize;
       mReadBufferSize = conf.getInt(PropertyKey.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES);
