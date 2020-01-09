@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin.metrics;
 
 import alluxio.cli.CommandUtils;
+import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
 import alluxio.client.block.AlluxioBlockStore;
@@ -48,6 +49,7 @@ import java.util.stream.Collectors;
 public final class ClearCommand extends AbstractFsAdminCommand {
   private static final String MASTER_OPTION_NAME = "master";
   private static final String WORKERS_OPTION_NAME = "workers";
+  private static final String PARALLELISM_OPTION_NAME = "parallelism";
   private static final int DEFAULT_PARALLELISM = 8;
 
   private static final Option MASTER_OPTION =
@@ -64,6 +66,15 @@ public final class ClearCommand extends AbstractFsAdminCommand {
           .hasArg(true)
           .desc("Clear metrics of specified workers. "
               + "Pass in the worker hostnames separated by comma")
+          .build();
+  private static final Option PARALLELISM_OPTION =
+      Option.builder()
+          .longOpt(PARALLELISM_OPTION_NAME)
+          .required(false)
+          .hasArg(true)
+          .argName("# concurrent operations")
+          .desc("Number of concurrent worker metrics clear operations, "
+              + "default: " + DEFAULT_PARALLELISM)
           .build();
 
   private final AlluxioConfiguration mAlluxioConf;
@@ -85,61 +96,66 @@ public final class ClearCommand extends AbstractFsAdminCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(MASTER_OPTION)
-        .addOption(WORKERS_OPTION);
+        .addOption(WORKERS_OPTION)
+        .addOption(PARALLELISM_OPTION);
   }
 
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsNoMoreThan(this, cl, 1);
+    CommandUtils.checkNumOfArgsNoMoreThan(this, cl, 3);
   }
 
   @Override
   public int run(CommandLine cl) throws IOException {
     Option[] options = cl.getOptions();
-    if (options.length > 1) {
-      System.out.println(getDescription());
-      System.out.println(getUsage());
-      System.out.println("Passed in too many options");
-      return -1;
-    }
-    // By default, metrics clear clears the metrics of the whole cluster
-    // If --master is passed in, clear metrics of the leading master
-    // If --workers a,b,c is passed in, clear metrics of specific workers
-    if (cl.hasOption(WORKERS_OPTION_NAME)) {
-      String workersValue = cl.getOptionValue(WORKERS_OPTION_NAME);
-      Set<String> workerSet = new HashSet<>(Arrays.asList(workersValue.split(",")));
+    // Default + only --parallelism: Clear master + workers metrics
+    // with --master: clear master metrics
+    // with --workers <hostnames>: clear worker metrics
+    boolean clearWorkers = options.length == 0 || cl.hasOption(WORKERS_OPTION_NAME)
+        || (options.length == 1 && cl.hasOption(PARALLELISM_OPTION_NAME));
+    boolean clearMaster = options.length == 0 || cl.hasOption(MASTER_OPTION_NAME)
+        || (options.length == 1 && cl.hasOption(PARALLELISM_OPTION_NAME));
 
+    // Clear worker metrics
+    if (clearWorkers) {
+      int globalParallelism = FileSystemShellUtils
+          .getIntArg(cl, PARALLELISM_OPTION, DEFAULT_PARALLELISM);
       try (FileSystemContext context = FileSystemContext.create(mAlluxioConf)) {
         AlluxioBlockStore store = AlluxioBlockStore.create(FileSystemContext.create(mAlluxioConf));
         List<WorkerNetAddress> addressList = store.getEligibleWorkers().stream()
             .map(BlockWorkerInfo::getNetAddress).collect(Collectors.toList());
-        List<WorkerNetAddress> workersToClear = new ArrayList<>();
-        for (WorkerNetAddress worker : addressList) {
-          if (workerSet.contains(worker.getHost())) {
-            workersToClear.add(worker);
-            workerSet.remove(worker.getHost());
+
+        if (cl.hasOption(WORKERS_OPTION_NAME)) {
+          String workersValue = cl.getOptionValue(WORKERS_OPTION_NAME);
+          Set<String> workersRequired = new HashSet<>(Arrays.asList(workersValue.split(",")));
+          List<WorkerNetAddress> workersToClear = new ArrayList<>();
+          for (WorkerNetAddress worker : addressList) {
+            if (workersRequired.contains(worker.getHost())) {
+              workersToClear.add(worker);
+              workersRequired.remove(worker.getHost());
+            }
+          }
+          if (workersRequired.size() != 0) {
+            System.out.printf("Cannot find workers of hostnames %s%n",
+                String.join(",", workersRequired));
+            System.out.printf("Valid workers include %s%n", addressListToString(addressList));
+            return -1;
+          }
+          if (!clearWorkers(workersToClear, context, globalParallelism)) {
+            System.out.printf("Failed to clear metrics of workers %s%n", addressListToString(workersToClear));
+            return -1;
+          }
+        } else {
+          if (!clearWorkers(addressList, context, globalParallelism)) {
+            System.out.printf("Failed to clear metrics of workers %s%n", addressListToString(addressList));
+            return -1;
           }
         }
-        if (workerSet.size() != 0) {
-          System.out.printf("Cannot find workers of hostnames %s%n", String.join(",", workerSet));
-          return -1;
-        }
-        return clearWorkers(workersToClear, context) ? 0 : -1;
       }
     }
 
-    if (options.length == 0) {
-      try (FileSystemContext context = FileSystemContext.create(mAlluxioConf)) {
-        AlluxioBlockStore store = AlluxioBlockStore.create(FileSystemContext.create(mAlluxioConf));
-        List<WorkerNetAddress> addressList = store.getEligibleWorkers().stream()
-            .map(BlockWorkerInfo::getNetAddress).collect(Collectors.toList());
-        if (!clearWorkers(addressList, context)) {
-          return -1;
-        }
-      }
-    }
-
-    if (options.length == 0 || cl.hasOption(MASTER_OPTION_NAME)) {
+    // Clear master metrics
+    if (clearMaster) {
       // Clear worker metrics before master metrics since worker metrics report
       // may be flaky during metrics clearance
       try {
@@ -161,7 +177,7 @@ public final class ClearCommand extends AbstractFsAdminCommand {
    * @return true if clear succeed, false otherwise
    */
   private boolean clearWorkers(List<WorkerNetAddress> workers,
-      FileSystemContext context) throws IOException {
+      FileSystemContext context, int globalParallelism) throws IOException {
     int workerNum = workers.size();
     if (workerNum == 0) {
       System.out.println("No worker metrics to clear.");
@@ -170,7 +186,7 @@ public final class ClearCommand extends AbstractFsAdminCommand {
       clearWorkerMetrics(workers.get(0), context);
     } else {
       List<Future<Void>> futures = new ArrayList<>();
-      int parallelism = Math.min(workerNum, DEFAULT_PARALLELISM);
+      int parallelism = Math.min(workerNum, globalParallelism);
       ExecutorService service = Executors.newFixedThreadPool(parallelism,
           ThreadFactoryUtils.build("metrics-clear-cli-%d", true));
       for (WorkerNetAddress worker : workers) {
@@ -191,6 +207,17 @@ public final class ClearCommand extends AbstractFsAdminCommand {
       }
     }
     return true;
+  }
+
+  /**
+   * Get String value of worker address list.
+   *
+   * @param addressList the addressList to transform
+   * @return String value of worker address list
+   */
+  private String addressListToString(List<WorkerNetAddress> addressList) {
+    return Arrays.toString(addressList.stream()
+        .map(WorkerNetAddress::getHost).toArray(String[]::new));
   }
 
   /**
@@ -231,12 +258,14 @@ public final class ClearCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getUsage() {
-    return String.format("%s [--%s|--%s <worker_hostnames>]%n"
+    return String.format("%s [--%s] [--%s <worker_hostnames>] [--%s <#>] %n"
+            + "\t--%s: %s%n"
             + "\t--%s: %s%n"
             + "\t--%s: %s%n",
         getCommandName(), MASTER_OPTION_NAME, WORKERS_OPTION_NAME,
-        MASTER_OPTION_NAME, MASTER_OPTION.getDescription(),
-        WORKERS_OPTION_NAME, WORKERS_OPTION.getDescription());
+        PARALLELISM_OPTION_NAME, MASTER_OPTION_NAME, MASTER_OPTION.getDescription(),
+        WORKERS_OPTION_NAME, WORKERS_OPTION.getDescription(),
+        PARALLELISM_OPTION_NAME, PARALLELISM_OPTION.getDescription());
   }
 
   /**

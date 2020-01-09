@@ -110,10 +110,19 @@ and affect worker/client heartbeats with leading master.
 If `--master` option is used, all the metrics stored in Alluxio leading master will be cleared.
 If `--workers <WORKER_HOSTNAME_1>,<WORKER_HOSTNAME_2>` is used, metrics in specific workers will be cleared.
 
+If you are clearing metrics of a large Alluxio cluster with many workers, you can use the `--parallelism <#>` option to submit `#` of
+worker metrics clearance job in parallel. For example, if your cluster has 200 workers, persisting with a
+parallelism factor of 10 will clear metrics of 10 workers at a time until all metrics in 200 workers are cleared.
+
 ```console
+# Clear metrics of the whole alluxio cluster including leading master and workers
 $ ./bin/alluxio fsadmin metrics clear
+# Clear metrics of alluxio leading master
 $ ./bin/alluxio fsadmin metrics clear --master
+# Clear metrics of specific workers
 $ ./bin/alluxio fsadmin metrics clear --workers <WORKER_HOSTNAME_1>,<WORKER_HOSTNAME_2>
+# Parallel clear metrics of an alluxio cluster with many workers
+$ ./bin/alluxio fsadmin metrics clear --parallelism 10
 ```
 
 ### report
