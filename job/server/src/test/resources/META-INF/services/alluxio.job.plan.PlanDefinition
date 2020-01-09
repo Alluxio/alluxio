@@ -1,2 +1,3 @@
+alluxio.job.plan.DoNothingPlanDefinition
 alluxio.job.plan.SleepPlanDefinition
 alluxio.job.plan.TestPlanDefinition

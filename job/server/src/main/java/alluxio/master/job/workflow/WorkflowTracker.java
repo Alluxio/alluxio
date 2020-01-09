@@ -248,6 +248,9 @@ public class WorkflowTracker {
       JobConfig childJobConfig = childJobConfigsIter.next();
       try {
         mJobMaster.run(childJobConfig, childJobId);
+        // typically all job updates happen through a workerHeartbeat, however,
+        // there are cases when jobs fail/succeed immediately
+        checkJobState(childJobId);
       } catch (JobDoesNotExistException e) {
         LOG.warn(e.getMessage());
         stop(jobId, Status.FAILED, e.getMessage());
@@ -265,19 +268,23 @@ public class WorkflowTracker {
 
     for (TaskInfo taskInfo : taskInfoList) {
       Long planId = taskInfo.getParentId();
-      JobInfo jobInfo = null;
-      try {
-        jobInfo = mJobMaster.getStatus(planId);
-      } catch (JobDoesNotExistException e) {
-        LOG.info("Received heartbeat for a task with an unknown parent. Skipping", planId);
-        continue;
-      }
-      Status status = jobInfo.getStatus();
-      if (status.equals(Status.COMPLETED)) {
-        done(planId);
-      } else if (status.equals(Status.CANCELED) || status.equals(Status.FAILED)) {
-        stop(planId, status, jobInfo.getErrorMessage());
-      }
+      checkJobState(planId);
+    }
+  }
+
+  private void checkJobState(Long jobId) throws ResourceExhaustedException {
+    JobInfo jobInfo;
+    try {
+      jobInfo = mJobMaster.getStatus(jobId);
+    } catch (JobDoesNotExistException e) {
+      LOG.info("Checking Job State for an unknown job. Skipping.", jobId);
+      return;
+    }
+    Status status = jobInfo.getStatus();
+    if (status.equals(Status.COMPLETED)) {
+      done(jobId);
+    } else if (status.equals(Status.CANCELED) || status.equals(Status.FAILED)) {
+      stop(jobId, status, jobInfo.getErrorMessage());
     }
   }
 }
