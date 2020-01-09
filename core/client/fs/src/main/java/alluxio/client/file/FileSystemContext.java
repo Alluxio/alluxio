@@ -473,7 +473,7 @@ public final class FileSystemContext implements Closeable {
    * create a new one.
    *
    * @param workerNetAddress the network address of the channel
-   * @return the acquired block worker
+   * @return the acquired block worker resource
    */
   public CloseableResource<BlockWorkerClient> acquireBlockWorkerClient(
       final WorkerNetAddress workerNetAddress)
@@ -490,16 +490,17 @@ public final class FileSystemContext implements Closeable {
     GrpcServerAddress serverAddress = GrpcServerAddress.create(workerNetAddress.getHost(), address);
     ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils
             .getImpersonationUser(context.getSubject(), context.getClusterConf()));
+    final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> poolMap =
+        mBlockWorkerClientPool;
     return new CloseableResource<BlockWorkerClient>(mBlockWorkerClientPool.computeIfAbsent(key,
         k -> new BlockWorkerClientPool(context.getSubject(), serverAddress,
             context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE),
             context.getClusterConf(), mWorkerGroup))
         .acquire()) {
       // Save the reference to the original pool map.
-      ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> mPoolMap = mBlockWorkerClientPool;
       @Override
       public void close() {
-        releaseBlockWorkerClient(workerNetAddress, get(), context, mPoolMap);
+        releaseBlockWorkerClient(workerNetAddress, get(), context, poolMap);
       }
     };
   }
