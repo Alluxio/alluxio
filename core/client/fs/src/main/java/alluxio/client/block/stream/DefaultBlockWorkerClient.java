@@ -17,6 +17,8 @@ import alluxio.grpc.AsyncCacheResponse;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.ClearMetricsRequest;
+import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshallerProvider;
@@ -174,6 +176,13 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     // Default time out is 30 secs, may need to adjust this if block move takes longer
     return mRpcBlockingStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
         .moveBlock(request);
+  }
+
+  @Override
+  public ClearMetricsResponse clearMetrics(ClearMetricsRequest request) {
+    // Default time out is 30 secs, may need to adjust this if metrics clear takes longer
+    return mRpcBlockingStub.withDeadlineAfter(mDataTimeoutMs, TimeUnit.MILLISECONDS)
+        .clearMetrics(request);
   }
 
   @Override
