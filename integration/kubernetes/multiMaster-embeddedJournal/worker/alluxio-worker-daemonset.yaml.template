@@ -83,7 +83,7 @@ spec:
             name: web
           volumeMounts:
             - name: alluxio-domain
-              mountPath: /opt/domain            
+              mountPath: /opt/domain
             - mountPath: /dev/shm
               name: mem
         - name: alluxio-job-worker
@@ -119,7 +119,7 @@ spec:
             name: job-web
           volumeMounts:
             - name: alluxio-domain
-              mountPath: /opt/domain            
+              mountPath: /opt/domain
             - mountPath: /dev/shm
               name: mem
       restartPolicy: Always
@@ -127,7 +127,7 @@ spec:
         - name: alluxio-domain
           hostPath:
             path: /tmp/alluxio-domain
-            type: DirectoryOrCreate        
+            type: DirectoryOrCreate
         - name: mem
           emptyDir:
             medium: "Memory"

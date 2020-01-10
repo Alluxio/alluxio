@@ -121,18 +121,18 @@ resources:
 
 {{- define "alluxio.master.secretVolumeMounts" -}}
   {{- range $key, $val := .Values.secrets.master }}
-- name: secret-{{ $key }}-volume
-  mountPath: /secrets/{{ $val }}
-  readOnly: true
+          - name: secret-{{ $key }}-volume
+            mountPath: /secrets/{{ $val }}
+            readOnly: true
   {{- end }}
 {{- end -}}
 
 {{- define "alluxio.worker.secretVolumeMounts" -}}
   {{- range $key, $val := .Values.secrets.worker }}
-- name: secret-{{ $key }}-volume
-  mountPath: /secrets/{{ $val }}
-  readOnly: true
-  {{- end }}
+            - name: secret-{{ $key }}-volume
+              mountPath: /secrets/{{ $val }}
+              readOnly: true
+  {{- end -}}
 {{- end -}}
 
 {{- define "alluxio.worker.tieredstoreVolumeMounts" -}}
@@ -145,13 +145,13 @@ resources:
 {{- $split := split "," .mediumtype }}
           {{- range $key, $val := $split }}
             {{- if eq $type "hostPath"}}
-- mountPath:  {{ index ($path | split ",") $key }}
-  name: {{ $val | lower }}-{{ $key | replace "_" "" }}
+            - mountPath:  {{ index ($path | split ",") $key }}
+              name: {{ $val | lower }}-{{ $key | replace "_" "" }}
             {{- end}}
           {{- end}}
         {{- else}}
-- mountPath: {{ .path }}
-  name: {{ .mediumtype | replace "," "-" | lower }}
+            - mountPath: {{ .path }}
+              name: {{ .mediumtype | replace "," "-" | lower }}
         {{- end}}
       {{- end}}
     {{- end}}
@@ -160,8 +160,8 @@ resources:
 
 {{- define "alluxio.worker.otherVolumeMounts" -}}
   {{- range .Values.mounts }}
-- name: "{{ .name }}"
-  mountPath: "{{ .path }}"
+            - name: "{{ .name }}"
+              mountPath: "{{ .path }}"
   {{- end }}
 {{- end -}}
 
@@ -175,31 +175,31 @@ resources:
           {{- $path := .path }}
           {{- range $key, $val := $split }}
             {{- if eq $type "hostPath"}}
-- hostPath:
-    path: {{ index ($path | split ",") $key }}
-    type: DirectoryOrCreate
-  name: {{ $val | lower }}-{{ $key | replace "_" "" }}
+        - hostPath:
+            path: {{ index ($path | split ",") $key }}
+            type: DirectoryOrCreate
+          name: {{ $val | lower }}-{{ $key | replace "_" "" }}
             {{- else }}
-- name: {{ $val | lower }}-{{ $key | replace "_" "" }}
-  emptyDir:
-    medium: "Memory"
+        - name: {{ $val | lower }}-{{ $key | replace "_" "" }}
+          emptyDir:
+            medium: "Memory"
               {{- if .quota }}
-    sizeLimit: {{ .quota }}
+            sizeLimit: {{ .quota }}
               {{- end}}
             {{- end}}
           {{- end}}
         {{- else}}
           {{- if eq .type "hostPath"}}
-- hostPath:
-    path: {{ .path }}
-    type: DirectoryOrCreate
-  name: {{ .mediumtype | replace "," "-" | lower }}
+        - hostPath:
+            path: {{ .path }}
+            type: DirectoryOrCreate
+          name: {{ .mediumtype | replace "," "-" | lower }}
           {{- else }}
-- name: {{ .mediumtype | replace "," "-" | lower }}
-  emptyDir:
-    medium: "Memory"
+        - name: {{ .mediumtype | replace "," "-" | lower }}
+          emptyDir:
+            medium: "Memory"
             {{- if .quota }}
-    sizeLimit: {{ .quota }}
+            sizeLimit: {{ .quota }}
             {{- end}}
           {{- end}}
         {{- end}}
@@ -210,9 +210,9 @@ resources:
 
 {{- define "alluxio.worker.secretVolumes" -}}
   {{- range $key, $val := .Values.secrets.worker }}
-- name: secret-{{ $key }}-volume
-  secret:
-    secretName: {{ $key }}
-    defaultMode: 256
+        - name: secret-{{ $key }}-volume
+          secret:
+            secretName: {{ $key }}
+            defaultMode: 256
   {{- end }}
 {{- end -}}

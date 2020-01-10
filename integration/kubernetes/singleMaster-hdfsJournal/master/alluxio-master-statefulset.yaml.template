@@ -73,7 +73,7 @@ spec:
             name: web
           - containerPort: 19200
             name: embedded
-          volumeMounts:          
+          volumeMounts:
           - name: secret-alluxio-hdfs-config-volume
             mountPath: /secrets/hdfsConfig
             readOnly: true
@@ -101,7 +101,7 @@ spec:
             name: job-rpc
           - containerPort: 20002
             name: job-web
-          volumeMounts:          
+          volumeMounts:
           - name: secret-alluxio-hdfs-config-volume
             mountPath: /secrets/hdfsConfig
             readOnly: true

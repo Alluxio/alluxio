@@ -88,16 +88,16 @@ spec:
           volumeMounts:
             - name: alluxio-domain
               mountPath: /opt/domain
-            {{- if .Values.secrets }}
-              {{- if .Values.secrets.worker }}
-{{- include "alluxio.worker.secretVolumeMounts" . | indent 12 }}
-              {{- end }}
-            {{- end }}
-            {{- if .Values.tieredstore }}
-{{- include "alluxio.worker.tieredstoreVolumeMounts" . | indent 12 }}
-            {{- end }}
-            {{- if .Values.mounts }}
-{{- include "alluxio.worker.otherVolumeMounts" . | indent 12 }}
+            {{- if .Values.secrets -}}
+              {{- if .Values.secrets.worker -}}
+{{- include "alluxio.worker.secretVolumeMounts" . }}
+              {{- end -}}
+            {{- end -}}
+            {{- if .Values.tieredstore -}}
+{{- include "alluxio.worker.tieredstoreVolumeMounts" . }}
+            {{- end -}}
+            {{- if .Values.mounts -}}
+{{- include "alluxio.worker.otherVolumeMounts" . }}
             {{- end }}
         - name: alluxio-job-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
@@ -133,14 +133,14 @@ spec:
               mountPath: /opt/domain
             {{- if .Values.secrets }}
               {{- if .Values.secrets.worker }}
-{{- include "alluxio.worker.secretVolumeMounts" . | indent 12 }}
+{{- include "alluxio.worker.secretVolumeMounts" . }}
               {{- end -}}
             {{- end }}
             {{- if .Values.tieredstore }}
-{{- include "alluxio.worker.tieredstoreVolumeMounts" . | indent 12 }}
+{{- include "alluxio.worker.tieredstoreVolumeMounts" . }}
             {{- end }}
             {{- if .Values.mounts }}
-{{- include "alluxio.worker.otherVolumeMounts" . | indent 12 }}
+{{- include "alluxio.worker.otherVolumeMounts" . }}
             {{- end }}
       restartPolicy: Always
       volumes:
@@ -150,11 +150,11 @@ spec:
             type: DirectoryOrCreate
         {{- if .Values.secrets }}
           {{- if .Values.secrets.worker }}
-{{- include "alluxio.worker.secretVolumes" . | indent 8 }}
+{{- include "alluxio.worker.secretVolumes" . }}
           {{- end }}
         {{- end }}
         {{- if .Values.tieredstore }} 
-{{- include "alluxio.worker.tieredstoreVolumes" . | indent 8 }}
+{{- include "alluxio.worker.tieredstoreVolumes" . }}
         {{- end}}
         {{- if .Values.mounts }}   
           {{- range .Values.mounts }}

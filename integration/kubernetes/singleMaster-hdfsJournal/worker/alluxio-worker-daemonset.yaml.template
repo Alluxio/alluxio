@@ -83,10 +83,10 @@ spec:
             name: web
           volumeMounts:
             - name: alluxio-domain
-              mountPath: /opt/domain            
+              mountPath: /opt/domain
             - name: secret-alluxio-hdfs-config-volume
               mountPath: /secrets/hdfsConfig
-              readOnly: true            
+              readOnly: true
             - mountPath: /dev/shm
               name: mem
         - name: alluxio-job-worker
@@ -122,10 +122,10 @@ spec:
             name: job-web
           volumeMounts:
             - name: alluxio-domain
-              mountPath: /opt/domain            
+              mountPath: /opt/domain
             - name: secret-alluxio-hdfs-config-volume
               mountPath: /secrets/hdfsConfig
-              readOnly: true            
+              readOnly: true
             - mountPath: /dev/shm
               name: mem
       restartPolicy: Always
@@ -133,11 +133,11 @@ spec:
         - name: alluxio-domain
           hostPath:
             path: /tmp/alluxio-domain
-            type: DirectoryOrCreate        
+            type: DirectoryOrCreate
         - name: secret-alluxio-hdfs-config-volume
           secret:
             secretName: alluxio-hdfs-config
-            defaultMode: 256        
+            defaultMode: 256
         - name: mem
           emptyDir:
             medium: "Memory"
