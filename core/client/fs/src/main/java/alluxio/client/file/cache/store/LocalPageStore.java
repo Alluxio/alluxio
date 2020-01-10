@@ -41,8 +41,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class LocalPageStore implements PageStore, AutoCloseable {
   private static final Logger LOG = LoggerFactory.getLogger(LocalPageStore.class);
 
-  private final ResourcePool<ByteBuffer> mBuffers;
-
   private final String mRoot;
   private AtomicInteger mSize = new AtomicInteger(0);
 
@@ -53,41 +51,19 @@ public class LocalPageStore implements PageStore, AutoCloseable {
    */
   public LocalPageStore(LocalPageStoreOptions options) {
     mRoot = options.getRootDir();
-    mBuffers = new ResourcePool<ByteBuffer>(options.getBufferPoolSize()) {
-      @Override
-      public void close() {
-      }
-
-      @Override
-      protected ByteBuffer createNewResource() {
-        return ByteBuffer.wrap(new byte[options.getBufferSize()]);
-      }
-    };
   }
 
   @Override
-  public int put(long fileId, long pageIndex, ReadableByteChannel src) throws IOException {
+  public void put(long fileId, long pageIndex, byte[] page) throws IOException {
     Path p = getFilePath(fileId, pageIndex);
     if (!Files.exists(p)) {
       Files.createDirectories(p.getParent());
       Files.createFile(p);
     }
-    int written = 0;
     try (FileOutputStream fos = new FileOutputStream(p.toFile(), false)) {
-      ByteBuffer b = mBuffers.acquire();
-      b.clear();
-      try (FileChannel chan = fos.getChannel()) {
-        while (src.read(b) > 0) {
-          b.flip();
-          written += chan.write(b);
-          b.clear();
-        }
-      } finally {
-        mBuffers.release(b);
-      }
+      fos.write(page);
     }
     mSize.incrementAndGet();
-    return written;
   }
 
   @Override

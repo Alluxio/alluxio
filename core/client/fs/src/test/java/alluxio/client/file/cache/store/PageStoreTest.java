@@ -74,7 +74,7 @@ public class PageStoreTest {
 
   void helloWorldTest(PageStore store) throws Exception {
     String msg = "Hello, World!";
-    store.put(0, 0, fromString(msg));
+    store.put(0, 0, msg.getBytes());
     ByteBuffer buf = ByteBuffer.allocate(1024);
     store.get(0, 0).read(buf);
     buf.flip();
@@ -100,7 +100,7 @@ public class PageStoreTest {
     Random r = new Random();
     for (int i = 0; i < numPages; i++) {
       int pind = r.nextInt();
-      store.put(0, pind, Channels.newChannel(new ByteArrayInputStream(b)));
+      store.put(0, pind, b);
       pages.add(pind);
     }
 
@@ -120,9 +120,5 @@ public class PageStoreTest {
     }
     double avg = (double) times.stream().mapToLong(Long::longValue).sum() / numTrials;
     System.out.println(String.format("Finished thousand get for %7s : %.2fns", mOptions, avg));
-  }
-
-  static ReadableByteChannel fromString(String msg) {
-    return Channels.newChannel(new ByteArrayInputStream(msg.getBytes()));
   }
 }

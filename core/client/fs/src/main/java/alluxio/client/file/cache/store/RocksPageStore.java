@@ -41,7 +41,6 @@ public class RocksPageStore implements PageStore, AutoCloseable {
   private static final Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
 
   private final String mRoot;
-  private final ResourcePool<ByteBuffer> mBuffers;
   private final RocksDB mDb;
 
   private AtomicInteger mSize = new AtomicInteger(0);
@@ -64,34 +63,15 @@ public class RocksPageStore implements PageStore, AutoCloseable {
     } catch (RocksDBException e) {
       throw new RuntimeException("Couldn't open rocksDB database", e);
     }
-    mBuffers = new ResourcePool<ByteBuffer>(options.getMaxBufferPoolSize()) {
-      @Override
-      public void close() {
-      }
-
-      @Override
-      protected ByteBuffer createNewResource() {
-        return ByteBuffer.wrap(new byte[options.getMaxPageSize()]);
-      }
-    };
   }
 
   @Override
-  public int put(long fileId, long pageIndex, ReadableByteChannel src) throws IOException {
-    ByteBuffer buf = mBuffers.acquire();
-    buf.clear();
+  public void put(long fileId, long pageIndex, byte[] page) throws IOException {
     try {
-      int bytes = src.read(buf);
-      buf.flip();
-      byte[] arr = new byte[buf.remaining()];
-      buf.get(arr);
-      mDb.put(getPageKey(fileId, pageIndex), arr);
+      mDb.put(getPageKey(fileId, pageIndex), page);
       mSize.incrementAndGet();
-      return bytes;
     } catch (RocksDBException e) {
       throw new IOException("Failed to store page", e);
-    } finally {
-      mBuffers.release(buf);
     }
   }
 
