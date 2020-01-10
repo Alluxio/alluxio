@@ -35,6 +35,7 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
 
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) {
+    // TODO(calvin): We should add another API to reduce the cost of openFile
     return new LocalCacheFileInStream(path, options, mDelegatedFileSystem,
         mFsContext.getCacheManager());
   }

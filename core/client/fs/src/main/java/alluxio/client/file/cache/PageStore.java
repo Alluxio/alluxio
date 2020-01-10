@@ -58,11 +58,9 @@ public interface PageStore extends AutoCloseable {
    *
    * @param fileId file identifier
    * @param pageIndex index of the page within the file
-   * @param src source channel to read this new page
-   * @throws IOException
-   * @return the number of bytes written
+   * @param page page data
    */
-  int put(long fileId, long pageIndex, ReadableByteChannel src) throws IOException;
+  void put(long fileId, long pageIndex, byte[] page) throws IOException;
 
   /**
    * Gets a page from the store to the destination channel.
