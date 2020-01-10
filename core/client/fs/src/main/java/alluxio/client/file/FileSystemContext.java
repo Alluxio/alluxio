@@ -492,7 +492,7 @@ public final class FileSystemContext implements Closeable {
             .getImpersonationUser(context.getSubject(), context.getClusterConf()));
     final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> poolMap =
         mBlockWorkerClientPool;
-    return new CloseableResource<BlockWorkerClient>(mBlockWorkerClientPool.computeIfAbsent(key,
+    return new CloseableResource<BlockWorkerClient>(poolMap.computeIfAbsent(key,
         k -> new BlockWorkerClientPool(context.getSubject(), serverAddress,
             context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE),
             context.getClusterConf(), mWorkerGroup))
