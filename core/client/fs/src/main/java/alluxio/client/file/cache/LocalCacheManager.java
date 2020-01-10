@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.cache.store.PageNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +55,7 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public boolean delete(long fileId, long pageId) throws IOException {
+  public boolean delete(long fileId, long pageId) throws IOException, PageNotFoundException {
     mMetaStore.removePage(pageId);
     mPageStore.delete(fileId, pageId);
     return false;

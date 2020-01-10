@@ -42,6 +42,7 @@ public class LocalCacheFileInStream extends FileInStream {
   private final byte[] mSingleByte = new byte[1];
 
   private final Closer mCloser = Closer.create();
+
   /** The size in bytes of the file. */
   private final long mLength;
   /** Current position of the stream, relative to the start of the file. */

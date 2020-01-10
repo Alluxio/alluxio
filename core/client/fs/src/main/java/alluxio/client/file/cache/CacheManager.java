@@ -1,5 +1,7 @@
 package alluxio.client.file.cache;
 
+import alluxio.client.file.cache.store.PageNotFoundException;
+
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -32,5 +34,5 @@ interface CacheManager {
    * @param pageId page ID
    * @return if the page was deleted
    */
-  boolean delete(long fileId, long pageId) throws IOException;
+  boolean delete(long fileId, long pageId) throws IOException, PageNotFoundException;
 }

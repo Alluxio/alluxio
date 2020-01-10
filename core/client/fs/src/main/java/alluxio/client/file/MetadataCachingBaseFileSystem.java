@@ -58,7 +58,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
         .getMs(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME);
     mMetadataCache = new MetadataCache(maxSize, expirationTimeMs);
     int masterClientThreads = mFsContext.getClusterConf()
-        .getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS);
+        .getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX);
     // At a time point, there are at most the same number of concurrent master clients that
     // asynchronously update access time.
     mAccessTimeUpdater = new ThreadPoolExecutor(0, masterClientThreads, THREAD_KEEPALIVE_SECOND,

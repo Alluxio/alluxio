@@ -384,7 +384,7 @@ See the detailed
 [command line documentation]({{ '/en/operation/User-CLI.html' | relativize_url }}#setttl)
 to see how to use the `setTtl` command within the Alluxio shell to modify TTL attribute.
 
-#### Passively on load metadata or create file
+#### Passive TTL on files in Alluxio
 
 The Alluxio client can be configured to add TTL attributes whenever it adds a new file to the
 Alluxio namespace. Passive TTL is useful in cases where files accessed by the user are expected to
@@ -393,16 +393,12 @@ the same TTL attributes.
 
 Passive TTL works with the following configuration options:
 
-* `alluxio.user.file.create.ttl` - The TTL duration to set on any file newly created in Alluxio.
+* `alluxio.user.file.create.ttl` - The TTL duration to set on files in Alluxio.
 By default, no TTL duration is set.
-* `alluxio.user.file.create.ttl.action` - The TTL action to set on any file newly created
+* `alluxio.user.file.create.ttl.action` - The TTL action to set on files
 in Alluxio. By default, this action is `DELETE`.
 
-There are two pairs of options, one for `load` and one for `create`. `Load` refers to files which
-are discovered by Alluxio from the under store. `Create` refers to new files or directories created
-in Alluxio.
-
-Both options are disabled by default and should only be enabled by clients which have strict data
+TTL is disabled by default and should only be enabled by clients which have strict data
 access patterns.
 
 For example, to delete the files created by the `runTests` after 3 minutes:

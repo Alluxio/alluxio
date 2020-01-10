@@ -67,7 +67,7 @@ public class MetricsHeartbeatContext {
   private static ScheduledExecutorService sExecutorService;
 
   private final MasterInquireClient.ConnectDetails mConnectDetails;
-  private final MetricsMasterClient mMetricsMasterClient;
+  private final RetryHandlingMetricsMasterClient mMetricsMasterClient;
   private final ClientMasterSync mClientMasterSync;
   private final AlluxioConfiguration mConf;
 
@@ -79,7 +79,7 @@ public class MetricsHeartbeatContext {
     mCtxCount = 0;
     mConnectDetails = inquireClient.getConnectDetails();
     mConf = ctx.getClusterConf();
-    mMetricsMasterClient = new MetricsMasterClient(MasterClientContext
+    mMetricsMasterClient = new RetryHandlingMetricsMasterClient(MasterClientContext
         .newBuilder(ctx)
         .setMasterInquireClient(inquireClient)
         .build());
