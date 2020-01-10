@@ -53,9 +53,9 @@ public final class BlockWorkerClientCloseIntegrationTest extends BaseIntegration
       CloseableResource<BlockWorkerClient> client = mFsContext
           .acquireBlockWorkerClient(mWorkerNetAddress);
       Assert.assertFalse(client.get().isShutdown());
-      client.close();
+      client.get().close();
       Assert.assertTrue(client.get().isShutdown());
-      client.close();
+      client.get().close();
     }
   }
 }
