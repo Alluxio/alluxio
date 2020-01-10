@@ -31,6 +31,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class JobPath extends Path {
 
+  private static final String ALLUXIO_HADOOP_FILESYSTEM_DISABLE_CACHE =
+      "fs.alluxio.impl.disable.cache";
+
   private static final ConcurrentHashMap<FileSystemKey, FileSystem> CACHE =
       new ConcurrentHashMap<>();
 
@@ -93,20 +96,28 @@ public class JobPath extends Path {
 
   @Override
   public FileSystem getFileSystem(Configuration conf) throws IOException {
-    try {
-      return CACHE.computeIfAbsent(new FileSystemKey(this, conf), (key) -> {
-        try {
-          return super.getFileSystem(conf);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      });
-    } catch (RuntimeException e) {
-      Throwable cause = e.getCause();
-      if (cause instanceof IOException) {
-        throw (IOException) cause;
+    // Avoid caching at lower levels both because the key at this level has more properties and
+    // this cache wants to close the file systems that don't make it into this cache.
+    conf.setBoolean(ALLUXIO_HADOOP_FILESYSTEM_DISABLE_CACHE, true);
+
+    FileSystemKey key = new FileSystemKey(this, conf);
+    FileSystem fileSystem = CACHE.get(key);
+    if (fileSystem != null) {
+      return fileSystem;
+    }
+
+    fileSystem = super.getFileSystem(conf);
+
+    synchronized (CACHE) {
+      FileSystem oldFileSystem = CACHE.get(key);
+
+      if (oldFileSystem != null) {
+        fileSystem.close();
+        return oldFileSystem;
       }
-      throw e;
+
+      CACHE.put(key, fileSystem);
+      return fileSystem;
     }
   }
 }

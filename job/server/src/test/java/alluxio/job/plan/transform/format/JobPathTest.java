@@ -24,6 +24,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import alluxio.client.ReadType;
 import alluxio.conf.PropertyKey;
 
+import org.apache.commons.compress.utils.Lists;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -33,6 +34,13 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystem.class, UserGroupInformation.class})
 public class JobPathTest {
@@ -40,18 +48,16 @@ public class JobPathTest {
   @Before
   public void before() throws Exception {
     mockStatic(UserGroupInformation.class);
+    mockStatic(FileSystem.class);
 
     when(UserGroupInformation.getCurrentUser()).thenReturn(null);
+    when(FileSystem.get(any(), any())).thenAnswer((p) -> mock(FileSystem.class));
   }
 
   @Test
   public void testCache() throws Exception {
-    mockStatic(FileSystem.class);
-
     Configuration conf = new Configuration();
     JobPath jobPath = new JobPath("foo", "bar", "/baz");
-
-    when(FileSystem.get(any(), any())).thenAnswer((p) -> mock(FileSystem.class));
 
     FileSystem fileSystem = jobPath.getFileSystem(conf);
 
@@ -87,5 +93,53 @@ public class JobPathTest {
     assertNotEquals(newFileSystem, jobPath.getFileSystem(conf));
     verifyStatic(times(4));
     FileSystem.get(any(), any());
+  }
+
+  @Test
+  public void testMultithreadedCache() throws Exception {
+    int iterations = 5;
+
+    ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+    ConcurrentLinkedQueue<FileSystem> results = new ConcurrentLinkedQueue<>();
+
+    CountDownLatch countDownLatch = new CountDownLatch(1);
+
+    Runnable runnable = () -> {
+      try {
+        countDownLatch.await();
+      } catch (InterruptedException e) {
+        return;
+      }
+      Configuration conf = new Configuration();
+      JobPath jobPath = new JobPath("foo", "bar", "/baz");
+      try {
+        results.add(jobPath.getFileSystem(conf));
+      } catch (Exception e) {
+        // ignore since the test will fail naturally as there won't be enough items in results
+      }
+    };
+
+    ArrayList<Future> futures = Lists.newArrayList();
+
+    for (int i = 0; i < iterations; i++) {
+      futures.add(executorService.submit(runnable));
+    }
+    countDownLatch.countDown();
+
+    for (Future future : futures) {
+      future.get();
+    }
+
+    assertEquals(iterations, results.size());
+
+    FileSystem first = null;
+    for (FileSystem result : results) {
+      if (first == null) {
+        first = result;
+        continue;
+      }
+      assertEquals(first, result);
+    }
   }
 }

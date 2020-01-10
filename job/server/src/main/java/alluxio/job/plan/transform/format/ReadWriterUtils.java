@@ -26,8 +26,6 @@ import org.apache.hadoop.conf.Configuration;
  * Utilities for implementing {@link TableReader} and {@link TableWriter}.
  */
 public final class ReadWriterUtils {
-  private static final String ALLUXIO_HADOOP_FILESYSTEM_DISABLE_CACHE =
-      "fs.alluxio.impl.disable.cache";
 
   /**
    * Checks preconditions of uri.
@@ -51,7 +49,6 @@ public final class ReadWriterUtils {
     Configuration conf = new Configuration();
     conf.setEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT.getName(), ReadType.NO_CACHE);
     // The cached filesystem might not be configured with the above read type.
-    conf.setBoolean(ALLUXIO_HADOOP_FILESYSTEM_DISABLE_CACHE, true);
     return conf;
   }
 
@@ -61,8 +58,6 @@ public final class ReadWriterUtils {
   public static Configuration writeThroughConf() {
     Configuration conf = new Configuration();
     conf.setEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT.getName(), WriteType.THROUGH);
-    // The cached filesystem might not be configured with the above write type.
-    conf.setBoolean(ALLUXIO_HADOOP_FILESYSTEM_DISABLE_CACHE, true);
     return conf;
   }
 
