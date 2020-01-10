@@ -89,14 +89,12 @@ spec:
           {{- end }}
           {{- if $isHaEmbedded }}
           env:
-          - name: POD_HOSTNAME
+          - name: ALLUXIO_MASTER_HOSTNAME
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
-          - name: ALLUXIO_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=${POD_HOSTNAME} "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=${POD_HOSTNAME} "
+            value: " -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME} "
           {{- end }}
           envFrom:
           - configMapRef:
@@ -144,14 +142,12 @@ spec:
           {{- end }}
           {{- if $isHaEmbedded }}
           env:
-          - name: POD_HOSTNAME
+          - name: ALLUXIO_MASTER_HOSTNAME
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
-          - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=${POD_HOSTNAME} "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=${POD_HOSTNAME} "
+            value: " -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME} "
           {{- end }}
           envFrom:
           - configMapRef:

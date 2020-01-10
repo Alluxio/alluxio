@@ -56,7 +56,7 @@ Alluxio on Kubernetes. The volume, once claimed, is persisted across restarts of
 
 When using the [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
 an Alluxio master can also be configured to use a [persistent volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
-for storing the journal. If you are using UFS journal and use external journal location like HDFS,
+for storing the journal. If you are using UFS journal and use an external journal location like HDFS,
 the rest of this section can be skipped.
 
 There are multiple ways to create a PersistentVolume. This is an example which defines one with `hostPath`: 

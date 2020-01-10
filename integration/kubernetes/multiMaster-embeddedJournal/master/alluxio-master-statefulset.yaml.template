@@ -74,14 +74,12 @@ spec:
             - master-only
             - --no-format
           env:
-          - name: POD_HOSTNAME
+          - name: ALLUXIO_MASTER_HOSTNAME
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
-          - name: ALLUXIO_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=${POD_HOSTNAME} "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=${POD_HOSTNAME} "
+            value: " -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME} "
           envFrom:
           - configMapRef:
               name: alluxio-config
@@ -112,14 +110,12 @@ spec:
           args:
             - job-master
           env:
-          - name: POD_HOSTNAME
+          - name: ALLUXIO_MASTER_HOSTNAME
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
-          - name: ALLUXIO_JOB_MASTER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=${POD_HOSTNAME} "
           - name: ALLUXIO_USER_JAVA_OPTS
-            value: " -Dalluxio.master.hostname=${POD_HOSTNAME} "
+            value: " -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME} "
           envFrom:
           - configMapRef:
               name: alluxio-config
