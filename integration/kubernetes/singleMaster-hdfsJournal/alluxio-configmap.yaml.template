@@ -28,7 +28,7 @@ metadata:
     heritage: Tiller
 data:
   ALLUXIO_JAVA_OPTS: |-
-    -Dalluxio.master.journal.type=UFS -Dalluxio.master.journal.folder=hdfs://{$hostname}:{$hostport}/journal   -Dalluxio.master.journal.ufs.option.alluxio.underfs.hdfs.configuration=/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml  -Dalluxio.master.mount.table.root.ufs=hdfs://{$hostname}:{$hostport}/{$underFSStorage}  -Dalluxio.security.stale.channel.purge.interval=365d 
+    -Dalluxio.master.hostname=alluxio-master-0 -Dalluxio.master.journal.type=UFS -Dalluxio.master.journal.folder=hdfs://{$hostname}:{$hostport}/journal   -Dalluxio.master.journal.ufs.option.alluxio.underfs.hdfs.configuration=/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml  -Dalluxio.master.mount.table.root.ufs=hdfs://{$hostname}:{$hostport}/{$underFSStorage}  -Dalluxio.security.stale.channel.purge.interval=365d 
   ALLUXIO_MASTER_JAVA_OPTS: |-
     -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME} -Dalluxio.master.web.bind.host=0.0.0.0 
   ALLUXIO_JOB_MASTER_JAVA_OPTS: |-
@@ -39,5 +39,7 @@ data:
     -Dalluxio.job.worker.rpc.port=30001  -Dalluxio.job.worker.data.port=30002 -Dalluxio.job.worker.web.port=30003 -Dalluxio.worker.hostname=${ALLUXIO_WORKER_HOSTNAME}
   ALLUXIO_FUSE_JAVA_OPTS: |-
     -Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME} -Dalluxio.worker.hostname=${ALLUXIO_CLIENT_HOSTNAME}  -XX:MaxDirectMemorySize=2g 
+  ALLUXIO_USER_JAVA_OPTS: |-
+    -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME}
   ALLUXIO_WORKER_TIEREDSTORE_LEVEL0_DIRS_PATH: /dev/shm
 
