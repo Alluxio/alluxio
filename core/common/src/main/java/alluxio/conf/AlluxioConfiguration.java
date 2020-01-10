@@ -86,8 +86,6 @@ public interface AlluxioConfiguration {
   default String getOrDefault(PropertyKey key, String defaultValue,
       ConfigurationValueOptions options) {
     if (key.isCredential()) {
-      // TODO(jiacheng): Add ExceptionMessage
-      // TODO(jiacheng): modify the test
       throw new RuntimeException(key.toString() + " is a credential field");
     }
     return isSet(key) ? get(key, options) : defaultValue;
