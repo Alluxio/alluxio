@@ -66,10 +66,10 @@ public class LocalFileDataWriterTest {
     mAddress = mock(WorkerNetAddress.class);
 
     mClient = mock(BlockWorkerClient.class);
-    PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(mClient);
+    PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(
+        new NoopClosableResource<>(mClient));
     PowerMockito.when(mContext.getClientContext()).thenReturn(mClientContext);
     PowerMockito.when(mContext.getClusterConf()).thenReturn(mConf);
-    PowerMockito.doNothing().when(mContext).releaseBlockWorkerClient(mAddress, mClient);
 
     mStream = mock(GrpcBlockingStream.class);
     PowerMockito.doNothing().when(mStream).send(Matchers.any(), Matchers.anyLong());
