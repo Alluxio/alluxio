@@ -48,9 +48,7 @@ public class MetaStore {
    *
    * @param fileId file identifier
    * @param pageIndex index of the page within the file
-   * @return true if removed successfully
    */
-  boolean removePage(long fileId, long pageIndex) {
-    return true;
+  void removePage(long fileId, long pageIndex) throws PageNotFoundException {
   }
 }
