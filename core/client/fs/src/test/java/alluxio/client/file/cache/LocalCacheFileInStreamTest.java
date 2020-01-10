@@ -43,6 +43,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -128,10 +129,9 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public int put(long fileId, long pageId, byte[] page) throws IOException {
+    public void put(long fileId, long pageId, byte[] page) throws IOException {
       mPages.put(new Pair<>(fileId, pageId), page);
       mPagesCached++;
-      return page.length;
     }
 
     @Override
@@ -145,9 +145,19 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public boolean delete(long fileId, long pageId) throws IOException {
+    public ReadableByteChannel get(long fileId, long pageIndex, int pageOffset, int length) {
+      Pair<Long, Long> key = new Pair<>(fileId, pageIndex);
+      if (!mPages.containsKey(key)) {
+        return null;
+      }
+      mPagesServed++;
+      return Channels.newChannel(new ByteArrayInputStream(
+          Arrays.copyOfRange(mPages.get(key), pageOffset, pageOffset + length)));
+    }
+
+    @Override
+    public void delete(long fileId, long pageId) throws IOException {
       mPages.remove(new Pair<>(fileId, pageId));
-      return true;
     }
   }
 

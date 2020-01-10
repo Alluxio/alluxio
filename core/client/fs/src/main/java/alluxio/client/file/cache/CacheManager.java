@@ -34,21 +34,22 @@ public interface CacheManager {
    *
    * @param fileId file identifier
    * @param pageIndex index of the page within the file
-   * @param src source channel to read this new page
+   * @param page page data
    * @throws IOException
    * @return the number of bytes written
    */
-  int put(long fileId, long pageIndex, ReadableByteChannel src) throws IOException;
+  void put(long fileId, long pageIndex, byte[] page) throws IOException;
 
   /**
    * Reads a page to the destination channel.
    *
    * @param fileId file identifier
    * @param pageIndex index of the page within the file
-   * @param dst destination channel to read this new page
+   * @throws PageNotFoundException if page is not found in the store
    * @return the number of bytes read
    */
-  int get(long fileId, long pageIndex, WritableByteChannel dst) throws IOException;
+  ReadableByteChannel get(long fileId, long pageIndex) throws IOException,
+      PageNotFoundException;
 
   /**
    * Reads a part of a page to the destination channel.
@@ -57,19 +58,18 @@ public interface CacheManager {
    * @param pageIndex index of the page within the file
    * @param pageOffset offset into the page
    * @param length length to read
-   * @param dst destination channel to read this new page
+   * @throws PageNotFoundException if page is not found in the store
    * @return the number of bytes read
    */
-  int get(long fileId, long pageIndex, int pageOffset, int length, WritableByteChannel dst)
-      throws IOException;
+  ReadableByteChannel get(long fileId, long pageIndex, int pageOffset, int length)
+      throws IOException, PageNotFoundException;
 
   /**
    * Deletes a page from the cache.
    *
    * @param fileId file identifier
    * @param pageIndex index of the page within the file
-   * @return if the page was deleted
-   * @throws IOException
+   * @throws PageNotFoundException if page is not found in the store
    */
-  boolean delete(long fileId, long pageIndex) throws IOException;
+  void delete(long fileId, long pageIndex) throws IOException, PageNotFoundException;
 }

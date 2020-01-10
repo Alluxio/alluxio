@@ -3111,13 +3111,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_CLIENT_CACHE_LOCK_SIZE =
-      new Builder(Name.USER_CLIENT_CACHE_LOCK_SIZE)
-          .setDefaultValue(4096)
-          .setDescription("Number of locks used by client-side page cache.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_CLIENT_CACHE_PAGE_SIZE =
       new Builder(Name.USER_CLIENT_CACHE_PAGE_SIZE)
           .setDefaultValue("1MB")

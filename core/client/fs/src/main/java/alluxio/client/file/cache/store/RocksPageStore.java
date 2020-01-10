@@ -12,6 +12,7 @@
 
 package alluxio.client.file.cache.store;
 
+import alluxio.client.file.cache.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
 import alluxio.resource.ResourcePool;
 

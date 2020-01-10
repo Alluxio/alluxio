@@ -14,7 +14,6 @@ package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.LocalPageStoreOptions;
-import alluxio.client.file.cache.store.PageNotFoundException;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.RocksPageStore;
 

@@ -19,12 +19,14 @@ import alluxio.util.io.BufferUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import org.apache.zookeeper.server.ByteBufferInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -51,12 +53,12 @@ import javax.annotation.concurrent.ThreadSafe;
 public class LocalCacheManager implements CacheManager {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheManager.class);
 
+  private static final int LOCK_SIZE = 1024;
   private final int mPageSize;
   private final long mCacheSize;
-  private final int mLockSize;
   private final CacheEvictor mEvictor;
   /** A readwrite lock pool to guard individual pages based on striping. */
-  private final ReadWriteLock[] mPageLocks;
+  private final ReadWriteLock[] mPageLocks = new ReentrantReadWriteLock[LOCK_SIZE];
   private final PageStore mPageStore;
   /** A readwrite lock to guard metadata operations. */
   private final ReadWriteLock mMetaLock = new ReentrantReadWriteLock();
@@ -82,10 +84,8 @@ public class LocalCacheManager implements CacheManager {
     mPageStore = pageStore;
     mEvictor = evictor;
     mPageSize = (int) mFsContext.getClusterConf().getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
-    mCacheSize = mFsContext.getClusterConf().getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE);
-    mLockSize = mFsContext.getClusterConf().getInt(PropertyKey.USER_CLIENT_CACHE_LOCK_SIZE);
-    mPageLocks = new ReentrantReadWriteLock[mLockSize];
-    for (int i = 0; i < mLockSize; i++) {
+    mCacheSize = mFsContext.getClusterConf().getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE) / mPageSize;
+    for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock();
     }
   }
@@ -99,7 +99,7 @@ public class LocalCacheManager implements CacheManager {
    * @return the corresponding page lock
    */
   private ReadWriteLock getPageLock(long fileId, long pageIndex) {
-    return mPageLocks[(int) (fileId + pageIndex) % mLockSize];
+    return mPageLocks[(int) (fileId + pageIndex) % LOCK_SIZE];
   }
 
   /**
@@ -122,7 +122,7 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public int put(long fileId, long pageIndex, ReadableByteChannel src) throws IOException {
+  public void put(long fileId, long pageIndex, byte[] page) throws IOException {
     long victimFileId = 0;
     long victimPageIndex = 0;
 
@@ -133,7 +133,7 @@ public class LocalCacheManager implements CacheManager {
       try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
         alreadyCached = mMetaStore.hasPage(fileId, pageIndex);
         if (!alreadyCached) {
-          needEvict = (mPageSize + mPageStore.size()) > mCacheSize;
+          needEvict = mPageStore.size() + 1 > mCacheSize;
           if (needEvict) {
             Pair<Long, Long> victim = mEvictor.evict();
             victimFileId = victim.getFirst();
@@ -144,12 +144,17 @@ public class LocalCacheManager implements CacheManager {
         }
       }
       if (alreadyCached) {
-        mPageStore.delete(fileId, pageIndex);
+        try {
+          mPageStore.delete(fileId, pageIndex);
+        } catch (PageNotFoundException e) {
+          // this should never happen with proper locking
+          LOG.error("failed to delete page {} {} from page store", fileId, pageIndex, e);
+        }
         mEvictor.updateOnPut(fileId, pageIndex);
-        return mPageStore.put(fileId, pageIndex, src);
+        mPageStore.put(fileId, pageIndex, page);
       } else if (!needEvict) {
         mEvictor.updateOnPut(fileId, pageIndex);
-        return mPageStore.put(fileId, pageIndex, src);
+        mPageStore.put(fileId, pageIndex, page);
       }
     }
 
@@ -161,34 +166,46 @@ public class LocalCacheManager implements CacheManager {
         if (mMetaStore.hasPage(fileId, pageIndex)) {
           LOG.warn("fileId {} pageIndex {} is already inserted by a racing thread",
               fileId, pageIndex);
-          return 0;
+          return;
         }
         if (!mMetaStore.hasPage(victimFileId, victimPageIndex)) {
           LOG.warn("fileId {} pageIndex {} is already evicted by a racing thread",
               fileId, pageIndex);
-          return 0;
+          return;
         }
-        mMetaStore.removePage(victimFileId, victimPageIndex);
+        try {
+          mMetaStore.removePage(victimFileId, victimPageIndex);
+        } catch (PageNotFoundException e) {
+          // this should never happen with proper locking
+          LOG.error("failed to remove page {} {} from meta store",
+              victimFileId, victimPageIndex, e);
+        }
         mEvictor.updateOnDelete(victimFileId, victimPageIndex);
         mMetaStore.addPage(fileId, pageIndex);
         mEvictor.updateOnPut(fileId, pageIndex);
       }
-      mPageStore.delete(victimFileId, victimPageIndex);
-      return mPageStore.put(fileId, pageIndex, src);
+      try {
+        mPageStore.delete(victimFileId, victimPageIndex);
+      } catch (PageNotFoundException e) {
+        // this should never happen with proper locking
+        LOG.error("failed to delete page {} {} from page store", victimFileId, victimPageIndex, e);
+      }
+      mPageStore.put(fileId, pageIndex, page);
     }
   }
 
   @Override
-  public int get(long fileId, long pageIndex, WritableByteChannel dst) throws IOException {
-    return get(fileId, pageIndex, 0, mPageSize, dst);
+  public ReadableByteChannel get(long fileId, long pageIndex) throws IOException,
+      PageNotFoundException {
+    return get(fileId, pageIndex, 0, mPageSize);
   }
 
   @Override
-  public int get(long fileId, long pageIndex, int pageOffset, int length, WritableByteChannel dst)
-      throws IOException {
+  public ReadableByteChannel get(long fileId, long pageIndex, int pageOffset, int length)
+      throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset + length <= mPageSize,
         "Read exceeds page boundary: offset=%s length=%s, size=%s", pageOffset, length, mPageSize);
-    int ret = 0;
+    ReadableByteChannel ret;
     boolean hasPage;
     ReadWriteLock pageLock = getPageLock(fileId, pageIndex);
     try (LockResource r = new LockResource(pageLock.readLock())) {
@@ -196,26 +213,28 @@ public class LocalCacheManager implements CacheManager {
         hasPage = mMetaStore.hasPage(fileId, pageIndex);
       }
       if (!hasPage) {
-        return 0;
+        throw new PageNotFoundException(
+            String.format("Page (%d, %d) could not be found", fileId, pageIndex));
       }
       if (pageOffset == 0) {
-        ret = mPageStore.get(fileId, pageIndex, dst);
+        ret = mPageStore.get(fileId, pageIndex);
       } else {
         //
         // TODO(feng): Extend page store API to get offset to avoid copy to use something like
-        // mPageStore.get(fileId, pageIndex, dst, pageOffset, length);
+        // mPageStore.get(fileId, pageIndex, pageOffset, length);
         //
-        ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        try (WritableByteChannel bufChan = Channels.newChannel(buf)) {
-          ret = Math.min(mPageStore.get(fileId, pageIndex, bufChan) - pageOffset, length);
+        ByteBuffer buf = ByteBuffer.allocate(mPageSize);
+        int bytesRead;
+        try (ReadableByteChannel pageChannel = mPageStore.get(fileId, pageIndex)) {
+          bytesRead = pageChannel.read(buf);
         }
-        if (ret <= 0) {
-          return 0;
+        if (bytesRead < pageOffset) {
+          return null;
         }
-        byte[] array = Arrays.copyOfRange(buf.toByteArray(), pageOffset, pageOffset + ret);
-        try (ReadableByteChannel bufChan = Channels.newChannel(new ByteArrayInputStream(array))) {
-          BufferUtils.fastCopy(bufChan, dst);
-        }
+        buf.flip();
+        buf.position(pageOffset);
+        buf.limit(Math.min(bytesRead, pageOffset + length));
+        ret = Channels.newChannel(new ByteBufferInputStream(buf));
       }
       mEvictor.updateOnGet(fileId, pageIndex);
       return ret;
@@ -223,14 +242,13 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public boolean delete(long fileId, long pageIndex) throws IOException {
+  public void delete(long fileId, long pageIndex) throws IOException, PageNotFoundException {
     ReadWriteLock pageLock = getPageLock(fileId, pageIndex);
     try (LockResource r = new LockResource(pageLock.writeLock())) {
-      boolean removed;
       try (LockResource r1 = new LockResource(mMetaLock.writeLock())) {
-        removed = mMetaStore.removePage(fileId, pageIndex);
+        mMetaStore.removePage(fileId, pageIndex);
       }
-      return removed && mPageStore.delete(fileId, pageIndex);
+      mPageStore.delete(fileId, pageIndex);
     }
   }
 }

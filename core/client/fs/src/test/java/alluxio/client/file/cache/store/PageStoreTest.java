@@ -16,6 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import alluxio.Constants;
+import alluxio.client.file.cache.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
 
 import org.junit.Ignore;

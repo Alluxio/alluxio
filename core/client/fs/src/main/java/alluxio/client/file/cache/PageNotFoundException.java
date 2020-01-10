@@ -10,7 +10,7 @@
  *
  */
 
-package alluxio.client.file.cache.store;
+package alluxio.client.file.cache;
 
 import alluxio.exception.AlluxioException;
 
@@ -20,11 +20,22 @@ import alluxio.exception.AlluxioException;
  * {@link alluxio.client.file.cache.PageStore#delete(long, long)}.
  */
 public class PageNotFoundException extends AlluxioException {
-  protected PageNotFoundException(String cause) {
-    super(cause);
+  /**
+   * Constructs a new exception with the specified detail message.
+   *
+   * @param message the detail message
+   */
+  public PageNotFoundException(String message) {
+    super(message);
   }
 
-  protected PageNotFoundException(String message, Throwable cause) {
+  /**
+   * Constructs a new exception with the specified detail message and cause.
+   *
+   * @param message the detail message
+   * @param cause the cause
+   */
+  public PageNotFoundException(String message, Throwable cause) {
     super(message, cause);
   }
 }
