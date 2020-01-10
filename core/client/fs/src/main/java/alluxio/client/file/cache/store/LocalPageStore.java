@@ -21,16 +21,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -45,6 +44,7 @@ public class LocalPageStore implements PageStore, AutoCloseable {
   private final ResourcePool<ByteBuffer> mBuffers;
 
   private final String mRoot;
+  private AtomicInteger mSize = new AtomicInteger(0);
 
   /**
    * Creates a new instance of {@link LocalPageStore}.
@@ -86,31 +86,19 @@ public class LocalPageStore implements PageStore, AutoCloseable {
         mBuffers.release(b);
       }
     }
+    mSize.incrementAndGet();
     return written;
   }
 
   @Override
-  public int get(long fileId, long pageIndex, WritableByteChannel dst)throws IOException,
+  public ReadableByteChannel get(long fileId, long pageIndex)throws IOException,
       PageNotFoundException {
-    int count = 0;
     Path p = getFilePath(fileId, pageIndex);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
-    try (FileInputStream fis = new FileInputStream(p.toFile())) {
-      ByteBuffer b = mBuffers.acquire();
-      b.clear();
-      try (FileChannel chan = fis.getChannel()) {
-        while (chan.read(b) > 0) {
-          b.flip();
-          count += dst.write(b);
-          b.clear();
-        }
-      } finally {
-        mBuffers.release(b);
-      }
-    }
-    return count;
+    FileInputStream fis = new FileInputStream(p.toFile());
+    return fis.getChannel();
   }
 
   @Override
@@ -120,6 +108,7 @@ public class LocalPageStore implements PageStore, AutoCloseable {
       throw new PageNotFoundException(p.toString());
     }
     Files.delete(p);
+    mSize.decrementAndGet();
     if (!Files.newDirectoryStream(p.getParent()).iterator().hasNext()) {
       Files.delete(p.getParent());
     }
@@ -136,5 +125,10 @@ public class LocalPageStore implements PageStore, AutoCloseable {
     } catch (IOException e) {
       LOG.warn("Failed to clean up local page store directory", e);
     }
+  }
+
+  @Override
+  public int size() {
+    return mSize.get();
   }
 }

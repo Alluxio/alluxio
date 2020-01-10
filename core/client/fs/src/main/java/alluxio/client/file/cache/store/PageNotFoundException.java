@@ -14,11 +14,9 @@ package alluxio.client.file.cache.store;
 
 import alluxio.exception.AlluxioException;
 
-import java.nio.channels.WritableByteChannel;
-
 /**
  * An exception that should be thrown when a page store implementation cannot find a page using
- * {@link alluxio.client.file.cache.PageStore#get(long, long, WritableByteChannel)} or
+ * {@link alluxio.client.file.cache.PageStore#get(long, long)} or
  * {@link alluxio.client.file.cache.PageStore#delete(long, long)}.
  */
 public class PageNotFoundException extends AlluxioException {
@@ -29,5 +27,4 @@ public class PageNotFoundException extends AlluxioException {
   protected PageNotFoundException(String message, Throwable cause) {
     super(message, cause);
   }
-
 }

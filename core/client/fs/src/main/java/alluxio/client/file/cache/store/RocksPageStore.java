@@ -23,11 +23,13 @@ import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -41,6 +43,8 @@ public class RocksPageStore implements PageStore, AutoCloseable {
   private final String mRoot;
   private final ResourcePool<ByteBuffer> mBuffers;
   private final RocksDB mDb;
+
+  private AtomicInteger mSize = new AtomicInteger(0);
 
   /**
    * Creates a new instance of {@link PageStore} backed by RocksDB.
@@ -82,6 +86,7 @@ public class RocksPageStore implements PageStore, AutoCloseable {
       byte[] arr = new byte[buf.remaining()];
       buf.get(arr);
       mDb.put(getPageKey(fileId, pageIndex), arr);
+      mSize.incrementAndGet();
       return bytes;
     } catch (RocksDBException e) {
       throw new IOException("Failed to store page", e);
@@ -91,14 +96,15 @@ public class RocksPageStore implements PageStore, AutoCloseable {
   }
 
   @Override
-  public int get(long fileId, long pageIndex, WritableByteChannel dst) throws IOException,
-      PageNotFoundException{
+  public ReadableByteChannel get(long fileId, long pageIndex) throws IOException,
+      PageNotFoundException {
     try {
       byte[] page = mDb.get(getPageKey(fileId, pageIndex));
       if (page == null) {
         throw new PageNotFoundException(new String(getPageKey(fileId, pageIndex)));
       }
-      return dst.write(ByteBuffer.wrap(page));
+      ByteArrayInputStream bais = new ByteArrayInputStream(page);
+      return Channels.newChannel(bais);
     } catch (RocksDBException e) {
       throw new IOException("Failed to retrieve page", e);
     }
@@ -108,6 +114,7 @@ public class RocksPageStore implements PageStore, AutoCloseable {
   public void delete(long fileId, long pageIndex) throws PageNotFoundException {
     try {
       mDb.delete(getPageKey(fileId, pageIndex));
+      mSize.decrementAndGet();
     } catch (RocksDBException e) {
       throw new PageNotFoundException("Failed to remove page", e);
     }
@@ -124,6 +131,14 @@ public class RocksPageStore implements PageStore, AutoCloseable {
   }
 
   private byte[] getPageKey(long fileId, long pageIndex) {
-    return ("" + fileId + "" + pageIndex).getBytes();
+    ByteBuffer buf = ByteBuffer.allocate(16);
+    buf.putLong(fileId);
+    buf.putLong(pageIndex);
+    return buf.array();
+  }
+
+  @Override
+  public int size() {
+    return mSize.get();
   }
 }

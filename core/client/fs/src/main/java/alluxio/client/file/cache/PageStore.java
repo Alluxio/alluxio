@@ -13,17 +13,17 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.LocalPageStore;
+import alluxio.client.file.cache.store.LocalPageStoreOptions;
 import alluxio.client.file.cache.store.PageNotFoundException;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.RocksPageStore;
 
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 
 /**
- * A simple abstration on the storage to put, get and delete pages. The implementation of this class
- * does not need to provide thread-safety.
+ * A simple abstraction on the storage to put, get and delete pages. The implementation of this
+ * class does not need to provide thread-safety.
  */
 public interface PageStore extends AutoCloseable {
 
@@ -46,6 +46,14 @@ public interface PageStore extends AutoCloseable {
   }
 
   /**
+   * Creates a new default instance of {@link PageStore}.
+   * @return the default {@link PageStore}
+   */
+  static PageStore create() {
+    return create(new LocalPageStoreOptions());
+  }
+
+  /**
    * Writes a new page from a source channel to the store.
    *
    * @param fileId file identifier
@@ -61,12 +69,11 @@ public interface PageStore extends AutoCloseable {
    *
    * @param fileId file indentifier
    * @param pageIndex index of page within the file
-   * @param dst destination channel to read this new page
    * @return the number of bytes read
    * @throws IOException
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  int get(long fileId, long pageIndex, WritableByteChannel dst) throws IOException,
+  ReadableByteChannel get(long fileId, long pageIndex) throws IOException,
       PageNotFoundException;
 
   /**
@@ -81,4 +88,9 @@ public interface PageStore extends AutoCloseable {
 
   @Override
   void close();
+
+  /**
+   * @return the number of pages stored
+   */
+  int size();
 }

@@ -27,10 +27,10 @@ import org.junit.runners.Parameterized;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -75,15 +75,17 @@ public class PageStoreTest {
   void helloWorldTest(PageStore store) throws Exception {
     String msg = "Hello, World!";
     store.put(0, 0, fromString(msg));
-    ByteArrayOutputStream bos = new ByteArrayOutputStream(Constants.KB);
-    store.get(0, 0, toChannel(bos));
-    String read = new String(bos.toByteArray());
+    ByteBuffer buf = ByteBuffer.allocate(1024);
+    store.get(0, 0).read(buf);
+    buf.flip();
+    String read = StandardCharsets.UTF_8.decode(buf).toString();
     assertEquals(msg, read);
     store.delete(0, 0);
     try {
-      store.get(0, 0, toChannel(bos));
+      buf.clear();
+      store.get(0, 0).read(buf);
       fail();
-    } catch (IOException e) {
+    } catch (PageNotFoundException e) {
       // Test completed successfully;
     }
   }
@@ -108,8 +110,10 @@ public class PageStoreTest {
       Collections.shuffle(pages);
       long start = System.nanoTime();
       bos.reset();
+      ByteBuffer buf = ByteBuffer.allocate(Constants.MB);
       for (Integer pageIndex  : pages) {
-        store.get(0, pageIndex, Channels.newChannel(bos));
+        buf.clear();
+        store.get(0, pageIndex).read(buf);
       }
       long end = System.nanoTime();
       times.add(end - start);
@@ -120,9 +124,5 @@ public class PageStoreTest {
 
   static ReadableByteChannel fromString(String msg) {
     return Channels.newChannel(new ByteArrayInputStream(msg.getBytes()));
-  }
-
-  static WritableByteChannel toChannel(ByteArrayOutputStream bos) {
-    return Channels.newChannel(bos);
   }
 }
