@@ -14,7 +14,6 @@ package alluxio.client.file.cache.store;
 
 import alluxio.client.file.cache.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
-import alluxio.resource.ResourcePool;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -24,8 +23,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;

@@ -15,7 +15,6 @@ import alluxio.client.file.FileSystemContext;
 
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 
 /**
  * Interface for managing cached pages.
@@ -36,7 +35,6 @@ public interface CacheManager {
    * @param pageIndex index of the page within the file
    * @param page page data
    * @throws IOException
-   * @return the number of bytes written
    */
   void put(long fileId, long pageIndex, byte[] page) throws IOException;
 

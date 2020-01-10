@@ -598,6 +598,9 @@ public final class FileSystemContext implements Closeable {
     return localWorkerNetAddresses.isEmpty() ? workerNetAddresses : localWorkerNetAddresses;
   }
 
+  /**
+   * @return the client side cache manager
+   */
   public CacheManager getCacheManager() {
     if (sCacheManager == null) {
       synchronized (this) {

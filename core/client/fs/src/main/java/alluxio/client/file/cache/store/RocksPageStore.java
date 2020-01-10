@@ -14,7 +14,6 @@ package alluxio.client.file.cache.store;
 
 import alluxio.client.file.cache.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
-import alluxio.resource.ResourcePool;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FileUtils;
