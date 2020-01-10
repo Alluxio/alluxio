@@ -57,16 +57,12 @@ public class LocalPageStoreTest {
 
   void helloWorldTest(PageStore store) throws Exception {
     String msg = "Hello, World!";
-    store.put(0, 0, fromString(msg));
+    store.put(0, 0, msg.getBytes());
     ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
     ByteBuffer buf = ByteBuffer.allocate(1024);
     store.get(0, 0).read(buf);
     buf.flip();
     String read = StandardCharsets.UTF_8.decode(buf).toString();
     assertEquals(msg, read);
-  }
-
-  static ReadableByteChannel fromString(String msg) {
-    return Channels.newChannel(new ByteArrayInputStream(msg.getBytes()));
   }
 }

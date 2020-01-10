@@ -35,6 +35,7 @@ import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -47,22 +48,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Unit tests for {@link LocalCacheFileInStream}
+ * Unit tests for {@link LocalCacheFileInStream}.
  */
 public class LocalCacheFileInStreamTest {
   @Test
   public void readPageCacheMiss() throws Exception {
     Map<AlluxioURI, byte[]> files = new HashMap<>();
-    String testFilename = "/test";
+    AlluxioURI testFilename = new AlluxioURI("/test");
     int fileSize = (int) LocalCacheFileInStream.PAGE_SIZE;
     byte[] testData = generateData(fileSize);
-    files.put(new AlluxioURI(testFilename), testData);
+    files.put(testFilename, testData);
 
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     ByteArrayFileSystem fs = new ByteArrayFileSystem(files);
 
     LocalCacheFileInStream stream =
-        new LocalCacheFileInStream(generateURIStatus(testFilename, testData.length),
+        new LocalCacheFileInStream(testFilename,
             OpenFilePOptions.getDefaultInstance(), fs, manager);
 
     byte[] res = new byte[fileSize];
@@ -75,16 +76,16 @@ public class LocalCacheFileInStreamTest {
   @Test
   public void readPageCacheHit() throws Exception {
     Map<AlluxioURI, byte[]> files = new HashMap<>();
-    String testFilename = "/test";
+    AlluxioURI testFilename = new AlluxioURI("/test");
     int fileSize = (int) LocalCacheFileInStream.PAGE_SIZE;
     byte[] testData = generateData(fileSize);
-    files.put(new AlluxioURI(testFilename), testData);
+    files.put(testFilename, testData);
 
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     ByteArrayFileSystem fs = new ByteArrayFileSystem(files);
 
     LocalCacheFileInStream stream =
-        new LocalCacheFileInStream(generateURIStatus(testFilename, testData.length),
+        new LocalCacheFileInStream(testFilename,
             OpenFilePOptions.getDefaultInstance(), fs, manager);
 
     byte[] readBuffer = new byte[fileSize];
@@ -102,7 +103,6 @@ public class LocalCacheFileInStreamTest {
     info.setPath(path);
     info.setLength(len);
     return new URIStatus(info);
-
   }
 
   private byte[] generateData(int len) {
@@ -212,7 +212,11 @@ public class LocalCacheFileInStreamTest {
     @Override
     public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
-      throw new UnsupportedOperationException();
+      if (mFiles.containsKey(path)) {
+        return generateURIStatus(path.getPath(), mFiles.get(path).length);
+      } else {
+        throw new FileDoesNotExistException(path);
+      }
     }
 
     @Override

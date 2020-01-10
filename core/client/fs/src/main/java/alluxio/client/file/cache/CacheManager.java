@@ -4,7 +4,6 @@ import alluxio.client.file.cache.store.PageNotFoundException;
 
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 
 interface CacheManager {
 

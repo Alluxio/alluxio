@@ -21,6 +21,7 @@ import alluxio.grpc.OpenFilePOptions;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Suppliers;
 import com.google.common.io.Closer;
 import net.jcip.annotations.NotThreadSafe;
 
@@ -28,38 +29,56 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 
+/**
+ * Implementation of {@link FileInStream} that reads from a local cache if possible.
+ */
 @NotThreadSafe
 public class LocalCacheFileInStream extends FileInStream {
 
   /** Page size in bytes. Needs to be configurable */
   protected static final long PAGE_SIZE = 1 * Constants.MB;
 
-  /** Local store to store pages. */
-  private final CacheManager mCacheManager;
-
-  private FileInStream mExternalFileInStream;
-
   private final byte[] mSingleByte = new byte[1];
-
   private final Closer mCloser = Closer.create();
 
-  /** The size in bytes of the file. */
-  private final long mLength;
+  /** Local store to store pages. */
+  private final CacheManager mCacheManager;
+  /** External storage system. */
+  private final FileSystem mExternalFs;
+  /** Path of the file. */
+  private final AlluxioURI mPath;
+  /** File info, fetched from external FS. */
+  private final URIStatus mStatus;
+  private final OpenFilePOptions mOpenOptions;
+
+  /** Stream reading from the external file system, opened once. */
+  private FileInStream mExternalFileInStream;
   /** Current position of the stream, relative to the start of the file. */
   private long mPosition = 0;
   private boolean mClosed = false;
   private boolean mEOF = false;
 
-  private final FileSystem mDelegatedFs;
-  private final URIStatus mStatus;
-  private final OpenFilePOptions mOpenOptions;
-
-  public LocalCacheFileInStream(URIStatus status, OpenFilePOptions options, FileSystem delegatedFs,
+  /**
+   * Constructor.
+   *
+   * @param path path of the file
+   * @param options read options
+   * @param externalFs the external file system if a cache miss occurs
+   * @param cacheManager local cache manager
+   */
+  public LocalCacheFileInStream(AlluxioURI path, OpenFilePOptions options, FileSystem externalFs,
       CacheManager cacheManager) {
-    mStatus = status;
-    mLength = status.getLength();
+    mPath = path;
+    // Lazy init of status object
+    mStatus = Suppliers.memoize(() -> {
+      try {
+        return externalFs.getStatus(mPath);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }).get();
     mOpenOptions = options;
-    mDelegatedFs = delegatedFs;
+    mExternalFs = externalFs;
     mCacheManager = cacheManager;
   }
 
@@ -86,6 +105,7 @@ public class LocalCacheFileInStream extends FileInStream {
       long currentPage = mPosition / PAGE_SIZE;
       int currentPageOffset = (int) (mPosition % PAGE_SIZE);
       int bytesLeftInPage = (int) Math.min(PAGE_SIZE - currentPageOffset, len - bytesRead);
+      // TODO(calvin): Update this to take page offset when API is updated
       ReadableByteChannel cachedData = mCacheManager.get(mStatus.getFileId(), currentPage);
       if (cachedData != null) { // cache hit
         // wrap return byte array in a bytebuffer and set the pos/limit for the page read
@@ -131,7 +151,7 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public long remaining() {
-    return mEOF ? 0 : mLength - mPosition;
+    return mEOF ? 0 : mStatus.getLength() - mPosition;
   }
 
   @Override
@@ -150,8 +170,8 @@ public class LocalCacheFileInStream extends FileInStream {
     checkIfClosed();
     Preconditions.checkArgument(pos >= 0, "Seek position is negative: %s", pos);
     Preconditions
-        .checkArgument(pos <= mLength, "Seek position (%s) exceeds the length of the file (%s)",
-            pos, mLength);
+        .checkArgument(pos <= mStatus.getLength(),
+            "Seek position (%s) exceeds the length of the file (%s)", pos, mStatus.getLength());
     if (pos == mPosition) {
       return;
     }
@@ -176,8 +196,7 @@ public class LocalCacheFileInStream extends FileInStream {
   private FileInStream getExternalFileInStream(long pos) throws IOException {
     try {
       if (mExternalFileInStream == null) {
-        AlluxioURI path = new AlluxioURI(mStatus.getPath());
-        mExternalFileInStream = mDelegatedFs.openFile(path, mOpenOptions);
+        mExternalFileInStream = mExternalFs.openFile(mPath, mOpenOptions);
         mCloser.register(mExternalFileInStream);
       }
     } catch (AlluxioException e) {
