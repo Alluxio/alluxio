@@ -37,12 +37,14 @@ import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,18 +55,10 @@ import java.util.Map;
 public class LocalCacheFileInStreamTest {
   @Test
   public void readPageCacheMiss() throws Exception {
-    Map<AlluxioURI, byte[]> files = new HashMap<>();
-    AlluxioURI testFilename = new AlluxioURI("/test");
     int fileSize = (int) LocalCacheFileInStream.PAGE_SIZE;
     byte[] testData = generateData(fileSize);
-    files.put(testFilename, testData);
-
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
-    ByteArrayFileSystem fs = new ByteArrayFileSystem(files);
-
-    LocalCacheFileInStream stream =
-        new LocalCacheFileInStream(testFilename,
-            OpenFilePOptions.getDefaultInstance(), fs, manager);
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
 
     byte[] res = new byte[fileSize];
     Assert.assertEquals(fileSize, stream.read(res));
@@ -75,18 +69,10 @@ public class LocalCacheFileInStreamTest {
 
   @Test
   public void readPageCacheHit() throws Exception {
-    Map<AlluxioURI, byte[]> files = new HashMap<>();
-    AlluxioURI testFilename = new AlluxioURI("/test");
     int fileSize = (int) LocalCacheFileInStream.PAGE_SIZE;
     byte[] testData = generateData(fileSize);
-    files.put(testFilename, testData);
-
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
-    ByteArrayFileSystem fs = new ByteArrayFileSystem(files);
-
-    LocalCacheFileInStream stream =
-        new LocalCacheFileInStream(testFilename,
-            OpenFilePOptions.getDefaultInstance(), fs, manager);
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
 
     byte[] readBuffer = new byte[fileSize];
     stream.read(readBuffer);
@@ -96,6 +82,37 @@ public class LocalCacheFileInStreamTest {
     Assert.assertEquals(fileSize, stream.read(res));
     Assert.assertArrayEquals(testData, res);
     Assert.assertEquals(1, manager.mPagesServed);
+  }
+
+  @Ignore
+  @Test
+  // TODO(calvin): this test should pass after we pass in offset in the get page API
+  public void readPartialPageCacheHit() throws Exception {
+    int fileSize = (int) LocalCacheFileInStream.PAGE_SIZE;
+    byte[] testData = generateData(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+
+    int partialReadSize = fileSize / 5;
+    byte[] readBuffer = new byte[partialReadSize];
+    stream.read(readBuffer);
+    Assert.assertEquals(0, manager.mPagesServed);
+    byte[] res = new byte[partialReadSize];
+    Assert.assertEquals(partialReadSize, stream.read(res));
+    Assert.assertArrayEquals(
+        Arrays.copyOfRange(testData, partialReadSize, partialReadSize * 2), res);
+    Assert.assertEquals(1, manager.mPagesServed);
+  }
+
+  private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager) {
+    Map<AlluxioURI, byte[]> files = new HashMap<>();
+    AlluxioURI testFilename = new AlluxioURI("/test");
+    files.put(testFilename, data);
+
+    ByteArrayFileSystem fs = new ByteArrayFileSystem(files);
+
+    return new LocalCacheFileInStream(
+        testFilename, OpenFilePOptions.getDefaultInstance(), fs, manager);
   }
 
   private URIStatus generateURIStatus(String path, long len) {
@@ -108,7 +125,7 @@ public class LocalCacheFileInStreamTest {
   private byte[] generateData(int len) {
     byte[] data = new byte[len];
     for (int i = 0; i < len; i++) {
-      data[i] = (byte) (i / LocalCacheFileInStream.PAGE_SIZE);
+      data[i] = (byte) i;
     }
     return data;
   }
