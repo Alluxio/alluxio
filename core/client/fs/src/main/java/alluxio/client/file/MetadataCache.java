@@ -28,8 +28,48 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MetadataCache {
-  private final Cache<String, URIStatus> mCache;
-  private final Cache<String, List<URIStatus>> mDirCache;
+  private class CachedItem {
+    private final URIStatus mStatus;
+    private final List<URIStatus> mDirStatuses;
+
+    /**
+     * Cache metadata for a path.
+     *
+     * @param status the metadata
+     */
+    public CachedItem(URIStatus status) {
+      mStatus = status;
+      mDirStatuses = null;
+    }
+
+    /**
+     * Cache metadata of paths directly under a directory.
+     *
+     * @param statuses the metadata list
+     */
+    public CachedItem(List<URIStatus> statuses) {
+      mStatus = null;
+      mDirStatuses = statuses;
+    }
+
+    /**
+     * @return the metadata of the path
+     */
+    @Nullable
+    public URIStatus getStatus() {
+      return mStatus;
+    }
+
+    /**
+     * @return the metadata list of paths directly under a directory
+     */
+    @Nullable
+    public List<URIStatus> getDirStatuses() {
+      return mDirStatuses;
+    }
+  }
+
+  private final Cache<String, CachedItem> mCache;
 
   /**
    * @param maxSize the max size of the cache
@@ -37,10 +77,6 @@ public final class MetadataCache {
    */
   public MetadataCache(int maxSize, long expirationTimeMs) {
     mCache = CacheBuilder.newBuilder()
-        .maximumSize(maxSize)
-        .expireAfterWrite(expirationTimeMs, TimeUnit.MILLISECONDS)
-        .build();
-    mDirCache = CacheBuilder.newBuilder()
         .maximumSize(maxSize)
         .expireAfterWrite(expirationTimeMs, TimeUnit.MILLISECONDS)
         .build();
@@ -52,7 +88,11 @@ public final class MetadataCache {
    */
   @Nullable
   public URIStatus get(AlluxioURI path) {
-    return mCache.getIfPresent(path.getPath());
+    CachedItem item = mCache.getIfPresent(path.getPath());
+    if (item != null && item.getStatus() != null) {
+      return item.getStatus();
+    }
+    return null;
   }
 
   /**
@@ -60,7 +100,7 @@ public final class MetadataCache {
    * @param status the status to be cached
    */
   public void put(AlluxioURI path, URIStatus status) {
-    mCache.put(path.getPath(), status);
+    mCache.put(path.getPath(), new CachedItem(status));
   }
 
   /**
@@ -68,7 +108,7 @@ public final class MetadataCache {
    * @param status the status to be cached
    */
   public void put(String path, URIStatus status) {
-    mCache.put(path, status);
+    mCache.put(path, new CachedItem(status));
   }
 
   /**
@@ -78,9 +118,9 @@ public final class MetadataCache {
    * @param statuses the list status results
    */
   public void put(AlluxioURI dir, List<URIStatus> statuses) {
-    mDirCache.put(dir.getPath(), statuses);
+    mCache.put(dir.getPath(), new CachedItem(statuses));
     for (URIStatus status : statuses) {
-      mCache.put(status.getPath(), status);
+      mCache.put(status.getPath(), new CachedItem(status));
     }
   }
 
@@ -90,7 +130,11 @@ public final class MetadataCache {
    */
   @Nullable
   public List<URIStatus> listStatus(AlluxioURI dir) {
-    return mDirCache.getIfPresent(dir.getPath());
+    CachedItem item = mCache.getIfPresent(dir.getPath());
+    if (item != null && item.getDirStatuses() != null) {
+      return item.getDirStatuses();
+    }
+    return null;
   }
 
   /**
