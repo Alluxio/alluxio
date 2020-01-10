@@ -112,6 +112,14 @@ public class CachingFileSystemTest {
   }
 
   @Test
+  public void listStatusRecursive() throws Exception {
+    mFs.listStatus(DIR, LIST_STATUS_OPTIONS.toBuilder().setRecursive(true).build());
+    verifyListStatusThroughRPC(DIR, 1);
+    mFs.listStatus(DIR, LIST_STATUS_OPTIONS.toBuilder().setRecursive(true).build());
+    verifyListStatusThroughRPC(DIR, 2);
+  }
+
+  @Test
   public void openFile() throws Exception {
     mFs.openFile(FILE, OpenFilePOptions.getDefaultInstance());
     verifyGetStatusThroughRPC(FILE, 1);
