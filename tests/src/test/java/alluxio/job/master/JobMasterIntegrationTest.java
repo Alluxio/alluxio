@@ -40,7 +40,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -222,7 +221,6 @@ public final class JobMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   public void cancel() throws Exception {
     SleepJobConfig childJob1 = new SleepJobConfig(50000);
     SleepJobConfig childJob2 = new SleepJobConfig(45000);

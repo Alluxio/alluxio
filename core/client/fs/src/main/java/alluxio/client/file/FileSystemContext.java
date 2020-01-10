@@ -408,7 +408,7 @@ public final class FileSystemContext implements Closeable {
     return mUriValidationEnabled;
   }
 
-  private FileSystemMasterClient acquireMasterClient() {
+  private FileSystemMasterClient acquireMasterClient() throws IOException {
     try (ReinitBlockerResource r = blockReinit()) {
       return mFileSystemMasterClientPool.acquire();
     }
@@ -430,15 +430,19 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired file system master client resource
    */
   public CloseableResource<FileSystemMasterClient> acquireMasterClientResource() {
-    return new CloseableResource<FileSystemMasterClient>(acquireMasterClient()) {
-      @Override
-      public void close() {
-        releaseMasterClient(get());
-      }
-    };
+    try {
+      return new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClientPool.acquire()) {
+        @Override
+        public void close() {
+          releaseMasterClient(get());
+        }
+      };
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
-  private BlockMasterClient acquireBlockMasterClient() {
+  private BlockMasterClient acquireBlockMasterClient() throws IOException {
     try (ReinitBlockerResource r = blockReinit()) {
       return mBlockMasterClientPool.acquire();
     }
@@ -460,12 +464,16 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired block master client resource
    */
   public CloseableResource<BlockMasterClient> acquireBlockMasterClientResource() {
-    return new CloseableResource<BlockMasterClient>(acquireBlockMasterClient()) {
-      @Override
-      public void close() {
-        releaseBlockMasterClient(get());
-      }
-    };
+    try {
+      return new CloseableResource<BlockMasterClient>(mBlockMasterClientPool.acquire()) {
+        @Override
+        public void close() {
+          releaseBlockMasterClient(get());
+        }
+      };
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**

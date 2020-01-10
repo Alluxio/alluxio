@@ -18,8 +18,8 @@ public final class MasterMetrics {
   // metrics names for BackupManager
   public static final String LAST_BACKUP_ENTRIES_COUNT = "LastBackupEntriesCount";
   public static final String LAST_BACKUP_RESTORE_COUNT = "LastBackupRestoreCount";
-  public static final String BACKUP_ENTRIES_PROCESS_TIME = "BackupEntriesProcessTime";
-  public static final String BACKUP_RESTORE_PROCESS_TIME = "BackupRestoreProcessTime";
+  public static final String LAST_BACKUP_TIME_MS = "LastBackupTimeMs";
+  public static final String LAST_BACKUP_RESTORE_TIME_MS = "LastBackupRestoreTimeMs";
 
   // metrics names for FileSystemMaster
   public static final String DIRECTORIES_CREATED = "DirectoriesCreated";

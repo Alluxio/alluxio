@@ -12,22 +12,45 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.cache.store.LocalPageStore;
+import alluxio.client.file.cache.store.LocalPageStoreOptions;
+import alluxio.client.file.cache.store.PageNotFoundException;
+import alluxio.client.file.cache.store.PageStoreOptions;
+import alluxio.client.file.cache.store.RocksPageStore;
+
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 
 /**
- * A simple abstration on the storage to put, get and delete pages. The implementation of this class
- * does not need to provide thread-safety.
+ * A simple abstraction on the storage to put, get and delete pages. The implementation of this
+ * class does not need to provide thread-safety.
  */
-public interface PageStore {
+public interface PageStore extends AutoCloseable {
 
   /**
+   * Creates a new {@link PageStore}.
+   *
+   * @param options the options to instantiate the page store
    * @return a PageStore instance
    */
+  static PageStore create(PageStoreOptions options) {
+    switch (options.getType()) {
+      case LOCAL:
+        return new LocalPageStore(options.toOptions());
+      case ROCKS:
+        return new RocksPageStore(options.toOptions());
+      default:
+        throw new IllegalArgumentException(
+            "Incompatible PageStore " + options.getType() + " specified");
+    }
+  }
+
+  /**
+   * Creates a new default instance of {@link PageStore}.
+   * @return the default {@link PageStore}
+   */
   static PageStore create() {
-    // return corresponding DataStore impl
-    return null;
+    return create(new LocalPageStoreOptions());
   }
 
   /**
@@ -46,24 +69,28 @@ public interface PageStore {
    *
    * @param fileId file indentifier
    * @param pageIndex index of page within the file
-   * @param dst destination channel to read this new page
    * @return the number of bytes read
    * @throws IOException
+   * @throws PageNotFoundException when the page isn't found in the store
    */
-  int get(long fileId, long pageIndex, WritableByteChannel dst) throws IOException;
+  ReadableByteChannel get(long fileId, long pageIndex) throws IOException,
+      PageNotFoundException;
 
   /**
    * Deletes a page from the store.
    *
    * @param fileId file identifier
    * @param pageIndex index of page within the file
-   * @return if the page was deleted
    * @throws IOException
+   * @throws PageNotFoundException when the page isn't found in the store
    */
-  boolean delete(long fileId, long pageIndex) throws IOException;
+  void delete(long fileId, long pageIndex) throws IOException, PageNotFoundException;
+
+  @Override
+  void close();
 
   /**
-   * @return size of the data in store
+   * @return the number of pages stored
    */
-  long size() throws IOException;
+  int size();
 }
