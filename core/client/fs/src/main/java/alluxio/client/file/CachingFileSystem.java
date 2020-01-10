@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
@@ -87,6 +88,20 @@ public class CachingFileSystem extends BaseFileSystem {
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
+    if (options.getRecursive()) {
+      List<URIStatus> statuses = super.listStatus(path, options);
+      // Cache only the direct level of children.
+      List<URIStatus> directChildren = new ArrayList<>();
+      for (URIStatus status : statuses) {
+        AlluxioURI uri = new AlluxioURI(status.getPath());
+        if (uri.getParent().equals(path)) {
+          directChildren.add(status);
+        }
+      }
+      mMetadataCache.put(path, directChildren);
+      return statuses;
+    }
+
     List<URIStatus> statuses = mMetadataCache.listStatus(path);
     if (statuses == null) {
       statuses = super.listStatus(path, options);
