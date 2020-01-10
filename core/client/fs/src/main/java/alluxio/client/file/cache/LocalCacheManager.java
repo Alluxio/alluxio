@@ -47,7 +47,7 @@ public class LocalCacheManager {
    */
   int put(long pageId, ReadableByteChannel src) throws IOException {
     mMetaStore.addPage(pageId);
-    mPageStore.put(pageId, src);
+//    mPageStore.put(pageId, src);
     return 0;
   }
 
@@ -77,7 +77,7 @@ public class LocalCacheManager {
    */
   boolean delete(long pageId) throws IOException {
     mMetaStore.removePage(pageId);
-    mPageStore.delete(pageId);
+//    mPageStore.delete(pageId);
     return false;
   }
 

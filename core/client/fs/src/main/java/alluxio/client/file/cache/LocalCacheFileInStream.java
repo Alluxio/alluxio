@@ -38,9 +38,9 @@ public class LocalCacheFileInStream extends FileInStream {
 
   private final Closer mCloser = Closer.create();
   /** The id of the block or UFS file to which this instream provides access. */
-  private final long mId;
+  private final long mId = 0;
   /** The size in bytes of the file. */
-  private final long mLength;
+  private final long mLength = 0;
   /** Current position of the stream, relative to the start of the block. */
   private long mPosition = 0;
   private boolean mClosed = false;
@@ -76,6 +76,7 @@ public class LocalCacheFileInStream extends FileInStream {
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     // based on offset and length, loop over different pages
+    return -1;
   }
 
   @Override
