@@ -48,60 +48,136 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Unit tests for {@link LocalCacheFileInStream}.
  */
 public class LocalCacheFileInStreamTest {
   @Test
-  public void readPageCacheMiss() throws Exception {
+  public void readFullPage() throws Exception {
     int fileSize = (int) LocalCacheFileInStream.PAGE_SIZE;
     byte[] testData = generateData(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
 
-    byte[] res = new byte[fileSize];
-    Assert.assertEquals(fileSize, stream.read(res));
-    Assert.assertArrayEquals(testData, res);
+    // cache miss
+    byte[] cacheMiss = new byte[fileSize];
+    Assert.assertEquals(fileSize, stream.read(cacheMiss));
+    Assert.assertArrayEquals(testData, cacheMiss);
     Assert.assertEquals(0, manager.mPagesServed);
     Assert.assertEquals(1, manager.mPagesCached);
+
+    // cache hit
+    stream.seek(0);
+    byte[] cacheHit = new byte[fileSize];
+    Assert.assertEquals(fileSize, stream.read(cacheHit));
+    Assert.assertArrayEquals(testData, cacheHit);
+    Assert.assertEquals(1, manager.mPagesServed);
   }
 
   @Test
-  public void readPageCacheHit() throws Exception {
-    int fileSize = (int) LocalCacheFileInStream.PAGE_SIZE;
+  public void readSmallPage() throws Exception {
+    int fileSize = (int) LocalCacheFileInStream.PAGE_SIZE / 5;
     byte[] testData = generateData(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
 
-    byte[] readBuffer = new byte[fileSize];
-    stream.read(readBuffer);
-    stream.seek(0);
+    // cache miss
+    byte[] cacheMiss = new byte[fileSize];
+    Assert.assertEquals(fileSize, stream.read(cacheMiss));
+    Assert.assertArrayEquals(testData, cacheMiss);
     Assert.assertEquals(0, manager.mPagesServed);
-    byte[] res = new byte[fileSize];
-    Assert.assertEquals(fileSize, stream.read(res));
-    Assert.assertArrayEquals(testData, res);
+    Assert.assertEquals(1, manager.mPagesCached);
+
+    // cache hit
+    stream.seek(0);
+    byte[] cacheHit = new byte[fileSize];
+    Assert.assertEquals(fileSize, stream.read(cacheHit));
+    Assert.assertArrayEquals(testData, cacheHit);
     Assert.assertEquals(1, manager.mPagesServed);
   }
 
   @Ignore
   @Test
   // TODO(calvin): this test should pass after we pass in offset in the get page API
-  public void readPartialPageCacheHit() throws Exception {
+  public void readPartialPage() throws Exception {
     int fileSize = (int) LocalCacheFileInStream.PAGE_SIZE;
     byte[] testData = generateData(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
 
     int partialReadSize = fileSize / 5;
-    byte[] readBuffer = new byte[partialReadSize];
-    stream.read(readBuffer);
-    Assert.assertEquals(0, manager.mPagesServed);
-    byte[] res = new byte[partialReadSize];
-    Assert.assertEquals(partialReadSize, stream.read(res));
+    int offset = fileSize / 5;
+
+    // cache miss
+    byte[] cacheMiss = new byte[partialReadSize];
+    stream.seek(offset);
+    Assert.assertEquals(partialReadSize, stream.read(cacheMiss));
     Assert.assertArrayEquals(
-        Arrays.copyOfRange(testData, partialReadSize, partialReadSize * 2), res);
+        Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheMiss);
+    Assert.assertEquals(0, manager.mPagesServed);
+    Assert.assertEquals(1, manager.mPagesCached);
+
+    // cache hit
+    byte[] cacheHit = new byte[partialReadSize];
+    stream.seek(offset);
+    Assert.assertEquals(partialReadSize, stream.read(cacheHit));
+    Assert.assertArrayEquals(
+        Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheHit);
     Assert.assertEquals(1, manager.mPagesServed);
+  }
+
+  @Test
+  public void readMultiPage() throws Exception {
+    int pages = 2;
+    int fileSize = (int) LocalCacheFileInStream.PAGE_SIZE + 10;
+    byte[] testData = generateData(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+
+    // cache miss
+    byte[] cacheMiss = new byte[fileSize];
+    Assert.assertEquals(fileSize, stream.read(cacheMiss));
+    Assert.assertArrayEquals(testData, cacheMiss);
+    Assert.assertEquals(0, manager.mPagesServed);
+    Assert.assertEquals(pages, manager.mPagesCached);
+
+    // cache hit
+    stream.seek(0);
+    byte[] cacheHit = new byte[fileSize];
+    Assert.assertEquals(fileSize, stream.read(cacheHit));
+    Assert.assertArrayEquals(testData, cacheHit);
+    Assert.assertEquals(pages, manager.mPagesServed);
+  }
+
+  @Test
+  public void readMultiPageMixed() throws Exception {
+    int pages = 10;
+    int fileSize = (int) LocalCacheFileInStream.PAGE_SIZE * pages;
+    byte[] testData = generateData(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+
+    // populate cache
+    int pagesCached = 0;
+    for (int i = 0; i < pages; i++) {
+      stream.seek(LocalCacheFileInStream.PAGE_SIZE * i);
+      if (ThreadLocalRandom.current().nextBoolean()) {
+        Assert.assertEquals(testData[(int) (i * LocalCacheFileInStream.PAGE_SIZE)], stream.read());
+        pagesCached++;
+      }
+    }
+
+    Assert.assertEquals(0, manager.mPagesServed);
+    Assert.assertEquals(pagesCached, manager.mPagesCached);
+
+    // sequential read
+    stream.seek(0);
+    byte[] fullRead = new byte[fileSize];
+    Assert.assertEquals(fileSize, stream.read(fullRead));
+    Assert.assertArrayEquals(testData, fullRead);
+    Assert.assertEquals(pagesCached, manager.mPagesServed);
   }
 
   private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager) {
