@@ -82,5 +82,10 @@ public class JobPathTest {
     assertNotEquals(newFileSystem, jobPath.getFileSystem(conf));
     verifyStatic(times(3));
     FileSystem.get(any(), any());
+
+    jobPath = new JobPath("bar", "bar", "/bar");
+    assertNotEquals(newFileSystem, jobPath.getFileSystem(conf));
+    verifyStatic(times(4));
+    FileSystem.get(any(), any());
   }
 }
