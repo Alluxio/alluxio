@@ -94,135 +94,126 @@ public class LocalCacheManager implements CacheManager {
    * Gets the lock for a particular page. Note that multiple pages may share the same lock as lock
    * striping is used to reduce resource overhead for locks.
    *
-   * @param fileId file identifier
-   * @param pageIndex index of the page within the file
+   * @param pageId page identifier
    * @return the corresponding page lock
    */
-  private ReadWriteLock getPageLock(long fileId, long pageIndex) {
-    return mPageLocks[(int) (fileId + pageIndex) % LOCK_SIZE];
+  private ReadWriteLock getPageLock(PageId pageId) {
+    return mPageLocks[(int) (pageId.getFileId() + pageId.getPageIndex()) % LOCK_SIZE];
   }
 
   /**
    * Gets a pair of locks to operate two given pages. One MUST acquire the first lock followed by
    * the second lock.
    *
-   * @param fileId file identifier
-   * @param pageIndex index of the page within the file
-   * @param fileId2 file identifier
-   * @param pageIndex2 index of the page within the file
+   * @param pageId page identifier
+   * @param pageId2 page identifier
    * @return the corresponding page lock pair
    */
-  private Pair<ReadWriteLock, ReadWriteLock> getPageLockPair(long fileId, long pageIndex,
-      long fileId2, long pageIndex2) {
-    if (fileId + pageIndex < fileId2 + pageIndex2) {
-      return new Pair<>(getPageLock(fileId, pageIndex), getPageLock(fileId2, pageIndex2));
+  private Pair<ReadWriteLock, ReadWriteLock> getPageLockPair(PageId pageId, PageId pageId2) {
+    if (pageId.getFileId() + pageId.getPageIndex() < pageId2.getFileId() + pageId2.getPageIndex()) {
+      return new Pair<>(getPageLock(pageId), getPageLock(pageId2));
     } else {
-      return new Pair<>(getPageLock(fileId2, pageIndex2), getPageLock(fileId, pageIndex));
+      return new Pair<>(getPageLock(pageId2), getPageLock(pageId));
     }
   }
 
   @Override
-  public void put(long fileId, long pageIndex, byte[] page) throws IOException {
-    long victimFileId = 0;
-    long victimPageIndex = 0;
+  public void put(PageId pageId, byte[] page) throws IOException {
+    PageId victim = null;
 
-    ReadWriteLock pageLock = getPageLock(fileId, pageIndex);
+    ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.writeLock())) {
       boolean alreadyCached;
       boolean needEvict = false;
       try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
-        alreadyCached = mMetaStore.hasPage(fileId, pageIndex);
+        alreadyCached = mMetaStore.hasPage(pageId);
         if (!alreadyCached) {
           needEvict = mPageStore.size() + 1 > mCacheSize;
           if (needEvict) {
-            Pair<Long, Long> victim = mEvictor.evict();
-            victimFileId = victim.getFirst();
-            victimPageIndex = victim.getSecond();
+            victim = mEvictor.evict();
           } else {
-            mMetaStore.addPage(fileId, pageIndex);
+            mMetaStore.addPage(pageId);
           }
         }
       }
       if (alreadyCached) {
         try {
-          mPageStore.delete(fileId, pageIndex);
+          mPageStore.delete(pageId);
         } catch (PageNotFoundException e) {
-          throw new IllegalStateException(String.format("Page store is missing page (%d, %d).",
-              fileId, pageIndex), e);
+          throw new IllegalStateException(
+              String.format("Page store is missing page %s.", pageId), e);
         }
-        mEvictor.updateOnPut(fileId, pageIndex);
-        mPageStore.put(fileId, pageIndex, page);
+        mEvictor.updateOnPut(pageId);
+        mPageStore.put(pageId, page);
+        return;
       } else if (!needEvict) {
-        mEvictor.updateOnPut(fileId, pageIndex);
-        mPageStore.put(fileId, pageIndex, page);
+        mEvictor.updateOnPut(pageId);
+        mPageStore.put(pageId, page);
+        return;
       }
     }
 
-    Pair<ReadWriteLock, ReadWriteLock> pageLockPair =
-        getPageLockPair(fileId, pageIndex, victimFileId, victimPageIndex);
+    Pair<ReadWriteLock, ReadWriteLock> pageLockPair = getPageLockPair(pageId, victim);
     try (LockResource r1 = new LockResource(pageLockPair.getFirst().writeLock());
         LockResource r2 = new LockResource(pageLockPair.getSecond().writeLock())) {
       try (LockResource r3 = new LockResource(mMetaLock.writeLock())) {
-        if (mMetaStore.hasPage(fileId, pageIndex)) {
-          LOG.warn("fileId {} pageIndex {} is already inserted by a racing thread",
-              fileId, pageIndex);
+        if (mMetaStore.hasPage(pageId)) {
+          LOG.warn("{} is already inserted by a racing thread", pageId);
           return;
         }
-        if (!mMetaStore.hasPage(victimFileId, victimPageIndex)) {
-          LOG.warn("fileId {} pageIndex {} is already evicted by a racing thread",
-              fileId, pageIndex);
+        if (!mMetaStore.hasPage(victim)) {
+          LOG.warn("{} is already evicted by a racing thread", pageId);
           return;
         }
         try {
-          mMetaStore.removePage(victimFileId, victimPageIndex);
+          mMetaStore.removePage(victim);
         } catch (PageNotFoundException e) {
-          throw new IllegalStateException(String.format("Page store is missing page (%d, %d).",
-              victimFileId, victimPageIndex), e);
+          throw new IllegalStateException(
+              String.format("Page store is missing page (%d, %d).", victim), e);
         }
-        mEvictor.updateOnDelete(victimFileId, victimPageIndex);
-        mMetaStore.addPage(fileId, pageIndex);
-        mEvictor.updateOnPut(fileId, pageIndex);
+        mEvictor.updateOnDelete(victim);
+        mMetaStore.addPage(pageId);
+        mEvictor.updateOnPut(pageId);
       }
       try {
-        mPageStore.delete(victimFileId, victimPageIndex);
+        mPageStore.delete(victim);
       } catch (PageNotFoundException e) {
-        throw new IllegalStateException(String.format("Page store is missing page (%d, %d).",
-            victimFileId, victimPageIndex), e);
+        throw new IllegalStateException(String.format("Page store is missing page %s.", victim), e);
       }
-      mPageStore.put(fileId, pageIndex, page);
+      mPageStore.put(pageId, page);
     }
   }
 
   @Override
-  public ReadableByteChannel get(long fileId, long pageIndex) throws IOException {
-    return get(fileId, pageIndex, 0);
+  public ReadableByteChannel get(PageId pageId) throws IOException {
+    return get(pageId, 0);
   }
 
   @Override
-  public ReadableByteChannel get(long fileId, long pageIndex, int pageOffset)
+  public ReadableByteChannel get(PageId pageId, int pageOffset)
       throws IOException {
     Preconditions.checkArgument(pageOffset <= mPageSize,
         "Read exceeds page boundary: offset=%s size=%s", pageOffset, mPageSize);
     ReadableByteChannel ret;
     boolean hasPage;
-    ReadWriteLock pageLock = getPageLock(fileId, pageIndex);
+    ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.readLock())) {
       try (LockResource r2 = new LockResource(mMetaLock.readLock())) {
-        hasPage = mMetaStore.hasPage(fileId, pageIndex);
+        hasPage = mMetaStore.hasPage(pageId);
       }
       if (!hasPage) {
         return null;
       }
       if (pageOffset == 0) {
-        ret = mPageStore.get(fileId, pageIndex);
+        ret = mPageStore.get(pageId);
       } else {
         //
         // TODO(feng): Extend page store API to get offset to avoid copy to use something like
-        // mPageStore.get(fileId, pageIndex, pageOffset, length);
+        // mPageStore.get(pageId, pageOffset, length);
         //
         ByteBuffer buf = ByteBuffer.allocate(mPageSize);
         int bytesRead;
-        try (ReadableByteChannel pageChannel = mPageStore.get(fileId, pageIndex)) {
+        try (ReadableByteChannel pageChannel = mPageStore.get(pageId)) {
           bytesRead = pageChannel.read(buf);
         }
         if (bytesRead < pageOffset) {
@@ -232,22 +223,22 @@ public class LocalCacheManager implements CacheManager {
         buf.position(pageOffset);
         ret = Channels.newChannel(new ByteBufferInputStream(buf));
       }
-      mEvictor.updateOnGet(fileId, pageIndex);
+      mEvictor.updateOnGet(pageId);
       return ret;
     } catch (PageNotFoundException e) {
       throw new IllegalStateException(
-          String.format("Page store is missing page (%d, %d).", fileId, pageIndex), e);
+          String.format("Page store is missing page %s.", pageId), e);
     }
   }
 
   @Override
-  public void delete(long fileId, long pageIndex) throws IOException, PageNotFoundException {
-    ReadWriteLock pageLock = getPageLock(fileId, pageIndex);
+  public void delete(PageId pageId) throws IOException, PageNotFoundException {
+    ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.writeLock())) {
       try (LockResource r1 = new LockResource(mMetaLock.writeLock())) {
-        mMetaStore.removePage(fileId, pageIndex);
+        mMetaStore.removePage(pageId);
       }
-      mPageStore.delete(fileId, pageIndex);
+      mPageStore.delete(pageId);
     }
   }
 }

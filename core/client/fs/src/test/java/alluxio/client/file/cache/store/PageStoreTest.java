@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import alluxio.Constants;
+import alluxio.client.file.cache.PageId;
 import alluxio.exception.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
 
@@ -71,16 +72,17 @@ public class PageStoreTest {
 
   void helloWorldTest(PageStore store) throws Exception {
     String msg = "Hello, World!";
-    store.put(0, 0, msg.getBytes());
+    PageId id = new PageId(0, 0);
+    store.put(id, msg.getBytes());
     ByteBuffer buf = ByteBuffer.allocate(1024);
-    store.get(0, 0).read(buf);
+    store.get(id).read(buf);
     buf.flip();
     String read = StandardCharsets.UTF_8.decode(buf).toString();
     assertEquals(msg, read);
-    store.delete(0, 0);
+    store.delete(id);
     try {
       buf.clear();
-      store.get(0, 0).read(buf);
+      store.get(id).read(buf);
       fail();
     } catch (PageNotFoundException e) {
       // Test completed successfully;
@@ -97,7 +99,7 @@ public class PageStoreTest {
     Random r = new Random();
     for (int i = 0; i < numPages; i++) {
       int pind = r.nextInt();
-      store.put(0, pind, b);
+      store.put(new PageId(0, pind), b);
       pages.add(pind);
     }
 
@@ -110,7 +112,7 @@ public class PageStoreTest {
       ByteBuffer buf = ByteBuffer.allocate(Constants.MB);
       for (Integer pageIndex  : pages) {
         buf.clear();
-        store.get(0, pageIndex).read(buf);
+        store.get(new PageId(0, pageIndex)).read(buf);
       }
       long end = System.nanoTime();
       times.add(end - start);

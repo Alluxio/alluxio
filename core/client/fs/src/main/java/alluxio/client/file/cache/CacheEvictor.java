@@ -11,8 +11,6 @@
 
 package alluxio.client.file.cache;
 
-import alluxio.collections.Pair;
-
 /**
  * Interface for client-side cache eviction policy.
  */
@@ -29,31 +27,28 @@ public interface CacheEvictor {
   /**
    * Updates evictor after a get operation.
    *
-   * @param fileId ID of the file
-   * @param pageIndex index of the page within the file
+   * @param pageId page identifier
    */
-  void updateOnGet(long fileId, long pageIndex);
+  void updateOnGet(PageId pageId);
 
   /**
    * Updates evictor after a put operation.
    *
-   * @param fileId ID of the file
-   * @param pageIndex index of the page within the file
+   * @param pageId page identifier
    */
-  void updateOnPut(long fileId, long pageIndex);
+  void updateOnPut(PageId pageId);
 
   /**
    * Updates evictor after a delete operation.
    *
-   * @param fileId ID of the file
-   * @param pageIndex index of the page within the file
+   * @param pageId page identifier
    */
-  void updateOnDelete(long fileId, long pageIndex);
+  void updateOnDelete(PageId pageId);
 
   /**
    * Find a page to evict.
    *
-   * @return a pair of long values representing (fileId, pageIndex)
+   * @return identifier of the page to evict
    */
-  Pair<Long, Long> evict();
+  PageId evict();
 }

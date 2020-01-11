@@ -12,13 +12,11 @@
 package alluxio.client.file.cache;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.URIStatus;
-import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -138,7 +136,7 @@ public class LocalCacheFileInStreamTest {
    * Implementation of cache manager that stores cached data in byte arrays in memory.
    */
   private class ByteArrayCacheManager implements CacheManager {
-    private final Map<Pair<Long, Long>, byte[]> mPages;
+    private final Map<PageId, byte[]> mPages;
 
     /** Metrics for test validation. */
     long mPagesServed = 0;
@@ -149,35 +147,33 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public void put(long fileId, long pageId, byte[] page) throws IOException {
-      mPages.put(new Pair<>(fileId, pageId), page);
+    public void put(PageId pageId, byte[] page) throws IOException {
+      mPages.put(pageId, page);
       mPagesCached++;
     }
 
     @Override
-    public ReadableByteChannel get(long fileId, long pageId) throws IOException {
-      Pair<Long, Long> key = new Pair<>(fileId, pageId);
-      if (!mPages.containsKey(key)) {
+    public ReadableByteChannel get(PageId pageId) throws IOException {
+      if (!mPages.containsKey(pageId)) {
         return null;
       }
       mPagesServed++;
-      return Channels.newChannel(new ByteArrayInputStream(mPages.get(key)));
+      return Channels.newChannel(new ByteArrayInputStream(mPages.get(pageId)));
     }
 
     @Override
-    public ReadableByteChannel get(long fileId, long pageIndex, int pageOffset) {
-      Pair<Long, Long> key = new Pair<>(fileId, pageIndex);
-      if (!mPages.containsKey(key)) {
+    public ReadableByteChannel get(PageId pageId, int pageOffset) {
+      if (!mPages.containsKey(pageId)) {
         return null;
       }
       mPagesServed++;
       return Channels.newChannel(new ByteArrayInputStream(
-          Arrays.copyOfRange(mPages.get(key), pageOffset, PAGE_SIZE - pageOffset)));
+          Arrays.copyOfRange(mPages.get(pageId), pageOffset, PAGE_SIZE - pageOffset)));
     }
 
     @Override
-    public void delete(long fileId, long pageId) throws IOException {
-      mPages.remove(new Pair<>(fileId, pageId));
+    public void delete(PageId pageId) throws IOException {
+      mPages.remove(pageId);
     }
   }
 

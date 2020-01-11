@@ -25,31 +25,28 @@ public class MetaStore {
   }
 
   /**
-   * @param fileId file identifier
-   * @param pageIndex index of the page within the file
+   * @param pageId page identifier
    * @return if a page is stored in cache
    */
-  boolean hasPage(long fileId, long pageIndex) {
+  boolean hasPage(PageId pageId) {
     return true;
   }
 
   /**
    * Adds a new page to the cache.
    *
-   * @param fileId file identifier
-   * @param pageIndex index of the page within the file
-   * @return true if addedsuccessfully
+   * @param pageId page identifier
+   * @return true if added successfully
    */
-  boolean addPage(long fileId, long pageIndex) {
+  boolean addPage(PageId pageId) {
     return true;
   }
 
   /**
    * Removes a page.
    *
-   * @param fileId file identifier
-   * @param pageIndex index of the page within the file
+   * @param pageId page identifier
    */
-  void removePage(long fileId, long pageIndex) throws PageNotFoundException {
+  void removePage(PageId pageId) throws PageNotFoundException {
   }
 }

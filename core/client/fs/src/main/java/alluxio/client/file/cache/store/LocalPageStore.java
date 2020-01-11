@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache.store;
 
+import alluxio.client.file.cache.PageId;
 import alluxio.exception.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
 
@@ -51,8 +52,8 @@ public class LocalPageStore implements PageStore, AutoCloseable {
   }
 
   @Override
-  public void put(long fileId, long pageIndex, byte[] page) throws IOException {
-    Path p = getFilePath(fileId, pageIndex);
+  public void put(PageId pageId, byte[] page) throws IOException {
+    Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
       Files.createDirectories(p.getParent());
       Files.createFile(p);
@@ -64,9 +65,8 @@ public class LocalPageStore implements PageStore, AutoCloseable {
   }
 
   @Override
-  public ReadableByteChannel get(long fileId, long pageIndex)throws IOException,
-      PageNotFoundException {
-    Path p = getFilePath(fileId, pageIndex);
+  public ReadableByteChannel get(PageId pageId) throws IOException, PageNotFoundException {
+    Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
@@ -75,8 +75,8 @@ public class LocalPageStore implements PageStore, AutoCloseable {
   }
 
   @Override
-  public void delete(long fileId, long pageIndex) throws IOException, PageNotFoundException {
-    Path p = getFilePath(fileId, pageIndex);
+  public void delete(PageId pageId) throws IOException, PageNotFoundException {
+    Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
@@ -87,8 +87,9 @@ public class LocalPageStore implements PageStore, AutoCloseable {
     }
   }
 
-  private Path getFilePath(long fileId, long pageIndex) {
-    return Paths.get(mRoot, Long.toString(fileId), Long.toString(pageIndex));
+  private Path getFilePath(PageId pageId) {
+    return Paths.get(mRoot, Long.toString(pageId.getFileId()),
+        Long.toString(pageId.getPageIndex()));
   }
 
   @Override

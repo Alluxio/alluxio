@@ -34,41 +34,37 @@ public interface CacheManager {
   /**
    * Writes a new page from a source channel with best effort.
    *
-   * @param fileId file identifier
-   * @param pageIndex index of the page within the file
+   * @param pageId page identifier
    * @param page page data
    * @throws IOException
    */
-  void put(long fileId, long pageIndex, byte[] page) throws IOException;
+  void put(PageId pageId, byte[] page) throws IOException;
 
   /**
    * Reads a page to the destination channel.
    *
-   * @param fileId file identifier
-   * @param pageIndex index of the page within the file
+   * @param pageId page identifier
    * @return the number of bytes read
    */
   @Nullable
-  ReadableByteChannel get(long fileId, long pageIndex) throws IOException;
+  ReadableByteChannel get(PageId pageId) throws IOException;
 
   /**
    * Reads a part of a page to the destination channel.
    *
-   * @param fileId file identifier
-   * @param pageIndex index of the page within the file
+   * @param pageId page identifier
    * @param pageOffset offset into the page
    * @return the number of bytes read
    */
   @Nullable
-  ReadableByteChannel get(long fileId, long pageIndex, int pageOffset)
+  ReadableByteChannel get(PageId pageId, int pageOffset)
       throws IOException;
 
   /**
    * Deletes a page from the cache.
    *
-   * @param fileId file identifier
-   * @param pageIndex index of the page within the file
+   * @param pageId page identifier
    * @throws PageNotFoundException if page is not found in the store
    */
-  void delete(long fileId, long pageIndex) throws IOException, PageNotFoundException;
+  void delete(PageId pageId) throws IOException, PageNotFoundException;
 }

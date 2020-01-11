@@ -11,7 +11,6 @@
 
 package alluxio.client.file.cache;
 
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -21,7 +20,6 @@ import static org.mockito.Mockito.when;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.FileSystemContext;
-import alluxio.collections.Pair;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
@@ -54,6 +52,8 @@ public final class LocalCacheManagerTest {
   private MetaStore mMetaStore;
   private PageStore mPageStore;
   private CacheEvictor mEvictor;
+  private final PageId mPage1 = new PageId(0L, 0L);
+  private final PageId mPage2 = new PageId(1L, 1L);
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
@@ -76,57 +76,57 @@ public final class LocalCacheManagerTest {
   @Test
   public void putNew() throws Exception {
     byte[] data = BufferUtils.getIncreasingByteArray(1);
-    when(mMetaStore.hasPage(0L, 0L)).thenReturn(false);
+    when(mMetaStore.hasPage(mPage1)).thenReturn(false);
     when(mPageStore.size()).thenReturn(0);
-    mCacheManager.put(0L, 0L, data);
-    verify(mMetaStore).addPage(0L, 0L);
-    verify(mPageStore).put(0L, 0L, data);
+    mCacheManager.put(mPage1, data);
+    verify(mMetaStore).addPage(mPage1);
+    verify(mPageStore).put(mPage1, data);
   }
 
   @Test
   public void putExist() throws Exception {
     byte[] data = BufferUtils.getIncreasingByteArray(1);
-    when(mMetaStore.hasPage(0L, 0L)).thenReturn(true);
+    when(mMetaStore.hasPage(mPage1)).thenReturn(true);
     when(mPageStore.size()).thenReturn(1);
-    mCacheManager.put(0L, 0L, data);
-    verify(mMetaStore, never()).addPage(0L, 0L);
-    verify(mPageStore).delete(0L, 0L);
-    verify(mPageStore).put(0L, 0L, data);
+    mCacheManager.put(mPage1, data);
+    verify(mMetaStore, never()).addPage(mPage1);
+    verify(mPageStore).delete(mPage1);
+    verify(mPageStore).put(mPage1, data);
   }
 
   @Test
   public void putEvict() throws Exception {
     byte[] data = BufferUtils.getIncreasingByteArray(1);
-    when(mMetaStore.hasPage(0L, 0L)).thenReturn(false);
-    when(mMetaStore.hasPage(1L, 1L)).thenReturn(true);
+    when(mMetaStore.hasPage(mPage1)).thenReturn(false);
+    when(mMetaStore.hasPage(mPage2)).thenReturn(true);
     when(mPageStore.size()).thenReturn((int) mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
-    when(mEvictor.evict()).thenReturn(new Pair(1L, 1L));
-    mCacheManager.put(0L, 0L, data);
-    verify(mMetaStore).addPage(0L, 0L);
-    verify(mMetaStore).removePage(1L, 1L);
-    verify(mPageStore).delete(1L, 1L);
-    verify(mPageStore).put(0L, 0L, data);
+    when(mEvictor.evict()).thenReturn(mPage2);
+    mCacheManager.put(mPage1, data);
+    verify(mMetaStore).addPage(mPage1);
+    verify(mMetaStore).removePage(mPage2);
+    verify(mPageStore).delete(mPage2);
+    verify(mPageStore).put(mPage1, data);
   }
 
   @Test
   public void getExist() throws Exception {
     ReadableByteChannel channel = mock(ReadableByteChannel.class);
-    when(mMetaStore.hasPage(0L, 0L)).thenReturn(true);
+    when(mMetaStore.hasPage(mPage1)).thenReturn(true);
     when(mPageStore.size()).thenReturn((int) mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
-    when(mPageStore.get(0L, 0L)).thenReturn(channel);
-    ReadableByteChannel ret = mCacheManager.get(0L, 0L);
+    when(mPageStore.get(mPage1)).thenReturn(channel);
+    ReadableByteChannel ret = mCacheManager.get(mPage1);
     Assert.assertEquals(channel, ret);
-    verify(mEvictor).updateOnGet(0L, 0L);
-    verify(mPageStore).get(0L, 0L);
+    verify(mEvictor).updateOnGet(mPage1);
+    verify(mPageStore).get(mPage1);
   }
 
   @Test
   public void getNotExist() throws Exception {
-    when(mMetaStore.hasPage(0L, 0L)).thenReturn(false);
-    ReadableByteChannel ret = mCacheManager.get(0L, 0L);
+    when(mMetaStore.hasPage(mPage1)).thenReturn(false);
+    ReadableByteChannel ret = mCacheManager.get(mPage1);
     Assert.assertNull(ret);
-    verify(mEvictor, never()).updateOnGet(0L, 0L);
-    verify(mPageStore, never()).get(0L, 0L);
+    verify(mEvictor, never()).updateOnGet(mPage1);
+    verify(mPageStore, never()).get(mPage1);
   }
 
   @Test
@@ -135,37 +135,37 @@ public final class LocalCacheManagerTest {
     ByteBuffer buf = BufferUtils.getIncreasingByteBuffer((int) pageSize);
     ByteBuffer retBuf = ByteBuffer.allocate((int) pageSize);
     try (ReadableByteChannel channel = Channels.newChannel(new ByteArrayInputStream(buf.array()))) {
-      when(mMetaStore.hasPage(0L, 0L)).thenReturn(true);
+      when(mMetaStore.hasPage(mPage1)).thenReturn(true);
       when(mPageStore.size()).thenReturn((int) mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
-      when(mPageStore.get(0L, 0L)).thenReturn(channel);
-      try (ReadableByteChannel ret = mCacheManager.get(0L, 0L, 1)) {
+      when(mPageStore.get(mPage1)).thenReturn(channel);
+      try (ReadableByteChannel ret = mCacheManager.get(mPage1, 1)) {
         Assert.assertEquals(pageSize - 1, ret.read(retBuf));
       }
     }
     retBuf.flip();
-    verify(mEvictor).updateOnGet(0L, 0L);
-    verify(mPageStore).get(eq(0L), eq(0L));
+    verify(mEvictor).updateOnGet(mPage1);
+    verify(mPageStore).get(mPage1);
     Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(1, (int) pageSize - 1, retBuf));
   }
 
   @Test
   public void deleteExist() throws Exception {
-    when(mMetaStore.hasPage(0L, 0L)).thenReturn(true);
-    mCacheManager.delete(0L, 0L);
-    verify(mMetaStore).removePage(0L, 0L);
-    verify(mPageStore).delete(0L, 0L);
+    when(mMetaStore.hasPage(mPage1)).thenReturn(true);
+    mCacheManager.delete(mPage1);
+    verify(mMetaStore).removePage(mPage1);
+    verify(mPageStore).delete(mPage1);
   }
 
   @Test
   public void deleteNotExist() throws Exception {
-    when(mMetaStore.hasPage(0L, 0L)).thenReturn(false);
-    doThrow(new PageNotFoundException("test")).when(mMetaStore).removePage(0L, 0L);
-    doThrow(new PageNotFoundException("test")).when(mPageStore).delete(0L, 0L);
+    when(mMetaStore.hasPage(mPage1)).thenReturn(false);
+    doThrow(new PageNotFoundException("test")).when(mMetaStore).removePage(mPage1);
+    doThrow(new PageNotFoundException("test")).when(mPageStore).delete(mPage1);
     mThrown.expect(PageNotFoundException.class);
     try {
-      mCacheManager.delete(0L, 0L);
+      mCacheManager.delete(mPage1);
     } finally {
-      verify(mMetaStore).removePage(0L, 0L);
+      verify(mMetaStore).removePage(mPage1);
     }
   }
 }

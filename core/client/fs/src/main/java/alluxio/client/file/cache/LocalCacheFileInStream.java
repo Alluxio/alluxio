@@ -107,7 +107,8 @@ public class LocalCacheFileInStream extends FileInStream {
       int currentPageOffset = (int) (mPosition % mPageSize);
       int bytesLeftInPage = (int) Math.min(mPageSize - currentPageOffset, len - bytesRead);
       // TODO(calvin): Update this to take page offset when API is updated
-      try (ReadableByteChannel cachedData = mCacheManager.get(mStatus.getFileId(), currentPage)) {
+      PageId pageId = new PageId(mStatus.getFileId(), currentPage);
+      try (ReadableByteChannel cachedData = mCacheManager.get(pageId)) {
         if (cachedData != null) { // cache hit
           // wrap return byte array in a bytebuffer and set the pos/limit for the page read
           ByteBuffer buf = ByteBuffer.wrap(b);
@@ -124,7 +125,7 @@ public class LocalCacheFileInStream extends FileInStream {
           mPosition += bytesLeftInPage;
         } else { // cache miss
           byte[] page = readExternalPage(mPosition);
-          mCacheManager.put(mStatus.getFileId(), currentPage, page);
+          mCacheManager.put(pageId, page);
           System.arraycopy(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
           bytesRead += bytesLeftInPage;
           mPosition += bytesLeftInPage;
