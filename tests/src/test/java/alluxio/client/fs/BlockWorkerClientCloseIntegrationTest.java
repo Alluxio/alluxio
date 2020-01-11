@@ -55,7 +55,7 @@ public final class BlockWorkerClientCloseIntegrationTest extends BaseIntegration
       Assert.assertFalse(client.get().isShutdown());
       client.get().close();
       Assert.assertTrue(client.get().isShutdown());
-      client.get().close();
+      client.close();
     }
   }
 }
