@@ -163,10 +163,10 @@ public final class LocalFileDataReader implements DataReader {
       if (mClosed) {
         return;
       }
-      if (mReader != null) {
-        mReader.close();
-      }
       try {
+        if (mReader != null) {
+          mReader.close();
+        }
         mStream.close();
         mStream.waitForComplete(mDataTimeoutMs);
       } finally {
