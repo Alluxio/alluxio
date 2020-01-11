@@ -14,6 +14,7 @@ package alluxio.client.file.cache;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.PageNotFoundException;
 import alluxio.resource.LockResource;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -70,6 +71,9 @@ public class LocalCacheManager implements CacheManager {
 
   /**
    * @param fsContext filesystem context
+   * @param evictor the eviction strategy to use
+   * @param metaStore the meta store manages the metadata
+   * @param pageStore the page store manages the cache data
    */
   @VisibleForTesting
   LocalCacheManager(FileSystemContext fsContext, MetaStore metaStore,
@@ -191,14 +195,13 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public ReadableByteChannel get(long fileId, long pageIndex) throws IOException,
-      PageNotFoundException {
+  public ReadableByteChannel get(long fileId, long pageIndex) throws IOException {
     return get(fileId, pageIndex, 0, mPageSize);
   }
 
   @Override
   public ReadableByteChannel get(long fileId, long pageIndex, int pageOffset, int length)
-      throws IOException, PageNotFoundException {
+      throws IOException {
     Preconditions.checkArgument(pageOffset + length <= mPageSize,
         "Read exceeds page boundary: offset=%s length=%s, size=%s", pageOffset, length, mPageSize);
     ReadableByteChannel ret;
@@ -209,8 +212,7 @@ public class LocalCacheManager implements CacheManager {
         hasPage = mMetaStore.hasPage(fileId, pageIndex);
       }
       if (!hasPage) {
-        throw new PageNotFoundException(
-            String.format("Page (%d, %d) could not be found", fileId, pageIndex));
+        return null;
       }
       if (pageOffset == 0) {
         ret = mPageStore.get(fileId, pageIndex);
@@ -234,6 +236,9 @@ public class LocalCacheManager implements CacheManager {
       }
       mEvictor.updateOnGet(fileId, pageIndex);
       return ret;
+    } catch (PageNotFoundException e) {
+      throw new IllegalStateException(
+          String.format("Page store is missing page (%d, %d).", fileId, pageIndex), e);
     }
   }
 

@@ -24,6 +24,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.collections.Pair;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.PageNotFoundException;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
@@ -37,7 +38,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -122,15 +122,11 @@ public final class LocalCacheManagerTest {
 
   @Test
   public void getNotExist() throws Exception {
-    ReadableByteChannel channel = mock(ReadableByteChannel.class);
     when(mMetaStore.hasPage(0L, 0L)).thenReturn(false);
-    mThrown.expect(PageNotFoundException.class);
-    try {
-      ReadableByteChannel ret = mCacheManager.get(0L, 0L);
-    } finally {
-      verify(mEvictor, never()).updateOnGet(0L, 0L);
-      verify(mPageStore, never()).get(0L, 0L);
-    }
+    ReadableByteChannel ret = mCacheManager.get(0L, 0L);
+    Assert.assertNull(ret);
+    verify(mEvictor, never()).updateOnGet(0L, 0L);
+    verify(mPageStore, never()).get(0L, 0L);
   }
 
   @Test
@@ -142,8 +138,6 @@ public final class LocalCacheManagerTest {
       when(mMetaStore.hasPage(0L, 0L)).thenReturn(true);
       when(mPageStore.size()).thenReturn((int) mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
       when(mPageStore.get(0L, 0L)).thenReturn(channel);
-      ByteArrayOutputStream dst = new ByteArrayOutputStream();
-      int size = 0;
       try (ReadableByteChannel ret = mCacheManager.get(0L, 0L, 1, 2)) {
         Assert.assertEquals(2, ret.read(retBuf));
       }

@@ -12,10 +12,10 @@
 package alluxio.client.file.cache;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.util.io.BufferUtils;
@@ -36,7 +36,7 @@ import java.nio.channels.ReadableByteChannel;
 public class LocalCacheFileInStream extends FileInStream {
 
   /** Page size in bytes. Needs to be configurable */
-  protected static final long PAGE_SIZE = 1 * Constants.MB;
+  protected final long mPageSize;
 
   private final byte[] mSingleByte = new byte[1];
   private final Closer mCloser = Closer.create();
@@ -68,6 +68,7 @@ public class LocalCacheFileInStream extends FileInStream {
    */
   public LocalCacheFileInStream(AlluxioURI path, OpenFilePOptions options, FileSystem externalFs,
       CacheManager cacheManager) {
+    mPageSize = externalFs.getConf().getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     mPath = path;
     // Lazy init of status object
     mStatus = Suppliers.memoize(() -> {
@@ -102,19 +103,13 @@ public class LocalCacheFileInStream extends FileInStream {
     int bytesRead = 0;
     // for each page, check if it is available in the cache
     while (bytesRead < len) {
-      long currentPage = mPosition / PAGE_SIZE;
-      int currentPageOffset = (int) (mPosition % PAGE_SIZE);
-      int bytesLeftInPage = (int) Math.min(PAGE_SIZE - currentPageOffset, len - bytesRead);
+      long currentPage = mPosition / mPageSize;
+      int currentPageOffset = (int) (mPosition % mPageSize);
+      int bytesLeftInPage = (int) Math.min(mPageSize - currentPageOffset, len - bytesRead);
       // TODO(calvin): Update this to take page offset when API is updated
-      ReadableByteChannel cachedData = null;
-      try {
-        cachedData = mCacheManager.get(mStatus.getFileId(), currentPage);
-      } catch (PageNotFoundException e) {
-        // ignore exception and continue to read remote data
-      }
-      if (cachedData != null) { // cache hit
-        // wrap return byte array in a bytebuffer and set the pos/limit for the page read
-        try {
+      try (ReadableByteChannel cachedData = mCacheManager.get(mStatus.getFileId(), currentPage)) {
+        if (cachedData != null) { // cache hit
+          // wrap return byte array in a bytebuffer and set the pos/limit for the page read
           ByteBuffer buf = ByteBuffer.wrap(b);
           buf.position(off + bytesRead);
           buf.limit(off + bytesRead + bytesLeftInPage);
@@ -127,15 +122,13 @@ public class LocalCacheFileInStream extends FileInStream {
           Preconditions.checkState(buf.position() == buf.limit());
           bytesRead += bytesLeftInPage;
           mPosition += bytesLeftInPage;
-        } finally {
-          cachedData.close();
+        } else { // cache miss
+          byte[] page = readExternalPage(mPosition);
+          mCacheManager.put(mStatus.getFileId(), currentPage, page);
+          System.arraycopy(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
+          bytesRead += bytesLeftInPage;
+          mPosition += bytesLeftInPage;
         }
-      } else { // cache miss
-        byte[] page = readExternalPage(mPosition);
-        mCacheManager.put(mStatus.getFileId(), currentPage, page);
-        System.arraycopy(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
-        bytesRead += bytesLeftInPage;
-        mPosition += bytesLeftInPage;
       }
     }
     Preconditions.checkState(bytesRead == len, "Invalid number of bytes read");
@@ -211,7 +204,7 @@ public class LocalCacheFileInStream extends FileInStream {
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
-    long pageStart = pos - (pos % PAGE_SIZE);
+    long pageStart = pos - (pos % mPageSize);
     if (mExternalFileInStream.getPos() != pageStart) {
       mExternalFileInStream.seek(pageStart);
     }
@@ -228,9 +221,9 @@ public class LocalCacheFileInStream extends FileInStream {
    * @return a byte array of the page data
    */
   private byte[] readExternalPage(long pos) throws IOException {
-    long pageStart = pos - (pos % PAGE_SIZE);
+    long pageStart = pos - (pos % mPageSize);
     FileInStream stream = getExternalFileInStream(pageStart);
-    int pageSize = (int) Math.min(PAGE_SIZE, mStatus.getLength() - pageStart);
+    int pageSize = (int) Math.min(mPageSize, mStatus.getLength() - pageStart);
     byte[] page = new byte[pageSize];
     if (stream.read(page) != pageSize) {
       throw new IOException("Failed to read complete page from external storage.");

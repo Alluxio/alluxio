@@ -12,9 +12,12 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.FileSystemContext;
+import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
+
+import javax.annotation.Nullable;
 
 /**
  * Interface for managing cached pages.
@@ -43,11 +46,10 @@ public interface CacheManager {
    *
    * @param fileId file identifier
    * @param pageIndex index of the page within the file
-   * @throws PageNotFoundException if page is not found in the store
    * @return the number of bytes read
    */
-  ReadableByteChannel get(long fileId, long pageIndex) throws IOException,
-      PageNotFoundException;
+  @Nullable
+  ReadableByteChannel get(long fileId, long pageIndex) throws IOException;
 
   /**
    * Reads a part of a page to the destination channel.
@@ -56,11 +58,11 @@ public interface CacheManager {
    * @param pageIndex index of the page within the file
    * @param pageOffset offset into the page
    * @param length length to read
-   * @throws PageNotFoundException if page is not found in the store
    * @return the number of bytes read
    */
+  @Nullable
   ReadableByteChannel get(long fileId, long pageIndex, int pageOffset, int length)
-      throws IOException, PageNotFoundException;
+      throws IOException;
 
   /**
    * Deletes a page from the cache.

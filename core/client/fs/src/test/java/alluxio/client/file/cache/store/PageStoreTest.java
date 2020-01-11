@@ -7,7 +7,6 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
 package alluxio.client.file.cache.store;
@@ -16,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import alluxio.Constants;
-import alluxio.client.file.cache.PageNotFoundException;
+import alluxio.exception.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
 
 import org.junit.Ignore;

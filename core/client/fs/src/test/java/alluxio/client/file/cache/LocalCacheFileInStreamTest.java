@@ -1,6 +1,18 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.client.file.cache;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -52,11 +64,13 @@ import java.util.Map;
  * Unit tests for {@link LocalCacheFileInStream}.
  */
 public class LocalCacheFileInStreamTest {
+  protected static final int PAGE_SIZE = 1 * Constants.MB;
+
   @Test
   public void readPageCacheMiss() throws Exception {
     Map<AlluxioURI, byte[]> files = new HashMap<>();
     AlluxioURI testFilename = new AlluxioURI("/test");
-    int fileSize = (int) LocalCacheFileInStream.PAGE_SIZE;
+    int fileSize = PAGE_SIZE;
     byte[] testData = generateData(fileSize);
     files.put(testFilename, testData);
 
@@ -78,7 +92,7 @@ public class LocalCacheFileInStreamTest {
   public void readPageCacheHit() throws Exception {
     Map<AlluxioURI, byte[]> files = new HashMap<>();
     AlluxioURI testFilename = new AlluxioURI("/test");
-    int fileSize = (int) LocalCacheFileInStream.PAGE_SIZE;
+    int fileSize = PAGE_SIZE;
     byte[] testData = generateData(fileSize);
     files.put(testFilename, testData);
 
@@ -109,7 +123,7 @@ public class LocalCacheFileInStreamTest {
   private byte[] generateData(int len) {
     byte[] data = new byte[len];
     for (int i = 0; i < len; i++) {
-      data[i] = (byte) (i / LocalCacheFileInStream.PAGE_SIZE);
+      data[i] = (byte) (i / PAGE_SIZE);
     }
     return data;
   }

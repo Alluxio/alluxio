@@ -7,7 +7,6 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
 package alluxio.client.file.cache;
@@ -16,6 +15,7 @@ import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.LocalPageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.RocksPageStore;
+import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;

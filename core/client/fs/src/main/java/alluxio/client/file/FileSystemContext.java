@@ -602,10 +602,15 @@ public final class FileSystemContext implements Closeable {
    * @return the client side cache manager
    */
   public CacheManager getCacheManager() {
+    return getCacheManager(this);
+  }
+
+  private static CacheManager getCacheManager(FileSystemContext fsContext) {
+    // TODO(feng): support multiple cache managers
     if (sCacheManager == null) {
-      synchronized (this) {
+      synchronized (FileSystemContext.class) {
         if (sCacheManager == null) {
-          sCacheManager = CacheManager.create(this);
+          sCacheManager = CacheManager.create(fsContext);
         }
       }
     }
