@@ -138,14 +138,14 @@ public final class LocalCacheManagerTest {
       when(mMetaStore.hasPage(0L, 0L)).thenReturn(true);
       when(mPageStore.size()).thenReturn((int) mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
       when(mPageStore.get(0L, 0L)).thenReturn(channel);
-      try (ReadableByteChannel ret = mCacheManager.get(0L, 0L, 1, 2)) {
-        Assert.assertEquals(2, ret.read(retBuf));
+      try (ReadableByteChannel ret = mCacheManager.get(0L, 0L, 1)) {
+        Assert.assertEquals(pageSize - 1, ret.read(retBuf));
       }
     }
     retBuf.flip();
     verify(mEvictor).updateOnGet(0L, 0L);
     verify(mPageStore).get(eq(0L), eq(0L));
-    Assert.assertArrayEquals(new byte[] {1, 2}, BufferUtils.newByteArrayFromByteBuffer(retBuf));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(1, (int) pageSize - 1, retBuf));
   }
 
   @Test

@@ -57,11 +57,10 @@ public interface CacheManager {
    * @param fileId file identifier
    * @param pageIndex index of the page within the file
    * @param pageOffset offset into the page
-   * @param length length to read
    * @return the number of bytes read
    */
   @Nullable
-  ReadableByteChannel get(long fileId, long pageIndex, int pageOffset, int length)
+  ReadableByteChannel get(long fileId, long pageIndex, int pageOffset)
       throws IOException;
 
   /**

@@ -20,6 +20,8 @@ import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -43,6 +45,7 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.security.authorization.AclEntry;
+import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
@@ -64,7 +67,10 @@ import java.util.Map;
  * Unit tests for {@link LocalCacheFileInStream}.
  */
 public class LocalCacheFileInStreamTest {
-  protected static final int PAGE_SIZE = 1 * Constants.MB;
+  private static AlluxioConfiguration sConf = new InstancedConfiguration(
+      ConfigurationUtils.defaults());
+  protected static final int PAGE_SIZE =
+      (int) sConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
 
   @Test
   public void readPageCacheMiss() throws Exception {
@@ -159,14 +165,14 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public ReadableByteChannel get(long fileId, long pageIndex, int pageOffset, int length) {
+    public ReadableByteChannel get(long fileId, long pageIndex, int pageOffset) {
       Pair<Long, Long> key = new Pair<>(fileId, pageIndex);
       if (!mPages.containsKey(key)) {
         return null;
       }
       mPagesServed++;
       return Channels.newChannel(new ByteArrayInputStream(
-          Arrays.copyOfRange(mPages.get(key), pageOffset, pageOffset + length)));
+          Arrays.copyOfRange(mPages.get(key), pageOffset, PAGE_SIZE - pageOffset)));
     }
 
     @Override
@@ -230,7 +236,7 @@ public class LocalCacheFileInStreamTest {
 
     @Override
     public AlluxioConfiguration getConf() {
-      throw new UnsupportedOperationException();
+      return sConf;
     }
 
     @Override

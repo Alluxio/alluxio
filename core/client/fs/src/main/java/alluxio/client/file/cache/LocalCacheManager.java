@@ -195,14 +195,14 @@ public class LocalCacheManager implements CacheManager {
 
   @Override
   public ReadableByteChannel get(long fileId, long pageIndex) throws IOException {
-    return get(fileId, pageIndex, 0, mPageSize);
+    return get(fileId, pageIndex, 0);
   }
 
   @Override
-  public ReadableByteChannel get(long fileId, long pageIndex, int pageOffset, int length)
+  public ReadableByteChannel get(long fileId, long pageIndex, int pageOffset)
       throws IOException {
-    Preconditions.checkArgument(pageOffset + length <= mPageSize,
-        "Read exceeds page boundary: offset=%s length=%s, size=%s", pageOffset, length, mPageSize);
+    Preconditions.checkArgument(pageOffset <= mPageSize,
+        "Read exceeds page boundary: offset=%s size=%s", pageOffset, mPageSize);
     ReadableByteChannel ret;
     boolean hasPage;
     ReadWriteLock pageLock = getPageLock(fileId, pageIndex);
@@ -230,7 +230,6 @@ public class LocalCacheManager implements CacheManager {
         }
         buf.flip();
         buf.position(pageOffset);
-        buf.limit(Math.min(bytesRead, pageOffset + length));
         ret = Channels.newChannel(new ByteBufferInputStream(buf));
       }
       mEvictor.updateOnGet(fileId, pageIndex);
