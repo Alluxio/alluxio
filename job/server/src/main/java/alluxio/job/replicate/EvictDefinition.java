@@ -21,6 +21,7 @@ import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
+import alluxio.resource.CloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.BlockInfo;
@@ -120,18 +121,13 @@ public final class EvictDefinition
     }
 
     RemoveBlockRequest request = RemoveBlockRequest.newBuilder().setBlockId(blockId).build();
-    BlockWorkerClient blockWorker = null;
-    try {
-      blockWorker = context.getFsContext().acquireBlockWorkerClient(localNetAddress);
-      blockWorker.removeBlock(request);
+    try (CloseableResource<BlockWorkerClient> blockWorker =
+             context.getFsContext().acquireBlockWorkerClient(localNetAddress)) {
+      blockWorker.get().removeBlock(request);
     } catch (NotFoundException e) {
       // Instead of throwing this exception, we continue here because the block to evict does not
       // exist on this worker anyway.
       LOG.warn("Failed to delete block {} on {}: block does not exist", blockId, localNetAddress);
-    } finally {
-      if (blockWorker != null) {
-        context.getFsContext().releaseBlockWorkerClient(localNetAddress, blockWorker);
-      }
     }
     return null;
   }

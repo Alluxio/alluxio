@@ -21,6 +21,7 @@ import alluxio.job.AbstractVoidJobDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
+import alluxio.resource.CloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerInfo;
@@ -106,14 +107,9 @@ public final class MoveDefinition
 
     MoveBlockRequest request = MoveBlockRequest.newBuilder().setBlockId(blockId)
         .setMediumType(config.getMediumType()).build();
-    BlockWorkerClient blockWorker = null;
-    try {
-      blockWorker = context.getFsContext().acquireBlockWorkerClient(localNetAddress);
-      blockWorker.moveBlock(request);
-    } finally {
-      if (blockWorker != null) {
-        context.getFsContext().releaseBlockWorkerClient(localNetAddress, blockWorker);
-      }
+    try (CloseableResource<BlockWorkerClient> blockWorker =
+             context.getFsContext().acquireBlockWorkerClient(localNetAddress)) {
+      blockWorker.get().moveBlock(request);
     }
     return null;
   }
