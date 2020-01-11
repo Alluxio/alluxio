@@ -17,7 +17,9 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
@@ -29,6 +31,7 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.RequestType;
 import alluxio.grpc.WriteRequest;
+import alluxio.resource.CloseableResource;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -44,6 +47,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -91,12 +95,12 @@ public final class GrpcDataWriterTest {
 
     mClient = mock(BlockWorkerClient.class);
     mRequestObserver = mock(ClientCallStreamObserver.class);
-    PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(
+    when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(
         new NoopClosableResource<>(mClient));
-    PowerMockito.when(mContext.getClientContext()).thenReturn(mClientContext);
-    PowerMockito.when(mContext.getClusterConf()).thenReturn(mConf);
-    PowerMockito.when(mClient.writeBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
-    PowerMockito.when(mRequestObserver.isReady()).thenReturn(true);
+    when(mContext.getClientContext()).thenReturn(mClientContext);
+    when(mContext.getClusterConf()).thenReturn(mConf);
+    when(mClient.writeBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
+    when(mRequestObserver.isReady()).thenReturn(true);
   }
 
   @After
@@ -180,6 +184,23 @@ public final class GrpcDataWriterTest {
       checksumActual = verifyWriteRequests(mClient, 10, length / 3);
     }
     assertEquals(checksumExpected.get().longValue(), checksumActual);
+  }
+
+  @Test
+  public void closedBlockWorkerClientTest() throws IOException {
+    CloseableResource<BlockWorkerClient> resource = Mockito.mock(CloseableResource.class);
+    when(resource.get()).thenReturn(mClient);
+    FileSystemContext context = PowerMockito.mock(FileSystemContext.class);
+    when(context.acquireBlockWorkerClient(any(WorkerNetAddress.class))).thenReturn(resource);
+    when(context.getClusterConf()).thenReturn(mConf);
+    mConf.set(PropertyKey.USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS, "1");
+    GrpcDataWriter writer = GrpcDataWriter.create(context, mAddress, BLOCK_ID, 0,
+        RequestType.ALLUXIO_BLOCK,
+        OutStreamOptions.defaults(mClientContext).setWriteTier(0));
+    verify(resource, times(0)).close();
+    verifyWriteRequests(mClient, 0, 0);
+    writer.close();
+    verify(resource, times(1)).close();
   }
 
   /**
