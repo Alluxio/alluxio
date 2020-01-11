@@ -35,7 +35,7 @@ import java.nio.channels.ReadableByteChannel;
 @NotThreadSafe
 public class LocalCacheFileInStream extends FileInStream {
 
-  /** Page size in bytes. Needs to be configurable */
+  /** Page size in bytes. */
   protected final long mPageSize;
 
   private final byte[] mSingleByte = new byte[1];

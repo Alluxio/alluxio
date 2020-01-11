@@ -147,8 +147,8 @@ public class LocalCacheManager implements CacheManager {
         try {
           mPageStore.delete(fileId, pageIndex);
         } catch (PageNotFoundException e) {
-          // this should never happen with proper locking
-          LOG.error("failed to delete page {} {} from page store", fileId, pageIndex, e);
+          throw new IllegalStateException(String.format("Page store is missing page (%d, %d).",
+              fileId, pageIndex), e);
         }
         mEvictor.updateOnPut(fileId, pageIndex);
         mPageStore.put(fileId, pageIndex, page);
@@ -176,9 +176,8 @@ public class LocalCacheManager implements CacheManager {
         try {
           mMetaStore.removePage(victimFileId, victimPageIndex);
         } catch (PageNotFoundException e) {
-          // this should never happen with proper locking
-          LOG.error("failed to remove page {} {} from meta store",
-              victimFileId, victimPageIndex, e);
+          throw new IllegalStateException(String.format("Page store is missing page (%d, %d).",
+              victimFileId, victimPageIndex), e);
         }
         mEvictor.updateOnDelete(victimFileId, victimPageIndex);
         mMetaStore.addPage(fileId, pageIndex);
@@ -187,8 +186,8 @@ public class LocalCacheManager implements CacheManager {
       try {
         mPageStore.delete(victimFileId, victimPageIndex);
       } catch (PageNotFoundException e) {
-        // this should never happen with proper locking
-        LOG.error("failed to delete page {} {} from page store", victimFileId, victimPageIndex, e);
+        throw new IllegalStateException(String.format("Page store is missing page (%d, %d).",
+            victimFileId, victimPageIndex), e);
       }
       mPageStore.put(fileId, pageIndex, page);
     }
