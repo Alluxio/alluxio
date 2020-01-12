@@ -7,13 +7,13 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
 package alluxio.client.file.cache.store;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
 
 import org.junit.Before;
@@ -21,11 +21,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 
 public class LocalPageStoreTest {
@@ -57,10 +54,11 @@ public class LocalPageStoreTest {
 
   void helloWorldTest(PageStore store) throws Exception {
     String msg = "Hello, World!";
-    store.put(0, 0, msg.getBytes());
+    PageId id = new PageId(0, 0);
+    store.put(id, msg.getBytes());
     ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
     ByteBuffer buf = ByteBuffer.allocate(1024);
-    store.get(0, 0).read(buf);
+    store.get(id).read(buf);
     buf.flip();
     String read = StandardCharsets.UTF_8.decode(buf).toString();
     assertEquals(msg, read);

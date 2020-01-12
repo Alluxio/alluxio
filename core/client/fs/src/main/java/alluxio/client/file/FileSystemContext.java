@@ -18,6 +18,7 @@ import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
+import alluxio.client.file.cache.CacheManager;
 import alluxio.client.metrics.MetricsHeartbeatContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -85,6 +86,11 @@ import javax.security.auth.Subject;
 @ThreadSafe
 public final class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
+
+  /**
+   * The local cache manager for the file system.
+   */
+  private static volatile CacheManager sCacheManager;
 
   /**
    * Unique ID for each FileSystemContext.
@@ -590,6 +596,25 @@ public final class FileSystemContext implements Closeable {
     }
 
     return localWorkerNetAddresses.isEmpty() ? workerNetAddresses : localWorkerNetAddresses;
+  }
+
+  /**
+   * @return the client side cache manager
+   */
+  public CacheManager getCacheManager() {
+    return getCacheManager(this);
+  }
+
+  private static CacheManager getCacheManager(FileSystemContext fsContext) {
+    // TODO(feng): support multiple cache managers
+    if (sCacheManager == null) {
+      synchronized (FileSystemContext.class) {
+        if (sCacheManager == null) {
+          sCacheManager = CacheManager.create(fsContext);
+        }
+      }
+    }
+    return sCacheManager;
   }
 
   /**

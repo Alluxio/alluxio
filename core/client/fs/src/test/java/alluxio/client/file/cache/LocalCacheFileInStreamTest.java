@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.client.file.cache;
 
 import alluxio.AlluxioURI;
@@ -6,8 +17,9 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.URIStatus;
-import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -31,6 +43,7 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.security.authorization.AclEntry;
+import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
@@ -43,6 +56,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,11 +65,16 @@ import java.util.Map;
  * Unit tests for {@link LocalCacheFileInStream}.
  */
 public class LocalCacheFileInStreamTest {
+  private static AlluxioConfiguration sConf = new InstancedConfiguration(
+      ConfigurationUtils.defaults());
+  protected static final int PAGE_SIZE =
+      (int) sConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+
   @Test
   public void readPageCacheMiss() throws Exception {
     Map<AlluxioURI, byte[]> files = new HashMap<>();
     AlluxioURI testFilename = new AlluxioURI("/test");
-    int fileSize = (int) LocalCacheFileInStream.PAGE_SIZE;
+    int fileSize = PAGE_SIZE;
     byte[] testData = generateData(fileSize);
     files.put(testFilename, testData);
 
@@ -77,7 +96,7 @@ public class LocalCacheFileInStreamTest {
   public void readPageCacheHit() throws Exception {
     Map<AlluxioURI, byte[]> files = new HashMap<>();
     AlluxioURI testFilename = new AlluxioURI("/test");
-    int fileSize = (int) LocalCacheFileInStream.PAGE_SIZE;
+    int fileSize = PAGE_SIZE;
     byte[] testData = generateData(fileSize);
     files.put(testFilename, testData);
 
@@ -108,7 +127,7 @@ public class LocalCacheFileInStreamTest {
   private byte[] generateData(int len) {
     byte[] data = new byte[len];
     for (int i = 0; i < len; i++) {
-      data[i] = (byte) (i / LocalCacheFileInStream.PAGE_SIZE);
+      data[i] = (byte) (i / PAGE_SIZE);
     }
     return data;
   }
@@ -117,7 +136,7 @@ public class LocalCacheFileInStreamTest {
    * Implementation of cache manager that stores cached data in byte arrays in memory.
    */
   private class ByteArrayCacheManager implements CacheManager {
-    private final Map<Pair<Long, Long>, byte[]> mPages;
+    private final Map<PageId, byte[]> mPages;
 
     /** Metrics for test validation. */
     long mPagesServed = 0;
@@ -128,26 +147,33 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public int put(long fileId, long pageId, byte[] page) throws IOException {
-      mPages.put(new Pair<>(fileId, pageId), page);
+    public void put(PageId pageId, byte[] page) throws IOException {
+      mPages.put(pageId, page);
       mPagesCached++;
-      return page.length;
     }
 
     @Override
-    public ReadableByteChannel get(long fileId, long pageId) throws IOException {
-      Pair<Long, Long> key = new Pair<>(fileId, pageId);
-      if (!mPages.containsKey(key)) {
+    public ReadableByteChannel get(PageId pageId) throws IOException {
+      if (!mPages.containsKey(pageId)) {
         return null;
       }
       mPagesServed++;
-      return Channels.newChannel(new ByteArrayInputStream(mPages.get(key)));
+      return Channels.newChannel(new ByteArrayInputStream(mPages.get(pageId)));
     }
 
     @Override
-    public boolean delete(long fileId, long pageId) throws IOException {
-      mPages.remove(new Pair<>(fileId, pageId));
-      return true;
+    public ReadableByteChannel get(PageId pageId, int pageOffset) {
+      if (!mPages.containsKey(pageId)) {
+        return null;
+      }
+      mPagesServed++;
+      return Channels.newChannel(new ByteArrayInputStream(
+          Arrays.copyOfRange(mPages.get(pageId), pageOffset, PAGE_SIZE - pageOffset)));
+    }
+
+    @Override
+    public void delete(PageId pageId) throws IOException {
+      mPages.remove(pageId);
     }
   }
 
@@ -206,7 +232,7 @@ public class LocalCacheFileInStreamTest {
 
     @Override
     public AlluxioConfiguration getConf() {
-      throw new UnsupportedOperationException();
+      return sConf;
     }
 
     @Override

@@ -7,13 +7,13 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
 package alluxio.client.file.cache.store;
 
+import alluxio.client.file.cache.PageId;
+import alluxio.exception.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
-import alluxio.resource.ResourcePool;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FileUtils;
@@ -66,9 +66,9 @@ public class RocksPageStore implements PageStore, AutoCloseable {
   }
 
   @Override
-  public void put(long fileId, long pageIndex, byte[] page) throws IOException {
+  public void put(PageId pageId, byte[] page) throws IOException {
     try {
-      mDb.put(getPageKey(fileId, pageIndex), page);
+      mDb.put(getPageKey(pageId), page);
       mSize.incrementAndGet();
     } catch (RocksDBException e) {
       throw new IOException("Failed to store page", e);
@@ -76,12 +76,12 @@ public class RocksPageStore implements PageStore, AutoCloseable {
   }
 
   @Override
-  public ReadableByteChannel get(long fileId, long pageIndex) throws IOException,
+  public ReadableByteChannel get(PageId pageId) throws IOException,
       PageNotFoundException {
     try {
-      byte[] page = mDb.get(getPageKey(fileId, pageIndex));
+      byte[] page = mDb.get(getPageKey(pageId));
       if (page == null) {
-        throw new PageNotFoundException(new String(getPageKey(fileId, pageIndex)));
+        throw new PageNotFoundException(new String(getPageKey(pageId)));
       }
       ByteArrayInputStream bais = new ByteArrayInputStream(page);
       return Channels.newChannel(bais);
@@ -91,9 +91,9 @@ public class RocksPageStore implements PageStore, AutoCloseable {
   }
 
   @Override
-  public void delete(long fileId, long pageIndex) throws PageNotFoundException {
+  public void delete(PageId pageId) throws PageNotFoundException {
     try {
-      mDb.delete(getPageKey(fileId, pageIndex));
+      mDb.delete(getPageKey(pageId));
       mSize.decrementAndGet();
     } catch (RocksDBException e) {
       throw new PageNotFoundException("Failed to remove page", e);
@@ -110,10 +110,10 @@ public class RocksPageStore implements PageStore, AutoCloseable {
     }
   }
 
-  private byte[] getPageKey(long fileId, long pageIndex) {
+  private byte[] getPageKey(PageId pageId) {
     ByteBuffer buf = ByteBuffer.allocate(16);
-    buf.putLong(fileId);
-    buf.putLong(pageIndex);
+    buf.putLong(pageId.getFileId());
+    buf.putLong(pageId.getPageIndex());
     return buf.array();
   }
 

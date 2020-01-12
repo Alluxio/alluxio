@@ -15,27 +15,28 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.DelegatingFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.OpenFilePOptions;
 
 /**
  * A FileSystem implementation with a local cache.
  */
 public class LocalCacheFileSystem extends DelegatingFileSystem {
-
-  private final LocalCacheManager mLocalCacheManager;
+  private final FileSystemContext mFsContext;
 
   /**
    * @param fs a FileSystem instance to query on local cache miss
+   * @param fsContext file system context
    */
-  public LocalCacheFileSystem(FileSystem fs) {
+  public LocalCacheFileSystem(FileSystem fs, FileSystemContext fsContext) {
     super(fs);
-    // needs to be moved outside FileSystem constructor
-    mLocalCacheManager = new LocalCacheManager();
+    mFsContext = fsContext;
   }
 
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) {
     // TODO(calvin): We should add another API to reduce the cost of openFile
-    return new LocalCacheFileInStream(path, options, mDelegatedFileSystem, mLocalCacheManager);
+    return new LocalCacheFileInStream(path, options, mDelegatedFileSystem,
+        mFsContext.getCacheManager());
   }
 }

@@ -7,13 +7,13 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
 package alluxio.client.file.cache;
 
-import java.util.List;
-
+/**
+ * Interface for client-side cache eviction policy.
+ */
 public interface CacheEvictor {
 
   /**
@@ -24,10 +24,31 @@ public interface CacheEvictor {
     return null;
   }
 
-  void updateOnGet(long pageId);
+  /**
+   * Updates evictor after a get operation.
+   *
+   * @param pageId page identifier
+   */
+  void updateOnGet(PageId pageId);
 
-  void updateOnPut(long pageId);
+  /**
+   * Updates evictor after a put operation.
+   *
+   * @param pageId page identifier
+   */
+  void updateOnPut(PageId pageId);
 
-  List<Long> getPagesToEvict(int pages);
+  /**
+   * Updates evictor after a delete operation.
+   *
+   * @param pageId page identifier
+   */
+  void updateOnDelete(PageId pageId);
 
+  /**
+   * Find a page to evict.
+   *
+   * @return identifier of the page to evict
+   */
+  PageId evict();
 }
