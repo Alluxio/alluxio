@@ -90,9 +90,9 @@ spec:
           {{- if $isHaEmbedded }}
           env:
           - name: ALLUXIO_MASTER_HOSTNAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
           {{- end }}
           envFrom:
           - configMapRef:
@@ -141,9 +141,9 @@ spec:
           {{- if $isHaEmbedded }}
           env:
           - name: ALLUXIO_MASTER_HOSTNAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
           {{- end }}
           envFrom:
           - configMapRef:
@@ -193,7 +193,7 @@ spec:
   {{- if $needJournalVolume }}
   volumeClaimTemplates:
     - metadata:
-        name: journal
+        name: alluxio-journal
       spec:
         storageClassName: standard
         accessModes:

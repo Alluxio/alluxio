@@ -115,7 +115,7 @@ spec:
       volumes:
   volumeClaimTemplates:
     - metadata:
-        name: journal
+        name: alluxio-journal
       spec:
         storageClassName: standard
         accessModes:

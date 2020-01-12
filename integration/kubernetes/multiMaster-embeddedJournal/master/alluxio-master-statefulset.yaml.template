@@ -75,9 +75,9 @@ spec:
             - --no-format
           env:
           - name: ALLUXIO_MASTER_HOSTNAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
           envFrom:
           - configMapRef:
               name: alluxio-config
@@ -109,9 +109,9 @@ spec:
             - job-master
           env:
           - name: ALLUXIO_MASTER_HOSTNAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
           envFrom:
           - configMapRef:
               name: alluxio-config
@@ -125,7 +125,7 @@ spec:
       volumes:
   volumeClaimTemplates:
     - metadata:
-        name: journal
+        name: alluxio-journal
       spec:
         storageClassName: standard
         accessModes:
