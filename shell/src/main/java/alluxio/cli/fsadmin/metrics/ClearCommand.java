@@ -22,6 +22,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.ClearMetricsRequest;
+import alluxio.resource.CloseableResource;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -250,11 +251,10 @@ public final class ClearCommand extends AbstractFsAdminCommand {
    */
   private void clearWorkerMetrics(WorkerNetAddress worker,
       FileSystemContext context) throws IOException {
-    BlockWorkerClient blockWorkerClient = context.acquireBlockWorkerClient(worker);
-    try {
-      blockWorkerClient.clearMetrics(ClearMetricsRequest.newBuilder().build());
-    } finally {
-      context.releaseBlockWorkerClient(worker, blockWorkerClient);
+
+    try (CloseableResource<BlockWorkerClient> blockWorkerClient =
+             context.acquireBlockWorkerClient(worker)) {
+      blockWorkerClient.get().clearMetrics(ClearMetricsRequest.newBuilder().build());
     }
     System.out.printf("Successfully cleared metrics of worker %s.%n", worker.getHost());
   }

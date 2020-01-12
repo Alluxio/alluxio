@@ -24,6 +24,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.resource.CloseableResource;
 import alluxio.retry.CountingRetry;
 import alluxio.util.CommonUtils;
 import alluxio.wire.BlockInfo;
@@ -383,12 +384,10 @@ public class AlluxioFileInStream extends FileInStream {
                 .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
                 .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
                 .build();
-        BlockWorkerClient blockWorker = mContext.acquireBlockWorkerClient(worker);
-        try {
-          blockWorker.asyncCache(request);
+        try (CloseableResource<BlockWorkerClient> blockWorker =
+                 mContext.acquireBlockWorkerClient(worker)) {
+          blockWorker.get().asyncCache(request);
           mLastBlockIdCached = blockId;
-        } finally {
-          mContext.releaseBlockWorkerClient(worker, blockWorker);
         }
       } catch (Exception e) {
         LOG.warn("Failed to complete async cache request for block {} at worker {}: {}", blockId,

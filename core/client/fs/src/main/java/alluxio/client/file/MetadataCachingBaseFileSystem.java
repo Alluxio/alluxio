@@ -86,9 +86,19 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    List<URIStatus> statuses = super.listStatus(path, options);
-    for (URIStatus status : statuses) {
-      mMetadataCache.put(status.getPath(), status);
+
+    if (options.getRecursive()) {
+      // Do not cache results of recursive list status,
+      // because some results might be cached multiple times.
+      // Otherwise, needs more complicated logic inside the cache,
+      // that might not worth the effort of caching.
+      return super.listStatus(path, options);
+    }
+
+    List<URIStatus> statuses = mMetadataCache.listStatus(path);
+    if (statuses == null) {
+      statuses = super.listStatus(path, options);
+      mMetadataCache.put(path, statuses);
     }
     return statuses;
   }

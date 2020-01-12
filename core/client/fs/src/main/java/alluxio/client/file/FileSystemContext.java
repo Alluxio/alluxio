@@ -30,6 +30,7 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
+import alluxio.resource.DynamicResourcePool;
 import alluxio.security.authentication.AuthenticationUserUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NettyUtils;
@@ -408,21 +409,6 @@ public final class FileSystemContext implements Closeable {
     return mUriValidationEnabled;
   }
 
-  private FileSystemMasterClient acquireMasterClient() throws IOException {
-    try (ReinitBlockerResource r = blockReinit()) {
-      return mFileSystemMasterClientPool.acquire();
-    }
-  }
-
-  private void releaseMasterClient(FileSystemMasterClient client) {
-    try (ReinitBlockerResource r = blockReinit()) {
-      if (!client.isClosed()) {
-        // The client might have been closed during reinitialization.
-        mFileSystemMasterClientPool.release(client);
-      }
-    }
-  }
-
   /**
    * Acquires a file system master client from the file system master client pool. The resource is
    * {@code Closeable}.
@@ -430,30 +416,8 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired file system master client resource
    */
   public CloseableResource<FileSystemMasterClient> acquireMasterClientResource() {
-    try {
-      return new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClientPool.acquire()) {
-        @Override
-        public void close() {
-          releaseMasterClient(get());
-        }
-      };
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private BlockMasterClient acquireBlockMasterClient() throws IOException {
     try (ReinitBlockerResource r = blockReinit()) {
-      return mBlockMasterClientPool.acquire();
-    }
-  }
-
-  private void releaseBlockMasterClient(BlockMasterClient client) {
-    try (ReinitBlockerResource r = blockReinit()) {
-      if (!client.isClosed()) {
-        // The client might have been closed during reinitialization.
-        mBlockMasterClientPool.release(client);
-      }
+      return acquireClosableClientResource(mFileSystemMasterClientPool);
     }
   }
 
@@ -464,11 +428,44 @@ public final class FileSystemContext implements Closeable {
    * @return the acquired block master client resource
    */
   public CloseableResource<BlockMasterClient> acquireBlockMasterClientResource() {
+    try (ReinitBlockerResource r = blockReinit()) {
+      return acquireClosableClientResource(mBlockMasterClientPool);
+    }
+  }
+
+  /**
+   * Acquire a client resource from {@link #mBlockMasterClientPool} or
+   * {@link #mFileSystemMasterClientPool}.
+   *
+   * Because it's possible for a context re-initialization to occur while the resource is
+   * acquired this method uses an inline class which will save the reference to the pool used to
+   * acquire the resource.
+   *
+   * There are three different cases to which may occur during the release of the resource
+   *
+   * 1. release while the context is re-initializing
+   *    - The original {@link #mBlockMasterClientPool} or {@link #mFileSystemMasterClientPool}
+   *    may be null, closed, or overwritten with a difference pool. The inner class here saves
+   *    the original pool from being GCed because it holds a reference to the pool that was used
+   *    to acquire the client initially. Releasing into the closed pool is harmless.
+   * 2. release after the context has been re-initialized
+   *    - Similar to the above scenario the original {@link #mBlockMasterClientPool} or
+   *    {@link #mFileSystemMasterClientPool} are going to be using an entirely new pool. Since
+   *    this method will save the original pool reference, this method would result in releasing
+   *    into a closed pool which is harmless
+   * 3. release before any re-initialization
+   *    - This is the normal case. There are no special considerations
+   *
+   * @param pool the pool to acquire from and release to
+   * @param <T> the resource type
+   * @return a {@link CloseableResource}
+   */
+  private <T> CloseableResource<T> acquireClosableClientResource(DynamicResourcePool<T> pool) {
     try {
-      return new CloseableResource<BlockMasterClient>(mBlockMasterClientPool.acquire()) {
+      return new CloseableResource<T>(pool.acquire()) {
         @Override
         public void close() {
-          releaseBlockMasterClient(get());
+          pool.release(get());
         }
       };
     } catch (IOException e) {
@@ -482,27 +479,36 @@ public final class FileSystemContext implements Closeable {
    * create a new one.
    *
    * @param workerNetAddress the network address of the channel
-   * @return the acquired block worker
+   * @return the acquired block worker resource
    */
-  public BlockWorkerClient acquireBlockWorkerClient(final WorkerNetAddress workerNetAddress)
+  public CloseableResource<BlockWorkerClient> acquireBlockWorkerClient(
+      final WorkerNetAddress workerNetAddress)
       throws IOException {
     try (ReinitBlockerResource r = blockReinit()) {
-      return acquireBlockWorkerClientInternal(workerNetAddress, getClientContext().getSubject());
+      return acquireBlockWorkerClientInternal(workerNetAddress, getClientContext());
     }
   }
 
-  private BlockWorkerClient acquireBlockWorkerClientInternal(
-      final WorkerNetAddress workerNetAddress, final Subject subject) throws IOException {
-    SocketAddress address =
-        NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress, getClusterConf());
+  private CloseableResource<BlockWorkerClient> acquireBlockWorkerClientInternal(
+      final WorkerNetAddress workerNetAddress, final ClientContext context) throws IOException {
+    SocketAddress address = NetworkAddressUtils
+        .getDataPortSocketAddress(workerNetAddress, context.getClusterConf());
     GrpcServerAddress serverAddress = GrpcServerAddress.create(workerNetAddress.getHost(), address);
-    ClientPoolKey key = new ClientPoolKey(address,
-        AuthenticationUserUtils.getImpersonationUser(subject, getClusterConf()));
-    return mBlockWorkerClientPool.computeIfAbsent(key,
-        k -> new BlockWorkerClientPool(subject, serverAddress,
-            getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE),
-            getClusterConf(), mWorkerGroup))
-        .acquire();
+    ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils
+            .getImpersonationUser(context.getSubject(), context.getClusterConf()));
+    final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> poolMap =
+        mBlockWorkerClientPool;
+    return new CloseableResource<BlockWorkerClient>(poolMap.computeIfAbsent(key,
+        k -> new BlockWorkerClientPool(context.getSubject(), serverAddress,
+            context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE),
+            context.getClusterConf(), mWorkerGroup))
+        .acquire()) {
+      // Save the reference to the original pool map.
+      @Override
+      public void close() {
+        releaseBlockWorkerClient(workerNetAddress, get(), context, poolMap);
+      }
+    };
   }
 
   /**
@@ -511,27 +517,22 @@ public final class FileSystemContext implements Closeable {
    * @param workerNetAddress the address of the channel
    * @param client the client to release
    */
-  public void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
-      BlockWorkerClient client) {
-    if (client.isShutdown()) {
-      // Client might have been shutdown during reinitialization.
-      return;
-    }
-    try (ReinitBlockerResource r = blockReinit()) {
-      SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
-          getClusterConf());
-      ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(
-          getClientContext().getSubject(), getClusterConf()));
-      if (mBlockWorkerClientPool.containsKey(key)) {
-        mBlockWorkerClientPool.get(key).release(client);
-      } else {
-        LOG.warn("No client pool for key {}, closing client instead. Context is closed: {}",
-            key, mClosed.get());
-        try {
-          client.close();
-        } catch (IOException e) {
-          LOG.warn("Error closing block worker client for key {}", key, e);
-        }
+  private static void releaseBlockWorkerClient(WorkerNetAddress workerNetAddress,
+      BlockWorkerClient client, final ClientContext context, ConcurrentHashMap<ClientPoolKey,
+      BlockWorkerClientPool> poolMap) {
+    SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress,
+        context.getClusterConf());
+    ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils.getImpersonationUser(
+        context.getSubject(), context.getClusterConf()));
+    if (poolMap.containsKey(key)) {
+      poolMap.get(key).release(client);
+    } else {
+      LOG.warn("No client pool for key {}, closing client instead. Context may have been closed",
+          key);
+      try {
+        client.close();
+      } catch (IOException e) {
+        LOG.warn("Error closing block worker client for key {}", key, e);
       }
     }
   }
