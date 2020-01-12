@@ -14,12 +14,15 @@ package alluxio.client.file.cache;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * A class identifies a single cached page.
  */
+@ThreadSafe
 public class PageId {
-  private long mFileId;
-  private long mPageIndex;
+  private final long mFileId;
+  private final long mPageIndex;
 
   /**
    * @param fileId file Id

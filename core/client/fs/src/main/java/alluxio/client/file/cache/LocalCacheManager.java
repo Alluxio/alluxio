@@ -169,7 +169,7 @@ public class LocalCacheManager implements CacheManager {
           mMetaStore.removePage(victim);
         } catch (PageNotFoundException e) {
           throw new IllegalStateException(
-              String.format("Page store is missing page (%d, %d).", victim), e);
+              String.format("Page store is missing page %s.", victim), e);
         }
         mEvictor.updateOnDelete(victim);
         mMetaStore.addPage(pageId);

@@ -3101,21 +3101,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_CLIENT_CACHE_ENABLED)
           .setDefaultValue(false)
           .setDescription("If this is enabled, data will be cached on Alluxio client.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_SIZE =
       new Builder(Name.USER_CLIENT_CACHE_SIZE)
           .setDefaultValue("512MB")
           .setDescription("The maximum size of the client-side cache.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_PAGE_SIZE =
       new Builder(Name.USER_CLIENT_CACHE_PAGE_SIZE)
           .setDefaultValue("1MB")
-          .setDescription("Page size of client-side page cache.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setDescription("Size of each page in client-side cache.")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
@@ -4468,8 +4465,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.enabled";
     public static final String USER_CLIENT_CACHE_SIZE =
         "alluxio.user.client.cache.size";
-    public static final String USER_CLIENT_CACHE_LOCK_SIZE =
-        "alluxio.user.client.cache.lock.size";
     public static final String USER_CLIENT_CACHE_PAGE_SIZE =
         "alluxio.user.client.cache.page.size";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
