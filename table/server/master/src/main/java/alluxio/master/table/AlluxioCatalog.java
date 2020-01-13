@@ -200,7 +200,7 @@ public class AlluxioCatalog implements Journaled {
    * Get Database by its name.
    *
    * @param dbName database name
-   * @return a databae object
+   * @return a database object
    */
   public alluxio.grpc.table.Database getDatabase(String dbName)  throws IOException {
     try (LockResource l = getLock(dbName, true)) {
