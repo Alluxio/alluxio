@@ -7,7 +7,6 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
 package alluxio.client.file.cache;
@@ -20,7 +19,7 @@ import alluxio.exception.PageNotFoundException;
 public interface MetaStore {
 
   /**
-   * @return an instance of MetaStore.
+   * @return an instance of MetaStore
    */
   static MetaStore create() {
     return new DefaultMetaStore();
