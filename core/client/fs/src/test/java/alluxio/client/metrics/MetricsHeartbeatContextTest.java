@@ -42,7 +42,9 @@ public class MetricsHeartbeatContextTest {
   @Test
   public void testExecutorInitialized() {
 
-    ClientContext ctx = ClientContext.create();
+    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
+    ClientContext ctx = ClientContext.create(conf);
     MasterInquireClient client = MasterInquireClient.Factory
         .create(ctx.getClusterConf(), ctx.getUserState());
 
@@ -75,7 +77,9 @@ public class MetricsHeartbeatContextTest {
         getContextMap();
     assertTrue(map.isEmpty());
 
-    ClientContext ctx = ClientContext.create();
+    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
+    ClientContext ctx = ClientContext.create(conf);
     MasterInquireClient client = MasterInquireClient.Factory
         .create(ctx.getClusterConf(), ctx.getUserState());
     MetricsHeartbeatContext.addHeartbeat(ctx, client);
@@ -88,7 +92,8 @@ public class MetricsHeartbeatContextTest {
     map.forEach((details, context) ->
         assertEquals(2, (int) Whitebox.getInternalState(context, "mCtxCount")));
 
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    conf = ConfigurationTestUtils.defaults();
+    conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
     conf.set(PropertyKey.MASTER_RPC_ADDRESSES, "master1:19998,master2:19998,master3:19998");
     ClientContext haCtx = ClientContext.create(conf);
     MetricsHeartbeatContext.addHeartbeat(haCtx, MasterInquireClient.Factory
