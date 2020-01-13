@@ -85,7 +85,7 @@ import javax.security.auth.Subject;
  * so, because thread A holds the lock on {@link FileSystemContext}.
  */
 @ThreadSafe
-public final class FileSystemContext implements Closeable {
+public class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
 
   /**
