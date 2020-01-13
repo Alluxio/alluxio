@@ -44,6 +44,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
@@ -69,13 +70,13 @@ import java.util.concurrent.ThreadLocalRandom;
 public class LocalCacheFileInStreamTest {
   private static AlluxioConfiguration sConf = new InstancedConfiguration(
       ConfigurationUtils.defaults());
-  protected static final int PAGE_SIZE =
+  private static final int PAGE_SIZE =
       (int) sConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
 
   @Test
   public void readFullPage() throws Exception {
     int fileSize = PAGE_SIZE;
-    byte[] testData = generateData(fileSize);
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
 
@@ -97,7 +98,7 @@ public class LocalCacheFileInStreamTest {
   @Test
   public void readSmallPage() throws Exception {
     int fileSize = PAGE_SIZE / 5;
-    byte[] testData = generateData(fileSize);
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
 
@@ -121,7 +122,7 @@ public class LocalCacheFileInStreamTest {
   // TODO(calvin): this test should pass after we pass in offset in the get page API
   public void readPartialPage() throws Exception {
     int fileSize = PAGE_SIZE;
-    byte[] testData = generateData(fileSize);
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
 
@@ -150,7 +151,7 @@ public class LocalCacheFileInStreamTest {
   public void readMultiPage() throws Exception {
     int pages = 2;
     int fileSize = PAGE_SIZE + 10;
-    byte[] testData = generateData(fileSize);
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
 
@@ -173,7 +174,7 @@ public class LocalCacheFileInStreamTest {
   public void readMultiPageMixed() throws Exception {
     int pages = 10;
     int fileSize = PAGE_SIZE * pages;
-    byte[] testData = generateData(fileSize);
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
 
@@ -182,7 +183,7 @@ public class LocalCacheFileInStreamTest {
     for (int i = 0; i < pages; i++) {
       stream.seek(PAGE_SIZE * i);
       if (ThreadLocalRandom.current().nextBoolean()) {
-        Assert.assertEquals(testData[(int) (i * PAGE_SIZE)], stream.read());
+        Assert.assertEquals(testData[(i * PAGE_SIZE)], stream.read());
         pagesCached++;
       }
     }
@@ -214,14 +215,6 @@ public class LocalCacheFileInStreamTest {
     info.setPath(path);
     info.setLength(len);
     return new URIStatus(info);
-  }
-
-  private byte[] generateData(int len) {
-    byte[] data = new byte[len];
-    for (int i = 0; i < len; i++) {
-      data[i] = (byte) i;
-    }
-    return data;
   }
 
   /**
