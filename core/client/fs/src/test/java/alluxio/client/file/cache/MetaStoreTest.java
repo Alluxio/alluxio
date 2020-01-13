@@ -26,6 +26,7 @@ public final class MetaStoreTest {
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
+  private final PageId mPage = new PageId(1L, 2L);
   private MetaStore mMetaStore;
 
   /**
@@ -38,35 +39,35 @@ public final class MetaStoreTest {
 
   @Test
   public void addNew() {
-    Assert.assertTrue(mMetaStore.addPage(new PageId(1, 2)));
-    Assert.assertTrue(mMetaStore.hasPage(new PageId(1, 2)));
+    Assert.assertTrue(mMetaStore.addPage(mPage));
+    Assert.assertTrue(mMetaStore.hasPage(mPage));
   }
 
   @Test
   public void addExist() {
-    Assert.assertTrue(mMetaStore.addPage(new PageId(1, 2)));
-    Assert.assertFalse(mMetaStore.addPage(new PageId(1, 2)));
-    Assert.assertTrue(mMetaStore.hasPage(new PageId(1, 2)));
+    Assert.assertTrue(mMetaStore.addPage(mPage));
+    Assert.assertFalse(mMetaStore.addPage(mPage));
+    Assert.assertTrue(mMetaStore.hasPage(mPage));
   }
 
   @Test
   public void removeExist() throws Exception {
-    Assert.assertTrue(mMetaStore.addPage(new PageId(1, 2)));
-    Assert.assertTrue(mMetaStore.hasPage(new PageId(1, 2)));
-    mMetaStore.removePage(new PageId(1, 2));
-    Assert.assertFalse(mMetaStore.hasPage(new PageId(1, 2)));
+    Assert.assertTrue(mMetaStore.addPage(mPage));
+    Assert.assertTrue(mMetaStore.hasPage(mPage));
+    mMetaStore.removePage(mPage);
+    Assert.assertFalse(mMetaStore.hasPage(mPage));
   }
 
   @Test
   public void removeNotExist() throws Exception {
     mThrown.expect(PageNotFoundException.class);
-    mMetaStore.removePage(new PageId(1, 2));
+    mMetaStore.removePage(mPage);
   }
 
   @Test
   public void hasPage() {
-    Assert.assertFalse(mMetaStore.hasPage(new PageId(1, 2)));
-    Assert.assertTrue(mMetaStore.addPage(new PageId(1, 2)));
-    Assert.assertTrue(mMetaStore.hasPage(new PageId(1, 2)));
+    Assert.assertFalse(mMetaStore.hasPage(mPage));
+    Assert.assertTrue(mMetaStore.addPage(mPage));
+    Assert.assertTrue(mMetaStore.hasPage(mPage));
   }
 }
