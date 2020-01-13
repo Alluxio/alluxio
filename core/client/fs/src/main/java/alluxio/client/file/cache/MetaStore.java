@@ -20,7 +20,7 @@ import alluxio.exception.PageNotFoundException;
 public interface MetaStore {
 
   /**
-   * Default constructor.
+   * @return an instance of MetaStore.
    */
   static MetaStore create() {
     return new DefaultMetaStore();

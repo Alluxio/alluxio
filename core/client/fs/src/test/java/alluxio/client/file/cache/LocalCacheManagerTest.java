@@ -49,8 +49,12 @@ import javax.annotation.Nullable;
  * Tests for the {@link LocalCacheManager} class.
  */
 public final class LocalCacheManagerTest {
-  private static int PAGE_SIZE_BYTES = Constants.KB;
-  private static int CACHE_SIZE_BYTES = 512 * Constants.KB;
+  private static final int PAGE_SIZE_BYTES = Constants.KB;
+  private static final int CACHE_SIZE_BYTES = 512 * Constants.KB;
+  private static final PageId PAGE_ID1 = new PageId(0L, 0L);
+  private static final PageId PAGE_ID2 = new PageId(1L, 1L);
+  private static final byte[] PAGE1 = BufferUtils.getIncreasingByteArray(PAGE_SIZE_BYTES);
+  private static final byte[] PAGE2 = BufferUtils.getIncreasingByteArray(255, PAGE_SIZE_BYTES);
 
   private LocalCacheManager mCacheManager;
   private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
@@ -58,10 +62,6 @@ public final class LocalCacheManagerTest {
   private HashSetMetaStore mMetaStore;
   private HashMapPageStore mPageStore;
   private CacheEvictor mEvictor;
-  private final PageId mPageId1 = new PageId(0L, 0L);
-  private final PageId mPageId2 = new PageId(1L, 1L);
-  private final byte[] mPage1 = BufferUtils.getIncreasingByteArray(PAGE_SIZE_BYTES);
-  private final byte[] mPage2 = BufferUtils.getIncreasingByteArray(255, PAGE_SIZE_BYTES);
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
@@ -82,32 +82,32 @@ public final class LocalCacheManagerTest {
 
   @Test
   public void putNew() throws Exception {
-    mCacheManager.put(mPageId1, mPage1);
+    mCacheManager.put(PAGE_ID1, PAGE1);
     assertEquals(1, mPageStore.size());
-    assertTrue(mMetaStore.hasPage(mPageId1));
-    assertArrayEquals(mPage1, (byte[]) mPageStore.mStore.get(mPageId1));
+    assertTrue(mMetaStore.hasPage(PAGE_ID1));
+    assertArrayEquals(PAGE1, (byte[]) mPageStore.mStore.get(PAGE_ID1));
   }
 
   @Test
   public void putExist() throws Exception {
-    mCacheManager.put(mPageId1, mPage1);
-    mCacheManager.put(mPageId1, mPage2);
+    mCacheManager.put(PAGE_ID1, PAGE1);
+    mCacheManager.put(PAGE_ID1, PAGE2);
     assertEquals(1, mPageStore.size());
-    assertTrue(mMetaStore.hasPage(mPageId1));
-    assertArrayEquals(mPage2, (byte[]) mPageStore.mStore.get(mPageId1));
+    assertTrue(mMetaStore.hasPage(PAGE_ID1));
+    assertArrayEquals(PAGE2, (byte[]) mPageStore.mStore.get(PAGE_ID1));
   }
 
   @Test
   public void putEvict() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mCacheManager = new LocalCacheManager(mFileContext, mMetaStore, mPageStore, mEvictor);
-    mCacheManager.put(mPageId1, mPage1);
+    mCacheManager.put(PAGE_ID1, PAGE1);
     assertEquals(1, mPageStore.size());
-    mCacheManager.put(mPageId2, mPage2);
+    mCacheManager.put(PAGE_ID2, PAGE2);
     assertEquals(1, mPageStore.size());
-    assertFalse(mMetaStore.hasPage(mPageId1));
-    assertTrue(mMetaStore.hasPage(mPageId2));
-    assertArrayEquals(mPage2, (byte[]) mPageStore.mStore.get(mPageId2));
+    assertFalse(mMetaStore.hasPage(PAGE_ID1));
+    assertTrue(mMetaStore.hasPage(PAGE_ID2));
+    assertArrayEquals(PAGE2, (byte[]) mPageStore.mStore.get(PAGE_ID2));
   }
 
   @Test
@@ -147,29 +147,29 @@ public final class LocalCacheManagerTest {
 
   @Test
   public void getExist() throws Exception {
-    mCacheManager.put(mPageId1, mPage1);
-    try (ReadableByteChannel ret = mCacheManager.get(mPageId1)) {
+    mCacheManager.put(PAGE_ID1, PAGE1);
+    try (ReadableByteChannel ret = mCacheManager.get(PAGE_ID1)) {
       ByteBuffer buf = ByteBuffer.allocate(PAGE_SIZE_BYTES);
-      assertEquals(mPage1.length, ret.read(buf));
-      assertArrayEquals(mPage1, buf.array());
+      assertEquals(PAGE1.length, ret.read(buf));
+      assertArrayEquals(PAGE1, buf.array());
     }
   }
 
   @Test
   public void getNotExist() throws Exception {
-    assertNull(mCacheManager.get(mPageId1));
+    assertNull(mCacheManager.get(PAGE_ID1));
   }
 
   @Test
   public void getOffset() throws Exception {
-    mCacheManager.put(mPageId1, mPage1);
+    mCacheManager.put(PAGE_ID1, PAGE1);
     int[] offsetArray = {0, 1, PAGE_SIZE_BYTES / 2, PAGE_SIZE_BYTES - 1};
     for (int offset: offsetArray) {
-      try (ReadableByteChannel ret = mCacheManager.get(mPageId1, offset)) {
+      try (ReadableByteChannel ret = mCacheManager.get(PAGE_ID1, offset)) {
         ByteBuffer buf = ByteBuffer.allocate(PAGE_SIZE_BYTES);
-        assertEquals(mPage1.length - offset, ret.read(buf));
+        assertEquals(PAGE1.length - offset, ret.read(buf));
         buf.flip();
-        assertEquals(ByteBuffer.wrap(mPage1, offset, mPage1.length - offset),
+        assertEquals(ByteBuffer.wrap(PAGE1, offset, PAGE1.length - offset),
             buf);
       }
     }
@@ -177,15 +177,15 @@ public final class LocalCacheManagerTest {
 
   @Test
   public void deleteExist() throws Exception {
-    mCacheManager.put(mPageId1, mPage1);
-    mCacheManager.delete(mPageId1);
-    assertNull(mCacheManager.get(mPageId1));
+    mCacheManager.put(PAGE_ID1, PAGE1);
+    mCacheManager.delete(PAGE_ID1);
+    assertNull(mCacheManager.get(PAGE_ID1));
   }
 
   @Test
   public void deleteNotExist() throws Exception {
     mThrown.expect(PageNotFoundException.class);
-    mCacheManager.delete(mPageId1);
+    mCacheManager.delete(PAGE_ID1);
   }
 
   /**
