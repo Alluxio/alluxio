@@ -12,6 +12,7 @@
 package alluxio.job.plan.transform.format.parquet;
 
 import alluxio.AlluxioURI;
+import alluxio.job.plan.transform.format.JobPath;
 import alluxio.job.plan.transform.format.ReadWriterUtils;
 import alluxio.job.plan.transform.format.TableReader;
 import alluxio.job.plan.transform.format.TableRow;
@@ -56,7 +57,7 @@ public final class ParquetReader implements TableReader {
    * @throws IOException when failed to create the reader
    */
   public static ParquetReader create(AlluxioURI uri) throws IOException {
-    Path inputPath = new Path(uri.getScheme(), uri.getAuthority().toString(), uri.getPath());
+    Path inputPath = new JobPath(uri.getScheme(), uri.getAuthority().toString(), uri.getPath());
     Configuration conf = ReadWriterUtils.readNoCacheConf();
     InputFile inputFile = HadoopInputFile.fromPath(inputPath, conf);
     org.apache.parquet.hadoop.ParquetReader<Record> reader =
