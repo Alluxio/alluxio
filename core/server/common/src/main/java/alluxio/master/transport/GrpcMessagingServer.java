@@ -101,7 +101,7 @@ public class GrpcMessagingServer implements Server {
       };
 
       Address bindAddress = address;
-      if (mProxy != null && mProxy.hasProxyFor(address)) {
+      if (mProxy.hasProxyFor(address)) {
         bindAddress = mProxy.getProxyFor(address);
         LOG.debug("Found proxy: {} for address: {}", bindAddress, address);
       }

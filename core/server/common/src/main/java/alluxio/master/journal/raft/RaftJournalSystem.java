@@ -240,9 +240,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     }
     mStateMachine = new JournalStateMachine(mJournals, () -> this.getJournalSinks(null));
     // Read external proxy configuration.
-    GrpcMessagingProxy serverProxy = null;
+    GrpcMessagingProxy serverProxy = new GrpcMessagingProxy();
     if (mConf.getProxyAddress() != null) {
-      serverProxy = new GrpcMessagingProxy();
       serverProxy.addProxy(getLocalAddress(mConf), new Address(mConf.getProxyAddress()));
     }
     mServer = CopycatServer.builder(getLocalAddress(mConf))
