@@ -7,24 +7,30 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
-package alluxio.client.file.cache.store;
-
-import alluxio.exception.AlluxioException;
+package alluxio.exception;
 
 /**
- * An exception that should be thrown when a page store implementation cannot find a page using
- * {@link alluxio.client.file.cache.PageStore#get(long, long)} or
- * {@link alluxio.client.file.cache.PageStore#delete(long, long)}.
+ * An exception that should be thrown when a page is not found in store.
  */
 public class PageNotFoundException extends AlluxioException {
-  protected PageNotFoundException(String cause) {
-    super(cause);
+  /**
+   * Constructs a new exception with the specified detail message.
+   *
+   * @param message the detail message
+   */
+  public PageNotFoundException(String message) {
+    super(message);
   }
 
-  protected PageNotFoundException(String message, Throwable cause) {
+  /**
+   * Constructs a new exception with the specified detail message and cause.
+   *
+   * @param message the detail message
+   * @param cause the cause
+   */
+  public PageNotFoundException(String message, Throwable cause) {
     super(message, cause);
   }
 }

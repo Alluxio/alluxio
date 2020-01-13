@@ -7,16 +7,15 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
 package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.LocalPageStoreOptions;
-import alluxio.client.file.cache.store.PageNotFoundException;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.RocksPageStore;
+import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
@@ -56,33 +55,30 @@ public interface PageStore extends AutoCloseable {
   /**
    * Writes a new page from a source channel to the store.
    *
-   * @param fileId file identifier
-   * @param pageIndex index of the page within the file
+   * @param pageId page identifier
    * @param page page data
    */
-  void put(long fileId, long pageIndex, byte[] page) throws IOException;
+  void put(PageId pageId, byte[] page) throws IOException;
 
   /**
    * Gets a page from the store to the destination channel.
    *
-   * @param fileId file indentifier
-   * @param pageIndex index of page within the file
+   * @param pageId page identifier
    * @return the number of bytes read
    * @throws IOException
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  ReadableByteChannel get(long fileId, long pageIndex) throws IOException,
+  ReadableByteChannel get(PageId pageId) throws IOException,
       PageNotFoundException;
 
   /**
    * Deletes a page from the store.
    *
-   * @param fileId file identifier
-   * @param pageIndex index of page within the file
+   * @param pageId page identifier
    * @throws IOException
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  void delete(long fileId, long pageIndex) throws IOException, PageNotFoundException;
+  void delete(PageId pageId) throws IOException, PageNotFoundException;
 
   @Override
   void close();

@@ -7,45 +7,46 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
 package alluxio.client.file.cache;
 
+import alluxio.exception.PageNotFoundException;
+
 /**
- * The metadata store for pages stored in cache
+ * The metadata store for pages stored in cache.
  */
 public class MetaStore {
 
+  /**
+   * Default constructor.
+   */
   public MetaStore() {
   }
 
   /**
-   * @param pageId
+   * @param pageId page identifier
    * @return if a page is stored in cache
    */
-  boolean hasPage(long pageId) {
+  boolean hasPage(PageId pageId) {
     return true;
   }
 
   /**
    * Adds a new page to the cache.
    *
-   * @param pageId page ID
-   * @return true if addedsuccessfully
+   * @param pageId page identifier
+   * @return true if added successfully
    */
-  boolean addPage(long pageId) {
+  boolean addPage(PageId pageId) {
     return true;
   }
 
   /**
    * Removes a page.
    *
-   * @param pageId page ID
-   * @return true if removed successfully
+   * @param pageId page identifier
    */
-  boolean removePage(long pageId) {
-    return true;
+  void removePage(PageId pageId) throws PageNotFoundException {
   }
-
 }

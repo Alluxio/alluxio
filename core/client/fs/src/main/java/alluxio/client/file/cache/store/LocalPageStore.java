@@ -7,13 +7,13 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
- *
  */
 
 package alluxio.client.file.cache.store;
 
+import alluxio.client.file.cache.PageId;
+import alluxio.exception.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
-import alluxio.resource.ResourcePool;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -23,8 +23,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -54,8 +52,8 @@ public class LocalPageStore implements PageStore, AutoCloseable {
   }
 
   @Override
-  public void put(long fileId, long pageIndex, byte[] page) throws IOException {
-    Path p = getFilePath(fileId, pageIndex);
+  public void put(PageId pageId, byte[] page) throws IOException {
+    Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
       Files.createDirectories(p.getParent());
       Files.createFile(p);
@@ -67,9 +65,8 @@ public class LocalPageStore implements PageStore, AutoCloseable {
   }
 
   @Override
-  public ReadableByteChannel get(long fileId, long pageIndex)throws IOException,
-      PageNotFoundException {
-    Path p = getFilePath(fileId, pageIndex);
+  public ReadableByteChannel get(PageId pageId) throws IOException, PageNotFoundException {
+    Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
@@ -78,8 +75,8 @@ public class LocalPageStore implements PageStore, AutoCloseable {
   }
 
   @Override
-  public void delete(long fileId, long pageIndex) throws IOException, PageNotFoundException {
-    Path p = getFilePath(fileId, pageIndex);
+  public void delete(PageId pageId) throws IOException, PageNotFoundException {
+    Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
@@ -90,8 +87,9 @@ public class LocalPageStore implements PageStore, AutoCloseable {
     }
   }
 
-  private Path getFilePath(long fileId, long pageIndex) {
-    return Paths.get(mRoot, Long.toString(fileId), Long.toString(pageIndex));
+  private Path getFilePath(PageId pageId) {
+    return Paths.get(mRoot, Long.toString(pageId.getFileId()),
+        Long.toString(pageId.getPageIndex()));
   }
 
   @Override
