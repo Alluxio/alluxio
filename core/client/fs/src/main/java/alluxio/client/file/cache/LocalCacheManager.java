@@ -37,8 +37,9 @@ import javax.annotation.concurrent.ThreadSafe;
  * A class to manage cached pages. This class coordinates different components to respond for
  * thread-safety and operate cache replacement policies.
  *
- * Creating client-side Alluxio cache is motivated by "Improving In-Memory File System Reading
- * Performance by Fine-Grained User-Space Cache Mechanisms" by Gu et al.
+ * One of the motivations of creating a client-side cache is from "Improving In-Memory File System
+ * Reading Performance by Fine-Grained User-Space Cache Mechanisms" by Gu et al, which illustrates
+ * performance benefits for various read workloads.
  *
  * Lock hierarchy in this class: All operations must follow this order to operate on pages:
  * <ul>
