@@ -20,21 +20,21 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 /**
- * Tests for the {@link MetaStore} class.
+ * Tests for the {@link DefaultMetaStore} class.
  */
-public final class MetaStoreTest {
+public final class DefaultMetaStoreTest {
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
   private final PageId mPage = new PageId(1L, 2L);
-  private MetaStore mMetaStore;
+  private DefaultMetaStore mMetaStore;
 
   /**
    * Sets up the instances.
    */
   @Before
   public void before() {
-    mMetaStore = new MetaStore();
+    mMetaStore = new DefaultMetaStore();
   }
 
   @Test

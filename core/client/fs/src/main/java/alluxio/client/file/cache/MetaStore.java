@@ -13,9 +13,6 @@ package alluxio.client.file.cache;
 
 import alluxio.exception.PageNotFoundException;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * The metadata store for pages stored in cache.
  */
