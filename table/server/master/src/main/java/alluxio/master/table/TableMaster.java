@@ -141,7 +141,7 @@ public interface TableMaster extends Master {
   boolean syncDatabase(String dbName) throws IOException;
 
   /**
-   * Gets a database object
+   * Gets a database object.
    *
    * @param dbName the database name
    * @return a database object

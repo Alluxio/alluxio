@@ -14,7 +14,6 @@ package alluxio.master.table;
 import alluxio.RpcUtils;
 import alluxio.grpc.table.AttachDatabasePRequest;
 import alluxio.grpc.table.AttachDatabasePResponse;
-import alluxio.grpc.table.Database;
 import alluxio.grpc.table.DetachDatabasePRequest;
 import alluxio.grpc.table.DetachDatabasePResponse;
 import alluxio.grpc.table.GetAllDatabasesPRequest;
