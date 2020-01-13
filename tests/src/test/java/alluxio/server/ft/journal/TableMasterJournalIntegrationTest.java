@@ -13,6 +13,7 @@ package alluxio.server.ft.journal;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.table.Table;
@@ -24,7 +25,6 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -38,9 +38,6 @@ public class TableMasterJournalIntegrationTest {
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder().setStartCluster(false)
           .build();
-
-  @Rule
-  public ExpectedException mException = ExpectedException.none();
 
   private static final String DB_NAME = TestDatabase.TEST_UDB_NAME;
 
@@ -95,10 +92,12 @@ public class TableMasterJournalIntegrationTest {
     LocalAlluxioCluster mCluster = mClusterResource.get();
     TableMaster tableMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
-
-    mException.expect(IOException.class);
-    tableMaster.getDatabase(DB_NAME);
-
+    try {
+      tableMaster.getDatabase(DB_NAME);
+      fail();
+    } catch (IOException e) {
+      assertEquals("Database " + DB_NAME + " does not exist", e.getMessage());
+    }
     tableMaster
         .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
     assertEquals(DB_NAME, tableMaster.getDatabase(DB_NAME).getDbName());

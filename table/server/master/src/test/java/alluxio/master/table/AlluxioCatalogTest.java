@@ -14,6 +14,7 @@ package alluxio.master.table;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import alluxio.conf.PropertyKey;
@@ -104,8 +105,14 @@ public class AlluxioCatalogTest {
   public void getDb() throws Exception {
     String dbName = "testdb";
     TestDatabase.genTable(1, 2);
-    mException.expect(NotFoundException.class);
-    mCatalog.getDatabase(dbName);
+
+    try {
+      mCatalog.getDatabase(dbName);
+      fail();
+    } catch (IOException e) {
+      assertEquals("Database " + dbName + " does not exist", e.getMessage());
+    }
+
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
         TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
         Collections.emptyMap());
