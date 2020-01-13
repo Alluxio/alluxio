@@ -11,45 +11,45 @@
 
 package alluxio.client.file.cache;
 
-import javax.annotation.Nullable;
+import alluxio.exception.PageNotFoundException;
 
 /**
- * Interface for client-side cache eviction policy.
+ * The default implementation of a metadata store for pages stored in cache.
  */
-public interface CacheEvictor {
+public class DefaultMetaStore implements MetaStore {
 
   /**
-   * @return a CacheEvictor instance
+   * Default constructor.
    */
-  static CacheEvictor create() {
-    // return corresponding CacheEvictor impl
-    return null;
+  public DefaultMetaStore() {
   }
 
   /**
-   * Updates evictor after a get operation.
+   * @param pageId page identifier
+   * @return if a page is stored in cache
+   */
+  @Override
+  public boolean hasPage(PageId pageId) {
+    return true;
+  }
+
+  /**
+   * Adds a new page to the cache.
+   *
+   * @param pageId page identifier
+   * @return true if added successfully
+   */
+  @Override
+  public boolean addPage(PageId pageId) {
+    return true;
+  }
+
+  /**
+   * Removes a page.
    *
    * @param pageId page identifier
    */
-  void updateOnGet(PageId pageId);
-
-  /**
-   * Updates evictor after a put operation.
-   *
-   * @param pageId page identifier
-   */
-  void updateOnPut(PageId pageId);
-
-  /**
-   * Updates evictor after a delete operation.
-   *
-   * @param pageId page identifier
-   */
-  void updateOnDelete(PageId pageId);
-
-  /**
-   * @return a page to evict or null if no page available to evict
-   */
-  @Nullable
-  PageId evict();
+  @Override
+  public void removePage(PageId pageId) throws PageNotFoundException {
+  }
 }
