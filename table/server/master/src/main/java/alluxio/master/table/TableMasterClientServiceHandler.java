@@ -14,12 +14,15 @@ package alluxio.master.table;
 import alluxio.RpcUtils;
 import alluxio.grpc.table.AttachDatabasePRequest;
 import alluxio.grpc.table.AttachDatabasePResponse;
+import alluxio.grpc.table.Database;
 import alluxio.grpc.table.DetachDatabasePRequest;
 import alluxio.grpc.table.DetachDatabasePResponse;
 import alluxio.grpc.table.GetAllDatabasesPRequest;
 import alluxio.grpc.table.GetAllDatabasesPResponse;
 import alluxio.grpc.table.GetAllTablesPRequest;
 import alluxio.grpc.table.GetAllTablesPResponse;
+import alluxio.grpc.table.GetDatabasePRequest;
+import alluxio.grpc.table.GetDatabasePResponse;
 import alluxio.grpc.table.GetPartitionColumnStatisticsPRequest;
 import alluxio.grpc.table.GetPartitionColumnStatisticsPResponse;
 import alluxio.grpc.table.GetTableColumnStatisticsPRequest;
@@ -95,6 +98,14 @@ public class TableMasterClientServiceHandler
     RpcUtils.call(LOG, () -> GetAllTablesPResponse.newBuilder()
         .addAllTable(mTableMaster.getAllTables(request.getDatabase())).build(),
         "getAllTables", "", responseObserver);
+  }
+
+  @Override
+  public void getDatabase(GetDatabasePRequest request,
+      StreamObserver<GetDatabasePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> GetDatabasePResponse.newBuilder().setDb(
+        mTableMaster.getDatabase(request.getDbName())).build(),
+        "getDatabase", "", responseObserver);
   }
 
   @Override

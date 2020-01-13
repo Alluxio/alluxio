@@ -196,6 +196,13 @@ public class AlluxioCatalog implements Journaled {
     return new ArrayList<>(mDBs.keySet());
   }
 
+  public alluxio.grpc.table.Database getDatabase(String dbName)  throws IOException {
+    try (LockResource l = getLock(dbName, true)) {
+      Database db = getDatabaseByName(dbName);
+      return alluxio.grpc.table.Database.newBuilder().setDbName(db.getName()).build();
+    }
+  }
+
   private Database getDatabaseByName(String dbName) throws NotFoundException {
     Database db = mDBs.get(dbName);
     if (db == null) {

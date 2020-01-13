@@ -14,6 +14,7 @@ package alluxio.master.table;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.ColumnStatisticsList;
 import alluxio.grpc.table.Constraint;
+import alluxio.grpc.table.Database;
 import alluxio.grpc.table.Partition;
 import alluxio.master.Master;
 import alluxio.master.table.transform.TransformJobInfo;
@@ -138,4 +139,12 @@ public interface TableMaster extends Master {
    * @return true if the database was changed as a result
    */
   boolean syncDatabase(String dbName) throws IOException;
+
+  /**
+   * Gets a database object
+   *
+   * @param dbName the database name
+   * @return a database object
+   */
+  Database getDatabase(String dbName) throws IOException;
 }
