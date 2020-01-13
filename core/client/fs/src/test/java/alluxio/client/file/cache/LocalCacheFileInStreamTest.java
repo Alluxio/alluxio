@@ -44,12 +44,14 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -60,6 +62,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Unit tests for {@link LocalCacheFileInStream}.
@@ -67,54 +70,144 @@ import java.util.Map;
 public class LocalCacheFileInStreamTest {
   private static AlluxioConfiguration sConf = new InstancedConfiguration(
       ConfigurationUtils.defaults());
-  protected static final int PAGE_SIZE =
+  private static final int PAGE_SIZE =
       (int) sConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
 
   @Test
-  public void readPageCacheMiss() throws Exception {
-    Map<AlluxioURI, byte[]> files = new HashMap<>();
-    AlluxioURI testFilename = new AlluxioURI("/test");
+  public void readFullPage() throws Exception {
     int fileSize = PAGE_SIZE;
-    byte[] testData = generateData(fileSize);
-    files.put(testFilename, testData);
-
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
-    ByteArrayFileSystem fs = new ByteArrayFileSystem(files);
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
 
-    LocalCacheFileInStream stream =
-        new LocalCacheFileInStream(testFilename,
-            OpenFilePOptions.getDefaultInstance(), fs, manager);
-
-    byte[] res = new byte[fileSize];
-    Assert.assertEquals(fileSize, stream.read(res));
-    Assert.assertArrayEquals(testData, res);
+    // cache miss
+    byte[] cacheMiss = new byte[fileSize];
+    Assert.assertEquals(fileSize, stream.read(cacheMiss));
+    Assert.assertArrayEquals(testData, cacheMiss);
     Assert.assertEquals(0, manager.mPagesServed);
     Assert.assertEquals(1, manager.mPagesCached);
+
+    // cache hit
+    stream.seek(0);
+    byte[] cacheHit = new byte[fileSize];
+    Assert.assertEquals(fileSize, stream.read(cacheHit));
+    Assert.assertArrayEquals(testData, cacheHit);
+    Assert.assertEquals(1, manager.mPagesServed);
   }
 
   @Test
-  public void readPageCacheHit() throws Exception {
+  public void readSmallPage() throws Exception {
+    int fileSize = PAGE_SIZE / 5;
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+
+    // cache miss
+    byte[] cacheMiss = new byte[fileSize];
+    Assert.assertEquals(fileSize, stream.read(cacheMiss));
+    Assert.assertArrayEquals(testData, cacheMiss);
+    Assert.assertEquals(0, manager.mPagesServed);
+    Assert.assertEquals(1, manager.mPagesCached);
+
+    // cache hit
+    stream.seek(0);
+    byte[] cacheHit = new byte[fileSize];
+    Assert.assertEquals(fileSize, stream.read(cacheHit));
+    Assert.assertArrayEquals(testData, cacheHit);
+    Assert.assertEquals(1, manager.mPagesServed);
+  }
+
+  @Ignore
+  @Test
+  // TODO(calvin): this test should pass after we pass in offset in the get page API
+  public void readPartialPage() throws Exception {
+    int fileSize = PAGE_SIZE;
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+
+    int partialReadSize = fileSize / 5;
+    int offset = fileSize / 5;
+
+    // cache miss
+    byte[] cacheMiss = new byte[partialReadSize];
+    stream.seek(offset);
+    Assert.assertEquals(partialReadSize, stream.read(cacheMiss));
+    Assert.assertArrayEquals(
+        Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheMiss);
+    Assert.assertEquals(0, manager.mPagesServed);
+    Assert.assertEquals(1, manager.mPagesCached);
+
+    // cache hit
+    byte[] cacheHit = new byte[partialReadSize];
+    stream.seek(offset);
+    Assert.assertEquals(partialReadSize, stream.read(cacheHit));
+    Assert.assertArrayEquals(
+        Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheHit);
+    Assert.assertEquals(1, manager.mPagesServed);
+  }
+
+  @Test
+  public void readMultiPage() throws Exception {
+    int pages = 2;
+    int fileSize = PAGE_SIZE + 10;
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+
+    // cache miss
+    byte[] cacheMiss = new byte[fileSize];
+    Assert.assertEquals(fileSize, stream.read(cacheMiss));
+    Assert.assertArrayEquals(testData, cacheMiss);
+    Assert.assertEquals(0, manager.mPagesServed);
+    Assert.assertEquals(pages, manager.mPagesCached);
+
+    // cache hit
+    stream.seek(0);
+    byte[] cacheHit = new byte[fileSize];
+    Assert.assertEquals(fileSize, stream.read(cacheHit));
+    Assert.assertArrayEquals(testData, cacheHit);
+    Assert.assertEquals(pages, manager.mPagesServed);
+  }
+
+  @Test
+  public void readMultiPageMixed() throws Exception {
+    int pages = 10;
+    int fileSize = PAGE_SIZE * pages;
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+
+    // populate cache
+    int pagesCached = 0;
+    for (int i = 0; i < pages; i++) {
+      stream.seek(PAGE_SIZE * i);
+      if (ThreadLocalRandom.current().nextBoolean()) {
+        Assert.assertEquals(testData[(i * PAGE_SIZE)], stream.read());
+        pagesCached++;
+      }
+    }
+
+    Assert.assertEquals(0, manager.mPagesServed);
+    Assert.assertEquals(pagesCached, manager.mPagesCached);
+
+    // sequential read
+    stream.seek(0);
+    byte[] fullRead = new byte[fileSize];
+    Assert.assertEquals(fileSize, stream.read(fullRead));
+    Assert.assertArrayEquals(testData, fullRead);
+    Assert.assertEquals(pagesCached, manager.mPagesServed);
+  }
+
+  private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager) {
     Map<AlluxioURI, byte[]> files = new HashMap<>();
     AlluxioURI testFilename = new AlluxioURI("/test");
-    int fileSize = PAGE_SIZE;
-    byte[] testData = generateData(fileSize);
-    files.put(testFilename, testData);
+    files.put(testFilename, data);
 
-    ByteArrayCacheManager manager = new ByteArrayCacheManager();
     ByteArrayFileSystem fs = new ByteArrayFileSystem(files);
 
-    LocalCacheFileInStream stream =
-        new LocalCacheFileInStream(testFilename,
-            OpenFilePOptions.getDefaultInstance(), fs, manager);
-
-    byte[] readBuffer = new byte[fileSize];
-    stream.read(readBuffer);
-    stream.seek(0);
-    Assert.assertEquals(0, manager.mPagesServed);
-    byte[] res = new byte[fileSize];
-    Assert.assertEquals(fileSize, stream.read(res));
-    Assert.assertArrayEquals(testData, res);
-    Assert.assertEquals(1, manager.mPagesServed);
+    return new LocalCacheFileInStream(
+        testFilename, OpenFilePOptions.getDefaultInstance(), fs, manager);
   }
 
   private URIStatus generateURIStatus(String path, long len) {
@@ -122,14 +215,6 @@ public class LocalCacheFileInStreamTest {
     info.setPath(path);
     info.setLength(len);
     return new URIStatus(info);
-  }
-
-  private byte[] generateData(int len) {
-    byte[] data = new byte[len];
-    for (int i = 0; i < len; i++) {
-      data[i] = (byte) (i / PAGE_SIZE);
-    }
-    return data;
   }
 
   /**

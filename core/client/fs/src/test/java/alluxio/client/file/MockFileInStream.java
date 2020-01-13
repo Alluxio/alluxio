@@ -58,7 +58,8 @@ public final class MockFileInStream extends FileInStream {
 
   @Override
   public void seek(long n) {
-    throw new UnsupportedOperationException("seek not implemented for mock FileInStream");
+    mStream.reset();
+    mStream.skip(n);
   }
 
   @Override public long getPos() throws IOException {
