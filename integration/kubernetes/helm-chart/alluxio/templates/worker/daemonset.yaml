@@ -65,17 +65,7 @@ spec:
             runAsUser: {{ .Values.user }}
             runAsGroup: {{ .Values.group }}
           {{- if .Values.worker.resources  }}
-          resources:
-            {{- if .Values.worker.resources.limits }}
-            limits:
-              cpu: {{ .Values.worker.resources.limits.cpu }}
-              memory: {{ .Values.worker.resources.limits.memory }}
-            {{- end }}
-            {{- if .Values.worker.resources.requests }}
-            requests:
-              cpu: {{ .Values.worker.resources.requests.cpu }}
-              memory: {{ .Values.worker.resources.requests.memory }}
-            {{- end }}
+{{ include "alluxio.worker.resources" . | indent 10 }}
           {{- end }}
           command: ["/entrypoint.sh"]
           {{- if .Values.worker.args }}
@@ -91,49 +81,23 @@ spec:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
           ports:
-          - containerPort: {{ .Values.worker.resources.ports.rpc }}
+          - containerPort: {{ .Values.worker.ports.rpc }}
             name: rpc
-          - containerPort: {{ .Values.worker.resources.ports.web }}
+          - containerPort: {{ .Values.worker.ports.web }}
             name: web
           volumeMounts:
             - name: alluxio-domain
               mountPath: /opt/domain
-            {{- if .Values.secrets }}
-              {{- if .Values.secrets.worker }}
-                {{- range $key, $val := .Values.secrets.worker }}
-            - name: secret-{{ $key }}-volume
-              mountPath: /secrets/{{ $val }}
-              readOnly: true
-                {{- end }}
-              {{- end }}
-            {{- end }}
-            {{- if .Values.tieredstore }} 
-              {{- if .Values.tieredstore.levels }} 
-                {{- range .Values.tieredstore.levels }}
-                  {{- if .mediumtype }}
-                    {{- if contains "," .mediumtype }}
-            {{- $type := .type }}
-            {{- $path := .path }}
-            {{- $split := split "," .mediumtype }}
-                      {{- range $key, $val := $split }} 
-                        {{- if eq $type "hostPath"}}
-            - mountPath:  {{ index ($path | split ",") $key }}
-              name: {{ $val | lower }}-{{ $key | replace "_" "" }}
-                        {{- end}}
-                      {{- end}}
-                    {{- else}}
-            - mountPath: {{ .path }}
-              name: {{ .mediumtype | replace "," "-" | lower }}
-                    {{- end}}
-                  {{- end}}
-                {{- end}} 
-              {{- end}} 
-            {{- end}} 
-            {{- if .Values.mounts }}   
-              {{- range .Values.mounts }}
-            - name: "{{ .name }}"
-              mountPath: "{{ .path }}"
-              {{- end }}
+            {{- if .Values.secrets -}}
+              {{- if .Values.secrets.worker -}}
+{{- include "alluxio.worker.secretVolumeMounts" . }}
+              {{- end -}}
+            {{- end -}}
+            {{- if .Values.tieredstore -}}
+{{- include "alluxio.worker.tieredstoreVolumeMounts" . }}
+            {{- end -}}
+            {{- if .Values.mounts -}}
+{{- include "alluxio.worker.otherVolumeMounts" . }}
             {{- end }}
         - name: alluxio-job-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
@@ -141,27 +105,9 @@ spec:
             runAsUser: {{ .Values.user }}
             runAsGroup: {{ .Values.group }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
-          resources:
-            limits:
-              {{- if .Values.jobWorker.resources  }}
-                {{- if .Values.jobWorker.resources.limits }}
-                  {{- if .Values.jobWorker.resources.limits.cpu  }}
-              cpu: {{ .Values.jobWorker.resources.limits.cpu }}
-                  {{- end }}
-                  {{- if .Values.jobWorker.resources.limits.memory  }}
-              memory: {{ .Values.jobWorker.resources.limits.memory }}
-                  {{- end }}
-                {{- end }}
-            requests:
-                {{- if .Values.jobWorker.resources.requests }}
-                  {{- if .Values.jobWorker.resources.requests.cpu  }}
-              cpu: {{ .Values.jobWorker.resources.requests.cpu }}
-                  {{- end }}
-                  {{- if .Values.jobWorker.resources.requests.memory  }}
-              memory: {{ .Values.jobWorker.resources.requests.memory }}
-                  {{- end }}
-                {{- end }}
-              {{- end }}
+          {{- if .Values.jobWorker.resources  }}
+{{ include "alluxio.jobWorker.resources" . | indent 10 }}
+          {{- end }}
           command: ["/entrypoint.sh"]
           {{- if .Values.jobWorker.args }}
           args:
@@ -176,51 +122,25 @@ spec:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
           ports:
-          - containerPort: {{ .Values.jobWorker.resources.ports.rpc }}
+          - containerPort: {{ .Values.jobWorker.ports.rpc }}
             name: job-rpc
-          - containerPort: {{ .Values.jobWorker.resources.ports.data }}
+          - containerPort: {{ .Values.jobWorker.ports.data }}
             name: job-data
-          - containerPort: {{ .Values.jobWorker.resources.ports.web }}
+          - containerPort: {{ .Values.jobWorker.ports.web }}
             name: job-web
           volumeMounts:
             - name: alluxio-domain
               mountPath: /opt/domain
             {{- if .Values.secrets }}
               {{- if .Values.secrets.worker }}
-                {{- range $key, $val := .Values.secrets.worker }}
-            - name: secret-{{ $key }}-volume
-              mountPath: /secrets/{{ $val }}
-              readOnly: true
-                {{- end }}
-              {{- end }}
+{{- include "alluxio.worker.secretVolumeMounts" . }}
+              {{- end -}}
             {{- end }}
-            {{- if .Values.tieredstore }} 
-              {{- if .Values.tieredstore.levels }} 
-                {{- range .Values.tieredstore.levels }}
-                  {{- if .mediumtype }}
-                    {{- if contains "," .mediumtype }}
-            {{- $type := .type }}
-            {{- $path := .path }}
-            {{- $split := split "," .mediumtype }}
-                      {{- range $key, $val := $split }} 
-                        {{- if eq $type "hostPath"}}
-            - mountPath:  {{ index ($path | split ",") $key }}
-              name: {{ $val | lower }}-{{ $key | replace "_" "" }}
-                        {{- end}}
-                      {{- end}}
-                    {{- else}}
-            - mountPath: {{ .path }}
-              name: {{ .mediumtype | replace "," "-" | lower }}
-                    {{- end}}
-                  {{- end}}
-                {{- end}} 
-              {{- end}} 
-            {{- end}} 
-            {{- if .Values.mounts }}   
-              {{- range .Values.mounts }}
-            - name: "{{ .name }}"
-              mountPath: "{{ .path }}"
-              {{- end }}
+            {{- if .Values.tieredstore }}
+{{- include "alluxio.worker.tieredstoreVolumeMounts" . }}
+            {{- end }}
+            {{- if .Values.mounts }}
+{{- include "alluxio.worker.otherVolumeMounts" . }}
             {{- end }}
       restartPolicy: Always
       volumes:
@@ -230,55 +150,11 @@ spec:
             type: DirectoryOrCreate
         {{- if .Values.secrets }}
           {{- if .Values.secrets.worker }}
-            {{- range $key, $val := .Values.secrets.worker }}
-        - name: secret-{{ $key }}-volume
-          secret:
-            secretName: {{ $key }}
-            defaultMode: 256
-            {{- end }}
+{{- include "alluxio.worker.secretVolumes" . }}
           {{- end }}
         {{- end }}
         {{- if .Values.tieredstore }} 
-          {{- if .Values.tieredstore.levels }} 
-            {{- range .Values.tieredstore.levels }}
-              {{- if .mediumtype }}
-                {{- if contains "," .mediumtype }}
-           {{- $split := split "," .mediumtype }}
-           {{- $type := .type }}
-           {{- $path := .path }}
-                  {{- range $key, $val := $split }} 
-                    {{- if eq $type "hostPath"}}
-        - hostPath:
-            path: {{ index ($path | split ",") $key }}
-            type: DirectoryOrCreate
-          name: {{ $val | lower }}-{{ $key | replace "_" "" }}
-                    {{- else }}
-        - name: {{ $val | lower }}-{{ $key | replace "_" "" }}
-          emptyDir:
-            medium: "Memory"
-                      {{- if .quota }} 
-            sizeLimit: {{ .quota }}
-                      {{- end}} 
-                    {{- end}}
-                  {{- end}}
-                {{- else}}
-                  {{- if eq .type "hostPath"}}
-        - hostPath:
-            path: {{ .path }}
-            type: DirectoryOrCreate
-          name: {{ .mediumtype | replace "," "-" | lower }}
-                  {{- else }}
-        - name: {{ .mediumtype | replace "," "-" | lower }}
-          emptyDir:
-            medium: "Memory"
-                    {{- if .quota }}
-            sizeLimit: {{ .quota }}
-                    {{- end}}
-                  {{- end}}
-                {{- end}}
-              {{- end}}
-            {{- end}} 
-          {{- end}} 
+{{- include "alluxio.worker.tieredstoreVolumes" . }}
         {{- end}}
         {{- if .Values.mounts }}   
           {{- range .Values.mounts }}
