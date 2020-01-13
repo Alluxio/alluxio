@@ -101,6 +101,18 @@ public class AlluxioCatalogTest {
   }
 
   @Test
+  public void getDb() throws Exception {
+    String dbName = "testdb";
+    TestDatabase.genTable(1, 2);
+    mException.expect(NotFoundException.class);
+    mCatalog.getDatabase(dbName);
+    mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
+        TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
+        Collections.emptyMap());
+    assertEquals(dbName, mCatalog.getDatabase(dbName).getDbName());
+  }
+
+  @Test
   public void testGetAllDatabase() throws Exception {
     addMockDbs();
     assertEquals(2, mCatalog.getAllDatabases().size());

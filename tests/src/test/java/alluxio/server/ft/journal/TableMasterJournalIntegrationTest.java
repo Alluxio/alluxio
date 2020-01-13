@@ -24,6 +24,7 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -37,6 +38,9 @@ public class TableMasterJournalIntegrationTest {
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder().setStartCluster(false)
           .build();
+
+  @Rule
+  public ExpectedException mException = ExpectedException.none();
 
   private static final String DB_NAME = TestDatabase.TEST_UDB_NAME;
 
@@ -92,8 +96,12 @@ public class TableMasterJournalIntegrationTest {
     TableMaster tableMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
 
+    mException.expect(IOException.class);
+    tableMaster.getDatabase(DB_NAME);
+
     tableMaster
         .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
+    assertEquals(DB_NAME, tableMaster.getDatabase(DB_NAME).getDbName());
     List<String> oldTableNames = tableMaster.getAllTables(DB_NAME);
     Table tableOld = tableMaster.getTable(DB_NAME, oldTableNames.get(0));
 
