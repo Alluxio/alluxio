@@ -37,6 +37,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * A class to manage cached pages. This class coordinates different components to respond for
  * thread-safety and operate cache replacement policies.
  *
+ * One of the motivations of creating a client-side cache is from "Improving In-Memory File System
+ * Reading Performance by Fine-Grained User-Space Cache Mechanisms" by Gu et al, which illustrates
+ * performance benefits for various read workloads.
+ *
  * Lock hierarchy in this class: All operations must follow this order to operate on pages:
  * <ul>
  * <li>1. Acquire page lock</li>
@@ -66,7 +70,7 @@ public class LocalCacheManager implements CacheManager {
    * @param fsContext filesystem context
    */
   public LocalCacheManager(FileSystemContext fsContext) {
-    this(fsContext, new MetaStore(), PageStore.create(), CacheEvictor.create());
+    this(fsContext, MetaStore.create(), PageStore.create(), CacheEvictor.create());
   }
 
   /**
