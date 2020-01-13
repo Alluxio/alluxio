@@ -13,23 +13,21 @@ package alluxio.client.file.cache;
 
 import alluxio.exception.PageNotFoundException;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * The metadata store for pages stored in cache.
  */
 public class MetaStore {
-
-  /**
-   * Default constructor.
-   */
-  public MetaStore() {
-  }
+  private final Set<PageId> mPageMap = new HashSet<>();
 
   /**
    * @param pageId page identifier
    * @return if a page is stored in cache
    */
   boolean hasPage(PageId pageId) {
-    return true;
+    return mPageMap.contains(pageId);
   }
 
   /**
@@ -39,7 +37,7 @@ public class MetaStore {
    * @return true if added successfully
    */
   boolean addPage(PageId pageId) {
-    return true;
+    return mPageMap.add(pageId);
   }
 
   /**
@@ -48,5 +46,8 @@ public class MetaStore {
    * @param pageId page identifier
    */
   void removePage(PageId pageId) throws PageNotFoundException {
+    if (!mPageMap.remove(pageId)) {
+      throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
+    }
   }
 }

@@ -21,7 +21,7 @@ public interface CacheEvictor {
    */
   static CacheEvictor create() {
     // return corresponding CacheEvictor impl
-    return null;
+    return new LRUCacheEvictor();
   }
 
   /**
