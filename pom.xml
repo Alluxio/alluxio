@@ -155,7 +155,7 @@
     <maven.version>3.3.9</maven.version>
     <metrics.version>3.1.2</metrics.version>
     <oshi.version>4.2.0</oshi.version>
-    <powermock.version>1.6.1</powermock.version>
+    <powermock.version>1.6.2</powermock.version>
     <prometheus.version>0.3.0</prometheus.version>
     <guava.version>27.0.1-jre</guava.version>
     <parquet.version>1.10.0</parquet.version>
@@ -689,7 +689,7 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-all</artifactId>
-        <version>1.10.8</version>
+        <version>1.10.19</version>
         <scope>test</scope>
       </dependency>
       <dependency>
