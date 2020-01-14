@@ -272,10 +272,5 @@ public class WorkflowTracker {
       default:
         break;
     }
-    if (status.equals(Status.COMPLETED)) {
-      done(planInfo.getId());
-    } else if (status.equals(Status.CANCELED) || status.equals(Status.FAILED)) {
-      stop(planInfo.getId(), status, planInfo.getErrorMessage());
-    }
   }
 }
