@@ -65,7 +65,7 @@ public final class DistributedCpCommand extends AbstractFileSystemCommand {
       AlluxioConfiguration conf = mFsContext.getPathConf(dstPath);
       JobGrpcClientUtils.run(new MigrateConfig(srcPath.getPath(), dstPath.getPath(),
           conf.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT), true,
-          false), 3, mFsContext.getPathConf(dstPath));
+          false), 1, mFsContext.getPathConf(dstPath));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return -1;
