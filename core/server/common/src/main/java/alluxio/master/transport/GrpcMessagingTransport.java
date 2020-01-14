@@ -18,6 +18,7 @@ import alluxio.util.ThreadFactoryUtils;
 import io.atomix.catalyst.transport.Client;
 import io.atomix.catalyst.transport.Server;
 import io.atomix.catalyst.transport.Transport;
+import io.atomix.catalyst.util.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +50,9 @@ public class GrpcMessagingTransport implements Transport {
   private final List<GrpcMessagingClient> mClients;
   /** List of created servers. */
   private final List<GrpcMessagingServer> mServers;
+
+  /** External proxy configuration for servers. */
+  private GrpcMessagingProxy mServerProxy = new GrpcMessagingProxy();
 
   /** Executor that is used by clients/servers for building connections. */
   private final ExecutorService mExecutor;
@@ -90,6 +94,18 @@ public class GrpcMessagingTransport implements Transport {
         .newCachedThreadPool(ThreadFactoryUtils.build("grpc-messaging-transport-worker-%d", true));
   }
 
+  /**
+   * Sets external proxy configuration for servers.
+   *
+   * @param proxy external proxy configuration
+   * @return the updated transport instance
+   */
+  public synchronized GrpcMessagingTransport withServerProxy(GrpcMessagingProxy proxy) {
+    Assert.notNull(proxy, "Server proxy reference cannot be null.");
+    mServerProxy = proxy;
+    return this;
+  }
+
   @Override
   public synchronized Client client() {
     if (mClosed) {
@@ -106,7 +122,8 @@ public class GrpcMessagingTransport implements Transport {
     if (mClosed) {
       throw new RuntimeException("Messaging transport closed");
     }
-    GrpcMessagingServer server = new GrpcMessagingServer(mServerConf, mServerUser, mExecutor);
+    GrpcMessagingServer server =
+        new GrpcMessagingServer(mServerConf, mServerUser, mExecutor, mServerProxy);
     mServers.add(server);
     return server;
   }

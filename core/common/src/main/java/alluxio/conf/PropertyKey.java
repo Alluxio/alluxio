@@ -1289,6 +1289,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setIsHidden(true)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_PROXY_HOST)
+          .setDescription(String.format(
+              "Used to bind embedded journal servers to a proxied host."
+                  + "Proxy hostname will still make use of %s for bind port.",
+              Name.MASTER_EMBEDDED_JOURNAL_PORT))
+          // No default value for proxy-host. Server will bind to "alluxio.master.hostname"
+          // as default.
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
           .setDescription(String.format("A comma-separated list of journal addresses for all "
@@ -3114,9 +3123,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_FILESYSTEM_CLASS)
           .setDefaultValue("alluxio.client.file.BaseFileSystem")
           .setDescription("Type of file system to use. Users can select augmented file systems "
-              + "based on the use case. For example, CachingFileSystem is efficient for FUSE "
-              + "workloads. Possible values are alluxio.client.file.BaseFileSystem (default) and "
-              + "alluxio.client.file.CachingFileSystem.")
+              + "based on the use case. For example, MetadataCachingBaseFileSystem is efficient "
+              + "for FUSE workloads. Possible values are alluxio.client.file.BaseFileSystem "
+              + "(default) and alluxio.client.file.MetadataCachingBaseFileSystem.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3139,6 +3148,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_LOCAL_CACHE_ENABLED =
+      new Builder(Name.USER_LOCAL_CACHE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If this is enabled, data will be cached on Alluxio client.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_LOCAL_READER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_LOCAL_READER_CHUNK_SIZE_BYTES)
           .setDefaultValue("8MB")
@@ -3150,6 +3166,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES)
           .setDefaultValue("64KB")
           .setDescription("When a client writes to a local worker, the maximum data chunk size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_METADATA_CACHE_MAX_SIZE =
+      new Builder(Name.USER_METADATA_CACHE_MAX_SIZE)
+          .setDefaultValue(100000)
+          .setDescription("Maximum number of paths with cached metadata. Only valid if the "
+              + "filesystem is alluxio.client.file.CachingFileSystem.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_METADATA_CACHE_EXPIRATION_TIME =
+      new Builder(Name.USER_METADATA_CACHE_EXPIRATION_TIME)
+          .setDefaultValue("10min")
+          .setDescription("Metadata will expire and be evicted after being cached for this time "
+              + "period. Only valid if the filesystem is alluxio.client.file.CachingFileSystem.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3375,22 +3407,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("When short circuit and domain socket both enabled, "
               + "prefer to use short circuit.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_METADATA_CACHE_MAX_SIZE =
-      new Builder(Name.USER_METADATA_CACHE_MAX_SIZE)
-          .setDefaultValue(100000)
-          .setDescription("Maximum number of paths with cached metadata. Only valid if the "
-              + "filesystem is alluxio.client.file.CachingFileSystem.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_METADATA_CACHE_EXPIRATION_TIME =
-      new Builder(Name.USER_METADATA_CACHE_EXPIRATION_TIME)
-          .setDefaultValue("10min")
-          .setDescription("Metadata will expire and be evicted after being cached for this time "
-              + "period. Only valid if the filesystem is alluxio.client.file.CachingFileSystem.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -4152,6 +4168,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
         "alluxio.master.journal.tailer.sleep.time";
     public static final String MASTER_RPC_ADDRESSES = "alluxio.master.rpc.addresses";
+    public static final String MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
+        "alluxio.master.embedded.journal.bind.host";
     public static final String MASTER_EMBEDDED_JOURNAL_ADDRESSES =
         "alluxio.master.embedded.journal.addresses";
     public static final String MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
@@ -4486,10 +4504,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.write.tier.default";
     public static final String USER_FILESYSTEM_CLASS = "alluxio.user.filesystem.class";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
+    public static final String USER_LOCAL_CACHE_ENABLED = "alluxio.user.local.cache.enabled";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.reader.chunk.size.bytes";
     public static final String USER_LOCAL_WRITER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.writer.chunk.size.bytes";
+    public static final String USER_METADATA_CACHE_MAX_SIZE =
+        "alluxio.user.metadata.cache.max.size";
+    public static final String USER_METADATA_CACHE_EXPIRATION_TIME =
+        "alluxio.user.metadata.cache.expiration.time";
     public static final String USER_METRICS_COLLECTION_ENABLED =
         "alluxio.user.metrics.collection.enabled";
     public static final String USER_METRICS_HEARTBEAT_INTERVAL_MS =
@@ -4540,10 +4563,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.short.circuit.preferred";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
-    public static final String USER_METADATA_CACHE_MAX_SIZE =
-        "alluxio.user.metadata.cache.max.size";
-    public static final String USER_METADATA_CACHE_EXPIRATION_TIME =
-        "alluxio.user.metadata.cache.expiration.time";
 
     //
     // FUSE integration related properties
