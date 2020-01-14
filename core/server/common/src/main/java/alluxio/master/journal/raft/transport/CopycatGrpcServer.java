@@ -63,6 +63,9 @@ public class CopycatGrpcServer implements Server {
   /** Executor for building server listener. */
   private final ExecutorService mExecutor;
 
+  /** Proxy configuration for server connections. */
+  private final CopycatGrpcProxy mProxy;
+
   /**
    * Creates copycat transport server that can be used to accept connections from remote copycat
    * clients.
@@ -70,12 +73,14 @@ public class CopycatGrpcServer implements Server {
    * @param conf Alluxio configuration
    * @param userState authentication user
    * @param executor transport executor
+   * @param proxy external proxy configuration
    */
   public CopycatGrpcServer(AlluxioConfiguration conf, UserState userState,
-      ExecutorService executor) {
+      ExecutorService executor, CopycatGrpcProxy proxy) {
     mConf = conf;
     mUserState = userState;
     mExecutor = executor;
+    mProxy = proxy;
     mConnections = Collections.synchronizedList(new LinkedList<>());
   }
 
@@ -87,7 +92,8 @@ public class CopycatGrpcServer implements Server {
       return mListenFuture;
     }
 
-    LOG.debug("Copycat transport server binding to: {}", address);
+    LOG.debug("Opening copycat transport server for: {}", address);
+
     final ThreadContext threadContext = ThreadContext.currentContextOrThrow();
     mListenFuture = CompletableFuture.runAsync(() -> {
       // Listener that notifies both this server instance and given listener.
@@ -96,10 +102,17 @@ public class CopycatGrpcServer implements Server {
         listener.accept(connection);
       };
 
+      Address bindAddress = address;
+      if (mProxy.hasProxyFor(address)) {
+        bindAddress = mProxy.getProxyFor(address);
+        LOG.debug("Found proxy: {} for address: {}", bindAddress, address);
+      }
+      LOG.debug("Binding messaging server to: {}", bindAddress);
+
       // Create gRPC server.
       mGrpcServer = GrpcServerBuilder
-          .forAddress(GrpcServerAddress.create(address.host(),
-              new InetSocketAddress(address.host(), address.port())), mConf, mUserState)
+          .forAddress(GrpcServerAddress.create(bindAddress.host(),
+              new InetSocketAddress(bindAddress.host(), bindAddress.port())), mConf, mUserState)
           .maxInboundMessageSize((int) mConf
               .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
           .addService(new GrpcService(ServerInterceptors.intercept(
@@ -111,10 +124,10 @@ public class CopycatGrpcServer implements Server {
       try {
         mGrpcServer.start();
 
-        LOG.info("Successfully started gRPC server for copycat transport at: {}", address);
+        LOG.info("Successfully started copycat transport server at: {}", bindAddress);
       } catch (IOException e) {
         mGrpcServer = null;
-        LOG.debug("Failed to create gRPC server for copycat transport at: {}.", address, e);
+        LOG.debug("Failed to create copycat transport server for: {}.", address, e);
         throw new RuntimeException(e);
       }
     }, mExecutor);
