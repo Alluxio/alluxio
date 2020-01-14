@@ -3173,7 +3173,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_METADATA_CACHE_MAX_SIZE)
           .setDefaultValue(100000)
           .setDescription("Maximum number of paths with cached metadata. Only valid if the "
-              + "filesystem is alluxio.client.file.CachingFileSystem.")
+              + "filesystem is alluxio.client.file.MetadataCachingBaseFileSystem.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3181,7 +3181,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_METADATA_CACHE_EXPIRATION_TIME)
           .setDefaultValue("10min")
           .setDescription("Metadata will expire and be evicted after being cached for this time "
-              + "period. Only valid if the filesystem is alluxio.client.file.CachingFileSystem.")
+              + "period. Only valid if the filesystem is "
+              + "alluxio.client.file.MetadataCachingBaseFileSystem.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
