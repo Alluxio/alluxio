@@ -11,11 +11,14 @@
 
 package alluxio.job.plan;
 
+import static org.mockito.Mockito.mock;
+
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -24,8 +27,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.List;
-
-import static org.mockito.Mockito.mock;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class})
@@ -52,5 +53,4 @@ public class SelectExecutorsTest {
     mMockFileSystem = mock(FileSystem.class);
     mMockUfsManager = mock(UfsManager.class);
   }
-
 }

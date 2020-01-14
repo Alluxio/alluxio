@@ -11,15 +11,17 @@
 
 package alluxio.job.plan.transform;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
+
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.SelectExecutorsTest;
-
 import alluxio.wire.WorkerInfo;
-import org.junit.Assert;
+
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -27,13 +29,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
-
 public class CompactDefinitionSelectExecutorsTest extends SelectExecutorsTest {
 
-  private static String INPUT_DIR = "/input";
-  private static String OUTPUT_DIR = "/output";
+  private static final String INPUT_DIR = "/input";
+  private static final String OUTPUT_DIR = "/output";
 
   @Test
   public void testExecutorsParallel() throws Exception {
@@ -64,5 +63,4 @@ public class CompactDefinitionSelectExecutorsTest extends SelectExecutorsTest {
     when(mockFileStatus.getName()).thenReturn(name);
     return mockFileStatus;
   }
-
 }
