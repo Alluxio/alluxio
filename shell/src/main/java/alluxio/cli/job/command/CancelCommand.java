@@ -19,8 +19,8 @@ import alluxio.client.job.JobContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.job.wire.JobInfo;
 import alluxio.resource.CloseableResource;
+
 import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,8 +74,8 @@ public class CancelCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) {
     long id = Long.parseLong(cl.getArgs()[0]);
     try (CloseableResource<JobMasterClient> client =
-             JobContext.create(mFsContext.getClusterConf(), mFsContext.getClientContext().getUserState())
-                 .acquireMasterClientResource()) {
+         JobContext.create(mFsContext.getClusterConf(),
+             mFsContext.getClientContext().getUserState()).acquireMasterClientResource()) {
       client.get().cancel(id);
     } catch (Exception e) {
       LOG.error("Failed to cancel the job", e);

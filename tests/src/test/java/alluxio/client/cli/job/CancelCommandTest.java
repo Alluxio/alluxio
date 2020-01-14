@@ -14,6 +14,7 @@ package alluxio.client.cli.job;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.Status;
+
 import org.junit.Test;
 
 public class CancelCommandTest extends JobShellTest {
