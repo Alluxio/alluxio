@@ -107,6 +107,7 @@ public class PlanTracker {
     if (planInfo == null) {
       return;
     }
+    mWorkflowTracker.onPlanStatusChange(planInfo);
     Status status = planInfo.getStatus();
     if (!status.isFinished()) {
       return;

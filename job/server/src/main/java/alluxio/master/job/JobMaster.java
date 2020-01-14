@@ -439,7 +439,6 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
         planCoordinator.updateTasks(taskInfosPair.getValue());
       }
     }
-    mWorkflowTracker.workerHeartbeat(taskInfoList);
     return mCommandManager.pollAllPendingCommands(workerId);
   }
 
