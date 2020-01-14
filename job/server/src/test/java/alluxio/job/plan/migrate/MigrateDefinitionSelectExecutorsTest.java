@@ -60,7 +60,7 @@ import java.util.Set;
  * No matter whether to delete source, selectExecutors should have the same behavior.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class})
+@PrepareForTest({AlluxioBlockStore.class})
 public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsTest {
   private static final List<BlockWorkerInfo> BLOCK_WORKERS =
       new ImmutableList.Builder<BlockWorkerInfo>()
@@ -72,11 +72,10 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
   private AlluxioBlockStore mMockBlockStore;
 
   @Before
+  @Override
   public void before() throws Exception {
-    mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    super.before();
     mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
-    mMockFileSystem = Mockito.mock(FileSystem.class);
-    mMockUfsManager = Mockito.mock(UfsManager.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
     when(mMockBlockStore.getAllWorkers()).thenReturn(BLOCK_WORKERS);

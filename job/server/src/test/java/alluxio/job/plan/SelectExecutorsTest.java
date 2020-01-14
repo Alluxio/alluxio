@@ -11,7 +11,6 @@
 
 package alluxio.job.plan;
 
-import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.underfs.UfsManager;
@@ -19,9 +18,17 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.List;
 
+import static org.mockito.Mockito.mock;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({FileSystemContext.class})
 public class SelectExecutorsTest {
 
   public static final WorkerInfo JOB_WORKER_0 =
@@ -40,8 +47,10 @@ public class SelectExecutorsTest {
   protected UfsManager mMockUfsManager;
 
   @Before
-  public void before() {
-
+  public void before() throws Exception {
+    mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    mMockFileSystem = mock(FileSystem.class);
+    mMockUfsManager = mock(UfsManager.class);
   }
 
 }
