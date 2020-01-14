@@ -45,7 +45,7 @@ import java.util.Set;
 public final class CompactDefinition
     extends AbstractVoidPlanDefinition<CompactConfig, ArrayList<CompactTask>> {
   private static final Logger LOG = LoggerFactory.getLogger(CompactDefinition.class);
-  private static final int JOBS_PER_WORKER = 10;
+  private static final int TASKS_PER_WORKER = 10;
   private static final String COMPACTED_FILE_PATTERN = "part-%d.parquet";
   private static final String SUCCESS_FILENAME = "_SUCCESS";
   private static final String CRC_FILENAME_SUFFIX = ".crc";
@@ -114,7 +114,7 @@ public final class CompactDefinition
     Set<Pair<WorkerInfo, ArrayList<CompactTask>>> result = Sets.newHashSet();
     for (Map.Entry<WorkerInfo, ArrayList<CompactTask>> assignment : assignments.entrySet()) {
       List<List<CompactTask>> partitioned = CommonUtils.partition(
-          assignment.getValue(), JOBS_PER_WORKER);
+          assignment.getValue(), TASKS_PER_WORKER);
       for (List<CompactTask> compactTasks : partitioned) {
         if (!compactTasks.isEmpty()) {
           result.add(new Pair<>(assignment.getKey(), Lists.newArrayList(compactTasks)));

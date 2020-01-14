@@ -27,6 +27,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
+import alluxio.job.plan.SelectExecutorsTest;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -60,7 +61,7 @@ import java.util.Set;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class})
-public final class MigrateDefinitionSelectExecutorsTest {
+public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsTest {
   private static final List<BlockWorkerInfo> BLOCK_WORKERS =
       new ImmutableList.Builder<BlockWorkerInfo>()
           .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host0"), 0, 0))
@@ -68,22 +69,7 @@ public final class MigrateDefinitionSelectExecutorsTest {
           .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host2"), 0, 0))
           .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host3"), 0, 0)).build();
 
-  private static final WorkerInfo JOB_WORKER_0 =
-      new WorkerInfo().setAddress(new WorkerNetAddress().setHost("host0"));
-  private static final WorkerInfo JOB_WORKER_1 =
-      new WorkerInfo().setAddress(new WorkerNetAddress().setHost("host1"));
-  private static final WorkerInfo JOB_WORKER_2 =
-      new WorkerInfo().setAddress(new WorkerNetAddress().setHost("host2"));
-  private static final WorkerInfo JOB_WORKER_3 =
-      new WorkerInfo().setAddress(new WorkerNetAddress().setHost("host3"));
-
-  private static final List<WorkerInfo> JOB_WORKERS =
-      ImmutableList.of(JOB_WORKER_0, JOB_WORKER_1, JOB_WORKER_2, JOB_WORKER_3);
-
-  private FileSystem mMockFileSystem;
-  private FileSystemContext mMockFileSystemContext;
   private AlluxioBlockStore mMockBlockStore;
-  private UfsManager mMockUfsManager;
 
   @Before
   public void before() throws Exception {
