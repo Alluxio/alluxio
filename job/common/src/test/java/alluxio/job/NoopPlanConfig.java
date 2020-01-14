@@ -20,7 +20,7 @@ import com.google.common.base.MoreObjects;
  */
 public class NoopPlanConfig implements PlanConfig {
 
-  public static final String NAME = "DoNothing";
+  public static final String NAME = "NoOp";
 
   public NoopPlanConfig() {}
 

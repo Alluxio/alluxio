@@ -258,10 +258,20 @@ public class WorkflowTracker {
   /**
    * Updates internal state of the workflows based on the updated state of a plan.
    * @param planInfo info of the plan that had its status changed
-   * @throws ResourceExhaustedException
    */
   public void onPlanStatusChange(PlanInfo planInfo) {
     Status status = planInfo.getStatus();
+    switch (status) {
+      case COMPLETED:
+        done(planInfo.getId());
+        break;
+      case CANCELED:
+      case FAILED:
+        stop(planInfo.getId(), status, planInfo.getErrorMessage());
+        break;
+      default:
+        break;
+    }
     if (status.equals(Status.COMPLETED)) {
       done(planInfo.getId());
     } else if (status.equals(Status.CANCELED) || status.equals(Status.FAILED)) {

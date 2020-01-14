@@ -18,6 +18,7 @@ import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
 import alluxio.wire.WorkerInfo;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,12 +40,12 @@ public class NoopPlanDefinition
   public Set<Pair<WorkerInfo, SerializableVoid>> selectExecutors(NoopPlanConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext selectExecutorsContext)
       throws Exception {
-    return new HashSet<>();
+    return Collections.emptySet();
   }
 
   @Override
   public SerializableVoid runTask(NoopPlanConfig config, SerializableVoid args,
                                   RunTaskContext runTaskContext) throws Exception {
-    throw new IllegalStateException("Should never get here.");
+    throw new IllegalStateException("NoopPlanDefinition should never run a task");
   }
 }
