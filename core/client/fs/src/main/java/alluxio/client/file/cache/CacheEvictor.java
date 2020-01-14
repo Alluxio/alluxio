@@ -28,7 +28,7 @@ public interface CacheEvictor {
    */
   static CacheEvictor create(AlluxioConfiguration conf) {
     return CommonUtils.createNewClassInstance(
-        conf.getClass(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS), new Class[0], new Object[0]);
+        conf.getClass(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS), null, null);
   }
 
   /**

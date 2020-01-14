@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -47,6 +48,7 @@ public class LRUCacheEvictor implements CacheEvictor {
     mLRUCache.remove(pageId, UNUSED_MAP_VALUE);
   }
 
+  @Nullable
   @Override
   public PageId evict() {
     synchronized (mLRUCache) {
