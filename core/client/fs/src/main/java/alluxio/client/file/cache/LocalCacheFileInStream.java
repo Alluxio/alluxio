@@ -100,9 +100,15 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
+    if (len == 0) {
+      return 0;
+    }
+    if (mPosition == mStatus.getLength()) { // at end of file
+      return -1;
+    }
     int bytesRead = 0;
     // for each page, check if it is available in the cache
-    while (bytesRead < len) {
+    while (bytesRead < len && mPosition < mStatus.getLength()) {
       long currentPage = mPosition / mPageSize;
       int currentPageOffset = (int) (mPosition % mPageSize);
       int bytesLeftInPage = (int) Math.min(mPageSize - currentPageOffset, len - bytesRead);
@@ -124,14 +130,17 @@ public class LocalCacheFileInStream extends FileInStream {
           mPosition += bytesLeftInPage;
         } else { // cache miss
           byte[] page = readExternalPage(mPosition);
-          mCacheManager.put(pageId, page);
-          System.arraycopy(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
-          bytesRead += bytesLeftInPage;
-          mPosition += bytesLeftInPage;
+          if (page.length > 0) {
+            mCacheManager.put(pageId, page);
+            System.arraycopy(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
+            bytesRead += bytesLeftInPage;
+            mPosition += bytesLeftInPage;
+          }
         }
       }
     }
-    Preconditions.checkState(bytesRead == len, "Invalid number of bytes read");
+    Preconditions.checkState(bytesRead == len || (bytesRead < len && remaining() == 0),
+        "Invalid number of bytes read");
     return bytesRead;
   }
 

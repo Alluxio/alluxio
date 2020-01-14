@@ -15,6 +15,7 @@ import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.LocalPageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.RocksPageStore;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
@@ -50,6 +51,15 @@ public interface PageStore extends AutoCloseable {
    */
   static PageStore create() {
     return create(new LocalPageStoreOptions());
+  }
+
+  /**
+   * Creates a new instance of {@link PageStore} based on configuration.
+   * @param conf configuration
+   * @return the {@link PageStore}
+   */
+  static PageStore create(AlluxioConfiguration conf) {
+    return create(PageStoreOptions.create(conf));
   }
 
   /**

@@ -70,7 +70,7 @@ public class LocalCacheManager implements CacheManager {
    * @param fsContext filesystem context
    */
   public LocalCacheManager(FileSystemContext fsContext) {
-    this(fsContext, MetaStore.create(), PageStore.create(),
+    this(fsContext, MetaStore.create(), PageStore.create(fsContext.getClusterConf()),
         CacheEvictor.create(fsContext.getClusterConf()));
   }
 
@@ -103,7 +103,7 @@ public class LocalCacheManager implements CacheManager {
    * @return the corresponding page lock
    */
   private ReadWriteLock getPageLock(PageId pageId) {
-    return mPageLocks[(int) (pageId.getFileId() + pageId.getPageIndex()) % LOCK_SIZE];
+    return mPageLocks[Math.floorMod((int) (pageId.getFileId() + pageId.getPageIndex()), LOCK_SIZE)];
   }
 
   /**

@@ -197,6 +197,28 @@ public class LocalCacheFileInStreamTest {
   }
 
   @Test
+  public void readOversizedBuffer() throws Exception {
+    int fileSize = PAGE_SIZE;
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+
+    // cache miss
+    byte[] cacheMiss = new byte[fileSize * 2];
+    Assert.assertEquals(fileSize, stream.read(cacheMiss));
+    Assert.assertArrayEquals(testData, Arrays.copyOfRange(cacheMiss, 0, fileSize));
+    Assert.assertEquals(0, manager.mPagesServed);
+    Assert.assertEquals(1, manager.mPagesCached);
+
+    // cache hit
+    stream.seek(0);
+    byte[] cacheHit = new byte[fileSize * 2];
+    Assert.assertEquals(fileSize, stream.read(cacheHit));
+    Assert.assertArrayEquals(testData, Arrays.copyOfRange(cacheHit, 0, fileSize));
+    Assert.assertEquals(1, manager.mPagesServed);
+  }
+
+  @Test
   public void positionedReadPartialPage() throws Exception {
     int fileSize = PAGE_SIZE;
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
