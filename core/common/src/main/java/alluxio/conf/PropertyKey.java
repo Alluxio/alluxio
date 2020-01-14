@@ -3103,6 +3103,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("If this is enabled, data will be cached on Alluxio client.")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_EVICTOR_CLASS =
+      new Builder(Name.USER_CLIENT_CACHE_EVICTOR_CLASS)
+          .setDefaultValue("alluxio.client.file.cache.LRUCacheEvictor")
+          .setDescription("The strategy that client uses to evict local cached pages when running "
+              + "out of space. Currently the only valid option provided is "
+              + "`alluxio.client.file.cache.LRUCacheEvictor`.")
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_SIZE =
       new Builder(Name.USER_CLIENT_CACHE_SIZE)
           .setDefaultValue("512MB")
@@ -4463,6 +4471,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.write.location.policy.class";
     public static final String USER_CLIENT_CACHE_ENABLED =
         "alluxio.user.client.cache.enabled";
+    public static final String USER_CLIENT_CACHE_EVICTOR_CLASS =
+        "alluxio.user.client.cache.evictor.class";
     public static final String USER_CLIENT_CACHE_SIZE =
         "alluxio.user.client.cache.size";
     public static final String USER_CLIENT_CACHE_PAGE_SIZE =
