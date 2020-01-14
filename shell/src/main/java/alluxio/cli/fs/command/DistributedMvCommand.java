@@ -67,7 +67,7 @@ public final class DistributedMvCommand extends AbstractFileSystemCommand {
       AlluxioConfiguration conf = mFsContext.getPathConf(dstPath);
       JobGrpcClientUtils.run(new MigrateConfig(srcPath.getPath(), dstPath.getPath(),
           conf.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT), true,
-          true), 3, mFsContext.getPathConf(dstPath));
+          true), 1, mFsContext.getPathConf(dstPath));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return -1;
