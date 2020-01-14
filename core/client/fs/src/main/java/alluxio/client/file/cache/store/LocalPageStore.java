@@ -15,6 +15,7 @@ import alluxio.client.file.cache.PageId;
 import alluxio.exception.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -55,7 +57,7 @@ public class LocalPageStore implements PageStore, AutoCloseable {
   public void put(PageId pageId, byte[] page) throws IOException {
     Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
-      Files.createDirectories(p.getParent());
+      Files.createDirectories(Preconditions.checkNotNull(p.getParent(), "parent"));
       Files.createFile(p);
     }
     try (FileOutputStream fos = new FileOutputStream(p.toFile(), false)) {
@@ -82,8 +84,11 @@ public class LocalPageStore implements PageStore, AutoCloseable {
     }
     Files.delete(p);
     mSize.decrementAndGet();
-    if (!Files.newDirectoryStream(p.getParent()).iterator().hasNext()) {
-      Files.delete(p.getParent());
+    Path parent = Preconditions.checkNotNull(p.getParent(), "parent");
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(parent)) {
+      if (!stream.iterator().hasNext()) {
+        Files.delete(parent);
+      }
     }
   }
 

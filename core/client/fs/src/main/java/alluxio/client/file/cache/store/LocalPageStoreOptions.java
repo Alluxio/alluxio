@@ -17,10 +17,6 @@ import alluxio.Constants;
  * Options used to instantiate the {@link LocalPageStore}.
  */
 public class LocalPageStoreOptions extends PageStoreOptions {
-  /**
-   * The root directory where data is stored.
-   */
-  private String mRootDir;
 
   /**
    * The max number of buffers used to transfer data. Total memory usage will be equivalent to
