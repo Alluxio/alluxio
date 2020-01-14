@@ -30,7 +30,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.Closer;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,16 +70,16 @@ public final class CompactDefinition
         || status.getName().endsWith(CRC_FILENAME_SUFFIX);
   }
 
-  private static int calcNumOfFiles(int numOfSourceFiles, long averageSize) {
+  private static int calcNumOfFiles(int numOfSourceFiles, long averageSize, long fileSizeParam) {
     long ret = numOfSourceFiles;
-    if (averageSize < FileUtils.ONE_GB) {
-      ret = numOfSourceFiles * averageSize / FileUtils.ONE_GB;
+    if (averageSize < fileSizeParam) {
+      ret = numOfSourceFiles * averageSize / fileSizeParam;
     }
     if (ret > 100) {
       ret = 100;
     }
-    if (numOfSourceFiles * averageSize / ret > FileUtils.ONE_GB * 10) {
-      ret = numOfSourceFiles * averageSize / (FileUtils.ONE_GB * 10);
+    if (numOfSourceFiles * averageSize / ret > fileSizeParam * 10) {
+      ret = numOfSourceFiles * averageSize / (fileSizeParam * 10);
     }
     if (ret >= numOfSourceFiles) {
       return numOfSourceFiles;
@@ -106,7 +105,7 @@ public final class CompactDefinition
     Map<WorkerInfo, ArrayList<CompactTask>> assignments = Maps.newHashMap();
     int numOfFiles = config.getNumFiles();
     if (numOfFiles == CompactConfig.DYNAMIC_NUM_OF_FILES) {
-      numOfFiles = calcNumOfFiles(files.size(), sum / files.size());
+      numOfFiles = calcNumOfFiles(files.size(), sum / files.size(), config.getFileSize());
     }
     int groupSize = Math.max(1, (files.size() + 1) / numOfFiles);
     // Files to be compacted are grouped into different groups,

@@ -17,6 +17,7 @@ import alluxio.job.plan.transform.CompactConfig;
 import alluxio.table.common.Layout;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.io.FileUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,8 @@ import java.util.Map;
 public class WriteAction implements TransformAction {
   private static final String NAME = "write";
   private static final String NUM_FILES_OPTION = "hive.num.files";
+  private static final String FILE_SIZE = "file.size";
+  private static final long DEFAULT_FILE_SIZE = FileUtils.ONE_GB;
   private static final int DEFAULT_NUM_FILES = 1;
 
   /**
@@ -37,6 +40,10 @@ public class WriteAction implements TransformAction {
    * Expected number of files after compaction.
    */
   private final int mNumFiles;
+  /**
+   * Default file size after coalescing.
+   */
+  private final long mFileSize;
 
   /**
    * Factory to create an instance.
@@ -56,15 +63,19 @@ public class WriteAction implements TransformAction {
       int numFiles = options.containsKey(NUM_FILES_OPTION)
           ? Integer.parseInt(options.get(NUM_FILES_OPTION))
           : DEFAULT_NUM_FILES;
+      long fileSize = options.containsKey(FILE_SIZE)
+          ? Long.parseLong(options.get(FILE_SIZE))
+          : DEFAULT_FILE_SIZE;
       Preconditions.checkArgument(numFiles >= 0,
           ExceptionMessage.TRANSFORM_WRITE_ACTION_INVALID_NUM_FILES);
-      return new WriteAction(type, numFiles);
+      return new WriteAction(type, numFiles, fileSize);
     }
   }
 
-  private WriteAction(String type, int numFiles) {
+  private WriteAction(String type, int numFiles, long fileSize) {
     mLayoutType = type;
     mNumFiles = numFiles;
+    mFileSize = fileSize;
   }
 
   @Override
@@ -73,6 +84,6 @@ public class WriteAction implements TransformAction {
         TransformActionUtils.generatePartitionInfo(base);
     return new CompactConfig(basePartitionInfo, base.getLocation().toString(),
         transformed.getLocation().toString(),
-        mLayoutType, mNumFiles);
+        mLayoutType, mNumFiles, mFileSize);
   }
 }

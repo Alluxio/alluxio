@@ -54,6 +54,10 @@ public final class CompactConfig implements PlanConfig {
    * Number of files after compaction.
    */
   private final int mNumFiles;
+  /**
+   * File size for compaction.
+   */
+  private final long mFileSize;
 
   /**
    * @param partitionInfo the partition info
@@ -61,17 +65,20 @@ public final class CompactConfig implements PlanConfig {
    * @param output the output directory
    * @param databaseType the type of database to write the compacted table to
    * @param numFiles the number of files after compaction
+   * @param fileSize the default file size for coalescing
    */
   public CompactConfig(@JsonProperty("partitionInfo") PartitionInfo partitionInfo,
       @JsonProperty("input") String input,
       @JsonProperty("output") String output,
       @JsonProperty("databaseType") String databaseType,
-      @JsonProperty("numFiles") Integer numFiles) {
+      @JsonProperty("numFiles") Integer numFiles,
+      @JsonProperty("fileSize") Long fileSize) {
     mPartitionInfo = partitionInfo;
     mInput = Preconditions.checkNotNull(input, "input");
     mOutput = Preconditions.checkNotNull(output, "output");
     mDatabaseType = Preconditions.checkNotNull(databaseType, "databaseType");
     mNumFiles = Preconditions.checkNotNull(numFiles, "numFiles");
+    mFileSize = Preconditions.checkNotNull(fileSize, "fileSize");
   }
 
   /**
@@ -109,6 +116,13 @@ public final class CompactConfig implements PlanConfig {
     return mNumFiles;
   }
 
+  /**
+   * @return the file size
+   */
+  public long getFileSize() {
+    return mFileSize;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
@@ -125,12 +139,13 @@ public final class CompactConfig implements PlanConfig {
         && mInput.equals(that.mInput)
         && mDatabaseType.equals(that.mDatabaseType)
         && mOutput.equals(that.mOutput)
-        && mNumFiles == that.mNumFiles;
+        && mNumFiles == that.mNumFiles
+        && mFileSize == that.mFileSize;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPartitionInfo, mInput, mOutput, mDatabaseType, mNumFiles);
+    return Objects.hashCode(mPartitionInfo, mInput, mOutput, mDatabaseType, mNumFiles, mFileSize);
   }
 
   @Override
@@ -141,6 +156,7 @@ public final class CompactConfig implements PlanConfig {
         .add("output", mOutput)
         .add("databaseType", mDatabaseType)
         .add("numFiles", mNumFiles)
+        .add("fileSize", mFileSize)
         .toString();
   }
 

@@ -52,7 +52,8 @@ public class WriteActionTest {
 
   @Test
   public void DynamicNumFiles() {
-    TransformAction action = TransformAction.Parser.parse("write(hive).option(hive.num.files, 0)");
+    TransformAction action = TransformAction.Parser.parse(
+        "write(hive).option(hive.num.files, 0).option(file.size, 1024)");
     assertEquals(WriteAction.class, action.getClass());
     WriteAction writeAction = (WriteAction) action;
 
@@ -66,6 +67,7 @@ public class WriteActionTest {
     assertEquals("/from", compact.getInput());
     assertEquals("/to", compact.getOutput());
     assertEquals(0, compact.getNumFiles());
+    assertEquals(1024, compact.getFileSize());
   }
 
   @Test
