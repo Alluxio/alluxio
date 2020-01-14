@@ -106,9 +106,8 @@ public class LocalCacheFileInStream extends FileInStream {
       long currentPage = mPosition / mPageSize;
       int currentPageOffset = (int) (mPosition % mPageSize);
       int bytesLeftInPage = (int) Math.min(mPageSize - currentPageOffset, len - bytesRead);
-      // TODO(calvin): Update this to take page offset when API is updated
       PageId pageId = new PageId(mStatus.getFileId(), currentPage);
-      try (ReadableByteChannel cachedData = mCacheManager.get(pageId)) {
+      try (ReadableByteChannel cachedData = mCacheManager.get(pageId, currentPageOffset)) {
         if (cachedData != null) { // cache hit
           // wrap return byte array in a bytebuffer and set the pos/limit for the page read
           ByteBuffer buf = ByteBuffer.wrap(b);
@@ -159,8 +158,40 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
-    // TODO(calvin): Implement based on read
-    return -1;
+    int bytesRead = 0;
+    long currentPosition = pos;
+    // for each page, check if it is available in the cache
+    while (bytesRead < len) {
+      long currentPage = currentPosition / mPageSize;
+      int currentPageOffset = (int) (currentPosition % mPageSize);
+      int bytesLeftInPage = (int) Math.min(mPageSize - currentPageOffset, len - bytesRead);
+      PageId pageId = new PageId(mStatus.getFileId(), currentPage);
+      try (ReadableByteChannel cachedData = mCacheManager.get(pageId, currentPageOffset)) {
+        if (cachedData != null) { // cache hit
+          // wrap return byte array in a bytebuffer and set the pos/limit for the page read
+          ByteBuffer buf = ByteBuffer.wrap(b);
+          buf.position(off + bytesRead);
+          buf.limit(off + bytesRead + bytesLeftInPage);
+          // read data from cache
+          while (buf.position() != buf.limit()) {
+            if (cachedData.read(buf) == -1) {
+              break;
+            }
+          }
+          Preconditions.checkState(buf.position() == buf.limit());
+          bytesRead += bytesLeftInPage;
+          currentPosition += bytesLeftInPage;
+        } else { // cache miss
+          byte[] page = readExternalPage(currentPosition);
+          mCacheManager.put(pageId, page);
+          System.arraycopy(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
+          bytesRead += bytesLeftInPage;
+          currentPosition += bytesLeftInPage;
+        }
+      }
+    }
+    Preconditions.checkState(bytesRead == len, "Invalid number of bytes read");
+    return bytesRead;
   }
 
   @Override
@@ -194,6 +225,8 @@ public class LocalCacheFileInStream extends FileInStream {
   /**
    * Convenience method to get external file reader with lazy init.
    *
+   * // TODO(calvin): Evaluate if using positioned read to allow for more concurrency is worthwhile
+   *
    * @param pos position to set the external stream to
    */
   private FileInStream getExternalFileInStream(long pos) throws IOException {
@@ -216,12 +249,14 @@ public class LocalCacheFileInStream extends FileInStream {
    * Reads a page from external storage which contains the position specified. Note that this makes
    * a copy of the page.
    *
+   * This method is synchronized to ensure thread safety for positioned reads.
+   *
    * TODO(calvin): Consider a more efficient API which does not require a data copy.
    *
    * @param pos the position which the page will contain
    * @return a byte array of the page data
    */
-  private byte[] readExternalPage(long pos) throws IOException {
+  private synchronized byte[] readExternalPage(long pos) throws IOException {
     long pageStart = pos - (pos % mPageSize);
     FileInStream stream = getExternalFileInStream(pageStart);
     int pageSize = (int) Math.min(mPageSize, mStatus.getLength() - pageStart);

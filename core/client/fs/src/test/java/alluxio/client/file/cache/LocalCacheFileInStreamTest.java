@@ -117,9 +117,7 @@ public class LocalCacheFileInStreamTest {
     Assert.assertEquals(1, manager.mPagesServed);
   }
 
-  @Ignore
   @Test
-  // TODO(calvin): this test should pass after we pass in offset in the get page API
   public void readPartialPage() throws Exception {
     int fileSize = PAGE_SIZE;
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
@@ -197,6 +195,34 @@ public class LocalCacheFileInStreamTest {
     Assert.assertEquals(fileSize, stream.read(fullRead));
     Assert.assertArrayEquals(testData, fullRead);
     Assert.assertEquals(pagesCached, manager.mPagesServed);
+  }
+
+  @Test
+  public void positionedReadPartialPage() throws Exception {
+    int fileSize = PAGE_SIZE;
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+
+    int partialReadSize = fileSize / 5;
+    int offset = fileSize / 5;
+
+    // cache miss
+    byte[] cacheMiss = new byte[partialReadSize];
+    Assert.assertEquals(partialReadSize,
+        stream.positionedRead(offset, cacheMiss, 0, cacheMiss.length));
+    Assert.assertArrayEquals(
+        Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheMiss);
+    Assert.assertEquals(0, manager.mPagesServed);
+    Assert.assertEquals(1, manager.mPagesCached);
+
+    // cache hit
+    byte[] cacheHit = new byte[partialReadSize];
+    Assert.assertEquals(partialReadSize,
+        stream.positionedRead(offset, cacheHit, 0, cacheHit.length));
+    Assert.assertArrayEquals(
+        Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheHit);
+    Assert.assertEquals(1, manager.mPagesServed);
   }
 
   private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager) {
