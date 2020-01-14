@@ -41,17 +41,14 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.master.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
-import alluxio.uri.Authority;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,8 +59,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.security.auth.Subject;
@@ -86,7 +81,7 @@ public interface FileSystem extends Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
     private static final AtomicBoolean CONF_LOGGED = new AtomicBoolean(false);
 
-    protected static final FileSystem.Cache FILESYSTEM_CACHE = new FileSystem.Cache();
+    protected static final FileSystemCache FILESYSTEM_CACHE = new FileSystemCache();
 
     private Factory() {} // prevent instantiation
 
@@ -107,8 +102,8 @@ public interface FileSystem extends Closeable {
       Preconditions.checkNotNull(subject, "subject");
       AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
       // TODO(gpang): should this key use the UserState instead of subject?
-      FileSystemKey key =
-          new FileSystemKey(UserState.Factory.create(conf, subject).getSubject(), conf);
+      FileSystemCache.Key key =
+          new FileSystemCache.Key(UserState.Factory.create(conf, subject).getSubject(), conf);
       return FILESYSTEM_CACHE.get(key);
     }
 
@@ -117,7 +112,7 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(AlluxioConfiguration alluxioConf) {
-      return create(FileSystemContext.create(alluxioConf), false);
+      return create(FileSystemContext.create(alluxioConf));
     }
 
     /**
@@ -125,7 +120,7 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(ClientContext ctx) {
-      return create(FileSystemContext.create(ctx), false);
+      return create(FileSystemContext.create(ctx));
     }
 
     /**
@@ -133,10 +128,6 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context) {
-      return create(context, false);
-    }
-
-    private static FileSystem create(FileSystemContext context, boolean cachingEnabled) {
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
         // Sort properties by name to keep output ordered.
         AlluxioConfiguration conf = context.getClusterConf();
@@ -148,97 +139,16 @@ public interface FileSystem extends Closeable {
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
+      BaseFileSystem fs;
       if (context.getClusterConf().getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
-        return new CachingFileSystem(context, cachingEnabled);
+        fs = new MetadataCachingBaseFileSystem(context);
+      } else {
+        fs = new BaseFileSystem(context);
       }
-      return BaseFileSystem.create(context, cachingEnabled);
-    }
-  }
-
-  /**
-   * A cache for storing {@link FileSystem} clients. This should only be used by the Factory class.
-   */
-  class Cache {
-    final ConcurrentHashMap<FileSystemKey, FileSystem> mCacheMap = new ConcurrentHashMap<>();
-
-    public Cache() { }
-
-    /**
-     * Gets a {@link FileSystem} from the cache. If there is none, one is created, inserted into
-     * the cache, and returned back to the user.
-     *
-     * @param key the key to retrieve a {@link FileSystem}
-     * @return the {@link FileSystem} associated with the key
-     */
-    public FileSystem get(FileSystemKey key) {
-      return mCacheMap.computeIfAbsent(key, (fileSystemKey) ->
-          Factory.create(FileSystemContext.create(key.mSubject, key.mConf), true));
-    }
-
-    /**
-     * Removes the client with the given key from the cache. Returns the client back to the user.
-     *
-     * @param key the client key to remove
-     * @return The removed context or null if there is no client associated with the key
-     */
-    public FileSystem remove(FileSystemKey key) {
-      return mCacheMap.remove(key);
-    }
-
-    /**
-     * Closes and removes all {@link FileSystem} from the cache. Only to be used for testing
-     * purposes. This method operates on the assumption that no concurrent calls to get/remove
-     * will be made while this function is running.
-     */
-    @VisibleForTesting
-    void purge() {
-      mCacheMap.forEach((fsKey, fs) -> {
-        try {
-          mCacheMap.remove(fsKey);
-          fs.close();
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      });
-    }
-  }
-
-  /**
-   * A key which can be used to look up a {@link FileSystem} instance in the {@link Cache}.
-   */
-  class FileSystemKey {
-    final Subject mSubject;
-    final Authority mAuth;
-
-    /**
-     * Only used to store the configuration. Allows us to compute a {@link FileSystem} directly
-     * from a key.
-     */
-    final AlluxioConfiguration mConf;
-
-    public FileSystemKey(Subject subject, AlluxioConfiguration conf) {
-      mConf = conf;
-      mSubject = subject;
-      mAuth = MasterInquireClient.Factory.getConnectDetails(conf).toAuthority();
-    }
-
-    public FileSystemKey(ClientContext ctx) {
-      this(ctx.getSubject(), ctx.getClusterConf());
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(mSubject, mAuth);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (!(o instanceof FileSystemKey)) {
-        return false;
+      if (context.getClusterConf().getBoolean(PropertyKey.USER_LOCAL_CACHE_ENABLED)) {
+        return new LocalCacheFileSystem(fs);
       }
-      FileSystemKey otherKey = (FileSystemKey) o;
-      return Objects.equals(mSubject, otherKey.mSubject)
-          && Objects.equals(mAuth, otherKey.mAuth);
+      return fs;
     }
   }
 
@@ -259,8 +169,10 @@ public interface FileSystem extends Closeable {
    * @throws FileAlreadyExistsException if there is already a file or directory at the given path
    * @throws InvalidPathException if the path is invalid
    */
-  void createDirectory(AlluxioURI path)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
+  default void createDirectory(AlluxioURI path)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+    createDirectory(path, CreateDirectoryPOptions.getDefaultInstance());
+  }
 
   /**
    * Creates a directory.
@@ -282,8 +194,10 @@ public interface FileSystem extends Closeable {
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
    */
-  FileOutStream createFile(AlluxioURI path)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
+  default FileOutStream createFile(AlluxioURI path)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+    return createFile(path, CreateFilePOptions.getDefaultInstance());
+  }
 
   /**
    * Creates a file.
@@ -304,8 +218,10 @@ public interface FileSystem extends Closeable {
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws DirectoryNotEmptyException if recursive is false and the path is a nonempty directory
    */
-  void delete(AlluxioURI path)
-      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException;
+  default void delete(AlluxioURI path)
+      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
+    delete(path, DeletePOptions.getDefaultInstance());
+  }
 
   /**
    * Deletes a file or a directory.
@@ -325,7 +241,10 @@ public interface FileSystem extends Closeable {
    * @return true if the path exists, false otherwise
    * @throws InvalidPathException if the path is invalid
    */
-  boolean exists(AlluxioURI path) throws InvalidPathException, IOException, AlluxioException;
+  default boolean exists(AlluxioURI path)
+      throws InvalidPathException, IOException, AlluxioException {
+    return exists(path, ExistsPOptions.getDefaultInstance());
+  }
 
   /**
    * Checks whether a path exists in Alluxio space.
@@ -344,7 +263,10 @@ public interface FileSystem extends Closeable {
    * @param path the path to free in Alluxio space
    * @throws FileDoesNotExistException if the given path does not exist
    */
-  void free(AlluxioURI path) throws FileDoesNotExistException, IOException, AlluxioException;
+  default void free(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    free(path, FreePOptions.getDefaultInstance());
+  }
 
   /**
    * Evicts any data under the given path from Alluxio space, but does not delete the data from the
@@ -391,8 +313,10 @@ public interface FileSystem extends Closeable {
    * @return the {@link URIStatus} of the file
    * @throws FileDoesNotExistException if the path does not exist
    */
-  URIStatus getStatus(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+  default URIStatus getStatus(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return getStatus(path, GetStatusPOptions.getDefaultInstance());
+  }
 
   /**
    * Gets the {@link URIStatus} object that represents the metadata of an Alluxio path.
@@ -414,8 +338,10 @@ public interface FileSystem extends Closeable {
    *         which are children of the given path
    * @throws FileDoesNotExistException if the given path does not exist
    */
-  List<URIStatus> listStatus(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+  default List<URIStatus> listStatus(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return listStatus(path, ListStatusPOptions.getDefaultInstance());
+  }
 
   /**
    * If the path is a directory, returns the {@link URIStatus} of all the direct entries in it.
@@ -437,7 +363,10 @@ public interface FileSystem extends Closeable {
    * @param alluxioPath an Alluxio path to mount the data to
    * @param ufsPath a UFS path to mount the data from
    */
-  void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath) throws IOException, AlluxioException;
+  default void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath)
+      throws IOException, AlluxioException {
+    mount(alluxioPath, ufsPath, MountPOptions.getDefaultInstance());
+  }
 
   /**
    * Mounts a UFS subtree to the given Alluxio path. The Alluxio path is expected not to exist as
@@ -483,9 +412,11 @@ public interface FileSystem extends Closeable {
    * @throws OpenDirectoryException when path is a directory
    * @throws FileIncompleteException when path is a file and is not completed yet
    */
-  FileInStream openFile(AlluxioURI path)
+  default FileInStream openFile(AlluxioURI path)
       throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
-      IOException, AlluxioException;
+      IOException, AlluxioException {
+    return openFile(path, OpenFilePOptions.getDefaultInstance());
+  }
 
   /**
    * Opens a file for reading.
@@ -507,8 +438,10 @@ public interface FileSystem extends Closeable {
    *
    * @param path the uri of the file to persist
    */
-  void persist(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+  default void persist(final AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    persist(path, ScheduleAsyncPersistencePOptions.getDefaultInstance());
+  }
 
   /**
    * Schedules the given path to be asynchronously persisted to the under file system.
@@ -530,8 +463,10 @@ public interface FileSystem extends Closeable {
    * @param dst the path of the destination, this path should not exist
    * @throws FileDoesNotExistException if the given file does not exist
    */
-  void rename(AlluxioURI src, AlluxioURI dst)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+  default void rename(AlluxioURI src, AlluxioURI dst)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    rename(src, dst, RenamePOptions.getDefaultInstance());
+  }
 
   /**
    * Renames an existing Alluxio path to another Alluxio path in Alluxio. This operation will be
@@ -563,8 +498,10 @@ public interface FileSystem extends Closeable {
    * @param entries the ACL entries
    * @throws FileDoesNotExistException if the given file does not exist
    */
-  void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+  default void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    setAcl(path, action, entries, SetAclPOptions.getDefaultInstance());
+  }
 
   /**
    * Sets the ACL for a path.
@@ -599,8 +536,10 @@ public interface FileSystem extends Closeable {
    * @param path the path to set attributes for
    * @throws FileDoesNotExistException if the given file does not exist
    */
-  void setAttribute(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException;
+  default void setAttribute(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    setAttribute(path, SetAttributePOptions.getDefaultInstance());
+  }
 
   /**
    * Sets any number of a path's attributes, such as TTL and pin status.
@@ -617,7 +556,9 @@ public interface FileSystem extends Closeable {
    *
    * @param path an Alluxio path, this must be a mount point
    */
-  void unmount(AlluxioURI path) throws IOException, AlluxioException;
+  default void unmount(AlluxioURI path) throws IOException, AlluxioException {
+    unmount(path, UnmountPOptions.getDefaultInstance());
+  }
 
   /**
    * Unmounts a UFS subtree identified by the given Alluxio path. The Alluxio path match a
