@@ -101,7 +101,7 @@ public class BaseFileSystem implements FileSystem {
    *
    * @param fsContext file system context
    */
-  protected BaseFileSystem(FileSystemContext fsContext) {
+  public BaseFileSystem(FileSystemContext fsContext) {
     mFsContext = fsContext;
     mBlockStore = AlluxioBlockStore.create(fsContext);
     mCloser.register(mFsContext);
