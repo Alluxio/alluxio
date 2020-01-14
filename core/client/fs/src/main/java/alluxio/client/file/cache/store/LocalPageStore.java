@@ -57,7 +57,9 @@ public class LocalPageStore implements PageStore, AutoCloseable {
   public void put(PageId pageId, byte[] page) throws IOException {
     Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
-      Files.createDirectories(Preconditions.checkNotNull(p.getParent(), "parent"));
+      Path parent = Preconditions.checkNotNull(p.getParent(),
+          "parent of cache file should not be null");
+      Files.createDirectories(parent);
       Files.createFile(p);
     }
     try (FileOutputStream fos = new FileOutputStream(p.toFile(), false)) {
@@ -84,7 +86,8 @@ public class LocalPageStore implements PageStore, AutoCloseable {
     }
     Files.delete(p);
     mSize.decrementAndGet();
-    Path parent = Preconditions.checkNotNull(p.getParent(), "parent");
+    Path parent = Preconditions.checkNotNull(p.getParent(),
+        "parent of cache file should not be null");
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(parent)) {
       if (!stream.iterator().hasNext()) {
         Files.delete(parent);
