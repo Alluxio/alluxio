@@ -86,4 +86,20 @@ public final class LRUCacheEvictorTest {
     mEvictor.updateOnDelete(mFirst);
     Assert.assertEquals(mThird, mEvictor.evict());
   }
+
+  @Test
+  public void evictEmpty() {
+    Assert.assertNull(mEvictor.evict());
+  }
+
+  @Test
+  public void evictAllGone() {
+    mEvictor.updateOnPut(mFirst);
+    mEvictor.updateOnPut(mSecond);
+    mEvictor.updateOnPut(mThird);
+    mEvictor.updateOnDelete(mFirst);
+    mEvictor.updateOnDelete(mSecond);
+    mEvictor.updateOnDelete(mThird);
+    Assert.assertNull(mEvictor.evict());
+  }
 }

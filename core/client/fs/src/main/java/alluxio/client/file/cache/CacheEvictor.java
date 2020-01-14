@@ -11,6 +11,10 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.CommonUtils;
+
 import javax.annotation.Nullable;
 
 /**
@@ -19,11 +23,12 @@ import javax.annotation.Nullable;
 public interface CacheEvictor {
 
   /**
+   * @param conf the alluxio configuration
    * @return a CacheEvictor instance
    */
-  static CacheEvictor create() {
-    // return corresponding CacheEvictor impl
-    return new LRUCacheEvictor();
+  static CacheEvictor create(AlluxioConfiguration conf) {
+    return CommonUtils.createNewClassInstance(
+        conf.getClass(PropertyKey.USER_CLIENT_CACHE_EVICTOR_CLASS), new Class[0], new Object[0]);
   }
 
   /**

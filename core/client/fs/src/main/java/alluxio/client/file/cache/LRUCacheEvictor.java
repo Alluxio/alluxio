@@ -15,9 +15,12 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * LRU client-side cache eviction policy.
  */
+@ThreadSafe
 public class LRUCacheEvictor implements CacheEvictor {
   private static final int LINKED_HASH_MAP_INIT_CAPACITY = 200;
   private static final float LINKED_HASH_MAP_INIT_LOAD_FACTOR = 0.75f;
@@ -25,7 +28,7 @@ public class LRUCacheEvictor implements CacheEvictor {
   private static final boolean UNUSED_MAP_VALUE = true;
 
   // TODO(feng): unify with worker side evictor
-  protected Map<PageId, Boolean> mLRUCache =
+  protected final Map<PageId, Boolean> mLRUCache =
       Collections.synchronizedMap(new LinkedHashMap<>(LINKED_HASH_MAP_INIT_CAPACITY,
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
@@ -46,6 +49,8 @@ public class LRUCacheEvictor implements CacheEvictor {
 
   @Override
   public PageId evict() {
-    return mLRUCache.keySet().iterator().next();
+    synchronized (mLRUCache) {
+      return mLRUCache.isEmpty() ? null : mLRUCache.keySet().iterator().next();
+    }
   }
 }
