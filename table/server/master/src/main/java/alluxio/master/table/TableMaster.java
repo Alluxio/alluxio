@@ -67,6 +67,14 @@ public interface TableMaster extends Master {
   List<String> getAllTables(String databaseName) throws IOException;
 
   /**
+   * Gets a database object.
+   *
+   * @param dbName the database name
+   * @return a database object
+   */
+  Database getDatabase(String dbName) throws IOException;
+
+  /**
    * Get a table.
    *
    * @param databaseName database name
@@ -139,12 +147,4 @@ public interface TableMaster extends Master {
    * @return true if the database was changed as a result
    */
   boolean syncDatabase(String dbName) throws IOException;
-
-  /**
-   * Gets a database object.
-   *
-   * @param dbName the database name
-   * @return a database object
-   */
-  Database getDatabase(String dbName) throws IOException;
 }
