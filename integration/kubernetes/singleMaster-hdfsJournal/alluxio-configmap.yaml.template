@@ -23,20 +23,20 @@ metadata:
   labels:
     name: alluxio-config
     app: alluxio
-    chart: alluxio-0.5.2
+    chart: alluxio-0.5.3
     release: alluxio
     heritage: Tiller
 data:
   ALLUXIO_JAVA_OPTS: |-
     -Dalluxio.master.hostname=alluxio-master-0 -Dalluxio.master.journal.type=UFS -Dalluxio.master.journal.folder=hdfs://{$hostname}:{$hostport}/journal   -Dalluxio.master.journal.ufs.option.alluxio.underfs.hdfs.configuration=/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml  -Dalluxio.master.mount.table.root.ufs=hdfs://{$hostname}:{$hostport}/{$underFSStorage}  -Dalluxio.security.stale.channel.purge.interval=365d 
   ALLUXIO_MASTER_JAVA_OPTS: |-
-    -Dalluxio.master.web.bind.host=0.0.0.0 
+    -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME} -Dalluxio.master.web.bind.host=0.0.0.0 
   ALLUXIO_JOB_MASTER_JAVA_OPTS: |-
-    -Dalluxio.job.master.bind.host=0.0.0.0 
+    -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME} -Dalluxio.job.master.bind.host=0.0.0.0 
   ALLUXIO_WORKER_JAVA_OPTS: |-
     -Dalluxio.worker.bind.host=0.0.0.0  -Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true -Dalluxio.worker.memory.size=2G -Dalluxio.worker.rpc.port=29999 -Dalluxio.worker.web.port=30000 -Dalluxio.worker.hostname=${ALLUXIO_WORKER_HOSTNAME} -Dalluxio.worker.tieredstore.levels=1 -Dalluxio.worker.tieredstore.level0.dirs.mediumtype=MEM -Dalluxio.worker.tieredstore.level0.dirs.path=/dev/shm -Dalluxio.worker.tieredstore.level0.dirs.quota=1G -Dalluxio.worker.tieredstore.level0.watermark.high.ratio=0.95 -Dalluxio.worker.tieredstore.level0.watermark.low.ratio=0.7 
   ALLUXIO_JOB_WORKER_JAVA_OPTS: |-
-    -Dalluxio.job.worker.rpc.port=30001  -Dalluxio.job.worker.data.port=30002 -Dalluxio.job.worker.web.port=30003 -Dalluxio.worker.hostname=${ALLUXIO_WORKER_HOSTNAME}  
+    -Dalluxio.job.worker.rpc.port=30001  -Dalluxio.job.worker.data.port=30002 -Dalluxio.job.worker.web.port=30003 -Dalluxio.worker.hostname=${ALLUXIO_WORKER_HOSTNAME}
   ALLUXIO_FUSE_JAVA_OPTS: |-
     -Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME} -Dalluxio.worker.hostname=${ALLUXIO_CLIENT_HOSTNAME}  -XX:MaxDirectMemorySize=2g 
   ALLUXIO_WORKER_TIEREDSTORE_LEVEL0_DIRS_PATH: /dev/shm

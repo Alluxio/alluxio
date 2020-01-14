@@ -18,26 +18,28 @@ metadata:
   name: alluxio-master-0
   labels:
     app: alluxio
-    chart: alluxio-0.5.2
+    chart: alluxio-0.5.3
     release: alluxio
     heritage: Tiller
     role: alluxio-master
 spec:
   ports:
-  - port: 19998
-    name: rpc
-  - port: 19999
-    name: web
-  - port: 20001
-    name: job-rpc
-  - port: 20002
-    name: job-web
-  clusterIP: None
+    - port: 19998
+      name: rpc
+    - port: 19999
+      name: web
+    - port: 20001
+      name: job-rpc
+    - port: 20002
+      name: job-web
+    - port: 19200
+      name: embedded
+  type: NodePort
   selector:
     role: alluxio-master
     app: alluxio
     release: alluxio
-    name: alluxio-master-0
+    statefulset.kubernetes.io/pod-name: alluxio-master-0
 ---
 apiVersion: v1
 kind: Service
@@ -45,26 +47,28 @@ metadata:
   name: alluxio-master-1
   labels:
     app: alluxio
-    chart: alluxio-0.5.2
+    chart: alluxio-0.5.3
     release: alluxio
     heritage: Tiller
     role: alluxio-master
 spec:
   ports:
-  - port: 19998
-    name: rpc
-  - port: 19999
-    name: web
-  - port: 20001
-    name: job-rpc
-  - port: 20002
-    name: job-web
-  clusterIP: None
+    - port: 19998
+      name: rpc
+    - port: 19999
+      name: web
+    - port: 20001
+      name: job-rpc
+    - port: 20002
+      name: job-web
+    - port: 19200
+      name: embedded
+  type: NodePort
   selector:
     role: alluxio-master
     app: alluxio
     release: alluxio
-    name: alluxio-master-1
+    statefulset.kubernetes.io/pod-name: alluxio-master-1
 ---
 apiVersion: v1
 kind: Service
@@ -72,25 +76,27 @@ metadata:
   name: alluxio-master-2
   labels:
     app: alluxio
-    chart: alluxio-0.5.2
+    chart: alluxio-0.5.3
     release: alluxio
     heritage: Tiller
     role: alluxio-master
 spec:
   ports:
-  - port: 19998
-    name: rpc
-  - port: 19999
-    name: web
-  - port: 20001
-    name: job-rpc
-  - port: 20002
-    name: job-web
-  clusterIP: None
+    - port: 19998
+      name: rpc
+    - port: 19999
+      name: web
+    - port: 20001
+      name: job-rpc
+    - port: 20002
+      name: job-web
+    - port: 19200
+      name: embedded
+  type: NodePort
   selector:
     role: alluxio-master
     app: alluxio
     release: alluxio
-    name: alluxio-master-2
+    statefulset.kubernetes.io/pod-name: alluxio-master-2
 ---
 

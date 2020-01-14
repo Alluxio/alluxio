@@ -47,7 +47,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -55,7 +54,8 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.rule.PowerMockRule;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -69,11 +69,10 @@ import java.util.List;
  * It is a parameterized test that checks different caching behaviors when the blocks are located at
  * different locations.
  */
-@RunWith(Parameterized.class)
+@RunWith(PowerMockRunner.class)
+@PowerMockRunnerDelegate(Parameterized.class)
 @PrepareForTest({FileSystemContext.class, AlluxioBlockStore.class, BlockInStream.class})
 public final class AlluxioFileInStreamTest {
-  @Rule
-  public PowerMockRule mPowerMockRule = new PowerMockRule();
   private static final long BLOCK_LENGTH = 100L;
   private static final long FILE_LENGTH = 350L;
   private static final long NUM_STREAMS = ((FILE_LENGTH - 1) / BLOCK_LENGTH) + 1;
