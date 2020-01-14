@@ -70,7 +70,8 @@ public class LocalCacheManager implements CacheManager {
    * @param fsContext filesystem context
    */
   public LocalCacheManager(FileSystemContext fsContext) {
-    this(fsContext, MetaStore.create(), PageStore.create(), CacheEvictor.create());
+    this(fsContext, MetaStore.create(), PageStore.create(),
+        CacheEvictor.create(fsContext.getClusterConf()));
   }
 
   /**
