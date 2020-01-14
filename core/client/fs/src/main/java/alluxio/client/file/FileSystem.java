@@ -43,6 +43,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
@@ -139,16 +140,16 @@ public interface FileSystem extends Closeable {
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
-      BaseFileSystem fs;
-      if (context.getClusterConf().getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
-        fs = new MetadataCachingBaseFileSystem(context);
-      } else {
-        fs = new BaseFileSystem(context);
-      }
+      Class fsClass = context.getClusterConf().getClass(PropertyKey.USER_FILESYSTEM_CLASS);
+      Class[] ctorArgClasses = new Class[] {FileSystemContext.class};
+      Object[] ctorArgs = new Object[] {context};
+      FileSystem fs =
+          (FileSystem) CommonUtils.createNewClassInstance(fsClass, ctorArgClasses, ctorArgs);
       if (context.getClusterConf().getBoolean(PropertyKey.USER_LOCAL_CACHE_ENABLED)) {
         return new LocalCacheFileSystem(fs);
+      } else {
+        return fs;
       }
-      return fs;
     }
   }
 
