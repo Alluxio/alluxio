@@ -4540,8 +4540,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.short.circuit.preferred";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
-    public static final String USER_FILESYSTEM_CLASS =
-        "alluxio.user.filesystem.class";
+    public static final String USER_FILESYSTEM_CLASS = "alluxio.user.filesystem.class";
     public static final String USER_METADATA_CACHE_MAX_SIZE =
         "alluxio.user.metadata.cache.max.size";
     public static final String USER_METADATA_CACHE_EXPIRATION_TIME =
