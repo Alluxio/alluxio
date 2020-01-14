@@ -3110,6 +3110,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILESYSTEM_CLASS =
+      new Builder(Name.USER_FILESYSTEM_CLASS)
+          .setDefaultValue("alluxio.client.file.BaseFileSystem")
+          .setDescription("Type of file system to use. Users can select augmented file systems "
+              + "based on the use case. For example, CachingFileSystem is efficient for FUSE "
+              + "workloads. Possible values are alluxio.client.file.BaseFileSystem (default) and "
+              + "alluxio.client.file.CachingFileSystem.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_HOSTNAME = new Builder(Name.USER_HOSTNAME)
       .setDescription("The hostname to use for an Alluxio client.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3365,16 +3375,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("When short circuit and domain socket both enabled, "
               + "prefer to use short circuit.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_FILESYSTEM_CLASS =
-      new Builder(Name.USER_FILESYSTEM_CLASS)
-          .setDefaultValue("alluxio.client.file.BaseFileSystem")
-          .setDescription("Type of file system to use. Users can select augmented file systems "
-              + "based on the use case. For example, CachingFileSystem is efficient for FUSE "
-              + "workloads. Possible values are alluxio.client.file.BaseFileSystem (default) and "
-              + "alluxio.client.file.CachingFileSystem.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -4484,6 +4484,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";
+    public static final String USER_FILESYSTEM_CLASS = "alluxio.user.filesystem.class";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.reader.chunk.size.bytes";
@@ -4539,7 +4540,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.short.circuit.preferred";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
-    public static final String USER_FILESYSTEM_CLASS = "alluxio.user.filesystem.class";
     public static final String USER_METADATA_CACHE_MAX_SIZE =
         "alluxio.user.metadata.cache.max.size";
     public static final String USER_METADATA_CACHE_EXPIRATION_TIME =
