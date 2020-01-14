@@ -3368,9 +3368,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_METADATA_CACHE_ENABLED =
-      new Builder(Name.USER_METADATA_CACHE_ENABLED)
-          .setDefaultValue(false)
+  public static final PropertyKey USER_FILESYSTEM_CLASS =
+      new Builder(Name.USER_FILESYSTEM_CLASS)
+          .setDefaultValue("alluxio.client.file.BaseFileSystem")
           .setDescription("If this is enabled, metadata of paths will be cached. "
               + "The cached metadata will be evicted when it expires after "
               + Name.USER_METADATA_CACHE_EXPIRATION_TIME
@@ -3382,7 +3382,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_METADATA_CACHE_MAX_SIZE =
       new Builder(Name.USER_METADATA_CACHE_MAX_SIZE)
           .setDefaultValue(100000)
-          .setDescription("Maximum number of paths with cached metadata.")
+          .setDescription("Maximum number of paths with cached metadata. Only valid if the "
+              + "filesystem is alluxio.client.file.CachingFileSystem.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3390,7 +3391,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_METADATA_CACHE_EXPIRATION_TIME)
           .setDefaultValue("10min")
           .setDescription("Metadata will expire and be evicted after being cached for this time "
-              + "period.")
+              + "period. Only valid if the filesystem is alluxio.client.file.CachingFileSystem.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -4539,8 +4540,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.short.circuit.preferred";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
-    public static final String USER_METADATA_CACHE_ENABLED =
-        "alluxio.user.metadata.cache.enabled";
+    public static final String USER_FILESYSTEM_CLASS =
+        "alluxio.user.filesystem.class";
     public static final String USER_METADATA_CACHE_MAX_SIZE =
         "alluxio.user.metadata.cache.max.size";
     public static final String USER_METADATA_CACHE_EXPIRATION_TIME =

@@ -45,6 +45,7 @@ import alluxio.master.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
@@ -148,10 +149,10 @@ public interface FileSystem extends Closeable {
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
-      if (context.getClusterConf().getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
-        return new CachingFileSystem(context, cachingEnabled);
-      }
-      return BaseFileSystem.create(context, cachingEnabled);
+      Class fsClass = context.getClusterConf().getClass(PropertyKey.USER_FILESYSTEM_CLASS);
+      Class[] ctorArgClasses = new Class[] {FileSystemContext.class, boolean.class};
+      Object[] ctorArgs = new Object[] {context, cachingEnabled};
+      return (FileSystem) CommonUtils.createNewClassInstance(fsClass, ctorArgClasses, ctorArgs);
     }
   }
 
