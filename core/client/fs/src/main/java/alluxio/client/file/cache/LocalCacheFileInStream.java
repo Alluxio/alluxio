@@ -249,7 +249,11 @@ public class LocalCacheFileInStream extends FileInStream {
    * Reads a page from external storage which contains the position specified. Note that this makes
    * a copy of the page.
    *
-   * This method is synchronized to ensure thread safety for positioned reads.
+   * This method is synchronized to ensure thread safety for positioned reads. Only a single thread
+   * should call this method at a time because the underlying state (mExternalFileInStream) is
+   * shared. Another way would be to use positioned reads instead of seek and read, but that assumes
+   * the underlying FileInStream implements thread safe positioned reads which are not much more
+   * expensive than seek and read.
    *
    * TODO(calvin): Consider a more efficient API which does not require a data copy.
    *
