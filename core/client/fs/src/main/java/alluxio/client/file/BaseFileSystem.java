@@ -117,8 +117,9 @@ public class BaseFileSystem implements FileSystem {
    * Constructs a new base file system.
    *
    * @param fsContext file system context
+   * @param cachingEnabled whether or not the file system object is cached
    */
-  protected BaseFileSystem(FileSystemContext fsContext, boolean cachingEnabled) {
+  public BaseFileSystem(FileSystemContext fsContext, boolean cachingEnabled) {
     mFsContext = fsContext;
     mBlockStore = AlluxioBlockStore.create(fsContext);
     mCachingEnabled = cachingEnabled;

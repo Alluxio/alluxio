@@ -3371,11 +3371,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_FILESYSTEM_CLASS =
       new Builder(Name.USER_FILESYSTEM_CLASS)
           .setDefaultValue("alluxio.client.file.BaseFileSystem")
-          .setDescription("If this is enabled, metadata of paths will be cached. "
-              + "The cached metadata will be evicted when it expires after "
-              + Name.USER_METADATA_CACHE_EXPIRATION_TIME
-              + " or the cache size is over the limit of "
-              + Name.USER_METADATA_CACHE_MAX_SIZE + ".")
+          .setDescription("Type of file system to use. Users can select augmented file systems "
+              + "based on the use case. For example, CachingFileSystem is efficient for FUSE "
+              + "workloads. Possible values are alluxio.client.file.BaseFileSystem (default) and "
+              + "alluxio.client.file.CachingFileSystem.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
