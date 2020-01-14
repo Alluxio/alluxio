@@ -19,7 +19,6 @@ import alluxio.job.util.SerializableVoid;
 import alluxio.wire.WorkerInfo;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
