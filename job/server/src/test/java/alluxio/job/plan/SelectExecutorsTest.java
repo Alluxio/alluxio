@@ -30,7 +30,7 @@ import java.util.List;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class})
-public class SelectExecutorsTest {
+public abstract class SelectExecutorsTest {
 
   public static final WorkerInfo JOB_WORKER_0 =
       new WorkerInfo().setAddress(new WorkerNetAddress().setHost("host0"));
