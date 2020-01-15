@@ -3120,6 +3120,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "`alluxio.client.file.cache.LRUCacheEvictor`.")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_DIR =
+      new Builder(Name.USER_CLIENT_CACHE_DIR)
+          .setDefaultValue("/tmp/alluxio_cache")
+          .setDescription("The directory where client-side cache is stored.")
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_STORE_TYPE =
+      new Builder(Name.USER_CLIENT_CACHE_STORE_TYPE)
+          .setDefaultValue("LOCAL")
+          .setDescription("The type of page store to use for client-side cache. Can be either "
+              + "`LOCAL` or `ROCKS`. The `LOCAL` page store stores all pages in a directory, "
+              + "the `ROCKS` page store utilizes rocksDB to persist the data.")
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_SIZE =
       new Builder(Name.USER_CLIENT_CACHE_SIZE)
           .setDefaultValue("512MB")
@@ -4492,10 +4506,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.enabled";
     public static final String USER_CLIENT_CACHE_EVICTOR_CLASS =
         "alluxio.user.client.cache.evictor.class";
-    public static final String USER_CLIENT_CACHE_SIZE =
-        "alluxio.user.client.cache.size";
+    public static final String USER_CLIENT_CACHE_DIR =
+        "alluxio.user.client.cache.dir";
     public static final String USER_CLIENT_CACHE_PAGE_SIZE =
         "alluxio.user.client.cache.page.size";
+    public static final String USER_CLIENT_CACHE_SIZE =
+        "alluxio.user.client.cache.size";
+    public static final String USER_CLIENT_CACHE_STORE_TYPE =
+        "alluxio.user.client.cache.store.type";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";

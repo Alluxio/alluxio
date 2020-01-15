@@ -146,6 +146,15 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
+  public void putLargeId() throws Exception {
+    PageId largeId = new PageId(Long.MAX_VALUE, 0);
+    mCacheManager.put(largeId, PAGE1);
+    assertEquals(1, mPageStore.size());
+    assertTrue(mMetaStore.hasPage(largeId));
+    assertArrayEquals(PAGE1, (byte[]) mPageStore.mStore.get(largeId));
+  }
+
+  @Test
   public void getExist() throws Exception {
     mCacheManager.put(PAGE_ID1, PAGE1);
     try (ReadableByteChannel ret = mCacheManager.get(PAGE_ID1)) {

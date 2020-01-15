@@ -197,6 +197,28 @@ public class LocalCacheFileInStreamTest {
   }
 
   @Test
+  public void readOversizedBuffer() throws Exception {
+    int fileSize = PAGE_SIZE;
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+
+    // cache miss
+    byte[] cacheMiss = new byte[fileSize * 2];
+    Assert.assertEquals(fileSize, stream.read(cacheMiss));
+    Assert.assertArrayEquals(testData, Arrays.copyOfRange(cacheMiss, 0, fileSize));
+    Assert.assertEquals(0, manager.mPagesServed);
+    Assert.assertEquals(1, manager.mPagesCached);
+
+    // cache hit
+    stream.seek(0);
+    byte[] cacheHit = new byte[fileSize * 2];
+    Assert.assertEquals(fileSize, stream.read(cacheHit));
+    Assert.assertArrayEquals(testData, Arrays.copyOfRange(cacheHit, 0, fileSize));
+    Assert.assertEquals(1, manager.mPagesServed);
+  }
+
+  @Test
   public void positionedReadPartialPage() throws Exception {
     int fileSize = PAGE_SIZE;
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
@@ -221,6 +243,31 @@ public class LocalCacheFileInStreamTest {
         stream.positionedRead(offset, cacheHit, 0, cacheHit.length));
     Assert.assertArrayEquals(
         Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheHit);
+    Assert.assertEquals(1, manager.mPagesServed);
+  }
+
+  @Test
+  public void positionReadOversizedBuffer() throws Exception {
+    int fileSize = PAGE_SIZE;
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+
+    // cache miss
+    byte[] cacheMiss = new byte[fileSize * 2];
+    Assert.assertEquals(fileSize - 1, stream.positionedRead(1, cacheMiss, 2, fileSize * 2));
+    Assert.assertArrayEquals(
+        Arrays.copyOfRange(testData, 1, fileSize - 1),
+        Arrays.copyOfRange(cacheMiss, 2, fileSize));
+    Assert.assertEquals(0, manager.mPagesServed);
+    Assert.assertEquals(1, manager.mPagesCached);
+
+    // cache hit
+    byte[] cacheHit = new byte[fileSize * 2];
+    Assert.assertEquals(fileSize - 1, stream.positionedRead(1, cacheHit, 2, fileSize * 2));
+    Assert.assertArrayEquals(
+        Arrays.copyOfRange(testData, 1, fileSize - 1),
+        Arrays.copyOfRange(cacheHit, 2, fileSize));
     Assert.assertEquals(1, manager.mPagesServed);
   }
 
@@ -278,7 +325,7 @@ public class LocalCacheFileInStreamTest {
       }
       mPagesServed++;
       return Channels.newChannel(new ByteArrayInputStream(
-          Arrays.copyOfRange(mPages.get(pageId), pageOffset, PAGE_SIZE - pageOffset)));
+          Arrays.copyOfRange(mPages.get(pageId), pageOffset, PAGE_SIZE)));
     }
 
     @Override

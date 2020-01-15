@@ -11,10 +11,38 @@
 
 package alluxio.client.file.cache.store;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+
 /**
  * Options used to instantiate a {@link alluxio.client.file.cache.PageStore}.
  */
 public abstract class PageStoreOptions {
+
+  /**
+   * Creates an instance of the {@link PageStoreOptions} based on configurations.
+   * @param conf the Alluxio configuration
+   * @return the created page store options
+   */
+  public static PageStoreOptions create(AlluxioConfiguration conf) {
+    PageStoreOptions options;
+    PageStoreType storeType = conf.getEnum(
+        PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);
+    // TODO(feng): add more configurable options
+    switch (storeType) {
+      case LOCAL:
+        options = new LocalPageStoreOptions();
+        break;
+      case ROCKS:
+        options = new RocksPageStoreOptions();
+        break;
+      default:
+        throw new IllegalArgumentException(String.format("Unrecognized store type %s",
+            storeType.name()));
+    }
+    options.setRootDir(conf.get(PropertyKey.USER_CLIENT_CACHE_DIR));
+    return options;
+  }
 
   /**
    * @return the type corresponding to the page store
