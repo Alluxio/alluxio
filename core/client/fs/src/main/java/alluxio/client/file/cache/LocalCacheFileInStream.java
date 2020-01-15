@@ -100,10 +100,12 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
+    Preconditions.checkArgument(len >= 0, "length should be non-negative");
+    Preconditions.checkArgument(off >= 0, "offset should be non-negative");
     if (len == 0) {
       return 0;
     }
-    if (mPosition == mStatus.getLength()) { // at end of file
+    if (mPosition >= mStatus.getLength()) { // at end of file
       return -1;
     }
     int bytesRead = 0;
@@ -140,7 +142,9 @@ public class LocalCacheFileInStream extends FileInStream {
       }
     }
     Preconditions.checkState(bytesRead == len || (bytesRead < len && remaining() == 0),
-        "Invalid number of bytes read");
+        "Invalid number of bytes read - "
+            + "bytes to read = %d, actual bytes read = %d, bytes remains in file %d",
+        len, bytesRead, remaining());
     return bytesRead;
   }
 
@@ -167,13 +171,23 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
+    Preconditions.checkArgument(len >= 0, "length should be non-negative");
+    Preconditions.checkArgument(off >= 0, "offset should be non-negative");
+    Preconditions.checkArgument(pos >= 0, "position should be non-negative");
+    if (len == 0) {
+      return 0;
+    }
+    if (pos < 0 || pos >= mStatus.getLength()) { // at end of file
+      return -1;
+    }
     int bytesRead = 0;
     long currentPosition = pos;
+    long lengthToRead = Math.min(len, mStatus.getLength() - pos);
     // for each page, check if it is available in the cache
-    while (bytesRead < len) {
+    while (bytesRead < lengthToRead) {
       long currentPage = currentPosition / mPageSize;
       int currentPageOffset = (int) (currentPosition % mPageSize);
-      int bytesLeftInPage = (int) Math.min(mPageSize - currentPageOffset, len - bytesRead);
+      int bytesLeftInPage = (int) Math.min(mPageSize - currentPageOffset, lengthToRead - bytesRead);
       PageId pageId = new PageId(mStatus.getFileId(), currentPage);
       try (ReadableByteChannel cachedData = mCacheManager.get(pageId, currentPageOffset)) {
         if (cachedData != null) { // cache hit
@@ -199,7 +213,11 @@ public class LocalCacheFileInStream extends FileInStream {
         }
       }
     }
-    Preconditions.checkState(bytesRead == len, "Invalid number of bytes read");
+    Preconditions.checkState(
+        bytesRead == len || (bytesRead < len && currentPosition == mStatus.getLength()),
+        "Invalid number of bytes read - "
+            + "bytes to read = %d, actual bytes read = %d, bytes remains in file %d",
+        len, bytesRead, mStatus.getLength() - currentPosition);
     return bytesRead;
   }
 

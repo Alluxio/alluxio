@@ -246,6 +246,31 @@ public class LocalCacheFileInStreamTest {
     Assert.assertEquals(1, manager.mPagesServed);
   }
 
+  @Test
+  public void positionReadOversizedBuffer() throws Exception {
+    int fileSize = PAGE_SIZE;
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+
+    // cache miss
+    byte[] cacheMiss = new byte[fileSize * 2];
+    Assert.assertEquals(fileSize - 1, stream.positionedRead(1, cacheMiss, 2, fileSize * 2));
+    Assert.assertArrayEquals(
+        Arrays.copyOfRange(testData, 1, fileSize - 1),
+        Arrays.copyOfRange(cacheMiss, 2, fileSize));
+    Assert.assertEquals(0, manager.mPagesServed);
+    Assert.assertEquals(1, manager.mPagesCached);
+
+    // cache hit
+    byte[] cacheHit = new byte[fileSize * 2];
+    Assert.assertEquals(fileSize - 1, stream.positionedRead(1, cacheHit, 2, fileSize * 2));
+    Assert.assertArrayEquals(
+        Arrays.copyOfRange(testData, 1, fileSize - 1),
+        Arrays.copyOfRange(cacheHit, 2, fileSize));
+    Assert.assertEquals(1, manager.mPagesServed);
+  }
+
   private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager) {
     Map<AlluxioURI, byte[]> files = new HashMap<>();
     AlluxioURI testFilename = new AlluxioURI("/test");
@@ -300,7 +325,7 @@ public class LocalCacheFileInStreamTest {
       }
       mPagesServed++;
       return Channels.newChannel(new ByteArrayInputStream(
-          Arrays.copyOfRange(mPages.get(pageId), pageOffset, PAGE_SIZE - pageOffset)));
+          Arrays.copyOfRange(mPages.get(pageId), pageOffset, PAGE_SIZE)));
     }
 
     @Override

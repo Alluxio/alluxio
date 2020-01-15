@@ -3122,7 +3122,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_DIR =
       new Builder(Name.USER_CLIENT_CACHE_DIR)
-          .setDefaultValue("/tmp")
+          .setDefaultValue("/tmp/alluxio_cache")
           .setDescription("The directory where client-side cache is stored.")
           .setScope(Scope.CLIENT)
           .build();
@@ -3130,7 +3130,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_CLIENT_CACHE_STORE_TYPE)
           .setDefaultValue("LOCAL")
           .setDescription("The type of page store to use for client-side cache. Can be either "
-              + "`LOCAL` or `ROCKS`.")
+              + "`LOCAL` or `ROCKS`. The `LOCAL` page store stores all pages in a directory, "
+              + "the `ROCKS` page store utilizes rocksDB to persist the data.")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_SIZE =
