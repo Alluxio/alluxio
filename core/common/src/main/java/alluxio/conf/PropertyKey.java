@@ -3211,6 +3211,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "format pattern.")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_DIRECT_MEMORY_IO_ENABLED =
+      new Builder(Name.USER_DIRECT_MEMORY_IO_ENABLED)
+          .setDefaultValue(false)
+          .setIsHidden(true)
+          .setDescription("(Experimental) If this is enabled, when clients read from local "
+              + "worker, they read the block directly from the first directory of the first "
+              + "tier of that worker. Note this optimization can be unsafe.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_FILE_BUFFER_BYTES =
       new Builder(Name.USER_FILE_BUFFER_BYTES)
           .setDefaultValue("8MB")
@@ -5176,6 +5186,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
+    public static final String USER_DIRECT_MEMORY_IO_ENABLED =
+        "alluxio.user.direct.memory.io.enabled";
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
     public static final String USER_FILE_RESERVED_BYTES = "alluxio.user.file.reserved.bytes";
     public static final String USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY =
