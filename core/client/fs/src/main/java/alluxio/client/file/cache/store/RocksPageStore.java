@@ -37,13 +37,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A page store implementation which utilizes rocksDB to persist the data.
  */
 @NotThreadSafe
-public class RocksPageStore implements PageStore, AutoCloseable {
+public class RocksPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
 
   private final String mRoot;
   private final RocksDB mDb;
-
-  private AtomicInteger mSize = new AtomicInteger(0);
+  private final AtomicInteger mSize = new AtomicInteger(0);
 
   /**
    * Creates a new instance of {@link PageStore} backed by RocksDB.

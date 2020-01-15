@@ -19,24 +19,16 @@ import org.rocksdb.CompressionType;
  * Options used to instantiate {@link RocksPageStore}.
  */
 public class RocksPageStoreOptions extends PageStoreOptions {
-  /**
-   * The max page size that can be stored.
-   */
+  /** The max page size that can be stored. */
   private int mMaxPageSize;
 
-  /**
-   * The maximum size of the write buffer in the rocksDB.
-   */
+  /** The maximum size of the write buffer in the rocksDB. */
   private int mWriteBufferSize;
 
-  /**
-   * The maximum number of buffers of {@link #mMaxPageSize} size that will be used.
-   */
+  /** The maximum number of buffers of {@link #mMaxPageSize} size that will be used. */
   private int mMaxBufferPoolSize;
 
-  /**
-   * The type of compression to use in the DB.
-   */
+  /** The type of compression to use in the DB. */
   private CompressionType mCompressionType;
 
   /**
