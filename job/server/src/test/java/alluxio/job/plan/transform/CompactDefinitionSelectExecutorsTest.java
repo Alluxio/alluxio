@@ -40,7 +40,8 @@ public class CompactDefinitionSelectExecutorsTest extends SelectExecutorsTest {
     int numCompactedFiles = 100;
     int totalFiles = 5000;
 
-    CompactConfig config = new CompactConfig(null, INPUT_DIR, OUTPUT_DIR, "test", numCompactedFiles);
+    CompactConfig config = new CompactConfig(null, INPUT_DIR, OUTPUT_DIR, "test",
+        numCompactedFiles);
 
     List<URIStatus> inputFiles = new ArrayList<>();
     for (int i = 0; i < totalFiles; i++) {
