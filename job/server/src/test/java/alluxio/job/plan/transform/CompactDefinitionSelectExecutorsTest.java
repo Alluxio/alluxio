@@ -36,10 +36,14 @@ public class CompactDefinitionSelectExecutorsTest extends SelectExecutorsTest {
 
   @Test
   public void testExecutorsParallel() throws Exception {
-    CompactConfig config = new CompactConfig(null, INPUT_DIR, OUTPUT_DIR, "test", 100);
+    int tasksPerWorker = 10;
+    int numCompactedFiles = 100;
+    int totalFiles = 5000;
+
+    CompactConfig config = new CompactConfig(null, INPUT_DIR, OUTPUT_DIR, "test", numCompactedFiles);
 
     List<URIStatus> inputFiles = new ArrayList<>();
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < totalFiles; i++) {
       inputFiles.add(newFile(Integer.toString(i)));
     }
 
@@ -48,13 +52,13 @@ public class CompactDefinitionSelectExecutorsTest extends SelectExecutorsTest {
     Set<Pair<WorkerInfo, ArrayList<CompactTask>>> result = new CompactDefinition().selectExecutors(
         config, SelectExecutorsTest.JOB_WORKERS, new SelectExecutorsContext(1,
             new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager)));
-    assertEquals(40, result.size());
+    assertEquals(JOB_WORKERS.size() * tasksPerWorker, result.size());
 
     int allCompactTasks = 0;
     for (Pair<WorkerInfo, ArrayList<CompactTask>> tasks : result) {
       allCompactTasks += tasks.getSecond().size();
     }
-    assertEquals(50, allCompactTasks);
+    assertEquals(numCompactedFiles, allCompactTasks);
   }
 
   private URIStatus newFile(String name) {
