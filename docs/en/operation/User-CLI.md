@@ -158,22 +158,41 @@ where `[generic options]` can be one of the following values:
 # Prints the hostname of the job master service leader.
 $ ./bin/alluxio job leader
 
-# Prints the IDs of the most recent jobs, running and finished.
+# Prints the IDs, job names, and completion status of the most recently created jobs.
 $ ./bin/alluxio job ls
-1571865684755
-1571865684754
-1571865684753
-1571865684759
-1571865684758
-1571865684757
+1576539334518 Load COMPLETED
+1576539334519 Load CREATED
+1576539334520 Load CREATED
+1576539334521 Load CREATED
+1576539334522 Load CREATED
+1576539334523 Load CREATED
+1576539334524 Load CREATED
+1576539334525 Load CREATED
+1576539334526 Load CREATED
 
 # Displays the status info for the specific job.
-$ ./bin/alluxio job stat -v 1571936656625
-ID: 1571936656625
-Name: Persist
-Status: COMPLETED
+$ bin/alluxio job stat -v 1579102592778
+ID: 1579102592778
+Name: Migrate
+Description: MigrateConfig{source=/test, destination=/test2, writeType=ASYNC_THROUGH, overwrite=true, delet...
+Status: CANCELED
 Task 0
-	Status: COMPLETED
+Worker: localhost
+Status: CANCELED
+Task 1
+Worker: localhost
+Status: CANCELED
+Task 2
+Worker: localhost
+Status: CANCELED
+...
+...
+
+# Cancels the job asynchronously based on a specific job.
+$ bin/alluxio job cancel 1579102592778
+
+$ bin/alluxio job stat 1579102592778 | grep "Status"
+Status: CANCELED
 ```
 
 ### logLevel
