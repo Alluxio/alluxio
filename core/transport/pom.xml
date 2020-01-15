@@ -29,7 +29,7 @@
     <failIfNoTests>false</failIfNoTests>
     <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
     <shading.prefix>alluxio.core.transport</shading.prefix>
-    <skip.protoc>true</skip.protoc>
+    <skip.protoc>false</skip.protoc>
   </properties>
 
   <dependencies>
@@ -121,9 +121,6 @@
           <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
           <pluginId>grpc-java</pluginId>
           <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
-          <protoSourceRoot>src</protoSourceRoot>
-          <outputDirectory>src/main/java</outputDirectory>
-          <clearOutputDirectory>false</clearOutputDirectory>
           <skip>${skip.protoc}</skip>
         </configuration>
         <executions>
