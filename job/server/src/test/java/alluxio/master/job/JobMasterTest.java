@@ -29,6 +29,9 @@ import alluxio.job.JobServerContext;
 import alluxio.job.TestPlanConfig;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.plan.PlanConfig;
+import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.Status;
+import alluxio.job.workflow.composite.CompositeConfig;
 import alluxio.master.MasterContext;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.workflow.WorkflowTracker;
@@ -37,6 +40,7 @@ import alluxio.master.job.plan.PlanCoordinator;
 import alluxio.master.job.plan.PlanTracker;
 import alluxio.underfs.UfsManager;
 
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -49,6 +53,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -87,6 +92,25 @@ public final class JobMasterTest {
       Assert.assertEquals(ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage("dummy"),
           e.getMessage());
     }
+  }
+
+  @Test
+  public void runNestedNonExistingJobConfig() throws Exception {
+    JobConfig innerJobConfig = new CompositeConfig(
+        Lists.newArrayList(new DummyPlanConfig()), true);
+
+    CompositeConfig jobConfig = new CompositeConfig(Lists.newArrayList(innerJobConfig), true);
+
+    long jobId = mJobMaster.run(jobConfig);
+
+    JobInfo status = mJobMaster.getStatus(jobId);
+
+    Assert.assertEquals(Status.FAILED, status.getStatus());
+    List<JobInfo> children = status.getChildren();
+    Assert.assertEquals(1, children.size());
+    JobInfo child = children.get(0);
+    Assert.assertEquals(Status.FAILED, child.getStatus());
+    Assert.assertEquals(0, child.getChildren().size());
   }
 
   @Test
