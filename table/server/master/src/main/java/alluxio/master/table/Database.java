@@ -189,10 +189,12 @@ public class Database implements Journaled {
       Table table = mTables.get(tableName);
       if (table == null) {
         // add table from udb
+        LOG.debug("Importing a new table " + tableName + " into database " + mName);
         UdbTable udbTable = mUdb.getTable(tableName);
         table = Table.create(this, udbTable);
         tableUpdated = true;
       } else {
+        LOG.debug("Syncing an existing table " + tableName + " in database " + mName);
         tableUpdated = table.sync(mUdb.getTable(tableName));
       }
       if (tableUpdated) {

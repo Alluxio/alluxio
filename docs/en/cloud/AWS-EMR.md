@@ -88,6 +88,9 @@ The default instance type for the AMI is `r4.4xlarge`.
 - `ec2-attributes`: EC2 settings to provide, most notably the name of the key pair to use to connect to the cluster
 
 Below is a sample command with all of the above flags populated:
+
+> _Note that this command's formatting is designed for the `bash` interpreter._
+
 ```console
 $ aws emr create-cluster \
 --release-label emr-5.25.0 \

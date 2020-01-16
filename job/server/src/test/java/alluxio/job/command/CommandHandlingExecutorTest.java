@@ -101,6 +101,6 @@ public final class CommandHandlingExecutorTest {
 
     Mockito.verify(mTaskExecutorManager).getAndClearTaskUpdates();
     Mockito.verify(mTaskExecutorManager).executeTask(Mockito.eq(jobId), Mockito.eq(taskId),
-        Mockito.eq(jobConfig), Mockito.eq(taskArgs), Mockito.any(RunTaskContext.class));
+        Mockito.eq(runTaskCommand.build()), Mockito.any(RunTaskContext.class));
   }
 }

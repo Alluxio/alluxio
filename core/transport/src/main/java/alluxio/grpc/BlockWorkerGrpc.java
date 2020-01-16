@@ -254,6 +254,38 @@ public final class BlockWorkerGrpc {
      return getMoveBlockMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.ClearMetricsRequest,
+      alluxio.grpc.ClearMetricsResponse> getClearMetricsMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "ClearMetrics",
+      requestType = alluxio.grpc.ClearMetricsRequest.class,
+      responseType = alluxio.grpc.ClearMetricsResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.ClearMetricsRequest,
+      alluxio.grpc.ClearMetricsResponse> getClearMetricsMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.ClearMetricsRequest, alluxio.grpc.ClearMetricsResponse> getClearMetricsMethod;
+    if ((getClearMetricsMethod = BlockWorkerGrpc.getClearMetricsMethod) == null) {
+      synchronized (BlockWorkerGrpc.class) {
+        if ((getClearMetricsMethod = BlockWorkerGrpc.getClearMetricsMethod) == null) {
+          BlockWorkerGrpc.getClearMetricsMethod = getClearMetricsMethod = 
+              io.grpc.MethodDescriptor.<alluxio.grpc.ClearMetricsRequest, alluxio.grpc.ClearMetricsResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "alluxio.grpc.block.BlockWorker", "ClearMetrics"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.ClearMetricsRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.ClearMetricsResponse.getDefaultInstance()))
+                  .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("ClearMetrics"))
+                  .build();
+          }
+        }
+     }
+     return getClearMetricsMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -339,6 +371,16 @@ public final class BlockWorkerGrpc {
       asyncUnimplementedUnaryCall(getMoveBlockMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     * TODO(lu) Move to metrics worker
+     * </pre>
+     */
+    public void clearMetrics(alluxio.grpc.ClearMetricsRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.ClearMetricsResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getClearMetricsMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -390,6 +432,13 @@ public final class BlockWorkerGrpc {
                 alluxio.grpc.MoveBlockRequest,
                 alluxio.grpc.MoveBlockResponse>(
                   this, METHODID_MOVE_BLOCK)))
+          .addMethod(
+            getClearMetricsMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.ClearMetricsRequest,
+                alluxio.grpc.ClearMetricsResponse>(
+                  this, METHODID_CLEAR_METRICS)))
           .build();
     }
   }
@@ -476,6 +525,17 @@ public final class BlockWorkerGrpc {
       asyncUnaryCall(
           getChannel().newCall(getMoveBlockMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     * TODO(lu) Move to metrics worker
+     * </pre>
+     */
+    public void clearMetrics(alluxio.grpc.ClearMetricsRequest request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.ClearMetricsResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getClearMetricsMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -518,6 +578,16 @@ public final class BlockWorkerGrpc {
     public alluxio.grpc.MoveBlockResponse moveBlock(alluxio.grpc.MoveBlockRequest request) {
       return blockingUnaryCall(
           getChannel(), getMoveBlockMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     * TODO(lu) Move to metrics worker
+     * </pre>
+     */
+    public alluxio.grpc.ClearMetricsResponse clearMetrics(alluxio.grpc.ClearMetricsRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getClearMetricsMethod(), getCallOptions(), request);
     }
   }
 
@@ -565,15 +635,27 @@ public final class BlockWorkerGrpc {
       return futureUnaryCall(
           getChannel().newCall(getMoveBlockMethod(), getCallOptions()), request);
     }
+
+    /**
+     * <pre>
+     * TODO(lu) Move to metrics worker
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.ClearMetricsResponse> clearMetrics(
+        alluxio.grpc.ClearMetricsRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getClearMetricsMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_ASYNC_CACHE = 0;
   private static final int METHODID_REMOVE_BLOCK = 1;
   private static final int METHODID_MOVE_BLOCK = 2;
-  private static final int METHODID_READ_BLOCK = 3;
-  private static final int METHODID_WRITE_BLOCK = 4;
-  private static final int METHODID_OPEN_LOCAL_BLOCK = 5;
-  private static final int METHODID_CREATE_LOCAL_BLOCK = 6;
+  private static final int METHODID_CLEAR_METRICS = 3;
+  private static final int METHODID_READ_BLOCK = 4;
+  private static final int METHODID_WRITE_BLOCK = 5;
+  private static final int METHODID_OPEN_LOCAL_BLOCK = 6;
+  private static final int METHODID_CREATE_LOCAL_BLOCK = 7;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -603,6 +685,10 @@ public final class BlockWorkerGrpc {
         case METHODID_MOVE_BLOCK:
           serviceImpl.moveBlock((alluxio.grpc.MoveBlockRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.MoveBlockResponse>) responseObserver);
+          break;
+        case METHODID_CLEAR_METRICS:
+          serviceImpl.clearMetrics((alluxio.grpc.ClearMetricsRequest) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.ClearMetricsResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -684,6 +770,7 @@ public final class BlockWorkerGrpc {
               .addMethod(getAsyncCacheMethod())
               .addMethod(getRemoveBlockMethod())
               .addMethod(getMoveBlockMethod())
+              .addMethod(getClearMetricsMethod())
               .build();
         }
       }

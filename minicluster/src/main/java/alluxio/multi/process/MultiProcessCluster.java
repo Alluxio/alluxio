@@ -237,9 +237,9 @@ public final class MultiProcessCluster {
     for (int i = 0; i < mNumWorkers; i++) {
       createWorker(i).start();
     }
-    System.out.printf("Starting alluxio cluster in directory %s%n", mWorkDir.getAbsolutePath());
+    LOG.info("Starting alluxio cluster in directory {}", mWorkDir.getAbsolutePath());
     int primaryMasterIndex = getPrimaryMasterIndex(WAIT_MASTER_SERVING_TIMEOUT_MS);
-    System.out.printf("Alluxio primary master %s starts serving RPCs%n",
+    LOG.info("Alluxio primary master {} starts serving RPCs",
         mMasterAddresses.get(primaryMasterIndex));
   }
 

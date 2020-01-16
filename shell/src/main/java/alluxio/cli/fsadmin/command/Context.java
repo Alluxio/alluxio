@@ -17,6 +17,7 @@ import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.meta.MetaMasterConfigClient;
+import alluxio.client.metrics.MetricsMasterClient;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -33,6 +34,7 @@ public final class Context implements Closeable {
   private final BlockMasterClient mBlockClient;
   private final MetaMasterClient mMetaClient;
   private final MetaMasterConfigClient mMetaConfigClient;
+  private final MetricsMasterClient mMetricsClient;
   private JournalMasterClient mMasterJournalMasterClient;
   private JournalMasterClient mJobMasterJournalMasterClient;
   private final JobMasterClient mJobMasterClient;
@@ -45,12 +47,14 @@ public final class Context implements Closeable {
    * @param metaClient meta master client
    * @param metaConfigClient meta configuration master client
    * @param masterJournalMasterClient journal master client for master
+   * @param metricsClient metrics master client
    * @param jobMasterJournalMasterClient journal master client for job_master
    * @param jobMasterClient job master client
    * @param printStream print stream to write to
    */
   public Context(FileSystemMasterClient fsClient, BlockMasterClient blockClient,
       MetaMasterClient metaClient, MetaMasterConfigClient metaConfigClient,
+      MetricsMasterClient metricsClient,
       JournalMasterClient masterJournalMasterClient,
       JournalMasterClient jobMasterJournalMasterClient, JobMasterClient jobMasterClient,
       PrintStream printStream) {
@@ -63,6 +67,8 @@ public final class Context implements Closeable {
         mMetaClient = Preconditions.checkNotNull(metaClient, "metaClient"));
     mCloser.register(
         mMetaConfigClient = Preconditions.checkNotNull(metaConfigClient, "metaConfigClient"));
+    mCloser.register(
+        mMetricsClient = Preconditions.checkNotNull(metricsClient, "metricsClient"));
     mCloser.register(mMasterJournalMasterClient =
         Preconditions.checkNotNull(masterJournalMasterClient, "masterJournalMasterClient"));
     mCloser.register(mJobMasterJournalMasterClient =
@@ -99,6 +105,13 @@ public final class Context implements Closeable {
    */
   public MetaMasterConfigClient getMetaConfigClient() {
     return mMetaConfigClient;
+  }
+
+  /**
+   * @return the metrics master client
+   */
+  public MetricsMasterClient getMetricsClient() {
+    return mMetricsClient;
   }
 
   /**

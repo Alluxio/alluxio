@@ -135,6 +135,13 @@ public final class ConfigurationTestUtils {
     // For faster test shutdown
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT, "100ms");
     conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s");
+
+    // faster persists
+    conf.put(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "20ms");
+    conf.put(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "20ms");
+    conf.put(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, "20ms");
+    conf.put(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "20ms");
+
     return conf;
   }
 

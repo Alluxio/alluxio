@@ -78,9 +78,17 @@ public class ConcurrentFileSystemMasterSetTtlTest extends BaseIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey
-          .USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR)
-          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, TTL_INTERVAL_MS).build();
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, TTL_INTERVAL_MS)
+          .setProperty(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX, CONCURRENCY_FACTOR)
+          .setProperty(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX, CONCURRENCY_FACTOR)
+          /**
+           * This is to make sure master executor has enough thread to being with. Otherwise, delay
+           * on master ForkJoinPool's internal thread count adjustment might take several seconds.
+           * This can interfere with this test's timing expectations.
+           */
+          .setProperty(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE, CONCURRENCY_FACTOR)
+          .build();
 
   @Before
   public void before() {

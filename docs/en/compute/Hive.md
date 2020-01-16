@@ -83,6 +83,7 @@ occupation STRING,
 zipcode STRING)
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '|'
+STORED AS TEXTFILE
 LOCATION 'alluxio://master_hostname:port/ml-100k';
 ```
 
@@ -99,6 +100,7 @@ occupation STRING,
 zipcode STRING)
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY '|'
+STORED AS TEXTFILE
 LOCATION 'alluxio://master_hostname:port/ml-100k';
 ```
 

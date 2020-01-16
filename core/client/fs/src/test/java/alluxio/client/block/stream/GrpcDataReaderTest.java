@@ -79,8 +79,8 @@ public final class GrpcDataReaderTest {
 
     mClient = mock(BlockWorkerClient.class);
     mRequestObserver = mock(ClientCallStreamObserver.class);
-    when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(mClient);
-    PowerMockito.doNothing().when(mContext).releaseBlockWorkerClient(mAddress, mClient);
+    when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(
+        new NoopClosableResource<>(mClient));
     when(mClient.readBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
     when(mRequestObserver.isReady()).thenReturn(true);
   }

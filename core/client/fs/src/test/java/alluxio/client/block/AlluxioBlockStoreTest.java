@@ -25,6 +25,7 @@ import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.block.stream.NoopClosableResource;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
@@ -175,7 +176,7 @@ public final class AlluxioBlockStoreTest {
         TieredIdentityFactory.fromString("node=" + WORKER_HOSTNAME_LOCAL, sConf));
 
     when(mContext.acquireBlockWorkerClient(any(WorkerNetAddress.class)))
-        .thenReturn(mWorkerClient);
+        .thenReturn(new NoopClosableResource<>(mWorkerClient));
     mStreamObserver = PowerMockito.mock(ClientCallStreamObserver.class);
     when(mWorkerClient.writeBlock(any(StreamObserver.class)))
         .thenReturn(mStreamObserver);
