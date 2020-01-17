@@ -20,5 +20,10 @@ public final class ClientMetrics {
   public static final String BYTES_READ_LOCAL_THROUGHPUT = "BytesReadLocalThroughput";
   public static final String BYTES_WRITTEN_UFS = "BytesWrittenUfs";
 
+  /** Metrics for LocalCacheFileSystem, prefixed with Cache. */
+  public static final String CACHE_BYTES_READ_CACHE = "CacheBytesReadCache";
+  public static final String CACHE_BYTES_READ_EXTERNAL = "CacheBytesReadExternal";
+  public static final String CACHE_BYTES_REQUESTED_EXTERNAL = "CacheBytesRequestedExternal";
+
   private ClientMetrics() {} // prevent instantiation
 }

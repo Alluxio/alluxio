@@ -18,8 +18,11 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.OpenFilePOptions;
+import alluxio.metrics.ClientMetrics;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.BufferUtils;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import com.google.common.io.Closer;
@@ -130,6 +133,7 @@ public class LocalCacheFileInStream extends FileInStream {
           Preconditions.checkState(buf.position() == buf.limit());
           bytesRead += bytesLeftInPage;
           mPosition += bytesLeftInPage;
+          Metrics.BYTES_READ_CACHE.inc(bytesLeftInPage);
         } else { // cache miss
           byte[] page = readExternalPage(mPosition);
           if (page.length > 0) {
@@ -137,6 +141,7 @@ public class LocalCacheFileInStream extends FileInStream {
             System.arraycopy(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
             bytesRead += bytesLeftInPage;
             mPosition += bytesLeftInPage;
+            Metrics.BYTES_REQUESTED_EXTERNAL.inc(bytesLeftInPage);
           }
         }
       }
@@ -204,12 +209,14 @@ public class LocalCacheFileInStream extends FileInStream {
           Preconditions.checkState(buf.position() == buf.limit());
           bytesRead += bytesLeftInPage;
           currentPosition += bytesLeftInPage;
+          Metrics.BYTES_READ_CACHE.inc(bytesLeftInPage);
         } else { // cache miss
           byte[] page = readExternalPage(currentPosition);
           mCacheManager.put(pageId, page);
           System.arraycopy(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
           bytesRead += bytesLeftInPage;
           currentPosition += bytesLeftInPage;
+          Metrics.BYTES_REQUESTED_EXTERNAL.inc(bytesLeftInPage);
         }
       }
     }
@@ -295,6 +302,19 @@ public class LocalCacheFileInStream extends FileInStream {
     if (stream.read(page) != pageSize) {
       throw new IOException("Failed to read complete page from external storage.");
     }
+    Metrics.BYTES_READ_EXTERNAL.inc(pageSize);
     return page;
+  }
+
+  private static final class Metrics {
+    /** Cache hits. */
+    private static final Counter BYTES_READ_CACHE =
+        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_CACHE);
+    /** Bytes read from external, may be larger than requests due to reading complete pages. */
+    private static final Counter BYTES_READ_EXTERNAL =
+        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL);
+    /** Cache misses. */
+    private static final Counter BYTES_REQUESTED_EXTERNAL =
+        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_REQUESTED_EXTERNAL);
   }
 }

@@ -42,6 +42,8 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.metrics.ClientMetrics;
+import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.AclEntry;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.BufferUtils;
@@ -51,6 +53,7 @@ import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -71,6 +74,11 @@ public class LocalCacheFileInStreamTest {
       ConfigurationUtils.defaults());
   private static final int PAGE_SIZE =
       (int) sConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+
+  @Before
+  public void before() {
+    MetricsSystem.resetCountersAndGauges();
+  }
 
   @Test
   public void readFullPage() throws Exception {
@@ -269,6 +277,32 @@ public class LocalCacheFileInStreamTest {
         Arrays.copyOfRange(testData, 1, fileSize - 1),
         Arrays.copyOfRange(cacheHit, 2, fileSize));
     Assert.assertEquals(1, manager.mPagesServed);
+  }
+
+  @Test
+  public void readPagesMetrics() throws Exception {
+    int fileSize = PAGE_SIZE * 5;
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+
+    // cache miss
+    int readSize = fileSize - 1;
+    byte[] cacheMiss = new byte[readSize];
+    stream.read(cacheMiss);
+    Assert.assertEquals(0, MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_CACHE).getCount());
+    Assert.assertEquals(readSize,
+        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_REQUESTED_EXTERNAL).getCount());
+    Assert.assertEquals(fileSize,
+        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL).getCount());
+
+    // cache hit
+    stream.read();
+    Assert.assertEquals(1, MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_CACHE).getCount());
+    Assert.assertEquals(readSize,
+        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_REQUESTED_EXTERNAL).getCount());
+    Assert.assertEquals(fileSize,
+        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL).getCount());
   }
 
   private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager) {
