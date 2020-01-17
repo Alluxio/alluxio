@@ -69,7 +69,7 @@ public class HiveUtils {
           .setName(field.getName())
           .setType(field.getType()); // does not support complex types now
       if (field.isSetComment()) {
-          builder.setComment(field.getComment());
+        builder.setComment(field.getComment());
       }
       list.add(builder.build());
     }
@@ -97,10 +97,10 @@ public class HiveUtils {
         .setOutputFormat(sd.getOutputFormat());
 
     if (serdeLibMap != null) {
-        formatBuilder.putAllSerdelibParameters(serdeLibMap);
+      formatBuilder.putAllSerdelibParameters(serdeLibMap);
     }
     if (serDe != null) {
-        formatBuilder.setSerde(serDe); // Check SerDe info
+      formatBuilder.setSerde(serDe); // Check SerDe info
     }
     Storage.Builder storageBuilder = Storage.newBuilder();
     List<Order> orderList = sd.getSortCols();
