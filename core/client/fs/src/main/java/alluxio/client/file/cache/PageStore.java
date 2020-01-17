@@ -14,8 +14,11 @@ package alluxio.client.file.cache;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.LocalPageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreOptions;
+import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.client.file.cache.store.RocksPageStore;
+import alluxio.client.file.cache.store.RocksPageStoreOptions;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
@@ -59,7 +62,23 @@ public interface PageStore extends AutoCloseable {
    * @return the {@link PageStore}
    */
   static PageStore create(AlluxioConfiguration conf) {
-    return create(PageStoreOptions.create(conf));
+    PageStoreOptions options;
+    PageStoreType storeType = conf.getEnum(
+        PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);
+    // TODO(feng): add more configurable options
+    switch (storeType) {
+      case LOCAL:
+        options = new LocalPageStoreOptions();
+        break;
+      case ROCKS:
+        options = new RocksPageStoreOptions();
+        break;
+      default:
+        throw new IllegalArgumentException(String.format("Unrecognized store type %s",
+            storeType.name()));
+    }
+    options.setRootDir(conf.get(PropertyKey.USER_CLIENT_CACHE_DIR));
+    return create(options);
   }
 
   /**
