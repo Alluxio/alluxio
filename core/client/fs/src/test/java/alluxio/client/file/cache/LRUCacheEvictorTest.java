@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.cache.evictor.LRUCacheEvictor;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

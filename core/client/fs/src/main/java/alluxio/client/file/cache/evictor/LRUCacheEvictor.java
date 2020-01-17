@@ -9,7 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.cache;
+package alluxio.client.file.cache.evictor;
+
+import alluxio.client.file.cache.CacheEvictor;
+import alluxio.client.file.cache.PageId;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -29,7 +32,7 @@ public class LRUCacheEvictor implements CacheEvictor {
   private static final boolean UNUSED_MAP_VALUE = true;
 
   // TODO(feng): unify with worker side evictor
-  protected final Map<PageId, Boolean> mLRUCache =
+  private final Map<PageId, Boolean> mLRUCache =
       Collections.synchronizedMap(new LinkedHashMap<>(LINKED_HASH_MAP_INIT_CAPACITY,
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 

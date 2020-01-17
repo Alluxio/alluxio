@@ -38,11 +38,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * stores all pages in a directory somewhere on the local disk.
  */
 @NotThreadSafe
-public class LocalPageStore implements PageStore, AutoCloseable {
+public class LocalPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(LocalPageStore.class);
 
   private final String mRoot;
-  private AtomicInteger mSize = new AtomicInteger(0);
+  private final AtomicInteger mSize = new AtomicInteger(0);
 
   /**
    * Creates a new instance of {@link LocalPageStore}.
