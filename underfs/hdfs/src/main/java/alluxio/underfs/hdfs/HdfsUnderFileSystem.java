@@ -563,6 +563,10 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     while (retryPolicy.attempt()) {
       try {
         FSDataInputStream inputStream = hdfs.open(new Path(path));
+        if (mUfsConf.getBoolean(PropertyKey.UNDERFS_HDFS_REMOTE)) {
+          // For remote HDFS, use positionedRead instead of seek
+          return new HdfsPositionedUnderFileInputStream(inputStream, options.getOffset());
+        }
         try {
           inputStream.seek(options.getOffset());
         } catch (IOException e) {
