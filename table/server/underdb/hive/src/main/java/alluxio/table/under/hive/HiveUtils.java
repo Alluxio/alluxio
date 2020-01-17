@@ -65,12 +65,13 @@ public class HiveUtils {
   public static List<alluxio.grpc.table.FieldSchema> toProto(List<FieldSchema> hiveSchema) {
     List<alluxio.grpc.table.FieldSchema> list = new ArrayList<>();
     for (FieldSchema field : hiveSchema) {
-      alluxio.grpc.table.FieldSchema aFieldSchema = alluxio.grpc.table.FieldSchema.newBuilder()
+      alluxio.grpc.table.FieldSchema.Builder builder = alluxio.grpc.table.FieldSchema.newBuilder()
           .setName(field.getName())
-          .setType(field.getType()) // does not support complex types now
-          .setComment(field.getComment() != null ? field.getComment() : "")
-          .build();
-      list.add(aFieldSchema);
+          .setType(field.getType()); // does not support complex types now
+      if (field.isSetComment()) {
+          builder.setComment(field.getComment());
+      }
+      list.add(builder.build());
     }
     return list;
   }
