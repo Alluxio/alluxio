@@ -121,11 +121,11 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
               .build();
           super.getStatus(path, getStatusOptions);
         } catch (IOException | AlluxioException e) {
-          LOG.error("Failed to update access time for file " + path, e);
+          LOG.error("Failed to update access time for " + path, e);
         }
       });
     } catch (RejectedExecutionException e) {
-      LOG.error("Failed to update access time for file " + path + " due to full thread pool", e);
+      LOG.warn("Failed to submit a task to update access time for {}: {}", path, e.toString());
     }
   }
 
