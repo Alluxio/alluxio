@@ -21,10 +21,10 @@ public class CancelCommandTest extends JobShellTest {
 
   @Test
   public void testCancel() throws Exception {
-    long jobId = mJobMaster.run(new SleepJobConfig(150 * 1000));
+    long jobId = sJobMaster.run(new SleepJobConfig(150 * 1000));
 
-    mJobShell.run("cancel", Long.toString(jobId));
+    sJobShell.run("cancel", Long.toString(jobId));
 
-    JobTestUtils.waitForJobStatus(mJobMaster, jobId, Status.CANCELED);
+    JobTestUtils.waitForJobStatus(sJobMaster, jobId, Status.CANCELED);
   }
 }
