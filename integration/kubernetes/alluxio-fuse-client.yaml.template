@@ -17,7 +17,7 @@ metadata:
   name: alluxio-fuse-client
   labels:
     app: alluxio
-    chart: alluxio-0.5.2
+    chart: alluxio-0.5.3
     release: alluxio
     heritage: Tiller
     role: alluxio-fuse-client
@@ -25,7 +25,7 @@ spec:
   selector:
     matchLabels:
       app: alluxio
-      chart: alluxio-0.5.2
+      chart: alluxio-0.5.3
       release: alluxio
       heritage: Tiller
       role: alluxio-fuse-client
@@ -33,7 +33,7 @@ spec:
     metadata:
       labels:
         app: alluxio
-        chart: alluxio-0.5.2
+        chart: alluxio-0.5.3
         release: alluxio
         heritage: Tiller
         role: alluxio-fuse-client

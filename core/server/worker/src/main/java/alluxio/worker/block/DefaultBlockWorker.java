@@ -577,6 +577,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
+  public void clearMetrics() {
+    // TODO(lu) Create a metrics worker and move this method to metrics worker
+    MetricsSystem.resetAllMetrics();
+  }
+
+  @Override
   public void cleanupSession(long sessionId) {
     mBlockStore.cleanupSession(sessionId);
     mUnderFileSystemBlockStore.cleanupSession(sessionId);

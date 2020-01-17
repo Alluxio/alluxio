@@ -13,6 +13,7 @@ package alluxio.job.workflow.composite;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.job.NoopPlanConfig;
 import alluxio.job.JobIntegrationTest;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.wire.JobInfo;
@@ -91,5 +92,14 @@ public class CompositeIntegrationTest extends JobIntegrationTest {
 
     assertEquals(Status.RUNNING, status.getStatus());
     assertEquals(2, status.getChildren().size());
+  }
+
+  @Test
+  public void testCompositeDoNothing() throws Exception {
+    NoopPlanConfig jobConfig = new NoopPlanConfig();
+
+    long jobId = mJobMaster.run(new CompositeConfig(Lists.newArrayList(jobConfig), true));
+
+    waitForJobToFinish(jobId);
   }
 }

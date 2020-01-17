@@ -22,6 +22,11 @@ import java.util.List;
  */
 public interface MetricsMaster extends Master {
   /**
+   * Clear metrics in the current master.
+   */
+  void clearMetrics();
+
+  /**
    * Handles the client's heartbeat request for metrics collection.
    *
    * @param clientId the client id

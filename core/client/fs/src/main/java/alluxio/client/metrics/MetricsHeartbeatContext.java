@@ -67,7 +67,7 @@ public class MetricsHeartbeatContext {
   private static ScheduledExecutorService sExecutorService;
 
   private final MasterInquireClient.ConnectDetails mConnectDetails;
-  private final MetricsMasterClient mMetricsMasterClient;
+  private final RetryHandlingMetricsMasterClient mMetricsMasterClient;
   private final ClientMasterSync mClientMasterSync;
   private final AlluxioConfiguration mConf;
 
@@ -79,7 +79,7 @@ public class MetricsHeartbeatContext {
     mCtxCount = 0;
     mConnectDetails = inquireClient.getConnectDetails();
     mConf = ctx.getClusterConf();
-    mMetricsMasterClient = new MetricsMasterClient(MasterClientContext
+    mMetricsMasterClient = new RetryHandlingMetricsMasterClient(MasterClientContext
         .newBuilder(ctx)
         .setMasterInquireClient(inquireClient)
         .build());
@@ -90,8 +90,10 @@ public class MetricsHeartbeatContext {
     // increment and lazily schedule the new heartbeat task if it is the first one
     if (mCtxCount++ == 0) {
       mMetricsMasterHeartbeatTask =
-          sExecutorService.scheduleWithFixedDelay(mClientMasterSync::heartbeat, 0,
-              mConf.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS), TimeUnit.MILLISECONDS);
+          sExecutorService.scheduleWithFixedDelay(mClientMasterSync::heartbeat,
+              mConf.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS),
+              mConf.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS),
+              TimeUnit.MILLISECONDS);
     }
   }
 
@@ -121,11 +123,13 @@ public class MetricsHeartbeatContext {
    * this reference should be discarded.
    */
   private synchronized void close() {
-    mMetricsMasterClient.close();
     if (mMetricsMasterHeartbeatTask != null) {
       mMetricsMasterHeartbeatTask.cancel(false);
     }
     MASTER_METRICS_HEARTBEAT.remove(mConnectDetails);
+    // Trigger the last heartbeat to preserve the client side metrics changes
+    heartbeat();
+    mMetricsMasterClient.close();
   }
 
   /**

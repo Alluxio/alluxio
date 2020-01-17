@@ -2,8 +2,14 @@ alluxio.user.app.id:
   'The custom id to use for labeling this client''s info, such as metrics. If unset, a random long will be used. This value is displayed in the client logs on initialization. Note that using the same app id will cause client info to be aggregated, so different applications must set their own ids or leave this value unset to use a randomly generated id.'
 alluxio.user.block.avoid.eviction.policy.reserved.size.bytes:
   'The portion of space reserved in a worker when using the LocalFirstAvoidEvictionPolicy class as block location policy.'
-alluxio.user.block.master.client.threads:
-  'The number of threads used by a block master client pool to talk to the block master.'
+alluxio.user.block.master.client.pool.gc.interval:
+  'The interval at which block master client GC checks occur.'
+alluxio.user.block.master.client.pool.gc.threshold:
+  'A block master client is closed if it has been idle for more than this threshold.'
+alluxio.user.block.master.client.pool.size.max:
+  'The maximum number of block master clients cached in the block master client pool.'
+alluxio.user.block.master.client.pool.size.min:
+  'The minimum number of block master clients cached in the block master client pool. For long running processes, this should be set to zero.'
 alluxio.user.block.remote.read.buffer.size.bytes:
   'The size of the file buffer to read data from remote Alluxio worker.'
 alluxio.user.block.size.bytes.default:
@@ -32,8 +38,14 @@ alluxio.user.file.create.ttl.action:
   'When file''s ttl is expired, the action performs on it. Options: DELETE (default) or FREE'
 alluxio.user.file.delete.unchecked:
   'Whether to check if the UFS contents are in sync with Alluxio before attempting to delete persisted directories recursively.'
-alluxio.user.file.master.client.threads:
+alluxio.user.file.master.client.pool.gc.interval:
+  'The interval at which file system master client GC checks occur.'
+alluxio.user.file.master.client.pool.gc.threshold:
   'The number of threads used by a file master client to talk to the file master.'
+alluxio.user.file.master.client.pool.size.max:
+  'The maximum number of fs master clients cached in the fs master client pool.'
+alluxio.user.file.master.client.pool.size.min:
+  'The minimum number of fs master clients cached in the fs master client pool. For long running processes, this should be set to zero.'
 alluxio.user.file.metadata.load.type:
   'The behavior of loading metadata from UFS. When information about a path is requested and the path does not exist in Alluxio, metadata can be loaded from the UFS. Valid options are `ALWAYS`, `NEVER`, and `ONCE`. `ALWAYS` will always access UFS to see if the path exists in the UFS. `NEVER` will never consult the UFS. `ONCE` will access the UFS the &quot;first&quot; time (according to a cache), but not after that. This parameter is ignored if a metadata sync is performed, via the parameter &quot;alluxio.user.file.metadata.sync.interval&quot;'
 alluxio.user.file.metadata.sync.interval:
@@ -60,6 +72,8 @@ alluxio.user.file.write.tier.default:
   'The default tier for choosing a where to write a block. Valid option is any integer. Non-negative values identify tiers starting from top going down (0 identifies the first tier, 1 identifies the second tier, and so on). If the provided value is greater than the number of tiers, it identifies the last tier. Negative values identify tiers starting from the bottom going up (-1 identifies the last tier, -2 identifies the second to last tier, and so on). If the absolute value of the provided value is greater than the number of tiers, it identifies the first tier.'
 alluxio.user.file.writetype.default:
   'Default write type when creating Alluxio files. Valid options are `MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to UnderFS synchronously), `ASYNC_THROUGH` (write to cache, write to UnderFS asynchronously, replicated alluxio.user.file.replication.durable times in Alluxio before data is persisted.'
+alluxio.user.filesystem.class:
+  'Type of file system to use. Users can select augmented file systems based on the use case. For example, CachingFileSystem is efficient for FUSE workloads. Possible values are alluxio.client.file.BaseFileSystem (default) and alluxio.client.file.CachingFileSystem.'
 alluxio.user.hostname:
   'The hostname to use for an Alluxio client.'
 alluxio.user.local.reader.chunk.size.bytes:
@@ -68,6 +82,10 @@ alluxio.user.local.writer.chunk.size.bytes:
   'When a client writes to a local worker, the maximum data chunk size.'
 alluxio.user.logs.dir:
   'The path to store logs of Alluxio shell. To change its value, one can  set environment variable $ALLUXIO_USER_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.user.logs.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+alluxio.user.metadata.cache.expiration.time:
+  'Metadata will expire and be evicted after being cached for this time period. Only valid if the filesystem is alluxio.client.file.CachingFileSystem.'
+alluxio.user.metadata.cache.max.size:
+  'Maximum number of paths with cached metadata. Only valid if the filesystem is alluxio.client.file.CachingFileSystem.'
 alluxio.user.metrics.collection.enabled:
   'Enable collecting the client-side metrics and heartbeat them to master'
 alluxio.user.metrics.heartbeat.interval:
@@ -108,6 +126,8 @@ alluxio.user.rpc.retry.max.sleep:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum wait time in the backoff.'
 alluxio.user.short.circuit.enabled:
   'The short circuit read/write which allows the clients to read/write data without going through Alluxio workers if the data is local is enabled if set to true.'
+alluxio.user.short.circuit.preferred:
+  'When short circuit and domain socket both enabled, prefer to use short circuit.'
 alluxio.user.ufs.block.location.all.fallback.enabled:
   'Whether to return all workers as block location if ufs block locations are not co-located with any Alluxio workers or is empty.'
 alluxio.user.ufs.block.read.concurrency.max:

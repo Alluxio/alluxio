@@ -40,7 +40,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * FileSystem implementation with the capability of caching metadata of paths.
  */
 @ThreadSafe
-public class CachingFileSystem extends BaseFileSystem {
+public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
   private static final int THREAD_KEEPALIVE_SECOND = 60;
   private static final int THREAD_TERMINATION_TIMEOUT_MS = 10000;
@@ -50,17 +50,16 @@ public class CachingFileSystem extends BaseFileSystem {
 
   /**
    * @param context the fs context
-   * @param cachingEnabled enables caching
    */
-  public CachingFileSystem(FileSystemContext context, boolean cachingEnabled) {
-    super(context, cachingEnabled);
+  public MetadataCachingBaseFileSystem(FileSystemContext context) {
+    super(context);
 
     int maxSize = mFsContext.getClusterConf().getInt(PropertyKey.USER_METADATA_CACHE_MAX_SIZE);
     long expirationTimeMs = mFsContext.getClusterConf()
         .getMs(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME);
     mMetadataCache = new MetadataCache(maxSize, expirationTimeMs);
     int masterClientThreads = mFsContext.getClusterConf()
-        .getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS);
+        .getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX);
     // At a time point, there are at most the same number of concurrent master clients that
     // asynchronously update access time.
     mAccessTimeUpdater = new ThreadPoolExecutor(0, masterClientThreads, THREAD_KEEPALIVE_SECOND,
@@ -88,9 +87,19 @@ public class CachingFileSystem extends BaseFileSystem {
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    List<URIStatus> statuses = super.listStatus(path, options);
-    for (URIStatus status : statuses) {
-      mMetadataCache.put(status.getPath(), status);
+
+    if (options.getRecursive()) {
+      // Do not cache results of recursive list status,
+      // because some results might be cached multiple times.
+      // Otherwise, needs more complicated logic inside the cache,
+      // that might not worth the effort of caching.
+      return super.listStatus(path, options);
+    }
+
+    List<URIStatus> statuses = mMetadataCache.listStatus(path);
+    if (statuses == null) {
+      statuses = super.listStatus(path, options);
+      mMetadataCache.put(path, statuses);
     }
     return statuses;
   }

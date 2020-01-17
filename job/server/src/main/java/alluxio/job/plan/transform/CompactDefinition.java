@@ -23,6 +23,7 @@ import alluxio.job.plan.transform.format.TableReader;
 import alluxio.job.plan.transform.format.TableSchema;
 import alluxio.job.plan.transform.format.TableWriter;
 import alluxio.job.util.SerializableVoid;
+import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
@@ -44,6 +45,7 @@ import java.util.Set;
 public final class CompactDefinition
     extends AbstractVoidPlanDefinition<CompactConfig, ArrayList<CompactTask>> {
   private static final Logger LOG = LoggerFactory.getLogger(CompactDefinition.class);
+  private static final int TASKS_PER_WORKER = 10;
   private static final String COMPACTED_FILE_PATTERN = "part-%d.parquet";
   private static final String SUCCESS_FILENAME = "_SUCCESS";
   private static final String CRC_FILENAME_SUFFIX = ".crc";
@@ -111,7 +113,13 @@ public final class CompactDefinition
 
     Set<Pair<WorkerInfo, ArrayList<CompactTask>>> result = Sets.newHashSet();
     for (Map.Entry<WorkerInfo, ArrayList<CompactTask>> assignment : assignments.entrySet()) {
-      result.add(new Pair<>(assignment.getKey(), assignment.getValue()));
+      List<List<CompactTask>> partitioned = CommonUtils.partition(
+          assignment.getValue(), TASKS_PER_WORKER);
+      for (List<CompactTask> compactTasks : partitioned) {
+        if (!compactTasks.isEmpty()) {
+          result.add(new Pair<>(assignment.getKey(), Lists.newArrayList(compactTasks)));
+        }
+      }
     }
 
     return result;

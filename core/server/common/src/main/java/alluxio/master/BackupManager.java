@@ -21,7 +21,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.ThreadFactoryUtils;
 
-import com.codahale.metrics.Timer;
 import com.google.common.collect.Maps;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
@@ -73,8 +72,11 @@ public class BackupManager {
 
   private final MasterRegistry mRegistry;
 
-  private long mBackupEntriesCount;
-  private long mRestoreEntriesCount;
+  // Set initial values to -1 to indicate no backup or restore happened
+  private long mBackupEntriesCount = -1;
+  private long mRestoreEntriesCount = -1;
+  private long mBackupTimeMs = -1;
+  private long mRestoreTimeMs = -1;
 
   /**
    * @param registry a master registry containing the masters to backup or restore
@@ -85,6 +87,10 @@ public class BackupManager {
         .getMetricName(MasterMetrics.LAST_BACKUP_ENTRIES_COUNT), () -> mBackupEntriesCount);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem
         .getMetricName(MasterMetrics.LAST_BACKUP_RESTORE_COUNT), () -> mRestoreEntriesCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem
+        .getMetricName(MasterMetrics.LAST_BACKUP_TIME_MS), () -> mBackupTimeMs);
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem
+        .getMetricName(MasterMetrics.LAST_BACKUP_RESTORE_TIME_MS), () -> mRestoreTimeMs);
   }
 
   /**
@@ -116,7 +122,7 @@ public class BackupManager {
     AtomicBoolean bufferingActive = new AtomicBoolean(true);
 
     // Start the timer for backup metrics.
-    Timer.Context backup = MetricsSystem.timer(MasterMetrics.BACKUP_ENTRIES_PROCESS_TIME).time();
+    long startBackupTime = System.currentTimeMillis();
 
     // Submit master reader task.
     activeTasks.add(completionService.submit(() -> {
@@ -174,7 +180,7 @@ public class BackupManager {
     safeWaitTasks(activeTasks, completionService);
 
     // Close timer and update entry count.
-    backup.close();
+    mBackupTimeMs = System.currentTimeMillis() - startBackupTime;
     mBackupEntriesCount = entryCount.get();
 
     // finish() instead of close() since close would close os, which is owned by the caller.
@@ -220,7 +226,7 @@ public class BackupManager {
       }, 30, 30, TimeUnit.SECONDS);
 
       // Start the timer for backup metrics.
-      Timer.Context restore = MetricsSystem.timer(MasterMetrics.BACKUP_RESTORE_PROCESS_TIME).time();
+      long startRestoreTime = System.currentTimeMillis();
 
       // Create backup reader task.
       activeTasks.add(completionService.submit(() -> {
@@ -300,7 +306,7 @@ public class BackupManager {
       try {
         safeWaitTasks(activeTasks, completionService);
       } finally {
-        restore.close();
+        mRestoreTimeMs = System.currentTimeMillis() - startRestoreTime;
         mRestoreEntriesCount = appliedEntryCount.get();
         traceExecutor.shutdownNow();
       }

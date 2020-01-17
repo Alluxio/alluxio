@@ -82,6 +82,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   public static final String FIRST_COM_PATH = "alluxio_dep/";
 
+  protected AlluxioConfiguration mAlluxioConf = null;
   protected FileSystem mFileSystem = null;
 
   private URI mUri = null;
@@ -471,16 +472,18 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
 
-    if (mFileSystem != null) {
-      return;
-    }
-
     Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
 
     AlluxioProperties alluxioProps =
         (alluxioConfiguration != null) ? alluxioConfiguration.copyProperties()
             : ConfigurationUtils.defaults();
     AlluxioConfiguration alluxioConf = mergeConfigurations(uriConfProperties, conf, alluxioProps);
+    mAlluxioConf = alluxioConf;
+
+    if (mFileSystem != null) {
+      return;
+    }
+
     Subject subject = getHadoopSubject();
     LOG.debug("Using Hadoop subject: {}", subject);
 

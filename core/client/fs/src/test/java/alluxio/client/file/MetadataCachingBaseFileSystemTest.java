@@ -11,6 +11,7 @@
 
 package alluxio.client.file;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
@@ -39,10 +40,11 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Arrays;
+import java.util.List;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class})
-public class CachingFileSystemTest {
+public class MetadataCachingBaseFileSystemTest {
   private static final AlluxioURI DIR = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
   private static final GetStatusPOptions GET_STATUS_OPTIONS =
@@ -56,7 +58,7 @@ public class CachingFileSystemTest {
   private FileSystemContext mFileContext;
   private ClientContext mClientContext;
   private FileSystemMasterClient mFileSystemMasterClient;
-  private CachingFileSystem mFs;
+  private MetadataCachingBaseFileSystem mFs;
 
   @Before
   public void before() throws Exception {
@@ -78,7 +80,7 @@ public class CachingFileSystemTest {
     when(mFileContext.getClusterConf()).thenReturn(mConf);
     when(mFileContext.getPathConf(any())).thenReturn(mConf);
     when(mFileContext.getUriValidationEnabled()).thenReturn(true);
-    mFs = Mockito.spy(new CachingFileSystem(mFileContext, false));
+    mFs = Mockito.spy(new MetadataCachingBaseFileSystem(mFileContext));
   }
 
   @After
@@ -97,11 +99,24 @@ public class CachingFileSystemTest {
 
   @Test
   public void listStatus() throws Exception {
-    mFs.listStatus(DIR, LIST_STATUS_OPTIONS);
+    List<URIStatus> expectedStatuses = mFs.listStatus(DIR, LIST_STATUS_OPTIONS);
     verifyListStatusThroughRPC(DIR, 1);
     // List status has cached the file status, so no RPC will be made.
     mFs.getStatus(FILE, GET_STATUS_OPTIONS);
     verifyGetStatusThroughRPC(FILE, 0);
+    List<URIStatus> gotStatuses = mFs.listStatus(DIR, LIST_STATUS_OPTIONS);
+    // List status results have been cached, so listStatus RPC was only called once
+    // at the beginning of the method.
+    verifyListStatusThroughRPC(DIR, 1);
+    assertEquals(expectedStatuses, gotStatuses);
+  }
+
+  @Test
+  public void listStatusRecursive() throws Exception {
+    mFs.listStatus(DIR, LIST_STATUS_OPTIONS.toBuilder().setRecursive(true).build());
+    verifyListStatusThroughRPC(DIR, 1);
+    mFs.listStatus(DIR, LIST_STATUS_OPTIONS.toBuilder().setRecursive(true).build());
+    verifyListStatusThroughRPC(DIR, 2);
   }
 
   @Test

@@ -11,15 +11,14 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: alluxio-master-0
+  name: alluxio-master
   labels:
-    name: alluxio-master-0
+    name: alluxio-master
     app: alluxio
-    chart: alluxio-0.5.2
+    chart: alluxio-0.5.3
     release: alluxio
     heritage: Tiller
     role: alluxio-master
@@ -28,15 +27,15 @@ spec:
     matchLabels:
       app: alluxio
       role: alluxio-master
-      name: alluxio-master-0
-  serviceName: "master-0"
+      name: alluxio-master
+  serviceName: alluxio-master
   replicas: 1
   template:
     metadata:
       labels:
-        name: alluxio-master-0
+        name: alluxio-master
         app: alluxio
-        chart: alluxio-0.5.2
+        chart: alluxio-0.5.3
         release: alluxio
         heritage: Tiller
         role: alluxio-master
@@ -82,6 +81,8 @@ spec:
             name: rpc
           - containerPort: 19999
             name: web
+          - containerPort: 19200
+            name: embedded
           volumeMounts:
             - name: alluxio-journal
               mountPath: /journal
@@ -112,8 +113,14 @@ spec:
           volumeMounts:
       restartPolicy: Always
       volumes:
-        - name: alluxio-journal
-          persistentVolumeClaim:
-            claimName: alluxio-pv-claim
----
+  volumeClaimTemplates:
+    - metadata:
+        name: alluxio-journal
+      spec:
+        storageClassName: standard
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
 

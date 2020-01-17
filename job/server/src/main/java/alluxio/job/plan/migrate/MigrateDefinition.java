@@ -36,6 +36,7 @@ import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerInfo;
 
@@ -200,20 +201,11 @@ public final class MigrateDefinition
     Set<Pair<WorkerInfo, ArrayList<MigrateCommand>>> result = Sets.newHashSet();
 
     for (Map.Entry<WorkerInfo, ArrayList<MigrateCommand>> assignment : assignments.entrySet()) {
-
-      // split the list of MigrateCommands for a given worker into at most JOBS_PER_WORKER
-      // equally sized lists
       ArrayList<MigrateCommand> migrateCommands = assignment.getValue();
-      ArrayList<ArrayList<MigrateCommand>> splittedCommands = Lists.newArrayList();
+      List<List<MigrateCommand>> partitionedCommands =
+          CommonUtils.partition(migrateCommands, JOBS_PER_WORKER);
 
-      for (int i = 0; i < JOBS_PER_WORKER; i++) {
-        splittedCommands.add(Lists.newArrayList());
-      }
-      for (int i = 0; i < migrateCommands.size(); i++) {
-        splittedCommands.get(i % JOBS_PER_WORKER).add(migrateCommands.get(i));
-      }
-
-      for (List<MigrateCommand> commands : splittedCommands) {
+      for (List<MigrateCommand> commands : partitionedCommands) {
         if (!commands.isEmpty()) {
           result.add(new Pair<>(assignment.getKey(), Lists.newArrayList(commands)));
         }
@@ -317,9 +309,12 @@ public final class MigrateDefinition
     if (config.isDeleteSource() && !hasFiles(new AlluxioURI(config.getSource()),
         context.getFileSystem())) {
       try {
+        // ## MigrateDeleteUnchecked
+        // Delete the source unchecked because there is no guarantee that the source
+        // has been fulled persisted yet if the source was written using ASYNC_THROUGH
         LOG.debug("Deleting {}", config.getSource());
         context.getFileSystem().delete(new AlluxioURI(config.getSource()),
-            DeletePOptions.newBuilder().setRecursive(true).build());
+            DeletePOptions.newBuilder().setUnchecked(true).setRecursive(true).build());
       } catch (FileDoesNotExistException e) {
         // It's already deleted, possibly by another worker.
       }
@@ -339,6 +334,14 @@ public final class MigrateDefinition
     String destination = command.getDestination();
     LOG.debug("Migrating {} to {}", source, destination);
 
+    // If the write type is async through and the source is being deleted but source is persisted,
+    // keep the destination to be persisted by changing its write type
+    if (deleteSource && writeType.equals(WritePType.ASYNC_THROUGH)) {
+      if (fileSystem.getStatus(new AlluxioURI(source)).isPersisted()) {
+        writeType = WritePType.CACHE_THROUGH;
+      }
+    }
+
     CreateFilePOptions createOptions =
         CreateFilePOptions.newBuilder().setWriteType(writeType).build();
     OpenFilePOptions openFileOptions =
@@ -357,7 +360,11 @@ public final class MigrateDefinition
       }
     }
     if (deleteSource) {
-      fileSystem.delete(new AlluxioURI(source));
+      // ## MigrateDeleteUnchecked
+      // Delete the source unchecked because there is no guarantee that the source
+      // has been fulled persisted yet if the source was written using ASYNC_THROUGH
+      fileSystem.delete(new AlluxioURI(source),
+          DeletePOptions.newBuilder().setUnchecked(true).build());
     }
   }
 

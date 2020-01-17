@@ -81,7 +81,7 @@ public final class BaseFileSystemTest {
 
   private class DummyAlluxioFileSystem extends BaseFileSystem {
     public DummyAlluxioFileSystem(FileSystemContext fsContext) {
-      super(fsContext, false);
+      super(fsContext);
     }
   }
 

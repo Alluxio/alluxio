@@ -418,4 +418,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
   void closeUfsBlock(long sessionId, long blockId)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, IOException,
       WorkerOutOfSpaceException;
+
+  /**
+   * Clears the worker metrics.
+   */
+  void clearMetrics();
 }

@@ -18,6 +18,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockWriter;
@@ -42,7 +43,6 @@ public final class LocalFileDataWriter implements DataWriter {
 
   private final long mFileBufferBytes;
   private final long mDataTimeoutMs;
-  private final BlockWorkerClient mBlockWorker;
   private final LocalFileBlockWriter mWriter;
   private final long mChunkSize;
   private final CreateLocalBlockRequest mCreateRequest;
@@ -72,8 +72,9 @@ public final class LocalFileDataWriter implements DataWriter {
 
     Closer closer = Closer.create();
     try {
-      final BlockWorkerClient blockWorker = context.acquireBlockWorkerClient(address);
-      closer.register(() -> context.releaseBlockWorkerClient(address, blockWorker));
+      CloseableResource<BlockWorkerClient> blockWorker =
+          context.acquireBlockWorkerClient(address);
+      closer.register(blockWorker);
       int writerBufferSizeMessages =
           conf.getInt(PropertyKey.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES);
       long fileBufferBytes = conf.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
@@ -90,7 +91,7 @@ public final class LocalFileDataWriter implements DataWriter {
       CreateLocalBlockRequest createRequest = builder.build();
 
       GrpcBlockingStream<CreateLocalBlockRequest, CreateLocalBlockResponse> stream =
-          new GrpcBlockingStream<>(blockWorker::createLocalBlock, writerBufferSizeMessages,
+          new GrpcBlockingStream<>(blockWorker.get()::createLocalBlock, writerBufferSizeMessages,
               MoreObjects.toStringHelper(LocalFileDataWriter.class)
                   .add("request", createRequest)
                   .add("address", address)
@@ -100,9 +101,8 @@ public final class LocalFileDataWriter implements DataWriter {
       Preconditions.checkState(response != null && response.hasPath());
       LocalFileBlockWriter writer =
           closer.register(new LocalFileBlockWriter(response.getPath()));
-      return new LocalFileDataWriter(chunkSize, blockWorker,
-          writer, createRequest, stream, closer, fileBufferBytes,
-          dataTimeout);
+      return new LocalFileDataWriter(chunkSize, writer, createRequest, stream, closer,
+          fileBufferBytes, dataTimeout);
     } catch (Exception e) {
       throw CommonUtils.closeAndRethrow(closer, e);
     }
@@ -154,20 +154,17 @@ public final class LocalFileDataWriter implements DataWriter {
    * Creates an instance of {@link LocalFileDataWriter}.
    *
    * @param packetSize the packet size
-   * @param blockWorker the block worker
    * @param writer the file writer
    * @param createRequest the request
    * @param stream the gRPC stream
    * @param closer the closer
    */
-  private LocalFileDataWriter(long packetSize,
-      BlockWorkerClient blockWorker, LocalFileBlockWriter writer,
+  private LocalFileDataWriter(long packetSize, LocalFileBlockWriter writer,
       CreateLocalBlockRequest createRequest,
       GrpcBlockingStream<CreateLocalBlockRequest, CreateLocalBlockResponse> stream,
       Closer closer, long fileBufferBytes, long dataTimeoutMs) {
     mFileBufferBytes = fileBufferBytes;
     mDataTimeoutMs = dataTimeoutMs;
-    mBlockWorker = blockWorker;
     mCloser = closer;
     mWriter = writer;
     mCreateRequest = createRequest;

@@ -26,6 +26,7 @@ import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
+import alluxio.master.transport.GrpcMessagingProxy;
 import alluxio.master.transport.GrpcMessagingTransport;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.user.ServerUserState;
@@ -39,6 +40,7 @@ import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.transport.Address;
 import io.atomix.copycat.client.CopycatClient;
 import io.atomix.copycat.client.RecoveryStrategies;
+import io.atomix.copycat.client.ServerSelectionStrategies;
 import io.atomix.copycat.server.CopycatServer;
 import io.atomix.copycat.server.StateMachine;
 import io.atomix.copycat.server.cluster.Member;
@@ -237,6 +239,11 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
       mStateMachine.close();
     }
     mStateMachine = new JournalStateMachine(mJournals, () -> this.getJournalSinks(null));
+    // Read external proxy configuration.
+    GrpcMessagingProxy serverProxy = new GrpcMessagingProxy();
+    if (mConf.getProxyAddress() != null) {
+      serverProxy.addProxy(getLocalAddress(mConf), new Address(mConf.getProxyAddress()));
+    }
     mServer = CopycatServer.builder(getLocalAddress(mConf))
         .withStorage(storage)
         .withElectionTimeout(Duration.ofMillis(mConf.getElectionTimeoutMs()))
@@ -244,7 +251,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
         .withSnapshotAllowed(mSnapshotAllowed)
         .withSerializer(createSerializer())
         .withTransport(new GrpcMessagingTransport(
-            ServerConfiguration.global(), ServerUserState.global(), RAFTSERVER_CLIENT_TYPE))
+            ServerConfiguration.global(), ServerUserState.global(), RAFTSERVER_CLIENT_TYPE)
+                .withServerProxy(serverProxy))
         // Copycat wants a supplier that will generate *new* state machines. We can't handle
         // generating a new state machine here, so we will throw an exception if copycat tries to
         // call the supplier more than once.
@@ -274,6 +282,12 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   private CopycatClient createClient() {
     return CopycatClient.builder(getClusterAddresses(mConf))
         .withRecoveryStrategy(RecoveryStrategies.RECOVER)
+        /*
+         * We use raft clients for journal writes and writes are only allowed on leader. Forcing
+         * client to connect to leader will improve performance by eliminating extra hops and will
+         * make transport level traces less confusing for investigation.
+         */
+        .withServerSelectionStrategy(ServerSelectionStrategies.LEADER)
         .withConnectionStrategy(attempt -> attempt.retry(Duration.ofMillis(
             Math.min(Math.round(100D * Math.pow(2D, (double) attempt.attempt())), 1000L))))
         .withTransport(new GrpcMessagingTransport(
