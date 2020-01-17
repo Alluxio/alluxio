@@ -71,13 +71,22 @@ public class LocalPageStore implements PageStore, AutoCloseable {
   @Override
   public ReadableByteChannel get(PageId pageId, int pageOffset)
       throws IOException, PageNotFoundException {
+    Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
+    File f = p.toFile();
+    Preconditions.checkArgument(pageOffset <= f.length(),
+        "page offset %s exceeded page size %s", pageOffset, f.length());
     FileInputStream fis = new FileInputStream(p.toFile());
-    fis.skip(pageOffset);
-    return fis.getChannel();
+    try {
+      fis.skip(pageOffset);
+      return fis.getChannel();
+    } catch (Throwable t) {
+      fis.close();
+      throw t;
+    }
   }
 
   @Override

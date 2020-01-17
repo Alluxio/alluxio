@@ -24,6 +24,7 @@ import alluxio.util.io.BufferUtils;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -56,6 +57,9 @@ public class PageStoreTest {
   @Rule
   public TemporaryFolder mTemp = new TemporaryFolder();
 
+  @Rule
+  public final ExpectedException mThrown = ExpectedException.none();
+
   @Test
   public void test() throws Exception {
     mOptions.setRootDir(mTemp.getRoot().getAbsolutePath());
@@ -77,7 +81,23 @@ public class PageStoreTest {
         channel.read(buf);
       }
       buf.flip();
-      assertTrue(BufferUtils.equalIncreasingByteBuffer(3, len - offset, buf));
+      assertTrue(BufferUtils.equalIncreasingByteBuffer(offset, len - offset, buf));
+    }
+  }
+
+  @Test
+  public void getOffsetOverflow() throws Exception {
+    mOptions.setRootDir(mTemp.getRoot().getAbsolutePath());
+    int len = 32;
+    int offset = 36;
+    try (PageStore store = PageStore.create(mOptions)) {
+      PageId id = new PageId(0, 0);
+      store.put(id, BufferUtils.getIncreasingByteArray(len));
+      ByteBuffer buf = ByteBuffer.allocate(1024);
+      mThrown.expect(IllegalArgumentException.class);
+      try (ReadableByteChannel channel = store.get(id, offset)) {
+        channel.read(buf);
+      }
     }
   }
 
