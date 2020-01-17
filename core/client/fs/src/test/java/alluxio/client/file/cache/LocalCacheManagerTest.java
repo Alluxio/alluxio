@@ -213,9 +213,12 @@ public final class LocalCacheManagerTest {
     }
 
     @Override
-    public ReadableByteChannel get(PageId pageId) throws IOException, PageNotFoundException {
+    public ReadableByteChannel get(PageId pageId, int pageOffset)
+        throws IOException, PageNotFoundException {
       byte[] buf = (byte[]) mStore.get(pageId);
-      return Channels.newChannel(new ByteArrayInputStream(buf));
+      ByteArrayInputStream is = new ByteArrayInputStream(buf);
+      is.skip(pageOffset);
+      return Channels.newChannel(is);
     }
 
     @Override

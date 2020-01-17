@@ -78,7 +78,21 @@ public interface PageStore extends AutoCloseable {
    * @throws IOException
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  ReadableByteChannel get(PageId pageId) throws IOException,
+  default ReadableByteChannel get(PageId pageId) throws IOException,
+      PageNotFoundException {
+    return get(pageId, 0);
+  }
+
+  /**
+   * Gets part of a page from the store to the destination channel.
+   *
+   * @param pageId page identifier
+   * @param pageOffset offset within page
+   * @return the number of bytes read
+   * @throws IOException
+   * @throws PageNotFoundException when the page isn't found in the store
+   */
+  ReadableByteChannel get(PageId pageId, int pageOffset) throws IOException,
       PageNotFoundException;
 
   /**

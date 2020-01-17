@@ -12,12 +12,14 @@
 package alluxio.client.file.cache.store;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.Constants;
 import alluxio.client.file.cache.PageId;
 import alluxio.exception.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
+import alluxio.util.io.BufferUtils;
 
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -28,6 +30,8 @@ import org.junit.runners.Parameterized;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,6 +62,23 @@ public class PageStoreTest {
     mOptions.setRootDir(mTemp.getRoot().getAbsolutePath());
     try (PageStore store = PageStore.create(mOptions)) {
       helloWorldTest(store);
+    }
+  }
+
+  @Test
+  public void getOffset() throws Exception {
+    mOptions.setRootDir(mTemp.getRoot().getAbsolutePath());
+    int len = 32;
+    int offset = 3;
+    try (PageStore store = PageStore.create(mOptions)) {
+      PageId id = new PageId(0, 0);
+      store.put(id, BufferUtils.getIncreasingByteArray(len));
+      ByteBuffer buf = ByteBuffer.allocate(1024);
+      try (ReadableByteChannel channel = store.get(id, offset)) {
+        channel.read(buf);
+      }
+      buf.flip();
+      assertTrue(BufferUtils.equalIncreasingByteBuffer(3, len - offset, buf));
     }
   }
 
