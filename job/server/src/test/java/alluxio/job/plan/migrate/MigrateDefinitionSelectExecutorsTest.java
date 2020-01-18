@@ -18,8 +18,6 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.exception.ExceptionMessage;
@@ -27,7 +25,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
-import alluxio.underfs.UfsManager;
+import alluxio.job.plan.SelectExecutorsTest;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
@@ -42,7 +40,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -59,8 +56,8 @@ import java.util.Set;
  * No matter whether to delete source, selectExecutors should have the same behavior.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class})
-public final class MigrateDefinitionSelectExecutorsTest {
+@PrepareForTest({AlluxioBlockStore.class})
+public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsTest {
   private static final List<BlockWorkerInfo> BLOCK_WORKERS =
       new ImmutableList.Builder<BlockWorkerInfo>()
           .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host0"), 0, 0))
@@ -68,29 +65,13 @@ public final class MigrateDefinitionSelectExecutorsTest {
           .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host2"), 0, 0))
           .add(new BlockWorkerInfo(new WorkerNetAddress().setHost("host3"), 0, 0)).build();
 
-  private static final WorkerInfo JOB_WORKER_0 =
-      new WorkerInfo().setAddress(new WorkerNetAddress().setHost("host0"));
-  private static final WorkerInfo JOB_WORKER_1 =
-      new WorkerInfo().setAddress(new WorkerNetAddress().setHost("host1"));
-  private static final WorkerInfo JOB_WORKER_2 =
-      new WorkerInfo().setAddress(new WorkerNetAddress().setHost("host2"));
-  private static final WorkerInfo JOB_WORKER_3 =
-      new WorkerInfo().setAddress(new WorkerNetAddress().setHost("host3"));
-
-  private static final List<WorkerInfo> JOB_WORKERS =
-      ImmutableList.of(JOB_WORKER_0, JOB_WORKER_1, JOB_WORKER_2, JOB_WORKER_3);
-
-  private FileSystem mMockFileSystem;
-  private FileSystemContext mMockFileSystemContext;
   private AlluxioBlockStore mMockBlockStore;
-  private UfsManager mMockUfsManager;
 
   @Before
+  @Override
   public void before() throws Exception {
-    mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    super.before();
     mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
-    mMockFileSystem = Mockito.mock(FileSystem.class);
-    mMockUfsManager = Mockito.mock(UfsManager.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
     when(mMockBlockStore.getAllWorkers()).thenReturn(BLOCK_WORKERS);
