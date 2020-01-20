@@ -12,8 +12,6 @@
 package alluxio.client.fs;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
@@ -22,9 +20,6 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.cache.CacheManager;
-import alluxio.client.file.cache.PageId;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.WritePType;
@@ -41,8 +36,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.InputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 
 public final class LocalCacheFileInStreamIntegrationTest extends BaseIntegrationTest {
   private static final int PAGE_SIZE_BYTES = Constants.KB;
@@ -62,14 +55,12 @@ public final class LocalCacheFileInStreamIntegrationTest extends BaseIntegration
   public final ExpectedException mThrown = ExpectedException.none();
 
   private FileSystemContext mFsContext;
-  private CacheManager mCacheManager;
   private FileSystem mFileSystem;
   private String mFilePath;
 
   @Before
   public void before() throws Exception {
     mFsContext = FileSystemContext.create(mClusterResource.get().getClient().getConf());
-    mCacheManager = mFsContext.getCacheManager();
     mFileSystem = mClusterResource.get().getClient(mFsContext);
     mFilePath = PathUtils.uniqPath();
   }
@@ -89,13 +80,6 @@ public final class LocalCacheFileInStreamIntegrationTest extends BaseIntegration
       assertTrue(BufferUtils.equalIncreasingByteArray(
           PAGE_SIZE_BYTES, ByteStreams.toByteArray(stream)));
     }
-    // verify locally cached data
-    URIStatus status = mFileSystem.getStatus(path);
-    try (ReadableByteChannel channel = mCacheManager.get(new PageId(status.getFileId(), 0))) {
-      assertNotNull(channel);
-      assertTrue(BufferUtils.equalIncreasingByteArray(
-          PAGE_SIZE_BYTES, ByteStreams.toByteArray(Channels.newInputStream(channel))));
-    }
     mClusterResource.get().stopWorkers();
     // verify reading from local cache
     try (InputStream stream = mFileSystem.openFile(path)) {
@@ -114,13 +98,6 @@ public final class LocalCacheFileInStreamIntegrationTest extends BaseIntegration
       int bytesRead = stream.positionedRead(PAGE_SIZE_BYTES / 10, buffer, 0, buffer.length);
       assertEquals(buffer.length, bytesRead);
       assertTrue(BufferUtils.equalIncreasingByteArray(PAGE_SIZE_BYTES / 10, buffer.length, buffer));
-    }
-    // verify locally cached data
-    URIStatus status = mFileSystem.getStatus(path);
-    try (ReadableByteChannel channel = mCacheManager.get(new PageId(status.getFileId(), 0))) {
-      assertNotNull(channel);
-      assertTrue(BufferUtils.equalIncreasingByteArray(
-          PAGE_SIZE_BYTES, ByteStreams.toByteArray(Channels.newInputStream(channel))));
     }
     mClusterResource.get().stopWorkers();
     // verify reading whole page from local cache
@@ -146,19 +123,6 @@ public final class LocalCacheFileInStreamIntegrationTest extends BaseIntegration
             BufferUtils.equalIncreasingByteArray(i * PAGE_SIZE_BYTES, buffer.length, buffer));
       }
     }
-    // verify locally cached data
-    URIStatus status = mFileSystem.getStatus(path);
-    for (int i = 0; i < pageCount; i++) {
-      try (ReadableByteChannel channel = mCacheManager.get(new PageId(status.getFileId(), i))) {
-        if (i % 2 == 0) {
-          assertNotNull(channel);
-          assertTrue(BufferUtils.equalIncreasingByteArray(i * PAGE_SIZE_BYTES, PAGE_SIZE_BYTES,
-              ByteStreams.toByteArray(Channels.newInputStream(channel))));
-        } else {
-          assertNull(channel);
-        }
-      }
-    }
     // verify reading the files from mixed sources
     try (InputStream stream = mFileSystem.openFile(path)) {
       assertTrue(BufferUtils.equalIncreasingByteArray(
@@ -175,20 +139,6 @@ public final class LocalCacheFileInStreamIntegrationTest extends BaseIntegration
     try (InputStream stream = mFileSystem.openFile(path)) {
       assertTrue(BufferUtils.equalIncreasingByteArray(
           CACHE_SIZE_BYTES * 2, ByteStreams.toByteArray(stream)));
-    }
-    // verify older data is evicted
-    URIStatus status = mFileSystem.getStatus(path);
-    for (int i = 0; i < PAGE_COUNT; i++) {
-      try (ReadableByteChannel channel = mCacheManager.get(new PageId(status.getFileId(), i))) {
-        assertNull(channel);
-      }
-    }
-    // verify new data is cached
-    for (int i = PAGE_COUNT; i < PAGE_COUNT * 2; i++) {
-      try (ReadableByteChannel channel = mCacheManager.get(new PageId(status.getFileId(), i))) {
-        assertTrue(BufferUtils.equalIncreasingByteArray(i * PAGE_SIZE_BYTES,
-            PAGE_SIZE_BYTES, ByteStreams.toByteArray(Channels.newInputStream(channel))));
-      }
     }
     mClusterResource.get().stopWorkers();
     // reading second half of file from cache would succeed
