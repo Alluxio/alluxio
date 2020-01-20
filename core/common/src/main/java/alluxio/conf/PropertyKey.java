@@ -2294,6 +2294,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_NETWORK_BLOCK_EVICTION_THREADS =
+      new Builder(Name.WORKER_NETWORK_BLOCK_EVICTION_THREADS)
+          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+              "Use {CPU core count} for block eviction.")
+          .setDescription("The number of threads used to evict blocks in the data server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
       new Builder(Name.WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
           .setDefaultValue(8)
@@ -4352,6 +4360,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.block.reader.threads.max";
     public static final String WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =
         "alluxio.worker.network.block.writer.threads.max";
+    public static final String WORKER_NETWORK_BLOCK_EVICTION_THREADS =
+        "alluxio.worker.network.block.eviction.threads";
     public static final String WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
         "alluxio.worker.network.writer.buffer.size.messages";
     public static final String WORKER_NETWORK_FLOWCONTROL_WINDOW =

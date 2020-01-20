@@ -26,6 +26,7 @@ import alluxio.master.block.BlockId;
 import alluxio.resource.LockResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.evictor.BlockTransferInfo;
@@ -57,6 +58,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -119,6 +124,9 @@ public class TieredBlockStore implements BlockStore {
   /** Association between storage tier aliases and ordinals. */
   private final StorageTierAssoc mStorageTierAssoc;
 
+  /** Executor used to evict blocks across tiers. */
+  private final ExecutorService mEvictionExecutor;
+
   /**
    * Creates a new instance of {@link TieredBlockStore}.
    */
@@ -141,6 +149,10 @@ public class TieredBlockStore implements BlockStore {
     }
 
     mStorageTierAssoc = new WorkerStorageTierAssoc();
+
+    mEvictionExecutor = Executors.newFixedThreadPool(
+        ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_EVICTION_THREADS),
+        ThreadFactoryUtils.build("BlockEvictionExecutor-%d", true));
   }
 
   @Override
@@ -691,6 +703,7 @@ public class TieredBlockStore implements BlockStore {
       }
       blocksGroupedByDestTier.get(alias).add(entry);
     }
+
     // 2.2. move blocks in the order of their dst tiers, from bottom to top
     for (int tierOrdinal = mStorageTierAssoc.size() - 1; tierOrdinal >= 0; --tierOrdinal) {
       Set<BlockTransferInfo> toMove =
@@ -698,32 +711,54 @@ public class TieredBlockStore implements BlockStore {
       if (toMove == null) {
         toMove = new HashSet<>();
       }
+      // Create move tasks for current tier.
+      List<Callable<Boolean>> moveTasks = new ArrayList<>(toMove.size());
       for (BlockTransferInfo entry : toMove) {
-        long blockId = entry.getBlockId();
-        BlockStoreLocation oldLocation = entry.getSrcLocation();
-        BlockStoreLocation newLocation = entry.getDstLocation();
-        MoveBlockResult moveResult;
-        try {
-          moveResult = moveBlockInternal(Sessions.createInternalSessionId(),
-              blockId, oldLocation, newLocation);
-        } catch (InvalidWorkerStateException e) {
-          // Evictor is not working properly
-          LOG.error("Failed to demote blockId {}, this is temp block", blockId);
-          continue;
-        } catch (BlockAlreadyExistsException e) {
-          continue;
-        } catch (BlockDoesNotExistException e) {
-          LOG.info("Failed to demote blockId {}, it could be already deleted", blockId);
-          continue;
-        }
-        if (moveResult.getSuccess()) {
-          synchronized (mBlockStoreEventListeners) {
-            for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-              listener.onMoveBlockByWorker(sessionId, blockId, moveResult.getSrcLocation(),
-                  newLocation);
+        moveTasks.add(() -> {
+          long blockId = entry.getBlockId();
+          BlockStoreLocation oldLocation = entry.getSrcLocation();
+          BlockStoreLocation newLocation = entry.getDstLocation();
+
+          try {
+            MoveBlockResult moveResult = moveBlockInternal(Sessions.createInternalSessionId(),
+                blockId, oldLocation, newLocation);
+
+            if (moveResult.getSuccess()) {
+              synchronized (mBlockStoreEventListeners) {
+                for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+                  listener.onMoveBlockByWorker(sessionId, blockId, moveResult.getSrcLocation(),
+                      newLocation);
+                }
+              }
+              return true;
             }
+          } catch (InvalidWorkerStateException e) {
+            // Evictor is not working properly
+            LOG.error("Failed to demote blockId {}, this is temp block", blockId);
+          } catch (BlockAlreadyExistsException e) {
+            LOG.info("Failed to demote blockId {}, it could be already moved", blockId);
+          } catch (BlockDoesNotExistException e) {
+            LOG.info("Failed to demote blockId {}, it could be already deleted", blockId);
           }
-        }
+          return false;
+        });
+      }
+      // Execute move orders in thread pool.
+      try {
+        List<Future<Boolean>> moveResults = mEvictionExecutor.invokeAll(moveTasks);
+        long failCount = moveTasks.size() - moveResults.stream().filter(
+            (fut) -> {
+              try {
+                return fut.get();
+              } catch (Exception e) {
+                return false;
+              }
+            }).count();
+        LOG.info("Finished moving:{} blocks to tier: {}. Failure count: {} ", moveTasks.size(),
+            mStorageTierAssoc.getAlias(tierOrdinal), failCount);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException("Interrupted while executing eviction move orders.");
       }
     }
   }
