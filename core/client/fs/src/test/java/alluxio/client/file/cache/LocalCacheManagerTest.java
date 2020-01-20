@@ -147,11 +147,16 @@ public final class LocalCacheManagerTest {
 
   @Test
   public void putLargeId() throws Exception {
-    PageId largeId = new PageId(Long.MAX_VALUE, 0);
-    mCacheManager.put(largeId, PAGE1);
-    assertEquals(1, mPageStore.size());
-    assertTrue(mMetaStore.hasPage(largeId));
-    assertArrayEquals(PAGE1, (byte[]) mPageStore.mStore.get(largeId));
+    long[] fileIdArray = {Long.MAX_VALUE - 1, Long.MAX_VALUE, Long.MIN_VALUE, Long.MIN_VALUE + 1};
+    long[] pageIndexArray = {Long.MAX_VALUE - 1, Long.MAX_VALUE};
+    for (long fileId : fileIdArray) {
+      for (long pageIndexId : pageIndexArray) {
+        PageId largeId = new PageId(fileId, pageIndexId);
+        mCacheManager.put(largeId, PAGE1);
+        assertTrue(mMetaStore.hasPage(largeId));
+        assertArrayEquals(PAGE1, (byte[]) mPageStore.mStore.get(largeId));
+      }
+    }
   }
 
   @Test
@@ -213,9 +218,12 @@ public final class LocalCacheManagerTest {
     }
 
     @Override
-    public ReadableByteChannel get(PageId pageId) throws IOException, PageNotFoundException {
+    public ReadableByteChannel get(PageId pageId, int pageOffset)
+        throws IOException, PageNotFoundException {
       byte[] buf = (byte[]) mStore.get(pageId);
-      return Channels.newChannel(new ByteArrayInputStream(buf));
+      ByteArrayInputStream is = new ByteArrayInputStream(buf);
+      is.skip(pageOffset);
+      return Channels.newChannel(is);
     }
 
     @Override

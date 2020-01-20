@@ -38,11 +38,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * stores all pages in a directory somewhere on the local disk.
  */
 @NotThreadSafe
-public class LocalPageStore implements PageStore, AutoCloseable {
+public class LocalPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(LocalPageStore.class);
 
   private final String mRoot;
-  private AtomicInteger mSize = new AtomicInteger(0);
+  private final AtomicInteger mSize = new AtomicInteger(0);
 
   /**
    * Creates a new instance of {@link LocalPageStore}.
@@ -69,13 +69,24 @@ public class LocalPageStore implements PageStore, AutoCloseable {
   }
 
   @Override
-  public ReadableByteChannel get(PageId pageId) throws IOException, PageNotFoundException {
+  public ReadableByteChannel get(PageId pageId, int pageOffset)
+      throws IOException, PageNotFoundException {
+    Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
+    File f = p.toFile();
+    Preconditions.checkArgument(pageOffset <= f.length(),
+        "page offset %s exceeded page size %s", pageOffset, f.length());
     FileInputStream fis = new FileInputStream(p.toFile());
-    return fis.getChannel();
+    try {
+      fis.skip(pageOffset);
+      return fis.getChannel();
+    } catch (Throwable t) {
+      fis.close();
+      throw t;
+    }
   }
 
   @Override

@@ -14,8 +14,11 @@ package alluxio.client.file.cache;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.LocalPageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreOptions;
+import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.client.file.cache.store.RocksPageStore;
+import alluxio.client.file.cache.store.RocksPageStoreOptions;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
@@ -46,20 +49,28 @@ public interface PageStore extends AutoCloseable {
   }
 
   /**
-   * Creates a new default instance of {@link PageStore}.
-   * @return the default {@link PageStore}
-   */
-  static PageStore create() {
-    return create(new LocalPageStoreOptions());
-  }
-
-  /**
    * Creates a new instance of {@link PageStore} based on configuration.
    * @param conf configuration
    * @return the {@link PageStore}
    */
   static PageStore create(AlluxioConfiguration conf) {
-    return create(PageStoreOptions.create(conf));
+    PageStoreOptions options;
+    PageStoreType storeType = conf.getEnum(
+        PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);
+    // TODO(feng): add more configurable options
+    switch (storeType) {
+      case LOCAL:
+        options = new LocalPageStoreOptions();
+        break;
+      case ROCKS:
+        options = new RocksPageStoreOptions();
+        break;
+      default:
+        throw new IllegalArgumentException(String.format("Unrecognized store type %s",
+            storeType.name()));
+    }
+    options.setRootDir(conf.get(PropertyKey.USER_CLIENT_CACHE_DIR));
+    return create(options);
   }
 
   /**
@@ -71,27 +82,39 @@ public interface PageStore extends AutoCloseable {
   void put(PageId pageId, byte[] page) throws IOException;
 
   /**
-   * Gets a page from the store to the destination channel.
+   * Wraps a page from the store as a channel to read.
    *
    * @param pageId page identifier
+   * @return the channel to read this page
+   * @throws IOException when the store fails to read this page
+   * @throws PageNotFoundException when the page isn't found in the store
+   */
+  default ReadableByteChannel get(PageId pageId) throws IOException,
+      PageNotFoundException {
+    return get(pageId, 0);
+  }
+
+  /**
+   * Gets part of a page from the store to the destination channel.
+   *
+   * @param pageId page identifier
+   * @param pageOffset offset within page
    * @return the number of bytes read
    * @throws IOException
    * @throws PageNotFoundException when the page isn't found in the store
+   * @throws IllegalArgumentException when the page offset exceeds the page size
    */
-  ReadableByteChannel get(PageId pageId) throws IOException,
+  ReadableByteChannel get(PageId pageId, int pageOffset) throws IOException,
       PageNotFoundException;
 
   /**
    * Deletes a page from the store.
    *
    * @param pageId page identifier
-   * @throws IOException
+   * @throws IOException when the store fails to delete this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
   void delete(PageId pageId) throws IOException, PageNotFoundException;
-
-  @Override
-  void close();
 
   /**
    * @return the number of pages stored

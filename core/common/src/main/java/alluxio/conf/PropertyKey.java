@@ -3236,7 +3236,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_METRICS_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.USER_METRICS_HEARTBEAT_INTERVAL_MS)
           .setAlias("alluxio.user.metrics.heartbeat.interval.ms")
-          .setDefaultValue("3sec")
+          .setDefaultValue("1min")
           .setDescription("The time period of client master heartbeat to "
               + "send the client-side metrics.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)

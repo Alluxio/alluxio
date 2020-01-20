@@ -41,22 +41,22 @@ public interface CacheManager {
   void put(PageId pageId, byte[] page) throws IOException;
 
   /**
-   * Reads a page to the destination channel or null if the queried page is not found in the cache.
+   * Wraps the page in a channel or null if the queried page is not found in the cache.
    *
    * @param pageId page identifier
-   * @return the number of bytes read
+   * @return a channel to read the page
    * @throws IOException if error happens when reading the page
    */
   @Nullable
   ReadableByteChannel get(PageId pageId) throws IOException;
 
   /**
-   * Reads a part of a page to the destination channel or null if the queried page is not found
+   * Wraps a part of the page in a channel or null if the queried page is not found
    * in the cache.
    *
    * @param pageId page identifier
    * @param pageOffset offset into the page
-   * @return the number of bytes read
+   * @return a channel to read the page
    * @throws IOException if error happens when reading the page
    */
   @Nullable

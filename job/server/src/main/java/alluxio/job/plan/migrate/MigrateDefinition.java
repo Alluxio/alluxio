@@ -309,9 +309,12 @@ public final class MigrateDefinition
     if (config.isDeleteSource() && !hasFiles(new AlluxioURI(config.getSource()),
         context.getFileSystem())) {
       try {
+        // ## MigrateDeleteUnchecked
+        // Delete the source unchecked because there is no guarantee that the source
+        // has been fulled persisted yet if the source was written using ASYNC_THROUGH
         LOG.debug("Deleting {}", config.getSource());
         context.getFileSystem().delete(new AlluxioURI(config.getSource()),
-            DeletePOptions.newBuilder().setRecursive(true).build());
+            DeletePOptions.newBuilder().setUnchecked(true).setRecursive(true).build());
       } catch (FileDoesNotExistException e) {
         // It's already deleted, possibly by another worker.
       }
@@ -357,6 +360,7 @@ public final class MigrateDefinition
       }
     }
     if (deleteSource) {
+      // ## MigrateDeleteUnchecked
       // Delete the source unchecked because there is no guarantee that the source
       // has been fulled persisted yet if the source was written using ASYNC_THROUGH
       fileSystem.delete(new AlluxioURI(source),

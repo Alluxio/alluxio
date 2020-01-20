@@ -19,13 +19,10 @@ import alluxio.resource.LockResource;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import org.apache.zookeeper.server.ByteBufferInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -200,7 +197,6 @@ public class LocalCacheManager implements CacheManager {
       throws IOException {
     Preconditions.checkArgument(pageOffset <= mPageSize,
         "Read exceeds page boundary: offset=%s size=%s", pageOffset, mPageSize);
-    ReadableByteChannel ret;
     boolean hasPage;
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.readLock())) {
@@ -210,27 +206,8 @@ public class LocalCacheManager implements CacheManager {
       if (!hasPage) {
         return null;
       }
-      if (pageOffset == 0) {
-        ret = mPageStore.get(pageId);
-      } else {
-        //
-        // TODO(feng): Extend page store API to get offset to avoid copy to use something like
-        // mPageStore.get(pageId, pageOffset, length);
-        //
-        ByteBuffer buf = ByteBuffer.allocate(mPageSize);
-        int bytesRead;
-        try (ReadableByteChannel pageChannel = mPageStore.get(pageId)) {
-          bytesRead = pageChannel.read(buf);
-        }
-        if (bytesRead < pageOffset) {
-          return null;
-        }
-        buf.flip();
-        buf.position(pageOffset);
-        ret = Channels.newChannel(new ByteBufferInputStream(buf));
-      }
       mEvictor.updateOnGet(pageId);
-      return ret;
+      return mPageStore.get(pageId, pageOffset);
     } catch (PageNotFoundException e) {
       throw new IllegalStateException(
           String.format("Page store is missing page %s.", pageId), e);

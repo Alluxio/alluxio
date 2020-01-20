@@ -37,13 +37,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  * A page store implementation which utilizes rocksDB to persist the data.
  */
 @NotThreadSafe
-public class RocksPageStore implements PageStore, AutoCloseable {
+public class RocksPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
 
   private final String mRoot;
   private final RocksDB mDb;
-
-  private AtomicInteger mSize = new AtomicInteger(0);
+  private final AtomicInteger mSize = new AtomicInteger(0);
 
   /**
    * Creates a new instance of {@link PageStore} backed by RocksDB.
@@ -76,14 +75,18 @@ public class RocksPageStore implements PageStore, AutoCloseable {
   }
 
   @Override
-  public ReadableByteChannel get(PageId pageId) throws IOException,
-      PageNotFoundException {
+  public ReadableByteChannel get(PageId pageId, int pageOffset)
+      throws IOException, PageNotFoundException {
+    Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     try {
       byte[] page = mDb.get(getPageKey(pageId));
       if (page == null) {
         throw new PageNotFoundException(new String(getPageKey(pageId)));
       }
+      Preconditions.checkArgument(pageOffset <= page.length,
+          "page offset %s exceeded page size %s", pageOffset, page.length);
       ByteArrayInputStream bais = new ByteArrayInputStream(page);
+      bais.skip(pageOffset);
       return Channels.newChannel(bais);
     } catch (RocksDBException e) {
       throw new IOException("Failed to retrieve page", e);
