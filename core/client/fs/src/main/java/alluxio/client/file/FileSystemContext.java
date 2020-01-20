@@ -229,6 +229,15 @@ public final class FileSystemContext implements Closeable {
     mClosed.set(false);
     mMasterClientContext = MasterClientContext.newBuilder(ctx)
         .setMasterInquireClient(masterInquireClient).build();
+    try {
+      InetSocketAddress masterAddr = masterInquireClient.getPrimaryRpcAddress();
+      mMasterClientContext.loadConf(masterAddr, true, true);
+    } catch (UnavailableException e) {
+      LOG.error("Failed to get master address during initialization", e);
+    } catch (AlluxioStatusException ae) {
+      LOG.error("Failed to load configuration from "
+          + "meta master during initialization", ae);
+    }
     mFileSystemMasterClientPool = new FileSystemMasterClientPool(mMasterClientContext);
     mBlockMasterClientPool = new BlockMasterClientPool(mMasterClientContext);
     mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(getClusterConf()),
