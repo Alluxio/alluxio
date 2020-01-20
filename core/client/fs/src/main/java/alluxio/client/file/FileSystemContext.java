@@ -29,6 +29,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.security.authentication.AuthenticationUserUtils;
@@ -241,6 +242,7 @@ public class FileSystemContext implements Closeable {
         String.format("alluxio-client-nettyPool-%s-%%d", mId), true);
     mMetricsEnabled = getClusterConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED);
     if (mMetricsEnabled) {
+      MetricsSystem.startSinks(getClusterConf().get(PropertyKey.METRICS_CONF_FILE));
       MetricsHeartbeatContext.addHeartbeat(getClientContext(), masterInquireClient);
     }
     mUriValidationEnabled = ctx.getUriValidationEnabled();
