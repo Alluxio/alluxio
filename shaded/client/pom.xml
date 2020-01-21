@@ -195,6 +195,8 @@
                   <excludes>
                     <exclude>**/pom.xml</exclude>
                     <!-- Exclude the packages belonging to JDK -->
+                    <exclude>com/ibm/*</exclude>
+                    <exclude>com/ibm/**/*</exclude>
                     <exclude>com/sun/tools/*</exclude>
                     <exclude>com/sun/javadoc/*</exclude>
                     <exclude>com/sun/security/*</exclude>
