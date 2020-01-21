@@ -33,6 +33,8 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
 
   @Override
   public int available() throws IOException {
+    // seek(...) does not modify the wrapped FSDataInputStream
+    // total bytes available w/o any operations = in.available() + in.getPos()
     int available = in.available() + (int) (((FSDataInputStream) in).getPos() - mPos);
     return available > 0 ? available : 0;
   }
