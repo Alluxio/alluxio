@@ -16,7 +16,6 @@ import alluxio.exception.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +28,11 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -111,17 +114,43 @@ public class LocalPageStore implements PageStore {
         Long.toString(pageId.getPageIndex()));
   }
 
+  /**
+   * @param path path of a file
+   * @return the corresponding page id, or null if the file name does not match the pattern
+   */
+  private PageId getPageId(Path path) {
+    Path parent = Preconditions.checkNotNull(path.getParent());
+    if (!Paths.get(mRoot).equals(parent.getParent())) {
+      return null;
+    }
+    try {
+      long pageIndex = Long.parseLong(path.getFileName().toString());
+      long fileId = Long.parseLong(parent.getFileName().toString());
+      return new PageId(fileId, pageIndex);
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
+
   @Override
   public void close() {
-    try {
-      FileUtils.deleteDirectory(new File(mRoot));
-    } catch (IOException e) {
-      LOG.warn("Failed to clean up local page store directory", e);
-    }
+    // no-op
   }
 
   @Override
   public int size() {
     return mSize.get();
+  }
+
+  @Override
+  public Collection<PageId> load() throws IOException {
+    Path rootDir = Paths.get(mRoot);
+    List<PageId> pages = Files.walk(rootDir)
+        .filter(Files::isRegularFile)
+        .map(this::getPageId)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+    mSize.set(pages.size());
+    return pages;
   }
 }

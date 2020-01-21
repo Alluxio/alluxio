@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -67,7 +68,7 @@ public final class LocalCacheManagerTest {
   public final ExpectedException mThrown = ExpectedException.none();
 
   @Before
-  public void before() {
+  public void before() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
     mFileContext = Mockito.mock(FileSystemContext.class);
@@ -241,6 +242,11 @@ public final class LocalCacheManagerTest {
     @Override
     public int size() {
       return mStore.size();
+    }
+
+    @Override
+    public Collection<PageId> load() {
+      return mStore.keySet();
     }
   }
 

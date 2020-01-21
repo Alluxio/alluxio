@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
 /**
  * Interface for managing cached pages.
  */
-public interface CacheManager {
+public interface CacheManager extends AutoCloseable  {
   /**
    * @param fsContext filesystem context
    * @return an instance of {@link CacheManager}

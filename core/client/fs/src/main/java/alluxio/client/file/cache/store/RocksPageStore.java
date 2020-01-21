@@ -12,23 +12,25 @@
 package alluxio.client.file.cache.store;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.exception.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
+import alluxio.exception.PageNotFoundException;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.io.FileUtils;
 import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
+import org.rocksdb.RocksIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -39,6 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class RocksPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
+  private static final int KEY_LEN = 16;
 
   private final String mRoot;
   private final RocksDB mDb;
@@ -106,22 +109,45 @@ public class RocksPageStore implements PageStore {
   @Override
   public void close() {
     mDb.close();
-    try {
-      FileUtils.deleteDirectory(new File(mRoot));
-    } catch (IOException e) {
-      LOG.warn("Failed to clean up rocksDB root directory.");
-    }
   }
 
   private byte[] getPageKey(PageId pageId) {
-    ByteBuffer buf = ByteBuffer.allocate(16);
+    ByteBuffer buf = ByteBuffer.allocate(KEY_LEN);
     buf.putLong(pageId.getFileId());
     buf.putLong(pageId.getPageIndex());
     return buf.array();
   }
 
+  /**
+   * @param key key of a record
+   * @return the corresponding page id, or null if the key does not match the pattern
+   */
+  private PageId getPageId(byte[] key) {
+    if (key.length != KEY_LEN) {
+      return null;
+    }
+    ByteBuffer buf = ByteBuffer.wrap(key);
+    long fileId = buf.getLong();
+    long pageIndex = buf.getLong();
+    return new PageId(fileId, pageIndex);
+  }
+
   @Override
   public int size() {
     return mSize.get();
+  }
+
+  @Override
+  public Collection<PageId> load() {
+    RocksIterator iter = mDb.newIterator();
+    List<PageId> pages = new ArrayList<>();
+    for (iter.seekToFirst(); iter.isValid(); iter.next()) {
+      PageId id = getPageId(iter.key());
+      if (id != null) {
+        pages.add(id);
+      }
+    }
+    mSize.set(pages.size());
+    return pages;
   }
 }

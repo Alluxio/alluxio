@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Collection;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -90,6 +91,16 @@ public class LocalCacheManager implements CacheManager {
         / mPageSize;
     for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock();
+    }
+    Collection<PageId> pages;
+    try {
+      pages = mPageStore.load();
+    } catch (IOException e) {
+      throw new IllegalStateException("failed to scan page cache", e);
+    }
+    for (PageId page : pages) {
+      metaStore.addPage(page);
+      mEvictor.updateOnPut(page);
     }
   }
 
@@ -223,5 +234,10 @@ public class LocalCacheManager implements CacheManager {
       }
       mPageStore.delete(pageId);
     }
+  }
+
+  @Override
+  public void close() throws Exception {
+    mPageStore.close();
   }
 }
