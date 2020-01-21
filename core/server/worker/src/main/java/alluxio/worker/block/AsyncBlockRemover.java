@@ -47,6 +47,8 @@ public class AsyncBlockRemover {
   private final Set<Long> mRemovingBlocks;
   private final ExecutorService mRemoverPool;
 
+  private volatile boolean mShutdown = false;
+
   /**
    * Constructor of AsyncBlockRemover.
    * @param worker block worker
@@ -86,7 +88,8 @@ public class AsyncBlockRemover {
    * Shutdown async block remover.
    */
   public void shutDown() {
-    mRemoverPool.shutdown();
+    mShutdown = true;
+    mRemoverPool.shutdownNow();
   }
 
   private class BlockRemover implements Runnable {
@@ -103,9 +106,12 @@ public class AsyncBlockRemover {
           mBlockWorker.removeBlock(Sessions.MASTER_COMMAND_SESSION_ID, blockToBeRemoved);
           LOG.debug("Block {} is removed in thread {}.", blockToBeRemoved, mThreadName);
         } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          LOG.warn("{} got interrupted while it was cleaning block {}.",
-              mThreadName, blockToBeRemoved);
+          // Only log warning if interrupted not due to a shutdown.
+          if (!mShutdown) {
+            Thread.currentThread().interrupt();
+            LOG.warn("{} got interrupted while it was cleaning block {}.", mThreadName,
+                blockToBeRemoved);
+          }
         } catch (IOException e) {
           LOG.warn("IOException occurred while {} was cleaning block {}, exception is {}.",
               mThreadName, blockToBeRemoved, e.getMessage());

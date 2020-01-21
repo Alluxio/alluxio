@@ -35,8 +35,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
-import alluxio.util.CommonUtils;
-import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
@@ -57,9 +56,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -147,8 +143,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
       UfsManager ufsManager) {
-    super(Executors
-        .newFixedThreadPool(4, ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
+    super(ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 4));
     mBlockMasterClientPool = blockMasterClientPool;
     mBlockMasterClient = mBlockMasterClientPool.acquire();
     mFileSystemMasterClient = fileSystemMasterClient;
@@ -197,6 +192,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @Override
   public void start(WorkerNetAddress address) throws IOException {
+    super.start(address);
+
     mAddress = address;
     try {
       RetryUtils.retry("create worker id", () -> mWorkerId.set(mBlockMasterClient.getId(address)),
@@ -254,33 +251,26 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * Stops the block worker. This method should only be called to terminate the worker.
    */
   @Override
-  public void stop() {
+  public void stop() throws IOException {
     // Steps to shutdown:
     // 1. Gracefully shut down the runnables running in the executors.
-    // 2. Shutdown the executors.
-    // 3. Shutdown the clients. This needs to happen after the executors is shutdown because
+    // 2. Shutdown the clients. This needs to happen after the executors is shutdown because
     //    runnables running in the executors might be using the clients.
+    // 3. Shutdown base worker. (closes executors.)
+
     if (mSessionCleaner != null) {
       mSessionCleaner.stop();
     }
-    // The executor shutdown needs to be done in a loop with retry because the interrupt
-    // signal can sometimes be ignored.
-    try {
-      CommonUtils.waitFor("block worker executor shutdown", () -> {
-        getExecutorService().shutdownNow();
-        try {
-          return getExecutorService().awaitTermination(100, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          throw new RuntimeException(e);
-        }
-      });
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException(e);
-    } catch (TimeoutException e) {
-      throw new RuntimeException(e);
+    if (mPinListSync != null) {
+      mPinListSync.close();
     }
+    if (mBlockMasterSync != null) {
+      mBlockMasterSync.close();
+    }
+    if (mSpaceReserver != null) {
+      mSpaceReserver.close();
+    }
+
     mBlockMasterClientPool.release(mBlockMasterClient);
     try {
       mBlockMasterClientPool.close();
@@ -288,6 +278,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       LOG.warn("Failed to close the block master client pool: {}.", e.toString());
     }
     mFileSystemMasterClient.close();
+
+    super.stop();
   }
 
   @Override
