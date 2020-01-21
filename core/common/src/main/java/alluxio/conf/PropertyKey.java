@@ -641,8 +641,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Boolean indicating whether or not the under storage worker nodes "
               + "are remote with respect to Alluxio worker nodes. If set to true, Alluxio "
               + "will not attempt to discover locality information from the under storage "
-              + "because locality is impossible. In addition, Alluxio will use the pread API to "
-              + "read from HDFS. This will improve performance. The default "
+              + "because locality is impossible. This will improve performance. The default "
               + "value is false.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)

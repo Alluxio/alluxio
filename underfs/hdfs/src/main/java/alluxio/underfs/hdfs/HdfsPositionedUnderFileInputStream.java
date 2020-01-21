@@ -21,7 +21,7 @@ import java.io.IOException;
 
 /**
  * The input stream of HDFS as under filesystem. This input stream supports seeking but internally
- * uses the positionedRead {@link FSDataInputStream} API.
+ * uses the positionedRead {@link FSDataInputStream} API. This stream can be cached for reuse.
  */
 public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputStream {
   private long mPos;
