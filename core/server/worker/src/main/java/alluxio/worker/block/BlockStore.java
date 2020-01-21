@@ -325,9 +325,11 @@ public interface BlockStore extends SessionCleanable {
    * @param location the location to free space
    * @throws WorkerOutOfSpaceException if there is not enough space
    * @throws BlockDoesNotExistException if blocks in {@link EvictionPlan} can not be found
+   * @throws InterruptedException if interrupted during eviction
    */
   void freeSpace(long sessionId, long availableBytes, BlockStoreLocation location)
-      throws WorkerOutOfSpaceException, BlockDoesNotExistException, IOException;
+      throws WorkerOutOfSpaceException, BlockDoesNotExistException, InterruptedException,
+      IOException;
 
   /**
    * Registers a {@link BlockStoreEventListener} to this block store.

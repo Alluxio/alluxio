@@ -141,10 +141,11 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @throws BlockDoesNotExistException if blocks can not be found
    * @throws BlockAlreadyExistsException if blocks to move already exists in destination location
    * @throws InvalidWorkerStateException if blocks to move/evict is uncommitted
+   * @throws InterruptedException if interrupted during eviction
    */
   void freeSpace(long sessionId, long availableBytes, String tierAlias)
       throws WorkerOutOfSpaceException, BlockDoesNotExistException, IOException,
-      BlockAlreadyExistsException, InvalidWorkerStateException;
+      BlockAlreadyExistsException, InvalidWorkerStateException, InterruptedException;
 
   /**
    * Opens a {@link BlockWriter} for an existing temporary block for non short-circuit writes or

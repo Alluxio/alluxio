@@ -262,7 +262,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
    *
    * @return the amount of space used in the cluster
    */
-  private long getUsedWorkerSpace() throws UnavailableException {
+  private long getUsedWorkerSpace() throws UnavailableException, InterruptedException {
     BlockWorker blkWorker = mLocalAlluxioClusterResource.get().getWorkerProcess()
         .getWorker(BlockWorker.class);
     Whitebox.getInternalState(blkWorker, BlockMasterSync.class).heartbeat(); // heartbeat before

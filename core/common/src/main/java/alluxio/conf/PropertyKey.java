@@ -2210,6 +2210,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_EVICTOR_BLOCK_TRANSFER_THREAD_COUNT =
+      new Builder(Name.WORKER_EVICTOR_BLOCK_TRANSFER_THREAD_COUNT)
+          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+              "Use {CPU core count} for block transfers.")
+          .setDescription("The number of threads used to transfer blocks "
+              + "in the data server during eviction.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR =
       new Builder(Name.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR)
           .setDefaultValue(2.0)
@@ -2291,14 +2300,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX)
           .setDefaultValue(1024)
           .setDescription("The maximum number of threads used to write blocks in the data server.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_NETWORK_BLOCK_EVICTION_THREADS =
-      new Builder(Name.WORKER_NETWORK_BLOCK_EVICTION_THREADS)
-          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
-              "Use {CPU core count} for block eviction.")
-          .setDescription("The number of threads used to evict blocks in the data server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -4343,6 +4344,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.folder.tmp";
     public static final String WORKER_DATA_TMP_SUBDIR_MAX = "alluxio.worker.data.tmp.subdir.max";
     public static final String WORKER_EVICTOR_CLASS = "alluxio.worker.evictor.class";
+    public static final String WORKER_EVICTOR_BLOCK_TRANSFER_THREAD_COUNT =
+        "alluxio.worker.evictor.block.transfer.thread.count";
     public static final String WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR =
         "alluxio.worker.evictor.lrfu.attenuation.factor";
     public static final String WORKER_EVICTOR_LRFU_STEP_FACTOR =
@@ -4360,8 +4363,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.block.reader.threads.max";
     public static final String WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =
         "alluxio.worker.network.block.writer.threads.max";
-    public static final String WORKER_NETWORK_BLOCK_EVICTION_THREADS =
-        "alluxio.worker.network.block.eviction.threads";
     public static final String WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
         "alluxio.worker.network.writer.buffer.size.messages";
     public static final String WORKER_NETWORK_FLOWCONTROL_WINDOW =

@@ -106,7 +106,7 @@ public class SpaceReserver implements HeartbeatExecutor {
     }
   }
 
-  private synchronized void reserveSpace() {
+  private synchronized void reserveSpace() throws InterruptedException {
     Map<String, Long> usedBytesOnTiers = mBlockWorker.getStoreMeta().getUsedBytesOnTiers();
     for (int ordinal = mStorageTierAssoc.size() - 1; ordinal >= 0; ordinal--) {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
@@ -129,7 +129,7 @@ public class SpaceReserver implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() {
+  public void heartbeat() throws InterruptedException {
     reserveSpace();
   }
 

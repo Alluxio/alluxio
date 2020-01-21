@@ -151,7 +151,7 @@ public class TieredBlockStore implements BlockStore {
     mStorageTierAssoc = new WorkerStorageTierAssoc();
 
     mEvictionExecutor = Executors.newFixedThreadPool(
-        ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_EVICTION_THREADS),
+        ServerConfiguration.getInt(PropertyKey.WORKER_EVICTOR_BLOCK_TRANSFER_THREAD_COUNT),
         ThreadFactoryUtils.build("BlockEvictionExecutor-%d", true));
   }
 
@@ -387,7 +387,8 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void freeSpace(long sessionId, long availableBytes, BlockStoreLocation location)
-      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
+      throws BlockDoesNotExistException, WorkerOutOfSpaceException, InterruptedException,
+      IOException {
     LOG.debug("freeSpace: sessionId={}, availableBytes={}, location={}",
         sessionId, availableBytes, location);
     freeSpaceInternal(sessionId, availableBytes, location, Mode.BEST_EFFORT);
@@ -660,9 +661,10 @@ public class TieredBlockStore implements BlockStore {
    * @param location location of space
    * @param mode the eviction mode
    * @throws WorkerOutOfSpaceException if it is impossible to achieve the free requirement
+   * @throws InterruptedException if interrupted during eviction
    */
   private void freeSpaceInternal(long sessionId, long availableBytes, BlockStoreLocation location,
-      Evictor.Mode mode) throws WorkerOutOfSpaceException, IOException {
+      Evictor.Mode mode) throws WorkerOutOfSpaceException, InterruptedException, IOException {
     EvictionPlan plan;
     // NOTE:change the read lock to the write lock due to the endless-loop issue [ALLUXIO-3089]
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
@@ -711,56 +713,63 @@ public class TieredBlockStore implements BlockStore {
       if (toMove == null) {
         toMove = new HashSet<>();
       }
-      // Create move tasks for current tier.
-      List<Callable<Boolean>> moveTasks = new ArrayList<>(toMove.size());
-      for (BlockTransferInfo entry : toMove) {
-        moveTasks.add(() -> {
-          long blockId = entry.getBlockId();
-          BlockStoreLocation oldLocation = entry.getSrcLocation();
-          BlockStoreLocation newLocation = entry.getDstLocation();
-
-          try {
-            MoveBlockResult moveResult = moveBlockInternal(Sessions.createInternalSessionId(),
-                blockId, oldLocation, newLocation);
-
-            if (moveResult.getSuccess()) {
-              synchronized (mBlockStoreEventListeners) {
-                for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-                  listener.onMoveBlockByWorker(sessionId, blockId, moveResult.getSrcLocation(),
-                      newLocation);
-                }
-              }
-              return true;
-            }
-          } catch (InvalidWorkerStateException e) {
-            // Evictor is not working properly
-            LOG.error("Failed to demote blockId {}, this is temp block", blockId);
-          } catch (BlockAlreadyExistsException e) {
-            LOG.info("Failed to demote blockId {}, it could be already moved", blockId);
-          } catch (BlockDoesNotExistException e) {
-            LOG.info("Failed to demote blockId {}, it could be already deleted", blockId);
-          }
-          return false;
-        });
-      }
-      // Execute move orders in thread pool.
-      try {
-        List<Future<Boolean>> moveResults = mEvictionExecutor.invokeAll(moveTasks);
-        long failCount = moveTasks.size() - moveResults.stream().filter(
-            (fut) -> {
-              try {
-                return fut.get();
-              } catch (Exception e) {
-                return false;
-              }
-            }).count();
-        LOG.info("Finished moving:{} blocks to tier: {}. Failure count: {} ", moveTasks.size(),
-            mStorageTierAssoc.getAlias(tierOrdinal), failCount);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new RuntimeException("Interrupted while executing eviction move orders.");
-      }
+      int moveFailCount = toMove.size() - executeTransferOrders(sessionId, toMove);
+      LOG.info("Finished moving: {} blocks to tier: {}. Failure count: {} ", toMove.size(),
+          mStorageTierAssoc.getAlias(tierOrdinal), moveFailCount);
     }
+  }
+
+  /**
+   * Utility method for executing transfer orders in parallel.
+   *
+   * @param sessionId session id
+   * @param orders transfer orders
+   * @return the successful transfer count
+   * @throws InterruptedException if interrupted while executing transfers
+   */
+  private int executeTransferOrders(long sessionId, Set<BlockTransferInfo> orders)
+      throws InterruptedException {
+    // Create move tasks for current tier.
+    List<Callable<Boolean>> moveTasks = new ArrayList<>(orders.size());
+    for (BlockTransferInfo entry : orders) {
+      moveTasks.add(() -> {
+        long blockId = entry.getBlockId();
+        BlockStoreLocation oldLocation = entry.getSrcLocation();
+        BlockStoreLocation newLocation = entry.getDstLocation();
+
+        try {
+          MoveBlockResult moveResult = moveBlockInternal(Sessions.createInternalSessionId(),
+              blockId, oldLocation, newLocation);
+
+          if (moveResult.getSuccess()) {
+            synchronized (mBlockStoreEventListeners) {
+              for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+                listener.onMoveBlockByWorker(sessionId, blockId, moveResult.getSrcLocation(),
+                    newLocation);
+              }
+            }
+            return true;
+          }
+        } catch (InvalidWorkerStateException e) {
+          // Evictor is not working properly
+          LOG.error("Failed to demote blockId {}, this is temp block", blockId);
+        } catch (BlockAlreadyExistsException e) {
+          LOG.info("Failed to demote blockId {}, it could be already moved", blockId);
+        } catch (BlockDoesNotExistException e) {
+          LOG.info("Failed to demote blockId {}, it could be already deleted", blockId);
+        }
+        return false;
+      });
+    }
+    // Execute move orders in thread pool.
+    List<Future<Boolean>> moveResults = mEvictionExecutor.invokeAll(moveTasks);
+    return (int) moveResults.stream().filter((fut) -> {
+      try {
+        return fut.get();
+      } catch (Exception e) {
+        return false;
+      }
+    }).count();
   }
 
   /**
