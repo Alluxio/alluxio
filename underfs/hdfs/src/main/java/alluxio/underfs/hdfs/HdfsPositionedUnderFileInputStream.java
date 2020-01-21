@@ -12,7 +12,9 @@
 package alluxio.underfs.hdfs;
 
 import alluxio.underfs.SeekableUnderFileInputStream;
+import alluxio.util.io.BufferUtils;
 
+import com.google.common.base.Preconditions;
 import org.apache.hadoop.fs.FSDataInputStream;
 
 import java.io.IOException;
@@ -46,8 +48,11 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
     int bytesRead = ((FSDataInputStream) in).read(mPos, buffer, 0, buffer.length);
     if (bytesRead > 0) {
       mPos += bytesRead;
+      return BufferUtils.byteToInt(buffer[0]);
     }
-    return bytesRead < 0 ? bytesRead : (int) buffer[0];
+    Preconditions.checkArgument(bytesRead != 0,
+        "Expected a non-zero value if end of stream has not been reached");
+    return bytesRead;
   }
 
   @Override
