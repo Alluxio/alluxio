@@ -157,7 +157,7 @@ public class BaseFileSystem implements FileSystem {
       outStreamOptions.setMountId(status.getMountId());
       outStreamOptions.setAcl(status.getAcl());
       try {
-        return new FileOutStream(path, outStreamOptions, mFsContext);
+        return new AlluxioFileOutStream(path, outStreamOptions, mFsContext);
       } catch (Exception e) {
         delete(path);
         throw e;
