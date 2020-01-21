@@ -3114,10 +3114,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_EVICTOR_CLASS =
       new Builder(Name.USER_CLIENT_CACHE_EVICTOR_CLASS)
-          .setDefaultValue("alluxio.client.file.cache.LRUCacheEvictor")
+          .setDefaultValue("alluxio.client.file.cache.evictor.LRUCacheEvictor")
           .setDescription("The strategy that client uses to evict local cached pages when running "
               + "out of space. Currently the only valid option provided is "
-              + "`alluxio.client.file.cache.LRUCacheEvictor`.")
+              + "`alluxio.client.file.cache.evictor.LRUCacheEvictor`.")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_DIR =
