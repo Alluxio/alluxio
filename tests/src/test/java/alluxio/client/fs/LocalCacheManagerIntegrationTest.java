@@ -11,6 +11,7 @@
 
 package alluxio.client.fs;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -94,7 +95,11 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   }
 
   private void testPageCached() throws Exception {
-    ReadableByteChannel channel = mCacheManager.get(PAGE_ID);
+    testPageCached(PAGE_ID);
+  }
+
+  private void testPageCached(PageId pageId) throws Exception {
+    ReadableByteChannel channel = mCacheManager.get(pageId);
     assertNotNull(channel);
     try (InputStream stream = Channels.newInputStream(channel)) {
       assertTrue(BufferUtils.equalIncreasingByteArray(
@@ -114,6 +119,43 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "LOCAL");
     mFsContext = FileSystemContext.create(mConf);
     testLoadCache();
+  }
+
+  @Test
+  public void loadCacheAndEvict() throws Exception {
+    mFsContext = FileSystemContext.create(mConf);
+    mCacheManager = new LocalCacheManager(mFsContext);
+    for (int i = 0; i < PAGE_COUNT; i++) {
+      mCacheManager.put(new PageId(0, i), PAGE);
+    }
+    for (int i = 0; i < PAGE_COUNT; i++) {
+      testPageCached(new PageId(0, i));
+    }
+    mCacheManager.close();
+    // creates with same configuration
+    mCacheManager = new LocalCacheManager(mFsContext);
+    // evicts half of the pages
+    for (int i = 0; i < PAGE_COUNT / 2; i++) {
+      mCacheManager.put(new PageId(1, i), PAGE);
+    }
+    int evicted = 0;
+    for (int i = 0; i < PAGE_COUNT; i++) {
+      ReadableByteChannel channel = mCacheManager.get(new PageId(0, i));
+      if (channel == null) {
+        evicted++;
+        continue;
+      }
+      try (InputStream stream = Channels.newInputStream(channel)) {
+        assertTrue(BufferUtils.equalIncreasingByteArray(
+            PAGE_SIZE_BYTES, ByteStreams.toByteArray(stream)));
+      }
+    }
+    // verifies half of the loaded pages are evicted
+    assertEquals(PAGE_COUNT / 2, evicted);
+    // verifies the newly added pages are cached
+    for (int i = 0; i < PAGE_COUNT / 2; i++) {
+      testPageCached(new PageId(1, i));
+    }
   }
 
   private void testLoadCache() throws Exception {

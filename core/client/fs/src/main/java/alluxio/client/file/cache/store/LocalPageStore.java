@@ -124,8 +124,10 @@ public class LocalPageStore implements PageStore {
       return null;
     }
     try {
-      long pageIndex = Long.parseLong(path.getFileName().toString());
-      long fileId = Long.parseLong(parent.getFileName().toString());
+      Path fileName = Preconditions.checkNotNull(path.getFileName());
+      Path parentName = Preconditions.checkNotNull(parent.getFileName());
+      long pageIndex = Long.parseLong(fileName.toString());
+      long fileId = Long.parseLong(parentName.toString());
       return new PageId(fileId, pageIndex);
     } catch (NumberFormatException e) {
       return null;
