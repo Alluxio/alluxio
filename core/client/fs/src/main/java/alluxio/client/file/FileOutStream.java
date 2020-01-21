@@ -11,6 +11,7 @@
 
 package alluxio.client.file;
 
+import alluxio.annotation.PublicApi;
 import alluxio.client.Cancelable;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * the number of bytes written to the output stream, and extends {@link Cancelable} to abort the
  * writes.
  */
+@PublicApi
 @NotThreadSafe
 public abstract class FileOutStream extends OutputStream implements Cancelable {
   /** The number of bytes written. */

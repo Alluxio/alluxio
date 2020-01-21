@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.block.AlluxioBlockStore;
@@ -53,7 +52,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * {@link UnderStorageType#SYNC_PERSIST}, another stream will write the data to the under storage
  * system.
  */
-@PublicApi
 @NotThreadSafe
 public class AlluxioFileOutStream extends FileOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFileOutStream.class);
