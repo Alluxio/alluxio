@@ -107,7 +107,7 @@ public class CopycatGrpcServer implements Server {
         bindAddress = mProxy.getProxyFor(address);
         LOG.debug("Found proxy: {} for address: {}", bindAddress, address);
       }
-      LOG.debug("Binding messaging server to: {}", bindAddress);
+      LOG.debug("Binding copycat transport server to: {}", bindAddress);
 
       // Create gRPC server.
       mGrpcServer = GrpcServerBuilder
