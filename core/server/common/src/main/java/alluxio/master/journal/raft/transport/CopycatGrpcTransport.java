@@ -18,6 +18,7 @@ import alluxio.util.ThreadFactoryUtils;
 import io.atomix.catalyst.transport.Client;
 import io.atomix.catalyst.transport.Server;
 import io.atomix.catalyst.transport.Transport;
+import io.atomix.catalyst.util.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +48,9 @@ public class CopycatGrpcTransport implements Transport {
   private final List<CopycatGrpcClient> mClients;
   /** List of created servers. */
   private final List<CopycatGrpcServer> mServers;
+
+  /** External proxy configuration for servers. */
+  private CopycatGrpcProxy mServerProxy = new CopycatGrpcProxy();
 
   /** Executor that is used by clients/servers for building connections. */
   private final ExecutorService mExecutor;
@@ -85,6 +89,18 @@ public class CopycatGrpcTransport implements Transport {
         .newCachedThreadPool(ThreadFactoryUtils.build("copycat-transport-worker-%d", true));
   }
 
+  /**
+   * Sets external proxy configuration for servers.
+   *
+   * @param proxy external proxy configuration
+   * @return the updated transport instance
+   */
+  public synchronized CopycatGrpcTransport withServerProxy(CopycatGrpcProxy proxy) {
+    Assert.notNull(proxy, "Server proxy reference cannot be null.");
+    mServerProxy = proxy;
+    return this;
+  }
+
   @Override
   public synchronized Client client() {
     if (mClosed) {
@@ -100,7 +116,8 @@ public class CopycatGrpcTransport implements Transport {
     if (mClosed) {
       throw new RuntimeException("Transport closed");
     }
-    CopycatGrpcServer server = new CopycatGrpcServer(mServerConf, mServerUser, mExecutor);
+    CopycatGrpcServer server =
+        new CopycatGrpcServer(mServerConf, mServerUser, mExecutor, mServerProxy);
     mServers.add(server);
     return server;
   }
