@@ -47,9 +47,8 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
   @Override
   public int read() throws IOException {
     byte[] buffer = new byte[1];
-    int bytesRead = ((FSDataInputStream) in).read(mPos, buffer, 0, buffer.length);
+    int bytesRead = read(buffer);
     if (bytesRead > 0) {
-      mPos += bytesRead;
       return BufferUtils.byteToInt(buffer[0]);
     }
     Preconditions.checkArgument(bytesRead != 0,
