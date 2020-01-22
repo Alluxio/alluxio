@@ -17,9 +17,12 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
+import alluxio.master.MasterInquireClient;
+import alluxio.uri.Authority;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -164,5 +167,48 @@ public final class FileSystemUtils {
       }
     }, WaitForOptions.defaults().setTimeoutMs(timeoutMs)
         .setInterval(Constants.SECOND_MS));
+  }
+
+  /**
+   * Checks an {@link AlluxioURI} for scheme and authority information. Warn the user and throw an
+   * exception if necessary.
+   */
+  public static void checkUri(FileSystemContext fsContext, AlluxioURI uri) {
+    Preconditions.checkNotNull(uri, "uri");
+    if (!fsContext.getUriValidationEnabled()) {
+      return;
+    }
+
+    if (uri.hasScheme()) {
+      String warnMsg = "The URI scheme \"{}\" is ignored and not required in URIs passed to"
+          + " the Alluxio Filesystem client.";
+      switch (uri.getScheme()) {
+        case Constants.SCHEME:
+          LOG.warn(warnMsg, Constants.SCHEME);
+          break;
+        default:
+          throw new IllegalArgumentException(
+              String.format("Scheme %s:// in AlluxioURI is invalid. Schemes in filesystem"
+                  + " operations are ignored. \"alluxio://\" or no scheme at all is valid.",
+                  uri.getScheme()));
+      }
+    }
+
+    if (uri.hasAuthority()) {
+      LOG.warn("The URI authority (hostname and port) is ignored and not required in URIs passed "
+          + "to the Alluxio Filesystem client.");
+      /* Even if we choose to log the warning, check if the Configuration host matches what the
+       * user passes. If not, throw an exception letting the user know they don't match.
+       */
+      Authority configured =
+          MasterInquireClient.Factory
+              .create(fsContext.getClusterConf(), fsContext.getClientContext().getUserState())
+              .getConnectDetails().toAuthority();
+      if (!configured.equals(uri.getAuthority())) {
+        throw new IllegalArgumentException(
+            String.format("The URI authority %s does not match the configured " + "value of %s.",
+                uri.getAuthority(), configured));
+      }
+    }
   }
 }

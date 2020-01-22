@@ -146,10 +146,12 @@ public interface FileSystem extends Closeable {
       FileSystem fs =
           (FileSystem) CommonUtils.createNewClassInstance(fsClass, ctorArgClasses, ctorArgs);
       if (context.getClusterConf().getBoolean(PropertyKey.USER_LOCAL_CACHE_ENABLED)) {
-        return new LocalCacheFileSystem(fs);
-      } else {
-        return fs;
+        fs = new LocalCacheFileSystem(fs);
       }
+      if (context.getClusterConf().getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
+        fs = new MetadataCachingFileSystem(fs, context);
+      }
+      return fs;
     }
   }
 

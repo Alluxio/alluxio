@@ -40,20 +40,21 @@ import javax.annotation.concurrent.ThreadSafe;
  * FileSystem implementation with the capability of caching metadata of paths.
  */
 @ThreadSafe
-public class MetadataCachingBaseFileSystem extends BaseFileSystem {
+public class MetadataCachingFileSystem extends DelegatingFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
   private static final int THREAD_KEEPALIVE_SECOND = 60;
   private static final int THREAD_TERMINATION_TIMEOUT_MS = 10000;
-
+  private final FileSystemContext mFsContext;
   private final MetadataCache mMetadataCache;
   private final ExecutorService mAccessTimeUpdater;
 
   /**
+   * @param fs delegated file system
    * @param context the fs context
    */
-  public MetadataCachingBaseFileSystem(FileSystemContext context) {
-    super(context);
-
+  public MetadataCachingFileSystem(FileSystem fs, FileSystemContext context) {
+    super(fs);
+    mFsContext = context;
     int maxSize = mFsContext.getClusterConf().getInt(PropertyKey.USER_METADATA_CACHE_MAX_SIZE);
     long expirationTimeMs = mFsContext.getClusterConf()
         .getMs(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME);
@@ -69,7 +70,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    checkUri(path);
+    FileSystemUtils.checkUri(mFsContext, path);
     URIStatus status = mMetadataCache.get(path);
     if (status == null) {
       status = super.getStatus(path, options);
@@ -86,8 +87,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   @Override
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    checkUri(path);
-
+    FileSystemUtils.checkUri(mFsContext, path);
     if (options.getRecursive()) {
       // Do not cache results of recursive list status,
       // because some results might be cached multiple times.
@@ -131,7 +131,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
 
   @Override
   public synchronized void close() throws IOException {
-    if (!mClosed) {
+    if (!super.isClosed()) {
       ThreadUtils.shutdownAndAwaitTermination(mAccessTimeUpdater, THREAD_TERMINATION_TIMEOUT_MS);
       super.close();
     }
