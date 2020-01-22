@@ -46,6 +46,7 @@ import java.util.Properties;
 public interface PageStore extends AutoCloseable {
   Logger LOG = LoggerFactory.getLogger(LocalPageStore.class);
   String CONF_FILE = "alluxio-client.properties";
+
   /**
    * Creates a new {@link PageStore}.
    *
@@ -66,10 +67,14 @@ public interface PageStore extends AutoCloseable {
 
   /**
    * Creates a new instance of {@link PageStore} based on configuration.
+   *
    * @param conf configuration
    * @return the {@link PageStore}
    */
   static PageStore create(AlluxioConfiguration conf) {
+    if (!isCompatible(conf)) {
+      format(conf);
+    }
     PageStoreOptions options;
     PageStoreType storeType = conf.getEnum(
         PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);
@@ -85,65 +90,106 @@ public interface PageStore extends AutoCloseable {
         throw new IllegalArgumentException(String.format("Unrecognized store type %s",
             storeType.name()));
     }
-    String rootPath = conf.get(PropertyKey.USER_CLIENT_CACHE_DIR);
-    options.setRootDir(rootPath);
-    Path confPath = Paths.get(rootPath, CONF_FILE);
-    boolean canLoad = false;
-    if (Files.exists(confPath)) {
-      Properties properties = ConfigurationUtils.loadPropertiesFromFile(confPath.toString());
-      if (properties != null) {
-        AlluxioProperties alluxioProperties = new AlluxioProperties();
-        alluxioProperties.merge(properties, Source.DEFAULT);
-        AlluxioConfiguration cacheConf = new InstancedConfiguration(alluxioProperties);
-        // check store type
-        if (cacheConf.get(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE).equals(
-            conf.get(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE))
-            // check page size
-            && cacheConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE)
-            == conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE)
-            // check enough cache size
-            && cacheConf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE)
-            <= conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE)
-            // check alluxio version
-            && cacheConf.get(PropertyKey.VERSION).equals(
-            conf.get(PropertyKey.VERSION))) {
-          LOG.info("Found recoverable local cache at {}", rootPath);
-          canLoad = true;
-        } else {
-          LOG.info("Found local cache at {} with incompatible configuration.", rootPath);
-        }
-      }
-    }
-    if (!canLoad) {
-      LOG.info("Clean cache directory {}", rootPath);
-      File rootDir = new File(rootPath);
-      try {
-        if (Files.isDirectory(rootDir.toPath())) {
-          FileUtils.deleteDirectory(rootDir);
-        }
-        FileUtils.forceMkdir(rootDir);
-      } catch (IOException e) {
-        throw new IllegalStateException(
-            String.format("failed to clean cache directory %s", rootDir), e);
-      }
-      Properties properties = new Properties();
-      PropertyKey[] keys = new PropertyKey[]{
-          PropertyKey.USER_CLIENT_CACHE_STORE_TYPE,
-          PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE,
-          PropertyKey.USER_CLIENT_CACHE_SIZE,
-          PropertyKey.VERSION
-      };
-      for (PropertyKey key : keys) {
-        properties.setProperty(key.getName(), conf.get(key));
-      }
-      try (FileOutputStream stream = new FileOutputStream(confPath.toString())) {
-        properties.store(stream, "Alluxio local cache configuration");
-      } catch (IOException e) {
-        throw new IllegalStateException(
-            String.format("failed to write cache configuration to file %s", confPath), e);
-      }
-    }
+    options.setRootDir(conf.get(PropertyKey.USER_CLIENT_CACHE_DIR));
     return create(options);
+  }
+
+  /**
+   * Checks if the data at the store location is compatible with the current configuration.
+   *
+   * @param conf the Alluxio configuration
+   * @return true if the data is compatible with the configuration, false otherwise
+   */
+  static boolean isCompatible(AlluxioConfiguration conf) {
+    String rootPath = conf.get(PropertyKey.USER_CLIENT_CACHE_DIR);
+    Path confPath = Paths.get(rootPath, CONF_FILE);
+    if (!Files.exists(confPath)) {
+      return false;
+    }
+    Properties properties = ConfigurationUtils.loadPropertiesFromFile(confPath.toString());
+    if (properties == null) {
+      return false;
+    }
+    AlluxioProperties alluxioProperties = new AlluxioProperties();
+    alluxioProperties.merge(properties, Source.DEFAULT);
+    AlluxioConfiguration cacheConf = new InstancedConfiguration(alluxioProperties);
+    boolean canLoad = true;
+    // check store type
+    if (!cacheConf.get(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE).equals(
+        conf.get(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE))) {
+      LOG.info("Local store type {} does not match configured value {}",
+          cacheConf.get(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE),
+          conf.get(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE));
+      canLoad = false;
+    }
+    // check page size
+    if (cacheConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE)
+        != conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE)) {
+      LOG.info("Local store page size {} does not match configured value {}",
+          cacheConf.get(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE),
+          conf.get(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
+      canLoad = false;
+    }
+    // check enough cache size
+    if (cacheConf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE)
+        > conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE)) {
+      LOG.info("Local store cache size {} is larger than configured value {}",
+          cacheConf.get(PropertyKey.USER_CLIENT_CACHE_SIZE),
+          conf.get(PropertyKey.USER_CLIENT_CACHE_SIZE));
+      canLoad = false;
+    }
+    // check alluxio version
+    if (!cacheConf.get(PropertyKey.VERSION).equals(
+        conf.get(PropertyKey.VERSION))) {
+      LOG.info("Local store Alluxio version {} is different than Alluxio client version {}",
+          cacheConf.get(PropertyKey.VERSION),
+          conf.get(PropertyKey.VERSION));
+      canLoad = false;
+    }
+    if (canLoad) {
+      LOG.info("Found recoverable local cache at {}", rootPath);
+    } else {
+      LOG.info("Local cache at {} is incompatible with client configuration.", rootPath);
+    }
+    return canLoad;
+  }
+
+  /**
+   * Formats a page store at the configured location.
+   * Existing data at the store location will be removed.
+   *
+   * @param conf Alluxio configuration
+   */
+  static void format(AlluxioConfiguration conf) {
+    String rootPath = conf.get(PropertyKey.USER_CLIENT_CACHE_DIR);
+    Path confPath = Paths.get(rootPath, CONF_FILE);
+    LOG.info("Clean cache directory {}", rootPath);
+    File rootDir = new File(rootPath);
+    try {
+      if (Files.isDirectory(rootDir.toPath())) {
+        FileUtils.deleteDirectory(rootDir);
+      }
+      FileUtils.forceMkdir(rootDir);
+    } catch (IOException e) {
+      throw new IllegalStateException(
+          String.format("failed to clean cache directory %s", rootDir), e);
+    }
+    Properties properties = new Properties();
+    PropertyKey[] keys = new PropertyKey[]{
+        PropertyKey.USER_CLIENT_CACHE_STORE_TYPE,
+        PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE,
+        PropertyKey.USER_CLIENT_CACHE_SIZE,
+        PropertyKey.VERSION
+    };
+    for (PropertyKey key : keys) {
+      properties.setProperty(key.getName(), conf.get(key));
+    }
+    try (FileOutputStream stream = new FileOutputStream(confPath.toString())) {
+      properties.store(stream, "Alluxio local cache configuration");
+    } catch (IOException e) {
+      throw new IllegalStateException(
+          String.format("failed to write cache configuration to file %s", confPath), e);
+    }
   }
 
   /**
@@ -173,7 +219,7 @@ public interface PageStore extends AutoCloseable {
    * @param pageId page identifier
    * @param pageOffset offset within page
    * @return the number of bytes read
-   * @throws IOException
+   * @throws IOException when the store fails to read this page
    * @throws PageNotFoundException when the page isn't found in the store
    * @throws IllegalArgumentException when the page offset exceeds the page size
    */

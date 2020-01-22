@@ -149,7 +149,16 @@ public class LocalPageStore implements PageStore {
     Path rootDir = Paths.get(mRoot);
     List<PageId> pages = Files.walk(rootDir)
         .filter(Files::isRegularFile)
-        .map(this::getPageId)
+        .map((path) -> {
+          if (CONF_FILE.equals(path.getFileName().toString())) {
+            return null;
+          }
+          PageId id = getPageId(path);
+          if (id == null) {
+            LOG.warn("unrecognized file {} in page store", path);
+          }
+          return id;
+        })
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
     mSize.set(pages.size());
