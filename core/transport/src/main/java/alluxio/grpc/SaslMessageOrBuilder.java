@@ -47,4 +47,18 @@ public interface SaslMessageOrBuilder extends
    * <code>optional .alluxio.grpc.sasl.ChannelAuthenticationScheme authenticationScheme = 4;</code>
    */
   alluxio.grpc.ChannelAuthenticationScheme getAuthenticationScheme();
+
+  /**
+   * <code>optional string channelOwner = 5;</code>
+   */
+  boolean hasChannelOwner();
+  /**
+   * <code>optional string channelOwner = 5;</code>
+   */
+  java.lang.String getChannelOwner();
+  /**
+   * <code>optional string channelOwner = 5;</code>
+   */
+  com.google.protobuf.ByteString
+      getChannelOwnerBytes();
 }

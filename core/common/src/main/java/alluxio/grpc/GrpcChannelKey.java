@@ -13,8 +13,11 @@ package alluxio.grpc;
 
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.MoreObjects;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -57,8 +60,18 @@ public class GrpcChannelKey {
   private Optional<String> mClientType = Optional.empty();
   /** Unique channel identifier. */
   private UUID mChannelId = UUID.randomUUID();
+  /** Hostname to send to server for identification. */
+  private String mLocalHostName;
 
-  private GrpcChannelKey() {}
+  private GrpcChannelKey(AlluxioConfiguration conf) {
+    // Try to get local host name.
+    try {
+      mLocalHostName = NetworkAddressUtils
+          .getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+    } catch (Exception e) {
+      mLocalHostName = "<UNKNOWN>";
+    }
+  }
 
   /**
    * Creates a {@link GrpcChannelKey}.
@@ -67,7 +80,7 @@ public class GrpcChannelKey {
    * @return the created instance
    */
   public static GrpcChannelKey create(AlluxioConfiguration conf) {
-    return new GrpcChannelKey();
+    return new GrpcChannelKey(conf);
   }
 
   /**
@@ -288,10 +301,21 @@ public class GrpcChannelKey {
    * @return short representation of this channel key
    */
   public String toStringShort() {
-    return MoreObjects.toStringHelper(this)
+    return MoreObjects.toStringHelper("Channel")
         .add("ClientType", getStringFromOptional(mClientType))
         .add("ServerAddress", mServerAddress)
         .add("ChannelId", mChannelId)
+        .omitNullValues()
+        .toString();
+  }
+
+  /**
+   * @return server-side representation of this channel key
+   */
+  public String toOwnerString() {
+    return MoreObjects.toStringHelper("")
+        .add("ClientType", getStringFromOptional(mClientType))
+        .add("ClientHostname", mLocalHostName)
         .omitNullValues()
         .toString();
   }

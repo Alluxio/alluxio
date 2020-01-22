@@ -22,6 +22,7 @@ message SaslMessage {
   optional bytes message = 2;
   optional string clientId = 3;
   optional ChannelAuthenticationScheme authenticationScheme = 4;
+  optional string channelOwner = 5;
 }
 
 service SaslAuthenticationService {

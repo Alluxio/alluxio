@@ -16,8 +16,10 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.security.authentication.AuthType;
+import alluxio.security.authentication.AuthenticatedChannelClientDriver;
 import alluxio.security.authentication.ChannelAuthenticator;
 
+import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.netty.channel.EventLoopGroup;
 
@@ -31,32 +33,40 @@ import javax.security.auth.Subject;
  */
 public final class GrpcChannelBuilder {
   /** gRPC channel key. */
-  private GrpcChannelKey mChannelKey;
+  private final GrpcChannelKey mChannelKey;
 
-  /** Whether to use mParentSubject as authentication user. */
-  private boolean mUseSubject;
   /** Subject for authentication. */
   private Subject mParentSubject;
 
-  /* Used in place of a subject. */
-  private String mUserName;
-  private String mPassword;
-  private String mImpersonationUser;
-
   /** Whether to authenticate the channel with the server. */
   private boolean mAuthenticateChannel;
+
+  // Configuration constants.
+  private final AuthType mAuthType;
+  private final long mShutdownTimeoutMs;
+  private final long mHealthCheckTimeoutMs;
 
   private AlluxioConfiguration mConfiguration;
 
   private GrpcChannelBuilder(GrpcServerAddress address, AlluxioConfiguration conf) {
     mConfiguration = conf;
-    mChannelKey = GrpcChannelKey.create(conf);
+
+    // Read constants.
+    mAuthType =
+        mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+    mShutdownTimeoutMs =
+        mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT);
+    mHealthCheckTimeoutMs =
+        mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT);
+
     // Set default overrides for the channel.
+    mChannelKey = GrpcChannelKey.create(conf);
     mChannelKey.setServerAddress(address);
     mChannelKey.setMaxInboundMessageSize(
         (int) mConfiguration.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
-    mUseSubject = true;
-    mAuthenticateChannel = true;
+
+    // Determine if authentication required.
+    mAuthenticateChannel = mAuthType != AuthType.NOSASL;
   }
 
   /**
@@ -90,24 +100,6 @@ public final class GrpcChannelBuilder {
    */
   public GrpcChannelBuilder setSubject(Subject subject) {
     mParentSubject = subject;
-    mUseSubject = true;
-    return this;
-  }
-
-  /**
-   * Sets authentication content. Calling this will reset the subject set by {@link #setSubject}.
-   *
-   * @param userName the username
-   * @param password the password
-   * @param impersonationUser the impersonation user
-   * @return the updated {@link GrpcChannelBuilder} instance
-   */
-  public GrpcChannelBuilder setCredentials(String userName, String password,
-      String impersonationUser) {
-    mUserName = userName;
-    mPassword = password;
-    mImpersonationUser = impersonationUser;
-    mUseSubject = false;
     return this;
   }
 
@@ -206,43 +198,34 @@ public final class GrpcChannelBuilder {
    * @return the built {@link GrpcChannel}
    */
   public GrpcChannel build() throws AlluxioStatusException {
-    ManagedChannel underlyingChannel =
-        GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(mChannelKey,
-            mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT),
-            mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));
+    // Acquire a managed channel from the pool.
+    ManagedChannel managedChannel = GrpcManagedChannelPool.INSTANCE()
+        .acquireManagedChannel(mChannelKey, mHealthCheckTimeoutMs, mShutdownTimeoutMs);
     try {
-      AuthType authType =
-          mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
-      if (mAuthenticateChannel && authType != AuthType.NOSASL) {
+      Channel logicalChannel = managedChannel;
+      AuthenticatedChannelClientDriver authDriver = null;
+      if (mAuthenticateChannel) {
         // Create channel authenticator based on provided content.
-        ChannelAuthenticator channelAuthenticator;
-        if (mUseSubject) {
-          channelAuthenticator =
-              new ChannelAuthenticator(mChannelKey, mParentSubject, mConfiguration);
-        } else {
-          channelAuthenticator =
-              new ChannelAuthenticator(mChannelKey, mUserName, mPassword, mImpersonationUser,
-                  mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class),
-                  mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_AUTH_TIMEOUT));
-        }
-        // Return a wrapper over authenticated channel.
-        return new GrpcChannel(mChannelKey, channelAuthenticator.authenticate(underlyingChannel),
-            mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));
-      } else {
-        // Return a wrapper over original channel.
-        return new GrpcChannel(mChannelKey, underlyingChannel,
-            mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));
+        ChannelAuthenticator channelAuthenticator = new ChannelAuthenticator(mChannelKey,
+            managedChannel, mParentSubject, mAuthType, mConfiguration);
+        // Authenticate a new logical channel.
+        channelAuthenticator.authenticate();
+        // Acquire the authenticated logical channel.
+        logicalChannel = channelAuthenticator.getAuthenticatedChannel();
+        // Acquire authentication driver.
+        authDriver = channelAuthenticator.getAuthenticationDriver();
       }
-    } catch (Exception e) {
-      // Release the managed channel to the pool before throwing.
-      GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey,
-          mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT));
-      if (e instanceof UnavailableException) {
-        // Override exception from authentication layer.
+      // Return a wrapper over logical channel.
+      return new GrpcChannel(mChannelKey, logicalChannel, mShutdownTimeoutMs, authDriver);
+    } catch (Throwable t) {
+      // Release the managed channel to the pool.
+      GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey, mShutdownTimeoutMs);
+      // Pretty print unavailable cases.
+      if (t instanceof UnavailableException) {
         throw new UnavailableException(
-            String.format("Target Unavailable. %s", mChannelKey.toStringShort()), e.getCause());
+            String.format("Target Unavailable. %s", mChannelKey.toStringShort()), t.getCause());
       }
-      throw e;
+      throw AlluxioStatusException.fromThrowable(t);
     }
   }
 }
