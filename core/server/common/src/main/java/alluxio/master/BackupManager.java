@@ -347,13 +347,17 @@ public class BackupManager {
    */
   public static final class Metrics {
     private static final Timer BACKUP_ENTRIES_PROCESS_TIME
-        = MetricsSystem.timer(MasterMetrics.BACKUP_ENTRIES_PROCESS_TIME);
+        = MetricsSystem.timer(MetricsSystem
+            .getMetricName(MasterMetrics.BACKUP_ENTRIES_PROCESS_TIME));
     private static final Timer BACKUP_RESTORE_PROCESS_TIME
-        = MetricsSystem.timer(MasterMetrics.BACKUP_RESTORE_PROCESS_TIME);
+        = MetricsSystem.timer(MetricsSystem
+            .getMetricName(MasterMetrics.BACKUP_RESTORE_PROCESS_TIME));
     private static final Counter LAST_BACKUP_ENTRIES_COUNT
-        = MetricsSystem.counter(MasterMetrics.LAST_BACKUP_ENTRIES_COUNT);
+        = MetricsSystem.counter(MetricsSystem
+            .getMetricName(MasterMetrics.LAST_BACKUP_ENTRIES_COUNT));
     private static final Counter LAST_BACKUP_RESTORE_COUNT
-        = MetricsSystem.counter(MasterMetrics.LAST_BACKUP_RESTORE_COUNT);
+        = MetricsSystem.counter(MetricsSystem
+            .getMetricName(MasterMetrics.LAST_BACKUP_RESTORE_COUNT));
 
     private Metrics() {
     } // prevent instantiation
