@@ -11,7 +11,7 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.grpc.MetricValue;
 import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.MasterMetrics;
@@ -19,13 +19,15 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.util.FormatUtils;
 
+import com.google.common.math.DoubleMath;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * Prints Alluxio metrics information.
@@ -35,7 +37,7 @@ public class MetricsCommand {
       = new DecimalFormat("###,###.#####", new DecimalFormatSymbols(Locale.US));
   private static final String INDENT = "    ";
 
-  private final MetaMasterClient mMetaMasterClient;
+  private final MetricsMasterClient mMetricsMasterClient;
   private final PrintStream mPrintStream;
   private String mInfoFormat = "%-40s %20s";
   private Map<String, MetricValue> mMetricsMap;
@@ -43,12 +45,12 @@ public class MetricsCommand {
   /**
    * Creates a new instance of {@link MetricsCommand}.
    *
-   * @param metaMasterClient client to connect to meta master client
+   * @param metricsMasterClient client to connect to metrics master client
    * @param printStream stream to print operation metrics information to
    */
-  public MetricsCommand(MetaMasterClient metaMasterClient, PrintStream printStream)
+  public MetricsCommand(MetricsMasterClient metricsMasterClient, PrintStream printStream)
       throws IOException {
-    mMetaMasterClient = metaMasterClient;
+    mMetricsMasterClient = metricsMasterClient;
     mPrintStream = printStream;
   }
 
@@ -58,18 +60,22 @@ public class MetricsCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    mMetricsMap = new TreeMap<>(mMetaMasterClient.getMetrics());
-    Long bytesReadLocal =
-        mMetricsMap.getOrDefault(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL),
-            MetricValue.newBuilder().setLongValue(0L).build()).getLongValue();
-    Long bytesReadRemote = mMetricsMap
-        .getOrDefault(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO),
-            MetricValue.newBuilder().setLongValue(0L).build())
-        .getLongValue();
-    Long bytesReadUfs = mMetricsMap
-        .getOrDefault(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL),
-            MetricValue.newBuilder().setLongValue(0L).build())
-        .getLongValue();
+    Map<String, MetricValue> metrics = mMetricsMasterClient.getMetrics();
+    // The returned map is unmodifiable so we make a copy of it
+    mMetricsMap = new HashMap<>(metrics);
+
+    MetricValue bytesReadLocalValue =
+        mMetricsMap.get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL));
+    long bytesReadLocal = bytesReadLocalValue == null ? 0L
+        : (long) bytesReadLocalValue.getDoubleValue();
+    MetricValue bytesReadRemoteValue =
+        mMetricsMap.get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO));
+    long bytesReadRemote = bytesReadRemoteValue == null ? 0L
+        : (long) bytesReadRemoteValue.getDoubleValue();
+
+    MetricValue bytesReadUfsValue =
+        mMetricsMap.get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL));
+    long bytesReadUfs = bytesReadUfsValue == null ? 0L : (long) bytesReadUfsValue.getDoubleValue();
 
     mPrintStream.println("Total IO: ");
     printMetric(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL),
@@ -120,40 +126,68 @@ public class MetricsCommand {
         + String.format(mInfoFormat, "Miss", cacheMissPercentage));
 
     mPrintStream.println("\nLogical Operations: ");
-    printMetric(MasterMetrics.DIRECTORIES_CREATED, "Directories Created", false);
-    printMetric(MasterMetrics.FILE_BLOCK_INFOS_GOT, "File Block Infos Got", false);
-    printMetric(MasterMetrics.FILE_INFOS_GOT, "File Infos Got", false);
-    printMetric(MasterMetrics.FILES_COMPLETED, "Files Completed", false);
-    printMetric(MasterMetrics.FILES_CREATED, "Files Created", false);
-    printMetric(MasterMetrics.FILES_FREED, "Files Freed", false);
-    printMetric(MasterMetrics.FILES_PERSISTED, "Files Persisted", false);
-    printMetric(MasterMetrics.NEW_BLOCKS_GOT, "New Blocks Got", false);
-    printMetric(MasterMetrics.PATHS_DELETED, "Paths Deleted", false);
-    printMetric(MasterMetrics.PATHS_MOUNTED, "Paths Mounted", false);
-    printMetric(MasterMetrics.PATHS_RENAMED, "Paths Renamed", false);
-    printMetric(MasterMetrics.PATHS_UNMOUNTED, "Paths Unmounted", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.DIRECTORIES_CREATED),
+        "Directories Created", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.FILE_BLOCK_INFOS_GOT),
+        "File Block Infos Got", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.FILE_INFOS_GOT),
+        "File Infos Got", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.FILES_COMPLETED),
+        "Files Completed", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.FILES_CREATED),
+        "Files Created", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.FILES_FREED),
+        "Files Freed", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.FILES_PERSISTED),
+        "Files Persisted", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.NEW_BLOCKS_GOT),
+        "New Blocks Got", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.PATHS_DELETED),
+        "Paths Deleted", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.PATHS_MOUNTED),
+        "Paths Mounted", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.PATHS_RENAMED),
+        "Paths Renamed", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.PATHS_UNMOUNTED),
+        "Paths Unmounted", false);
 
     mPrintStream.println("\nRPC Invocations: ");
-    printMetric(MasterMetrics.COMPLETE_FILE_OPS, "Complete File Operations", false);
-    printMetric(MasterMetrics.CREATE_DIRECTORIES_OPS, "Create Directory Operations", false);
-    printMetric(MasterMetrics.CREATE_FILES_OPS, "Create File Operations", false);
-    printMetric(MasterMetrics.DELETE_PATHS_OPS, "Delete Path Operations", false);
-    printMetric(MasterMetrics.FREE_FILE_OPS, "Free File Operations", false);
-    printMetric(MasterMetrics.GET_FILE_BLOCK_INFO_OPS, "Get File Block Info Operations", false);
-    printMetric(MasterMetrics.GET_FILE_INFO_OPS, "Get File Info Operations", false);
-    printMetric(MasterMetrics.GET_NEW_BLOCK_OPS, "Get New Block Operations", false);
-    printMetric(MasterMetrics.MOUNT_OPS, "Mount Operations", false);
-    printMetric(MasterMetrics.RENAME_PATH_OPS, "Rename Path Operations", false);
-    printMetric(MasterMetrics.SET_ACL_OPS, "Set ACL Operations", false);
-    printMetric(MasterMetrics.SET_ATTRIBUTE_OPS, "Set Attribute Operations", false);
-    printMetric(MasterMetrics.UNMOUNT_OPS, "Unmount Operations", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.COMPLETE_FILE_OPS),
+        "Complete File Operations", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.CREATE_DIRECTORIES_OPS),
+        "Create Directory Operations", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.CREATE_FILES_OPS),
+        "Create File Operations", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.DELETE_PATHS_OPS),
+        "Delete Path Operations", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.FREE_FILE_OPS),
+        "Free File Operations", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.GET_FILE_BLOCK_INFO_OPS),
+        "Get File Block Info Operations", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.GET_FILE_INFO_OPS),
+        "Get File Info Operations", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.GET_NEW_BLOCK_OPS),
+        "Get New Block Operations", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.MOUNT_OPS),
+        "Mount Operations", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.RENAME_PATH_OPS),
+        "Rename Path Operations", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.SET_ACL_OPS),
+        "Set ACL Operations", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.SET_ATTRIBUTE_OPS),
+        "Set Attribute Operations", false);
+    printMetric(MetricsSystem.getMasterMetricName(MasterMetrics.UNMOUNT_OPS),
+        "Unmount Operations", false);
 
     // TODO(lu) improve printout info to sync with web UI
     mPrintStream.println("\nOther Metrics: ");
-    mInfoFormat = "%s  (%s)"; // Some property names are too long to fit in previous info format
+    // Some property names are too long to fit in previous info format
+    mInfoFormat = "%s  (Type: %s, Value: %s)";
     for (Map.Entry<String, MetricValue> entry : mMetricsMap.entrySet()) {
+      String value = entry.getValue().hasStringValue() ? entry.getValue().getStringValue() :
+          getFormattedDoubleValue(entry.getValue().getDoubleValue());
       mPrintStream.println(INDENT + String.format(mInfoFormat,
-          entry.getKey(), getFormattedValue(entry.getValue())));
+          entry.getKey(), entry.getValue().getMetricType(), value));
     }
     return 0;
   }
@@ -169,25 +203,21 @@ public class MetricsCommand {
     if (mMetricsMap == null || !mMetricsMap.containsKey(metricName)) {
       return;
     }
-    MetricValue metricValue = mMetricsMap.get(metricName);
-    String formattedValue = valueIsBytes ? FormatUtils.getSizeFromBytes(metricValue.getLongValue())
-        : getFormattedValue(metricValue);
+    MetricValue value = mMetricsMap.get(metricName);
+    String formattedValue = value.hasStringValue() ? value.getStringValue()
+        : valueIsBytes ? FormatUtils.getSizeFromBytes((long) value.getDoubleValue())
+        : getFormattedDoubleValue(value.getDoubleValue());
+
     mPrintStream.println(INDENT + String.format(mInfoFormat,
         nickName == null ? metricName : nickName, formattedValue));
     mMetricsMap.remove(metricName);
   }
 
-  /**
-   * Gets the formatted metric value.
-   *
-   * @param metricValue the metricValue to transform
-   * @return the formatted metric value
-   */
-  private String getFormattedValue(MetricValue metricValue) {
-    if (metricValue.hasDoubleValue()) {
-      return DECIMAL_FORMAT.format(metricValue.getDoubleValue());
+  private String getFormattedDoubleValue(double value) {
+    if (DoubleMath.isMathematicalInteger(value)) {
+      return DECIMAL_FORMAT.format((long) value);
     } else {
-      return DECIMAL_FORMAT.format(metricValue.getLongValue());
+      return String.valueOf(value);
     }
   }
 }

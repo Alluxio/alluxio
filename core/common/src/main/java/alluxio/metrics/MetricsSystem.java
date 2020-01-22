@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.MetricType;
+import alluxio.grpc.MetricValue;
 import alluxio.metrics.sink.Sink;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -35,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -231,7 +233,7 @@ public final class MetricsSystem {
    * @param name the metric name
    * @return the metric registry name
    */
-  private static String getMasterMetricName(String name) {
+  public static String getMasterMetricName(String name) {
     String result = CACHED_METRICS.get(name);
     if (result != null) {
       return result;
@@ -444,7 +446,7 @@ public final class MetricsSystem {
    */
   private static synchronized List<alluxio.grpc.Metric> reportMetrics(InstanceType instanceType) {
     List<alluxio.grpc.Metric> rpcMetrics = new ArrayList<>(20);
-    for (Metric m : allMetrics(instanceType)) {
+    for (Metric m : allInstanceMetrics(instanceType)) {
       // last reported metrics only need to be tracked for COUNTER metrics
       // Store the last metric value which was sent, but the rpc metric returned should only
       // contain the difference of the current value, and the last value sent. If it doesn't
@@ -484,24 +486,62 @@ public final class MetricsSystem {
    * @return all the master's metrics in the format of {@link Metric}
    */
   public static List<Metric> allMasterMetrics() {
-    return allMetrics(InstanceType.MASTER);
+    return allInstanceMetrics(InstanceType.MASTER);
+  }
+
+  /**
+   * @return a map of all metrics stored in the current node
+   *         from metric name to {@link MetricValue}
+   */
+  public static Map<String, MetricValue> allMetrics() {
+    Map<String, MetricValue> metricsMap = new HashMap<>();
+    for (Entry<String, Gauge> entry : METRIC_REGISTRY.getGauges().entrySet()) {
+      Object value = entry.getValue().getValue();
+      MetricValue.Builder valueBuilder = MetricValue.newBuilder().setMetricType(MetricType.GAUGE);
+      if (!(value instanceof Number)) {
+        valueBuilder.setStringValue(value.toString());
+      } else {
+        valueBuilder.setDoubleValue(((Number) value).doubleValue());
+      }
+      metricsMap.put(entry.getKey(), valueBuilder.build());
+    }
+    for (Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
+      metricsMap.put(entry.getKey(), MetricValue.newBuilder()
+          .setDoubleValue(entry.getValue().getCount()).setMetricType(MetricType.COUNTER).build());
+    }
+    for (Entry<String, Meter> entry : METRIC_REGISTRY.getMeters().entrySet()) {
+      metricsMap.put(entry.getKey(), MetricValue.newBuilder()
+          .setDoubleValue(entry.getValue().getOneMinuteRate())
+          .setMetricType(MetricType.METER).build());
+    }
+    for (Entry<String, Timer> entry : METRIC_REGISTRY.getTimers().entrySet()) {
+      metricsMap.put(entry.getKey(), MetricValue.newBuilder()
+          .setDoubleValue(entry.getValue().getCount()).setMetricType(MetricType.TIMER).build());
+    }
+    return metricsMap;
   }
 
   /**
    * @return all the worker's metrics in the format of {@link Metric}
    */
   public static List<Metric> allWorkerMetrics() {
-    return allMetrics(InstanceType.WORKER);
+    return allInstanceMetrics(InstanceType.WORKER);
   }
 
   /**
    * @return all the client's metrics in the format of {@link Metric}
    */
   public static List<Metric> allClientMetrics() {
-    return allMetrics(InstanceType.CLIENT);
+    return allInstanceMetrics(InstanceType.CLIENT);
   }
 
-  private static List<Metric> allMetrics(MetricsSystem.InstanceType instanceType) {
+  /**
+   * Gets all metrics of the given instance type.
+   *
+   * @param instanceType the requested instance type
+   * @return all metrics of the given instance type
+   */
+  private static List<Metric> allInstanceMetrics(MetricsSystem.InstanceType instanceType) {
     List<Metric> metrics = new ArrayList<>();
     for (Entry<String, Gauge> entry : METRIC_REGISTRY.getGauges().entrySet()) {
       if (entry.getKey().startsWith(instanceType.toString())) {

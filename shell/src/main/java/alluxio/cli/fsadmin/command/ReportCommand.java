@@ -149,7 +149,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         break;
       case METRICS:
         MetricsCommand metricsCommand = new MetricsCommand(
-            mMetaClient, mPrintStream);
+            mMetricsClient, mPrintStream);
         metricsCommand.run();
         break;
       case SUMMARY:

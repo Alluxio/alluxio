@@ -28,6 +28,18 @@ message MetricsHeartbeatPRequest {
 
 message MetricsHeartbeatPResponse {}
 
+// This type is used as a union, only one of doubleValue or longValue should be set
+message MetricValue {
+  optional double doubleValue = 1;
+  optional string stringValue = 2;
+  optional grpc.MetricType metricType = 6;
+}
+
+message GetMetricsPOptions {}
+message GetMetricsPResponse {
+  map<string,MetricValue> metrics = 1;
+}
+
 /**
  * This interface contains metrics master service endpoints for Alluxio clients.
  */
@@ -42,4 +54,9 @@ service MetricsMasterClientService {
    * Periodic metrics master client heartbeat.
    */
   rpc  MetricsHeartbeat(MetricsHeartbeatPRequest) returns (MetricsHeartbeatPResponse);
+
+  /**
+   * Returns a map of metrics property names and their values from Alluxio metrics system.
+   */
+  rpc GetMetrics(GetMetricsPOptions) returns (GetMetricsPResponse);
 }
