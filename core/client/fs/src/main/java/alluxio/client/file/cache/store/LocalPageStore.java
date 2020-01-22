@@ -150,7 +150,8 @@ public class LocalPageStore implements PageStore {
     List<PageId> pages = Files.walk(rootDir)
         .filter(Files::isRegularFile)
         .map((path) -> {
-          if (CONF_FILE.equals(path.getFileName().toString())) {
+          Path name = Preconditions.checkNotNull(path.getFileName());
+          if (CONF_FILE.equals(name.toString())) {
             return null;
           }
           PageId id = getPageId(path);
