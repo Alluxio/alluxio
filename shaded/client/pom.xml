@@ -195,6 +195,7 @@
                   <excludes>
                     <exclude>**/pom.xml</exclude>
                     <!-- Exclude the packages belonging to JDK -->
+                    <!-- TODO(lu) shade more detailed ibm JDK packages like com.ibm.security -->
                     <exclude>com/ibm/*</exclude>
                     <exclude>com/ibm/**/*</exclude>
                     <exclude>com/sun/tools/*</exclude>
