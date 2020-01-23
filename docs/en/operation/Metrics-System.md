@@ -94,22 +94,6 @@ The filename will correspond with the metric name.
 
 Refer to `metrics.properties.template` for all possible sink specific configurations. 
 
-## View Transformed Metrics
-
-Besides the raw metrics shown via metrics servlet or custom metrics configuration,
-users can view more human-readable metrics stored in the leading master via leading master web UI 
-or [fsadmin report metrics]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#report) CLI.
-
-![Master Metrics]({{ '/img/screenshot_generalMetrics.png' | relativize_url }})
-
-Total IO Size
-| Nick Name | Origin Metric Name |
-|-----------------------------------|---------------------------------------------|
-| Remote Alluxio Read | cluster.BytesReadAlluxio |
-| Remote Alluxio Write | cluster.BytesWrittenAlluxio |
-| Under Filesystem Read | cluster.BytesReadUfsAll | 
-| Under Filesystem Write | cluster.BytesWrittenUfsAll |
-
 ## Metric Types
 
 Each metric falls into one of the following metric types:
@@ -182,30 +166,27 @@ so multiple clients can be combined into a logical application.
 | Master.UfsCapacityUsed | Used capacity of the under file system in bytes |
 | Master.UfsCapacityFree | Free capacity of the under file system in bytes |
 
-### Alluxio I/O Data
+#### Cluster I/O Data
 
 Total amount of data transferred through Alluxio and I/O throughput estimates (meter statistics)
 
 | Metric Name | Description |
 |--------------------------------------|---------------------------------------------------------------------------|
-| cluster.BytesReadAlluxio | Total number of bytes read from Alluxio storage. This does not include UFS reads |
+| cluster.BytesReadAlluxio | Total number of bytes read from Alluxio storage reported by Alluxio workers. This does not include UFS reads |
 | cluster.BytesReadAlluxioThroughput | Bytes read throughput from Alluxio storage |
-| cluster.BytesReadDomain | Total number of bytes read from Alluxio storage via domain socket |
+| cluster.BytesReadDomain | Total number of bytes read from Alluxio storage via domain socket reported by Alluxio workers. |
 | cluster.BytesReadDomainThroughput | Bytes read throughput from Alluxio storage via domain socket |
-| cluster.BytesReadLocal | Total number of bytes read from local filesystem |
+| cluster.BytesReadLocal | Total number of bytes read from local filesystem by Alluxio clients |
 | cluster.BytesReadLocalThroughput | Bytes read throughput from local filesystem |
-| cluster.BytesWrittenAlluxio | Total number of bytes written to Alluxio storage. This does not include UFS writes |
-| cluster.BytesWrittenAlluxioThroughput | Bytes write throughput to Alluxio storage |
-| cluster.BytesWrittenDomain | Total number of bytes written to Alluxio storage via domain socket |
-| cluster.BytesWrittenDomainThroughput | Throughput of bytes written to Alluxio storage via domain socket |
-
-### Under Storage I/O Data
-
-| Metric Name | Description |
-|-----------------------------------|---------------------------------------------|
-| cluster.BytesReadUfsAll | Total number of bytes read from all Alluxio UFSes |
+| cluster.BytesReadUfsAll | Total number of bytes read from all Alluxio UFSes reported by Alluxio workers |
 | cluster.BytesReadUfsThroughput | Bytes read throughput from all Alluxio UFSes |
-| cluster.BytesWrittenUfsAll | Total number of bytes written to all Alluxio UFSes | 
+| cluster.BytesWrittenAlluxio | Total number of bytes written to Alluxio storage reported by Alluxio workers. This does not include UFS writes |
+| cluster.BytesWrittenAlluxioThroughput | Bytes write throughput to Alluxio storage |
+| cluster.BytesWrittenDomain | Total number of bytes written to Alluxio storage via domain socket reported by Alluxio workers |
+| cluster.BytesWrittenDomainThroughput | Throughput of bytes written to Alluxio storage via domain socket |
+| cluster.BytesWrittenLocal | Total number of bytes written to local filesystem by Alluxio clients |
+| cluster.BytesWrittenLocalThroughput | Bytes read throughput from local filesystem |
+| cluster.BytesWrittenUfsAll | Total number of bytes written to all Alluxio UFSes reported by Alluxio workers | 
 | cluster.BytesWrittenUfsThroughput | Bytes write throughput to all Alluxio UFSes |
 
 #### Under storage RPCs
@@ -346,3 +327,25 @@ A subset of the memory usage metrics are listed as following:
 | pools.Compressed-Class-Space.used | Used memory of collection usage from the pool from which memory is use for class metadata |
 | pools.PS-Eden-Space.used | Used memory of collection usage from the pool from which memory is initially allocated for most objects |
 | pools.PS-Survivor-Space.used | Used memory of collection usage from the pool containing objects that have survived the garbage collection of the Eden space |
+
+## View Transformed Metrics
+
+Besides the raw metrics shown via metrics servlet or custom metrics configuration,
+users can view more human-readable metrics stored in the leading master via leading master web UI 
+or [fsadmin report metrics]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#report) CLI.
+
+![Master Metrics]({{ '/img/screenshot_generalMetrics.png' | relativize_url }})
+
+The nick name and original metric name corresponding are shown:
+| Nick Name | Original Metric Name |
+|-----------------------------------|---------------------------------------------|
+| Local Alluxio (Domain Socket) Read | cluster.BytesReadDomain |
+| Local Alluxio (Domain Socket) Write | cluster.BytesWrittenDomain |
+| Local Alluxio (Short-circuit) Read | cluster.BytesReadLocal |
+| Local Alluxio (Short-circuit) Write | cluster.BytesWrittenLocal |
+| Remote Alluxio Read | cluster.BytesReadAlluxio |
+| Remote Alluxio Write | cluster.BytesWrittenAlluxio |
+| Under Filesystem Read | cluster.BytesReadUfsAll | 
+| Under Filesystem Write | cluster.BytesWrittenUfsAll |
+Detailed descriptions of those metrics are in [cluster metrics section](#cluster-metrics)
+

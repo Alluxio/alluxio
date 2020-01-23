@@ -905,13 +905,16 @@ public final class AlluxioMasterRestServiceHandler {
           .setCacheMiss(String.format("%.2f", cacheMissPercentage));
 
       // cluster write size
+      Long bytesWrittenLocal = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_WRITTEN_LOCAL)).getValue();
       Long bytesWrittenAlluxio = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO)).getValue();
       Long bytesWrittenDomainSocket = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_DOMAIN)).getValue();
       Long bytesWrittenUfs = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_ALL)).getValue();
-      response.setTotalBytesWrittenAlluxio(FormatUtils.getSizeFromBytes(bytesWrittenAlluxio))
+      response.setTotalBytesWrittenLocal(FormatUtils.getSizeFromBytes(bytesWrittenLocal))
+          .setTotalBytesWrittenAlluxio(FormatUtils.getSizeFromBytes(bytesWrittenAlluxio))
           .setTotalBytesWrittenDomainSocket(FormatUtils.getSizeFromBytes(bytesWrittenDomainSocket))
           .setTotalBytesWrittenUfs(FormatUtils.getSizeFromBytes(bytesWrittenUfs));
 
@@ -937,6 +940,9 @@ public final class AlluxioMasterRestServiceHandler {
           .setTotalBytesReadUfsThroughput(FormatUtils.getSizeFromBytes(bytesReadUfsThroughput));
 
       // cluster write throughput
+      Long bytesWrittenLocalThroughput = (Long) mr.getGauges()
+          .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_WRITTEN_LOCAL_THROUGHPUT))
+          .getValue();
       Long bytesWrittenAlluxioThroughput = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT))
           .getValue();
@@ -946,8 +952,8 @@ public final class AlluxioMasterRestServiceHandler {
       Long bytesWrittenUfsThroughput = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT))
           .getValue();
-      response.setTotalBytesWrittenAlluxioThroughput(
-          FormatUtils.getSizeFromBytes(bytesWrittenAlluxioThroughput))
+      response.setTotalBytesWrittenLocalThroughput(FormatUtils.getSizeFromBytes(bytesWrittenLocalThroughput))
+          .setTotalBytesWrittenAlluxioThroughput(FormatUtils.getSizeFromBytes(bytesWrittenAlluxioThroughput))
           .setTotalBytesWrittenDomainSocketThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenDomainSocketThroughput))
           .setTotalBytesWrittenUfsThroughput(
