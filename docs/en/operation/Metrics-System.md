@@ -171,7 +171,7 @@ so multiple clients can be combined into a logical application.
 Total amount of data transferred through Alluxio and I/O throughput estimates (meter statistics)
 
 | Metric Name | Description |
-|--------------------------------------|---------------------------------------------------------------------------|
+|-----------------------------------------|---------------------------------------------------------------------------|
 | cluster.BytesReadAlluxio | Total number of bytes read from Alluxio storage reported by Alluxio workers. This does not include UFS reads |
 | cluster.BytesReadAlluxioThroughput | Bytes read throughput from Alluxio storage |
 | cluster.BytesReadDomain | Total number of bytes read from Alluxio storage via domain socket reported by Alluxio workers. |
@@ -180,6 +180,7 @@ Total amount of data transferred through Alluxio and I/O throughput estimates (m
 | cluster.BytesReadLocalThroughput | Bytes read throughput from local filesystem |
 | cluster.BytesReadUfsAll | Total number of bytes read from all Alluxio UFSes reported by Alluxio workers |
 | cluster.BytesReadUfsThroughput | Bytes read throughput from all Alluxio UFSes |
+| cluster.BytesReadPerUfs.UFS:<UFS_ADDRESS> | Total number of bytes read from Alluxio UFS <UFS_ADDRESS> reported by Alluxio workers |
 | cluster.BytesWrittenAlluxio | Total number of bytes written to Alluxio storage reported by Alluxio workers. This does not include UFS writes |
 | cluster.BytesWrittenAlluxioThroughput | Bytes write throughput to Alluxio storage |
 | cluster.BytesWrittenDomain | Total number of bytes written to Alluxio storage via domain socket reported by Alluxio workers |
@@ -188,6 +189,7 @@ Total amount of data transferred through Alluxio and I/O throughput estimates (m
 | cluster.BytesWrittenLocalThroughput | Bytes read throughput from local filesystem |
 | cluster.BytesWrittenUfsAll | Total number of bytes written to all Alluxio UFSes reported by Alluxio workers | 
 | cluster.BytesWrittenUfsThroughput | Bytes write throughput to all Alluxio UFSes |
+| cluster.BytesWrittenPerUfs.UFS:<UFS_ADDRESS> | Total number of bytes written to UFS <UFS_ADDRESS> reported by Alluxio workers | 
 
 #### Under storage RPCs
 
@@ -264,11 +266,13 @@ how many failures an operation runs into (in the format of `Master.<RPC_NAME>Fai
 
 ### Worker Metrics
 
+#### Worker Status information
+
 | Metric Name | Description |
 |---------------------------------------------|-----------------------------------------------------|
-| Worker.<WORKER_HOSTNAME>.CapacityTotal | Total capacity of this worker in bytes
-| Worker.<WORKER_HOSTNAME>.CapacityUsed | Used capacity of this worker in bytes
-| Worker.<WORKER_HOSTNAME>.CapacityFree | Free capacity of this worker in bytes
+| Worker.<WORKER_HOSTNAME>.CapacityTotal | Total capacity of this worker in bytes |
+| Worker.<WORKER_HOSTNAME>.CapacityUsed | Used capacity of this worker in bytes |
+| Worker.<WORKER_HOSTNAME>.CapacityFree | Free capacity of this worker in bytes |
 | Worker.<WORKER_HOSTNAME>.BlocksCached | Total number of blocks in Alluxio worker storages |
 | Worker.<WORKER_HOSTNAME>.BlocksAccessed | Total number of times blocks in this worker are accessed |
 | Worker.<WORKER_HOSTNAME>.BlocksCanceled | Total number of aborted temporary blocks |
@@ -282,6 +286,36 @@ how many failures an operation runs into (in the format of `Master.<RPC_NAME>Fai
 | Worker.<WORKER_HOSTNAME>.AsyncCacheFailedBlocks | Total number of blocks failed to be cached asynchronously |
 | Worker.<WORKER_HOSTNAME>.AsyncCacheUfsBlocks | Total number of async cache blocks which have local source |
 | Worker.<WORKER_HOSTNAME>.AsyncCacheRemoteBlocks | Total number of remote blocks to async cache locally |
+| Worker.<WORKER_HOSTNAME>.UfsSessionCount-Ufs:<UFS_ADDRESS> | The total number of currently opened UFS sessions to connect to the given <UFS_ADDRESS> from this worker |
+
+#### Worker I/O data
+
+| Metric Name | Description |
+|---------------------------------------------|-----------------------------------------------------|
+| Worker.<WORKER_HOSTNAME>.BytesReadAlluxio |  Total number of bytes read from the Alluxio storage in worker <WORKER_HOSTNAME> |
+| Worker.<WORKER_HOSTNAME>.BytesReadAlluxioThroughput | Bytes read throughput from Alluxio storage in worker <WORKER_HOSTNAME> |
+| Worker.<WORKER_HOSTNAME>.BytesReadDomain | Total number of bytes read from Alluxio storage in worker <WORKER_HOSTNAME> via domain socket |
+| Worker.<WORKER_HOSTNAME>.BytesReadDomainThroughput | Bytes read throughput from Alluxio storage in worker <WORKER_HOSTNAME> via domain socket |
+| Worker.<WORKER_HOSTNAME>.BytesReadPerUfs.UFS:<UFS_ADDRESS> | Total number of bytes read from UFS <UFS_ADDRESS> in worker <WORKER_HOSTNAME> |
+| Worker.<WORKER_HOSTNAME>.BytesReadUfsThroughput.UFS:<UFS_ADDRESS> | Bytes read throughput from UFS <UFS_ADDRESS> in worker <WORKER_HOSTNAME> |
+| Worker.<WORKER_HOSTNAME>.BytesWrittenAlluxio |  Total number of bytes written to the Alluxio storage in worker <WORKER_HOSTNAME> |
+| Worker.<WORKER_HOSTNAME>.BytesWrittenAlluxioThroughput | Bytes written throughput to Alluxio storage in worker <WORKER_HOSTNAME> |
+| Worker.<WORKER_HOSTNAME>.BytesWrittenDomain | Total number of bytes written to the Alluxio storage in worker <WORKER_HOSTNAME> via domain socket |
+| Worker.<WORKER_HOSTNAME>.BytesWrittenDomainThroughput | Bytes written throughput to Alluxio storage in worker <WORKER_HOSTNAME> via domain socket |
+| Worker.<WORKER_HOSTNAME>.BytesWrittenPerUfs.UFS:<UFS_ADDRESS> | Total number of bytes written from UFS <UFS_ADDRESS> in worker <WORKER_HOSTNAME> |
+| Worker.<WORKER_HOSTNAME>.BytesWrittenUfsThroughput.UFS:<UFS_ADDRESS> | Bytes written throughput from UFS <UFS_ADDRESS> in worker <WORKER_HOSTNAME> |
+
+#### Worker operations metrics
+
+Alluxio workers record timer metrics of all the requests they received from either Alluxio leading master or Alluxio clients.
+The following is a subset of the recorded operation metrics:
+| Metric Name | Description |
+|---------------------------------------------|-----------------------------------------------------|
+| Worker.<WORKER_HOSTNAME>.OpenBlock.User:<USER_NAME> | The total number and duration of the OpenBlock operation processed by worker <WORKER_HOSTNAME> called by user <USER_NAME> |
+| Worker.<WORKER_HOSTNAME>.CloseBlock.User:<USER_NAME> | The total number and duration of the CloseBlock operation processed by worker <WORKER_HOSTNAME> called by user <USER_NAME> |
+| Worker.<WORKER_HOSTNAME>.CreateBlock.User:<USER_NAME> | The total number and duration of the CreateBlock operation processed by worker <WORKER_HOSTNAME> called by user <USER_NAME> |
+| Worker.<WORKER_HOSTNAME>.CommitBlock.User:<USER_NAME> | The total number and duration of the CommitBlock operation processed by worker <WORKER_HOSTNAME> called by user <USER_NAME> |
+| Worker.<WORKER_HOSTNAME>.asyncCache.User:<USER_NAME> | The total number and duration of the caching a block asynchronously operation processed by worker <WORKER_HOSTNAME> called by user <USER_NAME> |
 
 ### Process Common Metrics
 
@@ -331,14 +365,14 @@ A subset of the memory usage metrics are listed as following:
 ## View Transformed Metrics
 
 Besides the raw metrics shown via metrics servlet or custom metrics configuration,
-users can view more human-readable metrics stored in the leading master via leading master web UI 
+users can view more human-readable metrics stored in the leading master via leading master web UI metrics page
 or [fsadmin report metrics]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#report) CLI.
 
 ![Master Metrics]({{ '/img/screenshot_generalMetrics.png' | relativize_url }})
 
 The nick name and original metric name corresponding are shown:
 | Nick Name | Original Metric Name |
-|-----------------------------------|---------------------------------------------|
+|-----------------------------------|------------------------------|
 | Local Alluxio (Domain Socket) Read | cluster.BytesReadDomain |
 | Local Alluxio (Domain Socket) Write | cluster.BytesWrittenDomain |
 | Local Alluxio (Short-circuit) Read | cluster.BytesReadLocal |
@@ -349,3 +383,7 @@ The nick name and original metric name corresponding are shown:
 | Under Filesystem Write | cluster.BytesWrittenUfsAll |
 Detailed descriptions of those metrics are in [cluster metrics section](#cluster-metrics)
 
+`Mounted Under FileSystem Read` shows the `cluster.BytesReadPerUfs.UFS:<UFS_ADDRESS>` of each Alluxio UFS.
+`Mounted Under FileSystem Write` shows the `cluster.BytesWrittenPerUfs.UFS:<UFS_ADDRESS>` of each Alluxio UFS.
+
+`Logical Operations` and `RPC Invocations` presents [master logical operation metrics](#master-logical-operations-and-results).

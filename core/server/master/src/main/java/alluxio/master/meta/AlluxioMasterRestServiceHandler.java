@@ -952,8 +952,10 @@ public final class AlluxioMasterRestServiceHandler {
       Long bytesWrittenUfsThroughput = (Long) mr.getGauges()
           .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT))
           .getValue();
-      response.setTotalBytesWrittenLocalThroughput(FormatUtils.getSizeFromBytes(bytesWrittenLocalThroughput))
-          .setTotalBytesWrittenAlluxioThroughput(FormatUtils.getSizeFromBytes(bytesWrittenAlluxioThroughput))
+      response.setTotalBytesWrittenLocalThroughput(
+              FormatUtils.getSizeFromBytes(bytesWrittenLocalThroughput))
+          .setTotalBytesWrittenAlluxioThroughput(
+              FormatUtils.getSizeFromBytes(bytesWrittenAlluxioThroughput))
           .setTotalBytesWrittenDomainSocketThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenDomainSocketThroughput))
           .setTotalBytesWrittenUfsThroughput(
