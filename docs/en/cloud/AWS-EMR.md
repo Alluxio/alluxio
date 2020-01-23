@@ -83,7 +83,7 @@ The default instance type for the AMI is `r4.4xlarge`.
     For example, you can use the URL: `https://downloads.alluxio.io/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz`
     - You can also specify additional Alluxio properties as a delimited list of key-value pairs in the format `key=value`.
     For example, `alluxio.user.file.writetype.default=CACHE_THROUGH` instructs Alluxio to write files synchronously to the underlying storage system.
-    See more about [write type options](https://docs.alluxio.io/ee/user/stable/en/Architecture-DataFlow.html#data-flow-write).
+    See more about [write type options]({{ '/en/Architecture-DataFlow.html#data-flow-write' | relativize_url }}).
 - `configurations`: The path to the configuration json file, also hosted in a publicly readable S3 bucket: `s3://alluxio-public/emr/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-emr.json`
 - `ec2-attributes`: EC2 settings to provide, most notably the name of the key pair to use to connect to the cluster
 

@@ -163,7 +163,7 @@ It is assumed for the remainder of this guide that commands will be run from wit
 {% accordion explore %}
   {% collapsible Use the Web UI and CLI %}
 We’ll use a combination of the Alluxio web UI at **http://EC2_PUBLIC_DNS:19999**
-and the [Alluxio CLI](https://docs.alluxio.io/os/user/stable/en/basic/Command-Line-Interface.html)
+and the [Alluxio CLI]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }})
 to explore the Alluxio filesystem and cluster status.
 
 The instance comes with an Amazon S3 bucket pre-mounted in Alluxio at the `/s3` directory.
@@ -315,7 +315,7 @@ Exit the Presto shell with `exit;`
 Take note of the query execution time; did you notice any difference in performance?
 If you want replicate the same result, you will need to free the data from Alluxio memory.
 After exiting the Presto shell,
-run the alluxio [free](https://docs.alluxio.io/os/user/stable/en/basic/Command-Line-Interface.html#free)
+run the alluxio [free]({{ '/en/basic/Command-Line-Interface.html#free' | relativize_url }})
 command to free the data.
 
 ```console
