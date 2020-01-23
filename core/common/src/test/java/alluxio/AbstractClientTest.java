@@ -146,6 +146,9 @@ public final class AbstractClientTest {
     Mockito.doThrow(new RuntimeException("test"))
             .when(context)
             .loadConfIfNotLoaded(argument.capture());
+    Mockito.doReturn(Mockito.mock(alluxio.security.user.BaseUserState.class))
+            .when(context)
+            .getUserState();
 
     try {
       client.connect();
