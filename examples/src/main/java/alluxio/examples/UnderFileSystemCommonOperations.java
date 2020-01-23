@@ -267,6 +267,27 @@ public final class UnderFileSystemCommonOperations {
   }
 
   /**
+   * Test for create file, open and seek.
+   */
+  @RelatedS3Operations(operations = {"upload", "getObject"})
+  public void createOpenSkip() throws IOException {
+    String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createOpenSkip");
+    prepareMultiBlockFile(testFile);
+    int[] offsets = {0, 256, 511, 512, 513, 768, 1024, 1025};
+    for (int offset : offsets) {
+      InputStream inputStream = mUfs.open(testFile, OpenOptions.defaults());
+      long bytesSkipped = 0;
+      while (bytesSkipped != offset) {
+        bytesSkipped += inputStream.skip(offset - bytesSkipped);
+      }
+      if (TEST_BYTES[offset % TEST_BYTES.length] != inputStream.read()) {
+        throw new IOException(FILE_CONTENT_INCORRECT);
+      }
+      inputStream.close();
+    }
+  }
+
+  /**
    * Test for deleting file.
    */
   @RelatedS3Operations(operations = {"upload", "deleteObject", "getObjectMetadata"})

@@ -77,7 +77,8 @@ public class HdfsPositionedUnderFileInputStream extends SeekableUnderFileInputSt
 
   @Override
   public long skip(long n) throws IOException {
-    return mPos += n;
+    mPos += n;
+    return n;
   }
 
   @Override
