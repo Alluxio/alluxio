@@ -28,7 +28,7 @@ message MetricsHeartbeatPRequest {
 
 message MetricsHeartbeatPResponse {}
 
-// This type is used as a union, only one of doubleValue or longValue should be set
+// This type is used as a union, only one of doubleValue or stringValue should be set
 message MetricValue {
   optional double doubleValue = 1;
   optional string stringValue = 2;
