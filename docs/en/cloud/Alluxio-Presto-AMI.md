@@ -60,7 +60,7 @@ The AMI with the longer name is derived from the shorter one but is constrained 
 
 Among the large table of instance types and their specifications, scroll down to search for the `r4.4xlarge` instance type.
 
-**Warning:** `r4.4xlarge` is provisioned with the minimum amount of resources needed to run this AMI.
+> **Warning:** `r4.4xlarge` is provisioned with the minimum amount of resources needed to run this AMI.
 Choosing a different instance type may result in unexpected errors.
 
 ![presto_sandbox_ec2_instance_type]({{ '/img/presto_sandbox_ec2_instance_type.png' | relativize_url }})
@@ -112,7 +112,7 @@ The browser will display a loading spinner with status messages
 before arriving at a launched page with a blue `View Instances` button on the bottom.
 Click this button to return back to the Instances page.
 
-**Important for newer accounts!!**
+ > **Important for newer accounts!!**
 Accounts may encounter an instance limit error when attempting to launch an instance of type `r4.4xlarge`.
 This is because each account is limited on how many instances can be launched at a time for each type.
 Newer accounts typically will not be allowed to launch larger instance types;
@@ -209,7 +209,7 @@ presto --catalog hive --debug
 presto>
 ```
 
-**Tip:** YOu can exit at any time by typing `exit;`
+> **Tip:** YOu can exit at any time by typing `exit;`
 
 The instance comes pre-loaded with tables in Presto. A schema named `alluxio` has already been defined.
 The database contains the tables from the TPC-DS benchmark.
@@ -298,7 +298,7 @@ Peak Memory: 2.17GB
 11:30 [396M rows, 6.16GB] [574K rows/s, 9.14MB/s]
 ```
 
-**Note:** In the last line of the output, `11:30` represents the query time in `mm:ss` format.
+> **Note:** In the last line of the output, `11:30` represents the query time in `mm:ss` format.
 
   {% endcollapsible %}
   {% collapsible Rerun the query to see performance improvement %}
@@ -309,7 +309,7 @@ Running the query again should be faster since the data is now cached in Alluxio
 unlike the first query which read its data from the S3 bucket.
 Let’s run it again!
 
-**Tip:** You can hit the up arrow while in the Presto CLI to scroll through previously executed commands.
+> **Tip:** You can hit the up arrow while in the Presto CLI to scroll through previously executed commands.
 Exit the Presto shell with `exit;`
 
 Take note of the query execution time; did you notice any difference in performance?
