@@ -2212,10 +2212,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_EVICTOR_BLOCK_TRANSFER_THREAD_COUNT =
       new Builder(Name.WORKER_EVICTOR_BLOCK_TRANSFER_THREAD_COUNT)
-          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
-              "Use {CPU core count} for block transfers.")
+          .setDefaultSupplier(() -> Math.max(1, Runtime.getRuntime().availableProcessors() / 2),
+              "Use half of the {CPU core count} for block transfers.")
           .setDescription("The number of threads used to transfer blocks "
-              + "in the data server during eviction.")
+              + "in the data server during eviction. Increasing this will help "
+              + "having faster evictions at the cost of slowing down other data tasks.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
