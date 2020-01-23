@@ -4186,6 +4186,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
                 job.getUri(), fileId, inode.getPersistenceState());
             break;
           case TO_BE_PERSISTED:
+            UpdateInodeEntry.Builder builder = UpdateInodeEntry.newBuilder();
             try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
               UnderFileSystem ufs = ufsResource.get();
               String ufsPath = resolution.getUri().toString();
@@ -4200,6 +4201,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
               }
               ufs.setOwner(ufsPath, inode.getOwner(), inode.getGroup());
               ufs.setMode(ufsPath, inode.getMode());
+              builder.setUfsFingerprint(ufs.getFingerprint(ufsPath));
             }
 
             mInodeTree.updateInodeFile(journalContext, UpdateInodeFileEntry.newBuilder()
@@ -4207,7 +4209,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
                 .setPersistJobId(Constants.PERSISTENCE_INVALID_JOB_ID)
                 .setTempUfsPath(Constants.PERSISTENCE_INVALID_UFS_PATH)
                 .build());
-            mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()
+            mInodeTree.updateInode(journalContext, builder
                 .setId(inode.getId())
                 .setPersistenceState(PersistenceState.PERSISTED.name())
                 .build());
