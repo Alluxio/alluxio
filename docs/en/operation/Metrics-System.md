@@ -32,7 +32,7 @@ Each instance can report to zero or more sinks.
 * `GraphiteSink`: Sends metrics to a Graphite server.
 * `MetricsServlet`: Adds a servlet in Web UI to serve metrics data as JSON data.
 
-## Configuration
+## Metrics Sink Configuration
 
 The metrics system is configured via a configuration file that Alluxio expects to be present at `$ALLUXIO_HOME/conf/metrics.properties`. 
 A custom file location can be specified via the `alluxio.metrics.conf.file` configuration property. 
@@ -94,6 +94,22 @@ The filename will correspond with the metric name.
 
 Refer to `metrics.properties.template` for all possible sink specific configurations. 
 
+## View Transformed Metrics
+
+Besides the raw metrics shown via metrics servlet or custom metrics configuration,
+users can view more human-readable metrics stored in the leading master via leading master web UI 
+or [fsadmin report metrics]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#report) CLI.
+
+![Master Metrics]({{ '/img/screenshot_generalMetrics.png' | relativize_url }})
+
+Total IO Size
+| Nick Name | Origin Metric Name |
+|-----------------------------------|---------------------------------------------|
+| Remote Alluxio Read | cluster.BytesReadAlluxio |
+| Remote Alluxio Write | cluster.BytesWrittenAlluxio |
+| Under Filesystem Read | cluster.BytesReadUfsAll | 
+| Under Filesystem Write | cluster.BytesWrittenUfsAll |
+
 ## Metric Types
 
 Each metric falls into one of the following metric types:
@@ -132,8 +148,6 @@ Tags can be used to further filter or aggregate on various characteristics.
 
 ### Cluster Metrics
 
-![Master Metrics]({{ '/img/screenshot_generalMetrics.png' | relativize_url }})
-
 Workers and clients send metrics data to the Alluxio master through heartbeats.
 The interval is defined by property `alluxio.master.worker.heartbeat.interval` and `alluxio.user.metrics.heartbeat.interval` respectively.
 
@@ -143,13 +157,13 @@ By default, this will be in the form of 'app-[random number]'.
 This value can be configured through the property `alluxio.user.app.id`, 
 so multiple clients can be combined into a logical application.
 
-* Alluxio cluster information
+#### Alluxio Cluster Information
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------|
 | Master.Workers | Total number of active Alluxio workers in this cluster |
 
-* Alluxio storage capacity
+#### Alluxio Storage Capacity
 
 | Metric Name | Description |
 |--------------------------------|--------------------------------------------------------------------------|
@@ -160,7 +174,7 @@ so multiple clients can be combined into a logical application.
 | Master.CapacityFree | Free capacity of the Alluxio file system in bytes |
 | Master.CapacityFreeTier<TIER> | Free capacity in tier <TIER> of the Alluxio file system in bytes |
 
-* Under storage capacity
+#### Under Storage Capacity
 
 | Metric Name | Description |
 |-------------------------|--------------------------------------------------|
@@ -168,7 +182,9 @@ so multiple clients can be combined into a logical application.
 | Master.UfsCapacityUsed | Used capacity of the under file system in bytes |
 | Master.UfsCapacityFree | Free capacity of the under file system in bytes |
 
-* Total amount of data transferred through Alluxio and I/O throughput estimates (meter statistics)
+### Alluxio I/O Data
+
+Total amount of data transferred through Alluxio and I/O throughput estimates (meter statistics)
 
 | Metric Name | Description |
 |--------------------------------------|---------------------------------------------------------------------------|
@@ -183,7 +199,7 @@ so multiple clients can be combined into a logical application.
 | cluster.BytesWrittenDomain | Total number of bytes written to Alluxio storage via domain socket |
 | cluster.BytesWrittenDomainThroughput | Throughput of bytes written to Alluxio storage via domain socket |
 
-* I/O to under storages
+### Under Storage I/O Data
 
 | Metric Name | Description |
 |-----------------------------------|---------------------------------------------|
@@ -192,7 +208,7 @@ so multiple clients can be combined into a logical application.
 | cluster.BytesWrittenUfsAll | Total number of bytes written to all Alluxio UFSes | 
 | cluster.BytesWrittenUfsThroughput | Bytes write throughput to all Alluxio UFSes |
 
-* Under storage RPCs
+#### Under storage RPCs
 
 For all th UFS RPCs (e.g. create file, delete file, get file status), 
 the timer metrics of each RPC will be recorded as well as the failure counters if any.
@@ -201,14 +217,14 @@ For example: `cluster.UfsOp<RPC_NAME>.UFS:<UFS_ADDRESS>` records the number of U
 
 ### Master Metrics
 
-* Master summary information
+#### Master Summary Information
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
 | Master.TotalPaths | Total number of files and directory in Alluxio namespace |
 | Master.UfsSessionCount-Ufs:<UFS_ADDRESS> | The total number of currently opened UFS sessions to connect to the given <UFS_ADDRESS> |
 
-* Master Logical operations and results
+#### Master Logical Operations and Results
 
 | Metric Name | Description |
 |---------------------------|-----------------------------------------------------|
@@ -243,7 +259,7 @@ All the Alluxio filesystem client operations come with a retry mechanism
 where master metrics record how many retries an operation has (in the format of `Master.<RPC_NAME>Retries`) and 
 how many failures an operation runs into (in the format of `Master.<RPC_NAME>Failures`).
 
-* Master timer metrics
+#### Master Timer Metrics
 
 | Metric Name | Description |
 |----------------------------|-----------------------------------------------------|
@@ -256,7 +272,7 @@ how many failures an operation runs into (in the format of `Master.<RPC_NAME>Fai
 | Master.getWorkerId | The duration statistics of getting worker id |
 | Master.registerWorker | The duration statistics of registering worker to master |
 
-* Other Master metrics
+#### Other Master Metrics
 
 | Metric Name | Description |
 |---------------------------------|-----------------------------------------------------|
@@ -290,7 +306,7 @@ how many failures an operation runs into (in the format of `Master.<RPC_NAME>Fai
 
 The following metrics are collected on each instance (Master, Worker or Client).
 
-* JVM attributes
+#### JVM Attributes
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
@@ -298,7 +314,7 @@ The following metrics are collected on each instance (Master, Worker or Client).
 | uptime | The uptime of the JVM |
 | vendor | The current JVM vendor |
 
-* Garbage collector statistics
+#### Garbage Collector Statistics
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
@@ -307,7 +323,7 @@ The following metrics are collected on each instance (Master, Worker or Client).
 | PS-Scavenge.count | Total number of scavenge |
 | PS-Scavenge.time | The time used to scavenge |
 
-* Memory usage
+#### Memory Usage
 
 Alluxio provides overall and detailed memory usage information.
 Detailed memory usage information of code cache, compressed class space, metaspace, PS Eden space, PS old gen, and PS survivor space
