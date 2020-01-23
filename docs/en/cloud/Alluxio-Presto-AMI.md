@@ -26,6 +26,7 @@ by reading through Alluxio to access locally cached data, originally stored in a
 - A terminal window with [SSH](https://man.openbsd.org/ssh.1)
 
 ## Launch an EC2 instance with Presto + Alluxio stack
+
 {% accordion launch %}
   {% collapsible Open the web console %}
 Open a web browser and navigate to the [EC2 console](https://console.aws.amazon.com/ec2), logging in with your credentials when prompted.
@@ -80,7 +81,7 @@ Set the port range of the new rule to `8080` to allow access to the Presto web U
 Set the source to be `Anywhere`.
 
 Repeat the above steps to add another rule to open port `19999` to allow access to the Alluxio web UI.
-Click the blue `Review and Launch button on the bottom right to proceed.
+Click the blue `Review and Launch` button on the bottom right to proceed.
 
 ![presto_sandbox_ec2_security_groups]({{ '/img/presto_sandbox_ec2_security_groups.png' | relativize_url }})
 
@@ -158,6 +159,7 @@ It is assumed for the remainder of this guide that commands will be run from wit
 
 
 ## Explore Alluxio using its Web UI and CLI
+
 {% accordion explore %}
   {% collapsible Use the Web UI and CLI %}
 We’ll use a combination of the Alluxio web UI at **http://EC2_PUBLIC_DNS:19999**
@@ -185,14 +187,15 @@ drwxr-xr-x  ec2-user       ec2-user                     1       PERSISTED 07-17-
 drwx------                                              4       PERSISTED 07-17-2019 23:45:16:220  DIR /s3
 ```
 
-The /s3 directory contains the remote data that is located in S3 (37GB)
-and the /promotion directory contains data from a local file (53KB) that has already been cached in Alluxio worker memory.
+The `/s3` directory contains the remote data that is located in S3 (37GB)
+and the `/promotion` directory contains data from a local file (53KB) that has already been cached in Alluxio worker memory.
 This setup in Alluxio allows us to run a single Presto query that utilizes data from different sources.
   {% endcollapsible %}
 {% endaccordion %}
 
 
 ## Run Queries with Presto on Alluxio
+
 Now we’ll use Presto + Alluxio to show how Alluxio can massively decrease query times by reading cached data.
 You’ll use Presto through the command line;
 however, you can also use the Presto UI at **http://EC2_PUBLIC_DNS:8080** to view the status of your queries.
