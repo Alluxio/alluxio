@@ -365,11 +365,10 @@ A subset of the memory usage metrics are listed as following:
 | pools.PS-Eden-Space.used | Used memory of collection usage from the pool from which memory is initially allocated for most objects |
 | pools.PS-Survivor-Space.used | Used memory of collection usage from the pool containing objects that have survived the garbage collection of the Eden space |
 
-## View Transformed Metrics
+## Master Web UI Metrics
 
 Besides the raw metrics shown via metrics servlet or custom metrics configuration,
-users can view more human-readable metrics stored in the leading master via leading master web UI metrics page
-or [fsadmin report metrics]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#report) CLI.
+users can view more human-readable metrics stored in the leading master via leading master web UI metrics page.
 
 ![Master Metrics]({{ '/img/screenshot_generalMetrics.png' | relativize_url }})
 
@@ -389,4 +388,4 @@ Detailed descriptions of those metrics are in [cluster metrics section](#cluster
 `Mounted Under FileSystem Read` shows the `cluster.BytesReadPerUfs.UFS:<UFS_ADDRESS>` of each Alluxio UFS.
 `Mounted Under FileSystem Write` shows the `cluster.BytesWrittenPerUfs.UFS:<UFS_ADDRESS>` of each Alluxio UFS.
 
-`Logical Operations` and `RPC Invocations` presents [master logical operation metrics](#master-logical-operations-and-results).
+`Logical Operations` and `RPC Invocations` present [master logical operation metrics](#master-logical-operations-and-results).
