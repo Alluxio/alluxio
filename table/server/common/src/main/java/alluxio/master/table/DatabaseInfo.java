@@ -13,6 +13,7 @@ package alluxio.master.table;
 
 import alluxio.grpc.table.PrincipalType;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
@@ -114,12 +115,12 @@ public class DatabaseInfo {
 
   @Override
   public String toString() {
-    return "DatabaseInfo{"
-        + "Location='" + mLocation + '\''
-        + ", OwnerName='" + mOwnerName + '\''
-        + ", OwnerType=" + mOwnerType
-        + ", Comment='" + mComment + '\''
-        + ", Parameters=" + mParameters
-        + '}';
+    return MoreObjects.toStringHelper(this)
+        .add("location", mLocation)
+        .add("ownerName", mOwnerName)
+        .add("ownerType", mOwnerType)
+        .add("comment", mComment)
+        .add("parameters", mParameters)
+        .toString();
   }
 }

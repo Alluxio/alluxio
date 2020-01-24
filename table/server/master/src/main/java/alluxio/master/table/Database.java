@@ -23,6 +23,7 @@ import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
 
+import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -293,7 +294,16 @@ public class Database implements Journaled {
 
   @Override
   public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-    return getTableIterator();
+    DatabaseInfo info = getDatabaseInfo();
+    Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setUpdateDatabaseInfo(
+        alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.newBuilder()
+            .setDbName(getName())
+            .setOwnerName(info.getOwnerName())
+            .setOwnerType(info.getOwnerType())
+            .setComment(info.getComment())
+            .setLocation(info.getLocation())
+            .putAllParameter(info.getParameters()).build()).build();
+    return Iterators.concat(Iterators.singletonIterator(entry), getTableIterator());
   }
 
   @Override

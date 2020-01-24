@@ -444,56 +444,12 @@ public class AlluxioCatalog implements Journaled {
     };
   }
 
-  private Iterator<Journal.JournalEntry> getDbInfoIterator() {
-    final Iterator<Map.Entry<String, Database>> it = mDBs.entrySet().iterator();
-    return new Iterator<Journal.JournalEntry>() {
-      private Map.Entry<String, Database> mEntry = null;
-
-      @Override
-      public boolean hasNext() {
-        if (mEntry != null) {
-          return true;
-        }
-        if (it.hasNext()) {
-          mEntry = it.next();
-          return true;
-        }
-        return false;
-      }
-
-      @Override
-      public Journal.JournalEntry next() {
-        if (!hasNext()) {
-          throw new NoSuchElementException();
-        }
-        Database database = mEntry.getValue();
-        mEntry = null;
-        DatabaseInfo info = database.getDatabaseInfo();
-        return Journal.JournalEntry.newBuilder().setUpdateDatabaseInfo(
-            alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.newBuilder()
-                .setDbName(database.getName())
-                .setOwnerName(info.getOwnerName())
-                .setOwnerType(info.getOwnerType())
-                .setComment(info.getComment())
-                .setLocation(info.getLocation())
-                .putAllParameter(info.getParameters()).build()).build();
-      }
-
-      @Override
-      public void remove() {
-        throw new UnsupportedOperationException(
-            "GetDbInfoIteratorr#Iterator#remove is not supported.");
-      }
-    };
-  }
-
   @Override
   public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
     List<Iterator<Journal.JournalEntry>> componentIters = StreamUtils
         .map(JournalEntryIterable::getJournalEntryIterator, mDBs.values());
 
-    return Iterators.concat(getDbIterator(), getDbInfoIterator(),
-        Iterators.concat(componentIters.iterator()));
+    return Iterators.concat(getDbIterator(), Iterators.concat(componentIters.iterator()));
   }
 
   @Override
