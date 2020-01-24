@@ -118,17 +118,8 @@ public class AlluxioCatalog implements Journaled {
               .setDbName(dbName)
               .putAllConfig(map).build()).build());
 
-      try {
-        mDBs.get(dbName).sync(journalContext);
-      } catch (Exception e) {
-        // Failed to connect to and sync the udb.
-        applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setDetachDb(
-            alluxio.proto.journal.Table.DetachDbEntry.newBuilder().setDbName(dbName).build())
-            .build());
-        throw new IOException(String
-            .format("Failed to connect underDb for Alluxio db '%s': %s", dbName,
-                e.getMessage()), e);
-      }
+      mDBs.get(dbName).sync(journalContext);
+
       return true;
     }
   }
@@ -205,7 +196,12 @@ public class AlluxioCatalog implements Journaled {
   public alluxio.grpc.table.Database getDatabase(String dbName)  throws IOException {
     try (LockResource l = getLock(dbName, true)) {
       Database db = getDatabaseByName(dbName);
-      return alluxio.grpc.table.Database.newBuilder().setDbName(db.getName()).build();
+      DatabaseInfo dbInfo = db.getDatabaseInfo();
+      return alluxio.grpc.table.Database.newBuilder()
+          .setDbName(db.getName()).setLocation(dbInfo.getLocation())
+          .setOwnerName(dbInfo.getOwnerName()).setOwnerType(dbInfo.getOwnerType())
+          .setComment(dbInfo.getComment()).putAllParameter(dbInfo.getParameters())
+          .build();
     }
   }
 
@@ -373,6 +369,9 @@ public class AlluxioCatalog implements Journaled {
     if (entry.hasAttachDb()) {
       apply(entry.getAttachDb());
       return true;
+    } else if (entry.hasUpdateDatabaseInfo()) {
+      Database db = mDBs.get(entry.getUpdateDatabaseInfo().getDbName());
+      return db.processJournalEntry(entry);
     } else if (entry.hasAddTable()) {
       Database db = mDBs.get(entry.getAddTable().getDbName());
       return db.processJournalEntry(entry);
@@ -435,11 +434,56 @@ public class AlluxioCatalog implements Journaled {
     };
   }
 
+  private Iterator<Journal.JournalEntry> getDbInfoIterator() {
+    final Iterator<Map.Entry<String, Database>> it = mDBs.entrySet().iterator();
+    return new Iterator<Journal.JournalEntry>() {
+      private Map.Entry<String, Database> mEntry = null;
+
+      @Override
+      public boolean hasNext() {
+        if (mEntry != null) {
+          return true;
+        }
+        if (it.hasNext()) {
+          mEntry = it.next();
+          return true;
+        }
+        return false;
+      }
+
+      @Override
+      public Journal.JournalEntry next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        Database database = mEntry.getValue();
+        mEntry = null;
+        DatabaseInfo info = database.getDatabaseInfo();
+        return Journal.JournalEntry.newBuilder().setUpdateDatabaseInfo(
+            alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.newBuilder()
+                .setDbName(database.getName())
+                .setOwnerName(info.getOwnerName())
+                .setOwnerType(info.getOwnerType())
+                .setComment(info.getComment())
+                .setLocation(info.getLocation())
+                .putAllParameter(info.getParameters()).build()).build();
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException(
+            "GetDbInfoIteratorr#Iterator#remove is not supported.");
+      }
+    };
+  }
+
   @Override
   public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
     List<Iterator<Journal.JournalEntry>> componentIters = StreamUtils
         .map(JournalEntryIterable::getJournalEntryIterator, mDBs.values());
-    return Iterators.concat(getDbIterator(), Iterators.concat(componentIters.iterator()));
+
+    return Iterators.concat(getDbIterator(), getDbInfoIterator(),
+        Iterators.concat(componentIters.iterator()));
   }
 
   @Override

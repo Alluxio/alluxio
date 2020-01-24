@@ -11,6 +11,8 @@
 
 package alluxio.table.common.udb;
 
+import alluxio.master.table.DatabaseInfo;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -44,4 +46,9 @@ public interface UnderDatabase {
    * @return the {@link UdbContext}
    */
   UdbContext getUdbContext();
+
+  /**
+   * @return get owner name
+   */
+  DatabaseInfo getDatabaseInfo() throws IOException;
 }

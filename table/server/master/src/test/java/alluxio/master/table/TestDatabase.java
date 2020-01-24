@@ -12,10 +12,13 @@
 package alluxio.master.table;
 
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.table.PrincipalType;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
+
+import com.google.common.collect.ImmutableMap;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,6 +32,8 @@ import java.util.Map;
 public class TestDatabase implements UnderDatabase {
   public static final String TEST_UDB_NAME = "test_udb_name";
   public static final String TABLE_NAME_PREFIX = "test_table_name";
+  public static DatabaseInfo sTestDbInfo = new DatabaseInfo("test://test", "TestOwner",
+      PrincipalType.USER, "comment", ImmutableMap.of());
   private static final TestDatabase DATABASE = new TestDatabase();
 
   private Map<String, UdbTable> mUdbTables;
@@ -108,5 +113,10 @@ public class TestDatabase implements UnderDatabase {
   @Override
   public UdbContext getUdbContext() {
     return mUdbContext;
+  }
+
+  @Override
+  public DatabaseInfo getDatabaseInfo() {
+    return sTestDbInfo;
   }
 }

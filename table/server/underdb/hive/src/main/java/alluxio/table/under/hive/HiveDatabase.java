@@ -21,6 +21,7 @@ import alluxio.grpc.MountPOptions;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
+import alluxio.master.table.DatabaseInfo;
 import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
@@ -36,10 +37,12 @@ import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.RetryingMetaStoreClient;
 import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
+import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.hive.metastore.api.Partition;
+import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -100,6 +103,22 @@ public class HiveDatabase implements UnderDatabase {
   @Override
   public UdbContext getUdbContext() {
     return mUdbContext;
+  }
+
+  @Override
+  public DatabaseInfo getDatabaseInfo() throws IOException {
+    try {
+      Database hiveDb = getHive().getDatabase(mHiveDbName);
+      alluxio.grpc.table.PrincipalType type = alluxio.grpc.table.PrincipalType.USER;
+      if (hiveDb.getOwnerType().equals(PrincipalType.ROLE)) {
+        type = alluxio.grpc.table.PrincipalType.ROLE;
+      }
+      return new DatabaseInfo(hiveDb.getLocationUri(), hiveDb.getOwnerName(), type,
+          hiveDb.getDescription(), hiveDb.getParameters());
+    } catch (TException  e) {
+      throw new IOException("Failed to get hive database " + mHiveDbName
+          + ". " + e.getMessage(), e);
+    }
   }
 
   @Override
