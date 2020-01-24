@@ -120,6 +120,8 @@ spec:
             name: job-rpc
           - containerPort: 20002
             name: job-web
+          - containerPort: 20003
+            name: job-embedded
           volumeMounts:
       restartPolicy: Always
       volumes:
