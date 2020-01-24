@@ -12,35 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.annotation.PublicApi;
-<<<<<<< HEAD
-import alluxio.client.AbstractOutStream;
-import alluxio.client.AlluxioStorageType;
-import alluxio.client.UnderStorageType;
-import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.client.block.stream.BlockOutStream;
-import alluxio.client.block.stream.UnderFileSystemFileOutStream;
-import alluxio.client.file.options.OutStreamOptions;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.CompleteFilePOptions;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
-import alluxio.resource.CloseableResource;
-import alluxio.util.CommonUtils;
-import alluxio.util.FileSystemOptions;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.WorkerNetAddress;
-
-import com.codahale.metrics.Counter;
-import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-=======
 import alluxio.client.Cancelable;
->>>>>>> upstream/master
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -75,16 +47,6 @@ public abstract class FileOutStream extends OutputStream implements Cancelable {
   /**
    * Aborts the output stream.
    */
-<<<<<<< HEAD
-  @ThreadSafe
-  private static final class Metrics {
-    private static final Counter BYTES_WRITTEN_UFS =
-        MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_UFS.getName());
-
-    private Metrics() {} // prevent instantiation
-  }
-=======
   @Override
   public void cancel() throws IOException {}
->>>>>>> upstream/master
 }

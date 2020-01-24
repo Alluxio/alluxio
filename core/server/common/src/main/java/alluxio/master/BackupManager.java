@@ -83,21 +83,14 @@ public class BackupManager {
    */
   public BackupManager(MasterRegistry registry) {
     mRegistry = registry;
-<<<<<<< HEAD
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_ENTRIES_COUNT.getName(),
         () -> mBackupEntriesCount);
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_RESTORE_COUNT.getName(),
         () -> mRestoreEntriesCount);
-=======
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem
-        .getMetricName(MasterMetrics.LAST_BACKUP_ENTRIES_COUNT), () -> mBackupEntriesCount);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem
-        .getMetricName(MasterMetrics.LAST_BACKUP_RESTORE_COUNT), () -> mRestoreEntriesCount);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem
-        .getMetricName(MasterMetrics.LAST_BACKUP_TIME_MS), () -> mBackupTimeMs);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem
-        .getMetricName(MasterMetrics.LAST_BACKUP_RESTORE_TIME_MS), () -> mRestoreTimeMs);
->>>>>>> upstream/master
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_RESTORE_TIME_MS.getName(),
+        () -> mRestoreTimeMs);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_TIME_MS.getName(),
+        () -> mBackupTimeMs);
   }
 
   /**
@@ -129,12 +122,7 @@ public class BackupManager {
     AtomicBoolean bufferingActive = new AtomicBoolean(true);
 
     // Start the timer for backup metrics.
-<<<<<<< HEAD
-    Timer.Context backup = MetricsSystem
-        .timer(MetricKey.MASTER_BACKUP_ENTRIES_PROCESS_TIME.getName()).time();
-=======
     long startBackupTime = System.currentTimeMillis();
->>>>>>> upstream/master
 
     // Submit master reader task.
     activeTasks.add(completionService.submit(() -> {
@@ -238,12 +226,7 @@ public class BackupManager {
       }, 30, 30, TimeUnit.SECONDS);
 
       // Start the timer for backup metrics.
-<<<<<<< HEAD
-      Timer.Context restore = MetricsSystem
-          .timer(MetricKey.MASTER_BACKUP_RESTORE_PROCESS_TIME.getName()).time();
-=======
       long startRestoreTime = System.currentTimeMillis();
->>>>>>> upstream/master
 
       // Create backup reader task.
       activeTasks.add(completionService.submit(() -> {

@@ -197,6 +197,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggreagated(false)
           .build();
+  public static final MetricKey MASTER_LAST_BACKUP_TIME_MS =
+      new MetricKey.Builder(Name.MASTER_LAST_BACKUP_TIME_MS)
+          .setDescription("The process time of the last backup")
+          .setMetricType(MetricType.TIMER)
+          .setIsClusterAggreagated(false)
+          .build();
   public static final MetricKey MASTER_LAST_BACKUP_RESTORE_COUNT =
       new MetricKey.Builder(Name.MASTER_LAST_BACKUP_RESTORE_COUNT)
           .setDescription("The total number of entries restored from backup "
@@ -204,14 +210,8 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggreagated(false)
           .build();
-  public static final MetricKey MASTER_BACKUP_ENTRIES_PROCESS_TIME =
-      new MetricKey.Builder(Name.MASTER_BACKUP_ENTRIES_PROCESS_TIME)
-          .setDescription("The process time of the last backup")
-          .setMetricType(MetricType.TIMER)
-          .setIsClusterAggreagated(false)
-          .build();
-  public static final MetricKey MASTER_BACKUP_RESTORE_PROCESS_TIME =
-      new MetricKey.Builder(Name.MASTER_BACKUP_RESTORE_PROCESS_TIME)
+  public static final MetricKey MASTER_LAST_BACKUP_RESTORE_TIME_MS =
+      new MetricKey.Builder(Name.MASTER_LAST_BACKUP_RESTORE_TIME_MS)
           .setDescription("The process time of the last restore from backup")
           .setMetricType(MetricType.TIMER)
           .setIsClusterAggreagated(false)
@@ -602,10 +602,10 @@ public final class MetricKey implements Comparable<MetricKey> {
     // metrics names for BackupManager
     public static final String MASTER_LAST_BACKUP_ENTRIES_COUNT = "MasterLastBackupEntriesCount";
     public static final String MASTER_LAST_BACKUP_RESTORE_COUNT = "MasterLastBackupRestoreCount";
-    public static final String MASTER_BACKUP_ENTRIES_PROCESS_TIME
-        = "MasterBackupEntriesProcessTime";
-    public static final String MASTER_BACKUP_RESTORE_PROCESS_TIME
-        = "MasterBackupRestoreProcessTime";
+    public static final String MASTER_LAST_BACKUP_TIME_MS
+        = "MasterLastBackupTimeMs";
+    public static final String MASTER_LAST_BACKUP_RESTORE_TIME_MS
+        = "MasterLastBackupRestoreTimeMs";
 
     // metrics names for FileSystemMaster
     public static final String MASTER_DIRECTORIES_CREATED = "MasterDirectoriesCreated";
