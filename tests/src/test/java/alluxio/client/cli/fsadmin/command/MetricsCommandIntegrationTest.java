@@ -14,13 +14,8 @@ package alluxio.client.cli.fsadmin.command;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.collection.IsIterableContainingInOrder;
-import org.hamcrest.core.IsIterableContaining;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Tests for report metrics command.
@@ -40,9 +35,9 @@ public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTes
    * @param output the metrics command output
    */
   private void checkMetricsResults(String output) {
-    Assert.assertThat(output,
-        CoreMatchers.containsString("cluster.BytesReadAlluxio  (Type: GAUGE, Value: 0B)"));
-    Assert.assertThat(output,
-        CoreMatchers.containsString("cluster.BytesReadAlluxioThroughput  (Type: GAUGE, Value: 0B/min)"));
+    Assert.assertThat(output, CoreMatchers
+        .containsString("cluster.BytesReadAlluxio  (Type: GAUGE, Value: 0B)"));
+    Assert.assertThat(output, CoreMatchers
+        .containsString("cluster.BytesReadAlluxioThroughput  (Type: GAUGE, Value: 0B/min)"));
   }
 }
