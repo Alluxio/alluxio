@@ -60,6 +60,7 @@ public final class JournalEntryAssociation {
     if (entry.hasAttachDb()
         || entry.hasAddTable()
         || entry.hasDetachDb()
+        || entry.hasUpdateDatabaseInfo()
         || entry.hasAddTransformJobInfo()
         || entry.hasRemoveTransformJobInfo()
         || entry.hasCompleteTransformTable()) {
