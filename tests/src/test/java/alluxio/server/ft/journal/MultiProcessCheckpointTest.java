@@ -20,7 +20,6 @@ import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
 import alluxio.metrics.MasterMetrics;
-import alluxio.metrics.MetricsSystem;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.IntegrationTestUtils;
@@ -56,7 +55,7 @@ public class MultiProcessCheckpointTest {
       }
       MetricsMasterClient metricsClient = cluster.getMetricsMasterClient();
       assertEquals(numFiles + 1, (long) metricsClient.getMetrics()
-          .get(MetricsSystem.getMasterMetricName(MasterMetrics.TOTAL_PATHS)).getDoubleValue());
+          .get("Master." + (MasterMetrics.TOTAL_PATHS)).getDoubleValue());
       IntegrationTestUtils.waitForUfsJournalCheckpoint(Constants.FILE_SYSTEM_MASTER_NAME,
           new URI(journal));
       cluster.stopMasters();
@@ -65,7 +64,7 @@ public class MultiProcessCheckpointTest {
       fs = cluster.getFileSystemClient();
       assertEquals(numFiles, fs.listStatus(new AlluxioURI("/")).size());
       assertEquals(numFiles + 1, (long) metricsClient.getMetrics()
-          .get(MetricsSystem.getMasterMetricName(MasterMetrics.TOTAL_PATHS)).getDoubleValue());
+          .get("Master." + (MasterMetrics.TOTAL_PATHS)).getDoubleValue());
       cluster.notifySuccess();
     } finally {
       cluster.destroy();

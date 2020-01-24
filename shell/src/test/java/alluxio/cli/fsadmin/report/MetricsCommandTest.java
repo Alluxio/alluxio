@@ -12,9 +12,9 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.metrics.MetricsMasterClient;
+import alluxio.grpc.MetricType;
 import alluxio.grpc.MetricValue;
 import alluxio.metrics.ClientMetrics;
-import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 
@@ -99,67 +99,23 @@ public class MetricsCommandTest {
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT),
         MetricValue.newBuilder().setDoubleValue(34264L).build());
 
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.DIRECTORIES_CREATED),
-        MetricValue.newBuilder().setDoubleValue(121L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.FILE_BLOCK_INFOS_GOT),
-        MetricValue.newBuilder().setDoubleValue(31243412L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.FILE_INFOS_GOT),
-        MetricValue.newBuilder().setDoubleValue(12312321434276L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.FILES_COMPLETED),
-        MetricValue.newBuilder().setDoubleValue(0L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.FILES_CREATED),
-        MetricValue.newBuilder().setDoubleValue(534L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.FILES_FREED),
-        MetricValue.newBuilder().setDoubleValue(2141L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.FILES_PERSISTED),
-        MetricValue.newBuilder().setDoubleValue(4171L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.NEW_BLOCKS_GOT),
-        MetricValue.newBuilder().setDoubleValue(4L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.PATHS_DELETED),
-        MetricValue.newBuilder().setDoubleValue(583L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.PATHS_MOUNTED),
-        MetricValue.newBuilder().setDoubleValue(3635L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.PATHS_RENAMED),
-        MetricValue.newBuilder().setDoubleValue(382L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.PATHS_UNMOUNTED),
-        MetricValue.newBuilder().setDoubleValue(975L).build());
-
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.COMPLETE_FILE_OPS),
-        MetricValue.newBuilder().setDoubleValue(813L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.CREATE_DIRECTORIES_OPS),
-        MetricValue.newBuilder().setDoubleValue(325728397L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.CREATE_FILES_OPS),
-        MetricValue.newBuilder().setDoubleValue(89L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.DELETE_PATHS_OPS),
-        MetricValue.newBuilder().setDoubleValue(21L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.FREE_FILE_OPS),
-        MetricValue.newBuilder().setDoubleValue(5213L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.GET_FILE_BLOCK_INFO_OPS),
-        MetricValue.newBuilder().setDoubleValue(798L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.GET_FILE_INFO_OPS),
-        MetricValue.newBuilder().setDoubleValue(32L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.GET_NEW_BLOCK_OPS),
-        MetricValue.newBuilder().setDoubleValue(912572136653L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.MOUNT_OPS),
-        MetricValue.newBuilder().setDoubleValue(953795L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.RENAME_PATH_OPS),
-        MetricValue.newBuilder().setDoubleValue(29L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.SET_ACL_OPS),
-        MetricValue.newBuilder().setDoubleValue(316L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.SET_ATTRIBUTE_OPS),
-        MetricValue.newBuilder().setDoubleValue(0L).build());
-    map.put(MetricsSystem.getMasterMetricName(MasterMetrics.UNMOUNT_OPS),
-        MetricValue.newBuilder().setDoubleValue(1L).build());
-
+    map.put("master.CompleteFileOps",
+        MetricValue.newBuilder().setMetricType(MetricType.COUNTER).setDoubleValue(813).build());
     map.put("UfsSessionCount-Ufs:_alluxio_underFSStorage",
-        MetricValue.newBuilder().setDoubleValue(8535L).build());
+        MetricValue.newBuilder().setMetricType(MetricType.COUNTER).setDoubleValue(8535L).build());
     map.put("UfsSessionCount-Ufs:file:___Users_alluxio_alluxioMountedFolder",
-        MetricValue.newBuilder().setDoubleValue(1231L).build());
+        MetricValue.newBuilder().setMetricType(MetricType.COUNTER).setDoubleValue(1231L).build());
+
     map.put("master.CapacityTotal",
         MetricValue.newBuilder().setDoubleValue(1154531246129122L).build());
+    map.put("master.getMetrics.User:alluxio", MetricValue.newBuilder()
+        .setMetricType(MetricType.TIMER).setDoubleValue(4).build());
+
     map.put("heap.used", MetricValue.newBuilder().setDoubleValue(0.0028321312).build());
     map.put("pools.Metaspace.usage", MetricValue.newBuilder().setDoubleValue(0.95728).build());
     map.put("pools.Metaspace.max", MetricValue.newBuilder().setDoubleValue(-1).build());
+    map.put("vendor", MetricValue.newBuilder().setMetricType(MetricType.GAUGE)
+        .setStringValue("AdoptOpenJDK OpenJDK 64-Bit Server VM 25.222-b10 (1.8)").build());
     return map;
   }
 
@@ -170,66 +126,31 @@ public class MetricsCommandTest {
     String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
     // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
     List<String> expectedOutput = Arrays.asList(
-        "Total IO: ",
-        "    Short-circuit Read                                    11.47GB",
-        "    Short-circuit Read (Domain Socket)                  4145.73KB",
-        "    From Remote Instances                                401.79MB",
-        "    Under Filesystem Read                                509.47MB",
-        "    Alluxio Write                                         22.98KB",
-        "    Alluxio Write (Domain Socket)                         62.43MB",
-        "    Under Filesystem Write                               317.70KB",
-        "",
-        "Total IO Throughput (Last Minute): ",
-        "    Short-circuit Read                                   117.42MB",
-        "    Short-circuit Read (Domain Socket)                    29.97MB",
-        "    From Remote Instances                                518.36MB",
-        "    Under Filesystem Read                                728.16KB",
-        "    Alluxio Write                                          8.03MB",
-        "    Alluxio Write (Domain Socket)                       1202.37KB",
-        "    Under Filesystem Write                                33.46KB",
-        "",
-        "Cache Hit Rate (Percentage): ",
-        "    Alluxio Local                                           92.80",
-        "    Alluxio Remote                                           3.18",
-        "    Miss                                                     4.03",
-        "",
-        "Logical Operations: ",
-        "    Directories Created                                       121",
-        "    File Block Infos Got                               31,243,412",
-        "    File Infos Got                             12,312,321,434,276",
-        "    Files Completed                                             0",
-        "    Files Created                                             534",
-        "    Files Freed                                             2,141",
-        "    Files Persisted                                         4,171",
-        "    New Blocks Got                                              4",
-        "    Paths Deleted                                             583",
-        "    Paths Mounted                                           3,635",
-        "    Paths Renamed                                             382",
-        "    Paths Unmounted                                           975",
-        "",
-        "RPC Invocations: ",
-        "    Complete File Operations                                  813",
-        "    Create Directory Operations                       325,728,397",
-        "    Create File Operations                                     89",
-        "    Delete Path Operations                                     21",
-        "    Free File Operations                                    5,213",
-        "    Get File Block Info Operations                            798",
-        "    Get File Info Operations                                   32",
-        "    Get New Block Operations                      912,572,136,653",
-        "    Mount Operations                                      953,795",
-        "    Rename Path Operations                                     29",
-        "    Set ACL Operations                                        316",
-        "    Set Attribute Operations                                    0",
-        "    Unmount Operations                                          1",
-        "",
-        "Other Metrics: ",
-        "    heap.used  (Type: GAUGE, Value: 0.0028321312)",
-        "    pools.Metaspace.usage  (Type: GAUGE, Value: 0.95728)",
-        "    pools.Metaspace.max  (Type: GAUGE, Value: -1)",
-        "    UfsSessionCount-Ufs:_alluxio_underFSStorage  (Type: GAUGE, Value: 8,535)",
-        "    UfsSessionCount-Ufs:file:___Users_alluxio_alluxioMountedFolder  (Type: GAUGE, Value: 1,231)",
-        "    master.CapacityTotal  (Type: GAUGE, Value: 1,154,531,246,129,122)");
+        "UfsSessionCount-Ufs:_alluxio_underFSStorage  (Type: COUNTER, Value: 8,535)",
+        "UfsSessionCount-Ufs:file:___Users_alluxio_alluxioMountedFolder  (Type: COUNTER, Value: 1,231)",
+        "cluster.BytesReadAlluxio  (Type: GAUGE, Value: 401.79MB)",
+        "cluster.BytesReadAlluxioThroughput  (Type: GAUGE, Value: 518.36MB/min)",
+        "cluster.BytesReadDomain  (Type: GAUGE, Value: 4145.73KB)",
+        "cluster.BytesReadDomainThroughput  (Type: GAUGE, Value: 29.97MB/min)",
+        "cluster.BytesReadLocal  (Type: GAUGE, Value: 11.47GB)",
+        "cluster.BytesReadLocalThroughput  (Type: GAUGE, Value: 117.42MB/min)",
+        "cluster.BytesReadUfsAll  (Type: GAUGE, Value: 509.47MB)",
+        "cluster.BytesReadUfsThroughput  (Type: GAUGE, Value: 728.16KB/min)",
+        "cluster.BytesWrittenAlluxio  (Type: GAUGE, Value: 22.98KB)",
+        "cluster.BytesWrittenAlluxioThroughput  (Type: GAUGE, Value: 8.03MB/min)",
+        "cluster.BytesWrittenDomain  (Type: GAUGE, Value: 62.43MB)",
+        "cluster.BytesWrittenDomainThroughput  (Type: GAUGE, Value: 1202.37KB/min)",
+        "cluster.BytesWrittenUfsAll  (Type: GAUGE, Value: 317.70KB)",
+        "cluster.BytesWrittenUfsThroughput  (Type: GAUGE, Value: 33.46KB/min)",
+        "heap.used  (Type: GAUGE, Value: 0.0028321312)",
+        "master.CapacityTotal  (Type: GAUGE, Value: 1,154,531,246,129,122)",
+        "master.CompleteFileOps  (Type: COUNTER, Value: 813)",
+        "master.getMetrics.User:alluxio  (Type: TIMER, Value: 4)",
+        "pools.Metaspace.max  (Type: GAUGE, Value: -1)",
+        "pools.Metaspace.usage  (Type: GAUGE, Value: 0.95728)",
+        "vendor  (Type: GAUGE, Value: AdoptOpenJDK OpenJDK 64-Bit Server VM 25.222-b10 (1.8))");
     // CHECKSTYLE.ON: LineLengthExceed
+    System.out.println(output);
     List<String> testOutput = Arrays.asList(output.split("\n"));
     Assert.assertThat(testOutput,
         IsIterableContainingInOrder.contains(expectedOutput.toArray()));
