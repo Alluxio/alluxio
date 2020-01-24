@@ -32,8 +32,8 @@ public abstract class AbstractSaslClientHandler implements SaslClientHandler {
   /** Initial challenge for client to start Sasl session. */
   private static final byte[] S_INITIATE_CHALLENGE = new byte[0];
 
-  private ChannelAuthenticationScheme mAuthScheme;
-
+  /** The scheme for SaslClient.  */
+  private final ChannelAuthenticationScheme mAuthScheme;
   /** Underlying SaslClient. */
   protected SaslClient mSaslClient;
 

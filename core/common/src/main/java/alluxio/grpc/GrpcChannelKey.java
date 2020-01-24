@@ -57,20 +57,24 @@ public class GrpcChannelKey {
   @IdentityField
   private Optional<EventLoopGroup> mEventLoopGroup = Optional.empty();
 
+  /** Non-identity field to show user readable client type. */
   private Optional<String> mClientType = Optional.empty();
+
   /** Unique channel identifier. */
-  private UUID mChannelId = UUID.randomUUID();
+  private final UUID mChannelId = UUID.randomUUID();
   /** Hostname to send to server for identification. */
-  private String mLocalHostName;
+  private final String mLocalHostName;
 
   private GrpcChannelKey(AlluxioConfiguration conf) {
     // Try to get local host name.
+    String localHostName;
     try {
-      mLocalHostName = NetworkAddressUtils
+      localHostName = NetworkAddressUtils
           .getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
     } catch (Exception e) {
-      mLocalHostName = "<UNKNOWN>";
+      localHostName = NetworkAddressUtils.UNKNOWN_HOSTNAME;
     }
+    mLocalHostName = localHostName;
   }
 
   /**
