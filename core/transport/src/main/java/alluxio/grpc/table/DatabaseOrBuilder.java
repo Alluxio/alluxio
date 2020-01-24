@@ -82,4 +82,41 @@ public interface DatabaseOrBuilder extends
 
   java.lang.String getParameterOrThrow(
       java.lang.String key);
+
+  /**
+   * <code>optional string owner_name = 5;</code>
+   */
+  boolean hasOwnerName();
+  /**
+   * <code>optional string owner_name = 5;</code>
+   */
+  java.lang.String getOwnerName();
+  /**
+   * <code>optional string owner_name = 5;</code>
+   */
+  com.google.protobuf.ByteString
+      getOwnerNameBytes();
+
+  /**
+   * <code>optional .alluxio.grpc.table.PrincipalType owner_type = 6;</code>
+   */
+  boolean hasOwnerType();
+  /**
+   * <code>optional .alluxio.grpc.table.PrincipalType owner_type = 6;</code>
+   */
+  alluxio.grpc.table.PrincipalType getOwnerType();
+
+  /**
+   * <code>optional string comment = 7;</code>
+   */
+  boolean hasComment();
+  /**
+   * <code>optional string comment = 7;</code>
+   */
+  java.lang.String getComment();
+  /**
+   * <code>optional string comment = 7;</code>
+   */
+  com.google.protobuf.ByteString
+      getCommentBytes();
 }

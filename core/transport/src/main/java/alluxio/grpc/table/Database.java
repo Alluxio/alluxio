@@ -19,6 +19,9 @@ private static final long serialVersionUID = 0L;
     dbName_ = "";
     description_ = "";
     location_ = "";
+    ownerName_ = "";
+    ownerType_ = 0;
+    comment_ = "";
   }
 
   @java.lang.Override
@@ -81,6 +84,29 @@ private static final long serialVersionUID = 0L;
                 ParameterDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
             parameter_.getMutableMap().put(
                 parameter__.getKey(), parameter__.getValue());
+            break;
+          }
+          case 42: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000008;
+            ownerName_ = bs;
+            break;
+          }
+          case 48: {
+            int rawValue = input.readEnum();
+            alluxio.grpc.table.PrincipalType value = alluxio.grpc.table.PrincipalType.valueOf(rawValue);
+            if (value == null) {
+              unknownFields.mergeVarintField(6, rawValue);
+            } else {
+              bitField0_ |= 0x00000010;
+              ownerType_ = rawValue;
+            }
+            break;
+          }
+          case 58: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000020;
+            comment_ = bs;
             break;
           }
         }
@@ -321,6 +347,106 @@ private static final long serialVersionUID = 0L;
     return map.get(key);
   }
 
+  public static final int OWNER_NAME_FIELD_NUMBER = 5;
+  private volatile java.lang.Object ownerName_;
+  /**
+   * <code>optional string owner_name = 5;</code>
+   */
+  public boolean hasOwnerName() {
+    return ((bitField0_ & 0x00000008) == 0x00000008);
+  }
+  /**
+   * <code>optional string owner_name = 5;</code>
+   */
+  public java.lang.String getOwnerName() {
+    java.lang.Object ref = ownerName_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        ownerName_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string owner_name = 5;</code>
+   */
+  public com.google.protobuf.ByteString
+      getOwnerNameBytes() {
+    java.lang.Object ref = ownerName_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      ownerName_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int OWNER_TYPE_FIELD_NUMBER = 6;
+  private int ownerType_;
+  /**
+   * <code>optional .alluxio.grpc.table.PrincipalType owner_type = 6;</code>
+   */
+  public boolean hasOwnerType() {
+    return ((bitField0_ & 0x00000010) == 0x00000010);
+  }
+  /**
+   * <code>optional .alluxio.grpc.table.PrincipalType owner_type = 6;</code>
+   */
+  public alluxio.grpc.table.PrincipalType getOwnerType() {
+    alluxio.grpc.table.PrincipalType result = alluxio.grpc.table.PrincipalType.valueOf(ownerType_);
+    return result == null ? alluxio.grpc.table.PrincipalType.USER : result;
+  }
+
+  public static final int COMMENT_FIELD_NUMBER = 7;
+  private volatile java.lang.Object comment_;
+  /**
+   * <code>optional string comment = 7;</code>
+   */
+  public boolean hasComment() {
+    return ((bitField0_ & 0x00000020) == 0x00000020);
+  }
+  /**
+   * <code>optional string comment = 7;</code>
+   */
+  public java.lang.String getComment() {
+    java.lang.Object ref = comment_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        comment_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string comment = 7;</code>
+   */
+  public com.google.protobuf.ByteString
+      getCommentBytes() {
+    java.lang.Object ref = comment_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      comment_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -348,6 +474,15 @@ private static final long serialVersionUID = 0L;
         internalGetParameter(),
         ParameterDefaultEntryHolder.defaultEntry,
         4);
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 5, ownerName_);
+    }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      output.writeEnum(6, ownerType_);
+    }
+    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 7, comment_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -374,6 +509,16 @@ private static final long serialVersionUID = 0L;
           .build();
       size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(4, parameter__);
+    }
+    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, ownerName_);
+    }
+    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeEnumSize(6, ownerType_);
+    }
+    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(7, comment_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -408,6 +553,20 @@ private static final long serialVersionUID = 0L;
     }
     result = result && internalGetParameter().equals(
         other.internalGetParameter());
+    result = result && (hasOwnerName() == other.hasOwnerName());
+    if (hasOwnerName()) {
+      result = result && getOwnerName()
+          .equals(other.getOwnerName());
+    }
+    result = result && (hasOwnerType() == other.hasOwnerType());
+    if (hasOwnerType()) {
+      result = result && ownerType_ == other.ownerType_;
+    }
+    result = result && (hasComment() == other.hasComment());
+    if (hasComment()) {
+      result = result && getComment()
+          .equals(other.getComment());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -434,6 +593,18 @@ private static final long serialVersionUID = 0L;
     if (!internalGetParameter().getMap().isEmpty()) {
       hash = (37 * hash) + PARAMETER_FIELD_NUMBER;
       hash = (53 * hash) + internalGetParameter().hashCode();
+    }
+    if (hasOwnerName()) {
+      hash = (37 * hash) + OWNER_NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getOwnerName().hashCode();
+    }
+    if (hasOwnerType()) {
+      hash = (37 * hash) + OWNER_TYPE_FIELD_NUMBER;
+      hash = (53 * hash) + ownerType_;
+    }
+    if (hasComment()) {
+      hash = (37 * hash) + COMMENT_FIELD_NUMBER;
+      hash = (53 * hash) + getComment().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -593,6 +764,12 @@ private static final long serialVersionUID = 0L;
       location_ = "";
       bitField0_ = (bitField0_ & ~0x00000004);
       internalGetMutableParameter().clear();
+      ownerName_ = "";
+      bitField0_ = (bitField0_ & ~0x00000010);
+      ownerType_ = 0;
+      bitField0_ = (bitField0_ & ~0x00000020);
+      comment_ = "";
+      bitField0_ = (bitField0_ & ~0x00000040);
       return this;
     }
 
@@ -631,6 +808,18 @@ private static final long serialVersionUID = 0L;
       result.location_ = location_;
       result.parameter_ = internalGetParameter();
       result.parameter_.makeImmutable();
+      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+        to_bitField0_ |= 0x00000008;
+      }
+      result.ownerName_ = ownerName_;
+      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+        to_bitField0_ |= 0x00000010;
+      }
+      result.ownerType_ = ownerType_;
+      if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+        to_bitField0_ |= 0x00000020;
+      }
+      result.comment_ = comment_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -690,6 +879,19 @@ private static final long serialVersionUID = 0L;
       }
       internalGetMutableParameter().mergeFrom(
           other.internalGetParameter());
+      if (other.hasOwnerName()) {
+        bitField0_ |= 0x00000010;
+        ownerName_ = other.ownerName_;
+        onChanged();
+      }
+      if (other.hasOwnerType()) {
+        setOwnerType(other.getOwnerType());
+      }
+      if (other.hasComment()) {
+        bitField0_ |= 0x00000040;
+        comment_ = other.comment_;
+        onChanged();
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -1066,6 +1268,194 @@ private static final long serialVersionUID = 0L;
         java.util.Map<java.lang.String, java.lang.String> values) {
       internalGetMutableParameter().getMutableMap()
           .putAll(values);
+      return this;
+    }
+
+    private java.lang.Object ownerName_ = "";
+    /**
+     * <code>optional string owner_name = 5;</code>
+     */
+    public boolean hasOwnerName() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional string owner_name = 5;</code>
+     */
+    public java.lang.String getOwnerName() {
+      java.lang.Object ref = ownerName_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          ownerName_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string owner_name = 5;</code>
+     */
+    public com.google.protobuf.ByteString
+        getOwnerNameBytes() {
+      java.lang.Object ref = ownerName_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ownerName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string owner_name = 5;</code>
+     */
+    public Builder setOwnerName(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000010;
+      ownerName_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string owner_name = 5;</code>
+     */
+    public Builder clearOwnerName() {
+      bitField0_ = (bitField0_ & ~0x00000010);
+      ownerName_ = getDefaultInstance().getOwnerName();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string owner_name = 5;</code>
+     */
+    public Builder setOwnerNameBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000010;
+      ownerName_ = value;
+      onChanged();
+      return this;
+    }
+
+    private int ownerType_ = 0;
+    /**
+     * <code>optional .alluxio.grpc.table.PrincipalType owner_type = 6;</code>
+     */
+    public boolean hasOwnerType() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <code>optional .alluxio.grpc.table.PrincipalType owner_type = 6;</code>
+     */
+    public alluxio.grpc.table.PrincipalType getOwnerType() {
+      alluxio.grpc.table.PrincipalType result = alluxio.grpc.table.PrincipalType.valueOf(ownerType_);
+      return result == null ? alluxio.grpc.table.PrincipalType.USER : result;
+    }
+    /**
+     * <code>optional .alluxio.grpc.table.PrincipalType owner_type = 6;</code>
+     */
+    public Builder setOwnerType(alluxio.grpc.table.PrincipalType value) {
+      if (value == null) {
+        throw new NullPointerException();
+      }
+      bitField0_ |= 0x00000020;
+      ownerType_ = value.getNumber();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.table.PrincipalType owner_type = 6;</code>
+     */
+    public Builder clearOwnerType() {
+      bitField0_ = (bitField0_ & ~0x00000020);
+      ownerType_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object comment_ = "";
+    /**
+     * <code>optional string comment = 7;</code>
+     */
+    public boolean hasComment() {
+      return ((bitField0_ & 0x00000040) == 0x00000040);
+    }
+    /**
+     * <code>optional string comment = 7;</code>
+     */
+    public java.lang.String getComment() {
+      java.lang.Object ref = comment_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          comment_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string comment = 7;</code>
+     */
+    public com.google.protobuf.ByteString
+        getCommentBytes() {
+      java.lang.Object ref = comment_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        comment_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string comment = 7;</code>
+     */
+    public Builder setComment(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000040;
+      comment_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string comment = 7;</code>
+     */
+    public Builder clearComment() {
+      bitField0_ = (bitField0_ & ~0x00000040);
+      comment_ = getDefaultInstance().getComment();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string comment = 7;</code>
+     */
+    public Builder setCommentBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000040;
+      comment_ = value;
+      onChanged();
       return this;
     }
     public final Builder setUnknownFields(

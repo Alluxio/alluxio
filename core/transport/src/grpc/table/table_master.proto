@@ -20,11 +20,19 @@ message Schema {
     repeated FieldSchema cols = 1;
 }
 
+enum PrincipalType {
+    USER = 0;
+    ROLE = 1;
+}
+
 message Database {
     optional string db_name = 1;
     optional string description = 2;
     optional string location = 3;
     map<string, string> parameter = 4;
+    optional string owner_name = 5;
+    optional PrincipalType owner_type = 6;
+    optional string comment = 7;
 }
 
 message TableInfo {

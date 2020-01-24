@@ -117,6 +117,16 @@ public class AlluxioCatalogTest {
         TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
         Collections.emptyMap());
     assertEquals(dbName, mCatalog.getDatabase(dbName).getDbName());
+    assertEquals(TestDatabase.sTestDbInfo.getComment(),
+        mCatalog.getDatabase(dbName).getComment());
+    assertEquals(TestDatabase.sTestDbInfo.getLocation(),
+        mCatalog.getDatabase(dbName).getLocation());
+    assertEquals(TestDatabase.sTestDbInfo.getOwnerName(),
+        mCatalog.getDatabase(dbName).getOwnerName());
+    assertEquals(TestDatabase.sTestDbInfo.getOwnerType(),
+        mCatalog.getDatabase(dbName).getOwnerType());
+    assertEquals(TestDatabase.sTestDbInfo.getParameters(),
+        mCatalog.getDatabase(dbName).getParameterMap());
   }
 
   @Test
