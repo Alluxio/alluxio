@@ -58,3 +58,13 @@ message RemoveTransformJobInfoEntry {
     optional string db_name = 1;
     optional string table_name = 2;
 }
+
+// next available id: 6
+message UpdateDatabaseInfoEntry {
+    optional string db_name = 1;
+    optional string location = 2;
+    map<string, string> parameter = 3;
+    optional string owner_name = 4;
+    optional alluxio.grpc.table.PrincipalType owner_type = 5;
+    optional string comment = 6;
+}

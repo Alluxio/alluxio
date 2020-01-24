@@ -2,7 +2,7 @@
 layout: global
 title: Running Apache HBase on Alluxio
 nickname: Apache HBase
-group: Data Applications
+group: Compute Integrations
 priority: 2
 ---
 

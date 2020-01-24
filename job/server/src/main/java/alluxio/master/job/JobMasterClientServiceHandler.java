@@ -28,6 +28,7 @@ import alluxio.grpc.RunPRequest;
 import alluxio.grpc.RunPResponse;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
+import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobWorkerHealth;
 
 import com.google.common.base.Preconditions;
@@ -85,7 +86,12 @@ public class JobMasterClientServiceHandler
   @Override
   public void listAll(ListAllPRequest request, StreamObserver<ListAllPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<ListAllPResponse>) () -> {
-      return ListAllPResponse.newBuilder().addAllJobIds(mJobMaster.list()).build();
+      ListAllPResponse.Builder builder = ListAllPResponse.newBuilder()
+          .addAllJobIds(mJobMaster.list());
+      for (JobInfo jobInfo : mJobMaster.listDetailed()) {
+        builder.addJobInfos(jobInfo.toProto());
+      }
+      return builder.build();
     }, "listAll", "request=%s", responseObserver, request);
   }
 

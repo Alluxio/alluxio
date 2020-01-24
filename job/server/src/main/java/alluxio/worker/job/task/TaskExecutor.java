@@ -13,17 +13,20 @@ package alluxio.worker.job.task;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.RunTaskCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.PlanDefinition;
 import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.RunTaskContext;
+import alluxio.job.util.SerializationUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.Serializable;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -37,8 +40,7 @@ public final class TaskExecutor implements Runnable {
 
   private final long mJobId;
   private final long mTaskId;
-  private final JobConfig mJobConfig;
-  private final Serializable mTaskArgs;
+  private final RunTaskCommand mRunTaskCommand;
   private final RunTaskContext mContext;
   private final TaskExecutorManager mTaskExecutorManager;
 
@@ -47,48 +49,66 @@ public final class TaskExecutor implements Runnable {
    *
    * @param jobId the job id
    * @param taskId the task id
-   * @param jobConfig the job configuration
-   * @param taskArgs the arguments passed to the task
+   * @param runTaskCommand the run task command
    * @param context the context on the worker
    * @param taskExecutorManager the task executor manager
    */
-  public TaskExecutor(long jobId, long taskId, JobConfig jobConfig, Serializable taskArgs,
+  public TaskExecutor(long jobId, long taskId, RunTaskCommand runTaskCommand,
       RunTaskContext context, TaskExecutorManager taskExecutorManager) {
     mJobId = jobId;
     mTaskId = taskId;
-    mJobConfig = jobConfig;
-    mTaskArgs = taskArgs;
+    mRunTaskCommand = runTaskCommand;
     mContext = Preconditions.checkNotNull(context);
     mTaskExecutorManager = Preconditions.checkNotNull(taskExecutorManager);
   }
 
   @Override
   public void run() {
-    // TODO(yupeng) set other logger
+    JobConfig jobConfig = null;
+    Serializable taskArgs = null;
+    try {
+      jobConfig = (JobConfig) SerializationUtils.deserialize(
+          mRunTaskCommand.getJobConfig().toByteArray());
+      if (mRunTaskCommand.hasTaskArgs()) {
+        taskArgs = SerializationUtils.deserialize(mRunTaskCommand.getTaskArgs().toByteArray());
+      }
+    } catch (IOException | ClassNotFoundException e) {
+      fail(e, jobConfig, null);
+    }
+
     PlanDefinition<JobConfig, Serializable, Serializable> definition;
     try {
-      definition = PlanDefinitionRegistry.INSTANCE.getJobDefinition(mJobConfig);
+      definition = PlanDefinitionRegistry.INSTANCE.getJobDefinition(jobConfig);
     } catch (JobDoesNotExistException e) {
-      LOG.error("The job definition for config {} does not exist.", mJobConfig.getName());
+      LOG.error("The job definition for config {} does not exist.", jobConfig.getName());
+      fail(e, jobConfig, taskArgs);
       return;
     }
+
+    mTaskExecutorManager.notifyTaskRunning(mJobId, mTaskId);
     Serializable result;
     try {
-      result = definition.runTask(mJobConfig, mTaskArgs, mContext);
+      result = definition.runTask(jobConfig, taskArgs, mContext);
     } catch (InterruptedException e) {
       // Cleanup around the interruption should already have been handled by a different thread
       Thread.currentThread().interrupt();
       return;
     } catch (Throwable t) {
-      if (ServerConfiguration.getBoolean(PropertyKey.DEBUG)) {
-        mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId, ExceptionUtils.getStackTrace(t));
-      } else {
-        mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId, t.getMessage());
-      }
-      LOG.warn("Exception running task for job {}({}) : {}", mJobConfig.getName(),
-          mTaskArgs.toString(), t.getMessage());
+      fail(t, jobConfig, taskArgs);
       return;
     }
     mTaskExecutorManager.notifyTaskCompletion(mJobId, mTaskId, result);
+  }
+
+  private void fail(Throwable t, JobConfig jobConfig, Serializable taskArgs) {
+    if (ServerConfiguration.getBoolean(PropertyKey.DEBUG)) {
+      mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId, ExceptionUtils.getStackTrace(t));
+    } else {
+      mTaskExecutorManager.notifyTaskFailure(mJobId, mTaskId, t.getMessage());
+    }
+    LOG.warn("Exception running task for job {}({}) : {}",
+        (jobConfig == null) ? "Undefined" : jobConfig.getName(),
+        (taskArgs == null) ? "Undefined" : taskArgs.toString(), t.getMessage());
+    return;
   }
 }

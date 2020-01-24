@@ -12,7 +12,7 @@
 package alluxio.worker.job.task;
 
 import alluxio.collections.Pair;
-import alluxio.job.JobConfig;
+import alluxio.grpc.RunTaskCommand;
 import alluxio.job.RunTaskContext;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
@@ -55,6 +55,9 @@ public class TaskExecutorManager {
 
   private final WorkerNetAddress mAddress;
 
+  private int mDefaultTaskExecutorPoolSize;
+  private boolean mThrottled;
+
   /**
    * Constructs a new instance of {@link TaskExecutorManager}.
    * @param taskExecutorPoolSize number of task executors in the pool
@@ -67,6 +70,8 @@ public class TaskExecutorManager {
     mTaskExecutionService = new PausableThreadPoolExecutor(taskExecutorPoolSize,
         MAX_TASK_EXECUTOR_POOL_SIZE, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(),
         ThreadFactoryUtils.build("task-execution-service-%d", true));
+    mDefaultTaskExecutorPoolSize = taskExecutorPoolSize;
+    mThrottled = false;
     mAddress = address;
   }
 
@@ -87,7 +92,7 @@ public class TaskExecutorManager {
   /**
    * @param taskExecutorPoolSize number of threads in the task executor pool
    */
-  public void setTaskExecutorPoolSize(int taskExecutorPoolSize) {
+  private synchronized void setTaskExecutorPoolSize(int taskExecutorPoolSize) {
     Preconditions.checkArgument(taskExecutorPoolSize >= 0);
     Preconditions.checkArgument(taskExecutorPoolSize <= MAX_TASK_EXECUTOR_POOL_SIZE);
 
@@ -102,10 +107,53 @@ public class TaskExecutorManager {
   }
 
   /**
+   * Sets the number of threads in the task executor pool when not throttled.
+   *
+   * @param defaultTaskExecutorPoolSize number of threads in the task executor pool
+   */
+  public synchronized void setDefaultTaskExecutorPoolSize(int defaultTaskExecutorPoolSize) {
+    mDefaultTaskExecutorPoolSize = defaultTaskExecutorPoolSize;
+    if (!mThrottled) {
+      setTaskExecutorPoolSize(mDefaultTaskExecutorPoolSize);
+    }
+  }
+
+  /**
+   * Throttle the TaskExecutorManager. This sets the internal thread pool size to 0 until
+   * unthrottled.
+   */
+  public synchronized void throttle() {
+    mThrottled = true;
+    setTaskExecutorPoolSize(0);
+  }
+
+  /**
+   * Unthrottle the TaskExecutorManager. This sets the internal thread pool size back to the
+   * default thread pool size.
+   */
+  public synchronized void unthrottle() {
+    mThrottled = false;
+    setTaskExecutorPoolSize(mDefaultTaskExecutorPoolSize);
+  }
+
+  /**
    * @return number of unfinished tasks
    */
   public int unfinishedTasks() {
     return mUnfinishedTasks.size();
+  }
+
+  /**
+   * Noitfy the start of the task.
+   *
+   * @param jobId the job id
+   * @param taskId the task id
+   */
+  public synchronized void notifyTaskRunning(long jobId, long taskId) {
+    Pair<Long, Long> id = new Pair<>(jobId, taskId);
+    TaskInfo taskInfo = mUnfinishedTasks.get(id);
+    taskInfo.setStatus(Status.RUNNING);
+    LOG.info("Task {} for job {} started", taskId, jobId);
   }
 
   /**
@@ -147,21 +195,20 @@ public class TaskExecutorManager {
    *
    * @param jobId the job id
    * @param taskId the task id
-   * @param jobConfig the job configuration
-   * @param taskArgs the arguments
+   * @param runTaskCommand the run task command
    * @param context the context of the worker
    */
-  public synchronized void executeTask(long jobId, long taskId, JobConfig jobConfig,
-      Serializable taskArgs, RunTaskContext context) {
+  public synchronized void executeTask(long jobId, long taskId, RunTaskCommand runTaskCommand,
+      RunTaskContext context) {
     Future<?> future = mTaskExecutionService
-        .submit(new TaskExecutor(jobId, taskId, jobConfig, taskArgs, context, this));
+        .submit(new TaskExecutor(jobId, taskId, runTaskCommand, context, this));
     Pair<Long, Long> id = new Pair<>(jobId, taskId);
     mTaskFutures.put(id, future);
-    TaskInfo taskInfo = new TaskInfo(jobId, taskId, Status.RUNNING, mAddress);
+    TaskInfo taskInfo = new TaskInfo(jobId, taskId, Status.CREATED, mAddress);
 
     mUnfinishedTasks.put(id, taskInfo);
     mTaskUpdates.put(id, taskInfo);
-    LOG.info("Task {} for job {} started", taskId, jobId);
+    LOG.info("Task {} for job {} received", taskId, jobId);
   }
 
   /**

@@ -221,6 +221,11 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     mMetricsStore.putWorkerMetrics(hostname, metrics);
   }
 
+  @Override
+  public void clearMetrics() {
+    mMetricsStore.clear();
+  }
+
   /**
    * Heartbeat executor that updates the cluster metrics.
    */

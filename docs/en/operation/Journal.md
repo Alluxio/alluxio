@@ -3,7 +3,7 @@ layout: global
 title: Journal Management
 nickname: Journal Management
 group: Operations
-priority: 0
+priority: 5
 ---
 
 * Table of Contents
@@ -117,7 +117,7 @@ $ ./bin/alluxio formatMasters
 Alluxio supports taking journal backups so that Alluxio metadata can be restored
 to a previous point in time. Generating a backup causes temporary service
 unavailability while the backup is written. 
-(See [Backup delegation on HA cluster](#Backup delegation on HA cluster) section for overcoming this limitation.)
+(See [Backup delegation on HA cluster](#backup-delegation-on-ha-cluster) section for overcoming this limitation.)
 
 To generate a backup, use the `fsadmin backup` CLI command.
 ```console

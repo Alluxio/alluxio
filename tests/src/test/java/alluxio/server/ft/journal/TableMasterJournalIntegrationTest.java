@@ -13,14 +13,19 @@ package alluxio.server.ft.journal;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+import alluxio.grpc.table.Database;
+import alluxio.grpc.table.PrincipalType;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.master.table.DatabaseInfo;
 import alluxio.master.table.Table;
 import alluxio.master.table.TableMaster;
 import alluxio.master.table.TestDatabase;
 import alluxio.master.table.TestUdbFactory;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,6 +59,11 @@ public class TableMasterJournalIntegrationTest {
 
     tableMaster
         .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
+    checkDb(tableMaster, DB_NAME, TestDatabase.sTestDbInfo);
+    DatabaseInfo oldInfo = TestDatabase.sTestDbInfo;
+    DatabaseInfo newInfo = new DatabaseInfo("test2://test2", "newowner",
+        PrincipalType.ROLE, "newcomment", ImmutableMap.of("key", "value"));
+
     checkTable(tableMaster, DB_NAME, 1, 2);
 
     // Update Udb, the table should stay the same, until we sync
@@ -72,8 +82,22 @@ public class TableMasterJournalIntegrationTest {
 
     TableMaster tableMasterRestart =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
+    TestDatabase.sTestDbInfo = newInfo;
+    checkDb(tableMasterRestart, DB_NAME, oldInfo);
     tableMasterRestart.syncDatabase(DB_NAME);
+    checkDb(tableMasterRestart, DB_NAME, newInfo);
     checkTable(tableMasterRestart, DB_NAME, 2, 3);
+  }
+
+  private void checkDb(TableMaster tableMaster, String dbName, DatabaseInfo dbInfo)
+      throws IOException {
+    Database db = tableMaster.getDatabase(dbName);
+    assertEquals(db.getDbName(), dbName);
+    assertEquals(db.getOwnerName(), dbInfo.getOwnerName());
+    assertEquals(db.getOwnerType(), dbInfo.getOwnerType());
+    assertEquals(db.getComment(), dbInfo.getComment());
+    assertEquals(db.getLocation(), dbInfo.getLocation());
+    assertEquals(db.getParameterMap(), dbInfo.getParameters());
   }
 
   private void checkTable(TableMaster tableMaster, String dbName, int numTables, int numPartitions)
@@ -91,9 +115,15 @@ public class TableMasterJournalIntegrationTest {
     LocalAlluxioCluster mCluster = mClusterResource.get();
     TableMaster tableMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
-
+    try {
+      tableMaster.getDatabase(DB_NAME);
+      fail();
+    } catch (IOException e) {
+      assertEquals("Database " + DB_NAME + " does not exist", e.getMessage());
+    }
     tableMaster
         .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
+    assertEquals(DB_NAME, tableMaster.getDatabase(DB_NAME).getDbName());
     List<String> oldTableNames = tableMaster.getAllTables(DB_NAME);
     Table tableOld = tableMaster.getTable(DB_NAME, oldTableNames.get(0));
 

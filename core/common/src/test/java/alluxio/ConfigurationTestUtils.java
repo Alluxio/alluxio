@@ -85,7 +85,9 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64");
     conf.put(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "1sec");
     conf.put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "1sec");
-    conf.put(PropertyKey.NETWORK_CONNECTION_AUTH_TIMEOUT, "2sec");
+    // This cannot be too short, since sometimes there are grpc channel startup delays, which
+    // affect authentication
+    conf.put(PropertyKey.NETWORK_CONNECTION_AUTH_TIMEOUT, "5sec");
     conf.put(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT, "3sec");
     conf.put(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT, "10sec");
 
@@ -94,7 +96,9 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "10ms");
 
     // To keep tests fast, we should do more retries with a lower max wait time.
-    conf.put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500ms");
+    conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "2s");
+    conf.put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "200");
+    conf.put(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS, "20");
 
     // Do not engage safe mode by default since the worker is connected when test starts.
     conf.put(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME, "0sec");
@@ -120,7 +124,6 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT, "0ms");
 
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
-    conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "2s");
     // Election timeout should be bigger than the default copycat heartbeat interval 250
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "260ms");
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "50ms");
@@ -130,6 +133,13 @@ public final class ConfigurationTestUtils {
     // For faster test shutdown
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT, "100ms");
     conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s");
+
+    // faster persists
+    conf.put(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "20ms");
+    conf.put(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "20ms");
+    conf.put(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, "20ms");
+    conf.put(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "20ms");
+
     return conf;
   }
 

@@ -2,7 +2,7 @@
 layout: global
 title: OBS
 nickname: OBS
-group: Under Stores
+group: Storage Integrations
 priority: 10
 ---
 
@@ -109,7 +109,7 @@ $ ./bin/alluxio-stop.sh local
 
 An OBS location can be mounted at a nested directory in the Alluxio namespace to have unified
 access to multiple under storage systems. Alluxio's
-[Mount Command]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#mount) can be used for
+[Mount Command]({{ '/en/operation/User-CLI.html' | relativize_url }}#mount) can be used for
 this purpose. 
 
 For example, the following command mounts a folder inside an OBS bucket into Alluxio

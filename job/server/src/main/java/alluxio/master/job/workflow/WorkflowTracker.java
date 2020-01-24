@@ -15,9 +15,9 @@ import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
+import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
-import alluxio.job.wire.TaskInfo;
 import alluxio.job.workflow.WorkflowConfig;
 import alluxio.job.workflow.WorkflowExecution;
 import alluxio.job.workflow.WorkflowExecutionRegistry;
@@ -102,9 +102,10 @@ public class WorkflowTracker {
    * Gets information of the given job id.
    *
    * @param jobId the id of the job
+   * @param verbose whether the output should be verbose
    * @return null if the job id isn't know by the workflow tracker. WorkflowInfo otherwise
    */
-  public WorkflowInfo getStatus(long jobId) {
+  public WorkflowInfo getStatus(long jobId, boolean verbose) {
     WorkflowExecution workflowExecution = mWorkflows.get(jobId);
 
     if (workflowExecution == null) {
@@ -116,16 +117,19 @@ public class WorkflowTracker {
 
     List<JobInfo> jobInfos = Lists.newArrayList();
 
-    for (long child : children) {
-      try {
-        jobInfos.add(mJobMaster.getStatus(child));
-      } catch (JobDoesNotExistException e) {
-        LOG.info(String.format("No job info on child job id %s. Skipping", child));
+    if (verbose) {
+      for (long child : children) {
+        try {
+          jobInfos.add(mJobMaster.getStatus(child));
+        } catch (JobDoesNotExistException e) {
+          LOG.info(String.format("No job info on child job id %s. Skipping", child));
+        }
       }
     }
 
-    WorkflowInfo workflowInfo = new WorkflowInfo(jobId, workflowExecution.getStatus(),
-        workflowExecution.getLastUpdated(), workflowExecution.getErrorMessage(), jobInfos);
+    WorkflowInfo workflowInfo = new WorkflowInfo(jobId, workflowExecution.getName(),
+        workflowExecution.getStatus(), workflowExecution.getLastUpdated(),
+        workflowExecution.getErrorMessage(), jobInfos);
     return workflowInfo;
   }
 
@@ -136,7 +140,7 @@ public class WorkflowTracker {
     ArrayList<WorkflowInfo> res = Lists.newArrayList();
 
     for (Long workflowId : mWorkflows.keySet()) {
-      res.add(getStatus(workflowId));
+      res.add(getStatus(workflowId, false));
     }
     return res;
   }
@@ -181,7 +185,7 @@ public class WorkflowTracker {
     }
   }
 
-  private synchronized void done(long jobId) throws ResourceExhaustedException {
+  private synchronized void done(long jobId) {
     Long parentJobId = mParentWorkflow.get(jobId);
 
     if (parentJobId == null) {
@@ -212,7 +216,7 @@ public class WorkflowTracker {
     return;
   }
 
-  private synchronized void next(long jobId) throws ResourceExhaustedException {
+  private synchronized void next(long jobId) {
     WorkflowExecution workflowExecution = mWorkflows.get(jobId);
 
     Set<JobConfig> childJobConfigs = workflowExecution.next();
@@ -244,36 +248,30 @@ public class WorkflowTracker {
       JobConfig childJobConfig = childJobConfigsIter.next();
       try {
         mJobMaster.run(childJobConfig, childJobId);
-      } catch (JobDoesNotExistException e) {
+      } catch (JobDoesNotExistException | ResourceExhaustedException e) {
         LOG.warn(e.getMessage());
+        workflowExecution.stop(Status.FAILED, e.getMessage());
         stop(jobId, Status.FAILED, e.getMessage());
       }
     }
   }
 
   /**
-   * Updates internal state of the workflows based on the updated state of the tasks.
-   * @param taskInfoList list of tasks that have been updated
-   * @throws ResourceExhaustedException if new jobs can't be scheduled
+   * Updates internal state of the workflows based on the updated state of a plan.
+   * @param planInfo info of the plan that had its status changed
    */
-  public synchronized void workerHeartbeat(List<TaskInfo> taskInfoList)
-      throws ResourceExhaustedException {
-
-    for (TaskInfo taskInfo : taskInfoList) {
-      Long planId = taskInfo.getParentId();
-      JobInfo jobInfo = null;
-      try {
-        jobInfo = mJobMaster.getStatus(planId);
-      } catch (JobDoesNotExistException e) {
-        LOG.info("Received heartbeat for a task with an unknown parent. Skipping", planId);
-        continue;
-      }
-      Status status = jobInfo.getStatus();
-      if (status.equals(Status.COMPLETED)) {
-        done(planId);
-      } else if (status.equals(Status.CANCELED) || status.equals(Status.FAILED)) {
-        stop(planId, status, jobInfo.getErrorMessage());
-      }
+  public void onPlanStatusChange(PlanInfo planInfo) {
+    Status status = planInfo.getStatus();
+    switch (status) {
+      case COMPLETED:
+        done(planInfo.getId());
+        break;
+      case CANCELED:
+      case FAILED:
+        stop(planInfo.getId(), status, planInfo.getErrorMessage());
+        break;
+      default:
+        break;
     }
   }
 }

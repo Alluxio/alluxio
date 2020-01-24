@@ -2,7 +2,7 @@
 layout: global
 title: Alluxio Software Requirements
 nickname: Software Requirements
-group: Deploying Alluxio
+group: Install Alluxio
 priority: 9
 ---
 

@@ -58,6 +58,8 @@ alluxio.job.worker.rpc.port:
   'The port for Alluxio job worker''s RPC service.'
 alluxio.job.worker.threadpool.size:
   'Number of threads in the thread pool for job worker. This may be adjusted to a lower value to alleviate resource saturation on the job worker nodes (CPU + IO).'
+alluxio.job.worker.throttling:
+  'Whether the job worker should throttle itself based on whether theresources are saturated.'
 alluxio.job.worker.web.bind.host:
   'The host the job worker web server binds to.'
 alluxio.job.worker.web.port:
@@ -258,6 +260,8 @@ alluxio.zookeeper.job.election.path:
   'N/A'
 alluxio.zookeeper.job.leader.path:
   'N/A'
+alluxio.zookeeper.leader.connection.error.policy:
+  'Connection error policy defines how errors on zookeeper connections to be treated in leader election. STANDARD policy treats every connection event as failure.SESSION policy relies on zookeeper sessions for judging failures, helping leader to retain its status, as long as its session is protected.'
 alluxio.zookeeper.leader.inquiry.retry:
   'The number of retries to inquire leader from ZooKeeper.'
 alluxio.zookeeper.leader.path:

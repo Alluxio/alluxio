@@ -2,7 +2,7 @@
 layout: global
 title: Ceph
 nickname: Ceph
-group: Under Stores
+group: Storage Integrations
 priority: 10
 ---
 
@@ -70,7 +70,7 @@ as `http://<rgw-hostname>:<rgw-port>/auth/1.0`.
 ### Nested Mount Point
 
 An Ceph location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) can be used for this purpose.
+to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
 
 Issue the following command to use the S3 interface:
 ```console

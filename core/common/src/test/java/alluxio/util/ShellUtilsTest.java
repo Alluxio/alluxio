@@ -19,7 +19,10 @@ import static org.junit.Assume.assumeTrue;
 import alluxio.Constants;
 
 import com.google.common.base.Optional;
+
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.List;
 
@@ -27,6 +30,9 @@ import java.util.List;
  * Tests the {@link ShellUtils} class.
  */
 public final class ShellUtilsTest {
+
+  @Rule
+  public ExpectedException mExceptionRule = ExpectedException.none();
 
   /**
    * Tests the {@link ShellUtils#execCommand(String...)} method.
@@ -38,6 +44,15 @@ public final class ShellUtilsTest {
     String testString = "alluxio";
     // Execute echo for testing command execution.
     String result = ShellUtils.execCommand("bash", "-c", "echo " + testString);
+    assertEquals(testString + "\n", result);
+  }
+
+  @Test
+  public void execCommandFail() throws Exception {
+    String testString = "false";
+    mExceptionRule.expect(ShellUtils.ExitCodeException.class);
+    // run a command that guarantees to fail
+    String result = ShellUtils.execCommand("bash", "-c", " " + testString);
     assertEquals(testString + "\n", result);
   }
 

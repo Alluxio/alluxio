@@ -2,7 +2,7 @@
 layout: global
 title: MinIO
 nickname: MinIO
-group: Under Stores
+group: Storage Integrations
 priority: 10
 ---
 

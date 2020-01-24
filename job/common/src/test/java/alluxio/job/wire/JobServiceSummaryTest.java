@@ -11,6 +11,7 @@
 
 package alluxio.job.wire;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import org.junit.Assert;
@@ -33,12 +34,13 @@ public class JobServiceSummaryTest {
   public void before() {
     List<JobInfo> jobInfos = new ArrayList<>();
 
-    jobInfos.add(createJobInfo(1, Status.FAILED, 10003L));
-    jobInfos.add(createJobInfo(2, Status.COMPLETED, 9998L));
-    jobInfos.add(createJobInfo(3, Status.COMPLETED, 9999L));
-    jobInfos.add(createJobInfo(4, Status.FAILED, 9997L));
-    jobInfos.add(createJobInfo(5, Status.RUNNING, 10000L));
-    jobInfos.add(createJobInfo(6, Status.FAILED, 10002L));
+    jobInfos.add(createPlanInfo(1, Status.FAILED, 10003L));
+    jobInfos.add(createPlanInfo(2, Status.COMPLETED, 9998L));
+    jobInfos.add(createPlanInfo(3, Status.COMPLETED, 9999L));
+    jobInfos.add(createPlanInfo(4, Status.FAILED, 9997L));
+    jobInfos.add(createPlanInfo(5, Status.RUNNING, 10000L));
+    jobInfos.add(createPlanInfo(6, Status.FAILED, 10002L));
+    jobInfos.add(createWorkflowInfo(7, Status.COMPLETED, 9996L));
 
     mSummary = new JobServiceSummary(jobInfos);
   }
@@ -65,7 +67,7 @@ public class JobServiceSummaryTest {
       long count = groupByStatus.get(status);
       switch (status) {
         case COMPLETED:
-          Assert.assertEquals("COMPLETED count unexpected", 2L, count);
+          Assert.assertEquals("COMPLETED count unexpected", 3L, count);
           break;
         case FAILED:
           Assert.assertEquals("FAILED count unexpected", 3L, count);
@@ -83,9 +85,9 @@ public class JobServiceSummaryTest {
   public void testRecentActivities() {
     Collection<JobInfo> recentActivities = mSummary.getRecentActivities();
 
-    Assert.assertEquals("Unexpected length of recent activities", 6, recentActivities.size());
+    Assert.assertEquals("Unexpected length of recent activities", 7, recentActivities.size());
 
-    JobInfo[] recentActvitiesArray = new JobInfo[6];
+    JobInfo[] recentActvitiesArray = new JobInfo[7];
 
     recentActivities.toArray(recentActvitiesArray);
 
@@ -95,6 +97,7 @@ public class JobServiceSummaryTest {
     Assert.assertEquals(3, recentActvitiesArray[3].getId());
     Assert.assertEquals(2, recentActvitiesArray[4].getId());
     Assert.assertEquals(4, recentActvitiesArray[5].getId());
+    Assert.assertEquals(7, recentActvitiesArray[6].getId());
   }
 
   @Test
@@ -112,7 +115,11 @@ public class JobServiceSummaryTest {
     Assert.assertEquals(4, recentFailuresArray[2].getId());
   }
 
-  private JobInfo createJobInfo(int id, Status status, long lastStatusChangeMs) {
+  private PlanInfo createPlanInfo(int id, Status status, long lastStatusChangeMs) {
     return new PlanInfo(id, "test", status, lastStatusChangeMs, null);
+  }
+
+  private WorkflowInfo createWorkflowInfo(int id, Status status, long lastStatusChangeMs) {
+    return new WorkflowInfo(id, "name", status, lastStatusChangeMs, "", Lists.newArrayList());
   }
 }

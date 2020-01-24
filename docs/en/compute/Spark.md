@@ -2,7 +2,7 @@
 layout: global
 title: Running Spark on Alluxio
 nickname: Apache Spark
-group: Data Applications
+group: Compute Integrations
 priority: 0
 ---
 
@@ -34,7 +34,7 @@ This guide assumes the persistent under storage is a local HDFS deployment. E.g.
 Note that Alluxio supports many other under storage systems in addition to HDFS.
 To access data from any number of those systems is orthogonal
 to the focus of this guide but covered by
-[Unified and Transparent Namespace]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}).
+[Unified and Transparent Namespace]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}).
 * Make sure that the Alluxio client jar is available.
 This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
 distribution downloaded from Alluxio [download page](https://www.alluxio.io/download).
@@ -140,7 +140,7 @@ Alternatively you can add the property to the Hadoop configuration file
 Users can also configure Spark to connect to an Alluxio HA cluster using Zookeeper-based
 leader election.
 Refer to
-[HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-configuration-parameters).
+[HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters).
 
 ### Customize Alluxio User Properties for Individual Spark Jobs
 
@@ -157,7 +157,7 @@ $ spark-submit \
 ```
 
 To customize Alluxio client-side properties for a Spark job, see
-[how to configure Spark Jobs]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}#spark).
+[how to configure Spark Jobs]({{ '/en/operation/Configuration.html' | relativize_url }}#spark).
 
 Note that in client mode you need to set `--driver-java-options "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"` instead of `--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH`
 (see [explanation](https://spark.apache.org/docs/2.3.2/configuration.html)).

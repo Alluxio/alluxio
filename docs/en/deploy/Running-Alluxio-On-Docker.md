@@ -2,8 +2,8 @@
 layout: global
 title: Deploy Alluxio on Docker
 nickname: Docker
-group: Deploying Alluxio
-priority: 3
+group: Install Alluxio
+priority: 4
 ---
 
 Docker can be used to simplify the deployment and management of Alluxio servers.

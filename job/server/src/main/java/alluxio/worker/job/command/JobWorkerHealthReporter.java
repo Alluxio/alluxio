@@ -11,6 +11,10 @@
 
 package alluxio.worker.job.command;
 
+import alluxio.util.CommonUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import oshi.SystemInfo;
 import oshi.hardware.HardwareAbstractionLayer;
 
@@ -22,8 +26,16 @@ import java.util.stream.DoubleStream;
  * The job worker health reporter.
  */
 public class JobWorkerHealthReporter {
+  private static final Logger LOG = LoggerFactory.getLogger(JobWorkerHealthReporter.class);
 
-  HardwareAbstractionLayer mHardware;
+  private static final double CPU_LOAD_AVERAGE_HEALTHY_FACTOR = 1.0;
+
+  private HardwareAbstractionLayer mHardware;
+
+  private List<Double> mCpuLoadAverage;
+  private int mLogicalProcessorCount;
+
+  private long mLastComputed;
 
   /**
    * Default constructor.
@@ -39,7 +51,28 @@ public class JobWorkerHealthReporter {
    * @return the system load average of the worker
    */
   public List<Double> getCpuLoadAverage() {
-    return DoubleStream.of(mHardware.getProcessor().getSystemLoadAverage(3)).boxed()
+    return mCpuLoadAverage;
+  }
+
+  /**
+   * Determines whether the system is healthy from all the metrics it has collected.
+   * @return true if system is deemed healthy, false otherwise
+   */
+  public boolean isHealthy() {
+    if (mCpuLoadAverage.isEmpty()) {
+      // report healthy if cpu load average is not computable
+      return true;
+    }
+    return mLogicalProcessorCount * CPU_LOAD_AVERAGE_HEALTHY_FACTOR > mCpuLoadAverage.get(0);
+  }
+
+  /**
+   * Computes all of the metrics needed for JobWorkerHealthReporter.
+   */
+  public void compute() {
+    mLastComputed = CommonUtils.getCurrentMs();
+    mCpuLoadAverage = DoubleStream.of(mHardware.getProcessor().getSystemLoadAverage(3)).boxed()
         .collect(Collectors.toList());
+    mLogicalProcessorCount = mHardware.getProcessor().getLogicalProcessorCount();
   }
 }

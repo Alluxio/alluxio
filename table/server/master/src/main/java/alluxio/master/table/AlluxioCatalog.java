@@ -129,6 +129,7 @@ public class AlluxioCatalog implements Journaled {
             .format("Failed to connect underDb for Alluxio db '%s': %s", dbName,
                 e.getMessage()), e);
       }
+
       return true;
     }
   }
@@ -194,6 +195,24 @@ public class AlluxioCatalog implements Journaled {
   public List<String> getAllDatabases() throws IOException {
     // TODO(gpang): update api to return collection or iterator?
     return new ArrayList<>(mDBs.keySet());
+  }
+
+  /**
+   * Get Database by its name.
+   *
+   * @param dbName database name
+   * @return a database object
+   */
+  public alluxio.grpc.table.Database getDatabase(String dbName)  throws IOException {
+    try (LockResource l = getLock(dbName, true)) {
+      Database db = getDatabaseByName(dbName);
+      DatabaseInfo dbInfo = db.getDatabaseInfo();
+      return alluxio.grpc.table.Database.newBuilder()
+          .setDbName(db.getName()).setLocation(dbInfo.getLocation())
+          .setOwnerName(dbInfo.getOwnerName()).setOwnerType(dbInfo.getOwnerType())
+          .setComment(dbInfo.getComment()).putAllParameter(dbInfo.getParameters())
+          .build();
+    }
   }
 
   private Database getDatabaseByName(String dbName) throws NotFoundException {
@@ -360,6 +379,9 @@ public class AlluxioCatalog implements Journaled {
     if (entry.hasAttachDb()) {
       apply(entry.getAttachDb());
       return true;
+    } else if (entry.hasUpdateDatabaseInfo()) {
+      Database db = mDBs.get(entry.getUpdateDatabaseInfo().getDbName());
+      return db.processJournalEntry(entry);
     } else if (entry.hasAddTable()) {
       Database db = mDBs.get(entry.getAddTable().getDbName());
       return db.processJournalEntry(entry);
@@ -426,6 +448,7 @@ public class AlluxioCatalog implements Journaled {
   public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
     List<Iterator<Journal.JournalEntry>> componentIters = StreamUtils
         .map(JournalEntryIterable::getJournalEntryIterator, mDBs.values());
+
     return Iterators.concat(getDbIterator(), Iterators.concat(componentIters.iterator()));
   }
 

@@ -23,6 +23,7 @@ import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
 
+import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,14 +49,8 @@ public class Database implements Journaled {
   private final UnderDatabase mUdb;
   private final Map<String, String> mConfig;
 
-  /**
-   * Creates an instance of a database.
-   *
-   * @param context the catalog context
-   * @param type the database type
-   * @param name the database name
-   * @param udb the udb
-   */
+  private DatabaseInfo mDatabaseInfo;
+
   private Database(CatalogContext context, String type, String name, UnderDatabase udb,
       Map<String, String> configMap) {
     mContext = context;
@@ -100,6 +95,13 @@ public class Database implements Journaled {
    */
   public String getName() {
     return mName;
+  }
+
+  /**
+   * @return returns database info
+   */
+  public DatabaseInfo getDatabaseInfo() {
+    return mDatabaseInfo;
   }
 
   /**
@@ -183,16 +185,30 @@ public class Database implements Journaled {
    */
   public boolean sync(JournalContext context) throws IOException {
     boolean returnVal = false;
+    DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
+    if (!newDbInfo.equals(mDatabaseInfo)) {
+      alluxio.proto.journal.Table.UpdateDatabaseInfoEntry updateDbEntry =
+          alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.newBuilder()
+              .setLocation(newDbInfo.getLocation()).setComment(newDbInfo.getComment())
+              .setOwnerName(newDbInfo.getOwnerName()).setOwnerType(newDbInfo.getOwnerType())
+              .setDbName(mName).putAllParameter(newDbInfo.getParameters()).build();
+
+      applyAndJournal(context, Journal.JournalEntry.newBuilder()
+          .setUpdateDatabaseInfo(updateDbEntry).build());
+    }
+
     for (String tableName : mUdb.getTableNames()) {
       // TODO(gpang): concurrency control
       boolean tableUpdated = false;
       Table table = mTables.get(tableName);
       if (table == null) {
         // add table from udb
+        LOG.debug("Importing a new table " + tableName + " into database " + mName);
         UdbTable udbTable = mUdb.getTable(tableName);
         table = Table.create(this, udbTable);
         tableUpdated = true;
       } else {
+        LOG.debug("Syncing an existing table " + tableName + " in database " + mName);
         tableUpdated = table.sync(mUdb.getTable(tableName));
       }
       if (tableUpdated) {
@@ -215,7 +231,19 @@ public class Database implements Journaled {
         return true;
       }
     }
+    if (entry.hasUpdateDatabaseInfo()) {
+      alluxio.proto.journal.Table.UpdateDatabaseInfoEntry updateDb = entry.getUpdateDatabaseInfo();
+      if (updateDb.getDbName().equals(mName)) {
+        apply(updateDb);
+        return true;
+      }
+    }
     return false;
+  }
+
+  private void apply(alluxio.proto.journal.Table.UpdateDatabaseInfoEntry updateDb) {
+    mDatabaseInfo = new DatabaseInfo(updateDb.getLocation(), updateDb.getOwnerName(),
+        updateDb.getOwnerType(), updateDb.getComment(), updateDb.getParameterMap());
   }
 
   private void apply(alluxio.proto.journal.Table.AddTableEntry entry) {
@@ -266,7 +294,16 @@ public class Database implements Journaled {
 
   @Override
   public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-    return getTableIterator();
+    DatabaseInfo info = getDatabaseInfo();
+    Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setUpdateDatabaseInfo(
+        alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.newBuilder()
+            .setDbName(getName())
+            .setOwnerName(info.getOwnerName())
+            .setOwnerType(info.getOwnerType())
+            .setComment(info.getComment())
+            .setLocation(info.getLocation())
+            .putAllParameter(info.getParameters()).build()).build();
+    return Iterators.concat(Iterators.singletonIterator(entry), getTableIterator());
   }
 
   @Override

@@ -115,6 +115,7 @@ message ListAllPRequest {
 }
 message ListAllPResponse {
   repeated int64 jobIds = 1;
+  repeated JobInfo jobInfos = 2;
 }
 
 message RunPOptions {}

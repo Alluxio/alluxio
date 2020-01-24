@@ -11,6 +11,8 @@
 
 package alluxio.job.wire;
 
+import alluxio.job.ProtoUtils;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
@@ -72,17 +74,17 @@ public final class JobServiceSummary {
 
     mRecentActivities = new ArrayList<>();
     for (alluxio.grpc.JobInfo lastActivity : jobServiceSummary.getRecentActivitiesList()) {
-      mRecentActivities.add(new PlanInfo(lastActivity));
+      mRecentActivities.add(ProtoUtils.fromProto(lastActivity));
     }
 
     mRecentFailures = new ArrayList<>();
     for (alluxio.grpc.JobInfo lastFailure : jobServiceSummary.getRecentFailuresList()) {
-      mRecentFailures.add(new PlanInfo(lastFailure));
+      mRecentFailures.add(ProtoUtils.fromProto(lastFailure));
     }
 
     mLongestRunning = new ArrayList<>();
     for (alluxio.grpc.JobInfo longestRunning : jobServiceSummary.getLongestRunningList()) {
-      mLongestRunning.add(new PlanInfo(longestRunning));
+      mLongestRunning.add(ProtoUtils.fromProto(longestRunning));
     }
   }
 

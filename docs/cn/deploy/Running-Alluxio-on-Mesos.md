@@ -2,8 +2,8 @@
 layout: global
 title: 在Mesos上运行Alluxio
 nickname: 在Mesos上运行Alluxio
-group: Deploying Alluxio
-priority: 4
+group: Install Alluxio
+priority: 5
 ---
 
 * 内容列表
@@ -49,7 +49,7 @@ alluxio.worker.web.port=31500
 
 #### 配置属性
 
-参考[配置项设置](Configuration-Settings.html)文档获取如何配置相应属性。
+参考[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }})文档获取如何配置相应属性。
 
 #### 部署已经拷贝在所有Mesos节点上的Alluxio
 

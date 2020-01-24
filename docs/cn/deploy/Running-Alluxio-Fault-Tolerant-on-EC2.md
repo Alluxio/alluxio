@@ -2,8 +2,8 @@
 layout: global
 title: 在EC2上运行带容错机制的Alluxio
 nickname: 在EC2上运行带容错机制的Alluxio
-group: Deploying Alluxio
-priority: 4
+group: Install Alluxio
+priority: 5
 ---
 
 * 内容列表
