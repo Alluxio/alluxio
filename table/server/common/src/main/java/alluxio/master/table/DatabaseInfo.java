@@ -22,11 +22,11 @@ import java.util.Objects;
  * The database information class.
  */
 public class DatabaseInfo {
-  private String mLocation;
-  private String mOwnerName;
-  private PrincipalType mOwnerType;
-  private String mComment;
-  private Map<String, String> mParameters;
+  private final String mLocation;
+  private final String mOwnerName;
+  private final PrincipalType mOwnerType;
+  private final String mComment;
+  private final Map<String, String> mParameters;
 
   /**
    * Construct a default databaseinfo class.
@@ -54,46 +54,6 @@ public class DatabaseInfo {
     mOwnerType = ownerType;
     mComment = comment;
     mParameters = params;
-  }
-
-  /**
-   * Set location.
-   * @param location new location
-   */
-  public void setLocation(String location) {
-    mLocation = location;
-  }
-
-  /**
-   * Set owner name.
-   * @param ownerName new owner name
-   */
-  public void setOwnerName(String ownerName) {
-    mOwnerName = ownerName;
-  }
-
-  /**
-   * Set owner type.
-   * @param ownerType new owner type
-   */
-  public void setOwnerType(PrincipalType ownerType) {
-    mOwnerType = ownerType;
-  }
-
-  /**
-   * Set comment.
-   * @param comment new comment
-   */
-  public void setComment(String comment) {
-    mComment = comment;
-  }
-
-  /**
-   * Set parameters.
-   * @param param new parameters
-   */
-  public void setParameters(Map<String, String> param) {
-    mParameters = param;
   }
 
   /**

@@ -118,7 +118,17 @@ public class AlluxioCatalog implements Journaled {
               .setDbName(dbName)
               .putAllConfig(map).build()).build());
 
-      mDBs.get(dbName).sync(journalContext);
+      try {
+        mDBs.get(dbName).sync(journalContext);
+      } catch (Exception e) {
+        // Failed to connect to and sync the udb.
+        applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setDetachDb(
+            alluxio.proto.journal.Table.DetachDbEntry.newBuilder().setDbName(dbName).build())
+            .build());
+        throw new IOException(String
+            .format("Failed to connect underDb for Alluxio db '%s': %s", dbName,
+                e.getMessage()), e);
+      }
 
       return true;
     }

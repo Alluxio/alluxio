@@ -26,7 +26,6 @@ import alluxio.table.common.udb.UnderDatabase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,18 +51,13 @@ public class Database implements Journaled {
   private DatabaseInfo mDatabaseInfo;
 
   private Database(CatalogContext context, String type, String name, UnderDatabase udb,
-      Map<String, String> configMap, @Nullable DatabaseInfo dbInfo) {
+      Map<String, String> configMap) {
     mContext = context;
     mType = type;
     mName = name;
     mTables = new ConcurrentHashMap<>();
     mUdb = udb;
     mConfig = configMap;
-    if (dbInfo == null) {
-      mDatabaseInfo = new DatabaseInfo();
-    } else {
-      mDatabaseInfo = dbInfo;
-    }
   }
 
   /**
@@ -82,7 +76,7 @@ public class Database implements Journaled {
     try {
       UnderDatabase udb = udbContext.getUdbRegistry()
           .create(udbContext, type, configuration.getUdbConfiguration(type));
-      return new Database(catalogContext, type, name, udb, configMap, null);
+      return new Database(catalogContext, type, name, udb, configMap);
     } catch (Exception e) {
       throw new IllegalArgumentException("Creating udb failed for database name: " + name, e);
     }

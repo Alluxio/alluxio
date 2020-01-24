@@ -48,7 +48,7 @@ public interface UnderDatabase {
   UdbContext getUdbContext();
 
   /**
-   * @return get owner name
+   * @return get database info
    */
   DatabaseInfo getDatabaseInfo() throws IOException;
 }

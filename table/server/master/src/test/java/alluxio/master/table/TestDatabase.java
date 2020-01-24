@@ -33,7 +33,7 @@ public class TestDatabase implements UnderDatabase {
   public static final String TEST_UDB_NAME = "test_udb_name";
   public static final String TABLE_NAME_PREFIX = "test_table_name";
   public static DatabaseInfo sTestDbInfo = new DatabaseInfo("test://test", "TestOwner",
-      PrincipalType.USER, "comment", ImmutableMap.of());
+      PrincipalType.USER, "comment", ImmutableMap.of("testkey", "testvalue"));
   private static final TestDatabase DATABASE = new TestDatabase();
 
   private Map<String, UdbTable> mUdbTables;
