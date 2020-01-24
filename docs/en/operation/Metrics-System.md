@@ -191,6 +191,9 @@ Total amount of data transferred through Alluxio and I/O throughput estimates (m
 | cluster.BytesWrittenUfsThroughput | Bytes write throughput to all Alluxio UFSes |
 | cluster.BytesWrittenPerUfs.UFS:<UFS_ADDRESS> | Total number of bytes written to UFS <UFS_ADDRESS> reported by Alluxio workers | 
 
+Workers/clients report the one minute rate (one-minute exponentially-weighted moving average rate at which events have
+occurred since the meter was created) to leading master. The leading master aggregates those values to provide cluster-wise read/write throughput information.
+
 #### Under storage RPCs
 
 For all th UFS RPCs (e.g. create file, delete file, get file status), 
