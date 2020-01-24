@@ -16,7 +16,6 @@ import alluxio.grpc.ChannelAuthenticationScheme;
 import alluxio.grpc.SaslMessage;
 import alluxio.grpc.SaslMessageType;
 
-import com.google.common.base.MoreObjects;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +41,7 @@ public class AuthenticatedChannelServerDriver implements StreamObserver<SaslMess
   /** Id for client-side channel that is authenticating. */
   private UUID mChannelId = EMPTY_UUID;
   /** Reference for client owning the channel. */
-  private String mChannelRefStr;
+  private String mChannelRef;
   /** Sasl server handler that will be used to build secure stream. */
   private SaslServerHandler mSaslServerHandler = null;
   /** Whether channel is authenticated. */
@@ -67,18 +66,15 @@ public class AuthenticatedChannelServerDriver implements StreamObserver<SaslMess
   }
 
   private void initAuthenticatedChannel(ChannelAuthenticationScheme authScheme, UUID channelId,
-                                        String channelOwner) throws SaslException {
-    LOG.debug("Initializing authentication for {}. AuthType: {}", mChannelRefStr, authScheme);
+      String channelRef) throws SaslException {
+    LOG.debug("Initializing authentication for {}. AuthType: {}", mChannelRef, authScheme);
     // Create sasl handler for the requested scheme.
     mSaslServerHandler = mAuthenticationServer.createSaslHandler(authScheme);
     // Unregister from registry if in case it was authenticated before.
     mAuthenticationServer.unregisterChannel(mChannelId);
-    // Initialize channel id
+    // Initialize channel id and ref
     mChannelId = channelId;
-    // Build channel reference for further tracing.
-    mChannelRefStr = MoreObjects.toStringHelper("Channel")
-        .add("ChannelId", channelId.toString())
-        .add("Owner", channelOwner).toString();
+    mChannelRef = channelRef;
   }
 
   private void channelAuthenticated(AuthenticatedUserInfo authUserInfo) {
@@ -89,7 +85,7 @@ public class AuthenticatedChannelServerDriver implements StreamObserver<SaslMess
 
   private void closeAuthenticatedChannel(boolean signalOwner) {
     if (mChannelAuthenticated) {
-      LOG.debug("Closing authenticated channel for {}", mChannelRefStr);
+      LOG.debug("Closing authenticated channel for {}", mChannelRef);
       mAuthenticationServer.unregisterChannel(mChannelId);
       mChannelAuthenticated = false;
     }
@@ -103,7 +99,7 @@ public class AuthenticatedChannelServerDriver implements StreamObserver<SaslMess
         // Complete stream.
         mRequestObserver.onCompleted();
       } catch (Exception exc) {
-        LOG.debug("Failed to close gRPC stream of {}. Error: {}", mChannelRefStr, exc);
+        LOG.debug("Failed to close gRPC stream of {}. Error: {}", mChannelRef, exc);
       }
     }
   }
@@ -115,10 +111,10 @@ public class AuthenticatedChannelServerDriver implements StreamObserver<SaslMess
         initAuthenticatedChannel(
             saslMessage.getAuthenticationScheme(),
             UUID.fromString(saslMessage.getClientId()),
-            saslMessage.getChannelOwner());
+            saslMessage.getChannelRef());
       }
 
-      LOG.debug("Responding to a message of {}. Message: {}", mChannelRefStr, saslMessage);
+      LOG.debug("Responding to a message of {}. Message: {}", mChannelRef, saslMessage);
       // Consult sasl server for handling the message.
       SaslMessage response = mSaslServerHandler.handleMessage(saslMessage);
 
@@ -130,7 +126,7 @@ public class AuthenticatedChannelServerDriver implements StreamObserver<SaslMess
       mRequestObserver.onNext(response);
     } catch (Throwable t) {
       LOG.debug("Exception while handling message of {}. Message: {}. Error: {}",
-              mChannelRefStr, saslMessage, t);
+              mChannelRef, saslMessage, t);
       // Invalidate stream.
       mRequestObserver.onError(AlluxioStatusException.fromThrowable(t).toGrpcStatusException());
       closeAuthenticatedChannel(false);
@@ -151,7 +147,7 @@ public class AuthenticatedChannelServerDriver implements StreamObserver<SaslMess
    * Completes authenticated channel.
    */
   public void close() {
-    LOG.debug("Closing authentication for {}", mChannelRefStr);
+    LOG.debug("Closing authentication for {}", mChannelRef);
     closeAuthenticatedChannel(true);
   }
 }

@@ -148,7 +148,7 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
       // Send the server initial message.
       SaslMessage.Builder initialMsg = mSaslClientHandler.handleMessage(null).toBuilder();
       initialMsg.setClientId(mChannelKey.getChannelId().toString());
-      initialMsg.setChannelOwner(mChannelKey.toOwnerString());
+      initialMsg.setChannelRef(mChannelKey.toStringShort());
       mRequestObserver.onNext(initialMsg.build());
 
       // Utility to return from start when channel is secured.

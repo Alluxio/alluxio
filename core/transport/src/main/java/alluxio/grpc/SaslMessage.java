@@ -20,7 +20,7 @@ private static final long serialVersionUID = 0L;
     message_ = com.google.protobuf.ByteString.EMPTY;
     clientId_ = "";
     authenticationScheme_ = 0;
-    channelOwner_ = "";
+    channelRef_ = "";
   }
 
   @java.lang.Override
@@ -90,7 +90,7 @@ private static final long serialVersionUID = 0L;
           case 42: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000010;
-            channelOwner_ = bs;
+            channelRef_ = bs;
             break;
           }
         }
@@ -207,19 +207,19 @@ private static final long serialVersionUID = 0L;
     return result == null ? alluxio.grpc.ChannelAuthenticationScheme.NOSASL : result;
   }
 
-  public static final int CHANNELOWNER_FIELD_NUMBER = 5;
-  private volatile java.lang.Object channelOwner_;
+  public static final int CHANNELREF_FIELD_NUMBER = 5;
+  private volatile java.lang.Object channelRef_;
   /**
-   * <code>optional string channelOwner = 5;</code>
+   * <code>optional string channelRef = 5;</code>
    */
-  public boolean hasChannelOwner() {
+  public boolean hasChannelRef() {
     return ((bitField0_ & 0x00000010) == 0x00000010);
   }
   /**
-   * <code>optional string channelOwner = 5;</code>
+   * <code>optional string channelRef = 5;</code>
    */
-  public java.lang.String getChannelOwner() {
-    java.lang.Object ref = channelOwner_;
+  public java.lang.String getChannelRef() {
+    java.lang.Object ref = channelRef_;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
@@ -227,22 +227,22 @@ private static final long serialVersionUID = 0L;
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       if (bs.isValidUtf8()) {
-        channelOwner_ = s;
+        channelRef_ = s;
       }
       return s;
     }
   }
   /**
-   * <code>optional string channelOwner = 5;</code>
+   * <code>optional string channelRef = 5;</code>
    */
   public com.google.protobuf.ByteString
-      getChannelOwnerBytes() {
-    java.lang.Object ref = channelOwner_;
+      getChannelRefBytes() {
+    java.lang.Object ref = channelRef_;
     if (ref instanceof java.lang.String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
-      channelOwner_ = b;
+      channelRef_ = b;
       return b;
     } else {
       return (com.google.protobuf.ByteString) ref;
@@ -274,7 +274,7 @@ private static final long serialVersionUID = 0L;
       output.writeEnum(4, authenticationScheme_);
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 5, channelOwner_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 5, channelRef_);
     }
     unknownFields.writeTo(output);
   }
@@ -300,7 +300,7 @@ private static final long serialVersionUID = 0L;
         .computeEnumSize(4, authenticationScheme_);
     }
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, channelOwner_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, channelRef_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -336,10 +336,10 @@ private static final long serialVersionUID = 0L;
     if (hasAuthenticationScheme()) {
       result = result && authenticationScheme_ == other.authenticationScheme_;
     }
-    result = result && (hasChannelOwner() == other.hasChannelOwner());
-    if (hasChannelOwner()) {
-      result = result && getChannelOwner()
-          .equals(other.getChannelOwner());
+    result = result && (hasChannelRef() == other.hasChannelRef());
+    if (hasChannelRef()) {
+      result = result && getChannelRef()
+          .equals(other.getChannelRef());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -368,9 +368,9 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + AUTHENTICATIONSCHEME_FIELD_NUMBER;
       hash = (53 * hash) + authenticationScheme_;
     }
-    if (hasChannelOwner()) {
-      hash = (37 * hash) + CHANNELOWNER_FIELD_NUMBER;
-      hash = (53 * hash) + getChannelOwner().hashCode();
+    if (hasChannelRef()) {
+      hash = (37 * hash) + CHANNELREF_FIELD_NUMBER;
+      hash = (53 * hash) + getChannelRef().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -509,7 +509,7 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000004);
       authenticationScheme_ = 0;
       bitField0_ = (bitField0_ & ~0x00000008);
-      channelOwner_ = "";
+      channelRef_ = "";
       bitField0_ = (bitField0_ & ~0x00000010);
       return this;
     }
@@ -554,7 +554,7 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
         to_bitField0_ |= 0x00000010;
       }
-      result.channelOwner_ = channelOwner_;
+      result.channelRef_ = channelRef_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -611,9 +611,9 @@ private static final long serialVersionUID = 0L;
       if (other.hasAuthenticationScheme()) {
         setAuthenticationScheme(other.getAuthenticationScheme());
       }
-      if (other.hasChannelOwner()) {
+      if (other.hasChannelRef()) {
         bitField0_ |= 0x00000010;
-        channelOwner_ = other.channelOwner_;
+        channelRef_ = other.channelRef_;
         onChanged();
       }
       this.mergeUnknownFields(other.unknownFields);
@@ -827,24 +827,24 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.lang.Object channelOwner_ = "";
+    private java.lang.Object channelRef_ = "";
     /**
-     * <code>optional string channelOwner = 5;</code>
+     * <code>optional string channelRef = 5;</code>
      */
-    public boolean hasChannelOwner() {
+    public boolean hasChannelRef() {
       return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
-     * <code>optional string channelOwner = 5;</code>
+     * <code>optional string channelRef = 5;</code>
      */
-    public java.lang.String getChannelOwner() {
-      java.lang.Object ref = channelOwner_;
+    public java.lang.String getChannelRef() {
+      java.lang.Object ref = channelRef_;
       if (!(ref instanceof java.lang.String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          channelOwner_ = s;
+          channelRef_ = s;
         }
         return s;
       } else {
@@ -852,53 +852,53 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string channelOwner = 5;</code>
+     * <code>optional string channelRef = 5;</code>
      */
     public com.google.protobuf.ByteString
-        getChannelOwnerBytes() {
-      java.lang.Object ref = channelOwner_;
+        getChannelRefBytes() {
+      java.lang.Object ref = channelRef_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        channelOwner_ = b;
+        channelRef_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     /**
-     * <code>optional string channelOwner = 5;</code>
+     * <code>optional string channelRef = 5;</code>
      */
-    public Builder setChannelOwner(
+    public Builder setChannelRef(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000010;
-      channelOwner_ = value;
+      channelRef_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string channelOwner = 5;</code>
+     * <code>optional string channelRef = 5;</code>
      */
-    public Builder clearChannelOwner() {
+    public Builder clearChannelRef() {
       bitField0_ = (bitField0_ & ~0x00000010);
-      channelOwner_ = getDefaultInstance().getChannelOwner();
+      channelRef_ = getDefaultInstance().getChannelRef();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string channelOwner = 5;</code>
+     * <code>optional string channelRef = 5;</code>
      */
-    public Builder setChannelOwnerBytes(
+    public Builder setChannelRefBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000010;
-      channelOwner_ = value;
+      channelRef_ = value;
       onChanged();
       return this;
     }

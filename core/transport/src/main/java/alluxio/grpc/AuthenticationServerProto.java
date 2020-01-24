@@ -29,19 +29,19 @@ public final class AuthenticationServerProto {
   static {
     java.lang.String[] descriptorData = {
       "\n\026grpc/sasl_server.proto\022\021alluxio.grpc.s" +
-      "asl\"\315\001\n\013SaslMessage\0227\n\013messageType\030\001 \001(\016" +
+      "asl\"\313\001\n\013SaslMessage\0227\n\013messageType\030\001 \001(\016" +
       "2\".alluxio.grpc.sasl.SaslMessageType\022\017\n\007" +
       "message\030\002 \001(\014\022\020\n\010clientId\030\003 \001(\t\022L\n\024authe" +
       "nticationScheme\030\004 \001(\0162..alluxio.grpc.sas" +
-      "l.ChannelAuthenticationScheme\022\024\n\014channel" +
-      "Owner\030\005 \001(\t*-\n\017SaslMessageType\022\r\n\tCHALLE" +
-      "NGE\020\000\022\013\n\007SUCCESS\020\001*A\n\033ChannelAuthenticat" +
-      "ionScheme\022\n\n\006NOSASL\020\000\022\n\n\006SIMPLE\020\001\022\n\n\006CUS" +
-      "TOM\020\0022o\n\031SaslAuthenticationService\022R\n\014au" +
-      "thenticate\022\036.alluxio.grpc.sasl.SaslMessa" +
-      "ge\032\036.alluxio.grpc.sasl.SaslMessage(\0010\001B+" +
-      "\n\014alluxio.grpcB\031AuthenticationServerProt" +
-      "oP\001"
+      "l.ChannelAuthenticationScheme\022\022\n\nchannel" +
+      "Ref\030\005 \001(\t*-\n\017SaslMessageType\022\r\n\tCHALLENG" +
+      "E\020\000\022\013\n\007SUCCESS\020\001*A\n\033ChannelAuthenticatio" +
+      "nScheme\022\n\n\006NOSASL\020\000\022\n\n\006SIMPLE\020\001\022\n\n\006CUSTO" +
+      "M\020\0022o\n\031SaslAuthenticationService\022R\n\014auth" +
+      "enticate\022\036.alluxio.grpc.sasl.SaslMessage" +
+      "\032\036.alluxio.grpc.sasl.SaslMessage(\0010\001B+\n\014" +
+      "alluxio.grpcB\031AuthenticationServerProtoP" +
+      "\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -60,7 +60,7 @@ public final class AuthenticationServerProto {
     internal_static_alluxio_grpc_sasl_SaslMessage_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_sasl_SaslMessage_descriptor,
-        new java.lang.String[] { "MessageType", "Message", "ClientId", "AuthenticationScheme", "ChannelOwner", });
+        new java.lang.String[] { "MessageType", "Message", "ClientId", "AuthenticationScheme", "ChannelRef", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

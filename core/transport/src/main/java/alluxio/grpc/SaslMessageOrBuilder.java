@@ -49,16 +49,16 @@ public interface SaslMessageOrBuilder extends
   alluxio.grpc.ChannelAuthenticationScheme getAuthenticationScheme();
 
   /**
-   * <code>optional string channelOwner = 5;</code>
+   * <code>optional string channelRef = 5;</code>
    */
-  boolean hasChannelOwner();
+  boolean hasChannelRef();
   /**
-   * <code>optional string channelOwner = 5;</code>
+   * <code>optional string channelRef = 5;</code>
    */
-  java.lang.String getChannelOwner();
+  java.lang.String getChannelRef();
   /**
-   * <code>optional string channelOwner = 5;</code>
+   * <code>optional string channelRef = 5;</code>
    */
   com.google.protobuf.ByteString
-      getChannelOwnerBytes();
+      getChannelRefBytes();
 }

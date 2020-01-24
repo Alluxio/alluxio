@@ -307,6 +307,7 @@ public class GrpcChannelKey {
   public String toStringShort() {
     return MoreObjects.toStringHelper("Channel")
         .add("ClientType", getStringFromOptional(mClientType))
+        .add("ClientHostname", mLocalHostName)
         .add("ServerAddress", mServerAddress)
         .add("ChannelId", mChannelId)
         .omitNullValues()
