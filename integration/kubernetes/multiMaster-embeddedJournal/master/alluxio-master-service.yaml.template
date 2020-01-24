@@ -34,6 +34,8 @@ spec:
       name: job-web
     - port: 19200
       name: embedded
+    - port: 20003
+      name: job-embedded
   type: NodePort
   selector:
     role: alluxio-master
@@ -63,6 +65,8 @@ spec:
       name: job-web
     - port: 19200
       name: embedded
+    - port: 20003
+      name: job-embedded
   type: NodePort
   selector:
     role: alluxio-master
@@ -92,6 +96,8 @@ spec:
       name: job-web
     - port: 19200
       name: embedded
+    - port: 20003
+      name: job-embedded
   type: NodePort
   selector:
     role: alluxio-master
