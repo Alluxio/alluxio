@@ -152,12 +152,10 @@ public interface FileSystem extends Closeable {
       boolean metadataCache =
           context.getClusterConf().getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED);
       if (dataCache) {
-        return metadataCache ?
-            new MetadataCachingLocalCacheFileSystem(fs, context) :
-            new LocalCacheFileSystem(fs);
+        return metadataCache ? new MetadataCachingLocalCacheFileSystem(fs, context)
+            : new LocalCacheFileSystem(fs);
       } else {
-        return metadataCache ?
-          new MetadataCachingBaseFileSystem(fs, context) : fs;
+        return metadataCache ? new MetadataCachingBaseFileSystem(fs, context) : fs;
       }
     }
   }

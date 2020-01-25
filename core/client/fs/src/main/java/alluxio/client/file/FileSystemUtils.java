@@ -172,6 +172,8 @@ public final class FileSystemUtils {
   /**
    * Checks an {@link AlluxioURI} for scheme and authority information. Warn the user and throw an
    * exception if necessary.
+   * @param fsContext file system context
+   * @param uri uri to check
    */
   public static void checkUri(FileSystemContext fsContext, AlluxioURI uri) {
     Preconditions.checkNotNull(uri, "uri");

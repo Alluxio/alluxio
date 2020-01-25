@@ -95,9 +95,11 @@ public class MetadataCacheManager implements Closeable {
    * Otherwise returns a list with a single {@link URIStatus} element for the file.
    *
    * @param path the path to list information about
+   * @param options options to associate with this operation
    * @return a list of {@link URIStatus}s containing information about the files and directories
    *         which are children of the given path
    * @throws FileDoesNotExistException if the given path does not exist
+   * @throws IOException
    */
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {

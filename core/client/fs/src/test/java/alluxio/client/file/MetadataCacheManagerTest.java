@@ -58,7 +58,7 @@ public class MetadataCacheManagerTest {
   private FileSystemContext mFileContext;
   private ClientContext mClientContext;
   private FileSystemMasterClient mFileSystemMasterClient;
-  private MetadataCacheManager metadataCacheManager;
+  private MetadataCacheManager mMetadataCacheManager;
 
   @Before
   public void before() throws Exception {
@@ -81,7 +81,7 @@ public class MetadataCacheManagerTest {
     when(mFileContext.getPathConf(any())).thenReturn(mConf);
     when(mFileContext.getUriValidationEnabled()).thenReturn(true);
     FileSystem fs = new BaseFileSystem(mFileContext);
-    metadataCacheManager = Mockito.spy(new MetadataCacheManager(fs, mFileContext));
+    mMetadataCacheManager = Mockito.spy(new MetadataCacheManager(fs, mFileContext));
   }
 
   @After
@@ -91,21 +91,21 @@ public class MetadataCacheManagerTest {
 
   @Test
   public void getStatus() throws Exception {
-    metadataCacheManager.getStatus(FILE, GET_STATUS_OPTIONS);
+    mMetadataCacheManager.getStatus(FILE, GET_STATUS_OPTIONS);
     verifyGetStatusThroughRPC(FILE, 1);
     // The following getStatus gets from cache, so no RPC will be made.
-    metadataCacheManager.getStatus(FILE, GET_STATUS_OPTIONS);
+    mMetadataCacheManager.getStatus(FILE, GET_STATUS_OPTIONS);
     verifyGetStatusThroughRPC(FILE, 1);
   }
 
   @Test
   public void listStatus() throws Exception {
-    List<URIStatus> expectedStatuses = metadataCacheManager.listStatus(DIR, LIST_STATUS_OPTIONS);
+    List<URIStatus> expectedStatuses = mMetadataCacheManager.listStatus(DIR, LIST_STATUS_OPTIONS);
     verifyListStatusThroughRPC(DIR, 1);
     // List status has cached the file status, so no RPC will be made.
-    metadataCacheManager.getStatus(FILE, GET_STATUS_OPTIONS);
+    mMetadataCacheManager.getStatus(FILE, GET_STATUS_OPTIONS);
     verifyGetStatusThroughRPC(FILE, 0);
-    List<URIStatus> gotStatuses = metadataCacheManager.listStatus(DIR, LIST_STATUS_OPTIONS);
+    List<URIStatus> gotStatuses = mMetadataCacheManager.listStatus(DIR, LIST_STATUS_OPTIONS);
     // List status results have been cached, so listStatus RPC was only called once
     // at the beginning of the method.
     verifyListStatusThroughRPC(DIR, 1);
@@ -114,22 +114,22 @@ public class MetadataCacheManagerTest {
 
   @Test
   public void listStatusRecursive() throws Exception {
-    metadataCacheManager.listStatus(
+    mMetadataCacheManager.listStatus(
         DIR, LIST_STATUS_OPTIONS.toBuilder().setRecursive(true).build());
     verifyListStatusThroughRPC(DIR, 1);
-    metadataCacheManager.listStatus(
+    mMetadataCacheManager.listStatus(
         DIR, LIST_STATUS_OPTIONS.toBuilder().setRecursive(true).build());
     verifyListStatusThroughRPC(DIR, 2);
   }
 
   @Test
   public void updateAccessTimeOfCachedFile() throws Exception {
-    metadataCacheManager.getStatus(FILE, GET_STATUS_OPTIONS);
-    metadataCacheManager.getStatus(FILE, FileSystemOptions.getStatusDefaults(mConf).toBuilder()
+    mMetadataCacheManager.getStatus(FILE, GET_STATUS_OPTIONS);
+    mMetadataCacheManager.getStatus(FILE, FileSystemOptions.getStatusDefaults(mConf).toBuilder()
         .setAccessMode(Bits.READ)
         .setUpdateTimestamps(true)
         .build());
-    verify(metadataCacheManager, times(1)).asyncUpdateFileAccessTime(FILE);
+    verify(mMetadataCacheManager, times(1)).asyncUpdateFileAccessTime(FILE);
   }
 
   private void verifyGetStatusThroughRPC(AlluxioURI path, int totalTimes) throws Exception {
