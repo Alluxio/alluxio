@@ -22,19 +22,15 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.grpc.Bits;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.OpenFilePOptions;
 import alluxio.resource.CloseableResource;
-import alluxio.util.FileSystemOptions;
 import alluxio.wire.FileInfo;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -44,11 +40,9 @@ import java.util.List;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class})
-public class MetadataCachingFileSystemTest {
+public class MetadataCachingBaseFileSystemTest {
   private static final AlluxioURI DIR = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
-  private static final GetStatusPOptions GET_STATUS_OPTIONS =
-      GetStatusPOptions.getDefaultInstance();
   private static final ListStatusPOptions LIST_STATUS_OPTIONS =
       ListStatusPOptions.getDefaultInstance();
   private static final URIStatus FILE_STATUS = new URIStatus(
@@ -58,7 +52,7 @@ public class MetadataCachingFileSystemTest {
   private FileSystemContext mFileContext;
   private ClientContext mClientContext;
   private FileSystemMasterClient mFileSystemMasterClient;
-  private MetadataCachingFileSystem mFs;
+  private MetadataCachingBaseFileSystem mFs;
 
   @Before
   public void before() throws Exception {
@@ -80,8 +74,8 @@ public class MetadataCachingFileSystemTest {
     when(mFileContext.getClusterConf()).thenReturn(mConf);
     when(mFileContext.getPathConf(any())).thenReturn(mConf);
     when(mFileContext.getUriValidationEnabled()).thenReturn(true);
-    mFs = Mockito.spy(new MetadataCachingFileSystem(new BaseFileSystem(mFileContext),
-        mFileContext));
+    FileSystem fs = new BaseFileSystem(mFileContext);
+    mFs = new MetadataCachingBaseFileSystem(fs, mFileContext);
   }
 
   @After
@@ -91,21 +85,21 @@ public class MetadataCachingFileSystemTest {
 
   @Test
   public void getStatus() throws Exception {
-    mFs.getStatus(FILE, GET_STATUS_OPTIONS);
+    mFs.getStatus(FILE);
     verifyGetStatusThroughRPC(FILE, 1);
     // The following getStatus gets from cache, so no RPC will be made.
-    mFs.getStatus(FILE, GET_STATUS_OPTIONS);
+    mFs.getStatus(FILE);
     verifyGetStatusThroughRPC(FILE, 1);
   }
 
   @Test
   public void listStatus() throws Exception {
-    List<URIStatus> expectedStatuses = mFs.listStatus(DIR, LIST_STATUS_OPTIONS);
+    List<URIStatus> expectedStatuses = mFs.listStatus(DIR);
     verifyListStatusThroughRPC(DIR, 1);
     // List status has cached the file status, so no RPC will be made.
-    mFs.getStatus(FILE, GET_STATUS_OPTIONS);
+    mFs.getStatus(FILE);
     verifyGetStatusThroughRPC(FILE, 0);
-    List<URIStatus> gotStatuses = mFs.listStatus(DIR, LIST_STATUS_OPTIONS);
+    List<URIStatus> gotStatuses = mFs.listStatus(DIR);
     // List status results have been cached, so listStatus RPC was only called once
     // at the beginning of the method.
     verifyListStatusThroughRPC(DIR, 1);
@@ -122,21 +116,18 @@ public class MetadataCachingFileSystemTest {
 
   @Test
   public void openFile() throws Exception {
-    mFs.openFile(FILE, OpenFilePOptions.getDefaultInstance());
+    mFs.openFile(FILE);
     verifyGetStatusThroughRPC(FILE, 1);
-    // File status has been cached, will try to asynchronously update the file's access time.
-    mFs.openFile(FILE, OpenFilePOptions.getDefaultInstance());
-    verify(mFs, times(1)).asyncUpdateFileAccessTime(FILE);
+    mFs.openFile(FILE);
+    verifyGetStatusThroughRPC(FILE, 1);
   }
 
   @Test
-  public void updateAccessTimeOfCachedFile() throws Exception {
-    mFs.getStatus(FILE, GET_STATUS_OPTIONS);
-    mFs.getStatus(FILE, FileSystemOptions.getStatusDefaults(mConf).toBuilder()
-        .setAccessMode(Bits.READ)
-        .setUpdateTimestamps(true)
-        .build());
-    verify(mFs, times(1)).asyncUpdateFileAccessTime(FILE);
+  public void getBlockLocations() throws Exception {
+    mFs.getBlockLocations(FILE);
+    verifyGetStatusThroughRPC(FILE, 1);
+    mFs.getBlockLocations(FILE);
+    verifyGetStatusThroughRPC(FILE, 1);
   }
 
   private void verifyGetStatusThroughRPC(AlluxioURI path, int totalTimes) throws Exception {

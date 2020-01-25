@@ -55,7 +55,7 @@ public class DelegatingFileSystem implements FileSystem {
    *
    * @param fs the underline file system
    */
-  DelegatingFileSystem(FileSystem fs) {
+  public DelegatingFileSystem(FileSystem fs) {
     mDelegatedFileSystem = fs;
   }
 
@@ -144,6 +144,13 @@ public class DelegatingFileSystem implements FileSystem {
       throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
       IOException, AlluxioException {
     return mDelegatedFileSystem.openFile(path, options);
+  }
+
+  @Override
+  public FileInStream openFile(URIStatus status, OpenFilePOptions options)
+      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+      IOException, AlluxioException {
+    return mDelegatedFileSystem.openFile(status, options);
   }
 
   @Override

@@ -14,6 +14,8 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
+import alluxio.client.file.cache.LocalCacheFileSystem;
+import alluxio.client.file.cache.MetadataCachingLocalCacheFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -145,13 +147,18 @@ public interface FileSystem extends Closeable {
       Object[] ctorArgs = new Object[] {context};
       FileSystem fs =
           (FileSystem) CommonUtils.createNewClassInstance(fsClass, ctorArgClasses, ctorArgs);
-      if (context.getClusterConf().getBoolean(PropertyKey.USER_LOCAL_CACHE_ENABLED)) {
-        fs = new LocalCacheFileSystem(fs);
+
+      boolean dataCache = context.getClusterConf().getBoolean(PropertyKey.USER_LOCAL_CACHE_ENABLED);
+      boolean metadataCache =
+          context.getClusterConf().getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED);
+      if (dataCache) {
+        return metadataCache ?
+            new MetadataCachingLocalCacheFileSystem(fs, context) :
+            new LocalCacheFileSystem(fs);
+      } else {
+        return metadataCache ?
+          new MetadataCachingBaseFileSystem(fs, context) : fs;
       }
-      if (context.getClusterConf().getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
-        fs = new MetadataCachingFileSystem(fs, context);
-      }
-      return fs;
     }
   }
 
@@ -432,6 +439,20 @@ public interface FileSystem extends Closeable {
    * @throws FileIncompleteException when path is a file and is not completed yet
    */
   FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
+      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+      IOException, AlluxioException;
+
+  /**
+   * Opens a file for reading.
+   *
+   * @param status status of the file to read from
+   * @param options options to associate with this operation
+   * @return a {@link FileInStream} for the given path
+   * @throws FileDoesNotExistException when path does not exist
+   * @throws OpenDirectoryException when path is a directory
+   * @throws FileIncompleteException when path is a file and is not completed yet
+   */
+  FileInStream openFile(URIStatus status, OpenFilePOptions options)
       throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
       IOException, AlluxioException;
 

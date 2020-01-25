@@ -7,11 +7,16 @@
  * either express or implied, as more fully set forth in the License.
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ *
  */
 
-package alluxio.client.file;
+package alluxio.client.file.cache;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.DelegatingFileSystem;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.grpc.OpenFilePOptions;
 
 /**
@@ -28,6 +33,12 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
 
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) {
+    // TODO(binfan): implement me
+    return null;
+  }
+
+  @Override
+  public FileInStream openFile(URIStatus status, OpenFilePOptions options) {
     // TODO(binfan): implement me
     return null;
   }
