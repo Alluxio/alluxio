@@ -137,14 +137,13 @@ public class MetricsMasterTest {
   }
 
   private Object getGauge(String name) {
-    return MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricsSystem.getClusterMetricName(name))
+    return MetricsSystem.METRIC_REGISTRY.getGauges().get(name)
         .getValue();
   }
 
   private Object getGauge(String metricName, String tagName, String tagValue) {
     return MetricsSystem.METRIC_REGISTRY.getGauges()
-        .get(MetricsSystem
-            .getClusterMetricName(Metric.getMetricNameWithTags(metricName, tagName, tagValue)))
+        .get(Metric.getMetricNameWithTags(metricName, tagName, tagValue))
         .getValue();
   }
 }

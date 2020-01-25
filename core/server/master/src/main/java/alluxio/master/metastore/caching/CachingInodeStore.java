@@ -29,6 +29,7 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOption;
 import alluxio.master.metastore.heap.HeapInodeStore;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 import alluxio.util.ConfigurationUtils;
@@ -593,7 +594,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       mMaxSize = conf.getMaxSize();
       mHighWaterMark = conf.getHighWaterMark();
       mLowWaterMark = conf.getLowWaterMark();
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName("listing-cache-size"),
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LISTING_CACHE_SIZE.getName(),
           () -> mWeight.get());
     }
 

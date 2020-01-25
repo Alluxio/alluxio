@@ -84,7 +84,9 @@ public abstract class Cache<K, V> implements Closeable {
     mEvictionThread.setDaemon(true);
     // The eviction thread is started lazily when we first reach the high water mark.
 
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(mName + "-size"), mMap::size);
+    // TODO(lu) MetricKey
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.InstanceType.MASTER.toString()
+        + mName + "-size", mMap::size);
   }
 
   /**

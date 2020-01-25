@@ -961,7 +961,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return mUnderFileSystem.isSeekable();
   }
 
-  // TODO(calvin): General tag logic should be in getMetricName
+  // TODO(calvin): General tag logic should be in attachHostToMetricsName
   private String getQualifiedMetricName(String metricName) {
     try {
       if (SecurityUtils.isAuthenticationEnabled(mConf)

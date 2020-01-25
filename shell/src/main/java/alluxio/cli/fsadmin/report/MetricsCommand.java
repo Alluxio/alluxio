@@ -14,7 +14,6 @@ package alluxio.cli.fsadmin.report;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.grpc.MetricValue;
 import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
 import alluxio.util.FormatUtils;
 
 import java.io.IOException;
@@ -57,54 +56,45 @@ public class MetricsCommand {
    */
   public int run() throws IOException {
     mMetricsMap = new TreeMap<>(mMetaMasterClient.getMetrics());
-    Long bytesReadLocal = mMetricsMap.getOrDefault(MetricsSystem
-        .getClusterMetricName(MetricKey.CLIENT_BYTES_READ_LOCAL.getName()),
+    Long bytesReadLocal = mMetricsMap.getOrDefault(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName(),
         MetricValue.newBuilder().setLongValue(0L).build()).getLongValue();
     Long bytesReadRemote = mMetricsMap.getOrDefault(
-        MetricsSystem.getClusterMetricName(MetricKey.WORKER_BYTES_READ_ALLUXIO.getName()),
+        MetricKey.CLUSTER_BYTES_READ_ALLUXIO.getName(),
         MetricValue.newBuilder().setLongValue(0L).build()).getLongValue();
     Long bytesReadUfs = mMetricsMap.getOrDefault(
-        MetricsSystem.getClusterMetricName(MetricKey.WORKER_BYTES_READ_UFS_ALL.getName()),
+        MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName(),
         MetricValue.newBuilder().setLongValue(0L).build()).getLongValue();
 
     mPrintStream.println("Total IO: ");
-    printMetric(MetricsSystem.getClusterMetricName(MetricKey.CLIENT_BYTES_READ_LOCAL.getName()),
+    printMetric(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName(),
         "Short-circuit Read", true);
-    printMetric(MetricsSystem.getClusterMetricName(MetricKey.WORKER_BYTES_READ_DOMAIN.getName()),
+    printMetric(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName(),
         "Short-circuit Read (Domain Socket)", true);
-    printMetric(MetricsSystem.getClusterMetricName(MetricKey.WORKER_BYTES_READ_ALLUXIO.getName()),
+    printMetric(MetricKey.CLUSTER_BYTES_READ_ALLUXIO.getName(),
         "From Remote Instances", true);
-    printMetric(MetricsSystem.getClusterMetricName(MetricKey.WORKER_BYTES_READ_UFS_ALL.getName()),
+    printMetric(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName(),
         "Under Filesystem Read", true);
-    printMetric(MetricsSystem.getClusterMetricName(
-        MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO.getName()), "Alluxio Write", true);
-    printMetric(MetricsSystem.getClusterMetricName(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName()),
+    printMetric(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName(),
+        "Alluxio Write", true);
+    printMetric(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN.getName(),
         "Alluxio Write (Domain Socket)", true);
-    printMetric(MetricsSystem.getClusterMetricName(
-        MetricKey.WORKER_BYTES_WRITTEN_UFS_ALL.getName()),
+    printMetric(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName(),
         "Under Filesystem Write", true);
 
     mPrintStream.println("\nTotal IO Throughput (Last Minute): ");
-    printMetric(MetricsSystem.getClusterMetricName(
-        MetricKey.CLIENT_BYTES_READ_LOCAL_THROUGHPUT.getName()),
+    printMetric(MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName(),
         "Short-circuit Read", true);
-    printMetric(MetricsSystem.getClusterMetricName(
-        MetricKey.WORKER_BYTES_READ_DOMAIN_THROUGHPUT.getName()),
+    printMetric(MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName(),
         "Short-circuit Read (Domain Socket)", true);
-    printMetric(MetricsSystem.getClusterMetricName(
-        MetricKey.WORKER_BYTES_READ_ALLUXIO_THROUGHPUT.getName()),
+    printMetric(MetricKey.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT.getName(),
         "From Remote Instances", true);
-    printMetric(MetricsSystem.getClusterMetricName(
-        MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName()),
+    printMetric(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName(),
         "Under Filesystem Read", true);
-    printMetric(MetricsSystem.getClusterMetricName(
-        MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName()),
+    printMetric(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName(),
         "Alluxio Write", true);
-    printMetric(MetricsSystem.getClusterMetricName(
-        MetricKey.WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()),
+    printMetric(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName(),
         "Alluxio Write (Domain Socket)", true);
-    printMetric(MetricsSystem.getClusterMetricName(
-        MetricKey.WORKER_BYTES_WRITTEN_UFS_THROUGHPUT.getName()),
+    printMetric(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName(),
         "Under Filesystem Write", true);
 
     mPrintStream.println("\nCache Hit Rate (Percentage): ");
