@@ -30,6 +30,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientContext;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
@@ -596,7 +597,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @ThreadSafe
   public static final class Metrics {
-    public static final String TIER = "Tier";
 
     /**
      * Registers metric gauges.
@@ -617,16 +617,17 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       StorageTierAssoc assoc = blockWorker.getStoreMeta().getStorageTierAssoc();
       for (int i = 0; i < assoc.size(); i++) {
         String tier = assoc.getAlias(i);
+        // TODO(lu) Add template to dynamically generate MetricKey
         MetricsSystem.registerGaugeIfAbsent(
-            MetricKey.WORKER_CAPACITY_TOTAL.getName() + TIER + tier,
+            MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + tier,
             () -> blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L));
 
         MetricsSystem.registerGaugeIfAbsent(
-            MetricKey.WORKER_CAPACITY_USED.getName() + TIER + tier,
+            MetricKey.WORKER_CAPACITY_USED.getName() + MetricInfo.TIER + tier,
             () -> blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L));
 
         MetricsSystem.registerGaugeIfAbsent(
-            MetricKey.WORKER_CAPACITY_FREE.getName() + TIER + tier,
+            MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + tier,
             () -> blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L)
                 - blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L));
       }

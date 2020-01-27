@@ -17,6 +17,7 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.worker.block.DefaultBlockWorker.Metrics;
@@ -62,12 +63,14 @@ public final class BlockWorkerMetricsTest {
     when(mBlockStoreMeta.getCapacityBytesOnTiers())
         .thenReturn(ImmutableMap.of(MEM, 1000L, HDD, 2000L));
     when(mBlockStoreMeta.getUsedBytesOnTiers()).thenReturn(ImmutableMap.of(MEM, 100L, HDD, 200L));
-    assertEquals(1000L, getGauge(MetricKey.WORKER_CAPACITY_TOTAL.getName() + Metrics.TIER + MEM));
-    assertEquals(2000L, getGauge(MetricKey.WORKER_CAPACITY_TOTAL.getName() + Metrics.TIER + HDD));
-    assertEquals(100L, getGauge(MetricKey.WORKER_CAPACITY_USED.getName() + Metrics.TIER + MEM));
-    assertEquals(200L, getGauge(MetricKey.WORKER_CAPACITY_USED.getName() + Metrics.TIER + HDD));
-    assertEquals(900L, getGauge(MetricKey.WORKER_CAPACITY_FREE.getName() + Metrics.TIER + MEM));
-    assertEquals(1800L, getGauge(MetricKey.WORKER_CAPACITY_FREE.getName() + Metrics.TIER + HDD));
+    assertEquals(1000L,
+        getGauge(MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + MEM));
+    assertEquals(2000L,
+        getGauge(MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + HDD));
+    assertEquals(100L, getGauge(MetricKey.WORKER_CAPACITY_USED.getName() + MetricInfo.TIER + MEM));
+    assertEquals(200L, getGauge(MetricKey.WORKER_CAPACITY_USED.getName() + MetricInfo.TIER + HDD));
+    assertEquals(900L, getGauge(MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + MEM));
+    assertEquals(1800L, getGauge(MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + HDD));
   }
 
   public void testMetricBocksCached() {
@@ -77,6 +80,6 @@ public final class BlockWorkerMetricsTest {
 
   private Object getGauge(String name) {
     return MetricsSystem.METRIC_REGISTRY.getGauges()
-        .get(MetricsSystem.attachHostToMetricsName(name)).getValue();
+        .get(MetricsSystem.attachHostToMetricsIfNeeded(name)).getValue();
   }
 }

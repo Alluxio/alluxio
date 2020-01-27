@@ -137,10 +137,10 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Test
   public void getMetricsInfo() throws Exception {
     long start = getInfo(NO_PARAMS).getMetrics()
-        .get(MetricsSystem.attachHostToMetricsName(MetricKey.MASTER_FILE_INFOS_GOT.getName()));
+        .get(MetricsSystem.attachHostToMetricsIfNeeded(MetricKey.MASTER_FILE_INFOS_GOT.getName()));
     mFileSystemMaster.getFileInfo(new AlluxioURI("/"), GetStatusContext.defaults());
     assertEquals(Long.valueOf(start + 1), getInfo(NO_PARAMS).getMetrics()
-        .get(MetricsSystem.attachHostToMetricsName(MetricKey.MASTER_FILE_INFOS_GOT.getName())));
+        .get(MetricsSystem.attachHostToMetricsIfNeeded(MetricKey.MASTER_FILE_INFOS_GOT.getName())));
   }
 
   @Test

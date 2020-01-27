@@ -50,6 +50,7 @@ import alluxio.master.metastore.BlockStore.Block;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
@@ -1128,7 +1129,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
    * Class that contains metrics related to BlockMaster.
    */
   public static final class Metrics {
-    public static final String TIER = "Tier";
 
     /**
      * Registers metric gauges.
@@ -1148,8 +1148,10 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 
       for (int i = 0; i < master.getGlobalStorageTierAssoc().size(); i++) {
         String alias = master.getGlobalStorageTierAssoc().getAlias(i);
+        // TODO(lu) Add template to dynamically construct metric key
         MetricsSystem.registerGaugeIfAbsent(
-            MetricKey.CLUSTER_CAPACITY_TOTAL.getName() + TIER + alias, new Gauge<Long>() {
+            MetricKey.CLUSTER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + alias,
+            new Gauge<Long>() {
               @Override
               public Long getValue() {
                 return master.getTotalBytesOnTiers().getOrDefault(alias, 0L);
@@ -1157,14 +1159,14 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
             });
 
         MetricsSystem.registerGaugeIfAbsent(
-            MetricKey.CLUSTER_CAPACITY_USED.getName() + TIER + alias, new Gauge<Long>() {
+            MetricKey.CLUSTER_CAPACITY_USED.getName() + MetricInfo.TIER + alias, new Gauge<Long>() {
               @Override
               public Long getValue() {
                 return master.getUsedBytesOnTiers().getOrDefault(alias, 0L);
               }
             });
         MetricsSystem.registerGaugeIfAbsent(
-            MetricKey.CLUSTER_CAPACITY_FREE.getName() + TIER + alias, new Gauge<Long>() {
+            MetricKey.CLUSTER_CAPACITY_FREE.getName() + MetricInfo.TIER + alias, new Gauge<Long>() {
               @Override
               public Long getValue() {
                 return master.getTotalBytesOnTiers().getOrDefault(alias, 0L)

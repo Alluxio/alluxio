@@ -17,6 +17,7 @@ import static org.mockito.Mockito.when;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.StorageTierAssoc;
 import alluxio.master.block.DefaultBlockMaster.Metrics;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -57,12 +58,18 @@ public final class BlockMasterMetricsTest {
   public void testMetricsTierCapacity() {
     when(mBlockMaster.getTotalBytesOnTiers()).thenReturn(ImmutableMap.of(MEM, 1000L, HDD, 2000L));
     when(mBlockMaster.getUsedBytesOnTiers()).thenReturn(ImmutableMap.of(MEM, 100L, HDD, 200L));
-    assertEquals(1000L, getGauge(MetricKey.CLUSTER_CAPACITY_TOTAL.getName() + Metrics.TIER + MEM));
-    assertEquals(2000L, getGauge(MetricKey.CLUSTER_CAPACITY_TOTAL.getName() + Metrics.TIER + HDD));
-    assertEquals(100L, getGauge(MetricKey.CLUSTER_CAPACITY_USED.getName() + Metrics.TIER + MEM));
-    assertEquals(200L, getGauge(MetricKey.CLUSTER_CAPACITY_USED.getName() + Metrics.TIER + HDD));
-    assertEquals(900L, getGauge(MetricKey.CLUSTER_CAPACITY_FREE.getName() + Metrics.TIER + MEM));
-    assertEquals(1800L, getGauge(MetricKey.CLUSTER_CAPACITY_FREE.getName() + Metrics.TIER + HDD));
+    assertEquals(1000L,
+        getGauge(MetricKey.CLUSTER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + MEM));
+    assertEquals(2000L,
+        getGauge(MetricKey.CLUSTER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + HDD));
+    assertEquals(100L,
+        getGauge(MetricKey.CLUSTER_CAPACITY_USED.getName() + MetricInfo.TIER + MEM));
+    assertEquals(200L,
+        getGauge(MetricKey.CLUSTER_CAPACITY_USED.getName() + MetricInfo.TIER + HDD));
+    assertEquals(900L,
+        getGauge(MetricKey.CLUSTER_CAPACITY_FREE.getName() + MetricInfo.TIER + MEM));
+    assertEquals(1800L,
+        getGauge(MetricKey.CLUSTER_CAPACITY_FREE.getName() + MetricInfo.TIER + HDD));
   }
 
   public void testMetricWorkers() {
@@ -72,6 +79,6 @@ public final class BlockMasterMetricsTest {
 
   private Object getGauge(String name) {
     return MetricsSystem.METRIC_REGISTRY.getGauges()
-        .get(MetricsSystem.attachHostToMetricsName(name)).getValue();
+        .get(MetricsSystem.attachHostToMetricsIfNeeded(name)).getValue();
   }
 }

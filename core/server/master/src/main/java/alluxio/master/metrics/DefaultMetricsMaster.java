@@ -30,7 +30,7 @@ import alluxio.metrics.MetricsFilter;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MultiValueMetricsAggregator;
 import alluxio.metrics.SingleValueAggregator;
-import alluxio.metrics.WorkerMetrics;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.aggregator.SingleTagValueAggregator;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -130,7 +130,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_READ_ALLUXIO.getName(),
         MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_ALLUXIO.getName()));
     addAggregator(new SumInstancesAggregator(
-        MetricKey.WORKER_BYTES_READ_ALLUXIO_THROUGHPUT.getName(),
+        MetricKey.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT.getName(),
         MetricsSystem.InstanceType.WORKER,
         MetricKey.WORKER_BYTES_READ_ALLUXIO_THROUGHPUT.getName()));
     addAggregator(new SumInstancesAggregator(
@@ -141,7 +141,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
         MetricsSystem.InstanceType.WORKER,
         MetricKey.WORKER_BYTES_READ_DOMAIN_THROUGHPUT.getName()));
     addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName(),
-        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_UFS.getName()));
+        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_UFS_ALL.getName()));
     addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName(),
         MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName()));
 
@@ -172,16 +172,17 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
         MetricsSystem.InstanceType.CLIENT, MetricKey.CLIENT_BYTES_READ_LOCAL_THROUGHPUT.getName()));
 
     // multi-value aggregators
-    addAggregator(new SingleTagValueAggregator(MetricKey.WORKER_BYTES_READ_UFS.getName(),
+    addAggregator(new SingleTagValueAggregator(MetricKey.CLUSTER_BYTES_READ_UFS.getName(),
         MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_UFS.getName(),
-        WorkerMetrics.TAG_UFS));
-    addAggregator(new SingleTagValueAggregator(MetricKey.WORKER_BYTES_WRITTEN_UFS.getName(),
+        MetricInfo.TAG_UFS));
+    addAggregator(new SingleTagValueAggregator(MetricKey.CLUSTER_BYTES_WRITTEN_UFS.getName(),
         MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_WRITTEN_UFS.getName(),
-        WorkerMetrics.TAG_UFS));
-    for (WorkerMetrics.UfsOps ufsOp : WorkerMetrics.UfsOps.values()) {
-      addAggregator(new SingleTagValueAggregator(WorkerMetrics.UFS_OP_PREFIX + ufsOp,
+        MetricInfo.TAG_UFS));
+    // TODO(lu) Create a template for dynamically construct MetricKey
+    for (MetricInfo.UfsOps ufsOp : MetricInfo.UfsOps.values()) {
+      addAggregator(new SingleTagValueAggregator(MetricInfo.UFS_OP_PREFIX + ufsOp,
           MetricsSystem.InstanceType.MASTER, ufsOp.toString(),
-          WorkerMetrics.TAG_UFS));
+          MetricInfo.TAG_UFS));
     }
   }
 

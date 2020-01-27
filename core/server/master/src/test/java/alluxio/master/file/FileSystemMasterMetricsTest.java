@@ -74,6 +74,6 @@ public class FileSystemMasterMetricsTest {
 
   private Object getGauge(String name) {
     return MetricsSystem.METRIC_REGISTRY.getGauges()
-        .get(MetricsSystem.attachHostToMetricsName(name)).getValue();
+        .get(MetricsSystem.attachHostToMetricsIfNeeded(name)).getValue();
   }
 }

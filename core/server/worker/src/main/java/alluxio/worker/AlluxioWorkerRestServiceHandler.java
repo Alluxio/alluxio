@@ -381,9 +381,9 @@ public final class AlluxioWorkerRestServiceHandler {
       MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
 
       Long workerCapacityTotal = (Long) mr.getGauges().get(MetricsSystem
-          .attachHostToMetricsName(MetricKey.WORKER_CAPACITY_TOTAL.getName())).getValue();
+          .attachHostToMetricsIfNeeded(MetricKey.WORKER_CAPACITY_TOTAL.getName())).getValue();
       Long workerCapacityUsed = (Long) mr.getGauges().get(MetricsSystem
-          .attachHostToMetricsName(MetricKey.WORKER_CAPACITY_USED.getName())).getValue();
+          .attachHostToMetricsIfNeeded(MetricKey.WORKER_CAPACITY_USED.getName())).getValue();
 
       int workerCapacityUsedPercentage =
           (workerCapacityTotal > 0) ? (int) (100L * workerCapacityUsed / workerCapacityTotal) : 0;
@@ -411,7 +411,7 @@ public final class AlluxioWorkerRestServiceHandler {
         operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
       }
       String filesPinnedProperty = MetricsSystem
-          .attachHostToMetricsName(MetricKey.MASTER_FILES_PINNED.getName());
+          .attachHostToMetricsIfNeeded(MetricKey.MASTER_FILES_PINNED.getName());
       operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
           mr.getGauges().get(filesPinnedProperty));
 
@@ -750,7 +750,7 @@ public final class AlluxioWorkerRestServiceHandler {
     // Only the gauge for cached blocks is retrieved here, other gauges are statistics of
     // free/used spaces, those statistics can be gotten via other REST apis.
     String blocksCachedProperty =
-        MetricsSystem.attachHostToMetricsName(MetricKey.WORKER_BLOCKS_CACHED.getName());
+        MetricsSystem.attachHostToMetricsIfNeeded(MetricKey.WORKER_BLOCKS_CACHED.getName());
     @SuppressWarnings("unchecked") Gauge<Integer> blocksCached =
         (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);
 

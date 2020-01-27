@@ -145,7 +145,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
         RegisterWorkerPOptions.getDefaultInstance());
 
     String filesPinnedProperty =
-        MetricsSystem.attachHostToMetricsName(MetricKey.MASTER_FILES_PINNED.getName());
+        MetricsSystem.attachHostToMetricsIfNeeded(MetricKey.MASTER_FILES_PINNED.getName());
     MetricsSystem.METRIC_REGISTRY.remove(filesPinnedProperty);
   }
 
@@ -205,7 +205,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   public void getMetrics() {
     final int FILES_PINNED_TEST_VALUE = 100;
     String filesPinnedProperty =
-        MetricsSystem.attachHostToMetricsName(MetricKey.MASTER_FILES_PINNED.getName());
+        MetricsSystem.attachHostToMetricsIfNeeded(MetricKey.MASTER_FILES_PINNED.getName());
     Gauge<Integer> filesPinnedGauge = () -> FILES_PINNED_TEST_VALUE;
     MetricSet mockMetricsSet = mock(MetricSet.class);
     Map<String, Metric> map = new HashMap<>();

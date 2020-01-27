@@ -281,7 +281,7 @@ public final class Metric implements Serializable {
     if (result != null) {
       return result;
     }
-    return CACHED_METRICS.computeIfAbsent(k, key -> metricName + "." + CommonMetrics.TAG_USER
+    return CACHED_METRICS.computeIfAbsent(k, key -> metricName + "." + MetricInfo.TAG_USER
         + TAG_SEPARATOR + userName);
   }
 

@@ -24,7 +24,7 @@ import alluxio.grpc.ReadResponse;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.WorkerMetrics;
+import alluxio.metrics.MetricInfo;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.proto.dataserver.Protocol;
@@ -177,12 +177,12 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
                 ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();
             String ufsString = MetricsSystem.escape(ufsMountPointUri);
             String counterName = Metric.getMetricNameWithTags(
-                MetricKey.WORKER_BYTES_READ_UFS.getName(), WorkerMetrics.TAG_UFS, ufsString);
+                MetricKey.WORKER_BYTES_READ_UFS.getName(), MetricInfo.TAG_UFS, ufsString);
             context.setBlockReader(reader);
             context.setCounter(MetricsSystem.counter(counterName));
             String meterName = Metric.getMetricNameWithTags(
                 MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName(),
-                WorkerMetrics.TAG_UFS, ufsString);
+                MetricInfo.TAG_UFS, ufsString);
             context.setMeter(MetricsSystem.meter(meterName));
             return;
           }

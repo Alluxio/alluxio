@@ -22,7 +22,7 @@ import alluxio.grpc.WriteResponse;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.WorkerMetrics;
+import alluxio.metrics.MetricInfo;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authentication.AuthenticatedUserInfo;
@@ -242,10 +242,10 @@ public final class UfsFallbackBlockWriteHandler
     context.setUfsPath(ufsPath);
 
     String counterName = Metric.getMetricNameWithTags(
-        MetricKey.WORKER_BYTES_WRITTEN_UFS.getName(), WorkerMetrics.TAG_UFS, ufsString);
+        MetricKey.WORKER_BYTES_WRITTEN_UFS.getName(), MetricInfo.TAG_UFS, ufsString);
     String meterName = Metric.getMetricNameWithTags(
         MetricKey.WORKER_BYTES_WRITTEN_UFS_THROUGHPUT.getName(),
-        WorkerMetrics.TAG_UFS, ufsString);
+        MetricInfo.TAG_UFS, ufsString);
     context.setCounter(MetricsSystem.counter(counterName));
     context.setMeter(MetricsSystem.meter(meterName));
   }

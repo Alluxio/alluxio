@@ -201,14 +201,14 @@ public final class MetricsSystem {
   }
 
   /**
-   * Converts a simple string to a qualified metric name based on the process type.
-   * Builds unique metric registry names with unique ID (set to host name). The pattern is
-   * metricName.hostname
+   * Add unique ID (set to host name) for building unique metric registry name
+   * based on the process type.
+   * The pattern is metricName.hostname
    *
    * @param name the name of the metric
    * @return the metric with instance and id tags
    */
-  public static String attachHostToMetricsName(String name) {
+  public static String attachHostToMetricsIfNeeded(String name) {
     switch (CommonUtils.PROCESS_TYPE.get()) {
       case CLIENT:
       case PROXY:
@@ -291,7 +291,7 @@ public final class MetricsSystem {
    * @return a counter object with the qualified metric name
    */
   public static Counter counter(String name) {
-    return METRIC_REGISTRY.counter(attachHostToMetricsName(name));
+    return METRIC_REGISTRY.counter(attachHostToMetricsIfNeeded(name));
   }
 
   /**
@@ -302,7 +302,7 @@ public final class MetricsSystem {
    * @return a meter object with the qualified metric name
    */
   public static Meter meter(String name) {
-    return METRIC_REGISTRY.meter(attachHostToMetricsName(name));
+    return METRIC_REGISTRY.meter(attachHostToMetricsIfNeeded(name));
   }
 
   /**
@@ -313,7 +313,7 @@ public final class MetricsSystem {
    * @return a timer object with the qualified metric name
    */
   public static Timer timer(String name) {
-    return METRIC_REGISTRY.timer(attachHostToMetricsName(name));
+    return METRIC_REGISTRY.timer(attachHostToMetricsIfNeeded(name));
   }
 
   /**
@@ -324,7 +324,7 @@ public final class MetricsSystem {
    * @param <T> the type
    */
   public static synchronized <T> void registerGaugeIfAbsent(String name, Gauge<T> metric) {
-    name = attachHostToMetricsName(name);
+    name = attachHostToMetricsIfNeeded(name);
     if (!METRIC_REGISTRY.getGauges().containsKey(name)) {
       METRIC_REGISTRY.register(name, metric);
     }

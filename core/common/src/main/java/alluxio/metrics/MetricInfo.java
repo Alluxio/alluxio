@@ -12,9 +12,9 @@
 package alluxio.metrics;
 
 /**
- * Metrics of an Alluxio worker.
+ * Metrics information.
  */
-public final class WorkerMetrics {
+public final class MetricInfo {
   /**
    * The list of under filesystem operations.
    */
@@ -60,11 +60,15 @@ public final class WorkerMetrics {
     }
   }
 
-  public static final String UFS_OP_PREFIX = "UfsOp";
+  public static final String UFS_OP_PREFIX = "ClusterPerUfsOp";
 
   // Tags
   public static final String TAG_UFS = "UFS";
   public static final String TAG_UFS_TYPE = "UFS_TYPE";
+  public static final String TAG_USER = "User";
 
-  private WorkerMetrics() {} // prevent instantiation
+  // Metric name component
+  public static final String TIER = "Tier";
+
+  private MetricInfo() {} // prevent instantiation
 }

@@ -26,8 +26,8 @@ import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
-import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
@@ -400,12 +400,12 @@ public abstract class AbstractClient implements Client {
         + " attempts: " + ex.toString(), ex);
   }
 
-  // TODO(calvin): General tag logic should be in attachHostToMetricsName
+  // TODO(calvin): General tag logic should be in attachHostToMetricsIfNeeded
   private String getQualifiedMetricName(String metricName) {
     try {
       if (SecurityUtils.isAuthenticationEnabled(mContext.getClusterConf())
           && mContext.getUserState().getUser() != null) {
-        return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
+        return Metric.getMetricNameWithTags(metricName, MetricInfo.TAG_USER,
             mContext.getUserState().getUser().getName());
       } else {
         return metricName;

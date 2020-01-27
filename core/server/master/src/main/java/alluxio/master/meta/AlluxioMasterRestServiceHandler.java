@@ -42,7 +42,7 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.meta.MountTable;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.WorkerMetrics;
+import alluxio.metrics.MetricInfo;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
@@ -951,11 +951,11 @@ public final class AlluxioMasterRestServiceHandler {
       // cluster per UFS read
       Map<String, String> ufsReadSizeMap = new TreeMap<>();
       for (Map.Entry<String, Gauge> entry : mr.getGauges((name, metric)
-          -> name.contains(MetricKey.WORKER_BYTES_READ_UFS.getName())).entrySet()) {
+          -> name.contains(MetricKey.CLUSTER_BYTES_READ_UFS.getName())).entrySet()) {
         alluxio.metrics.Metric metric =
             alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue(),
                 MetricType.GAUGE);
-        String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
+        String ufs = metric.getTags().get(MetricInfo.TAG_UFS);
         if (isMounted(ufs)) {
           ufsReadSizeMap.put(ufs, FormatUtils.getSizeFromBytes((long) metric.getValue()));
         }
@@ -965,11 +965,11 @@ public final class AlluxioMasterRestServiceHandler {
       // cluster per UFS write
       Map<String, String> ufsWriteSizeMap = new TreeMap<>();
       for (Map.Entry<String, Gauge> entry : mr.getGauges((name, metric)
-          -> name.contains(MetricKey.WORKER_BYTES_WRITTEN_UFS.getName())).entrySet()) {
+          -> name.contains(MetricKey.CLUSTER_BYTES_WRITTEN_UFS.getName())).entrySet()) {
         alluxio.metrics.Metric metric =
             alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue(),
                 MetricType.GAUGE);
-        String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
+        String ufs = metric.getTags().get(MetricInfo.TAG_UFS);
         if (isMounted(ufs)) {
           ufsWriteSizeMap.put(ufs, FormatUtils.getSizeFromBytes((long) metric.getValue()));
         }
@@ -979,14 +979,14 @@ public final class AlluxioMasterRestServiceHandler {
       // per UFS ops
       Map<String, Map<String, Long>> ufsOpsMap = new TreeMap<>();
       for (Map.Entry<String, Gauge> entry : mr
-          .getGauges((name, metric) -> name.contains(WorkerMetrics.UFS_OP_PREFIX)).entrySet()) {
+          .getGauges((name, metric) -> name.contains(MetricInfo.UFS_OP_PREFIX)).entrySet()) {
         alluxio.metrics.Metric metric =
             alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue(),
                 MetricType.GAUGE);
-        if (!metric.getTags().containsKey(WorkerMetrics.TAG_UFS)) {
+        if (!metric.getTags().containsKey(MetricInfo.TAG_UFS)) {
           continue;
         }
-        String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
+        String ufs = metric.getTags().get(MetricInfo.TAG_UFS);
         if (isMounted(ufs)) {
           // Unescape the URI for display
           String ufsUnescaped = MetricsSystem.unescape(ufs);

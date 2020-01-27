@@ -17,10 +17,9 @@ import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.exception.status.UnimplementedException;
 import alluxio.security.authorization.AccessControlList;
-import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.WorkerMetrics;
+import alluxio.metrics.MetricInfo;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -961,21 +960,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return mUnderFileSystem.isSeekable();
   }
 
-  // TODO(calvin): General tag logic should be in attachHostToMetricsName
+  // TODO(calvin): General tag logic should be in attachHostToMetricsIfNeeded
   private String getQualifiedMetricName(String metricName) {
     try {
       if (SecurityUtils.isAuthenticationEnabled(mConf)
           && AuthenticatedClientUser.get(mConf) != null) {
-        return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
-            AuthenticatedClientUser.get(mConf).getName(), WorkerMetrics.TAG_UFS,
-            MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
+        return Metric.getMetricNameWithTags(metricName, MetricInfo.TAG_USER,
+            AuthenticatedClientUser.get(mConf).getName(), MetricInfo.TAG_UFS,
+            MetricsSystem.escape(new AlluxioURI(mPath)), MetricInfo.TAG_UFS_TYPE,
             mUnderFileSystem.getUnderFSType());
       }
     } catch (IOException e) {
       // fall through
     }
-    return Metric.getMetricNameWithTags(metricName, WorkerMetrics.TAG_UFS,
-        MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
+    return Metric.getMetricNameWithTags(metricName, MetricInfo.TAG_UFS,
+        MetricsSystem.escape(new AlluxioURI(mPath)), MetricInfo.TAG_UFS_TYPE,
         mUnderFileSystem.getUnderFSType());
   }
 
