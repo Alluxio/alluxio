@@ -158,6 +158,10 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
         MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL));
     addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT,
         MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT));
+    addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_WRITTEN_LOCAL,
+        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_WRITTEN_LOCAL));
+    addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_WRITTEN_LOCAL_THROUGHPUT,
+        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_WRITTEN_LOCAL_THROUGHPUT));
 
     // multi-value aggregators
     addAggregator(new SingleTagValueAggregator(WorkerMetrics.BYTES_READ_UFS,
