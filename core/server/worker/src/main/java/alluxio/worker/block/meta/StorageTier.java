@@ -118,7 +118,7 @@ public final class StorageTier {
     }
     mCapacityBytes = totalCapacity;
     if (mTierAlias.equals("MEM") && mDirs.size() == 1) {
-      checkEnoughMemSpace(mDirs.get(0));
+      checkEnoughMemSpace(mDirs.values().iterator().next());
     }
   }
 
