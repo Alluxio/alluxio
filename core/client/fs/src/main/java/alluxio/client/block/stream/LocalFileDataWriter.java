@@ -18,6 +18,8 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.metrics.ClientMetrics;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -127,6 +129,8 @@ public final class LocalFileDataWriter implements DataWriter {
       ensureReserved(mPos + sz);
       mPos += sz;
       Preconditions.checkState(mWriter.append(buf) == sz);
+      MetricsSystem.counter(ClientMetrics.BYTES_WRITTEN_LOCAL).inc(sz);
+      MetricsSystem.meter(ClientMetrics.BYTES_WRITTEN_LOCAL_THROUGHPUT).mark(sz);
     } finally {
       buf.release();
     }
