@@ -150,7 +150,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     CommonUtils.waitFor("Metrics to be updated correctly", () -> {
       try {
         return FormatUtils.getSizeFromBytes(len).equals(getMetrics(NO_PARAMS)
-            .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()));
+            .get("totalBytesWrittenUfs"));
       } catch (Exception e) {
         return false;
       }
@@ -160,7 +160,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     CommonUtils.waitFor("Metrics to be updated correctly", () -> {
       try {
         return FormatUtils.getSizeFromBytes(2 * len).equals(getMetrics(NO_PARAMS)
-            .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()));
+            .get("totalBytesWrittenUfs"));
       } catch (Exception e) {
         return false;
       }

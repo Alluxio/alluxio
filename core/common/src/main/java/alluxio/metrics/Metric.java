@@ -204,7 +204,7 @@ public final class Metric implements Serializable {
 
   /**
    * @return the fully qualified metric name, which is of pattern
-   *         instance.[hostname-id:instanceId.]name[.tagName:tagValue]*, where the tags are appended
+   *         instance.name[.hostname-id:instanceId][.tagName:tagValue]*, where the tags are appended
    *         at the end
    */
   public String getFullMetricName() {

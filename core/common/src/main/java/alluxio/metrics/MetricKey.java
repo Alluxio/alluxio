@@ -572,12 +572,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(true)
           .build();
-  public static final MetricKey WORKER_BYTES_READ_UFS_ALL =
-      new MetricKey.Builder(Name.WORKER_BYTES_READ_UFS_ALL)
-          .setDescription("Total number of bytes read from a all Alluxio UFSes by this worker")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggreagated(true)
-          .build();
   public static final MetricKey WORKER_BYTES_READ_UFS_THROUGHPUT =
       new MetricKey.Builder(Name.WORKER_BYTES_READ_UFS_THROUGHPUT)
           .setDescription("Bytes read throughput from all Alluxio UFSes by this worker")
@@ -839,7 +833,6 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String WORKER_BYTES_READ_UFS_ALL = "Worker.BytesReadUfsAll";
     public static final String WORKER_BYTES_READ_UFS_THROUGHPUT = "Worker.BytesReadUfsThroughput";
     public static final String WORKER_BYTES_WRITTEN_UFS = "Worker.BytesWrittenPerUfs";
-    public static final String WORKER_BYTES_WRITTEN_UFS_ALL = "Worker.BytesWrittenUfsAll";
     public static final String WORKER_BYTES_WRITTEN_UFS_THROUGHPUT
         = "Worker.BytesWrittenUfsThroughput";
     public static final String WORKER_CAPACITY_TOTAL = "Worker.CapacityTotal";

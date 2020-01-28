@@ -933,7 +933,7 @@ public final class AlluxioMasterRestServiceHandler {
 
       // cluster write throughput
       Long bytesWrittenLocalThroughput = (Long) mr.getGauges()
-          .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT)
+          .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName())
           .getValue();
       Long bytesWrittenAlluxioThroughput = (Long) mr.getGauges()
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName()).getValue();

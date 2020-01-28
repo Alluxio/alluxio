@@ -141,7 +141,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
         MetricsSystem.InstanceType.WORKER,
         MetricKey.WORKER_BYTES_READ_DOMAIN_THROUGHPUT.getName()));
     addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName(),
-        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_UFS_ALL.getName()));
+        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_UFS.getName()));
     addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName(),
         MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName()));
 

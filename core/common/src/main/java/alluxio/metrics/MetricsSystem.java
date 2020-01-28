@@ -354,11 +354,13 @@ public final class MetricsSystem {
    */
   public static String stripInstanceAndHost(String metricsName) {
     String[] pieces = metricsName.split("\\.");
-    Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", metricsName);
-
+    if (pieces.length <= 1) {
+      return metricsName;
+    }
     // Master metrics doesn't have hostname included.
     if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())
-        && !pieces[0].equals(InstanceType.CLUSTER.toString())) {
+        && !pieces[0].equals(InstanceType.CLUSTER.toString())
+        && pieces.length > 2) {
       pieces[2] = null;
     }
     pieces[0] = null;
