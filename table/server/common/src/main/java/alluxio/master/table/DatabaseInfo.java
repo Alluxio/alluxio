@@ -16,6 +16,7 @@ import alluxio.grpc.table.PrincipalType;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Objects;
 
@@ -23,9 +24,11 @@ import java.util.Objects;
  * The database information class.
  */
 public class DatabaseInfo {
+  @Nullable
   private final String mLocation;
   private final String mOwnerName;
   private final PrincipalType mOwnerType;
+  @Nullable
   private final String mComment;
   private final Map<String, String> mParameters;
 
