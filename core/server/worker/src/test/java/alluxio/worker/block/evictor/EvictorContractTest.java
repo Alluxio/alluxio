@@ -11,9 +11,9 @@
 
 package alluxio.worker.block.evictor;
 
-import static org.junit.Assert.fail;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockStoreLocation;
@@ -250,5 +250,24 @@ public final class EvictorContractTest extends EvictorTestBase {
     // request space larger than capacity for the random directory, no eviction plan should be
     // available
     assertNull(mEvictor.freeSpaceWithView(dirCapacity + 1, dirLocation, mMetadataView));
+  }
+
+  @Test
+  public void evictAfterDirDeletion() throws Exception {
+    StorageTier tier = mMetaManager.getTiers().get(0);
+    long blockId = BLOCK_ID;
+    List<StorageDir> dirs = tier.getStorageDirs();
+    for (StorageDir dir : dirs) {
+      TieredBlockStoreTestUtils.cache(SESSION_ID, blockId, dir.getCapacityBytes() - 1, dir,
+          mMetaManager, mEvictor);
+      blockId++;
+    }
+    tier.removeStorageDir(dirs.get(0));
+
+    long requestBytes = dirs.get(dirs.size() - 1).getCapacityBytes();
+    EvictionPlan plan =
+        mEvictor.freeSpaceWithView(requestBytes,
+            BlockStoreLocation.anyDirInTier(tier.getTierAlias()), mMetadataView);
+    EvictorTestUtils.assertEvictionPlanValid(requestBytes, plan, mMetaManager);
   }
 }
