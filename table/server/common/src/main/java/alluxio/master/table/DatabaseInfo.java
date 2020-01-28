@@ -26,7 +26,9 @@ import java.util.Objects;
 public class DatabaseInfo {
   @Nullable
   private final String mLocation;
+  @Nullable
   private final String mOwnerName;
+  @Nullable
   private final PrincipalType mOwnerType;
   @Nullable
   private final String mComment;
