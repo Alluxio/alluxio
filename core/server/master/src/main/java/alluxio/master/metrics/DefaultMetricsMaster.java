@@ -165,11 +165,22 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
         MetricKey.WORKER_BYTES_WRITTEN_UFS_THROUGHPUT.getName()));
 
     // client metrics
+<<<<<<< HEAD
     addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName(),
         MetricsSystem.InstanceType.CLIENT, MetricKey.CLIENT_BYTES_READ_LOCAL.getName()));
     addAggregator(new SumInstancesAggregator(
         MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName(),
         MetricsSystem.InstanceType.CLIENT, MetricKey.CLIENT_BYTES_READ_LOCAL_THROUGHPUT.getName()));
+=======
+    addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_READ_LOCAL,
+        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL));
+    addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT,
+        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT));
+    addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_WRITTEN_LOCAL,
+        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_WRITTEN_LOCAL));
+    addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_WRITTEN_LOCAL_THROUGHPUT,
+        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_WRITTEN_LOCAL_THROUGHPUT));
+>>>>>>> 54bd05fd940e231be63ad8594f51df33c221c4c2
 
     // multi-value aggregators
     addAggregator(new SingleTagValueAggregator(MetricKey.CLUSTER_BYTES_READ_UFS.getName(),
