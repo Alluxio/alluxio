@@ -18,8 +18,8 @@ import static org.junit.Assert.fail;
 import alluxio.Constants;
 import alluxio.ProjectConstants;
 import alluxio.client.file.cache.PageId;
-import alluxio.exception.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
+import alluxio.exception.PageNotFoundException;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Before;
@@ -39,8 +39,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 @RunWith(Parameterized.class)
 public class PageStoreTest {
@@ -107,6 +109,25 @@ public class PageStoreTest {
       try (ReadableByteChannel channel = store.get(id, offset)) {
         channel.read(buf);
       }
+    }
+  }
+
+  @Test
+  public void getPages() throws Exception {
+    mOptions.setRootDir(mTemp.getRoot().getAbsolutePath());
+    int len = 32;
+    int count = 16;
+    byte[] data = BufferUtils.getIncreasingByteArray(len);
+    Set<PageId> pages = new HashSet<>(count);
+    try (PageStore store = PageStore.create(mOptions)) {
+      for (int i = 0; i < count; i++) {
+        PageId id = new PageId(0, i);
+        store.put(id, data);
+        pages.add(id);
+      }
+    }
+    try (PageStore store = PageStore.create(mOptions)) {
+      assertEquals(pages, new HashSet<>(store.getPages()));
     }
   }
 

@@ -68,7 +68,7 @@ public final class LocalCacheManagerTest {
   public final ExpectedException mThrown = ExpectedException.none();
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
     mFileContext = Mockito.mock(FileSystemContext.class);

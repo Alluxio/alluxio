@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -150,6 +151,7 @@ public class RocksPageStore implements PageStore {
    * @param key key of a record
    * @return the corresponding page id, or null if the key does not match the pattern
    */
+  @Nullable
   private PageId getPageId(byte[] key) {
     if (key.length != KEY_LEN) {
       return null;

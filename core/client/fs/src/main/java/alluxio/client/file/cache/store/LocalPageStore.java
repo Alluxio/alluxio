@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -141,6 +142,7 @@ public class LocalPageStore implements PageStore {
    * @param path path of a file
    * @return the corresponding page id, or null if the file name does not match the pattern
    */
+  @Nullable
   private PageId getPageId(Path path) {
     Path parent = path.getParent();
     if (parent == null) {
