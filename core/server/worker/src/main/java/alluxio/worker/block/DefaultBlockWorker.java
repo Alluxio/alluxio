@@ -47,6 +47,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,6 +84,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   /** Runnable responsible for clean up potential zombie sessions. */
   private SessionCleaner mSessionCleaner;
 
+  /** Runnable responsible for reserving space for worker storage tiers. */
+  private SpaceReserver mSpaceReserver;
+
+  /** Used to close resources during stop. */
+  private Closer mResourceCloser;
+
   /** Client for all block master communication. */
   private final BlockMasterClient mBlockMasterClient;
   /**
@@ -117,7 +124,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   private AtomicReference<Long> mWorkerId;
 
   private final UfsManager mUfsManager;
-  private SpaceReserver mSpaceReserver;
 
   /**
    * Constructs a default block worker.
@@ -194,6 +200,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public void start(WorkerNetAddress address) throws IOException {
     super.start(address);
 
+    // Initialize a new closer.
+    mResourceCloser = Closer.create();
+
     mAddress = address;
     try {
       RetryUtils.retry("create worker id", () -> mWorkerId.set(mBlockMasterClient.getId(address)),
@@ -208,43 +217,40 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     Preconditions.checkNotNull(mAddress, "mAddress");
 
     // Setup BlockMasterSync
-    mBlockMasterSync = new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClient);
-
-    // Setup PinListSyncer
-    mPinListSync = new PinListSync(this, mFileSystemMasterClient);
-
-    // Setup session cleaner
-    mSessionCleaner = new SessionCleaner(mSessions, mBlockStore, mUnderFileSystemBlockStore);
-
-    // Setup space reserver
-    mSpaceReserver = new SpaceReserver(this);
-    getExecutorService().submit(
-        new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, mSpaceReserver,
-            (int) ServerConfiguration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS),
-            ServerConfiguration.global(), ServerUserState.global()));
-
+    mBlockMasterSync = mResourceCloser
+        .register(new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClient));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
             (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
             ServerConfiguration.global(), ServerUserState.global()));
 
-    // Start the pinlist syncer to perform the periodical fetching
+    // Setup PinListSyncer
+    mPinListSync = mResourceCloser.register(new PinListSync(this, mFileSystemMasterClient));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, mPinListSync,
             (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
             ServerConfiguration.global(), ServerUserState.global()));
 
+    // Setup session cleaner
+    mSessionCleaner = mResourceCloser
+        .register(new SessionCleaner(mSessions, mBlockStore, mUnderFileSystemBlockStore));
+    getExecutorService().submit(mSessionCleaner);
+
+    // Setup space reserver
+    mSpaceReserver = mResourceCloser.register(new SpaceReserver(this));
+    getExecutorService().submit(
+        new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, mSpaceReserver,
+            (int) ServerConfiguration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS),
+            ServerConfiguration.global(), ServerUserState.global()));
+
     // Setup storage checker
     if (ServerConfiguration.getBoolean(PropertyKey.WORKER_STORAGE_CHECKER_ENABLED)) {
-      mStorageChecker = new StorageChecker();
+      mStorageChecker = mResourceCloser.register(new StorageChecker());
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH, mStorageChecker,
               (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
                   ServerConfiguration.global(), ServerUserState.global()));
     }
-
-    // Start the session cleanup checker to perform the periodical checking
-    getExecutorService().submit(mSessionCleaner);
   }
 
   /**
@@ -252,25 +258,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @Override
   public void stop() throws IOException {
-    // Steps to shutdown:
-    // 1. Gracefully shut down the runnables running in the executors.
-    // 2. Shutdown the clients. This needs to happen after the executors is shutdown because
-    //    runnables running in the executors might be using the clients.
-    // 3. Shutdown base worker. (closes executors.)
-
-    if (mSessionCleaner != null) {
-      mSessionCleaner.stop();
-    }
-    if (mPinListSync != null) {
-      mPinListSync.close();
-    }
-    if (mBlockMasterSync != null) {
-      mBlockMasterSync.close();
-    }
-    if (mSpaceReserver != null) {
-      mSpaceReserver.close();
-    }
-
+    // Stop heart-beat executors and other resources.
+    mResourceCloser.close();
+    // Shut down clients.
     mBlockMasterClientPool.release(mBlockMasterClient);
     try {
       mBlockMasterClientPool.close();
@@ -278,7 +268,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       LOG.warn("Failed to close the block master client pool: {}.", e.toString());
     }
     mFileSystemMasterClient.close();
-
+    // Stop the base. (closes executors.)
     super.stop();
   }
 
