@@ -150,9 +150,10 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
       UfsManager ufsManager) {
     super(ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5));
-    mBlockMasterClientPool = blockMasterClientPool;
+    mResourceCloser = Closer.create();
+    mResourceCloser.register(mBlockMasterClientPool = blockMasterClientPool);
+    mResourceCloser.register(mFileSystemMasterClient = fileSystemMasterClient);
     mBlockMasterClient = mBlockMasterClientPool.acquire();
-    mFileSystemMasterClient = fileSystemMasterClient;
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mMetricsReporter = new BlockMetricsReporter();
     mSessions = sessions;
@@ -195,13 +196,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   /**
    * Runs the block worker. The thread must be called after all services (e.g., web, dataserver)
    * started.
+   *
+   * BlockWorker doesn't support being restarted!
    */
   @Override
   public void start(WorkerNetAddress address) throws IOException {
     super.start(address);
-
-    // Initialize a new closer.
-    mResourceCloser = Closer.create();
 
     mAddress = address;
     try {
@@ -255,19 +255,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   /**
    * Stops the block worker. This method should only be called to terminate the worker.
+   *
+   * BlockWorker doesn't support being restarted!
    */
   @Override
   public void stop() throws IOException {
-    // Stop heart-beat executors and other resources.
-    mResourceCloser.close();
-    // Shut down clients.
+    // Release acquired block client to the pool before closing resources.
     mBlockMasterClientPool.release(mBlockMasterClient);
-    try {
-      mBlockMasterClientPool.close();
-    } catch (IOException e) {
-      LOG.warn("Failed to close the block master client pool: {}.", e.toString());
-    }
-    mFileSystemMasterClient.close();
+    // Stop heart-beat executors and clients.
+    mResourceCloser.close();
     // Stop the base. (closes executors.)
     super.stop();
   }
