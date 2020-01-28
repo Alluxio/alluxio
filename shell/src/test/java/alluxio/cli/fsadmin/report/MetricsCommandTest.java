@@ -99,16 +99,16 @@ public class MetricsCommandTest {
     map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT),
         MetricValue.newBuilder().setDoubleValue(34264L).build());
 
-    map.put("master.CompleteFileOps",
+    map.put("Master.CompleteFileOps",
         MetricValue.newBuilder().setMetricType(MetricType.COUNTER).setDoubleValue(813).build());
-    map.put("UfsSessionCount-Ufs:_alluxio_underFSStorage",
+    map.put("Master.UfsSessionCount-Ufs:_alluxio_underFSStorage",
         MetricValue.newBuilder().setMetricType(MetricType.COUNTER).setDoubleValue(8535L).build());
-    map.put("UfsSessionCount-Ufs:file:___Users_alluxio_alluxioMountedFolder",
+    map.put("Master.UfsSessionCount-Ufs:file:___Users_alluxio_alluxioMountedFolder",
         MetricValue.newBuilder().setMetricType(MetricType.COUNTER).setDoubleValue(1231L).build());
 
-    map.put("master.CapacityTotal",
+    map.put("Master.CapacityTotal",
         MetricValue.newBuilder().setDoubleValue(1154531246129122L).build());
-    map.put("master.getMetrics.User:alluxio", MetricValue.newBuilder()
+    map.put("Master.getMetrics.User:alluxio", MetricValue.newBuilder()
         .setMetricType(MetricType.TIMER).setDoubleValue(4).build());
 
     map.put("heap.used", MetricValue.newBuilder().setDoubleValue(0.0028321312).build());
@@ -126,31 +126,26 @@ public class MetricsCommandTest {
     String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
     // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
     List<String> expectedOutput = Arrays.asList(
-        "UfsSessionCount-Ufs:_alluxio_underFSStorage  (Type: COUNTER, Value: 8,535)",
-        "UfsSessionCount-Ufs:file:___Users_alluxio_alluxioMountedFolder  (Type: COUNTER, Value: 1,231)",
-        "cluster.BytesReadAlluxio  (Type: GAUGE, Value: 401.79MB)",
-        "cluster.BytesReadAlluxioThroughput  (Type: GAUGE, Value: 518.36MB/min)",
-        "cluster.BytesReadDomain  (Type: GAUGE, Value: 4145.73KB)",
-        "cluster.BytesReadDomainThroughput  (Type: GAUGE, Value: 29.97MB/min)",
-        "cluster.BytesReadLocal  (Type: GAUGE, Value: 11.47GB)",
-        "cluster.BytesReadLocalThroughput  (Type: GAUGE, Value: 117.42MB/min)",
-        "cluster.BytesReadUfsAll  (Type: GAUGE, Value: 509.47MB)",
-        "cluster.BytesReadUfsThroughput  (Type: GAUGE, Value: 728.16KB/min)",
-        "cluster.BytesWrittenAlluxio  (Type: GAUGE, Value: 22.98KB)",
-        "cluster.BytesWrittenAlluxioThroughput  (Type: GAUGE, Value: 8.03MB/min)",
-        "cluster.BytesWrittenDomain  (Type: GAUGE, Value: 62.43MB)",
-        "cluster.BytesWrittenDomainThroughput  (Type: GAUGE, Value: 1202.37KB/min)",
-        "cluster.BytesWrittenUfsAll  (Type: GAUGE, Value: 317.70KB)",
-        "cluster.BytesWrittenUfsThroughput  (Type: GAUGE, Value: 33.46KB/min)",
-        "heap.used  (Type: GAUGE, Value: 0.0028321312)",
-        "master.CapacityTotal  (Type: GAUGE, Value: 1,154,531,246,129,122)",
-        "master.CompleteFileOps  (Type: COUNTER, Value: 813)",
-        "master.getMetrics.User:alluxio  (Type: TIMER, Value: 4)",
-        "pools.Metaspace.max  (Type: GAUGE, Value: -1)",
-        "pools.Metaspace.usage  (Type: GAUGE, Value: 0.95728)",
-        "vendor  (Type: GAUGE, Value: AdoptOpenJDK OpenJDK 64-Bit Server VM 25.222-b10 (1.8))");
+        "Cluster.BytesReadAlluxio  (Type: GAUGE, Value: 401.79MB)",
+        "Cluster.BytesReadAlluxioThroughput  (Type: GAUGE, Value: 518.36MB/min)",
+        "Cluster.BytesReadDomain  (Type: GAUGE, Value: 4145.73KB)",
+        "Cluster.BytesReadDomainThroughput  (Type: GAUGE, Value: 29.97MB/min)",
+        "Cluster.BytesReadLocal  (Type: GAUGE, Value: 11.47GB)",
+        "Cluster.BytesReadLocalThroughput  (Type: GAUGE, Value: 117.42MB/min)",
+        "Cluster.BytesReadUfsAll  (Type: GAUGE, Value: 509.47MB)",
+        "Cluster.BytesReadUfsThroughput  (Type: GAUGE, Value: 728.16KB/min)",
+        "Cluster.BytesWrittenAlluxio  (Type: GAUGE, Value: 22.98KB)",
+        "Cluster.BytesWrittenAlluxioThroughput  (Type: GAUGE, Value: 8.03MB/min)",
+        "Cluster.BytesWrittenDomain  (Type: GAUGE, Value: 62.43MB)",
+        "Cluster.BytesWrittenDomainThroughput  (Type: GAUGE, Value: 1202.37KB/min)",
+        "Cluster.BytesWrittenUfsAll  (Type: GAUGE, Value: 317.70KB)",
+        "Cluster.BytesWrittenUfsThroughput  (Type: GAUGE, Value: 33.46KB/min)",
+        "Master.CapacityTotal  (Type: GAUGE, Value: 1,154,531,246,129,122)",
+        "Master.CompleteFileOps  (Type: COUNTER, Value: 813)",
+        "Master.UfsSessionCount-Ufs:_alluxio_underFSStorage  (Type: COUNTER, Value: 8,535)",
+        "Master.UfsSessionCount-Ufs:file:___Users_alluxio_alluxioMountedFolder  (Type: COUNTER, Value: 1,231)",
+        "Master.getMetrics.User:alluxio  (Type: TIMER, Value: 4)");
     // CHECKSTYLE.ON: LineLengthExceed
-    System.out.println(output);
     List<String> testOutput = Arrays.asList(output.split("\n"));
     Assert.assertThat(testOutput,
         IsIterableContainingInOrder.contains(expectedOutput.toArray()));
