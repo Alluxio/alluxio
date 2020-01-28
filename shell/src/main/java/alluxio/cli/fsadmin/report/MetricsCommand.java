@@ -13,6 +13,7 @@ package alluxio.cli.fsadmin.report;
 
 import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.grpc.MetricValue;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.FormatUtils;
 
 import com.google.common.math.DoubleMath;
@@ -61,6 +62,9 @@ public class MetricsCommand {
     mMetricsMap = mMetricsMasterClient.getMetrics();
     SortedSet<String> names = new TreeSet<>(mMetricsMap.keySet());
     for (String name : names) {
+      if (!isAlluxioMetric(name)) {
+        continue;
+      }
       MetricValue metricValue = mMetricsMap.get(name);
       String strValue;
       if (metricValue.hasStringValue()) {
@@ -83,5 +87,20 @@ public class MetricsCommand {
       mPrintStream.printf(INFO_FORMAT, name, metricValue.getMetricType(), strValue);
     }
     return 0;
+  }
+
+  /**
+   * Checks if a metric is Alluxio metric.
+   *
+   * @param name
+   * @return
+   */
+  private boolean isAlluxioMetric(String name) {
+    for (MetricsSystem.InstanceType instance : MetricsSystem.InstanceType.values()) {
+      if (name.startsWith(instance.toString())) {
+        return true;
+      }
+    }
+    return false;
   }
 }

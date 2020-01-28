@@ -109,7 +109,7 @@ public final class MetricsSystem {
   }
 
   // Supported special instance names.
-  public static final String CLUSTER = "cluster";
+  public static final String CLUSTER = "Cluster";
 
   public static final MetricRegistry METRIC_REGISTRY;
 
