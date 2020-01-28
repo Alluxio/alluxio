@@ -148,8 +148,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       UfsManager ufsManager) {
     super(ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5));
     mResourceCloser = Closer.create();
-    mResourceCloser.register(mBlockMasterClientPool = blockMasterClientPool);
-    mResourceCloser.register(mFileSystemMasterClient = fileSystemMasterClient);
+    mBlockMasterClientPool = mResourceCloser.register(blockMasterClientPool);
+    mFileSystemMasterClient = mResourceCloser.register(fileSystemMasterClient);
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mMetricsReporter = new BlockMetricsReporter();
     mSessions = sessions;
