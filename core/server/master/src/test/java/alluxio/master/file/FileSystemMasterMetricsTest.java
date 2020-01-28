@@ -67,9 +67,9 @@ public class FileSystemMasterMetricsTest {
       public void close() {}
     });
     when(mUfsManager.getRoot()).thenReturn(client);
-    assertEquals(1000L, getGauge(MetricKey.CLUSTER_UFS_CAPACITY_TOTAL.getName()));
-    assertEquals(200L, getGauge(MetricKey.CLUSTER_UFS_CAPACITY_USED.getName()));
-    assertEquals(800L, getGauge(MetricKey.CLUSTER_UFS_CAPACITY_FREE.getName()));
+    assertEquals(1000L, getGauge(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName()));
+    assertEquals(200L, getGauge(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_USED.getName()));
+    assertEquals(800L, getGauge(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_FREE.getName()));
   }
 
   private Object getGauge(String name) {

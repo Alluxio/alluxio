@@ -43,7 +43,7 @@ public final class MetricKey implements Comparable<MetricKey> {
   /** Metric name. */
   private final String mName;
 
-  /** Metric Key description. */
+  /** Metric key description. */
   private final String mDescription;
 
   /** The type of this metric. */
@@ -196,303 +196,303 @@ public final class MetricKey implements Comparable<MetricKey> {
       return key;
     }
   }
+
   // Master metrics
   // Master status
   public static final MetricKey MASTER_EDGE_CACHE_SIZE =
-      new MetricKey.Builder(Name.MASTER_EDGE_CACHE_SIZE)
+      new Builder(Name.MASTER_EDGE_CACHE_SIZE)
           .setDescription("Total number of edges (inode metadata) cached. "
               + "The edge cache is responsible for managing the mapping "
               + "from (parentId, childName) to childId.")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_FILES_PINNED =
+      new Builder(Name.MASTER_FILES_PINNED)
+          .setDescription("Total number of currently pinned files")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_INODE_CACHE_SIZE =
-      new MetricKey.Builder(Name.MASTER_INODE_CACHE_SIZE)
+      new Builder(Name.MASTER_INODE_CACHE_SIZE)
           .setDescription("Total number of inodes (inode metadata) cached")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_TOTAL_PATHS =
-      new MetricKey.Builder(Name.MASTER_TOTAL_PATHS)
+      new Builder(Name.MASTER_TOTAL_PATHS)
           .setDescription("Total number of files and directory in Alluxio namespace")
           .setMetricType(MetricType.GAUGE)
           .build();
   // Backup Restore
   public static final MetricKey MASTER_LAST_BACKUP_ENTRIES_COUNT =
-      new MetricKey.Builder(Name.MASTER_LAST_BACKUP_ENTRIES_COUNT)
+      new Builder(Name.MASTER_LAST_BACKUP_ENTRIES_COUNT)
           .setDescription("The total number of entries written "
-              + "in last leading master metadata backup")
+              + "in the last leading master metadata backup")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_LAST_BACKUP_TIME_MS =
-      new MetricKey.Builder(Name.MASTER_LAST_BACKUP_TIME_MS)
+      new Builder(Name.MASTER_LAST_BACKUP_TIME_MS)
           .setDescription("The process time of the last backup")
-          .setMetricType(MetricType.TIMER)
+          .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_LAST_BACKUP_RESTORE_COUNT =
-      new MetricKey.Builder(Name.MASTER_LAST_BACKUP_RESTORE_COUNT)
+      new Builder(Name.MASTER_LAST_BACKUP_RESTORE_COUNT)
           .setDescription("The total number of entries restored from backup "
               + "when a leading master initializes its metadata")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_LAST_BACKUP_RESTORE_TIME_MS =
-      new MetricKey.Builder(Name.MASTER_LAST_BACKUP_RESTORE_TIME_MS)
+      new Builder(Name.MASTER_LAST_BACKUP_RESTORE_TIME_MS)
           .setDescription("The process time of the last restore from backup")
-          .setMetricType(MetricType.TIMER)
+          .setMetricType(MetricType.GAUGE)
           .build();
   // Logical operations and results
   public static final MetricKey MASTER_DIRECTORIES_CREATED =
-      new MetricKey.Builder(Name.MASTER_DIRECTORIES_CREATED)
+      new Builder(Name.MASTER_DIRECTORIES_CREATED)
           .setDescription("Total number of the succeed CreateDirectory operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_FILE_BLOCK_INFOS_GOT =
-      new MetricKey.Builder(Name.MASTER_FILE_BLOCK_INFOS_GOT)
+      new Builder(Name.MASTER_FILE_BLOCK_INFOS_GOT)
           .setDescription("Total number of succeed GetFileBlockInfo operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_FILE_INFOS_GOT =
-      new MetricKey.Builder(Name.MASTER_FILE_INFOS_GOT)
+      new Builder(Name.MASTER_FILE_INFOS_GOT)
           .setDescription("Total number of the succeed GetFileInfo operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_FILES_COMPLETED =
-      new MetricKey.Builder(Name.MASTER_FILES_COMPLETED)
+      new Builder(Name.MASTER_FILES_COMPLETED)
           .setDescription("Total number of the succeed CompleteFile operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_FILES_CREATED =
-      new MetricKey.Builder(Name.MASTER_FILES_CREATED)
+      new Builder(Name.MASTER_FILES_CREATED)
           .setDescription("Total number of the succeed CreateFile operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_FILES_FREED =
-      new MetricKey.Builder(Name.MASTER_FILES_FREED)
+      new Builder(Name.MASTER_FILES_FREED)
           .setDescription("Total number of succeed FreeFile operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_FILES_PERSISTED =
-      new MetricKey.Builder(Name.MASTER_FILES_PERSISTED)
+      new Builder(Name.MASTER_FILES_PERSISTED)
           .setDescription("Total number of successfully persisted files")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_NEW_BLOCKS_GOT =
-      new MetricKey.Builder(Name.MASTER_NEW_BLOCKS_GOT)
+      new Builder(Name.MASTER_NEW_BLOCKS_GOT)
           .setDescription("Total number of the succeed GetNewBlock operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_PATHS_DELETED =
-      new MetricKey.Builder(Name.MASTER_PATHS_DELETED)
+      new Builder(Name.MASTER_PATHS_DELETED)
           .setDescription("Total number of the succeed Delete operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_PATHS_MOUNTED =
-      new MetricKey.Builder(Name.MASTER_PATHS_MOUNTED)
+      new Builder(Name.MASTER_PATHS_MOUNTED)
           .setDescription("Total number of succeed Mount operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_PATHS_RENAMED =
-      new MetricKey.Builder(Name.MASTER_PATHS_RENAMED)
+      new Builder(Name.MASTER_PATHS_RENAMED)
           .setDescription("Total number of succeed Rename operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_PATHS_UNMOUNTED =
-      new MetricKey.Builder(Name.MASTER_PATHS_UNMOUNTED)
+      new Builder(Name.MASTER_PATHS_UNMOUNTED)
           .setDescription("Total number of succeed Unmount operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_COMPLETE_FILE_OPS =
-      new MetricKey.Builder(Name.MASTER_COMPLETE_FILE_OPS)
+      new Builder(Name.MASTER_COMPLETE_FILE_OPS)
           .setDescription("Total number of the CompleteFile operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_CREATE_DIRECTORIES_OPS =
-      new MetricKey.Builder(Name.MASTER_CREATE_DIRECTORIES_OPS)
+      new Builder(Name.MASTER_CREATE_DIRECTORIES_OPS)
           .setDescription("Total number of the CreateDirectory operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_CREATE_FILES_OPS =
-      new MetricKey.Builder(Name.MASTER_CREATE_FILES_OPS)
+      new Builder(Name.MASTER_CREATE_FILES_OPS)
           .setDescription("Total number of the CreateFile operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_DELETE_PATHS_OPS =
-      new MetricKey.Builder(Name.MASTER_DELETE_PATHS_OPS)
+      new Builder(Name.MASTER_DELETE_PATHS_OPS)
           .setDescription("Total number of the Delete operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_FREE_FILE_OPS =
-      new MetricKey.Builder(Name.MASTER_FREE_FILE_OPS)
+      new Builder(Name.MASTER_FREE_FILE_OPS)
           .setDescription("Total number of FreeFile operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_GET_FILE_BLOCK_INFO_OPS =
-      new MetricKey.Builder(Name.MASTER_GET_FILE_BLOCK_INFO_OPS)
+      new Builder(Name.MASTER_GET_FILE_BLOCK_INFO_OPS)
           .setDescription("Total number of GetFileBlockInfo operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_GET_FILE_INFO_OPS =
-      new MetricKey.Builder(Name.MASTER_GET_FILE_INFO_OPS)
+      new Builder(Name.MASTER_GET_FILE_INFO_OPS)
           .setDescription("Total number of the GetFileInfo operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_GET_NEW_BLOCK_OPS =
-      new MetricKey.Builder(Name.MASTER_GET_NEW_BLOCK_OPS)
+      new Builder(Name.MASTER_GET_NEW_BLOCK_OPS)
           .setDescription("Total number of the GetNewBlock operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_LISTING_CACHE_SIZE =
-      new MetricKey.Builder(Name.MASTER_LISTING_CACHE_SIZE)
+      new Builder(Name.MASTER_LISTING_CACHE_SIZE)
           .setDescription("The size of master listing cache")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_MOUNT_OPS =
-      new MetricKey.Builder(Name.MASTER_MOUNT_OPS)
+      new Builder(Name.MASTER_MOUNT_OPS)
           .setDescription("Total number of Mount operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_RENAME_PATH_OPS =
-      new MetricKey.Builder(Name.MASTER_RENAME_PATH_OPS)
+      new Builder(Name.MASTER_RENAME_PATH_OPS)
           .setDescription("Total number of Rename operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_SET_ACL_OPS =
-      new MetricKey.Builder(Name.MASTER_SET_ACL_OPS)
+      new Builder(Name.MASTER_SET_ACL_OPS)
           .setDescription("Total number of SetAcl operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_SET_ATTRIBUTE_OPS =
-      new MetricKey.Builder(Name.MASTER_SET_ATTRIBUTE_OPS)
+      new Builder(Name.MASTER_SET_ATTRIBUTE_OPS)
           .setDescription("Total number of SetAttribute operations")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_UNMOUNT_OPS =
-      new MetricKey.Builder(Name.MASTER_UNMOUNT_OPS)
+      new Builder(Name.MASTER_UNMOUNT_OPS)
           .setDescription("Total number of Unmount operations")
           .setMetricType(MetricType.COUNTER)
           .build();
-  public static final MetricKey MASTER_FILES_PINNED =
-      new MetricKey.Builder(Name.MASTER_FILES_PINNED)
-          .setDescription("Total number of currently pinned files")
-          .setMetricType(MetricType.GAUGE)
-          .build();
   // Journal metrics
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
-      new MetricKey.Builder(Name.MASTER_JOURNAL_FLUSH_FAILURE)
+      new Builder(Name.MASTER_JOURNAL_FLUSH_FAILURE)
           .setDescription("Total number of failed journal flush")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_TIMER =
-      new MetricKey.Builder(Name.MASTER_JOURNAL_FLUSH_TIMER)
+      new Builder(Name.MASTER_JOURNAL_FLUSH_TIMER)
           .setDescription("The timer statistics of journal flush")
           .setMetricType(MetricType.TIMER)
           .build();
   public static final MetricKey MASTER_JOURNAL_GAIN_PRIMACY_TIMER =
-      new MetricKey.Builder(Name.MASTER_JOURNAL_GAIN_PRIMACY_TIMER)
+      new Builder(Name.MASTER_JOURNAL_GAIN_PRIMACY_TIMER)
           .setDescription("The timer statistics of journal gain primacy")
           .setMetricType(MetricType.TIMER)
           .build();
   public static final MetricKey MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER =
-      new MetricKey.Builder(Name.MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER)
+      new Builder(Name.MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER)
           .setDescription("The timer statistics of ufs journal failure recover")
           .setMetricType(MetricType.TIMER)
           .build();
 
   // Cluster metrics
   public static final MetricKey CLUSTER_BYTES_READ_ALLUXIO =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_READ_ALLUXIO)
-          .setDescription("Total number of bytes read from Alluxio storage reported by all workers"
-              + "This does not include UFS reads.")
+      new Builder(Name.CLUSTER_BYTES_READ_ALLUXIO)
+          .setDescription("Total number of bytes read from Alluxio storage reported "
+              + "by all workers. This does not include UFS reads.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT)
+      new Builder(Name.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT)
           .setDescription("Bytes read throughput from Alluxio storage by all workers")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_DOMAIN =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_READ_DOMAIN)
-          .setDescription("Total number of bytes read from Alluxio storage"
+      new Builder(Name.CLUSTER_BYTES_READ_DOMAIN)
+          .setDescription("Total number of bytes read from Alluxio storage "
               + "via domain socket reported by all workers")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT)
+      new Builder(Name.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT)
           .setDescription("Bytes read throughput from Alluxio storage "
               + "via domain socket by all workers")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_LOCAL =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_READ_LOCAL)
+      new Builder(Name.CLUSTER_BYTES_READ_LOCAL)
           .setDescription("Total number of bytes short-circuit read from local storage "
               + "by all clients")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_LOCAL_THROUGHPUT =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT)
+      new Builder(Name.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT)
           .setDescription("Bytes throughput short-circuit read from local storage by all clients")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_UFS =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_READ_UFS)
+      new Builder(Name.CLUSTER_BYTES_READ_UFS)
           .setDescription("Total number of bytes read from a specific UFS by all workers")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_UFS_ALL =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_READ_UFS_ALL)
+      new Builder(Name.CLUSTER_BYTES_READ_UFS_ALL)
           .setDescription("Total number of bytes read from a all Alluxio UFSes by all workers")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_UFS_THROUGHPUT =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_READ_UFS_THROUGHPUT)
+      new Builder(Name.CLUSTER_BYTES_READ_UFS_THROUGHPUT)
           .setDescription("Bytes read throughput from all Alluxio UFSes by all workers")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_ALLUXIO =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_WRITTEN_ALLUXIO)
-          .setDescription("Total number of bytes written to Alluxio storage in all workers"
+      new Builder(Name.CLUSTER_BYTES_WRITTEN_ALLUXIO)
+          .setDescription("Total number of bytes written to Alluxio storage in all workers. "
               + "This does not include UFS writes")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT)
+      new Builder(Name.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT)
           .setDescription("Bytes write throughput to Alluxio storage in all workers")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_DOMAIN =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_WRITTEN_DOMAIN)
+      new Builder(Name.CLUSTER_BYTES_WRITTEN_DOMAIN)
           .setDescription("Total number of bytes written to Alluxio storage "
               + "via domain socket by all workers")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT)
+      new Builder(Name.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT)
           .setDescription("Throughput of bytes written to Alluxio storage "
               + "via domain socket by all workers")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_LOCAL =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_WRITTEN_LOCAL)
+      new Builder(Name.CLUSTER_BYTES_WRITTEN_LOCAL)
           .setDescription("Total number of bytes short-circuit written to local storage "
               + "by all clients")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT)
+      new Builder(Name.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT)
           .setDescription("Bytes throughput written to local storage by all clients")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_UFS =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_WRITTEN_UFS)
-          .setDescription("Total number of bytes written to a specific Alluxio UFS by this worker")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggreagated(true)
+      new Builder(Name.CLUSTER_BYTES_WRITTEN_UFS)
+          .setDescription("Total number of bytes written to a specific Alluxio UFS by all workers")
+          .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_UFS_ALL =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_WRITTEN_UFS_ALL)
+      new Builder(Name.CLUSTER_BYTES_WRITTEN_UFS_ALL)
           .setDescription("Total number of bytes written to all Alluxio UFSes by all workers")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT)
+      new Builder(Name.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT)
           .setDescription("Bytes write throughput to all Alluxio UFSes by all workers")
           .setMetricType(MetricType.GAUGE)
           .build();
@@ -502,104 +502,76 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_CAPACITY_USED =
-      new MetricKey.Builder(Name.CLUSTER_CAPACITY_USED)
+      new Builder(Name.CLUSTER_CAPACITY_USED)
           .setDescription("Total used bytes on all tiers, on all workers of Alluxio")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_CAPACITY_FREE =
-      new MetricKey.Builder(Name.CLUSTER_CAPACITY_FREE)
+      new Builder(Name.CLUSTER_CAPACITY_FREE)
           .setDescription("Total free bytes on all tiers, on all workers of Alluxio")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey CLUSTER_UFS_CAPACITY_TOTAL =
-      new MetricKey.Builder(Name.CLUSTER_UFS_CAPACITY_TOTAL)
-          .setDescription("Total capacity of the under file system in bytes")
+  public static final MetricKey CLUSTER_ROOT_UFS_CAPACITY_TOTAL =
+      new Builder(Name.CLUSTER_ROOT_UFS_CAPACITY_TOTAL)
+          .setDescription("Total capacity of the Alluxio root UFS in bytes")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey CLUSTER_UFS_CAPACITY_USED =
-      new MetricKey.Builder(Name.CLUSTER_UFS_CAPACITY_USED)
-          .setDescription("Used capacity of the under file system in bytes")
+  public static final MetricKey CLUSTER_ROOT_UFS_CAPACITY_USED =
+      new Builder(Name.CLUSTER_ROOT_UFS_CAPACITY_USED)
+          .setDescription("Used capacity of the Alluxio root UFS in bytes")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey CLUSTER_UFS_CAPACITY_FREE =
-      new MetricKey.Builder(Name.CLUSTER_UFS_CAPACITY_FREE)
-          .setDescription("Free capacity of the under file system in bytes")
+  public static final MetricKey CLUSTER_ROOT_UFS_CAPACITY_FREE =
+      new Builder(Name.CLUSTER_ROOT_UFS_CAPACITY_FREE)
+          .setDescription("Free capacity of the Alluxio root UFS in bytes")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_WORKERS =
-      new MetricKey.Builder(Name.CLUSTER_WORKERS)
+      new Builder(Name.CLUSTER_WORKERS)
           .setDescription("Total number of active workers inside the cluster")
           .setMetricType(MetricType.GAUGE)
           .build();
 
   // Worker metrics
   public static final MetricKey WORKER_BLOCKS_CACHED =
-      new MetricKey.Builder(Name.WORKER_BLOCKS_CACHED)
-          .setDescription("Total number of blocks used for caching data in Alluxio worker")
+      new Builder(Name.WORKER_BLOCKS_CACHED)
+          .setDescription("Total number of blocks used for caching data in an Alluxio worker")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey WORKER_BYTES_READ_ALLUXIO =
-      new MetricKey.Builder(Name.WORKER_BYTES_READ_ALLUXIO)
-          .setDescription("Total number of bytes read from Alluxio storage through this worker"
+      new Builder(Name.WORKER_BYTES_READ_ALLUXIO)
+          .setDescription("Total number of bytes read from Alluxio storage managed by this worker. "
               + "This does not include UFS reads.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(true)
           .build();
   public static final MetricKey WORKER_BYTES_READ_ALLUXIO_THROUGHPUT =
-      new MetricKey.Builder(Name.WORKER_BYTES_READ_ALLUXIO_THROUGHPUT)
+      new Builder(Name.WORKER_BYTES_READ_ALLUXIO_THROUGHPUT)
           .setDescription("Bytes read throughput from Alluxio storage by this worker")
           .setMetricType(MetricType.METER)
           .setIsClusterAggreagated(true)
           .build();
-  public static final MetricKey WORKER_BYTES_WRITTEN_ALLUXIO =
-      new MetricKey.Builder(Name.WORKER_BYTES_WRITTEN_ALLUXIO)
-          .setDescription("Total number of bytes written to Alluxio storage by this worker"
-              + "This does not include UFS writes")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggreagated(true)
-          .build();
-  public static final MetricKey WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT =
-      new MetricKey.Builder(Name.WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT)
-          .setDescription("Bytes write throughput to Alluxio storage by this worker")
-          .setMetricType(MetricType.METER)
-          .setIsClusterAggreagated(true)
-          .build();
   public static final MetricKey WORKER_BYTES_READ_DOMAIN =
-      new MetricKey.Builder(Name.WORKER_BYTES_READ_DOMAIN)
-          .setDescription("Total number of bytes read from Alluxio storage"
+      new Builder(Name.WORKER_BYTES_READ_DOMAIN)
+          .setDescription("Total number of bytes read from Alluxio storage "
               + "via domain socket by this worker")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(true)
           .build();
   public static final MetricKey WORKER_BYTES_READ_DOMAIN_THROUGHPUT =
-      new MetricKey.Builder(Name.WORKER_BYTES_READ_DOMAIN_THROUGHPUT)
+      new Builder(Name.WORKER_BYTES_READ_DOMAIN_THROUGHPUT)
           .setDescription("Bytes read throughput from Alluxio storage "
               + "via domain socket by this worker")
           .setMetricType(MetricType.METER)
           .setIsClusterAggreagated(true)
           .build();
-  public static final MetricKey WORKER_BYTES_WRITTEN_DOMAIN =
-      new MetricKey.Builder(Name.WORKER_BYTES_WRITTEN_DOMAIN)
-          .setDescription("Total number of bytes written to Alluxio storage "
-              + "via domain socket by this worker")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggreagated(true)
-          .build();
-  public static final MetricKey WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT =
-      new MetricKey.Builder(Name.WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT)
-          .setDescription("Throughput of bytes written to Alluxio storage "
-              + "via domain socket by this worker")
-          .setMetricType(MetricType.METER)
-          .setIsClusterAggreagated(true)
-          .build();
   public static final MetricKey WORKER_BYTES_READ_UFS =
-      new MetricKey.Builder(Name.WORKER_BYTES_READ_UFS)
+      new Builder(Name.WORKER_BYTES_READ_UFS)
           .setDescription("Total number of bytes read from a specific Alluxio UFS by this worker")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(true)
           .build();
-
   public static final MetricKey WORKER_BYTES_READ_UFS_ALL =
       new MetricKey.Builder(Name.WORKER_BYTES_READ_UFS_ALL)
           .setDescription("Total number of bytes read from a all Alluxio UFSes by this worker")
@@ -612,38 +584,59 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggreagated(true)
           .build();
+  public static final MetricKey WORKER_BYTES_WRITTEN_ALLUXIO =
+      new Builder(Name.WORKER_BYTES_WRITTEN_ALLUXIO)
+          .setDescription("Total number of bytes written to Alluxio storage by this worker. "
+              + "This does not include UFS writes")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggreagated(true)
+          .build();
+  public static final MetricKey WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT =
+      new Builder(Name.WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT)
+          .setDescription("Bytes write throughput to Alluxio storage by this worker")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggreagated(true)
+          .build();
+  public static final MetricKey WORKER_BYTES_WRITTEN_DOMAIN =
+      new Builder(Name.WORKER_BYTES_WRITTEN_DOMAIN)
+          .setDescription("Total number of bytes written to Alluxio storage "
+              + "via domain socket by this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggreagated(true)
+          .build();
+  public static final MetricKey WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT =
+      new Builder(Name.WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT)
+          .setDescription("Throughput of bytes written to Alluxio storage "
+              + "via domain socket by this worker")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggreagated(true)
+          .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_UFS =
-      new MetricKey.Builder(Name.WORKER_BYTES_WRITTEN_UFS)
+      new Builder(Name.WORKER_BYTES_WRITTEN_UFS)
           .setDescription("Total number of bytes written to a specific Alluxio UFS by this worker")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(true)
           .build();
-  public static final MetricKey WORKER_BYTES_WRITTEN_UFS_ALL =
-      new MetricKey.Builder(Name.WORKER_BYTES_WRITTEN_UFS_ALL)
-          .setDescription("Total number of bytes written to all Alluxio UFSes by this worker")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggreagated(true)
-          .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_UFS_THROUGHPUT =
-      new MetricKey.Builder(Name.WORKER_BYTES_WRITTEN_UFS_THROUGHPUT)
+      new Builder(Name.WORKER_BYTES_WRITTEN_UFS_THROUGHPUT)
           .setDescription("Bytes write throughput to all Alluxio UFSes by this worker")
           .setMetricType(MetricType.METER)
           .setIsClusterAggreagated(true)
           .build();
   public static final MetricKey WORKER_CAPACITY_TOTAL =
-      new MetricKey.Builder(Name.WORKER_CAPACITY_TOTAL)
+      new Builder(Name.WORKER_CAPACITY_TOTAL)
           .setDescription("Total capacity (in bytes) on all tiers of a specific Alluxio worker")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey WORKER_CAPACITY_USED =
-      new MetricKey.Builder(Name.WORKER_CAPACITY_USED)
+      new Builder(Name.WORKER_CAPACITY_USED)
           .setDescription("Total used bytes on all tiers of a specific Alluxio worker")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey WORKER_CAPACITY_FREE =
-      new MetricKey.Builder(Name.WORKER_CAPACITY_FREE)
+      new Builder(Name.WORKER_CAPACITY_FREE)
           .setDescription("Total free bytes on all tiers of a specific Alluxio worker")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggreagated(false)
@@ -651,33 +644,33 @@ public final class MetricKey implements Comparable<MetricKey> {
 
   // Client metrics
   public static final MetricKey CLIENT_BYTES_READ_LOCAL =
-      new MetricKey.Builder(Name.CLIENT_BYTES_READ_LOCAL)
+      new Builder(Name.CLIENT_BYTES_READ_LOCAL)
           .setDescription("Total number of bytes short-circuit read from local storage "
               + "by this client")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(true)
           .build();
   public static final MetricKey CLIENT_BYTES_READ_LOCAL_THROUGHPUT =
-      new MetricKey.Builder(Name.CLIENT_BYTES_READ_LOCAL_THROUGHPUT)
+      new Builder(Name.CLIENT_BYTES_READ_LOCAL_THROUGHPUT)
           .setDescription("Bytes throughput short-circuit read from local storage by this client")
           .setMetricType(MetricType.METER)
           .setIsClusterAggreagated(true)
           .build();
   public static final MetricKey CLIENT_BYTES_WRITTEN_LOCAL =
-      new MetricKey.Builder(Name.CLIENT_BYTES_WRITTEN_LOCAL)
+      new Builder(Name.CLIENT_BYTES_WRITTEN_LOCAL)
           .setDescription("Total number of bytes short-circuit written to local storage "
               + "by this client")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(true)
           .build();
   public static final MetricKey CLIENT_BYTES_WRITTEN_LOCAL_THROUGHPUT =
-      new MetricKey.Builder(Name.CLIENT_BYTES_WRITTEN_LOCAL_THROUGHPUT)
+      new Builder(Name.CLIENT_BYTES_WRITTEN_LOCAL_THROUGHPUT)
           .setDescription("Bytes throughput short-circuit written to local storage by this client")
           .setMetricType(MetricType.METER)
           .setIsClusterAggreagated(true)
           .build();
   public static final MetricKey CLIENT_BYTES_WRITTEN_UFS =
-      new MetricKey.Builder(Name.CLIENT_BYTES_WRITTEN_UFS)
+      new Builder(Name.CLIENT_BYTES_WRITTEN_UFS)
           .setDescription("Total number of bytes write to Alluxio UFS by this client")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(true)
@@ -745,6 +738,7 @@ public final class MetricKey implements Comparable<MetricKey> {
     // Master metrics
     // metrics names for master status
     public static final String MASTER_EDGE_CACHE_SIZE = "Master.EdgeCacheSize";
+    public static final String MASTER_FILES_PINNED = "Master.FilesPinned";
     public static final String MASTER_INODE_CACHE_SIZE = "Master.InodeCacheSize";
     public static final String MASTER_TOTAL_PATHS = "Master.TotalPaths";
 
@@ -783,7 +777,6 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String MASTER_SET_ACL_OPS = "Master.SetAclOps";
     public static final String MASTER_SET_ATTRIBUTE_OPS = "Master.SetAttributeOps";
     public static final String MASTER_UNMOUNT_OPS = "Master.UnmountOps";
-    public static final String MASTER_FILES_PINNED = "Master.FilesPinned";
 
     // metrics names for journal
     public static final String MASTER_JOURNAL_FLUSH_FAILURE = "Master.JournalFlushFailure";
@@ -822,9 +815,9 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLUSTER_CAPACITY_TOTAL = "Cluster.CapacityTotal";
     public static final String CLUSTER_CAPACITY_USED = "Cluster.CapacityUsed";
     public static final String CLUSTER_CAPACITY_FREE = "Cluster.CapacityFree";
-    public static final String CLUSTER_UFS_CAPACITY_TOTAL = "Cluster.UfsCapacityTotal";
-    public static final String CLUSTER_UFS_CAPACITY_USED = "Cluster.UfsCapacityUsed";
-    public static final String CLUSTER_UFS_CAPACITY_FREE = "Cluster.UfsCapacityFree";
+    public static final String CLUSTER_ROOT_UFS_CAPACITY_TOTAL = "Cluster.RootUfsCapacityTotal";
+    public static final String CLUSTER_ROOT_UFS_CAPACITY_USED = "Cluster.RootUfsCapacityUsed";
+    public static final String CLUSTER_ROOT_UFS_CAPACITY_FREE = "Cluster.RootUfsCapacityFree";
     public static final String CLUSTER_WORKERS = "Cluster.Workers";
 
     // Worker metrics

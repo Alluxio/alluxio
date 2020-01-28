@@ -4366,10 +4366,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
       // % UFS space used
       Long masterUnderfsCapacityTotal = (Long) registry.getGauges()
-          .get(MetricKey.CLUSTER_UFS_CAPACITY_TOTAL.getName()).getValue();
+          .get(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName()).getValue();
       Long masterUnderfsCapacityUsed =
           (Long) registry.getGauges()
-              .get(MetricKey.CLUSTER_UFS_CAPACITY_TOTAL.getName()).getValue();
+              .get(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName()).getValue();
       int percentUfsSpaceUsed =
           (masterUnderfsCapacityTotal > 0) ? (int) (100L * masterUnderfsCapacityUsed
               / masterUnderfsCapacityTotal) : 0;
@@ -4520,7 +4520,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
       final String ufsDataFolder = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
-      MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_UFS_CAPACITY_TOTAL.getName(),
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName(),
           () -> {
             try (CloseableResource<UnderFileSystem> ufsResource =
                 ufsManager.getRoot().acquireUfsResource()) {
@@ -4532,7 +4532,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             }
           });
 
-      MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_UFS_CAPACITY_USED.getName(),
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_USED.getName(),
           () -> {
             try (CloseableResource<UnderFileSystem> ufsResource =
                 ufsManager.getRoot().acquireUfsResource()) {
@@ -4544,7 +4544,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             }
           });
 
-      MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_UFS_CAPACITY_FREE.getName(),
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_FREE.getName(),
           () -> {
             long ret = 0L;
             try (CloseableResource<UnderFileSystem> ufsResource =

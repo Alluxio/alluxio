@@ -862,9 +862,9 @@ public final class AlluxioMasterRestServiceHandler {
           .setMasterCapacityFreePercentage(100 - masterCapacityUsedPercentage);
 
       Long masterUnderfsCapacityTotal = (Long) mr.getGauges()
-          .get(MetricKey.CLUSTER_UFS_CAPACITY_TOTAL.getName()).getValue();
+          .get(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName()).getValue();
       Long masterUnderfsCapacityUsed = (Long) mr.getGauges()
-          .get(MetricKey.CLUSTER_UFS_CAPACITY_USED.getName()).getValue();
+          .get(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_USED.getName()).getValue();
 
       int masterUnderfsCapacityUsedPercentage =
           (masterUnderfsCapacityTotal > 0) ? (int) (100L * masterUnderfsCapacityUsed
