@@ -12,10 +12,11 @@
 package alluxio.client.file.cache.store;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.exception.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
+import alluxio.exception.PageNotFoundException;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,10 +30,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -46,14 +48,35 @@ public class LocalPageStore implements PageStore {
 
   private final String mRoot;
   private final AtomicInteger mSize = new AtomicInteger(0);
+  private final long mPageSize;
 
   /**
    * Creates a new instance of {@link LocalPageStore}.
    *
    * @param options options for the local page store
+   * @throws IOException when fails to create a {@link LocalPageStore}
    */
-  public LocalPageStore(LocalPageStoreOptions options) {
+  public LocalPageStore(LocalPageStoreOptions options) throws IOException {
     mRoot = options.getRootDir();
+    mPageSize = options.getPageSize();
+    Path rootDir = Paths.get(mRoot);
+    try {
+      boolean invalidPage = Files.exists(rootDir) && Files.walk(rootDir)
+          .filter(Files::isRegularFile)
+          .anyMatch(path -> {
+            if (getPageId(path) == null) {
+              return true;
+            }
+            mSize.incrementAndGet();
+            return false;
+          });
+      if (invalidPage || (long) mSize.get() * mPageSize > options.getCacheSize()) {
+        FileUtils.cleanDirectory(new File(mRoot));
+        mSize.set(0);
+      }
+    } catch (IOException e) {
+      throw new IOException(String.format("can't initialize page store at %s", mRoot), e);
+    }
   }
 
   @Override
@@ -110,7 +133,7 @@ public class LocalPageStore implements PageStore {
   }
 
   private Path getFilePath(PageId pageId) {
-    return Paths.get(mRoot, Long.toString(pageId.getFileId()),
+    return Paths.get(mRoot, Long.toString(mPageSize), Long.toString(pageId.getFileId()),
         Long.toString(pageId.getPageIndex()));
   }
 
@@ -119,13 +142,25 @@ public class LocalPageStore implements PageStore {
    * @return the corresponding page id, or null if the file name does not match the pattern
    */
   private PageId getPageId(Path path) {
-    Path parent = Preconditions.checkNotNull(path.getParent());
-    if (!Paths.get(mRoot).equals(parent.getParent())) {
+    Path parent = path.getParent();
+    if (parent == null) {
+      return null;
+    }
+    Path grandparent = parent.getParent();
+    if (grandparent == null) {
+      return null;
+    }
+    if (!Paths.get(mRoot).equals(grandparent.getParent())) {
       return null;
     }
     try {
-      Path fileName = Preconditions.checkNotNull(path.getFileName());
-      Path parentName = Preconditions.checkNotNull(parent.getFileName());
+      Path fileName = path.getFileName();
+      Path parentName = parent.getFileName();
+      Path grandparentName = grandparent.getFileName();
+      if (fileName == null || parentName == null || grandparentName == null
+          || !Long.toString(mPageSize).equals(grandparentName.toString())) {
+        return null;
+      }
       long pageIndex = Long.parseLong(fileName.toString());
       long fileId = Long.parseLong(parentName.toString());
       return new PageId(fileId, pageIndex);
@@ -145,24 +180,17 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public Collection<PageId> load() throws IOException {
+  public Collection<PageId> getPages() throws IOException {
     Path rootDir = Paths.get(mRoot);
-    List<PageId> pages = Files.walk(rootDir)
-        .filter(Files::isRegularFile)
-        .map((path) -> {
-          Path name = Preconditions.checkNotNull(path.getFileName());
-          if (CONF_FILE.equals(name.toString())) {
-            return null;
-          }
-          PageId id = getPageId(path);
-          if (id == null) {
-            LOG.warn("unrecognized file {} in page store", path);
-          }
-          return id;
-        })
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-    mSize.set(pages.size());
-    return pages;
+    if (!Files.exists(rootDir)) {
+      return Collections.emptyList();
+    }
+    try (Stream<Path> stream = Files.walk(rootDir)) {
+      return stream
+          .filter(Files::isRegularFile)
+          .map(this::getPageId)
+          .filter(Objects::nonNull)
+          .collect(Collectors.toList());
+    }
   }
 }

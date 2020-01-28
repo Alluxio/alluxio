@@ -27,8 +27,8 @@ public interface CacheManager extends AutoCloseable  {
    * @param fsContext filesystem context
    * @return an instance of {@link CacheManager}
    */
-  static CacheManager create(FileSystemContext fsContext) {
-    return new LocalCacheManager(fsContext);
+  static CacheManager create(FileSystemContext fsContext) throws IOException {
+    return LocalCacheManager.create(fsContext);
   }
 
   /**

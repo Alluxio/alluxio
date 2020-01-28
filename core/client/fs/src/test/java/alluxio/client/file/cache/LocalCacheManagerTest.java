@@ -245,7 +245,7 @@ public final class LocalCacheManagerTest {
     }
 
     @Override
-    public Collection<PageId> load() {
+    public Collection<PageId> getPages() {
       return mStore.keySet();
     }
   }

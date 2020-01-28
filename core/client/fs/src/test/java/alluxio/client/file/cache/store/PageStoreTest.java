@@ -16,11 +16,13 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.client.file.cache.PageId;
 import alluxio.exception.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
 import alluxio.util.io.BufferUtils;
 
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -59,6 +61,13 @@ public class PageStoreTest {
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
+
+  @Before
+  public void before() {
+    mOptions.setPageSize(1024);
+    mOptions.setCacheSize(65536);
+    mOptions.setAlluxioVersion(ProjectConstants.VERSION);
+  }
 
   @Test
   public void test() throws Exception {

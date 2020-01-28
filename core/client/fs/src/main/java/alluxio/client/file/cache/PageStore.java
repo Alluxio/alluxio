@@ -18,26 +18,21 @@ import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.client.file.cache.store.RocksPageStore;
 import alluxio.client.file.cache.store.RocksPageStoreOptions;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.AlluxioProperties;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.Source;
 import alluxio.exception.PageNotFoundException;
-import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.Properties;
+import java.util.stream.Stream;
 
 /**
  * A simple abstraction on the storage to put, get and delete pages. The implementation of this
@@ -45,15 +40,15 @@ import java.util.Properties;
  */
 public interface PageStore extends AutoCloseable {
   Logger LOG = LoggerFactory.getLogger(LocalPageStore.class);
-  String CONF_FILE = "alluxio-client.properties";
 
   /**
    * Creates a new {@link PageStore}.
    *
    * @param options the options to instantiate the page store
    * @return a PageStore instance
+   * @throws IOException if failed to create a page store
    */
-  static PageStore create(PageStoreOptions options) {
+  static PageStore create(PageStoreOptions options) throws IOException {
     switch (options.getType()) {
       case LOCAL:
         return new LocalPageStore(options.toOptions());
@@ -71,14 +66,10 @@ public interface PageStore extends AutoCloseable {
    * @param conf configuration
    * @return the {@link PageStore}
    */
-  static PageStore create(AlluxioConfiguration conf) {
-    if (!isCompatible(conf)) {
-      format(conf);
-    }
+  static PageStore create(AlluxioConfiguration conf) throws IOException {
     PageStoreOptions options;
     PageStoreType storeType = conf.getEnum(
         PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);
-    // TODO(feng): add more configurable options
     switch (storeType) {
       case LOCAL:
         options = new LocalPageStoreOptions();
@@ -90,105 +81,31 @@ public interface PageStore extends AutoCloseable {
         throw new IllegalArgumentException(String.format("Unrecognized store type %s",
             storeType.name()));
     }
-    options.setRootDir(conf.get(PropertyKey.USER_CLIENT_CACHE_DIR));
+    String rootDir = conf.get(PropertyKey.USER_CLIENT_CACHE_DIR);
+    initialize(rootDir, storeType);
+    Path storePath = Paths.get(conf.get(PropertyKey.USER_CLIENT_CACHE_DIR), storeType.name());
+    options.setRootDir(storePath.toString());
+    options.setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
+    options.setCacheSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
+    options.setAlluxioVersion(conf.get(PropertyKey.VERSION));
     return create(options);
   }
 
   /**
-   * Checks if the data at the store location is compatible with the current configuration.
+   * Initialize a page store at the configured location.
+   * Data from different store type will be removed.
    *
-   * @param conf the Alluxio configuration
-   * @return true if the data is compatible with the configuration, false otherwise
+   * @param rootPath root path of the page store
+   * @param storeType the page store type
    */
-  static boolean isCompatible(AlluxioConfiguration conf) {
-    String rootPath = conf.get(PropertyKey.USER_CLIENT_CACHE_DIR);
-    Path confPath = Paths.get(rootPath, CONF_FILE);
-    if (!Files.exists(confPath)) {
-      return false;
-    }
-    Properties properties = ConfigurationUtils.loadPropertiesFromFile(confPath.toString());
-    if (properties == null) {
-      return false;
-    }
-    AlluxioProperties alluxioProperties = new AlluxioProperties();
-    alluxioProperties.merge(properties, Source.DEFAULT);
-    AlluxioConfiguration cacheConf = new InstancedConfiguration(alluxioProperties);
-    boolean canLoad = true;
-    // check store type
-    if (!cacheConf.get(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE).equals(
-        conf.get(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE))) {
-      LOG.info("Local store type {} does not match configured value {}",
-          cacheConf.get(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE),
-          conf.get(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE));
-      canLoad = false;
-    }
-    // check page size
-    if (cacheConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE)
-        != conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE)) {
-      LOG.info("Local store page size {} does not match configured value {}",
-          cacheConf.get(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE),
-          conf.get(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
-      canLoad = false;
-    }
-    // check enough cache size
-    if (cacheConf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE)
-        > conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE)) {
-      LOG.info("Local store cache size {} is larger than configured value {}",
-          cacheConf.get(PropertyKey.USER_CLIENT_CACHE_SIZE),
-          conf.get(PropertyKey.USER_CLIENT_CACHE_SIZE));
-      canLoad = false;
-    }
-    // check alluxio version
-    if (!cacheConf.get(PropertyKey.VERSION).equals(
-        conf.get(PropertyKey.VERSION))) {
-      LOG.info("Local store Alluxio version {} is different than Alluxio client version {}",
-          cacheConf.get(PropertyKey.VERSION),
-          conf.get(PropertyKey.VERSION));
-      canLoad = false;
-    }
-    if (canLoad) {
-      LOG.info("Found recoverable local cache at {}", rootPath);
-    } else {
-      LOG.info("Local cache at {} is incompatible with client configuration.", rootPath);
-    }
-    return canLoad;
-  }
-
-  /**
-   * Formats a page store at the configured location.
-   * Existing data at the store location will be removed.
-   *
-   * @param conf Alluxio configuration
-   */
-  static void format(AlluxioConfiguration conf) {
-    String rootPath = conf.get(PropertyKey.USER_CLIENT_CACHE_DIR);
-    Path confPath = Paths.get(rootPath, CONF_FILE);
+  static void initialize(String rootPath, PageStoreType storeType) throws IOException {
+    Path storePath = Paths.get(rootPath, storeType.name());
     LOG.info("Clean cache directory {}", rootPath);
-    File rootDir = new File(rootPath);
-    try {
-      if (Files.isDirectory(rootDir.toPath())) {
-        FileUtils.deleteDirectory(rootDir);
-      }
-      FileUtils.forceMkdir(rootDir);
-    } catch (IOException e) {
-      throw new IllegalStateException(
-          String.format("failed to clean cache directory %s", rootDir), e);
-    }
-    Properties properties = new Properties();
-    PropertyKey[] keys = new PropertyKey[]{
-        PropertyKey.USER_CLIENT_CACHE_STORE_TYPE,
-        PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE,
-        PropertyKey.USER_CLIENT_CACHE_SIZE,
-        PropertyKey.VERSION
-    };
-    for (PropertyKey key : keys) {
-      properties.setProperty(key.getName(), conf.get(key));
-    }
-    try (FileOutputStream stream = new FileOutputStream(confPath.toString())) {
-      properties.store(stream, "Alluxio local cache configuration");
-    } catch (IOException e) {
-      throw new IllegalStateException(
-          String.format("failed to write cache configuration to file %s", confPath), e);
+    try (Stream<Path> stream = Files.list(Paths.get(rootPath))) {
+      stream.filter(path -> !storePath.equals(path))
+          .map(Path::toString)
+          .map(File::new)
+          .forEach(FileUtils::deleteQuietly);
     }
   }
 
@@ -241,10 +158,10 @@ public interface PageStore extends AutoCloseable {
   int size();
 
   /**
-   * Loads page store from local storage and returns all page ids.
+   * Gets all page ids.
    *
    * @return collection of ids representing all pages loaded from disk
    * @throws IOException if any error occurs
    */
-  Collection<PageId> load() throws IOException;
+  Collection<PageId> getPages() throws IOException;
 }

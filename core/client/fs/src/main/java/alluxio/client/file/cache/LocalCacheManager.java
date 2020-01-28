@@ -67,10 +67,27 @@ public class LocalCacheManager implements CacheManager {
 
   /**
    * @param fsContext filesystem context
+   * @return an instance of {@link LocalCacheManager}
    */
-  public LocalCacheManager(FileSystemContext fsContext) {
-    this(fsContext, MetaStore.create(), PageStore.create(fsContext.getClusterConf()),
-        CacheEvictor.create(fsContext.getClusterConf()));
+  public static LocalCacheManager create(FileSystemContext fsContext) throws IOException {
+    MetaStore metaStore = MetaStore.create();
+    CacheEvictor evictor = CacheEvictor.create(fsContext.getClusterConf());
+    PageStore pageStore = PageStore.create(fsContext.getClusterConf());
+    try {
+      Collection<PageId> pages = pageStore.getPages();
+      for (PageId page : pages) {
+        metaStore.addPage(page);
+        evictor.updateOnPut(page);
+      }
+      return new LocalCacheManager(fsContext, metaStore, pageStore, evictor);
+    } catch (Exception e) {
+      try {
+        pageStore.close();
+      } catch (Exception ex) {
+        e.addSuppressed(ex);
+      }
+      throw new IOException("failed to create local cache manager", e);
+    }
   }
 
   /**
@@ -91,16 +108,6 @@ public class LocalCacheManager implements CacheManager {
         / mPageSize;
     for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock();
-    }
-    Collection<PageId> pages;
-    try {
-      pages = mPageStore.load();
-    } catch (IOException e) {
-      throw new IllegalStateException("failed to scan page cache", e);
-    }
-    for (PageId page : pages) {
-      metaStore.addPage(page);
-      mEvictor.updateOnPut(page);
     }
   }
 

@@ -89,7 +89,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   }
 
   private void testNewCache() throws Exception {
-    mCacheManager = new LocalCacheManager(mFsContext);
+    mCacheManager = LocalCacheManager.create(mFsContext);
     mCacheManager.put(PAGE_ID, PAGE);
     testPageCached();
   }
@@ -124,16 +124,10 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   @Test
   public void loadCacheAndEvict() throws Exception {
     mFsContext = FileSystemContext.create(mConf);
-    mCacheManager = new LocalCacheManager(mFsContext);
-    for (int i = 0; i < PAGE_COUNT; i++) {
-      mCacheManager.put(new PageId(0, i), PAGE);
-    }
-    for (int i = 0; i < PAGE_COUNT; i++) {
-      testPageCached(new PageId(0, i));
-    }
+    loadFullCache();
     mCacheManager.close();
     // creates with same configuration
-    mCacheManager = new LocalCacheManager(mFsContext);
+    mCacheManager = LocalCacheManager.create(mFsContext);
     // evicts half of the pages
     for (int i = 0; i < PAGE_COUNT / 2; i++) {
       mCacheManager.put(new PageId(1, i), PAGE);
@@ -159,14 +153,14 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   }
 
   private void testLoadCache() throws Exception {
-    mCacheManager = new LocalCacheManager(mFsContext);
+    mCacheManager = LocalCacheManager.create(mFsContext);
     mCacheManager.put(PAGE_ID, PAGE);
     // verify reading from local cache
     testPageCached();
 
     mCacheManager.close();
     // creates with same configuration
-    mCacheManager = new LocalCacheManager(mFsContext);
+    mCacheManager = LocalCacheManager.create(mFsContext);
 
     // verify reading from recovered local cache
     testPageCached();
@@ -193,9 +187,25 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   }
 
   @Test
-  public void loadCacheSmallerNewCacheSize() throws Exception {
+  public void loadCacheSmallerNewCacheSizeRocks() throws Exception {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "ROCKS");
     mFsContext = FileSystemContext.create(mConf);
     testLoadCacheConfMismatch(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES / 2);
+  }
+
+  @Test
+  public void loadCacheSmallerNewCacheSizeLocal() throws Exception {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "LOCAL");
+    mFsContext = FileSystemContext.create(mConf);
+    loadFullCache();
+    mCacheManager.close();
+    // creates with different configuration
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES / 2);
+    mFsContext = FileSystemContext.create(mConf);
+    mCacheManager = LocalCacheManager.create(mFsContext);
+    try (ReadableByteChannel channel = mCacheManager.get(PAGE_ID)) {
+      assertNull(channel);
+    }
   }
 
   @Test
@@ -206,7 +216,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   }
 
   private void testLoadCacheConfChanged(PropertyKey prop, Object value) throws Exception {
-    mCacheManager = new LocalCacheManager(mFsContext);
+    mCacheManager = LocalCacheManager.create(mFsContext);
     mCacheManager.put(PAGE_ID, PAGE);
     // verify reading from local cache
     testPageCached();
@@ -215,7 +225,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     // creates with different configuration
     mConf.set(prop, value);
     mFsContext = FileSystemContext.create(mConf);
-    mCacheManager = new LocalCacheManager(mFsContext);
+    mCacheManager = LocalCacheManager.create(mFsContext);
   }
 
   private void testLoadCacheConfMismatch(PropertyKey prop, Object value) throws Exception {
@@ -223,6 +233,16 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     // verify failed to read from recovered local cache
     try (ReadableByteChannel channel = mCacheManager.get(PAGE_ID)) {
       assertNull(channel);
+    }
+  }
+
+  private void loadFullCache() throws Exception {
+    mCacheManager = LocalCacheManager.create(mFsContext);
+    for (int i = 0; i < PAGE_COUNT; i++) {
+      mCacheManager.put(new PageId(0, i), PAGE);
+    }
+    for (int i = 0; i < PAGE_COUNT; i++) {
+      testPageCached(new PageId(0, i));
     }
   }
 }

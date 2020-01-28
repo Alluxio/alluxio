@@ -604,11 +604,11 @@ public class FileSystemContext implements Closeable {
   /**
    * @return the client side cache manager
    */
-  public CacheManager getCacheManager() {
+  public CacheManager getCacheManager() throws IOException {
     return getCacheManager(this);
   }
 
-  private static CacheManager getCacheManager(FileSystemContext fsContext) {
+  private static CacheManager getCacheManager(FileSystemContext fsContext) throws IOException {
     // TODO(feng): support multiple cache managers
     if (sCacheManager == null) {
       synchronized (FileSystemContext.class) {

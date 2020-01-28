@@ -16,7 +16,13 @@ import alluxio.client.file.DelegatingFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.FileIncompleteException;
+import alluxio.exception.OpenDirectoryException;
 import alluxio.grpc.OpenFilePOptions;
+
+import java.io.IOException;
 
 /**
  * A FileSystem implementation with a local cache.
@@ -34,9 +40,14 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
   }
 
   @Override
-  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) {
+  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
+      throws IOException, AlluxioException {
     // TODO(calvin): We should add another API to reduce the cost of openFile
-    return new LocalCacheFileInStream(path, options, mDelegatedFileSystem,
-        mFsContext.getCacheManager());
+    try {
+      return new LocalCacheFileInStream(path, options, mDelegatedFileSystem,
+          mFsContext.getCacheManager());
+    } catch (IOException e) {
+      return mDelegatedFileSystem.openFile(path, options);
+    }
   }
 }

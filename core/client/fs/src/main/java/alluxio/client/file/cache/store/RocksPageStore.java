@@ -14,8 +14,11 @@ package alluxio.client.file.cache.store;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
+import alluxio.proto.client.Cache;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Streams;
+import org.apache.commons.io.FileUtils;
 import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
@@ -24,14 +27,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -42,6 +46,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class RocksPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
   private static final int KEY_LEN = 16;
+  private static final byte[] CONF_KEY = "CONF".getBytes();
 
   private final String mRoot;
   private final RocksDB mDb;
@@ -51,20 +56,43 @@ public class RocksPageStore implements PageStore {
    * Creates a new instance of {@link PageStore} backed by RocksDB.
    *
    * @param options options for the rocks page store
+   * @throws IOException when fails to create a {@link RocksPageStore}
    */
-  public RocksPageStore(RocksPageStoreOptions options) {
+  public RocksPageStore(RocksPageStoreOptions options) throws IOException {
     Preconditions.checkArgument(options.getMaxPageSize() > 0);
     mRoot = options.getRootDir();
+    Cache.PRocksPageStoreOptions pOptions = options.toProto();
     RocksDB.loadLibrary();
+    RocksDB db = null;
+    Options rocksOptions = new Options();
+    rocksOptions.setCreateIfMissing(true);
+    rocksOptions.setWriteBufferSize(options.getWriteBufferSize());
+    rocksOptions.setCompressionType(options.getCompressionType());
     try {
-      Options rocksOptions = new Options();
-      rocksOptions.setCreateIfMissing(true);
-      rocksOptions.setWriteBufferSize(options.getWriteBufferSize());
-      rocksOptions.setCompressionType(options.getCompressionType());
-      mDb = RocksDB.open(rocksOptions, options.getRootDir());
-    } catch (RocksDBException e) {
-      throw new RuntimeException("Couldn't open rocksDB database", e);
+      db = RocksDB.open(rocksOptions, options.getRootDir());
+      byte[] confData = db.get(CONF_KEY);
+      if (confData != null) {
+        Cache.PRocksPageStoreOptions persistedOptions =
+            Cache.PRocksPageStoreOptions.parseFrom(confData);
+        if (persistedOptions.equals(pOptions)) {
+          try (RocksIterator iter = db.newIterator()) {
+            mSize.set((int) Streams.stream(new PageIterator(iter)).count());
+          }
+        } else {
+          db.close();
+          db = null;
+          FileUtils.cleanDirectory(new File(mRoot));
+          db = RocksDB.open(rocksOptions, options.getRootDir());
+        }
+      }
+      db.put(CONF_KEY, pOptions.toByteArray());
+    } catch (RocksDBException | IOException e) {
+      if (db != null) {
+        db.close();
+      }
+      throw new IOException("Couldn't open rocksDB database", e);
     }
+    mDb = db;
   }
 
   @Override
@@ -138,16 +166,50 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public Collection<PageId> load() {
-    RocksIterator iter = mDb.newIterator();
-    List<PageId> pages = new ArrayList<>();
-    for (iter.seekToFirst(); iter.isValid(); iter.next()) {
-      PageId id = getPageId(iter.key());
-      if (id != null) {
-        pages.add(id);
-      }
+  public Collection<PageId> getPages() {
+    try (RocksIterator iter = mDb.newIterator()) {
+      return Streams.stream(new PageIterator(iter)).collect(Collectors.toList());
     }
-    mSize.set(pages.size());
-    return pages;
+  }
+
+  private class PageIterator implements Iterator<PageId>, AutoCloseable {
+    private final RocksIterator mIter;
+    private PageId mValue;
+
+    PageIterator(RocksIterator iter) {
+      mIter = iter;
+      mIter.seekToFirst();
+    }
+
+    @Override
+    public boolean hasNext() {
+      return ensureValue() != null;
+    }
+
+    @Override
+    public PageId next() {
+      PageId value = ensureValue();
+      mIter.next();
+      mValue = null;
+      return value;
+    }
+
+    private PageId ensureValue() {
+      if (mValue == null) {
+        for (; mIter.isValid(); mIter.next()) {
+          PageId id = getPageId(mIter.key());
+          if (id != null) {
+            mValue = id;
+            break;
+          }
+        }
+      }
+      return mValue;
+    }
+
+    @Override
+    public void close() throws Exception {
+      mIter.close();
+    }
   }
 }
