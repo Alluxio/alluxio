@@ -221,11 +221,11 @@ public final class Metric implements Serializable {
     sb.append(mInstanceType).append('.');
     sb.append(mName);
     if (mHostname != null) {
+      sb.append('.');
       sb.append(mHostname);
       if (mInstanceId != null) {
         sb.append(ID_SEPARATOR).append(mInstanceId);
       }
-      sb.append('.');
     }
 
     for (Entry<String, String> entry : mTags.entrySet()) {
