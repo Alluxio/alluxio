@@ -219,6 +219,7 @@ public final class Metric implements Serializable {
   private String constructFullMetricName() {
     StringBuilder sb = new StringBuilder();
     sb.append(mInstanceType).append('.');
+    sb.append(mName);
     if (mHostname != null) {
       sb.append(mHostname);
       if (mInstanceId != null) {
@@ -227,7 +228,6 @@ public final class Metric implements Serializable {
       sb.append('.');
     }
 
-    sb.append(mName);
     for (Entry<String, String> entry : mTags.entrySet()) {
       sb.append('.').append(entry.getKey()).append(TAG_SEPARATOR).append(entry.getValue());
     }

@@ -439,8 +439,7 @@ public final class NetworkAddressUtils {
     if (sLocalHostMetricName != null) {
       return sLocalHostMetricName;
     }
-    sLocalHostMetricName = MetricInfo.TAG_NODE + ":"
-        + getLocalHostName(timeoutMs).replace('.', '_');
+    sLocalHostMetricName = getLocalHostName(timeoutMs).replace('.', '_');
     return sLocalHostMetricName;
   }
 

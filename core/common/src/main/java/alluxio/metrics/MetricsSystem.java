@@ -327,8 +327,7 @@ public final class MetricsSystem {
     if (name.startsWith(instance.toString())) {
       return Joiner.on(".").join(name, NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
     }
-    return instance
-        + "." + name + "." + NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
+    return Joiner.on(".").join(instance, name, NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
   }
 
   /**
