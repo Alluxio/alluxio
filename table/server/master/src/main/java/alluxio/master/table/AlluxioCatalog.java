@@ -207,11 +207,23 @@ public class AlluxioCatalog implements Journaled {
     try (LockResource l = getLock(dbName, true)) {
       Database db = getDatabaseByName(dbName);
       DatabaseInfo dbInfo = db.getDatabaseInfo();
-      return alluxio.grpc.table.Database.newBuilder()
-          .setDbName(db.getName()).setLocation(dbInfo.getLocation())
-          .setOwnerName(dbInfo.getOwnerName()).setOwnerType(dbInfo.getOwnerType())
-          .setComment(dbInfo.getComment()).putAllParameter(dbInfo.getParameters())
-          .build();
+
+      alluxio.grpc.table.Database.Builder builder = alluxio.grpc.table.Database.newBuilder()
+          .setDbName(db.getName())
+          .putAllParameter(dbInfo.getParameters());
+      if (dbInfo.getComment() != null) {
+        builder.setComment(dbInfo.getComment());
+      }
+      if (dbInfo.getLocation() != null) {
+        builder.setLocation(dbInfo.getLocation());
+      }
+      if (dbInfo.getOwnerName() != null) {
+        builder.setOwnerName(dbInfo.getOwnerName());
+      }
+      if (dbInfo.getOwnerType() != null) {
+        builder.setOwnerType(dbInfo.getOwnerType());
+      }
+      return builder.build();
     }
   }
 
