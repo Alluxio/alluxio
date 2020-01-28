@@ -848,7 +848,7 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String WORKER_BYTES_WRITTEN_UFS = "Worker.BytesWrittenPerUfs";
     public static final String WORKER_BYTES_WRITTEN_UFS_ALL = "Worker.BytesWrittenUfsAll";
     public static final String WORKER_BYTES_WRITTEN_UFS_THROUGHPUT
-        = "WorkerBytesWrittenUfsThroughput";
+        = "Worker.BytesWrittenUfsThroughput";
     public static final String WORKER_CAPACITY_TOTAL = "Worker.CapacityTotal";
     public static final String WORKER_CAPACITY_USED = "Worker.CapacityUsed";
     public static final String WORKER_CAPACITY_FREE = "Worker.CapacityFree";

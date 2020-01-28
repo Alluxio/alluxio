@@ -275,7 +275,6 @@ public final class Metric implements Serializable {
    * @param userName the user
    * @return a metric name with the user tagged
    */
-  // TODO(lu) add metric name to it ????
   public static String getMetricNameWithUserTag(String metricName, String userName) {
     UserMetricKey k = new UserMetricKey(metricName, userName);
     String result = CACHED_METRICS.get(k);

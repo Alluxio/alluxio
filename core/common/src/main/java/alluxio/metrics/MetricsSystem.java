@@ -317,7 +317,7 @@ public final class MetricsSystem {
 
   /**
    * Builds unique metric registry names with unique ID (set to host name). The pattern is
-   * instance.metricName.Node:<node_hostname>
+   * instance.metricName.hostname
    *
    * @param instance the instance name
    * @param name the metric name
@@ -420,7 +420,6 @@ public final class MetricsSystem {
    * @param name the name of the metric
    * @return a timer object with the qualified metric name
    */
-  // TODO(lu) some of the metric name are dynamically generated through the rpc
   public static Timer timer(String name) {
     return METRIC_REGISTRY.timer(getMetricName(name));
   }
