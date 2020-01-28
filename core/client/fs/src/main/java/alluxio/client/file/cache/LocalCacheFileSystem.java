@@ -12,12 +12,17 @@
 package alluxio.client.file.cache;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.DelegatingFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.OpenFilePOptions;
+import alluxio.util.logging.SamplingLogger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -25,6 +30,8 @@ import java.io.IOException;
  * A FileSystem implementation with a local cache.
  */
 public class LocalCacheFileSystem extends DelegatingFileSystem {
+  private static final Logger SAMPLING_LOGGER = new SamplingLogger(
+      LoggerFactory.getLogger(LocalCacheFileSystem.class), 30 * Constants.MINUTE_MS);
   private final FileSystemContext mFsContext;
 
   /**
@@ -44,6 +51,7 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
       return new LocalCacheFileInStream(path, options, mDelegatedFileSystem,
           mFsContext.getCacheManager());
     } catch (IOException e) {
+      SAMPLING_LOGGER.warn("Failed to create LocalCacheFileInStream {}", e.getMessage());
       return mDelegatedFileSystem.openFile(path, options);
     }
   }

@@ -100,6 +100,7 @@ public interface PageStore extends AutoCloseable {
    */
   static void initialize(String rootPath, PageStoreType storeType) throws IOException {
     Path storePath = Paths.get(rootPath, storeType.name());
+    Files.createDirectories(storePath);
     LOG.info("Clean cache directory {}", rootPath);
     try (Stream<Path> stream = Files.list(Paths.get(rootPath))) {
       stream.filter(path -> !storePath.equals(path))
