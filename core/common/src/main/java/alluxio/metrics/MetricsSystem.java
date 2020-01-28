@@ -107,7 +107,7 @@ public final class MetricsSystem {
   }
 
   // Supported special instance names.
-  public static final String CLUSTER = "cluster";
+  public static final String CLUSTER = "Cluster";
 
   public static final MetricRegistry METRIC_REGISTRY;
 
@@ -201,28 +201,134 @@ public final class MetricsSystem {
   }
 
   /**
-   * Add unique ID (set to host name) for building unique metric registry name
-   * based on the process type.
-   * The pattern is metricName.hostname
+   * Converts a simple string to a qualified metric name based on the process type.
    *
    * @param name the name of the metric
    * @return the metric with instance and id tags
    */
-  public static String attachHostToMetricsIfNeeded(String name) {
+  public static String getMetricName(String name) {
     switch (CommonUtils.PROCESS_TYPE.get()) {
       case CLIENT:
+        return getClientMetricName(name);
+      case MASTER:
+        return getMasterMetricName(name);
       case PROXY:
+        return getProxyMetricName(name);
       case WORKER:
+        return getWorkerMetricName(name);
+      case JOB_MASTER:
+        return getJobMasterMetricName(name);
       case JOB_WORKER:
-        String result = CACHED_METRICS.get(name);
-        if (result != null) {
-          return result;
-        }
-        return CACHED_METRICS.computeIfAbsent(name,
-            n -> n + "." + NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
+        return getJobWorkerMetricName(name);
       default:
-        return name;
+        throw new IllegalStateException("Unknown process type");
     }
+  }
+
+  /**
+   * Builds metric registry names for master instance. The pattern is instance.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  private static String getMasterMetricName(String name) {
+    if (name.startsWith(InstanceType.MASTER.toString())) {
+      return name;
+    }
+    return Joiner.on(".").join(InstanceType.MASTER.toString(), name);
+  }
+
+  /**
+   * Builds metric registry name for worker instance. The pattern is instance.uniqueId.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  private static String getWorkerMetricName(String name) {
+    String result = CACHED_METRICS.get(name);
+    if (result != null) {
+      return result;
+    }
+    return CACHED_METRICS.computeIfAbsent(name,
+        n -> getMetricNameWithUniqueId(InstanceType.WORKER, name));
+  }
+
+  /**
+   * Builds metric registry name for client instance. The pattern is instance.uniqueId.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  private static String getClientMetricName(String name) {
+    String result = CACHED_METRICS.get(name);
+    if (result != null) {
+      return result;
+    }
+    return CACHED_METRICS.computeIfAbsent(name,
+        n -> getMetricNameWithUniqueId(InstanceType.CLIENT, name));
+  }
+
+  /**
+   * Builds metric registry name for a proxy instance. The pattern is instance.uniqueId.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  private static String getProxyMetricName(String name) {
+    return getMetricNameWithUniqueId(InstanceType.PROXY, name);
+  }
+
+  /**
+   * Builds metric registry names for cluster. The pattern is cluster.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  public static String getClusterMetricName(String name) {
+    if (name.startsWith(CLUSTER)) {
+      return name;
+    }
+    return Joiner.on(".").join(CLUSTER, name);
+  }
+
+  /**
+   * Builds metric registry names for the job master instance. The pattern is instance.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  private static String getJobMasterMetricName(String name) {
+    if (name.startsWith(InstanceType.JOB_MASTER.toString())) {
+      return name;
+    }
+    return Joiner.on(".").join(InstanceType.JOB_MASTER, name);
+  }
+
+  /**
+   * Builds metric registry name for job worker instance. The pattern is
+   * instance.uniqueId.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  public static String getJobWorkerMetricName(String name) {
+    return getMetricNameWithUniqueId(InstanceType.JOB_WORKER, name);
+  }
+
+  /**
+   * Builds unique metric registry names with unique ID (set to host name). The pattern is
+   * instance.metricName.Node:<node_hostname>
+   *
+   * @param instance the instance name
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
+    if (name.startsWith(instance.toString())) {
+      return Joiner.on(".").join(name, NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
+    }
+    return instance
+        + "." + name + "." + NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
   }
 
   /**
@@ -250,8 +356,9 @@ public final class MetricsSystem {
     Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", metricsName);
 
     // Master metrics doesn't have hostname included.
-    if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())) {
-      pieces[1] = null;
+    if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())
+        && !pieces[0].equals(InstanceType.CLUSTER.toString())) {
+      pieces[2] = null;
     }
     pieces[0] = null;
     return Joiner.on(".").skipNulls().join(pieces);
@@ -291,7 +398,7 @@ public final class MetricsSystem {
    * @return a counter object with the qualified metric name
    */
   public static Counter counter(String name) {
-    return METRIC_REGISTRY.counter(attachHostToMetricsIfNeeded(name));
+    return METRIC_REGISTRY.counter(getMetricName(name));
   }
 
   /**
@@ -302,7 +409,7 @@ public final class MetricsSystem {
    * @return a meter object with the qualified metric name
    */
   public static Meter meter(String name) {
-    return METRIC_REGISTRY.meter(attachHostToMetricsIfNeeded(name));
+    return METRIC_REGISTRY.meter(getMetricName(name));
   }
 
   /**
@@ -312,8 +419,9 @@ public final class MetricsSystem {
    * @param name the name of the metric
    * @return a timer object with the qualified metric name
    */
+  // TODO(lu) some of the metric name are dynamically generated through the rpc
   public static Timer timer(String name) {
-    return METRIC_REGISTRY.timer(attachHostToMetricsIfNeeded(name));
+    return METRIC_REGISTRY.timer(getMetricName(name));
   }
 
   /**
@@ -324,7 +432,6 @@ public final class MetricsSystem {
    * @param <T> the type
    */
   public static synchronized <T> void registerGaugeIfAbsent(String name, Gauge<T> metric) {
-    name = attachHostToMetricsIfNeeded(name);
     if (!METRIC_REGISTRY.getGauges().containsKey(name)) {
       METRIC_REGISTRY.register(name, metric);
     }

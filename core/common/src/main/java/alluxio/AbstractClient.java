@@ -400,7 +400,7 @@ public abstract class AbstractClient implements Client {
         + " attempts: " + ex.toString(), ex);
   }
 
-  // TODO(calvin): General tag logic should be in attachHostToMetricsIfNeeded
+  // TODO(calvin): General tag logic should be in getMetricName
   private String getQualifiedMetricName(String metricName) {
     try {
       if (SecurityUtils.isAuthenticationEnabled(mContext.getClusterConf())

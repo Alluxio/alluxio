@@ -197,6 +197,25 @@ public final class MetricKey implements Comparable<MetricKey> {
     }
   }
   // Master metrics
+  // Master status
+  public static final MetricKey MASTER_EDGE_CACHE_SIZE =
+      new MetricKey.Builder(Name.MASTER_EDGE_CACHE_SIZE)
+          .setDescription("Total number of edges (inode metadata) cached. "
+              + "The edge cache is responsible for managing the mapping "
+              + "from (parentId, childName) to childId.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_INODE_CACHE_SIZE =
+      new MetricKey.Builder(Name.MASTER_INODE_CACHE_SIZE)
+          .setDescription("Total number of inodes (inode metadata) cached")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_TOTAL_PATHS =
+      new MetricKey.Builder(Name.MASTER_TOTAL_PATHS)
+          .setDescription("Total number of files and directory in Alluxio namespace")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  // Backup Restore
   public static final MetricKey MASTER_LAST_BACKUP_ENTRIES_COUNT =
       new MetricKey.Builder(Name.MASTER_LAST_BACKUP_ENTRIES_COUNT)
           .setDescription("The total number of entries written "
@@ -219,6 +238,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The process time of the last restore from backup")
           .setMetricType(MetricType.TIMER)
           .build();
+  // Logical operations and results
   public static final MetricKey MASTER_DIRECTORIES_CREATED =
       new MetricKey.Builder(Name.MASTER_DIRECTORIES_CREATED)
           .setDescription("Total number of the succeed CreateDirectory operations")
@@ -354,11 +374,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of currently pinned files")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey MASTER_TOTAL_PATHS =
-      new MetricKey.Builder(Name.MASTER_TOTAL_PATHS)
-          .setDescription("Total number of files and directory in Alluxio namespace")
-          .setMetricType(MetricType.GAUGE)
-          .build();
+  // Journal metrics
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
       new MetricKey.Builder(Name.MASTER_JOURNAL_FLUSH_FAILURE)
           .setDescription("Total number of failed journal flush")
@@ -703,114 +719,118 @@ public final class MetricKey implements Comparable<MetricKey> {
   @ThreadSafe
   public static final class Name {
     // Master metrics
+    // metrics names for master status
+    public static final String MASTER_EDGE_CACHE_SIZE = "Master.EdgeCacheSize";
+    public static final String MASTER_INODE_CACHE_SIZE = "Master.InodeCacheSize";
+    public static final String MASTER_TOTAL_PATHS = "Master.TotalPaths";
+
     // metrics names for BackupManager
-    public static final String MASTER_LAST_BACKUP_ENTRIES_COUNT = "MasterLastBackupEntriesCount";
-    public static final String MASTER_LAST_BACKUP_RESTORE_COUNT = "MasterLastBackupRestoreCount";
+    public static final String MASTER_LAST_BACKUP_ENTRIES_COUNT = "Master.LastBackupEntriesCount";
+    public static final String MASTER_LAST_BACKUP_RESTORE_COUNT = "Master.LastBackupRestoreCount";
     public static final String MASTER_LAST_BACKUP_TIME_MS
-        = "MasterLastBackupTimeMs";
+        = "Master.LastBackupTimeMs";
     public static final String MASTER_LAST_BACKUP_RESTORE_TIME_MS
-        = "MasterLastBackupRestoreTimeMs";
+        = "Master.LastBackupRestoreTimeMs";
 
     // metrics names for FileSystemMaster
-    public static final String MASTER_DIRECTORIES_CREATED = "MasterDirectoriesCreated";
-    public static final String MASTER_FILE_BLOCK_INFOS_GOT = "MasterFileBlockInfosGot";
-    public static final String MASTER_FILE_INFOS_GOT = "MasterFileInfosGot";
-    public static final String MASTER_FILES_COMPLETED = "MasterFilesCompleted";
-    public static final String MASTER_FILES_CREATED = "MasterFilesCreated";
-    public static final String MASTER_FILES_FREED = "MasterFilesFreed";
-    public static final String MASTER_FILES_PERSISTED = "MasterFilesPersisted";
-    public static final String MASTER_NEW_BLOCKS_GOT = "MasterNewBlocksGot";
-    public static final String MASTER_PATHS_DELETED = "MasterPathsDeleted";
-    public static final String MASTER_PATHS_MOUNTED = "MasterPathsMounted";
-    public static final String MASTER_PATHS_RENAMED = "MasterPathsRenamed";
-    public static final String MASTER_PATHS_UNMOUNTED = "MasterPathsUnmounted";
-    public static final String MASTER_COMPLETE_FILE_OPS = "MasterCompleteFileOps";
-    public static final String MASTER_CREATE_DIRECTORIES_OPS = "MasterCreateDirectoryOps";
-    public static final String MASTER_CREATE_FILES_OPS = "MasterCreateFileOps";
-    public static final String MASTER_DELETE_PATHS_OPS = "MasterDeletePathOps";
-    public static final String MASTER_FREE_FILE_OPS = "MasterFreeFileOps";
-    public static final String MASTER_GET_FILE_BLOCK_INFO_OPS = "MasterGetFileBlockInfoOps";
-    public static final String MASTER_GET_FILE_INFO_OPS = "MasterGetFileInfoOps";
-    public static final String MASTER_GET_NEW_BLOCK_OPS = "MasterGetNewBlockOps";
-    public static final String MASTER_LISTING_CACHE_SIZE = "MasterListingCacheSize";
-    public static final String MASTER_MOUNT_OPS = "MasterMountOps";
-    public static final String MASTER_RENAME_PATH_OPS = "MasterRenamePathOps";
-    public static final String MASTER_SET_ACL_OPS = "MasterSetAclOps";
-    public static final String MASTER_SET_ATTRIBUTE_OPS = "MasterSetAttributeOps";
-    public static final String MASTER_UNMOUNT_OPS = "MasterUnmountOps";
-    public static final String MASTER_FILES_PINNED = "MasterFilesPinned";
-    public static final String MASTER_TOTAL_PATHS = "MasterTotalPaths";
+    public static final String MASTER_DIRECTORIES_CREATED = "Master.DirectoriesCreated";
+    public static final String MASTER_FILE_BLOCK_INFOS_GOT = "Master.FileBlockInfosGot";
+    public static final String MASTER_FILE_INFOS_GOT = "Master.FileInfosGot";
+    public static final String MASTER_FILES_COMPLETED = "Master.FilesCompleted";
+    public static final String MASTER_FILES_CREATED = "Master.FilesCreated";
+    public static final String MASTER_FILES_FREED = "Master.FilesFreed";
+    public static final String MASTER_FILES_PERSISTED = "Master.FilesPersisted";
+    public static final String MASTER_NEW_BLOCKS_GOT = "Master.NewBlocksGot";
+    public static final String MASTER_PATHS_DELETED = "Master.PathsDeleted";
+    public static final String MASTER_PATHS_MOUNTED = "Master.PathsMounted";
+    public static final String MASTER_PATHS_RENAMED = "Master.PathsRenamed";
+    public static final String MASTER_PATHS_UNMOUNTED = "Master.PathsUnmounted";
+    public static final String MASTER_COMPLETE_FILE_OPS = "Master.CompleteFileOps";
+    public static final String MASTER_CREATE_DIRECTORIES_OPS = "Master.CreateDirectoryOps";
+    public static final String MASTER_CREATE_FILES_OPS = "Master.CreateFileOps";
+    public static final String MASTER_DELETE_PATHS_OPS = "Master.DeletePathOps";
+    public static final String MASTER_FREE_FILE_OPS = "Master.FreeFileOps";
+    public static final String MASTER_GET_FILE_BLOCK_INFO_OPS = "Master.GetFileBlockInfoOps";
+    public static final String MASTER_GET_FILE_INFO_OPS = "Master.GetFileInfoOps";
+    public static final String MASTER_GET_NEW_BLOCK_OPS = "Master.GetNewBlockOps";
+    public static final String MASTER_LISTING_CACHE_SIZE = "Master.ListingCacheSize";
+    public static final String MASTER_MOUNT_OPS = "Master.MountOps";
+    public static final String MASTER_RENAME_PATH_OPS = "Master.RenamePathOps";
+    public static final String MASTER_SET_ACL_OPS = "Master.SetAclOps";
+    public static final String MASTER_SET_ATTRIBUTE_OPS = "Master.SetAttributeOps";
+    public static final String MASTER_UNMOUNT_OPS = "Master.UnmountOps";
+    public static final String MASTER_FILES_PINNED = "Master.FilesPinned";
 
     // metrics names for journal
-    public static final String MASTER_JOURNAL_FLUSH_FAILURE = "MasterJournalFlushFailure";
-    public static final String MASTER_JOURNAL_FLUSH_TIMER = "MasterJournalFlushTimer";
-    public static final String MASTER_JOURNAL_GAIN_PRIMACY_TIMER = "MasterJournalGainPrimacyTimer";
+    public static final String MASTER_JOURNAL_FLUSH_FAILURE = "Master.JournalFlushFailure";
+    public static final String MASTER_JOURNAL_FLUSH_TIMER = "Master.JournalFlushTimer";
+    public static final String MASTER_JOURNAL_GAIN_PRIMACY_TIMER = "Master.JournalGainPrimacyTimer";
     public static final String MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER
-        = "MasterUfsJournalFailureRecoverTime";
+        = "Master.UfsJournalFailureRecoverTime";
 
     // Cluster metrics
-    public static final String CLUSTER_BYTES_READ_LOCAL = "ClusterBytesReadLocal";
+    public static final String CLUSTER_BYTES_READ_LOCAL = "Cluster.BytesReadLocal";
     public static final String CLUSTER_BYTES_READ_LOCAL_THROUGHPUT
-        = "ClusterBytesReadLocalThroughput";
-    public static final String CLUSTER_BYTES_READ_ALLUXIO = "ClusterBytesReadAlluxio";
+        = "Cluster.BytesReadLocalThroughput";
+    public static final String CLUSTER_BYTES_READ_ALLUXIO = "Cluster.BytesReadAlluxio";
     public static final String CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT
-        = "ClusterBytesReadAlluxioThroughput";
-    public static final String CLUSTER_BYTES_READ_DOMAIN = "ClusterBytesReadDomain";
+        = "Cluster.BytesReadAlluxioThroughput";
+    public static final String CLUSTER_BYTES_READ_DOMAIN = "Cluster.BytesReadDomain";
     public static final String CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT
-        = "ClusterBytesReadDomainThroughput";
-    public static final String CLUSTER_BYTES_READ_UFS = "WorkerBytesReadPerUfs";
-    public static final String CLUSTER_BYTES_READ_UFS_ALL = "ClusterBytesReadUfsAll";
+        = "Cluster.BytesReadDomainThroughput";
+    public static final String CLUSTER_BYTES_READ_UFS = "Cluster.BytesReadPerUfs";
+    public static final String CLUSTER_BYTES_READ_UFS_ALL = "Cluster.BytesReadUfsAll";
     public static final String CLUSTER_BYTES_READ_UFS_THROUGHPUT
-        = "ClusterBytesReadUfsThroughput";
-    public static final String CLUSTER_BYTES_WRITTEN_ALLUXIO = "ClusterBytesWrittenAlluxio";
+        = "Cluster.BytesReadUfsThroughput";
+    public static final String CLUSTER_BYTES_WRITTEN_ALLUXIO = "Cluster.BytesWrittenAlluxio";
     public static final String CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT
-        = "ClusterBytesWrittenAlluxioThroughput";
-    public static final String CLUSTER_BYTES_WRITTEN_DOMAIN = "ClusterBytesWrittenDomain";
+        = "Cluster.BytesWrittenAlluxioThroughput";
+    public static final String CLUSTER_BYTES_WRITTEN_DOMAIN = "Cluster.BytesWrittenDomain";
     public static final String CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT
-        = "ClusterBytesWrittenDomainThroughput";
-    public static final String CLUSTER_BYTES_WRITTEN_UFS = "ClusterBytesWrittenPerUfs";
-    public static final String CLUSTER_BYTES_WRITTEN_UFS_ALL = "ClusterBytesWrittenUfsAll";
+        = "Cluster.BytesWrittenDomainThroughput";
+    public static final String CLUSTER_BYTES_WRITTEN_UFS = "Cluster.BytesWrittenPerUfs";
+    public static final String CLUSTER_BYTES_WRITTEN_UFS_ALL = "Cluster.BytesWrittenUfsAll";
     public static final String CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT
-        = "ClusterBytesWrittenUfsThroughput";
-    public static final String CLUSTER_CAPACITY_TOTAL = "ClusterCapacityTotal";
-    public static final String CLUSTER_CAPACITY_USED = "ClusterCapacityUsed";
-    public static final String CLUSTER_CAPACITY_FREE = "ClusterCapacityFree";
-    public static final String CLUSTER_UFS_CAPACITY_TOTAL = "ClusterUfsCapacityTotal";
-    public static final String CLUSTER_UFS_CAPACITY_USED = "ClusterUfsCapacityUsed";
-    public static final String CLUSTER_UFS_CAPACITY_FREE = "ClusterUfsCapacityFree";
-    public static final String CLUSTER_WORKERS = "ClusterWorkers";
+        = "Cluster.BytesWrittenUfsThroughput";
+    public static final String CLUSTER_CAPACITY_TOTAL = "Cluster.CapacityTotal";
+    public static final String CLUSTER_CAPACITY_USED = "Cluster.CapacityUsed";
+    public static final String CLUSTER_CAPACITY_FREE = "Cluster.CapacityFree";
+    public static final String CLUSTER_UFS_CAPACITY_TOTAL = "Cluster.UfsCapacityTotal";
+    public static final String CLUSTER_UFS_CAPACITY_USED = "Cluster.UfsCapacityUsed";
+    public static final String CLUSTER_UFS_CAPACITY_FREE = "Cluster.UfsCapacityFree";
+    public static final String CLUSTER_WORKERS = "Cluster.Workers";
 
     // Worker metrics
-    public static final String WORKER_BLOCKS_CACHED = "WorkerBlocksCached";
-    public static final String WORKER_BYTES_READ_ALLUXIO = "WorkerBytesReadAlluxio";
+    public static final String WORKER_BLOCKS_CACHED = "Worker.BlocksCached";
+    public static final String WORKER_BYTES_READ_ALLUXIO = "Worker.BytesReadAlluxio";
     public static final String WORKER_BYTES_READ_ALLUXIO_THROUGHPUT
-        = "WorkerBytesReadAlluxioThroughput";
-    public static final String WORKER_BYTES_WRITTEN_ALLUXIO = "WorkerBytesWrittenAlluxio";
+        = "Worker.BytesReadAlluxioThroughput";
+    public static final String WORKER_BYTES_WRITTEN_ALLUXIO = "Worker.BytesWrittenAlluxio";
     public static final String WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT
-        = "WorkerBytesWrittenAlluxioThroughput";
-    public static final String WORKER_BYTES_READ_DOMAIN = "WorkerBytesReadDomain";
+        = "Worker.BytesWrittenAlluxioThroughput";
+    public static final String WORKER_BYTES_READ_DOMAIN = "Worker.BytesReadDomain";
     public static final String WORKER_BYTES_READ_DOMAIN_THROUGHPUT
-        = "WorkerBytesReadDomainThroughput";
-    public static final String WORKER_BYTES_WRITTEN_DOMAIN = "WorkerBytesWrittenDomain";
+        = "Worker.BytesReadDomainThroughput";
+    public static final String WORKER_BYTES_WRITTEN_DOMAIN = "Worker.BytesWrittenDomain";
     public static final String WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT
-        = "WorkerBytesWrittenDomainThroughput";
+        = "Worker.BytesWrittenDomainThroughput";
 
-    public static final String WORKER_BYTES_READ_UFS = "WorkerBytesReadPerUfs";
-    public static final String WORKER_BYTES_READ_UFS_ALL = "WorkerBytesReadUfsAll";
-    public static final String WORKER_BYTES_READ_UFS_THROUGHPUT = "WorkerBytesReadUfsThroughput";
-    public static final String WORKER_BYTES_WRITTEN_UFS = "WorkerBytesWrittenPerUfs";
-    public static final String WORKER_BYTES_WRITTEN_UFS_ALL = "WorkerBytesWrittenUfsAll";
+    public static final String WORKER_BYTES_READ_UFS = "Worker.BytesReadPerUfs";
+    public static final String WORKER_BYTES_READ_UFS_ALL = "Worker.BytesReadUfsAll";
+    public static final String WORKER_BYTES_READ_UFS_THROUGHPUT = "Worker.BytesReadUfsThroughput";
+    public static final String WORKER_BYTES_WRITTEN_UFS = "Worker.BytesWrittenPerUfs";
+    public static final String WORKER_BYTES_WRITTEN_UFS_ALL = "Worker.BytesWrittenUfsAll";
     public static final String WORKER_BYTES_WRITTEN_UFS_THROUGHPUT
         = "WorkerBytesWrittenUfsThroughput";
-    public static final String WORKER_CAPACITY_TOTAL = "WorkerCapacityTotal";
-    public static final String WORKER_CAPACITY_USED = "WorkerCapacityUsed";
-    public static final String WORKER_CAPACITY_FREE = "WorkerCapacityFree";
+    public static final String WORKER_CAPACITY_TOTAL = "Worker.CapacityTotal";
+    public static final String WORKER_CAPACITY_USED = "Worker.CapacityUsed";
+    public static final String WORKER_CAPACITY_FREE = "Worker.CapacityFree";
 
     // Client metrics
-    public static final String CLIENT_BYTES_READ_LOCAL = "ClientBytesReadLocal";
+    public static final String CLIENT_BYTES_READ_LOCAL = "Client.BytesReadLocal";
     public static final String CLIENT_BYTES_READ_LOCAL_THROUGHPUT
-        = "ClientBytesReadLocalThroughput";
-    public static final String CLIENT_BYTES_WRITTEN_UFS = "ClientBytesWrittenUfs";
+        = "Client.BytesReadLocalThroughput";
+    public static final String CLIENT_BYTES_WRITTEN_UFS = "Client.BytesWrittenUfs";
 
     private Name() {} // prevent instantiation
   }

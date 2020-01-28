@@ -79,6 +79,6 @@ public final class BlockMasterMetricsTest {
 
   private Object getGauge(String name) {
     return MetricsSystem.METRIC_REGISTRY.getGauges()
-        .get(MetricsSystem.attachHostToMetricsIfNeeded(name)).getValue();
+        .get(MetricsSystem.getMetricName(name)).getValue();
   }
 }

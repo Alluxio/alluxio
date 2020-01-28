@@ -144,7 +144,7 @@ public final class MetaMasterClientServiceHandler
       Map<String, alluxio.grpc.MetricValue> metricsMap = new HashMap<>();
 
       for (Map.Entry<String, Counter> entry : mr.getCounters().entrySet()) {
-        metricsMap.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), alluxio.grpc.MetricValue
+        metricsMap.put(entry.getKey(), alluxio.grpc.MetricValue
             .newBuilder().setLongValue(entry.getValue().getCount()).build());
       }
 

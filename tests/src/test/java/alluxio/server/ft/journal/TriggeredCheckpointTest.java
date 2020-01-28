@@ -18,6 +18,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.MetricValue;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.ufs.UfsJournal;
@@ -32,6 +33,7 @@ import org.junit.Test;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.Map;
 
 public class TriggeredCheckpointTest {
   @Test
@@ -108,8 +110,9 @@ public class TriggeredCheckpointTest {
       fs.createFile(new AlluxioURI("/file" + i)).close();
     }
     MetaMasterClient meta = cluster.getMetaMasterClient();
+    Map<String, MetricValue> metrics = meta.getMetrics();
     assertEquals(numFiles + 1,
-        meta.getMetrics().get("Master." + MetricKey.MASTER_TOTAL_PATHS.getName()).getLongValue());
+        metrics.get(MetricKey.MASTER_TOTAL_PATHS.getName()).getLongValue());
   }
 
   /**
@@ -124,6 +127,6 @@ public class TriggeredCheckpointTest {
     cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
     assertEquals(100, cluster.getFileSystemClient().listStatus(new AlluxioURI("/")).size());
     assertEquals(101, cluster.getMetaMasterClient().getMetrics()
-        .get("Master." + MetricKey.MASTER_TOTAL_PATHS.getName()).getLongValue());
+        .get(MetricKey.MASTER_TOTAL_PATHS.getName()).getLongValue());
   }
 }

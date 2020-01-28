@@ -137,10 +137,10 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Test
   public void getMetricsInfo() throws Exception {
     long start = getInfo(NO_PARAMS).getMetrics()
-        .get(MetricsSystem.attachHostToMetricsIfNeeded(MetricKey.MASTER_FILE_INFOS_GOT.getName()));
+        .get(MetricsSystem.getMetricName(MetricKey.MASTER_FILE_INFOS_GOT.getName()));
     mFileSystemMaster.getFileInfo(new AlluxioURI("/"), GetStatusContext.defaults());
     assertEquals(Long.valueOf(start + 1), getInfo(NO_PARAMS).getMetrics()
-        .get(MetricsSystem.attachHostToMetricsIfNeeded(MetricKey.MASTER_FILE_INFOS_GOT.getName())));
+        .get(MetricsSystem.getMetricName(MetricKey.MASTER_FILE_INFOS_GOT.getName())));
   }
 
   @Test
@@ -150,7 +150,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     CommonUtils.waitFor("Metrics to be updated correctly", () -> {
       try {
         return FormatUtils.getSizeFromBytes(len).equals(getMetrics(NO_PARAMS)
-            .get("totalBytesWrittenUfs"));
+            .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()));
       } catch (Exception e) {
         return false;
       }
@@ -160,7 +160,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     CommonUtils.waitFor("Metrics to be updated correctly", () -> {
       try {
         return FormatUtils.getSizeFromBytes(2 * len).equals(getMetrics(NO_PARAMS)
-            .get("totalBytesWrittenUfs"));
+            .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()));
       } catch (Exception e) {
         return false;
       }

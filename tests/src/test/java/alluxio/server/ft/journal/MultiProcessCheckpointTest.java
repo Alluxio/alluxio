@@ -55,7 +55,7 @@ public class MultiProcessCheckpointTest {
       }
       MetaMasterClient meta = cluster.getMetaMasterClient();
       assertEquals(numFiles + 1,
-          meta.getMetrics().get("Master." + MetricKey.MASTER_TOTAL_PATHS.getName()).getLongValue());
+          meta.getMetrics().get(MetricKey.MASTER_TOTAL_PATHS.getName()).getLongValue());
       IntegrationTestUtils.waitForUfsJournalCheckpoint(Constants.FILE_SYSTEM_MASTER_NAME,
           new URI(journal));
       cluster.stopMasters();
@@ -65,7 +65,7 @@ public class MultiProcessCheckpointTest {
       assertEquals(numFiles, fs.listStatus(new AlluxioURI("/")).size());
       meta = cluster.getMetaMasterClient();
       assertEquals(numFiles + 1,
-          meta.getMetrics().get("Master." + MetricKey.MASTER_TOTAL_PATHS.getName()).getLongValue());
+          meta.getMetrics().get(MetricKey.MASTER_TOTAL_PATHS.getName()).getLongValue());
       cluster.notifySuccess();
     } finally {
       cluster.destroy();

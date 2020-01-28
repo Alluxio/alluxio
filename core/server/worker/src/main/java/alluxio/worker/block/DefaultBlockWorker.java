@@ -604,13 +604,16 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
      * @param blockWorker the block worker handle
      */
     public static void registerGauges(final BlockWorker blockWorker) {
-      MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_CAPACITY_TOTAL.getName(),
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_TOTAL.getName()),
           () -> blockWorker.getStoreMeta().getCapacityBytes());
 
-      MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_CAPACITY_USED.getName(),
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_USED.getName()),
           () -> blockWorker.getStoreMeta().getUsedBytes());
 
-      MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_CAPACITY_FREE.getName(),
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_FREE.getName()),
           () -> blockWorker.getStoreMeta().getCapacityBytes() - blockWorker.getStoreMeta()
                       .getUsedBytes());
 
@@ -618,20 +621,21 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       for (int i = 0; i < assoc.size(); i++) {
         String tier = assoc.getAlias(i);
         // TODO(lu) Add template to dynamically generate MetricKey
-        MetricsSystem.registerGaugeIfAbsent(
-            MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + tier,
+        MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+            MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + tier),
             () -> blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L));
 
-        MetricsSystem.registerGaugeIfAbsent(
-            MetricKey.WORKER_CAPACITY_USED.getName() + MetricInfo.TIER + tier,
+        MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+            MetricKey.WORKER_CAPACITY_USED.getName() + MetricInfo.TIER + tier),
             () -> blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L));
 
-        MetricsSystem.registerGaugeIfAbsent(
-            MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + tier,
+        MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+            MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + tier),
             () -> blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L)
                 - blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L));
       }
-      MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_BLOCKS_CACHED.getName(),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+          MetricKey.WORKER_BLOCKS_CACHED.getName()),
           () -> blockWorker.getStoreMetaFull().getNumberOfBlocks());
     }
 

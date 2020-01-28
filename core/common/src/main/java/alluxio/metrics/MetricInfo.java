@@ -60,12 +60,13 @@ public final class MetricInfo {
     }
   }
 
-  public static final String UFS_OP_PREFIX = "ClusterPerUfsOp";
+  public static final String UFS_OP_PREFIX = "Cluster.PerUfsOp";
 
   // Tags
   public static final String TAG_UFS = "UFS";
   public static final String TAG_UFS_TYPE = "UFS_TYPE";
   public static final String TAG_USER = "User";
+  public static final String TAG_NODE = "Node";
 
   // Metric name component
   public static final String TIER = "Tier";

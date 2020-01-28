@@ -275,6 +275,7 @@ public final class Metric implements Serializable {
    * @param userName the user
    * @return a metric name with the user tagged
    */
+  // TODO(lu) add metric name to it ????
   public static String getMetricNameWithUserTag(String metricName, String userName) {
     UserMetricKey k = new UserMetricKey(metricName, userName);
     String result = CACHED_METRICS.get(k);
@@ -307,14 +308,14 @@ public final class Metric implements Serializable {
       name = pieces[1];
       tagStartIdx = 2;
     } else {
-      if (pieces[1].contains(ID_SEPARATOR)) {
-        String[] ids = pieces[1].split(ID_SEPARATOR);
+      if (pieces[2].contains(ID_SEPARATOR)) {
+        String[] ids = pieces[2].split(ID_SEPARATOR);
         hostname = ids[0];
         id = ids[1];
       } else {
-        hostname = pieces[1];
+        hostname = pieces[2];
       }
-      name = pieces[2];
+      name = pieces[1];
       tagStartIdx = 3;
     }
     MetricsSystem.InstanceType instance = MetricsSystem.InstanceType.fromString(pieces[0]);
