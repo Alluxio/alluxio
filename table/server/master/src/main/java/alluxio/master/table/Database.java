@@ -188,7 +188,7 @@ public class Database implements Journaled {
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
     if (!newDbInfo.equals(mDatabaseInfo)) {
       applyAndJournal(context, Journal.JournalEntry.newBuilder()
-          .setUpdateDatabaseInfo(toJournalProto()).build());
+          .setUpdateDatabaseInfo(toJournalProto(newDbInfo, mName)).build());
     }
 
     for (String tableName : mUdb.getTableNames()) {
@@ -289,7 +289,7 @@ public class Database implements Journaled {
   @Override
   public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
     Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setUpdateDatabaseInfo(
-        toJournalProto()).build();
+        toJournalProto(getDatabaseInfo(), mName)).build();
     return Iterators.concat(Iterators.singletonIterator(entry), getTableIterator());
   }
 
@@ -299,14 +299,16 @@ public class Database implements Journaled {
   }
 
   /**
+   * @param dbInfo database info object
+   * @param dbName database name
    * @return the journal proto representation
    */
-  public alluxio.proto.journal.Table.UpdateDatabaseInfoEntry toJournalProto() {
-    DatabaseInfo dbInfo = getDatabaseInfo();
+  public static alluxio.proto.journal.Table.UpdateDatabaseInfoEntry toJournalProto(
+      DatabaseInfo dbInfo, String dbName) {
     alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.Builder builder =
         alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.newBuilder()
             .setOwnerName(dbInfo.getOwnerName()).setOwnerType(dbInfo.getOwnerType())
-            .setDbName(mName).putAllParameter(dbInfo.getParameters());
+            .setDbName(dbName).putAllParameter(dbInfo.getParameters());
     if (dbInfo.getComment() != null) {
       builder.setComment(dbInfo.getComment());
     }
