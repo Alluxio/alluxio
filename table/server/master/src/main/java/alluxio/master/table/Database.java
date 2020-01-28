@@ -187,14 +187,17 @@ public class Database implements Journaled {
     boolean returnVal = false;
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
     if (!newDbInfo.equals(mDatabaseInfo)) {
-      alluxio.proto.journal.Table.UpdateDatabaseInfoEntry updateDbEntry =
+      alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.Builder builder =
           alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.newBuilder()
-              .setLocation(newDbInfo.getLocation()).setComment(newDbInfo.getComment())
+              .setLocation(newDbInfo.getLocation())
               .setOwnerName(newDbInfo.getOwnerName()).setOwnerType(newDbInfo.getOwnerType())
-              .setDbName(mName).putAllParameter(newDbInfo.getParameters()).build();
+              .setDbName(mName).putAllParameter(newDbInfo.getParameters());
+      if (newDbInfo.getComment() != null) {
+        builder.setComment(newDbInfo.getComment());
+      }
 
       applyAndJournal(context, Journal.JournalEntry.newBuilder()
-          .setUpdateDatabaseInfo(updateDbEntry).build());
+          .setUpdateDatabaseInfo(builder.build()).build());
     }
 
     for (String tableName : mUdb.getTableNames()) {
