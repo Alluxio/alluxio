@@ -313,7 +313,7 @@ public class Database implements Journaled {
       builder.setComment(dbInfo.getComment());
     }
     if (dbInfo.getLocation() != null) {
-      builder.setComment(dbInfo.getLocation());
+      builder.setLocation(dbInfo.getLocation());
     }
     return builder.build();
   }
