@@ -22,10 +22,10 @@ import alluxio.client.job.JobMasterClient;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.load.LoadConfig;
-import alluxio.job.JobConfig;
 
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
+import alluxio.job.wire.TaskInfo;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.worker.job.JobMasterClientContext;
@@ -63,25 +63,15 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
           .build();
 
   private static final int DEFAULT_ACTIVE_JOBS = 1000;
-  private static final Option ACTIVE_JOBS_OPTION =
-      Option.builder()
-          .longOpt("active_jobs")
-          .required(false)
-          .hasArg(true)
-          .numberOfArgs(1)
-          .type(Number.class)
-          .argName("jobs")
-          .desc("Maximum number of active outgoing jobs, default: " + DEFAULT_ACTIVE_JOBS)
-          .build();
 
   private class JobAttempt {
-    private final JobConfig mJobConfig;
+    private final LoadConfig mJobConfig;
     private final RetryPolicy mRetryPolicy;
     private final JobMasterClient mClient;
 
     private Long mJobId;
 
-    private JobAttempt(JobConfig jobConfig, RetryPolicy retryPolicy, ClientContext clientContext) {
+    private JobAttempt(LoadConfig jobConfig, RetryPolicy retryPolicy, ClientContext clientContext) {
       mJobConfig = jobConfig;
       mRetryPolicy = retryPolicy;
       mClient = JobMasterClient.Factory.create(
@@ -99,7 +89,8 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
         }
         return true;
       }
-      LOG.warn("Failed to complete job after retries: {}", mJobConfig);
+      System.out.println(String.format("Failed to complete loading %s after %d retries.",
+          mJobConfig.getFilePath(), mRetryPolicy.getAttemptCount()));
       return false;
     }
 
@@ -121,7 +112,27 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
         return Status.FAILED;
       }
 
-      return jobInfo.getStatus();
+      // This make an assumption that this job tree only goes 1 level deep
+      boolean finished = true;
+      for (TaskInfo child : jobInfo.getTaskInfoList()) {
+        if (!child.getStatus().isFinished()) {
+          finished = false;
+          break;
+        }
+      }
+
+      if (finished) {
+        if (jobInfo.getStatus().equals(Status.FAILED)) {
+          System.out.println(String.format("Attempt %d to load %s failed because: %s",
+              mRetryPolicy.getAttemptCount(), mJobConfig.getFilePath(),
+              jobInfo.getErrorMessage()));
+        } else if (jobInfo.getStatus().equals(Status.COMPLETED)) {
+          System.out.println(String.format("Successfully loaded path %s after %d attempts",
+                  mJobConfig.getFilePath(), mRetryPolicy.getAttemptCount()));
+        }
+        return jobInfo.getStatus();
+      }
+      return Status.RUNNING;
     }
 
     private void close() throws IOException {
@@ -150,7 +161,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(REPLICATION_OPTION).addOption(ACTIVE_JOBS_OPTION);
+    return new Options().addOption(REPLICATION_OPTION);
   }
 
   @Override
@@ -163,7 +174,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
-    mActiveJobs = FileSystemShellUtils.getIntArg(cl, ACTIVE_JOBS_OPTION, DEFAULT_ACTIVE_JOBS);
+    mActiveJobs = DEFAULT_ACTIVE_JOBS;
     distributedLoad(path, replication);
     return 0;
   }
@@ -281,7 +292,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "distributedLoad [--replication <num>] [--parallelism <num>] <path>";
+    return "distributedLoad [--replication <num>] <path>";
   }
 
   @Override
