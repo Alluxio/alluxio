@@ -100,7 +100,7 @@ public final class GreedyAllocator implements Allocator {
 
     int dirIndex = location.dir();
     StorageDirView dirView = tierView.getDirView(dirIndex);
-    if (dirView.getAvailableBytes() >= blockSize) {
+    if (dirView != null && dirView.getAvailableBytes() >= blockSize) {
       return dirView;
     }
     return null;
