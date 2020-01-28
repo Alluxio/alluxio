@@ -39,7 +39,7 @@ public class StorageTierEvictorView extends StorageTierView {
 
     for (StorageDir dir : mTier.getStorageDirs()) {
       StorageDirEvictorView dirView = new StorageDirEvictorView(dir, this, view);
-      mDirViews.add(dirView);
+      mDirViews.put(dirView.getDirViewIndex(), dirView);
     }
   }
 

@@ -80,7 +80,7 @@ public final class MaxFreeAllocator implements Allocator {
     } else {
       StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
       StorageDirView dirView = tierView.getDirView(location.dir());
-      if (dirView.getAvailableBytes() >= blockSize) {
+      if (dirView != null && dirView.getAvailableBytes() >= blockSize) {
         candidateDirView = dirView;
       }
     }
