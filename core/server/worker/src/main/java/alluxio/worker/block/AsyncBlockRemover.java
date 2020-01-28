@@ -31,7 +31,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Asychronous block removal service.
+ * Asynchronous block removal service.
  */
 @ThreadSafe
 public class AsyncBlockRemover {
@@ -106,12 +106,13 @@ public class AsyncBlockRemover {
           mBlockWorker.removeBlock(Sessions.MASTER_COMMAND_SESSION_ID, blockToBeRemoved);
           LOG.debug("Block {} is removed in thread {}.", blockToBeRemoved, mThreadName);
         } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
           // Only log warning if interrupted not due to a shutdown.
           if (!mShutdown) {
-            Thread.currentThread().interrupt();
             LOG.warn("{} got interrupted while it was cleaning block {}.", mThreadName,
                 blockToBeRemoved);
           }
+          break;
         } catch (IOException e) {
           LOG.warn("IOException occurred while {} was cleaning block {}, exception is {}.",
               mThreadName, blockToBeRemoved, e.getMessage());
