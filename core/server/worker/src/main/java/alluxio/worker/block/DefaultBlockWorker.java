@@ -89,9 +89,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   /** Used to close resources during stop. */
   private Closer mResourceCloser;
-
-  /** Client for all block master communication. */
-  private final BlockMasterClient mBlockMasterClient;
   /**
    * Block master clients. commitBlock is the only reason to keep a pool of block master clients
    * on each worker. We should either improve our RPC model in the master or get rid of the
@@ -153,7 +150,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mResourceCloser = Closer.create();
     mResourceCloser.register(mBlockMasterClientPool = blockMasterClientPool);
     mResourceCloser.register(mFileSystemMasterClient = fileSystemMasterClient);
-    mBlockMasterClient = mBlockMasterClientPool.acquire();
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mMetricsReporter = new BlockMetricsReporter();
     mSessions = sessions;
@@ -202,15 +198,19 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   @Override
   public void start(WorkerNetAddress address) throws IOException {
     super.start(address);
-
     mAddress = address;
+
+    // Acquire worker Id.
+    BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
-      RetryUtils.retry("create worker id", () -> mWorkerId.set(mBlockMasterClient.getId(address)),
+      RetryUtils.retry("create worker id", () -> mWorkerId.set(blockMasterClient.getId(address)),
           RetryUtils.defaultWorkerMasterClientRetry(ServerConfiguration
               .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
     } catch (Exception e) {
       throw new RuntimeException("Failed to create a worker id from block master: "
           + e.getMessage());
+    } finally {
+      mBlockMasterClientPool.release(blockMasterClient);
     }
 
     Preconditions.checkNotNull(mWorkerId, "mWorkerId");
@@ -218,7 +218,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
     // Setup BlockMasterSync
     mBlockMasterSync = mResourceCloser
-        .register(new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClient));
+        .register(new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
             (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
@@ -260,8 +260,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @Override
   public void stop() throws IOException {
-    // Release acquired block client to the pool before closing resources.
-    mBlockMasterClientPool.release(mBlockMasterClient);
     // Stop heart-beat executors and clients.
     mResourceCloser.close();
     // Stop the base. (closes executors.)
