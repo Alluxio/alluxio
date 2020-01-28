@@ -187,14 +187,8 @@ public class Database implements Journaled {
     boolean returnVal = false;
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
     if (!newDbInfo.equals(mDatabaseInfo)) {
-      alluxio.proto.journal.Table.UpdateDatabaseInfoEntry updateDbEntry =
-          alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.newBuilder()
-              .setLocation(newDbInfo.getLocation()).setComment(newDbInfo.getComment())
-              .setOwnerName(newDbInfo.getOwnerName()).setOwnerType(newDbInfo.getOwnerType())
-              .setDbName(mName).putAllParameter(newDbInfo.getParameters()).build();
-
       applyAndJournal(context, Journal.JournalEntry.newBuilder()
-          .setUpdateDatabaseInfo(updateDbEntry).build());
+          .setUpdateDatabaseInfo(toJournalProto(newDbInfo, mName)).build());
     }
 
     for (String tableName : mUdb.getTableNames()) {
@@ -294,20 +288,38 @@ public class Database implements Journaled {
 
   @Override
   public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-    DatabaseInfo info = getDatabaseInfo();
     Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setUpdateDatabaseInfo(
-        alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.newBuilder()
-            .setDbName(getName())
-            .setOwnerName(info.getOwnerName())
-            .setOwnerType(info.getOwnerType())
-            .setComment(info.getComment())
-            .setLocation(info.getLocation())
-            .putAllParameter(info.getParameters()).build()).build();
+        toJournalProto(getDatabaseInfo(), mName)).build();
     return Iterators.concat(Iterators.singletonIterator(entry), getTableIterator());
   }
 
   @Override
   public CheckpointName getCheckpointName() {
     return CheckpointName.TABLE_MASTER_DATABASE;
+  }
+
+  /**
+   * @param dbInfo database info object
+   * @param dbName database name
+   * @return the journal proto representation
+   */
+  public static alluxio.proto.journal.Table.UpdateDatabaseInfoEntry toJournalProto(
+      DatabaseInfo dbInfo, String dbName) {
+    alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.Builder builder =
+        alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.newBuilder()
+            .setDbName(dbName).putAllParameter(dbInfo.getParameters());
+    if (dbInfo.getComment() != null) {
+      builder.setComment(dbInfo.getComment());
+    }
+    if (dbInfo.getLocation() != null) {
+      builder.setLocation(dbInfo.getLocation());
+    }
+    if (dbInfo.getOwnerName() != null) {
+      builder.setOwnerName(dbInfo.getOwnerName());
+    }
+    if (dbInfo.getOwnerType() != null) {
+      builder.setOwnerType(dbInfo.getOwnerType());
+    }
+    return builder.build();
   }
 }
