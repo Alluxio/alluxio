@@ -902,20 +902,15 @@ public final class AlluxioMasterRestServiceHandler {
 
       // cluster write size
       Long bytesWrittenLocal = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_WRITTEN_LOCAL)).getValue();
+          .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getValue();
       Long bytesWrittenAlluxio = (Long) mr.getGauges()
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName()).getValue();
       Long bytesWrittenDomainSocket = (Long) mr.getGauges().get(
           MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN.getName()).getValue();
       Long bytesWrittenUfs = (Long) mr.getGauges()
-<<<<<<< HEAD
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()).getValue();
-      response.setTotalBytesWrittenAlluxio(FormatUtils.getSizeFromBytes(bytesWrittenAlluxio))
-=======
-          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_ALL)).getValue();
       response.setTotalBytesWrittenLocal(FormatUtils.getSizeFromBytes(bytesWrittenLocal))
           .setTotalBytesWrittenAlluxio(FormatUtils.getSizeFromBytes(bytesWrittenAlluxio))
->>>>>>> 54bd05fd940e231be63ad8594f51df33c221c4c2
           .setTotalBytesWrittenDomainSocket(FormatUtils.getSizeFromBytes(bytesWrittenDomainSocket))
           .setTotalBytesWrittenUfs(FormatUtils.getSizeFromBytes(bytesWrittenUfs));
 
@@ -938,25 +933,18 @@ public final class AlluxioMasterRestServiceHandler {
 
       // cluster write throughput
       Long bytesWrittenLocalThroughput = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_WRITTEN_LOCAL_THROUGHPUT))
+          .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT)
           .getValue();
       Long bytesWrittenAlluxioThroughput = (Long) mr.getGauges()
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName()).getValue();
       Long bytesWrittenDomainSocketThroughput = (Long) mr.getGauges().get(
           MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()).getValue();
       Long bytesWrittenUfsThroughput = (Long) mr.getGauges()
-<<<<<<< HEAD
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName()).getValue();
-      response.setTotalBytesWrittenAlluxioThroughput(
-          FormatUtils.getSizeFromBytes(bytesWrittenAlluxioThroughput))
-=======
-          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT))
-          .getValue();
       response.setTotalBytesWrittenLocalThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenLocalThroughput))
           .setTotalBytesWrittenAlluxioThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenAlluxioThroughput))
->>>>>>> 54bd05fd940e231be63ad8594f51df33c221c4c2
           .setTotalBytesWrittenDomainSocketThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenDomainSocketThroughput))
           .setTotalBytesWrittenUfsThroughput(

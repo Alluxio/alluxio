@@ -397,17 +397,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Cluster metrics
-  public static final MetricKey CLUSTER_BYTES_READ_LOCAL =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_READ_LOCAL)
-          .setDescription("Total number of bytes short-circuit read from local storage "
-              + "by all clients")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey CLUSTER_BYTES_READ_LOCAL_THROUGHPUT =
-      new MetricKey.Builder(Name.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT)
-          .setDescription("Bytes throughput short-circuit read from local storage by all clients")
-          .setMetricType(MetricType.METER)
-          .build();
   public static final MetricKey CLUSTER_BYTES_READ_ALLUXIO =
       new MetricKey.Builder(Name.CLUSTER_BYTES_READ_ALLUXIO)
           .setDescription("Total number of bytes read from Alluxio storage reported by all workers"
@@ -429,6 +418,17 @@ public final class MetricKey implements Comparable<MetricKey> {
       new MetricKey.Builder(Name.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT)
           .setDescription("Bytes read throughput from Alluxio storage "
               + "via domain socket by all workers")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey CLUSTER_BYTES_READ_LOCAL =
+      new MetricKey.Builder(Name.CLUSTER_BYTES_READ_LOCAL)
+          .setDescription("Total number of bytes short-circuit read from local storage "
+              + "by all clients")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey CLUSTER_BYTES_READ_LOCAL_THROUGHPUT =
+      new MetricKey.Builder(Name.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT)
+          .setDescription("Bytes throughput short-circuit read from local storage by all clients")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_UFS =
@@ -467,6 +467,17 @@ public final class MetricKey implements Comparable<MetricKey> {
       new MetricKey.Builder(Name.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT)
           .setDescription("Throughput of bytes written to Alluxio storage "
               + "via domain socket by all workers")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey CLUSTER_BYTES_WRITTEN_LOCAL =
+      new MetricKey.Builder(Name.CLUSTER_BYTES_WRITTEN_LOCAL)
+          .setDescription("Total number of bytes short-circuit written to local storage "
+              + "by all clients")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT =
+      new MetricKey.Builder(Name.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT)
+          .setDescription("Bytes throughput written to local storage by all clients")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_UFS =
@@ -652,6 +663,19 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggreagated(true)
           .build();
+  public static final MetricKey CLIENT_BYTES_WRITTEN_LOCAL =
+      new MetricKey.Builder(Name.CLIENT_BYTES_WRITTEN_LOCAL)
+          .setDescription("Total number of bytes short-circuit written to local storage "
+              + "by this client")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggreagated(true)
+          .build();
+  public static final MetricKey CLIENT_BYTES_WRITTEN_LOCAL_THROUGHPUT =
+      new MetricKey.Builder(Name.CLIENT_BYTES_WRITTEN_LOCAL_THROUGHPUT)
+          .setDescription("Bytes throughput short-circuit written to local storage by this client")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggreagated(true)
+          .build();
   public static final MetricKey CLIENT_BYTES_WRITTEN_UFS =
       new MetricKey.Builder(Name.CLIENT_BYTES_WRITTEN_UFS)
           .setDescription("Total number of bytes write to Alluxio UFS by this client")
@@ -788,6 +812,9 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLUSTER_BYTES_WRITTEN_DOMAIN = "Cluster.BytesWrittenDomain";
     public static final String CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT
         = "Cluster.BytesWrittenDomainThroughput";
+    public static final String CLUSTER_BYTES_WRITTEN_LOCAL = "Cluster.BytesWrittenLocal";
+    public static final String CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT
+        = "Cluster.BytesWrittenLocalThroughput";
     public static final String CLUSTER_BYTES_WRITTEN_UFS = "Cluster.BytesWrittenPerUfs";
     public static final String CLUSTER_BYTES_WRITTEN_UFS_ALL = "Cluster.BytesWrittenUfsAll";
     public static final String CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT
@@ -830,6 +857,9 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLIENT_BYTES_READ_LOCAL = "Client.BytesReadLocal";
     public static final String CLIENT_BYTES_READ_LOCAL_THROUGHPUT
         = "Client.BytesReadLocalThroughput";
+    public static final String CLIENT_BYTES_WRITTEN_LOCAL = "Client.BytesWrittenLocal";
+    public static final String CLIENT_BYTES_WRITTEN_LOCAL_THROUGHPUT
+        = "Client.BytesWrittenLocalThroughput";
     public static final String CLIENT_BYTES_WRITTEN_UFS = "Client.BytesWrittenUfs";
 
     private Name() {} // prevent instantiation
