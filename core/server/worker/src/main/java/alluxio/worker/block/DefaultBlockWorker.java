@@ -149,7 +149,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
       UfsManager ufsManager) {
-    super(ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 4));
+    super(ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5));
     mBlockMasterClientPool = blockMasterClientPool;
     mBlockMasterClient = mBlockMasterClientPool.acquire();
     mFileSystemMasterClient = fileSystemMasterClient;
