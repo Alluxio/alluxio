@@ -66,7 +66,7 @@ public class MetricsCommandTest {
    */
   private Map<String, MetricValue> generateMetricsMap() {
     Map<String, MetricValue> map = new HashMap<>();
-    map.put(MetricKey.CLIENT_BYTES_READ_LOCAL.getName(),
+    map.put(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName(),
         MetricValue.newBuilder().setLongValue(12312312312L).build());
     map.put(MetricKey.CLUSTER_BYTES_READ_ALLUXIO.getName(),
         MetricValue.newBuilder().setLongValue(421312312L).build());
