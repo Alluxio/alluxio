@@ -188,7 +188,9 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
       try {
         mRequestObserver.onCompleted();
       } catch (Exception e) {
-        LogUtils.warnWithException(LOG, "Failed signaling server for stream completion.", e);
+        LogUtils.warnWithException(LOG,
+            "Failed signaling server for stream completion for channel: {}.",
+            mChannelKey.toStringShort(), e);
       }
     }
   }
