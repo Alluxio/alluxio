@@ -325,9 +325,11 @@ public final class MetricsSystem {
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
     if (name.startsWith(instance.toString())) {
-      return Joiner.on(".").join(name, NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
+      return Joiner.on(".").join(name,
+          NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
     }
-    return Joiner.on(".").join(instance, name, NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
+    return Joiner.on(".").join(instance, name,
+        NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
   }
 
   /**

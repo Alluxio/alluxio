@@ -20,7 +20,6 @@ import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
-import alluxio.metrics.MetricInfo;
 import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
