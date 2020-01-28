@@ -17,9 +17,6 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.FileIncompleteException;
-import alluxio.exception.OpenDirectoryException;
 import alluxio.grpc.OpenFilePOptions;
 
 import java.io.IOException;
