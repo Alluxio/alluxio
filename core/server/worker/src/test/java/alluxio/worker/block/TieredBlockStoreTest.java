@@ -392,6 +392,23 @@ public final class TieredBlockStoreTest {
   }
 
   /**
+   * Tests the {@link TieredBlockStore#freeSpace(long, long, BlockStoreLocation)} method.
+   */
+  @Test
+  public void freeSpaceAfterDirRemoval() throws Exception {
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
+    mBlockStore.removeDir(mTestDir3);
+    mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(),
+        mTestDir1.toBlockStoreLocation());
+    // Expect BLOCK_ID1 to be moved out of mTestDir1
+    assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());
+    assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
+    assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID1)));
+    assertTrue(mTestDir4.hasBlockMeta(BLOCK_ID1));
+  }
+
+  /**
    * Tests the {@link TieredBlockStore#requestSpace(long, long, long)} method.
    */
   @Test
