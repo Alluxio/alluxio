@@ -133,7 +133,7 @@ public final class CsvSchema implements TableSchema {
     String name = field.getName();
     String type = field.getType();
 
-    switch(HiveConstants.Types.getHiveConstantType(type)) {
+    switch (HiveConstants.Types.getHiveConstantType(type)) {
       case HiveConstants.Types.BOOLEAN:
         return assembler.optionalBoolean(name);
       case HiveConstants.Types.TINYINT:
@@ -185,7 +185,7 @@ public final class CsvSchema implements TableSchema {
     String type = field.getType();
     Schema schema;
 
-    switch(HiveConstants.Types.getHiveConstantType(type)) {
+    switch (HiveConstants.Types.getHiveConstantType(type)) {
       case HiveConstants.Types.DECIMAL:
         Decimal decimal = new Decimal(type);
         schema = LogicalTypes.decimal(decimal.getPrecision(), decimal.getScale())

@@ -89,7 +89,7 @@ public final class CsvRow implements TableRow {
     // cwiki.apache.org/confluence/display/Hive/LanguageManual+Types#LanguageManualTypes-dates
     // github.com/apache/parquet-format/blob/master/LogicalTypes.md
 
-    switch(HiveConstants.Types.getHiveConstantType(type)) {
+    switch (HiveConstants.Types.getHiveConstantType(type)) {
       case HiveConstants.Types.DECIMAL:
         // CSV: 12.34, precision=2, scale=4
         // Parquet: byte[] representation of number 123400

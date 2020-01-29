@@ -98,6 +98,12 @@ public class HiveConstants {
     /** Hive binary type. */
     public static final String BINARY = "binary";
 
+    /**
+     * Filters out parts of type information to match the types constant for type checking.
+     *
+     * @param type the type
+     * @return type name matching the types constants
+     */
     public static String getHiveConstantType(String type) {
       // filters out the non hive type information from types like "char(10)"
 
