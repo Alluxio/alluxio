@@ -44,15 +44,21 @@ public class SaslClientHandlerPlain extends AbstractSaslClientHandler {
    */
   public SaslClientHandlerPlain(Subject subject, AlluxioConfiguration conf)
       throws UnauthenticatedException {
+    super(ChannelAuthenticationScheme.SIMPLE);
     if (subject == null) {
       throw new UnauthenticatedException("client subject not provided");
     }
     String connectionUser = null;
     String password = "noPassword";
 
-    Set<User> user = subject.getPrincipals(User.class);
-    if (user != null && !user.isEmpty()) {
-      connectionUser = user.iterator().next().getName();
+    Set<User> users = subject.getPrincipals(User.class);
+    if (users != null && !users.isEmpty()) {
+      connectionUser = users.iterator().next().getName();
+    }
+
+    Set<String> credentials = subject.getPrivateCredentials(String.class);
+    if (credentials != null && !credentials.isEmpty()) {
+      password = credentials.iterator().next();
     }
 
     // Determine the impersonation user
@@ -71,6 +77,7 @@ public class SaslClientHandlerPlain extends AbstractSaslClientHandler {
    */
   public SaslClientHandlerPlain(String username, String password, String impersonationUser)
       throws UnauthenticatedException {
+    super(ChannelAuthenticationScheme.SIMPLE);
     mSaslClient = createSaslClient(username, password, impersonationUser);
   }
 
@@ -83,10 +90,5 @@ public class SaslClientHandlerPlain extends AbstractSaslClientHandler {
     } catch (SaslException e) {
       throw new UnauthenticatedException(e.getMessage(), e);
     }
-  }
-
-  @Override
-  public ChannelAuthenticationScheme getClientScheme() {
-    return ChannelAuthenticationScheme.SIMPLE;
   }
 }
