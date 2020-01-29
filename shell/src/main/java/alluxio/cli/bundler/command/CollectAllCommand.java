@@ -19,6 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
+// TODO(jiacheng): Do we want to move this logic to InfoCollector shell and have finer granularity?
 public class CollectAllCommand extends AbstractInfoCollectorCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CollectAllCommand.class);
 
@@ -57,6 +58,7 @@ public class CollectAllCommand extends AbstractInfoCollectorCommand {
     return "collectAll";
   }
 
+  // https://crunchify.com/how-to-create-zip-or-tar-programatically-in-java-using-apache-commons-archivers-and-compressors/
   // TODO(jiacheng): This method needs rewriting
   public static void crunchfyArchive(String srcPath) throws FileNotFoundException, IOException {
     File crunchifySourceFile = new File(srcPath);
@@ -101,13 +103,18 @@ public class CollectAllCommand extends AbstractInfoCollectorCommand {
     // Determine the working dir path
     String targetDir = getDestDir(cl);
 
+    // Invoke all other commands to collect information
     // FORCE_OPTION will be propagated to child commands
     for (AbstractInfoCollectorCommand child : mChildren) {
+      LOG.info(String.format("Executing command %s", child.getCommandName()));
       ret = child.run(cl);
+      LOG.info(String.format("Command return %s", ret));
     }
 
     // Generate bundle
+    LOG.info(String.format("Archiving dir %s", targetDir));
     crunchfyArchive(targetDir);
+    LOG.info("Archiving finished");
 
     return ret;
   }

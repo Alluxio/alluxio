@@ -1,6 +1,5 @@
 package alluxio.cli.bundler.command;
 
-import alluxio.cli.bundler.RunCommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.util.SleepUtils;

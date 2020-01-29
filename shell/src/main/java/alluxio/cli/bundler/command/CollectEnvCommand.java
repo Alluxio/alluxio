@@ -1,6 +1,5 @@
 package alluxio.cli.bundler.command;
 
-import alluxio.cli.bundler.RunCommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
