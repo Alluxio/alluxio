@@ -239,11 +239,15 @@ public final class Metric implements Serializable {
    */
   public alluxio.grpc.Metric toProto() {
     alluxio.grpc.Metric.Builder metric = alluxio.grpc.Metric.newBuilder();
-    metric.setInstance(mInstanceType.toString()).setHostname(mHostname).setMetricType(mMetricType)
+    metric.setInstance(mInstanceType.toString()).setMetricType(mMetricType)
         .setName(mName).setValue(mValue.get()).putAllTags(mTags);
 
     if (mInstanceId != null && !mInstanceId.isEmpty()) {
       metric.setInstanceId(mInstanceId);
+    }
+
+    if (!mHostname.isEmpty()) {
+      metric.setHostname(mHostname);
     }
 
     return metric.build();

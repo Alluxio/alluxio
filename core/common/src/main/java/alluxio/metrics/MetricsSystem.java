@@ -264,6 +264,15 @@ public final class MetricsSystem {
     if (result != null) {
       return result;
     }
+    // Added for integration tests where process type is always client
+    if (name.startsWith(InstanceType.MASTER.toString())
+        || name.startsWith(InstanceType.CLUSTER.toString())) {
+      return CACHED_METRICS.computeIfAbsent(name, n -> name);
+    }
+    if (name.startsWith(InstanceType.WORKER.toString())) {
+      return CACHED_METRICS.computeIfAbsent(name,
+          n -> getMetricNameWithUniqueId(InstanceType.WORKER, name));
+    }
     return CACHED_METRICS.computeIfAbsent(name,
         n -> getMetricNameWithUniqueId(InstanceType.CLIENT, name));
   }
@@ -526,17 +535,23 @@ public final class MetricsSystem {
       }
     }
     for (Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
-      metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount(), MetricType.COUNTER));
+      if (entry.getKey().startsWith(instanceType.toString())) {
+        metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount(), MetricType.COUNTER));
+      }
     }
     for (Entry<String, Meter> entry : METRIC_REGISTRY.getMeters().entrySet()) {
-      // TODO(yupeng): From Meter's implementation, getOneMinuteRate can only report at rate of at
-      // least seconds. if the client's duration is too short (i.e. < 1s), then getOneMinuteRate
-      // would return 0
-      metrics.add(Metric.from(entry.getKey(), entry.getValue().getOneMinuteRate(),
-          MetricType.METER));
+      if (entry.getKey().startsWith(instanceType.toString())) {
+        // TODO(yupeng): From Meter's implementation, getOneMinuteRate can only report at rate of at
+        // least seconds. if the client's duration is too short (i.e. < 1s), then getOneMinuteRate
+        // would return 0
+        metrics.add(Metric.from(entry.getKey(), entry.getValue().getOneMinuteRate(),
+            MetricType.METER));
+      }
     }
     for (Entry<String, Timer> entry : METRIC_REGISTRY.getTimers().entrySet()) {
-      metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount(), MetricType.TIMER));
+      if (entry.getKey().startsWith(instanceType.toString())) {
+        metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount(), MetricType.TIMER));
+      }
     }
     return metrics;
   }
