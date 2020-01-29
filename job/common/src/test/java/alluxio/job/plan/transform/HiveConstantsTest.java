@@ -11,12 +11,12 @@
 
 package alluxio.job.plan.transform;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 
+import org.junit.Test;
+
 /**
- * Test for {@link HiveConstants}
+ * Test for {@link HiveConstants}.
  */
 public class HiveConstantsTest {
 
@@ -28,5 +28,4 @@ public class HiveConstantsTest {
     assertEquals(HiveConstants.Types.DECIMAL,
         HiveConstants.Types.getHiveConstantType("decimal(10, 20)"));
   }
-
 }
