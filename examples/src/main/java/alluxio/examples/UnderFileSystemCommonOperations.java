@@ -352,7 +352,7 @@ public final class UnderFileSystemCommonOperations {
       "listObjectsV2", "getObjectMetadata"})
   public void deleteLargeDirectoryTest() throws IOException {
     LargeDirectoryConfig config = prepareLargeDirectory();
-    mUfs.deleteDirectory(config.getTopLevelDirectory(),
+    mUfs.deleteExistingDirectory(config.getTopLevelDirectory(),
         DeleteOptions.defaults().setRecursive(true));
 
     String[] children = config.getChildren();
