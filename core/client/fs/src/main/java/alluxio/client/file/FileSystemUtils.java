@@ -153,8 +153,10 @@ public final class FileSystemUtils {
   public static void persistAndWait(final FileSystem fs, final AlluxioURI uri,
       long persistenceWaitTime, int timeoutMs) throws FileDoesNotExistException, IOException,
       AlluxioException, TimeoutException, InterruptedException {
-    fs.persist(uri, ScheduleAsyncPersistencePOptions
-        .newBuilder().setPersistenceWaitTime(persistenceWaitTime).build());
+    if (!fs.getStatus(uri).getPersistenceState().equals("TO_BE_PERSISTED")) {
+      fs.persist(uri, ScheduleAsyncPersistencePOptions
+              .newBuilder().setPersistenceWaitTime(persistenceWaitTime).build());
+    }
     CommonUtils.waitFor(String.format("%s to be persisted", uri) , () -> {
       try {
         return fs.getStatus(uri).isPersisted();
