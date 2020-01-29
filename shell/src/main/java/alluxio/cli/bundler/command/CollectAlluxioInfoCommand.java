@@ -3,6 +3,9 @@ package alluxio.cli.bundler.command;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.shell.CommandReturn;
+import alluxio.util.ShellUtils;
+import jdk.nashorn.tools.Shell;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -104,12 +107,12 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
     StringWriter output = new StringWriter();
 
     for(AlluxioCommand cmd : mCommands) {
-      RunCommandUtils.CommandReturn cr = RunCommandUtils.runCommandNoFail(cmd.getCommand());
+      CommandReturn cr = ShellUtils.execCommandWithOutput(cmd.getCommand());
       output.write(cr.getFormattedOutput());
 
-      if (cr.getStatusCode() != 0) {
+      if (cr.getExitCode() != 0) {
         LOG.error(String.format("Command %s returned status %s. Try alternative command.", Arrays.toString(cmd.getCommand()),
-                cr.getStatusCode()));
+                cr.getExitCode()));
         String[] alternativeCmd = cmd.getAlternativeCommand();
         if (alternativeCmd.length == 0) {
           LOG.info(String.format("No alternative command for %s"));
@@ -117,11 +120,11 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
 
         output.write("Running alternative command " + Arrays.toString(alternativeCmd));
         LOG.info(String.format("Alternative command: %s", Arrays.toString(alternativeCmd)));
-        cr = RunCommandUtils.runCommandNoFail(alternativeCmd);
+        cr = ShellUtils.execCommandWithOutput(alternativeCmd);
         output.write(cr.getFormattedOutput());
 
         // TODO(jiacheng): What status code makes sense?
-        ret |= cr.getStatusCode();
+        ret |= cr.getExitCode();
       }
     }
 

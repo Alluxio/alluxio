@@ -2,6 +2,8 @@ package alluxio.cli.bundler.command;
 
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
+import alluxio.shell.CommandReturn;
+import alluxio.util.ShellUtils;
 import alluxio.util.SleepUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -79,21 +81,21 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
     return ret;
   }
 
-  public Map<String, String> getJps() {
+  public Map<String, String> getJps() throws IOException {
     Map<String, String> procs = new HashMap<>();
 
     // Get Jps output
     String[] jpsCommand = new String[]{"jps"};
 
-    RunCommandUtils.CommandReturn cr = RunCommandUtils.runCommandNoFail(jpsCommand);
-    if (cr.getStatusCode() != 0) {
-      LOG.error(String.format("JPS returned status %s and stderr:\n%s", cr.getStatusCode(), cr.getStdErr()));
+    CommandReturn cr = ShellUtils.execCommandWithOutput(jpsCommand);
+    if (cr.getExitCode() != 0) {
+      LOG.error(cr.getFormattedOutput());
       return procs;
     }
 
     LOG.info("JPS succeeded");
     // TODO(jiacheng): stderr?
-    for (String row : cr.getStdOut().split("\n")) {
+    for (String row : cr.getOutput().split("\n")) {
       String[] parts = row.split(" ");
       if (parts.length == 0) {
         LOG.error(String.format("Failed to parse row %s", row));
@@ -125,12 +127,10 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
       outputBuffer.write(String.format("Jstack PID:%s Name:%s", k, procs.get(k)));
 
       String[] jstackCmd = new String[]{"jstack", k};
-      RunCommandUtils.CommandReturn cr = RunCommandUtils.runCommandNoFail(jstackCmd);
+      CommandReturn cr = ShellUtils.execCommandWithOutput(jstackCmd);
 
       // Output
-      String cmdResult = String.format("StatusCode:%s\nStdOut:\n%s\nStdErr:\n%s", cr.getStatusCode(),
-              cr.getStdOut(), cr.getStdErr());
-      outputBuffer.write(cmdResult);
+      outputBuffer.write(cr.getFormattedOutput());
     }
 
     LOG.info("Jstack dump finished");

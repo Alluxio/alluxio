@@ -17,6 +17,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 // TODO(jiacheng): Do we want to move this logic to InfoCollector shell and have finer granularity?
@@ -46,54 +49,12 @@ public class CollectAllCommand extends AbstractInfoCollectorCommand {
             .addOption(COMPONENT_OPTION);
   }
 
-  // TODO(jiacheng): What does this do?
-  private static final String CRUNCHIFY_BASEDIR = "";
-  private static final String CRUNCHIFY_PATH = "/bundle.tar.zip";
-
   //
   List<AbstractInfoCollectorCommand> mChildren;
 
   @Override
   public String getCommandName() {
     return "collectAll";
-  }
-
-  // https://crunchify.com/how-to-create-zip-or-tar-programatically-in-java-using-apache-commons-archivers-and-compressors/
-  // TODO(jiacheng): This method needs rewriting
-  public static void crunchfyArchive(String srcPath) throws FileNotFoundException, IOException {
-    File crunchifySourceFile = new File(srcPath);
-
-    // Returns the name of the file or directory denoted by this abstract pathname
-    String crunchifyFileName = crunchifySourceFile.getName();
-
-    // Returns the pathname string of this abstract pathname's parent
-    String crunchifyBaseFileNamePath = crunchifySourceFile.getParent();
-
-    String destPath = crunchifyBaseFileNamePath + File.separator + crunchifyFileName + ".zip";
-
-    TarArchiveOutputStream outputStream = new TarArchiveOutputStream(
-            new FileOutputStream(new File(destPath)));
-
-    crunchfyArchive(crunchifySourceFile, outputStream, CRUNCHIFY_BASEDIR);
-
-    // Flushes this output stream and forces any buffered output bytes to be written out
-    outputStream.flush();
-
-    // Closes the underlying OutputStream
-    outputStream.close();
-  }
-
-  private static void crunchfyArchive(File crunchifySourceFile,
-                                      TarArchiveOutputStream outputStream, String crunchifyBasePath) throws IOException {
-    if (crunchifySourceFile.isDirectory()) {
-
-      // Archive Directory
-      archiveCrunchifyDirectory(crunchifySourceFile, outputStream, crunchifyBasePath);
-    } else {
-
-      // Archive File
-      archiveCrunchifyFile(crunchifySourceFile, outputStream, crunchifyBasePath);
-    }
   }
 
   @Override
@@ -113,66 +74,11 @@ public class CollectAllCommand extends AbstractInfoCollectorCommand {
 
     // Generate bundle
     LOG.info(String.format("Archiving dir %s", targetDir));
-    crunchfyArchive(targetDir);
+    String tarballPath = Paths.get(targetDir, "collectAll.tar.gz").toAbsolutePath().toString();
+    TarUtils.compress(tarballPath, Files.list(new File(targetDir).toPath()).toArray(File[]::new));
     LOG.info("Archiving finished");
 
     return ret;
-  }
-
-  private static void archiveCrunchifyDirectory(File crunchifyDirectory,
-                                                TarArchiveOutputStream outputStream, String crunchifyBasePath) throws IOException {
-
-    // Returns an array of abstract pathnames denoting the files in the directory denoted by this abstract pathname
-    File[] crunchifyFiles = crunchifyDirectory.listFiles();
-
-    if (crunchifyFiles != null) {
-      if (crunchifyFiles.length < 1) {
-
-        // Construct an entry with only a name. This allows the programmer to construct the entry's header "by hand". File
-        // is set to null
-        TarArchiveEntry entry = new TarArchiveEntry(
-                crunchifyBasePath + crunchifyDirectory.getName() + CRUNCHIFY_PATH);
-
-        // Put an entry on the output stream
-        outputStream.putArchiveEntry(entry);
-
-        // Close an entry. This method MUST be called for all file entries that contain data
-        outputStream.closeArchiveEntry();
-      }
-
-      // Repeat for all files
-      for (File crunchifyFile : crunchifyFiles) {
-
-        crunchfyArchive(crunchifyFile, outputStream,
-                crunchifyBasePath + crunchifyDirectory.getName() + CRUNCHIFY_PATH);
-
-      }
-    }
-  }
-
-  private static void archiveCrunchifyFile(File crunchifyFile,
-                                           TarArchiveOutputStream outputStream, String crunchifyDirectory) throws IOException {
-
-    TarArchiveEntry crunchifyEntry = new TarArchiveEntry(
-            crunchifyDirectory + crunchifyFile.getName());
-
-    // Set this entry's file size
-    crunchifyEntry.setSize(crunchifyFile.length());
-
-    outputStream.putArchiveEntry(crunchifyEntry);
-
-    BufferedInputStream inputStream = new BufferedInputStream(
-            new FileInputStream(crunchifyFile));
-    int counter;
-
-    // 512: buffer size
-    byte byteData[] = new byte[512];
-    while ((counter = inputStream.read(byteData, 0, 512)) != -1) {
-      outputStream.write(byteData, 0, counter);
-    }
-
-    inputStream.close();
-    outputStream.closeArchiveEntry();
   }
 
 

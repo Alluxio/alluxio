@@ -68,7 +68,9 @@ public class InfoCollector extends AbstractShell {
   @Override
   protected Map<String, Command> loadCommands() {
     // Give each command the configuration
-      return CommandUtils.loadCommands(InfoCollector.class.getPackage().getName(),
+    Map<String, Command> commands = CommandUtils.loadCommands(InfoCollector.class.getPackage().getName(),
               new Class[] {FileSystemContext.class}, new Object[] {FileSystemContext.create(mConfiguration)});
+    System.out.println(String.format("Loaded commands %s", commands));
+    return commands;
   }
 }

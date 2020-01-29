@@ -3,6 +3,8 @@ package alluxio.cli.bundler.command;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.shell.CommandReturn;
+import alluxio.util.ShellUtils;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -112,10 +114,8 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
     for (UnixCommand cmd : mCommands) {
       String[] command = cmd.getCommand();
       outputBuffer.write(String.format("Running cmd %s", Arrays.toString(command)));
-      RunCommandUtils.CommandReturn cr = RunCommandUtils.runCommandNoFail(command);
-      String cmdResult = String.format("StatusCode:%s\nStdOut:\n%s\nStdErr:\n%s", cr.getStatusCode(),
-              cr.getStdOut(), cr.getStdErr());
-      outputBuffer.write(cmdResult);
+      CommandReturn cr = ShellUtils.execCommandWithOutput(command);
+      outputBuffer.write(cr.getFormattedOutput());
     }
 
     // output the buffer

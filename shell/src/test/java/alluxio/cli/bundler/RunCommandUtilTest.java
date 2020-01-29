@@ -2,6 +2,8 @@ package alluxio.cli.bundler;
 
 import alluxio.AlluxioTestDirectory;
 
+import alluxio.shell.CommandReturn;
+import alluxio.util.ShellUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -18,11 +20,11 @@ public class RunCommandUtilTest {
 
     // ls temp file
     String[] testCommand = new String[]{"ls", String.format("%s", testDir.getAbsolutePath())};
-    RunCommandUtils.CommandReturn cr = RunCommandUtils.runCommandNoFail(testCommand);
+    CommandReturn cr = ShellUtils.execCommandWithOutput(testCommand);
 
     System.out.println(cr.getFormattedOutput());
-    Assert.assertEquals(0, cr.getStatusCode());
-    Assert.assertTrue(cr.getStdOut().contains(testFile.getName()));
+    Assert.assertEquals(0, cr.getExitCode());
+    Assert.assertTrue(cr.getOutput().contains(testFile.getName()));
   }
 
   @Test
