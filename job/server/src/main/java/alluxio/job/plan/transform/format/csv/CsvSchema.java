@@ -132,31 +132,32 @@ public final class CsvSchema implements TableSchema {
     // Builds the fields that are consistent for read and write schema.
     String name = field.getName();
     String type = field.getType();
-    if (type.equals(HiveConstants.Types.BOOLEAN)) {
-      return assembler.optionalBoolean(name);
-    } else if (type.equals(HiveConstants.Types.TINYINT)
-        || type.equals(HiveConstants.Types.SMALLINT)
-        || type.equals(HiveConstants.Types.INT)
-    ) {
-      return assembler.optionalInt(name);
-    } else if (type.equals(HiveConstants.Types.DOUBLE)) {
-      return assembler.optionalDouble(name);
-    } else if (type.equals(HiveConstants.Types.FLOAT)) {
-      return assembler.optionalFloat(name);
-    } else if (type.equals(HiveConstants.Types.BIGINT)) {
-      return assembler.requiredLong(name);
-    } else if (type.equals(HiveConstants.Types.STRING)) {
-      return assembler.optionalString(name);
-    } else if (type.startsWith(HiveConstants.Types.CHAR)) {
-      Schema schema = SchemaBuilder.builder().stringBuilder().prop(JAVA_CLASS_FLAG,
-          Character.class.getCanonicalName())
-          .endString();
-      schema = makeOptional(schema);
-      return assembler.name(name).type(schema).noDefault();
-    } else if (type.startsWith(HiveConstants.Types.VARCHAR)) {
-      return assembler.optionalString(name);
+
+    switch(HiveConstants.Types.getHiveConstantType(type)) {
+      case HiveConstants.Types.BOOLEAN:
+        return assembler.optionalBoolean(name);
+      case HiveConstants.Types.TINYINT:
+      case HiveConstants.Types.SMALLINT:
+      case HiveConstants.Types.INT:
+        return assembler.optionalInt(name);
+      case HiveConstants.Types.DOUBLE:
+        return assembler.optionalDouble(name);
+      case HiveConstants.Types.FLOAT:
+        return assembler.optionalFloat(name);
+      case HiveConstants.Types.BIGINT:
+        return assembler.requiredLong(name);
+      case HiveConstants.Types.STRING:
+      case HiveConstants.Types.VARCHAR:
+        return assembler.optionalString(name);
+      case HiveConstants.Types.CHAR:
+        Schema schema = SchemaBuilder.builder().stringBuilder().prop(JAVA_CLASS_FLAG,
+            Character.class.getCanonicalName())
+            .endString();
+        schema = makeOptional(schema);
+        return assembler.name(name).type(schema).noDefault();
+      default:
+        throw new IOException("Unsupported type " + type + " for field " + name);
     }
-    throw new IOException("Unsupported type " + type + " for field " + name);
   }
 
   private SchemaBuilder.FieldAssembler<Schema> buildReadField(
@@ -182,25 +183,27 @@ public final class CsvSchema implements TableSchema {
 
     String name = field.getName();
     String type = field.getType();
-    if (type.startsWith(HiveConstants.Types.DECIMAL)) {
-      Decimal decimal = new Decimal(type);
-      Schema schema = LogicalTypes.decimal(decimal.getPrecision(), decimal.getScale())
-          .addToSchema(Schema.create(Schema.Type.BYTES));
-      schema = makeOptional(schema);
-      return assembler.name(name).type(schema).noDefault();
+    Schema schema;
+
+    switch(HiveConstants.Types.getHiveConstantType(type)) {
+      case HiveConstants.Types.DECIMAL:
+        Decimal decimal = new Decimal(type);
+        schema = LogicalTypes.decimal(decimal.getPrecision(), decimal.getScale())
+            .addToSchema(Schema.create(Schema.Type.BYTES));
+        schema = makeOptional(schema);
+        return assembler.name(name).type(schema).noDefault();
+      case HiveConstants.Types.BINARY:
+        return assembler.optionalBytes(name);
+      case HiveConstants.Types.DATE:
+        schema = LogicalTypes.date().addToSchema(Schema.create(Schema.Type.INT));
+        schema = makeOptional(schema);
+        return assembler.name(name).type(schema).noDefault();
+      case HiveConstants.Types.TIMESTAMP:
+        schema = LogicalTypes.timestampMillis().addToSchema(Schema.create(Schema.Type.LONG));
+        schema = makeOptional(schema);
+        return assembler.name(name).type(schema).noDefault();
+      default:
+        throw new IOException("Unsupported type " + type + " for field " + name);
     }
-    if (type.equals(HiveConstants.Types.BINARY)) {
-      return assembler.optionalBytes(name);
-    }
-    if (type.equals(HiveConstants.Types.DATE)) {
-      Schema schema = LogicalTypes.date().addToSchema(Schema.create(Schema.Type.INT));
-      schema = makeOptional(schema);
-      return assembler.name(name).type(schema).noDefault();
-    } else if (type.equals(HiveConstants.Types.TIMESTAMP)) {
-      Schema schema = LogicalTypes.timestampMillis().addToSchema(Schema.create(Schema.Type.LONG));
-      schema = makeOptional(schema);
-      return assembler.name(name).type(schema).noDefault();
-    }
-    throw new IOException("Unsupported type " + type + " for field " + name);
   }
 }
