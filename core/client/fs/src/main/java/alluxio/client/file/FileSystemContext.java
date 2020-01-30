@@ -53,6 +53,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -92,7 +93,7 @@ public class FileSystemContext implements Closeable {
   /**
    * The local cache manager for the file system.
    */
-  private static volatile CacheManager sCacheManager;
+  private static volatile Optional<CacheManager> sCacheManager;
 
   /**
    * Unique ID for each FileSystemContext.
@@ -602,22 +603,29 @@ public class FileSystemContext implements Closeable {
   }
 
   /**
-   * @return the client side cache manager
+   * @return the client side cache manager, or null if failed to create the cache manager
    */
-  public CacheManager getCacheManager() throws IOException {
+  @Nullable
+  public CacheManager getCacheManager() {
     return getCacheManager(this);
   }
 
-  private static CacheManager getCacheManager(FileSystemContext fsContext) throws IOException {
+  @Nullable
+  private static CacheManager getCacheManager(FileSystemContext fsContext) {
     // TODO(feng): support multiple cache managers
     if (sCacheManager == null) {
       synchronized (FileSystemContext.class) {
         if (sCacheManager == null) {
-          sCacheManager = CacheManager.create(fsContext);
+          try {
+            sCacheManager = Optional.of(CacheManager.create(fsContext));
+          } catch (IOException e) {
+            LOG.warn("Failed to create CacheManager: {}", e.getMessage());
+            sCacheManager = Optional.empty();
+          }
         }
       }
     }
-    return sCacheManager;
+    return sCacheManager.orElse(null);
   }
 
   /**

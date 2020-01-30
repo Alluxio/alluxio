@@ -99,7 +99,7 @@ public class RocksPageStore implements PageStore {
   @Override
   public void put(PageId pageId, byte[] page) throws IOException {
     try {
-      mDb.put(getPageKey(pageId), page);
+      mDb.put(getKeyFromPageId(pageId), page);
       mSize.incrementAndGet();
     } catch (RocksDBException e) {
       throw new IOException("Failed to store page", e);
@@ -111,9 +111,9 @@ public class RocksPageStore implements PageStore {
       throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     try {
-      byte[] page = mDb.get(getPageKey(pageId));
+      byte[] page = mDb.get(getKeyFromPageId(pageId));
       if (page == null) {
-        throw new PageNotFoundException(new String(getPageKey(pageId)));
+        throw new PageNotFoundException(new String(getKeyFromPageId(pageId)));
       }
       Preconditions.checkArgument(pageOffset <= page.length,
           "page offset %s exceeded page size %s", pageOffset, page.length);
@@ -128,7 +128,7 @@ public class RocksPageStore implements PageStore {
   @Override
   public void delete(PageId pageId) throws PageNotFoundException {
     try {
-      mDb.delete(getPageKey(pageId));
+      mDb.delete(getKeyFromPageId(pageId));
       mSize.decrementAndGet();
     } catch (RocksDBException e) {
       throw new PageNotFoundException("Failed to remove page", e);
@@ -140,7 +140,7 @@ public class RocksPageStore implements PageStore {
     mDb.close();
   }
 
-  private byte[] getPageKey(PageId pageId) {
+  private static byte[] getKeyFromPageId(PageId pageId) {
     ByteBuffer buf = ByteBuffer.allocate(KEY_LEN);
     buf.putLong(pageId.getFileId());
     buf.putLong(pageId.getPageIndex());
@@ -152,7 +152,7 @@ public class RocksPageStore implements PageStore {
    * @return the corresponding page id, or null if the key does not match the pattern
    */
   @Nullable
-  private PageId getPageId(byte[] key) {
+  private static PageId getPageIdFromKey(byte[] key) {
     if (key.length != KEY_LEN) {
       return null;
     }
@@ -196,10 +196,11 @@ public class RocksPageStore implements PageStore {
       return value;
     }
 
+    @Nullable
     private PageId ensureValue() {
       if (mValue == null) {
         for (; mIter.isValid(); mIter.next()) {
-          PageId id = getPageId(mIter.key());
+          PageId id = getPageIdFromKey(mIter.key());
           if (id != null) {
             mValue = id;
             break;

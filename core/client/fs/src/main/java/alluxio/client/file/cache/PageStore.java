@@ -20,12 +20,11 @@ import alluxio.client.file.cache.store.RocksPageStoreOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
+import alluxio.util.io.FileUtils;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
@@ -104,9 +103,13 @@ public interface PageStore extends AutoCloseable {
     LOG.info("Clean cache directory {}", rootPath);
     try (Stream<Path> stream = Files.list(Paths.get(rootPath))) {
       stream.filter(path -> !storePath.equals(path))
-          .map(Path::toString)
-          .map(File::new)
-          .forEach(FileUtils::deleteQuietly);
+          .forEach(path -> {
+            try {
+              FileUtils.deletePathRecursively(path.toString());
+            } catch (IOException e) {
+              LOG.warn("failed to delete {} in cache directory: {}", path, e.getMessage());
+            }
+          });
     }
   }
 

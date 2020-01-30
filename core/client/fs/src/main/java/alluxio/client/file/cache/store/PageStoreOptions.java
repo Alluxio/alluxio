@@ -79,14 +79,14 @@ public abstract class PageStoreOptions {
   }
 
   /**
-   * @return the size of the cache
+   * @return the size of the cache in bytes
    */
   public long getCacheSize() {
     return mCacheSize;
   }
 
   /**
-   * @param cacheSize the size of the cache
+   * @param cacheSize the size of the cache in bytes
    */
   public void setCacheSize(long cacheSize) {
     mCacheSize = cacheSize;

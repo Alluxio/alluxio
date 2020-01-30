@@ -33,6 +33,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,6 +52,7 @@ public class LocalPageStore implements PageStore {
   private final String mRoot;
   private final AtomicInteger mSize = new AtomicInteger(0);
   private final long mPageSize;
+  private final Pattern mPagePattern;
 
   /**
    * Creates a new instance of {@link LocalPageStore}.
@@ -61,6 +64,8 @@ public class LocalPageStore implements PageStore {
     mRoot = options.getRootDir();
     mPageSize = options.getPageSize();
     Path rootDir = Paths.get(mRoot);
+    mPagePattern = Pattern.compile(
+        String.format("%s/%d/(\\d+)/(\\d+)", rootDir.toString(), mPageSize));
     try {
       boolean invalidPage = Files.exists(rootDir) && Files.walk(rootDir)
           .filter(Files::isRegularFile)
@@ -144,27 +149,15 @@ public class LocalPageStore implements PageStore {
    */
   @Nullable
   private PageId getPageId(Path path) {
-    Path parent = path.getParent();
-    if (parent == null) {
-      return null;
-    }
-    Path grandparent = parent.getParent();
-    if (grandparent == null) {
-      return null;
-    }
-    if (!Paths.get(mRoot).equals(grandparent.getParent())) {
+    Matcher matcher = mPagePattern.matcher(path.toString());
+    if (!matcher.matches()) {
       return null;
     }
     try {
-      Path fileName = path.getFileName();
-      Path parentName = parent.getFileName();
-      Path grandparentName = grandparent.getFileName();
-      if (fileName == null || parentName == null || grandparentName == null
-          || !Long.toString(mPageSize).equals(grandparentName.toString())) {
-        return null;
-      }
-      long pageIndex = Long.parseLong(fileName.toString());
-      long fileId = Long.parseLong(parentName.toString());
+      String parentName = Preconditions.checkNotNull(matcher.group(1));
+      String fileName = Preconditions.checkNotNull(matcher.group(2));
+      long fileId = Long.parseLong(parentName);
+      long pageIndex = Long.parseLong(fileName);
       return new PageId(fileId, pageIndex);
     } catch (NumberFormatException e) {
       return null;
