@@ -65,14 +65,14 @@ public abstract class PageStoreOptions {
   }
 
   /**
-   * @return the size of the page
+   * @return the size of the page in bytes
    */
   public long getPageSize() {
     return mPageSize;
   }
 
   /**
-   * @param pageSize the size of the page
+   * @param pageSize the size of the page in bytes
    */
   public void setPageSize(long pageSize) {
     mPageSize = pageSize;
