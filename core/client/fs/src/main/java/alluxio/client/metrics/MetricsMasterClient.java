@@ -11,11 +11,14 @@
 
 package alluxio.client.metrics;
 
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.ClientMetrics;
+import alluxio.grpc.MetricValue;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface for a metrics master client.
@@ -33,4 +36,11 @@ public interface MetricsMasterClient extends Closeable {
    * @param metrics a list of client metrics
    */
   void heartbeat(final List<ClientMetrics> metrics) throws IOException;
+
+  /**
+   * Gets all the metrics stored in the current master from metric name to metric value.
+   *
+   * @return a map of metrics information
+   */
+  Map<String, MetricValue> getMetrics() throws AlluxioStatusException;
 }

@@ -16,6 +16,7 @@ import alluxio.clock.SystemClock;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.MetricValue;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -215,6 +216,11 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   @Override
   public void clearMetrics() {
     mMetricsStore.clear();
+  }
+
+  @Override
+  public Map<String, MetricValue> getMetrics() {
+    return MetricsSystem.allMetrics();
   }
 
   /**
