@@ -139,7 +139,7 @@ public class MetricsCommandTest {
         "Cluster.BytesWrittenDomainThroughput  (Type: GAUGE, Value: 1202.37KB/min)",
         "Cluster.BytesWrittenUfsAll  (Type: GAUGE, Value: 317.70KB)",
         "Cluster.BytesWrittenUfsThroughput  (Type: GAUGE, Value: 33.46KB/min)",
-        "Master.CapacityTotal  (Type: GAUGE, Value: 1,154,531,246,129,122)",
+        "Cluster.CapacityTotal  (Type: GAUGE, Value: 1,154,531,246,129,122)",
         "Master.CompleteFileOps  (Type: COUNTER, Value: 813)",
         "Master.UfsSessionCount-Ufs:_alluxio_underFSStorage  (Type: COUNTER, Value: 8,535)",
         "Master.UfsSessionCount-Ufs:file:___Users_alluxio_alluxioMountedFolder  (Type: COUNTER, Value: 1,231)",
