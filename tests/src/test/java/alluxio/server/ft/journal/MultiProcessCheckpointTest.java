@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
-import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
 import alluxio.metrics.MetricKey;
@@ -53,9 +53,15 @@ public class MultiProcessCheckpointTest {
       for (int i = 0; i < numFiles; i++) {
         fs.createFile(new AlluxioURI("/file" + i)).close();
       }
+<<<<<<< HEAD
       MetaMasterClient meta = cluster.getMetaMasterClient();
       assertEquals(numFiles + 1,
           meta.getMetrics().get(MetricKey.MASTER_TOTAL_PATHS.getName()).getLongValue());
+=======
+      MetricsMasterClient metricsClient = cluster.getMetricsMasterClient();
+      assertEquals(numFiles + 1, (long) metricsClient.getMetrics()
+          .get("Master." + (MasterMetrics.TOTAL_PATHS)).getDoubleValue());
+>>>>>>> 4653c7bc263386425095297458070bf026048aa3
       IntegrationTestUtils.waitForUfsJournalCheckpoint(Constants.FILE_SYSTEM_MASTER_NAME,
           new URI(journal));
       cluster.stopMasters();
@@ -63,9 +69,14 @@ public class MultiProcessCheckpointTest {
       cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
       fs = cluster.getFileSystemClient();
       assertEquals(numFiles, fs.listStatus(new AlluxioURI("/")).size());
+<<<<<<< HEAD
       meta = cluster.getMetaMasterClient();
       assertEquals(numFiles + 1,
           meta.getMetrics().get(MetricKey.MASTER_TOTAL_PATHS.getName()).getLongValue());
+=======
+      assertEquals(numFiles + 1, (long) metricsClient.getMetrics()
+          .get("Master." + (MasterMetrics.TOTAL_PATHS)).getDoubleValue());
+>>>>>>> 4653c7bc263386425095297458070bf026048aa3
       cluster.notifySuccess();
     } finally {
       cluster.destroy();

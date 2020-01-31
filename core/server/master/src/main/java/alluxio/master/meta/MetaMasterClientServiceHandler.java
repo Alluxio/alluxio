@@ -24,24 +24,16 @@ import alluxio.grpc.GetConfigReportPOptions;
 import alluxio.grpc.GetConfigReportPResponse;
 import alluxio.grpc.GetMasterInfoPOptions;
 import alluxio.grpc.GetMasterInfoPResponse;
-import alluxio.grpc.GetMetricsPOptions;
-import alluxio.grpc.GetMetricsPResponse;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
-import alluxio.metrics.MetricsSystem;
 import alluxio.wire.Address;
 
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.MetricRegistry;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -136,6 +128,7 @@ public final class MetaMasterClientServiceHandler
   }
 
   @Override
+<<<<<<< HEAD
   public void getMetrics(GetMetricsPOptions options,
       StreamObserver<GetMetricsPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMetricsPResponse>) () -> {
@@ -166,6 +159,8 @@ public final class MetaMasterClientServiceHandler
   }
 
   @Override
+=======
+>>>>>>> 4653c7bc263386425095297458070bf026048aa3
   public void checkpoint(CheckpointPOptions options,
       StreamObserver<CheckpointPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CheckpointPResponse>) () ->

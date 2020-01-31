@@ -11,8 +11,10 @@
 
 package alluxio.security.authentication;
 
+import alluxio.grpc.SaslMessage;
+
+import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
-import java.io.IOException;
 
 /**
  * Interface for authentication scheme specific {@link SaslServer} management.
@@ -20,9 +22,13 @@ import java.io.IOException;
 public interface SaslServerHandler extends AutoCloseable {
 
   /**
-   * @return the {@link SaslServer} instance
+   * Handles given {@link SaslMessage} from the client.
+   *
+   * @param message client Sasl message
+   * @return server's response to given client message
+   * @throws SaslException
    */
-  SaslServer getSaslServer();
+  SaslMessage handleMessage(SaslMessage message) throws SaslException;
 
   /**
    * To be called by callbacks to store authenticated user information.
@@ -43,5 +49,5 @@ public interface SaslServerHandler extends AutoCloseable {
    * Implementations should be idempotent.
    */
   @Override
-  void close() throws IOException;
+  void close();
 }

@@ -11,10 +11,16 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.grpc.MetricValue;
+<<<<<<< HEAD
 import alluxio.metrics.MetricKey;
+=======
+import alluxio.metrics.MetricsSystem;
+>>>>>>> 4653c7bc263386425095297458070bf026048aa3
 import alluxio.util.FormatUtils;
+
+import com.google.common.math.DoubleMath;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -22,30 +28,32 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Prints Alluxio metrics information.
  */
 public class MetricsCommand {
+  private static final String BYTES_METRIC_IDENTIFIER = "Bytes";
+  private static final String THROUGHPUT_METRIC_IDENTIFIER = "Throughput";
   private static final DecimalFormat DECIMAL_FORMAT
       = new DecimalFormat("###,###.#####", new DecimalFormatSymbols(Locale.US));
-  private static final String INDENT = "    ";
+  private static final String INFO_FORMAT = "%s  (Type: %s, Value: %s)%n";
 
-  private final MetaMasterClient mMetaMasterClient;
+  private final MetricsMasterClient mMetricsMasterClient;
   private final PrintStream mPrintStream;
-  private String mInfoFormat = "%-40s %20s";
   private Map<String, MetricValue> mMetricsMap;
 
   /**
    * Creates a new instance of {@link MetricsCommand}.
    *
-   * @param metaMasterClient client to connect to meta master client
+   * @param metricsMasterClient client to connect to metrics master client
    * @param printStream stream to print operation metrics information to
    */
-  public MetricsCommand(MetaMasterClient metaMasterClient, PrintStream printStream)
+  public MetricsCommand(MetricsMasterClient metricsMasterClient, PrintStream printStream)
       throws IOException {
-    mMetaMasterClient = metaMasterClient;
+    mMetricsMasterClient = metricsMasterClient;
     mPrintStream = printStream;
   }
 
@@ -55,6 +63,7 @@ public class MetricsCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
+<<<<<<< HEAD
     mMetricsMap = new TreeMap<>(mMetaMasterClient.getMetrics());
     Long bytesReadLocal = mMetricsMap.getOrDefault(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName(),
         MetricValue.newBuilder().setLongValue(0L).build()).getLongValue();
@@ -152,40 +161,50 @@ public class MetricsCommand {
     for (Map.Entry<String, MetricValue> entry : mMetricsMap.entrySet()) {
       mPrintStream.println(INDENT + String.format(mInfoFormat,
           entry.getKey(), getFormattedValue(entry.getValue())));
+=======
+    mMetricsMap = mMetricsMasterClient.getMetrics();
+    SortedSet<String> names = new TreeSet<>(mMetricsMap.keySet());
+    for (String name : names) {
+      if (!isAlluxioMetric(name)) {
+        continue;
+      }
+      MetricValue metricValue = mMetricsMap.get(name);
+      String strValue;
+      if (metricValue.hasStringValue()) {
+        strValue = metricValue.getStringValue();
+      } else {
+        double doubleValue = metricValue.getDoubleValue();
+        if (name.contains(BYTES_METRIC_IDENTIFIER)) {
+          // Bytes long can be transformed to human-readable format
+          strValue = FormatUtils.getSizeFromBytes((long) doubleValue);
+          if (name.contains(THROUGHPUT_METRIC_IDENTIFIER)) {
+            // throughput is calculated as one-minute exponentially-weighted moving average rate
+            strValue = strValue + "/min";
+          }
+        } else if (DoubleMath.isMathematicalInteger(doubleValue)) {
+          strValue = DECIMAL_FORMAT.format((long) doubleValue);
+        } else {
+          strValue = String.valueOf(doubleValue);
+        }
+      }
+      mPrintStream.printf(INFO_FORMAT, name, metricValue.getMetricType(), strValue);
+>>>>>>> 4653c7bc263386425095297458070bf026048aa3
     }
     return 0;
   }
 
   /**
-   * Prints the metrics information.
+   * Checks if a metric is Alluxio metric.
    *
-   * @param metricName the metric name to get a metric value
-   * @param nickName the metric name to print
-   * @param valueIsBytes whether the metric value is bytes
+   * @param name
+   * @return
    */
-  private void printMetric(String metricName, String nickName, boolean valueIsBytes) {
-    if (mMetricsMap == null || !mMetricsMap.containsKey(metricName)) {
-      return;
+  private boolean isAlluxioMetric(String name) {
+    for (MetricsSystem.InstanceType instance : MetricsSystem.InstanceType.values()) {
+      if (name.startsWith(instance.toString())) {
+        return true;
+      }
     }
-    MetricValue metricValue = mMetricsMap.get(metricName);
-    String formattedValue = valueIsBytes ? FormatUtils.getSizeFromBytes(metricValue.getLongValue())
-        : getFormattedValue(metricValue);
-    mPrintStream.println(INDENT + String.format(mInfoFormat,
-        nickName == null ? metricName : nickName, formattedValue));
-    mMetricsMap.remove(metricName);
-  }
-
-  /**
-   * Gets the formatted metric value.
-   *
-   * @param metricValue the metricValue to transform
-   * @return the formatted metric value
-   */
-  private String getFormattedValue(MetricValue metricValue) {
-    if (metricValue.hasDoubleValue()) {
-      return DECIMAL_FORMAT.format(metricValue.getDoubleValue());
-    } else {
-      return DECIMAL_FORMAT.format(metricValue.getLongValue());
-    }
+    return false;
   }
 }

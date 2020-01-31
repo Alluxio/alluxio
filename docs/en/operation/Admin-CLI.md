@@ -157,7 +157,8 @@ $ ./bin/alluxio fsadmin report capacity -live
 $ ./bin/alluxio fsadmin report capacity -workers AlluxioWorker1,127.0.0.1
 ```
 
-`report metrics` will report the metrics information of Alluxio cluster.
+`report metrics` will report the metrics stored in the leading master which includes
+leading master process metrics and aggregated cluster metrics.
 
 ```console
 $ ./bin/alluxio fsadmin report metrics
