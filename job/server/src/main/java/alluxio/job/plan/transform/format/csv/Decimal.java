@@ -54,7 +54,7 @@ public class Decimal {
    * @param v the string value
    * @return the decimal with the expected scale
    */
-  private BigDecimal toBigDecimal(String v) {
+  public BigDecimal toBigDecimal(String v) {
     int pointIndex = v.indexOf('.');
     int fractionLen = 0;
     if (pointIndex != -1) {
