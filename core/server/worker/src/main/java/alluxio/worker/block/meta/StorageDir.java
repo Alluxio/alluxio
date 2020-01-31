@@ -125,7 +125,9 @@ public final class StorageDir {
     }
     for (File path : paths) {
       if (!path.isFile()) {
-        LOG.error("{} in StorageDir is not a file", path.getAbsolutePath());
+        if (!path.getName().equals(ServerConfiguration.get(PropertyKey.WORKER_DATA_TMP_FOLDER))) {
+          LOG.error("{} in StorageDir is not a file", path.getAbsolutePath());
+        }
         try {
           // TODO(calvin): Resolve this conflict in class names.
           org.apache.commons.io.FileUtils.deleteDirectory(path);
