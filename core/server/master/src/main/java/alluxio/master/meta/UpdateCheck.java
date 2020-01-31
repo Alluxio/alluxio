@@ -36,6 +36,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class UpdateCheck {
+  private static final String PRODUCT_CODE_KEY = "ProductCode:";
+
   /**
    * @param clusterID the cluster ID
    * @param connectionRequestTimeout the connection request timeout for the HTTP request in ms
@@ -82,17 +84,25 @@ public final class UpdateCheck {
   @VisibleForTesting
   public static String getUserAgentString(String clusterID) throws IOException {
     Joiner joiner = Joiner.on("; ").skipNulls();
+    boolean isGCE = EnvironmentUtils.isGoogleComputeEngine();
     String sysInfo = joiner.join(
         clusterID,
         EnvironmentUtils.isDocker() ? "docker" : null,
         EnvironmentUtils.isKubernetes() ? "kubernetes" : null,
-        EnvironmentUtils.isGoogleComputeEngine() ? "gce" : null
+        isGCE ? "gce" : null
     );
-    sysInfo = joiner.join(sysInfo, getEC2Info());
+    if (!isGCE) {
+      List<String> ec2Info = getEC2Info();
+      if (ec2Info.size() != 0) {
+        sysInfo = joiner.join(sysInfo, joiner.join(ec2Info));
+      }
+    }
     return String.format("Alluxio/%s (%s)", ProjectConstants.VERSION, sysInfo);
   }
 
   /**
+   * Gets the EC2 system information.
+   *
    * @return a list of string representation of the user's EC2 environment
    */
   private static List<String> getEC2Info() {
@@ -100,7 +110,7 @@ public final class UpdateCheck {
     boolean isEC2 = false;
     String productCode = EnvironmentUtils.getEC2ProductCode();
     if (!productCode.isEmpty()) {
-      ec2Info.add("ProductCode:" + productCode);
+      ec2Info.add(PRODUCT_CODE_KEY + productCode);
       isEC2 = true;
     }
 

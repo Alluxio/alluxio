@@ -78,55 +78,6 @@ public final class EnvironmentUtils {
   }
 
   /**
-   * @return true, if running on GCE with google metadata available
-   */
-  private static boolean isGCEWithMetadata() {
-    try {
-      String url = "http://metadata.google.internal/computeMetadata/v1/instance/zone";
-      HttpGet post = new HttpGet(url);
-      post.setHeader("Metadata-Flavor", "Google");
-      HttpClient client = HttpClientBuilder.create()
-          .setDefaultRequestConfig(
-              RequestConfig.custom()
-                  .setConnectionRequestTimeout(1000)
-                  .setConnectTimeout(1000)
-                  .setSocketTimeout(1000)
-                  .build())
-          .build();
-      HttpResponse response = client.execute(post);
-
-      int responseCode = response.getStatusLine().getStatusCode();
-      if (responseCode != HttpURLConnection.HTTP_OK) {
-        return false;
-      }
-      String zone = EntityUtils.toString(response.getEntity(), "UTF-8");
-      return !zone.isEmpty();
-    } catch (Throwable t) {
-      // Exceptions are expected if this instance is not GCE instance
-      // or this GCE does not allow fetching metadata
-      return false;
-    }
-  }
-
-  /**
-   * @return true, if running on GCE with Google bios vendor
-   */
-  private static boolean isGCEWithBiosVendor() {
-    try {
-      Process process = Runtime.getRuntime().exec("sudo dmidecode -s bios-vendor");
-      BufferedReader reader = new BufferedReader(
-          new InputStreamReader(process.getInputStream()));
-
-      String output = reader.readLine();
-      return output.contains("Google");
-    } catch (Throwable t) {
-      // Exceptions are expected if this instance is not
-      // running on Google bios vendor
-      return false;
-    }
-  }
-
-  /**
    * Gets the EC2 product code if any.
    *
    * @return the first product code if any, an empty string otherwise
@@ -226,6 +177,55 @@ public final class EnvironmentUtils {
     } catch (Throwable t) {
       // Exceptions are expected if this instance is not EC2 instance
       // or this check is not valid
+      return false;
+    }
+  }
+
+  /**
+   * @return true, if running on GCE with google metadata available
+   */
+  private static boolean isGCEWithMetadata() {
+    try {
+      String url = "http://metadata.google.internal/computeMetadata/v1/instance/zone";
+      HttpGet post = new HttpGet(url);
+      post.setHeader("Metadata-Flavor", "Google");
+      HttpClient client = HttpClientBuilder.create()
+          .setDefaultRequestConfig(
+              RequestConfig.custom()
+                  .setConnectionRequestTimeout(1000)
+                  .setConnectTimeout(1000)
+                  .setSocketTimeout(1000)
+                  .build())
+          .build();
+      HttpResponse response = client.execute(post);
+
+      int responseCode = response.getStatusLine().getStatusCode();
+      if (responseCode != HttpURLConnection.HTTP_OK) {
+        return false;
+      }
+      String zone = EntityUtils.toString(response.getEntity(), "UTF-8");
+      return !zone.isEmpty();
+    } catch (Throwable t) {
+      // Exceptions are expected if this instance is not GCE instance
+      // or this GCE does not allow fetching metadata
+      return false;
+    }
+  }
+
+  /**
+   * @return true, if running on GCE with Google bios vendor
+   */
+  private static boolean isGCEWithBiosVendor() {
+    try {
+      Process process = Runtime.getRuntime().exec("sudo dmidecode -s bios-vendor");
+      BufferedReader reader = new BufferedReader(
+          new InputStreamReader(process.getInputStream()));
+
+      String output = reader.readLine();
+      return output.contains("Google");
+    } catch (Throwable t) {
+      // Exceptions are expected if this instance is not
+      // running on Google bios vendor
       return false;
     }
   }
