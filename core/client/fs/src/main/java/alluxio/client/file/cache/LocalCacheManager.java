@@ -40,12 +40,14 @@ import javax.annotation.concurrent.ThreadSafe;
  * unit.
  *
  * Lock hierarchy in this class: All operations must follow this order to operate on pages:
- * <ul>
- * <li>1. Acquire page lock</li>
- * <li>2. Acquire metastore lock mMetaLock</li>
- * <li>3. Release metastore lock mMetaLock</li>
- * <li>4. Release page lock</li>
- * </ul>
+ * <ol>
+ * <li>Acquire corresponding page lock</li>
+ * <li>Acquire metastore lock mMetaLock</li>
+ * <li>Update metastore</li>
+ * <li>Release metastore lock mMetaLock</li>
+ * <li>Update the pagestore and evictor</li>
+ * <li>Release corresponding page lock</li>
+ * </ol>
  */
 @ThreadSafe
 public class LocalCacheManager implements CacheManager {
@@ -174,10 +176,10 @@ public class LocalCacheManager implements CacheManager {
           throw new IllegalStateException(
               String.format("Page store is missing page %s.", victim), e);
         }
-        mEvictor.updateOnDelete(victim);
         mMetaStore.addPage(pageId);
-        mEvictor.updateOnPut(pageId);
       }
+      mEvictor.updateOnDelete(victim);
+      mEvictor.updateOnPut(pageId);
       try {
         mPageStore.delete(victim);
       } catch (PageNotFoundException e) {
@@ -221,6 +223,7 @@ public class LocalCacheManager implements CacheManager {
       try (LockResource r1 = new LockResource(mMetaLock.writeLock())) {
         mMetaStore.removePage(pageId);
       }
+      mEvictor.updateOnDelete(pageId);
       mPageStore.delete(pageId);
     }
   }

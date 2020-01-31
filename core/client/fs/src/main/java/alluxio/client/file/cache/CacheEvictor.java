@@ -16,10 +16,13 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Interface for client-side cache eviction policy.
+ * Interface for client-side cache eviction policy. The implementation of this evictor must be
+ * thread-safe.
  */
+@ThreadSafe
 public interface CacheEvictor {
 
   /**
