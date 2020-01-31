@@ -234,10 +234,14 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getMasterMetricName(String name) {
-    if (name.startsWith(InstanceType.MASTER.toString())) {
-      return name;
+    String result = CACHED_METRICS.get(name);
+    if (result != null) {
+      return result;
     }
-    return Joiner.on(".").join(InstanceType.MASTER.toString(), name);
+    if (name.startsWith(InstanceType.MASTER.toString())) {
+      return CACHED_METRICS.computeIfAbsent(name, n -> name);
+    }
+    return CACHED_METRICS.computeIfAbsent(name, n -> InstanceType.MASTER.toString() + "." + name);
   }
 
   /**
@@ -266,6 +270,7 @@ public final class MetricsSystem {
     if (result != null) {
       return result;
     }
+
     // Added for integration tests where process type is always client
     if (name.startsWith(InstanceType.MASTER.toString())
         || name.startsWith(InstanceType.CLUSTER.toString())) {
@@ -275,6 +280,7 @@ public final class MetricsSystem {
       return CACHED_METRICS.computeIfAbsent(name,
           n -> getMetricNameWithUniqueId(InstanceType.WORKER, name));
     }
+
     return CACHED_METRICS.computeIfAbsent(name,
         n -> getMetricNameWithUniqueId(InstanceType.CLIENT, name));
   }
