@@ -96,17 +96,6 @@ message GetMasterInfoPResponse {
   optional MasterInfo masterInfo = 1;
 }
 
-// This type is used as a union, only one of doubleValue or longValue should be set
-message MetricValue {
-  optional double doubleValue = 1;
-  optional int64 longValue = 2;
-}
-
-message GetMetricsPOptions {}
-message GetMetricsPResponse {
-  map<string, MetricValue> metrics = 1;
-}
-
 message CheckpointPOptions {}
 message CheckpointPResponse {
  // The hostname of the master that did the checkpoint
@@ -167,11 +156,6 @@ service MetaMasterClientService {
    * Returns information about the master.
    */
   rpc GetMasterInfo(GetMasterInfoPOptions) returns (GetMasterInfoPResponse);
-
-  /**
-   * Returns a map of metrics property names and their values from Alluxio metrics system.
-   */
-  rpc GetMetrics(GetMetricsPOptions) returns (GetMetricsPResponse);
 
   /**
    * Creates a checkpoint in the primary master journal system.

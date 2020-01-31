@@ -143,13 +143,11 @@ public final class ReportCommand extends AbstractFsAdminCommand {
 
     switch (command) {
       case CAPACITY:
-        CapacityCommand capacityCommand = new CapacityCommand(
-            mBlockClient, mPrintStream);
+        CapacityCommand capacityCommand = new CapacityCommand(mBlockClient, mPrintStream);
         capacityCommand.run(cl);
         break;
       case METRICS:
-        MetricsCommand metricsCommand = new MetricsCommand(
-            mMetaClient, mPrintStream);
+        MetricsCommand metricsCommand = new MetricsCommand(mMetricsClient, mPrintStream);
         metricsCommand.run();
         break;
       case SUMMARY:
