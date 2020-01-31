@@ -11,6 +11,8 @@
 
 package alluxio.job.plan.transform.format.csv;
 
+import alluxio.collections.Pair;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,10 +32,9 @@ public class Decimal {
    * @param type the type definition, like "decimal(10, 2)"
    */
   public Decimal(String type) {
-    String param = type.substring(8, type.length() - 1);
-    String[] params = param.split(",");
-    mPrecision = Integer.parseInt(params[0].trim());
-    mScale = Integer.parseInt(params[1].trim());
+    Pair<Integer, Integer> precisionAndScale = getPrecisionAndScale(type);
+    mPrecision = precisionAndScale.getFirst();
+    mScale = precisionAndScale.getSecond();
   }
 
   /**
@@ -48,6 +49,18 @@ public class Decimal {
    */
   public int getScale() {
     return mScale;
+  }
+
+  /**
+   * Returns the decimal's precision and scale from the type definition.
+   *
+   * @param type the type definition, like "decimal(10, 2)"
+   * @return the decimal's precision and scale as a Pair
+   */
+  public static Pair<Integer, Integer> getPrecisionAndScale(String type) {
+    String param = type.substring(8, type.length() - 1);
+    String[] params = param.split(",");
+    return new Pair<>(Integer.parseInt(params[0].trim()), Integer.parseInt(params[1].trim()));
   }
 
   /**
