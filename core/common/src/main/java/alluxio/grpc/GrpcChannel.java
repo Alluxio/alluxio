@@ -127,7 +127,7 @@ public final class GrpcChannel extends Channel {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
+    return MoreObjects.toStringHelper("")
         .add("ChannelKey", mChannelKey)
         .add("ChannelHealthy", isHealthy())
         .add("ChannelReleased", mChannelReleased)

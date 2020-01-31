@@ -86,7 +86,7 @@ public class GrpcServerAddress {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
+    return MoreObjects.toStringHelper("")
         .add("HostName", mHostName)
         .add("SocketAddress", mSocketAddress)
         .toString();

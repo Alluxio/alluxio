@@ -135,7 +135,7 @@ public final class GrpcServer {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
+    return MoreObjects.toStringHelper("")
         .add("Server", mServer)
         .add("AuthServerType", mAuthServer.getClass().getSimpleName())
         .toString();

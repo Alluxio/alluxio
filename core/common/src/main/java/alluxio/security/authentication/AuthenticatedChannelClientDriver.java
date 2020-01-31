@@ -87,7 +87,8 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
   @Override
   public void onNext(SaslMessage saslMessage) {
     try {
-      LOG.debug("Received message for {}. Message: {}", mChannelKey.toStringShort(), saslMessage);
+      LOG.debug("Received message for channel: {}. Message: {}",
+          mChannelKey.toStringShort(), saslMessage);
       SaslMessage response = mSaslClientHandler.handleMessage(saslMessage);
       if (response != null) {
         mRequestObserver.onNext(response);
@@ -108,7 +109,7 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
 
   @Override
   public void onError(Throwable throwable) {
-    LOG.debug("Received error for {}. Error: {}", mChannelKey.toStringShort(), throwable);
+    LOG.debug("Received error for channel: {}. Error: {}", mChannelKey.toStringShort(), throwable);
     closeAuthenticatedChannel(false);
 
     // Fail blocked waiters.
@@ -117,7 +118,8 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
 
   @Override
   public void onCompleted() {
-    LOG.debug("Authenticated channel revoked by server for {}", mChannelKey.toStringShort());
+    LOG.debug("Authenticated channel revoked by server for channel: {}",
+        mChannelKey.toStringShort());
     closeAuthenticatedChannel(false);
   }
 
@@ -125,7 +127,7 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
    * Stops authenticated session with the server by releasing the long poll.
    */
   public void close() {
-    LOG.debug("Closing authentication for {}", mChannelKey.toStringShort());
+    LOG.debug("Closing authentication for channel: {}", mChannelKey.toStringShort());
     closeAuthenticatedChannel(true);
   }
 
@@ -144,7 +146,7 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
    */
   public void startAuthenticatedChannel(long timeoutMs) throws AlluxioStatusException {
     try {
-      LOG.debug("Initiating authentication for {}", mChannelKey.toStringShort());
+      LOG.debug("Initiating authentication for channel: {}", mChannelKey.toStringShort());
       // Send the server initial message.
       SaslMessage.Builder initialMsg = mSaslClientHandler.handleMessage(null).toBuilder();
       initialMsg.setClientId(mChannelKey.getChannelId().toString());
