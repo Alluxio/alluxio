@@ -82,12 +82,23 @@ public interface PageStore extends AutoCloseable {
     }
     String rootDir = conf.get(PropertyKey.USER_CLIENT_CACHE_DIR);
     initialize(rootDir, storeType);
-    Path storePath = Paths.get(conf.get(PropertyKey.USER_CLIENT_CACHE_DIR), storeType.name());
+    Path storePath = getStorePath(storeType, rootDir);
     options.setRootDir(storePath.toString());
     options.setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
     options.setCacheSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
     options.setAlluxioVersion(conf.get(PropertyKey.VERSION));
     return create(options);
+  }
+
+  /**
+   * Gets store path given root directory and store type.
+   *
+   * @param storeType the type of the page store
+   * @param rootDir the root directory path
+   * @return the store directory path
+   */
+  static Path getStorePath(PageStoreType storeType, String rootDir) {
+    return Paths.get(rootDir, storeType.name());
   }
 
   /**
@@ -98,7 +109,7 @@ public interface PageStore extends AutoCloseable {
    * @param storeType the page store type
    */
   static void initialize(String rootPath, PageStoreType storeType) throws IOException {
-    Path storePath = Paths.get(rootPath, storeType.name());
+    Path storePath = getStorePath(storeType, rootPath);
     Files.createDirectories(storePath);
     LOG.info("Clean cache directory {}", rootPath);
     try (Stream<Path> stream = Files.list(Paths.get(rootPath))) {
