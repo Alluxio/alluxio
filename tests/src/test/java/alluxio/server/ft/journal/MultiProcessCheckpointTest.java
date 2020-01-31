@@ -53,15 +53,9 @@ public class MultiProcessCheckpointTest {
       for (int i = 0; i < numFiles; i++) {
         fs.createFile(new AlluxioURI("/file" + i)).close();
       }
-<<<<<<< HEAD
-      MetaMasterClient meta = cluster.getMetaMasterClient();
-      assertEquals(numFiles + 1,
-          meta.getMetrics().get(MetricKey.MASTER_TOTAL_PATHS.getName()).getLongValue());
-=======
       MetricsMasterClient metricsClient = cluster.getMetricsMasterClient();
       assertEquals(numFiles + 1, (long) metricsClient.getMetrics()
-          .get("Master." + (MasterMetrics.TOTAL_PATHS)).getDoubleValue());
->>>>>>> 4653c7bc263386425095297458070bf026048aa3
+          .get(MetricKey.MASTER_TOTAL_PATHS.getName()).getDoubleValue());
       IntegrationTestUtils.waitForUfsJournalCheckpoint(Constants.FILE_SYSTEM_MASTER_NAME,
           new URI(journal));
       cluster.stopMasters();
@@ -69,14 +63,8 @@ public class MultiProcessCheckpointTest {
       cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
       fs = cluster.getFileSystemClient();
       assertEquals(numFiles, fs.listStatus(new AlluxioURI("/")).size());
-<<<<<<< HEAD
-      meta = cluster.getMetaMasterClient();
-      assertEquals(numFiles + 1,
-          meta.getMetrics().get(MetricKey.MASTER_TOTAL_PATHS.getName()).getLongValue());
-=======
       assertEquals(numFiles + 1, (long) metricsClient.getMetrics()
-          .get("Master." + (MasterMetrics.TOTAL_PATHS)).getDoubleValue());
->>>>>>> 4653c7bc263386425095297458070bf026048aa3
+          .get(MetricKey.MASTER_TOTAL_PATHS.getName()).getDoubleValue());
       cluster.notifySuccess();
     } finally {
       cluster.destroy();

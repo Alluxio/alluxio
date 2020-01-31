@@ -26,10 +26,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.block.BlockId;
-<<<<<<< HEAD
 import alluxio.metrics.MetricKey;
-=======
->>>>>>> 4653c7bc263386425095297458070bf026048aa3
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
@@ -398,13 +395,6 @@ public final class AlluxioWorkerRestServiceHandler {
       for (Map.Entry<String, Counter> entry : mr.getCounters().entrySet()) {
         operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
       }
-<<<<<<< HEAD
-      String filesPinnedProperty = MetricsSystem
-          .getMetricName(MetricKey.MASTER_FILES_PINNED.getName());
-      operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
-          mr.getGauges().get(filesPinnedProperty));
-=======
->>>>>>> 4653c7bc263386425095297458070bf026048aa3
 
       response.setOperationMetrics(operations);
 

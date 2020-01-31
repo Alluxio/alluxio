@@ -128,39 +128,6 @@ public final class MetaMasterClientServiceHandler
   }
 
   @Override
-<<<<<<< HEAD
-  public void getMetrics(GetMetricsPOptions options,
-      StreamObserver<GetMetricsPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMetricsPResponse>) () -> {
-
-      MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
-      Map<String, alluxio.grpc.MetricValue> metricsMap = new HashMap<>();
-
-      for (Map.Entry<String, Counter> entry : mr.getCounters().entrySet()) {
-        metricsMap.put(entry.getKey(), alluxio.grpc.MetricValue
-            .newBuilder().setLongValue(entry.getValue().getCount()).build());
-      }
-
-      for (Map.Entry<String, Gauge> entry : mr.getGauges().entrySet()) {
-        Object value = entry.getValue().getValue();
-        if (value instanceof Integer) {
-          metricsMap.put(entry.getKey(), alluxio.grpc.MetricValue.newBuilder()
-              .setLongValue(Long.valueOf((Integer) value)).build());
-        } else if (value instanceof Long) {
-          metricsMap.put(entry.getKey(), alluxio.grpc.MetricValue.newBuilder()
-              .setLongValue((long) value).build());
-        } else if (value instanceof Double) {
-          metricsMap.put(entry.getKey(),
-              alluxio.grpc.MetricValue.newBuilder().setDoubleValue((Double) value).build());
-        }
-      }
-      return GetMetricsPResponse.newBuilder().putAllMetrics(metricsMap).build();
-    }, "getConfiguration", "options=%s", responseObserver, options);
-  }
-
-  @Override
-=======
->>>>>>> 4653c7bc263386425095297458070bf026048aa3
   public void checkpoint(CheckpointPOptions options,
       StreamObserver<CheckpointPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CheckpointPResponse>) () ->

@@ -35,40 +35,9 @@ public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTes
    * @param output the metrics command output
    */
   private void checkMetricsResults(String output) {
-<<<<<<< HEAD
-    List<String> expectedOutput = Arrays.asList(
-        "Total IO: ",
-        "    Short-circuit Read                                         0B",
-        "    Short-circuit Read (Domain Socket)                         0B",
-        "    From Remote Instances                                      0B",
-        "    Under Filesystem Read                                      0B",
-        "    Alluxio Write                                              0B",
-        "    Alluxio Write (Domain Socket)                              0B",
-        "    Under Filesystem Write                                     0B",
-        "",
-        "Total IO Throughput (Last Minute): ",
-        "    Short-circuit Read                                         0B",
-        "    Short-circuit Read (Domain Socket)                         0B",
-        "    From Remote Instances                                      0B",
-        "    Under Filesystem Read                                      0B",
-        "    Alluxio Write                                              0B",
-        "    Alluxio Write (Domain Socket)                              0B",
-        "    Under Filesystem Write                                     0B",
-        "",
-        "Cache Hit Rate (Percentage): ",
-        "    Alluxio Local                                            0.00",
-        "    Alluxio Remote                                           0.00",
-        "    Miss                                                     0.00",
-        "",
-        "Logical Operations: ");
-    List<String> testOutput = Arrays.asList(output.split("\n")).subList(0, expectedOutput.size());
-    Assert.assertThat(testOutput,
-        IsIterableContainingInOrder.contains(expectedOutput.toArray()));
-=======
     Assert.assertThat(output, CoreMatchers
         .containsString("Cluster.BytesReadAlluxio  (Type: GAUGE, Value: 0B)"));
     Assert.assertThat(output, CoreMatchers
         .containsString("Cluster.BytesReadAlluxioThroughput  (Type: GAUGE, Value: 0B/min)"));
->>>>>>> 4653c7bc263386425095297458070bf026048aa3
   }
 }
