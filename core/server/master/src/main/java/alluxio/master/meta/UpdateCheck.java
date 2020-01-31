@@ -26,6 +26,8 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -83,9 +85,39 @@ public final class UpdateCheck {
     String sysInfo = joiner.join(
         clusterID,
         EnvironmentUtils.isDocker() ? "docker" : null,
-        EnvironmentUtils.isKubernetes() ? "kubernetes" : null
+        EnvironmentUtils.isKubernetes() ? "kubernetes" : null,
+        EnvironmentUtils.isGoogleComputeEngine() ? "gce" : null
     );
+    sysInfo = joiner.join(sysInfo, getEC2Info());
     return String.format("Alluxio/%s (%s)", ProjectConstants.VERSION, sysInfo);
+  }
+
+  /**
+   * @return a list of string representation of the user's EC2 environment
+   */
+  private static List<String> getEC2Info() {
+    List<String> ec2Info = new ArrayList<>();
+    boolean isEC2 = false;
+    String productCode = EnvironmentUtils.getEC2ProductCode();
+    if (!productCode.isEmpty()) {
+      ec2Info.add("ProductCode:" + productCode);
+      isEC2 = true;
+    }
+
+    if (EnvironmentUtils.isCFT()) {
+      ec2Info.add("cft");
+      isEC2 = true;
+    } else if (EnvironmentUtils.isEMR()) {
+      ec2Info.add("emr");
+      isEC2 = true;
+    } else if (!isEC2 && EnvironmentUtils.isEC2()) {
+      isEC2 = true;
+    }
+
+    if (isEC2) {
+      ec2Info.add("ec2");
+    }
+    return ec2Info;
   }
 
   private UpdateCheck() {} // prevent instantiation
