@@ -20,6 +20,7 @@ import alluxio.util.LogUtils;
 
 import com.google.common.util.concurrent.SettableFuture;
 import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,7 +152,11 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
       SaslMessage.Builder initialMsg = mSaslClientHandler.handleMessage(null).toBuilder();
       initialMsg.setClientId(mChannelKey.getChannelId().toString());
       initialMsg.setChannelRef(mChannelKey.toStringShort());
-      mRequestObserver.onNext(initialMsg.build());
+      try {
+        mRequestObserver.onNext(initialMsg.build());
+      } catch (StatusRuntimeException e) {
+        // Ignore. waitUntilChannelAuthenticated() will throw stored cause.
+      }
 
       // Utility to return from start when channel is secured.
       waitUntilChannelAuthenticated(timeoutMs);
