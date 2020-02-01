@@ -29,16 +29,9 @@ $ cd alluxio
 By default, cloning the repository will check out the master branch. If you are looking to build a
 particular version of the code you may check out the version using a git tag.
 
-For example to checkout the source for version v{{site.ALLUXIO_RELEASED_VERSION}}, run:
-
-```console
-$ git checkout v{{site.ALLUXIO_RELEASED_VERSION}}
-```
-
-To view a list of all possible versions you can run
-
 ```console
 $ git tag
+$ git checkout <TAG_NAME>
 ```
 
 ## Build

@@ -35,16 +35,16 @@ priority: 1
 
 ## 下载 Alluxio
 
-首先，从[这里](http://www.alluxio.io/download)下载 Alluxio。选择为默认 Hadoop 版本构建的{{site.ALLUXIO_RELEASED_VERSION}}预编译版。
+首先，从[这里](http://www.alluxio.io/download)下载 Alluxio。选择为默认Hadoop版本构建的相应预编译版。
 
 接着，你可以用如下命令解压下载包。
 
 ```console
-$ tar -xzf alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz
-$ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
+$ tar -xzf alluxio-{{site.ALLUXIO_VERSION_STRING}}-bin.tar.gz
+$ cd alluxio-{{site.ALLUXIO_VERSION_STRING}}
 ```
 
-这会创建一个包含所有的 Alluxio 源文件和 Java 二进制文件的文件夹`alluxio-{{site.ALLUXIO_RELEASED_VERSION}}`。在本教程中，这个文件夹的路径将被引用为`${ALLUXIO_HOME}`。
+这会创建一个包含所有的 Alluxio 源文件和 Java 二进制文件的文件夹`alluxio-{{site.ALLUXIO_VERSION_STRING}}`。在本教程中，这个文件夹的路径将被引用为`${ALLUXIO_HOME}`。
 
 ## 配置 Alluxio
 
