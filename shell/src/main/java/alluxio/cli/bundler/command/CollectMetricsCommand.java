@@ -90,7 +90,7 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
       // Execute the method.
       int statusCode = client.executeMethod(method);
       String response = new String(method.getResponseBody());
-      return String.format("StatusCode: %s\nResponse%s", statusCode, response);
+      return String.format("Http StatusCode: %s\nResponse%s", statusCode, response);
     } catch (HttpException e) {
       LOG.error("Fatal protocol violation: " + e.getMessage());
       e.printStackTrace();

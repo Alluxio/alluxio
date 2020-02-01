@@ -3,6 +3,7 @@ package alluxio.cli.bundler;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
+import alluxio.cli.bundler.command.AbstractInfoCollectorCommand;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
@@ -16,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,6 +31,8 @@ public class InfoCollector extends AbstractShell {
   // CMD_ALIAS map.
   private static final Set<String> UNSTABLE_ALIAS = ImmutableSet.<String>builder()
           .build();
+
+  private static Map<String, Command> sCommands;
 
   /**
    * Main method, starts a new FileSystemShell.
@@ -66,11 +70,25 @@ public class InfoCollector extends AbstractShell {
   }
 
   @Override
+  // TODO(jiacheng): don't share this method
   protected Map<String, Command> loadCommands() {
     // Give each command the configuration
     Map<String, Command> commands = CommandUtils.loadCommands(InfoCollector.class.getPackage().getName(),
               new Class[] {FileSystemContext.class}, new Object[] {FileSystemContext.create(mConfiguration)});
     System.out.println(String.format("Loaded commands %s", commands));
+
+    // Update the reference
+    if (sCommands == null) {
+      sCommands = commands;
+    }
     return commands;
+  }
+
+  public static Map<String, Command> getIndividualCommands() {
+    if (sCommands.containsKey("collectAll")) {
+      sCommands.remove("collectAll");
+    }
+
+    return sCommands;
   }
 }

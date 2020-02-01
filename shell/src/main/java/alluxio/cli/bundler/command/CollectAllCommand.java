@@ -1,5 +1,7 @@
 package alluxio.cli.bundler.command;
 
+import alluxio.cli.Command;
+import alluxio.cli.bundler.InfoCollector;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import org.apache.commons.cli.CommandLine;
@@ -20,7 +22,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 // TODO(jiacheng): Do we want to move this logic to InfoCollector shell and have finer granularity?
 public class CollectAllCommand extends AbstractInfoCollectorCommand {
@@ -38,6 +42,8 @@ public class CollectAllCommand extends AbstractInfoCollectorCommand {
                   .hasArg(true).desc("components to collect logs from")
                   .build();
 
+  // TODO(jiacheng): target dir where is it defined?
+
   public CollectAllCommand(@Nullable FileSystemContext fsContext) {
     super(fsContext);
   }
@@ -49,8 +55,8 @@ public class CollectAllCommand extends AbstractInfoCollectorCommand {
             .addOption(COMPONENT_OPTION);
   }
 
-  //
-  List<AbstractInfoCollectorCommand> mChildren;
+  // TODO(jiacheng):
+  Map<String, Command> mChildren;
 
   @Override
   public String getCommandName() {
@@ -58,25 +64,55 @@ public class CollectAllCommand extends AbstractInfoCollectorCommand {
   }
 
   @Override
+  // TODO(jiacheng): Do not throw these
   public int run(CommandLine cl) throws AlluxioException, IOException {
     int ret = 0;
 
+    // Load the commands
+    if (mChildren == null) {
+      mChildren = InfoCollector.getIndividualCommands();
+    }
+
     // Determine the working dir path
-    String targetDir = getDestDir(cl);
+    String targetDirPath = getDestDir(cl);
 
     // Invoke all other commands to collect information
     // FORCE_OPTION will be propagated to child commands
-    for (AbstractInfoCollectorCommand child : mChildren) {
-      LOG.info(String.format("Executing command %s", child.getCommandName()));
-      ret = child.run(cl);
-      LOG.info(String.format("Command return %s", ret));
+    List<Exception> exceptions = new ArrayList<>();
+    for (String cmdName : mChildren.keySet()) {
+      AbstractInfoCollectorCommand child = (AbstractInfoCollectorCommand) mChildren.get(cmdName);
+      String preExecMsg = String.format("Executing command %s", child.getCommandName());
+      System.out.println(preExecMsg);
+      LOG.info(preExecMsg);
+      try {
+        ret = child.run(cl);
+        if (ret != 0) {
+          String errorExitMsg = String.format("Command %s completed with a non-zero exit code %s",
+                  child.getCommandName(), ret);
+          System.out.println(errorExitMsg);
+          LOG.warn(errorExitMsg);
+        }
+      } catch (IOException | AlluxioException e) {
+        String exMsg = String.format("Exception when running %s: %s",
+                child.getCommandName(), e.getMessage());
+        exceptions.add(e);
+      }
     }
 
     // Generate bundle
-    LOG.info(String.format("Archiving dir %s", targetDir));
-    String tarballPath = Paths.get(targetDir, "collectAll.tar.gz").toAbsolutePath().toString();
-    TarUtils.compress(tarballPath, Files.list(new File(targetDir).toPath()).toArray(File[]::new));
+    System.out.println(String.format("Archiving dir %s", targetDirPath));
+    LOG.info(String.format("Archiving dir %s", targetDirPath));
+    String tarballPath = Paths.get(targetDirPath, "collectAll.tar.gz").toAbsolutePath().toString();
+    // All files to compress
+    File targetDir = new File(targetDirPath);
+    // TODO(jiacheng): verify
+
+    File[] files = targetDir.listFiles();
+    TarUtils.compress(tarballPath, files);
+    System.out.println("Archiving finished");
     LOG.info("Archiving finished");
+
+    // TODO(jiacheng): what to do with the exceptions?
 
     return ret;
   }
