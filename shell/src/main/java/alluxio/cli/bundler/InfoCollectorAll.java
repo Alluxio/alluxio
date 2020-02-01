@@ -106,7 +106,7 @@ public class InfoCollectorAll extends AbstractShell {
 
         // TODO(jiacheng): Now we assume alluxio is on the same path on every machine
         try {
-          CommandReturn cr = ShellUtils.execCommandWithOutput(alluxioBinPath, "infoBundle");
+          CommandReturn cr = ShellUtils.sshExecCommandWithOutput(host, alluxioBinPath, "infoBundle");
           return cr;
         } catch (Exception e) {
           // TODO(jiacheng): What to do here?

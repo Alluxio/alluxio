@@ -61,6 +61,7 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
     return false;
   }
 
+  // TODO(jiacheng): Add reference
   public String getMetricsJson() {
     // Generate URL from parameters
     String masterAddr;
@@ -72,8 +73,9 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
       return String.format("%s", e.getStackTrace());
     }
     // TODO(jiacheng): Where to get /metrics/json/ ?
-    String url = String.format("%s:%s/metrics/json/", masterAddr,
+    String url = String.format("http://%s:%s/metrics/json/", masterAddr,
             mFsContext.getClusterConf().get(PropertyKey.MASTER_WEB_PORT));
+    System.out.println(url);
     LOG.info(String.format("Metric address URL: %s", url));
 
     // Create an instance of HttpClient and do Http Get
@@ -87,8 +89,8 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
     try {
       // Execute the method.
       int statusCode = client.executeMethod(method);
-
-      return String.format("StatusCode: %s\nResponse%s", statusCode, new String(method.getResponseBody()));
+      String response = new String(method.getResponseBody());
+      return String.format("StatusCode: %s\nResponse%s", statusCode, response);
     } catch (HttpException e) {
       LOG.error("Fatal protocol violation: " + e.getMessage());
       e.printStackTrace();

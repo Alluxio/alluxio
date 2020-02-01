@@ -89,12 +89,11 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
 
     CommandReturn cr = ShellUtils.execCommandWithOutput(jpsCommand);
     if (cr.getExitCode() != 0) {
-      LOG.error(cr.getFormattedOutput());
+      LOG.warn(cr.getFormattedOutput());
       return procs;
     }
 
     LOG.info("JPS succeeded");
-    // TODO(jiacheng): stderr?
     for (String row : cr.getOutput().split("\n")) {
       String[] parts = row.split(" ");
       if (parts.length == 0) {

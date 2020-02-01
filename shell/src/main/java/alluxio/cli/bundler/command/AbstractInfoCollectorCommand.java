@@ -16,6 +16,7 @@ import java.util.Arrays;
 
 public abstract class AbstractInfoCollectorCommand implements Command {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractInfoCollectorCommand.class);
+  private static final String FILE_NAME_SUFFIX = ".txt";
 
   FileSystemContext mFsContext;
 
@@ -55,6 +56,9 @@ public abstract class AbstractInfoCollectorCommand implements Command {
   }
 
   public File getOutputFile(String baseDirPath, String fileName) throws IOException {
+    if (!fileName.endsWith(FILE_NAME_SUFFIX)) {
+      fileName += FILE_NAME_SUFFIX;
+    }
     String outputFilePath = Paths.get(getWorkingDirectory(baseDirPath), fileName).toString();
     File outputFile = new File(outputFilePath);
     if (!outputFile.exists()) {

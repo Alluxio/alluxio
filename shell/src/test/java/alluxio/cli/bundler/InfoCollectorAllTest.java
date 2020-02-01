@@ -6,5 +6,7 @@ public class InfoCollectorAllTest {
 
   // TODO(jiacheng): load commands?
 
-  // TODO(jiacheng): ssh?
+  // TODO(jiacheng): all sub commands are invoked
+
+  // TODO(jiacheng): tarball created?
 }

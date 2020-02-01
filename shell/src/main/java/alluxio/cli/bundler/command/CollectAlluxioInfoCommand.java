@@ -1,9 +1,11 @@
 package alluxio.cli.bundler.command;
 
+import alluxio.cli.Command;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.CommandReturn;
+import alluxio.shell.ShellCommand;
 import alluxio.util.ShellUtils;
 import jdk.nashorn.tools.Shell;
 import org.apache.commons.cli.CommandLine;
@@ -17,15 +19,19 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.lang.reflect.Array;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CollectAlluxioInfoCommand.class);
 
   private static String OUTPUT_FILE_NAME = "alluxioInfo.txt";
 
+  private String mAlluxioPath;
   private List<AlluxioCommand> mCommands;
 
   private static final Option FORCE_OPTION =
@@ -43,46 +49,49 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
 
   public CollectAlluxioInfoCommand(@Nullable FileSystemContext fsContext) {
     super(fsContext);
+    mAlluxioPath = Paths.get(fsContext.getClusterConf().get(PropertyKey.WORK_DIR), "bin/alluxio")
+            .toAbsolutePath().toString();
     registerCommands();
   }
 
-  private static class AlluxioCommand {
+  public static class AlluxioCommand extends ShellCommand {
     String mName;
-    String mCmd;
+    String mAlluxioPath;
     String mAlternative;
 
-    AlluxioCommand(String name, String cmd, String alternative) {
+    public AlluxioCommand(String name, String alluxioPath, String cmd, String alternative) {
+      super((alluxioPath + " " + cmd).split(" "));
       mName = name;
-      mCmd = cmd;
+      mAlluxioPath = alluxioPath;
       mAlternative = alternative;
     }
 
-    String[] getCommand() {
-      // TODO(jiacheng): where to get bin/ from?
-      return String.format("bin/alluxio %s", mCmd).split(" ");
+    boolean hasAlternativeCommand() {
+      return mAlternative == null;
     }
 
-    String[] getAlternativeCommand() {
-      if (mAlternative == null) {
-        return new String[]{};
-      }
-      return mAlternative.split(" ");
+    AlluxioCommand getAlternativeCommand() {
+      return new AlluxioCommand(mName, mAlluxioPath, mAlternative, null);
     }
   }
 
   private void registerCommands() {
     mCommands = new ArrayList<>();
-    mCommands.add(new AlluxioCommand("getConf", "getConf --master --source",
+    mCommands.add(new AlluxioCommand("getConf", mAlluxioPath, "getConf --master --source",
             null));
-    mCommands.add(new AlluxioCommand("fsadmin", "fsadmin report", null));
-    mCommands.add(new AlluxioCommand("mount", "fs mount", null));
-    mCommands.add(new AlluxioCommand("version", "version -r", null));
-    mCommands.add(new AlluxioCommand("job", "job ls", null));
-    mCommands.add(new AlluxioCommand("fsadmin", "fsadmin report", null));
-    mCommands.add(new AlluxioCommand("journal",
+    mCommands.add(new AlluxioCommand("fsadmin", mAlluxioPath, "fsadmin report", null));
+    mCommands.add(new AlluxioCommand("mount", mAlluxioPath, "fs mount", null));
+    mCommands.add(new AlluxioCommand("version", mAlluxioPath, "version -r", null));
+    mCommands.add(new AlluxioCommand("job", mAlluxioPath, "job ls", null));
+    mCommands.add(new AlluxioCommand("fsadmin", mAlluxioPath, "fsadmin report", null));
+    mCommands.add(new AlluxioCommand("journal", mAlluxioPath,
             String.format("fs ls -R %s", mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER)),
             String.format("ls -al -R %s", mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER))));
     // TODO(jiacheng): a command to find lost blocks
+  }
+
+  public List<AlluxioCommand> getCommands() {
+    return mCommands;
   }
 
   @Override
@@ -105,27 +114,40 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
     }
 
     StringWriter output = new StringWriter();
-
-    for(AlluxioCommand cmd : mCommands) {
-      CommandReturn cr = ShellUtils.execCommandWithOutput(cmd.getCommand());
-      output.write(cr.getFormattedOutput());
+    for(AlluxioCommand cmd : getCommands()) {
+      CommandReturn cr = cmd.runWithOutput();
 
       if (cr.getExitCode() != 0) {
-        LOG.error(String.format("Command %s returned status %s. Try alternative command.", Arrays.toString(cmd.getCommand()),
-                cr.getExitCode()));
-        String[] alternativeCmd = cmd.getAlternativeCommand();
-        if (alternativeCmd.length == 0) {
-          LOG.info(String.format("No alternative command for %s"));
+        String crStr = String.format("Command %s failed: %s", cmd, cr.getFormattedOutput());
+        LOG.warn(crStr);
+        output.write(crStr);
+
+        // Try alternative command if there is one
+        if (cmd.hasAlternativeCommand()) {
+          AlluxioCommand alternativeCmd = cmd.getAlternativeCommand();
+          String tryAgainMsg = String.format("Try alternative command %s", alternativeCmd);
+          output.write(tryAgainMsg);
+          LOG.warn(tryAgainMsg);
+
+          CommandReturn tryAgain = alternativeCmd.runWithOutput();
+          String tryAgainRes;
+          if (tryAgain.getExitCode() != 0) {
+            tryAgainRes = String.format("Alternative command %s failed: %s", alternativeCmd, tryAgain.getFormattedOutput());
+            LOG.warn(tryAgainRes);
+          } else {
+            tryAgainRes = String.format("Alternative command %s succeeded: %s", alternativeCmd, tryAgain.getFormattedOutput());
+            LOG.info(tryAgainRes);
+          }
+          output.write(tryAgainRes);
         }
 
-        output.write("Running alternative command " + Arrays.toString(alternativeCmd));
-        LOG.info(String.format("Alternative command: %s", Arrays.toString(alternativeCmd)));
-        cr = ShellUtils.execCommandWithOutput(alternativeCmd);
-        output.write(cr.getFormattedOutput());
-
-        // TODO(jiacheng): What status code makes sense?
-        ret |= cr.getExitCode();
+        continue;
       }
+
+      // Command completed
+      String crStr = String.format("Command %s succeeded %s", cmd, cr.getFormattedOutput());
+      LOG.info(crStr);
+      output.write(crStr);
     }
 
     File outputFile = getOutputFile(targetDir, OUTPUT_FILE_NAME);

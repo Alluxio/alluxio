@@ -4,6 +4,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.CommandReturn;
+import alluxio.shell.ShellCommand;
 import alluxio.util.ShellUtils;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -18,7 +19,9 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CollectEnvCommand extends AbstractInfoCollectorCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CollectEnvCommand.class);
@@ -36,52 +39,40 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
             .addOption(FORCE_OPTION);
   }
 
-  private static class UnixCommand {
-    String mName;
-    String mCmd;
-    String mBetterVersion;
-
-    UnixCommand(String name, String cmd, String betterVersion) {
-      mName = name;
-      mCmd = cmd;
-      mBetterVersion = betterVersion;
-    }
-
-    String[] getCommand() {
-      String[] bashCmd = new String[]{"bash", "-c"};
-      if (mBetterVersion != null) {
-        return mBetterVersion.split(" ");
-      } else {
-        return mCmd.split(" ");
-      }
-    }
-  }
-
-  private List<UnixCommand> mCommands;
+  private Map<String, ShellCommand> mCommands;
+  private Map<String, ShellCommand> mCommandsBetter;
 
   public CollectEnvCommand(@Nullable FileSystemContext fsContext) {
     super(fsContext);
-    mCommands = new ArrayList<>();
+    mCommands = new HashMap<>();
+    mCommandsBetter = new HashMap<>();
     registerCommands();
   }
 
   private void registerCommands() {
-    mCommands.add(new UnixCommand("ps", "ps -ef | grep alluxio*", null));
-    mCommands.add(new UnixCommand("env", "env", null));
-    mCommands.add(new UnixCommand("top", "top -b -n 1", "atop -b -n 1"));
-    mCommands.add(new UnixCommand("mount", "mount", null));
-    mCommands.add(new UnixCommand("df", "df -H", null));
-    mCommands.add(new UnixCommand("ulimit", "ulimit -Ha", null));
-    mCommands.add(new UnixCommand("uname", "uname -a", null));
-    mCommands.add(new UnixCommand("hostname", "hostname", null));
-    mCommands.add(new UnixCommand("host ip", "hostname -i", null));
-    mCommands.add(new UnixCommand("host fqdn", "hostname -v", null));
-    mCommands.add(new UnixCommand("list Alluxio home", String.format("ls -al -R %s",
-            mFsContext.getClusterConf().get(PropertyKey.HOME)), null));
-    mCommands.add(new UnixCommand("dig", "dig $(hostname -i)", null));
-    mCommands.add(new UnixCommand("nslookup", "nslookup $(hostname -i)", null));
-    // TODO(jiacheng): Does this stop?
-    mCommands.add(new UnixCommand("dstat", "dstat -cdgilmnprsty", null));
+    registerCommand("ps", "ps -ef | grep alluxio*", null);
+    registerCommand("env", "env", null);
+    registerCommand("top", "top -b -n 1", "atop -b -n 1");
+    registerCommand("mount", "mount", null);
+    registerCommand("df", "df -H", null);
+    registerCommand("ulimit", "ulimit -Ha", null);
+    registerCommand("uname", "uname -a", null);
+    registerCommand("hostname", "hostname", null);
+    registerCommand("host ip", "hostname -i", null);
+    registerCommand("host fqdn", "hostname -v", null);
+    registerCommand("list Alluxio home", String.format("ls -al -R %s",
+            mFsContext.getClusterConf().get(PropertyKey.HOME)), null);
+    registerCommand("dig", "dig $(hostname -i)", null);
+    registerCommand("nslookup", "nslookup $(hostname -i)", null);
+    // TODO(jiacheng): does this stop?
+    registerCommand("dstat", "dstat -cdgilmnprsty", null);
+  }
+
+  private void registerCommand(String name, String cmd, String betterVersion) {
+    mCommands.put(name, new ShellCommand(cmd.split(" ")));
+    if (betterVersion != null && betterVersion.trim() != "") {
+      mCommandsBetter.put(name, new ShellCommand(betterVersion.split(" ")));
+    }
   }
 
   @Override
@@ -111,11 +102,45 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
     // Output buffer stream
     StringWriter outputBuffer = new StringWriter();
 
-    for (UnixCommand cmd : mCommands) {
-      String[] command = cmd.getCommand();
-      outputBuffer.write(String.format("Running cmd %s", Arrays.toString(command)));
-      CommandReturn cr = ShellUtils.execCommandWithOutput(command);
-      outputBuffer.write(cr.getFormattedOutput());
+    for (String cmdName : mCommands.keySet()) {
+      boolean complete = false;
+
+      // if there is a better option, try it first
+      if (mCommandsBetter.containsKey(cmdName)) {
+        ShellCommand betterCmd = mCommandsBetter.get(cmdName);
+        CommandReturn crBetter = betterCmd.runWithOutput();
+        String cmdBetterMsg;
+        if (crBetter.getExitCode() == 0) {
+          complete = true;
+          cmdBetterMsg = String.format("Better option cmd %s succeeded: %s", betterCmd.toString(),
+                  crBetter.getFormattedOutput());
+          LOG.warn(cmdBetterMsg);
+          ret = crBetter.getExitCode();
+        } else {
+          cmdBetterMsg = String.format("Better option cmd %s failed: %s", betterCmd.toString(),
+                  crBetter.getFormattedOutput());
+          LOG.info(cmdBetterMsg);
+        }
+        outputBuffer.write(cmdBetterMsg);
+      }
+
+      // If the better option does not work, fall back
+      if (!complete) {
+        ShellCommand cmd = mCommands.get(cmdName);
+        CommandReturn cr = cmd.runWithOutput();
+        String cmdMsg;
+        if (cr.getExitCode() == 0) {
+          cmdMsg = String.format("Better option cmd %s succeeded: %s", cmd.toString(),
+                  cr.getFormattedOutput());
+          LOG.warn(cmdMsg);
+          ret = cr.getExitCode();
+        } else {
+          cmdMsg = String.format("Better option cmd %s failed: %s", cmd.toString(),
+                  cr.getFormattedOutput());
+          LOG.info(cmdMsg);
+        }
+        outputBuffer.write(cmdMsg);
+      }
     }
 
     // output the buffer

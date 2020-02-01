@@ -142,4 +142,8 @@ public class ShellCommand {
       }
     }
   }
+
+  public String toString() {
+    return Arrays.toString(mCommand);
+  }
 }
