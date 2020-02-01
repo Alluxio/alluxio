@@ -271,7 +271,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
 
         if (batch != null) {
           long txId = batch.getTxid();
-          count++;
+          count += batch.getEvents().length;
           for (Event event : batch.getEvents()) {
             processEvent(event, mUfsUriList, txId);
           }
