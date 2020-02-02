@@ -95,7 +95,7 @@ public final class GrpcChannel extends Channel {
   /**
    * Shuts down the channel.
    */
-  public void shutdown() {
+  public synchronized void shutdown() {
     if (mAuthDriver != null) {
       // Close authenticated session with server.
       mAuthDriver.close();
