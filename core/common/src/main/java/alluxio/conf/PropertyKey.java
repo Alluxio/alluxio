@@ -3990,6 +3990,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_UPDATE_FILE_ACCESSTIME_DISABLED =
+      new Builder(Name.USER_UPDATE_FILE_ACCESSTIME_DISABLED)
+          .setDefaultValue(false)
+          .setIsHidden(true)
+          .setDescription("(Experimental) If this is enabled, the clients doesn't update file "
+              + "access time which may cause issues for some applications.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_SHORT_CIRCUIT_ENABLED =
       new Builder(Name.USER_SHORT_CIRCUIT_ENABLED)
           .setDefaultValue(true)
@@ -5331,6 +5340,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards";
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
+    public static final String USER_UPDATE_FILE_ACCESSTIME_DISABLED =
+        "alluxio.user.update.file.accesstime.disabled";
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
     public static final String USER_SHORT_CIRCUIT_PREFERRED =
         "alluxio.user.short.circuit.preferred";
