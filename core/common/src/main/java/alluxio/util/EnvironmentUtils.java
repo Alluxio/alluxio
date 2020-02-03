@@ -14,6 +14,7 @@ package alluxio.util;
 import alluxio.util.io.FileUtils;
 
 import com.amazonaws.util.EC2MetadataUtils;
+import com.google.common.io.CharStreams;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -25,11 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.util.List;
 
@@ -39,6 +39,9 @@ import java.util.List;
 @ThreadSafe
 public final class EnvironmentUtils {
   private static final Logger LOG = LoggerFactory.getLogger(EnvironmentUtils.class);
+  private static final String EC2_UUID_FILE_PATH = "/sys/hypervisor/uuid";
+  private static final String EC2_PRODUCT_UUID_FILE_PATH
+      = "/sys/devices/virtual/dmi/id/product_uuid";
 
   /**
    * Utility to detect the docker deployment environment.
@@ -139,7 +142,7 @@ public final class EnvironmentUtils {
    */
   private static boolean isEC2WithUUID() {
     try {
-      return fileExistAndStartWithIdentifier("/sys/hypervisor/uuid", "ec2");
+      return fileExistAndStartWithIdentifier(EC2_UUID_FILE_PATH, "ec2");
     } catch (Throwable t) {
       // Exceptions are expected if this instance is not EC2 instance
       // or this check is not valid
@@ -155,7 +158,7 @@ public final class EnvironmentUtils {
    */
   private static boolean isEC2WithProductUUID() {
     try {
-      return fileExistAndStartWithIdentifier("/sys/devices/virtual/dmi/id/product_uuid", "EC2");
+      return fileExistAndStartWithIdentifier(EC2_PRODUCT_UUID_FILE_PATH, "EC2");
     } catch (Throwable t) {
       // Exceptions are expected if this instance is not EC2 instance
       // or this check is not valid
@@ -218,11 +221,10 @@ public final class EnvironmentUtils {
   private static boolean isGCEWithBiosVendor() {
     try {
       Process process = Runtime.getRuntime().exec("sudo dmidecode -s bios-vendor");
-      BufferedReader reader = new BufferedReader(
-          new InputStreamReader(process.getInputStream()));
-
-      String output = reader.readLine();
-      return output.contains("Google");
+      try (Reader reader = new InputStreamReader(process.getInputStream())) {
+        String output = CharStreams.toString(reader);
+        return output.contains("Google");
+      }
     } catch (Throwable t) {
       // Exceptions are expected if this instance is not
       // running on Google bios vendor
@@ -240,11 +242,11 @@ public final class EnvironmentUtils {
   private static boolean fileExistAndStartWithIdentifier(String filePath,
       String identifier) throws IOException {
     if (FileUtils.exists(filePath)) {
-      BufferedReader reader = new BufferedReader(new FileReader(
-          new File(filePath)));
-      String line = reader.readLine();
-      if (line.startsWith(identifier)) {
-        return true;
+      try (Reader reader = new InputStreamReader(new FileInputStream(filePath))) {
+        String content = CharStreams.toString(reader);
+        if (content.startsWith(identifier)) {
+          return true;
+        }
       }
     }
     return false;
