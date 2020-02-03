@@ -231,8 +231,6 @@ public final class EnvironmentUtils {
       String identifier) throws IOException {
     if (FileUtils.exists(filePath)) {
       int length = identifier.length();
-      // Read the first several bytes to see
-      // if file starts with id
       byte[] array = new byte[length];
       try (InputStream in = new FileInputStream(filePath)) {
         int offset = 0;
