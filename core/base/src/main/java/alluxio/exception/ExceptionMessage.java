@@ -243,6 +243,9 @@ public enum ExceptionMessage {
   UNKNOWN_ENUM("Unrecognized configuration enum value <{0}> for key {1}. Acceptable values: {2}"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
+  // metrics
+  INVALID_METRIC_KEY("Invalid metric key {0}"),
+
   // security
   ACL_BASE_REQUIRED(
       "Replacing ACL entries must include the base entries for 'user', 'group', and 'other'. "

@@ -204,7 +204,7 @@ public final class Metric implements Serializable {
 
   /**
    * @return the fully qualified metric name, which is of pattern
-   *         instance.[hostname-id:instanceId.]name[.tagName:tagValue]*, where the tags are appended
+   *         instance.name[.hostname-id:instanceId][.tagName:tagValue]*, where the tags are appended
    *         at the end
    */
   public String getFullMetricName() {
@@ -219,15 +219,15 @@ public final class Metric implements Serializable {
   private String constructFullMetricName() {
     StringBuilder sb = new StringBuilder();
     sb.append(mInstanceType).append('.');
+    sb.append(mName);
     if (mHostname != null) {
+      sb.append('.');
       sb.append(mHostname);
       if (mInstanceId != null) {
         sb.append(ID_SEPARATOR).append(mInstanceId);
       }
-      sb.append('.');
     }
 
-    sb.append(mName);
     for (Entry<String, String> entry : mTags.entrySet()) {
       sb.append('.').append(entry.getKey()).append(TAG_SEPARATOR).append(entry.getValue());
     }
@@ -239,11 +239,15 @@ public final class Metric implements Serializable {
    */
   public alluxio.grpc.Metric toProto() {
     alluxio.grpc.Metric.Builder metric = alluxio.grpc.Metric.newBuilder();
-    metric.setInstance(mInstanceType.toString()).setHostname(mHostname).setMetricType(mMetricType)
+    metric.setInstance(mInstanceType.toString()).setMetricType(mMetricType)
         .setName(mName).setValue(mValue.get()).putAllTags(mTags);
 
     if (mInstanceId != null && !mInstanceId.isEmpty()) {
       metric.setInstanceId(mInstanceId);
+    }
+
+    if (!mHostname.isEmpty()) {
+      metric.setHostname(mHostname);
     }
 
     return metric.build();
@@ -281,7 +285,7 @@ public final class Metric implements Serializable {
     if (result != null) {
       return result;
     }
-    return CACHED_METRICS.computeIfAbsent(k, key -> metricName + "." + CommonMetrics.TAG_USER
+    return CACHED_METRICS.computeIfAbsent(k, key -> metricName + "." + MetricInfo.TAG_USER
         + TAG_SEPARATOR + userName);
   }
 
@@ -307,14 +311,14 @@ public final class Metric implements Serializable {
       name = pieces[1];
       tagStartIdx = 2;
     } else {
-      if (pieces[1].contains(ID_SEPARATOR)) {
-        String[] ids = pieces[1].split(ID_SEPARATOR);
+      if (pieces[2].contains(ID_SEPARATOR)) {
+        String[] ids = pieces[2].split(ID_SEPARATOR);
         hostname = ids[0];
         id = ids[1];
       } else {
-        hostname = pieces[1];
+        hostname = pieces[2];
       }
-      name = pieces[2];
+      name = pieces[1];
       tagStartIdx = 3;
     }
     MetricsSystem.InstanceType instance = MetricsSystem.InstanceType.fromString(pieces[0]);

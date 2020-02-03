@@ -14,9 +14,7 @@ package alluxio.cli.fsadmin.report;
 import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.grpc.MetricType;
 import alluxio.grpc.MetricValue;
-import alluxio.metrics.ClientMetrics;
-import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.WorkerMetrics;
+import alluxio.metrics.MetricKey;
 
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.After;
@@ -69,44 +67,45 @@ public class MetricsCommandTest {
    */
   private Map<String, MetricValue> generateMetricsMap() {
     Map<String, MetricValue> map = new HashMap<>();
-    map.put(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL),
+
+    map.put(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName(),
         MetricValue.newBuilder().setDoubleValue(12312312312L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO),
+    map.put(MetricKey.CLUSTER_BYTES_READ_ALLUXIO.getName(),
         MetricValue.newBuilder().setDoubleValue(421312312L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN),
+    map.put(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName(),
         MetricValue.newBuilder().setDoubleValue(4245232L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL),
+    map.put(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName(),
         MetricValue.newBuilder().setDoubleValue(534214123L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO),
+    map.put(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName(),
         MetricValue.newBuilder().setDoubleValue(23532L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_DOMAIN),
+    map.put(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN.getName(),
         MetricValue.newBuilder().setDoubleValue(65463532L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_ALL),
+    map.put(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName(),
         MetricValue.newBuilder().setDoubleValue(325324L).build());
 
-    map.put(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT),
+    map.put(MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName(),
         MetricValue.newBuilder().setDoubleValue(123125324L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT),
+    map.put(MetricKey.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT.getName(),
         MetricValue.newBuilder().setDoubleValue(543534623L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN_THROUGHPUT),
+    map.put(MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName(),
         MetricValue.newBuilder().setDoubleValue(31423412L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT),
+    map.put(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName(),
         MetricValue.newBuilder().setDoubleValue(745632L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT),
+    map.put(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName(),
         MetricValue.newBuilder().setDoubleValue(8423432L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_DOMAIN_THROUGHPUT),
+    map.put(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName(),
         MetricValue.newBuilder().setDoubleValue(1231231L).build());
-    map.put(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT),
+    map.put(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName(),
         MetricValue.newBuilder().setDoubleValue(34264L).build());
 
-    map.put("Master.CompleteFileOps",
+    map.put(MetricKey.MASTER_COMPLETE_FILE_OPS.getName(),
         MetricValue.newBuilder().setMetricType(MetricType.COUNTER).setDoubleValue(813).build());
     map.put("Master.UfsSessionCount-Ufs:_alluxio_underFSStorage",
         MetricValue.newBuilder().setMetricType(MetricType.COUNTER).setDoubleValue(8535L).build());
     map.put("Master.UfsSessionCount-Ufs:file:___Users_alluxio_alluxioMountedFolder",
         MetricValue.newBuilder().setMetricType(MetricType.COUNTER).setDoubleValue(1231L).build());
 
-    map.put("Master.CapacityTotal",
+    map.put(MetricKey.CLUSTER_CAPACITY_TOTAL.getName(),
         MetricValue.newBuilder().setDoubleValue(1154531246129122L).build());
     map.put("Master.getMetrics.User:alluxio", MetricValue.newBuilder()
         .setMetricType(MetricType.TIMER).setDoubleValue(4).build());
@@ -140,7 +139,7 @@ public class MetricsCommandTest {
         "Cluster.BytesWrittenDomainThroughput  (Type: GAUGE, Value: 1202.37KB/min)",
         "Cluster.BytesWrittenUfsAll  (Type: GAUGE, Value: 317.70KB)",
         "Cluster.BytesWrittenUfsThroughput  (Type: GAUGE, Value: 33.46KB/min)",
-        "Master.CapacityTotal  (Type: GAUGE, Value: 1,154,531,246,129,122)",
+        "Cluster.CapacityTotal  (Type: GAUGE, Value: 1,154,531,246,129,122)",
         "Master.CompleteFileOps  (Type: COUNTER, Value: 813)",
         "Master.UfsSessionCount-Ufs:_alluxio_underFSStorage  (Type: COUNTER, Value: 8,535)",
         "Master.UfsSessionCount-Ufs:file:___Users_alluxio_alluxioMountedFolder  (Type: COUNTER, Value: 1,231)",
