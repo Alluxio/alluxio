@@ -51,7 +51,7 @@ public class WriteActionTest {
   }
 
   @Test
-  public void DynamicNumFiles() {
+  public void dynamicNumFiles() {
     TransformAction action = TransformAction.Parser.parse(
         "write(hive).option(hive.num.files, 0).option(file.size, 1024)");
     assertEquals(WriteAction.class, action.getClass());

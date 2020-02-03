@@ -28,7 +28,7 @@ import java.util.Map;
 public class WriteAction implements TransformAction {
   private static final String NAME = "write";
   private static final String NUM_FILES_OPTION = "hive.num.files";
-  private static final String FILE_SIZE = "file.size";
+  private static final String FILE_SIZE = "hive.file.size";
   private static final long DEFAULT_FILE_SIZE = FileUtils.ONE_GB;
   private static final int DEFAULT_NUM_FILES = 1;
 

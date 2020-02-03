@@ -95,30 +95,39 @@ public final class CompactDefinition
     AlluxioURI outputDir = new AlluxioURI(config.getOutput());
 
     List<URIStatus> files = Lists.newArrayList();
-    long sum = 0;
+    long totalFileSize = 0;
     for (URIStatus status : context.getFileSystem().listStatus(inputDir)) {
       if (!shouldIgnore(status)) {
         files.add(status);
-        sum += status.getLength();
+        totalFileSize += status.getLength();
       }
     }
     Map<WorkerInfo, ArrayList<CompactTask>> assignments = Maps.newHashMap();
-    int numOfFiles = config.getNumFiles();
-    if (numOfFiles == CompactConfig.DYNAMIC_NUM_OF_FILES) {
-      numOfFiles = calcNumOfFiles(files.size(), sum / files.size(), config.getFileSize());
+    int numFiles = config.getNumFiles();
+    if (numFiles == CompactConfig.DYNAMIC_NUM_OF_FILES) {
+      numFiles = calcNumOfFiles(files.size(), totalFileSize / files.size(), config.getFileSize());
     }
-    int groupSize = Math.max(1, (files.size() + 1) / numOfFiles);
+    long groupMaxSize = totalFileSize / numFiles;
     // Files to be compacted are grouped into different groups,
     // each group of files are compacted to one file,
     // one task is to compact one group of files,
     // different tasks are assigned to different workers in a round robin way.
-    ArrayList<String> group = new ArrayList<>(groupSize);
+    // We keep adding files to the group, until it exceeds the newFileSize.
+    ArrayList<String> group = new ArrayList<>();
     int workerIndex = 0;
     int outputIndex = 0;
-    for (int i = 0; i < files.size(); i++) {
-      URIStatus file = files.get(i);
-      group.add(inputDir.join(file.getName()).toString());
-      if (group.size() == groupSize || i == files.size() - 1) {
+    int groupIndex = 0; // Number of groups already generated
+    long currentGroupSize = 0;
+    for (URIStatus file : files) {
+      // add the file to the group if
+      // 1. group is empty
+      // 2. group is the last group
+      // 3. group size with the new file will not exceed the max group size
+      if (group.isEmpty() || groupIndex == numFiles - 1
+          || currentGroupSize + file.getLength() <= groupMaxSize) {
+        group.add(inputDir.join(file.getName()).toString());
+        currentGroupSize += file.getLength();
+      } else {
         WorkerInfo worker = jobWorkers.get(workerIndex++);
         if (workerIndex == jobWorkers.size()) {
           workerIndex = 0;
@@ -128,8 +137,20 @@ public final class CompactDefinition
         }
         ArrayList<CompactTask> tasks = assignments.get(worker);
         tasks.add(new CompactTask(group, getOutputPath(outputDir, outputIndex++)));
-        group = new ArrayList<>(groupSize);
+        group = new ArrayList<>();
+        group.add(inputDir.join(file.getName()).toString());
+        currentGroupSize = file.getLength();
+        groupIndex++;
       }
+    }
+    // handle the last group
+    if (!group.isEmpty()) {
+      WorkerInfo worker = jobWorkers.get(workerIndex);
+      if (!assignments.containsKey(worker)) {
+        assignments.put(worker, new ArrayList<>());
+      }
+      ArrayList<CompactTask> tasks = assignments.get(worker);
+      tasks.add(new CompactTask(group, getOutputPath(outputDir, outputIndex)));
     }
 
     Set<Pair<WorkerInfo, ArrayList<CompactTask>>> result = Sets.newHashSet();

@@ -81,7 +81,7 @@ public class TransformManagerTest {
   private static final String TABLE1 = TestDatabase.getTableName(0);
   private static final String TABLE2 = TestDatabase.getTableName(1);
   private static final String TABLE3 = TestDatabase.getTableName(2);
-  private static final String DEFINITION_DEFAULT = "";
+  private static final String EMPTY_DEFINITION = "";
   private static final String DEFINITION1 = "write(hive).option(hive.num.files, 1)";
   private static final String DEFINITION2 = "write(hive).option(hive.num.files, 2)";
 
@@ -174,7 +174,7 @@ public class TransformManagerTest {
     assertTrue(mTableMaster.getAllTransformJobInfo().isEmpty());
 
     // Starts 1 job.
-    long jobId1 = transform(TABLE1, DEFINITION_DEFAULT);
+    long jobId1 = transform(TABLE1, EMPTY_DEFINITION);
     checkTransformJobInfo(mTableMaster.getTransformJobInfo(jobId1), TABLE1,
         DefaultTableMaster.DEFAULT_TRANSFORMATION,
         jobId1, Status.RUNNING, null);
