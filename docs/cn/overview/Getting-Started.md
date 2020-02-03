@@ -35,7 +35,7 @@ priority: 1
 
 ## 下载 Alluxio
 
-首先，从[这里](http://www.alluxio.io/download)下载 Alluxio。选择为默认Hadoop版本构建的相应预编译版。
+首先，从[这里](http://www.alluxio.io/download)下载 Alluxio。
 
 接着，你可以用如下命令解压下载包。
 
