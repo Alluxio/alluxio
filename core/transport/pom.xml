@@ -90,6 +90,15 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>java11</id>
+      <dependencies>
+        <dependency>
+          <groupId>javax.annotation</groupId>
+          <artifactId>javax.annotation-api</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
   </profiles>
 
   <build>
