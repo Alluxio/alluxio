@@ -28,6 +28,7 @@ public interface CacheManager extends AutoCloseable  {
    * @return an instance of {@link CacheManager}
    */
   static CacheManager create(FileSystemContext fsContext) throws IOException {
+    // TODO(feng): make cache manager type configurable when we introduce more implementations.
     return LocalCacheManager.create(fsContext);
   }
 
