@@ -115,7 +115,13 @@ public final class UpdateCheck {
       isEC2 = true;
     }
 
-    String userData = EC2MetadataUtils.getUserData();
+    String userData = "";
+    try {
+      userData = EC2MetadataUtils.getUserData();
+    } catch (Throwable t) {
+      // Exceptions are expected if instance is not EC2 instance
+      // or get metadata operation is not allowed
+    }
     if (!userData.isEmpty()) {
       isEC2 = true;
       if (EnvironmentUtils.isCFT(userData)) {
