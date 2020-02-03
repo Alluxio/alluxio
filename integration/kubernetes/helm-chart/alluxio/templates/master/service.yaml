@@ -29,19 +29,23 @@ metadata:
     role: alluxio-master
 spec:
   ports:
-  - port: 19998
-    name: rpc
-  - port: 19999
-    name: web
-  - port: 20001
-    name: job-rpc
-  - port: 20002
-    name: job-web
-  clusterIP: None
+    - port: 19998
+      name: rpc
+    - port: 19999
+      name: web
+    - port: 20001
+      name: job-rpc
+    - port: 20002
+      name: job-web
+    - port: 19200
+      name: embedded
+    - port: 20003
+      name: job-embedded
+  type: NodePort
   selector:
     role: alluxio-master
     app: {{ $name }}
     release: {{ $release.Name }}
-    name: {{ $fullName }}-{{ $masterName }}
+    statefulset.kubernetes.io/pod-name: {{ $fullName }}-{{ $masterName }}
 ---
 {{- end }}

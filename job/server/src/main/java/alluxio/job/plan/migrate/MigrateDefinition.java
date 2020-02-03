@@ -309,9 +309,12 @@ public final class MigrateDefinition
     if (config.isDeleteSource() && !hasFiles(new AlluxioURI(config.getSource()),
         context.getFileSystem())) {
       try {
+        // ## MigrateDeleteUnchecked
+        // Delete the source unchecked because there is no guarantee that the source
+        // has been fulled persisted yet if the source was written using ASYNC_THROUGH
         LOG.debug("Deleting {}", config.getSource());
         context.getFileSystem().delete(new AlluxioURI(config.getSource()),
-            DeletePOptions.newBuilder().setRecursive(true).build());
+            DeletePOptions.newBuilder().setUnchecked(true).setRecursive(true).build());
       } catch (FileDoesNotExistException e) {
         // It's already deleted, possibly by another worker.
       }
@@ -331,6 +334,14 @@ public final class MigrateDefinition
     String destination = command.getDestination();
     LOG.debug("Migrating {} to {}", source, destination);
 
+    // If the write type is async through and the source is being deleted but source is persisted,
+    // keep the destination to be persisted by changing its write type
+    if (deleteSource && writeType.equals(WritePType.ASYNC_THROUGH)) {
+      if (fileSystem.getStatus(new AlluxioURI(source)).isPersisted()) {
+        writeType = WritePType.CACHE_THROUGH;
+      }
+    }
+
     CreateFilePOptions createOptions =
         CreateFilePOptions.newBuilder().setWriteType(writeType).build();
     OpenFilePOptions openFileOptions =
@@ -349,7 +360,11 @@ public final class MigrateDefinition
       }
     }
     if (deleteSource) {
-      fileSystem.delete(new AlluxioURI(source));
+      // ## MigrateDeleteUnchecked
+      // Delete the source unchecked because there is no guarantee that the source
+      // has been fulled persisted yet if the source was written using ASYNC_THROUGH
+      fileSystem.delete(new AlluxioURI(source),
+          DeletePOptions.newBuilder().setUnchecked(true).build());
     }
   }
 

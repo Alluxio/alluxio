@@ -501,6 +501,6 @@ public class FileOutStreamTest {
    */
   private FileOutStream createTestStream(AlluxioURI path, OutStreamOptions options)
       throws IOException {
-    return new FileOutStream(path, options, mFileSystemContext);
+    return new AlluxioFileOutStream(path, options, mFileSystemContext);
   }
 }

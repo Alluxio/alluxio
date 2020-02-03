@@ -12,6 +12,10 @@
 package alluxio.master.metrics;
 
 import alluxio.RpcUtils;
+import alluxio.grpc.ClearMetricsPRequest;
+import alluxio.grpc.ClearMetricsPResponse;
+import alluxio.grpc.GetMetricsPOptions;
+import alluxio.grpc.GetMetricsPResponse;
 import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsHeartbeatPResponse;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
@@ -48,6 +52,15 @@ public final class MetricsMasterClientServiceHandler
   }
 
   @Override
+  public void clearMetrics(ClearMetricsPRequest request,
+      StreamObserver<ClearMetricsPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mMetricsMaster.clearMetrics();
+      return ClearMetricsPResponse.newBuilder().build();
+    }, "clearMetrics", "request=%s", responseObserver, request);
+  }
+
+  @Override
   public void metricsHeartbeat(MetricsHeartbeatPRequest request,
       StreamObserver<MetricsHeartbeatPResponse> responseObserver) {
     RpcUtils.call(LOG,
@@ -64,5 +77,13 @@ public final class MetricsMasterClientServiceHandler
           }
           return MetricsHeartbeatPResponse.getDefaultInstance();
         }, "metricsHeartbeat", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getMetrics(GetMetricsPOptions options,
+      StreamObserver<GetMetricsPResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMetricsPResponse>) () ->
+        GetMetricsPResponse.newBuilder().putAllMetrics(mMetricsMaster.getMetrics()).build(),
+        "getMetrics", "options=%s", responseObserver, options);
   }
 }

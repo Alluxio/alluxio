@@ -97,5 +97,21 @@ public class HiveConstants {
     public static final String DECIMAL = "decimal";
     /** Hive binary type. */
     public static final String BINARY = "binary";
+
+    /**
+     * Filters out parts of type information to match the types constant for type checking.
+     *
+     * @param type the type
+     * @return type name matching the types constants
+     */
+    public static String getHiveConstantType(String type) {
+      // filters out the non hive type information from types like "char(10)"
+
+      int i = type.indexOf('(');
+      if (i == -1) {
+        return type;
+      }
+      return type.substring(0, i);
+    }
   }
 }

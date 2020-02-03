@@ -16,6 +16,7 @@ import alluxio.clock.SystemClock;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.MetricValue;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -23,14 +24,14 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.journal.NoopJournaled;
-import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsAggregator;
 import alluxio.metrics.MetricsFilter;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MultiValueMetricsAggregator;
 import alluxio.metrics.SingleValueAggregator;
-import alluxio.metrics.WorkerMetrics;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.aggregator.SingleTagValueAggregator;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -91,7 +92,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   @VisibleForTesting
   protected void addAggregator(SingleValueAggregator aggregator) {
     mMetricsAggregatorRegistry.put(aggregator.getName(), aggregator);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClusterMetricName(aggregator.getName()),
+    MetricsSystem.registerGaugeIfAbsent(aggregator.getName(),
         (Gauge<Object>) () -> {
           Map<MetricsFilter, Set<Metric>> metrics = new HashMap<>();
           for (MetricsFilter filter : aggregator.getFilters()) {
@@ -127,47 +128,68 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
 
   private void registerAggregators() {
     // worker metrics
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_ALLUXIO,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_ALLUXIO));
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT));
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_DOMAIN,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_DOMAIN));
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_DOMAIN_THROUGHPUT,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_DOMAIN_THROUGHPUT));
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_UFS_ALL,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_UFS));
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_UFS_THROUGHPUT));
+    addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_READ_ALLUXIO.getName(),
+        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_ALLUXIO.getName()));
+    addAggregator(new SumInstancesAggregator(
+        MetricKey.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT.getName(),
+        MetricsSystem.InstanceType.WORKER,
+        MetricKey.WORKER_BYTES_READ_ALLUXIO_THROUGHPUT.getName()));
+    addAggregator(new SumInstancesAggregator(
+        MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName(),
+        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_DOMAIN.getName()));
+    addAggregator(new SumInstancesAggregator(
+        MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName(),
+        MetricsSystem.InstanceType.WORKER,
+        MetricKey.WORKER_BYTES_READ_DOMAIN_THROUGHPUT.getName()));
+    addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName(),
+        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_UFS.getName()));
+    addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName(),
+        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName()));
 
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_ALLUXIO,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_ALLUXIO));
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT));
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_DOMAIN,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_DOMAIN));
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_DOMAIN_THROUGHPUT,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_DOMAIN_THROUGHPUT));
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_UFS_ALL,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_UFS));
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT));
+    addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName(),
+        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO.getName()));
+    addAggregator(new SumInstancesAggregator(
+        MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName(),
+        MetricsSystem.InstanceType.WORKER,
+        MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName()));
+    addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN.getName(),
+        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName()));
+    addAggregator(new SumInstancesAggregator(
+        MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName(),
+        MetricsSystem.InstanceType.WORKER,
+        MetricKey.WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()));
+    addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName(),
+        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_WRITTEN_UFS.getName()));
+    addAggregator(new SumInstancesAggregator(
+        MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName(),
+        MetricsSystem.InstanceType.WORKER,
+        MetricKey.WORKER_BYTES_WRITTEN_UFS_THROUGHPUT.getName()));
 
     // client metrics
-    addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_READ_LOCAL,
-        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL));
-    addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT,
-        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT));
+    addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName(),
+        MetricsSystem.InstanceType.CLIENT, MetricKey.CLIENT_BYTES_READ_LOCAL.getName()));
+    addAggregator(new SumInstancesAggregator(
+        MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName(),
+        MetricsSystem.InstanceType.CLIENT, MetricKey.CLIENT_BYTES_READ_LOCAL_THROUGHPUT.getName()));
+    addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName(),
+        MetricsSystem.InstanceType.CLIENT, MetricKey.CLIENT_BYTES_WRITTEN_LOCAL.getName()));
+    addAggregator(new SumInstancesAggregator(
+        MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName(),
+        MetricsSystem.InstanceType.CLIENT,
+        MetricKey.CLIENT_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName()));
 
     // multi-value aggregators
-    addAggregator(new SingleTagValueAggregator(WorkerMetrics.BYTES_READ_UFS,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_UFS, WorkerMetrics.TAG_UFS));
-    addAggregator(new SingleTagValueAggregator(WorkerMetrics.BYTES_WRITTEN_UFS,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_UFS, WorkerMetrics.TAG_UFS));
-    for (WorkerMetrics.UfsOps ufsOp : WorkerMetrics.UfsOps.values()) {
-      addAggregator(new SingleTagValueAggregator(WorkerMetrics.UFS_OP_PREFIX + ufsOp,
+    addAggregator(new SingleTagValueAggregator(MetricKey.CLUSTER_BYTES_READ_UFS.getName(),
+        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_UFS.getName(),
+        MetricInfo.TAG_UFS));
+    addAggregator(new SingleTagValueAggregator(MetricKey.CLUSTER_BYTES_WRITTEN_UFS.getName(),
+        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_WRITTEN_UFS.getName(),
+        MetricInfo.TAG_UFS));
+    // TODO(lu) Create a template for dynamically construct MetricKey
+    for (MetricInfo.UfsOps ufsOp : MetricInfo.UfsOps.values()) {
+      addAggregator(new SingleTagValueAggregator(MetricInfo.UFS_OP_PREFIX + ufsOp,
           MetricsSystem.InstanceType.MASTER, ufsOp.toString(),
-          WorkerMetrics.TAG_UFS));
+          MetricInfo.TAG_UFS));
     }
   }
 
@@ -206,6 +228,16 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   @Override
   public void workerHeartbeat(String hostname, List<Metric> metrics) {
     mMetricsStore.putWorkerMetrics(hostname, metrics);
+  }
+
+  @Override
+  public void clearMetrics() {
+    mMetricsStore.clear();
+  }
+
+  @Override
+  public Map<String, MetricValue> getMetrics() {
+    return MetricsSystem.allMetrics();
   }
 
   /**

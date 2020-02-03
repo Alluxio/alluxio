@@ -2,10 +2,22 @@ alluxio.master.audit.logging.enabled:
   'Set to true to enable file system master audit.'
 alluxio.master.audit.logging.queue.capacity:
   'Capacity of the queue used by audit logging.'
+alluxio.master.backup.abandon.timeout:
+  'Duration after which leader will abandon the backup if not received heartbeat from backup-worker.'
+alluxio.master.backup.connect.interval.max:
+  'Maximum delay between each connection attempt to leader backup master.'
+alluxio.master.backup.connect.interval.min:
+  'Minimum delay between each connection attempt to leader backup master.'
+alluxio.master.backup.delegation.enabled:
+  'Whether to delegate journals to stand-by masters in HA cluster.'
 alluxio.master.backup.directory:
   'Default directory for writing master metadata backups. This path is an absolute path of the root UFS. For example, if the root ufs directory is hdfs://host:port/alluxio/data, the default backup directory will be hdfs://host:port/alluxio_backups.'
 alluxio.master.backup.entry.buffer.count:
   'How many journal entries to buffer during a back-up.'
+alluxio.master.backup.heartbeat.interval:
+  'Interval at which follower updates the leader on ongoing backup.'
+alluxio.master.backup.transport.timeout:
+  'Request timeout for backup messaging.'
 alluxio.master.bind.host:
   'The hostname that Alluxio master binds to.'
 alluxio.master.daily.backup.enabled:
@@ -92,6 +104,8 @@ alluxio.master.lock.pool.low.watermark:
   'Low watermark of lock pool size. When the size grows over the high watermark, a background thread will try to evict unused locks until the size reaches the low watermark.'
 alluxio.master.log.config.report.heartbeat.interval:
   'The interval for periodically logging the configuration check report.'
+alluxio.master.lost.worker.file.detection.interval:
+  'The interval between Alluxio master detections to find lost workers and files based on updates from Alluxio workers.'
 alluxio.master.metastore:
   'The type of metastore to use, either HEAP or ROCKS. The heap metastore keeps all metadata on-heap, while the rocks metastore stores some metadata on heap and some metadata on disk. The rocks metastore has the advantage of being able to support a large namespace (1 billion plus files) without needing a massive heap size.'
 alluxio.master.metastore.dir:
@@ -204,7 +218,5 @@ alluxio.master.whitelist:
   'A comma-separated list of prefixes of the paths which are cacheable, separated by semi-colons. Alluxio will try to cache the cacheable file when it is read for the first time.'
 alluxio.master.worker.connect.wait.time:
   'Alluxio master will wait a period of time after start up for all workers to register, before it starts accepting client requests. This property determines the wait time.'
-alluxio.master.worker.heartbeat.interval:
-  'The interval between Alluxio master and worker heartbeats.'
 alluxio.master.worker.timeout:
   'Timeout between master and worker indicating a lost worker.'

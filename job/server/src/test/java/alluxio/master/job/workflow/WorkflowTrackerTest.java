@@ -27,17 +27,15 @@ import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.TestPlanConfig;
+import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.plan.PlanConfig;
-import alluxio.job.wire.PlanInfo;
 import alluxio.job.wire.Status;
-import alluxio.job.wire.TaskInfo;
 import alluxio.job.wire.WorkflowInfo;
 import alluxio.job.workflow.composite.CompositeConfig;
 import alluxio.master.job.JobMaster;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.plan.PlanTracker;
 import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;
@@ -61,7 +59,7 @@ public class WorkflowTrackerTest {
   private JobServerContext mMockJobServerContext;
 
   @Before
-  public void before() {
+  public void before() throws Exception {
     mMockJobMaster = mock(JobMaster.class);
     mWorkflowTracker = new WorkflowTracker(mMockJobMaster);
     mPlanTracker = new PlanTracker(CAPACITY, RETENTION_TIME, PURGE_CONUT, mWorkflowTracker);
@@ -96,22 +94,17 @@ public class WorkflowTrackerTest {
 
     verify(mMockJobMaster, never()).run(child2, 101);
 
-    TaskInfo task100 = new TaskInfo(100, 0, Status.COMPLETED, new WorkerNetAddress());
-    ArrayList<TaskInfo> taskInfos = Lists.newArrayList(task100);
-
-    PlanInfo plan100 = new PlanInfo(100, "test", Status.COMPLETED, 0, null);
-    when(mMockJobMaster.getStatus(100)).thenReturn(plan100);
-    mWorkflowTracker.workerHeartbeat(taskInfos);
+    PlanInfo plan100 = new PlanInfo(100, child1, null);
+    plan100.setStatus(Status.COMPLETED);
+    mWorkflowTracker.onPlanStatusChange(plan100);
 
     verify(mMockJobMaster).run(child2, 101);
 
     assertEquals(Status.RUNNING, mWorkflowTracker.getStatus(0, true).getStatus());
 
-    TaskInfo task101 = new TaskInfo(101, 0, Status.COMPLETED, new WorkerNetAddress());
-    taskInfos = Lists.newArrayList(task101);
-    PlanInfo plan101 = new PlanInfo(101, "test", Status.COMPLETED, 0, null);
-    when(mMockJobMaster.getStatus(101)).thenReturn(plan101);
-    mWorkflowTracker.workerHeartbeat(taskInfos);
+    PlanInfo plan101 = new PlanInfo(101, child2, null);
+    plan101.setStatus(Status.COMPLETED);
+    mWorkflowTracker.onPlanStatusChange(plan101);
 
     assertEquals(Status.COMPLETED, mWorkflowTracker.getStatus(0, true).getStatus());
   }

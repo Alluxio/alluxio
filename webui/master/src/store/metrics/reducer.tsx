@@ -35,6 +35,8 @@ export const initialMetricsState: IMetricsState = {
     totalBytesReadRemoteThroughput: '',
     totalBytesReadUfs: '',
     totalBytesReadUfsThroughput: '',
+    totalBytesWrittenLocal: '',
+    totalBytesWrittenLocalThroughput: '',
     totalBytesWrittenAlluxio: '',
     totalBytesWrittenAlluxioThroughput: '',
     totalBytesWrittenDomainSocket: '',

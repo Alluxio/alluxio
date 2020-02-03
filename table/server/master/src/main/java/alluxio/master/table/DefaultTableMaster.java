@@ -21,6 +21,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.ColumnStatisticsList;
 import alluxio.grpc.table.Constraint;
+import alluxio.grpc.table.Database;
 import alluxio.grpc.table.Partition;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
@@ -148,6 +149,11 @@ public class DefaultTableMaster extends CoreMaster
   @Override
   public boolean syncDatabase(String dbName) throws IOException {
     return mCatalog.syncDatabase(createJournalContext(), dbName);
+  }
+
+  @Override
+  public Database getDatabase(String dbName) throws IOException {
+    return mCatalog.getDatabase(dbName);
   }
 
   @Override

@@ -27,6 +27,8 @@ import alluxio.client.journal.JournalMasterClient;
 import alluxio.client.journal.RetryHandlingJournalMasterClient;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
+import alluxio.client.metrics.MetricsMasterClient;
+import alluxio.client.metrics.RetryHandlingMetricsMasterClient;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.Source;
@@ -360,6 +362,18 @@ public final class MultiProcessCluster {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to create a meta master client, but state was %s", mState);
     return new RetryHandlingMetaMasterClient(MasterClientContext
+        .newBuilder(ClientContext.create(ServerConfiguration.global()))
+        .setMasterInquireClient(getMasterInquireClient())
+        .build());
+  }
+
+  /**
+   * @return a metrics master client
+   */
+  public synchronized MetricsMasterClient getMetricsMasterClient() {
+    Preconditions.checkState(mState == State.STARTED,
+        "must be in the started state to create a metrics master client, but state was %s", mState);
+    return new RetryHandlingMetricsMasterClient(MasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global()))
         .setMasterInquireClient(getMasterInquireClient())
         .build());

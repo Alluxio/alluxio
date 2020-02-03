@@ -63,10 +63,10 @@ master:
     requests:
       cpu: "1"
       memory: "1G"
-    ports:
-      embedded: 19200
-      rpc: 19998
-      web: 19999
+  ports:
+    embedded: 19200
+    rpc: 19998
+    web: 19999
   # JVM options specific to the master container
   jvmOptions: ""
   nodeSelector: {}
@@ -89,9 +89,10 @@ jobMaster:
     requests:
       cpu: "1"
       memory: "1G"
-    ports:
-      rpc: 20001
-      web: 20002
+  ports:
+    embedded: 20003
+    rpc: 20001
+    web: 20002
   # JVM options specific to the jobMaster container
   jvmOptions: ""
 
@@ -147,9 +148,9 @@ worker:
     requests:
       cpu: "1"
       memory: "2G"
-    ports:
-      rpc: 29999
-      web: 30000
+  ports:
+    rpc: 29999
+    web: 30000
   # JVM options specific to the worker container
   jvmOptions: ""
   nodeSelector: {}
@@ -175,10 +176,10 @@ jobWorker:
     requests:
       cpu: "1"
       memory: "1G"
-    ports:
-      rpc: 30001
-      data: 30002
-      web: 30003
+  ports:
+    rpc: 30001
+    data: 30002
+    web: 30003
   # JVM options specific to the jobWorker container
   jvmOptions: ""
 

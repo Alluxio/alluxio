@@ -26,8 +26,8 @@ import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
-import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
@@ -199,6 +199,7 @@ public abstract class AbstractClient implements Client {
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
+    mContext.getUserState().relogin();
     IOException lastConnectFailure = null;
     RetryPolicy retryPolicy = mRetryPolicySupplier.get();
 
@@ -404,7 +405,7 @@ public abstract class AbstractClient implements Client {
     try {
       if (SecurityUtils.isAuthenticationEnabled(mContext.getClusterConf())
           && mContext.getUserState().getUser() != null) {
-        return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
+        return Metric.getMetricNameWithTags(metricName, MetricInfo.TAG_USER,
             mContext.getUserState().getUser().getName());
       } else {
         return metricName;

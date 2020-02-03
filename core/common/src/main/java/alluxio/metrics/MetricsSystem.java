@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.MetricType;
+import alluxio.grpc.MetricValue;
 import alluxio.metrics.sink.Sink;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -35,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -107,7 +109,7 @@ public final class MetricsSystem {
   }
 
   // Supported special instance names.
-  public static final String CLUSTER = "cluster";
+  public static final String CLUSTER = "Cluster";
 
   public static final MetricRegistry METRIC_REGISTRY;
 
@@ -236,6 +238,9 @@ public final class MetricsSystem {
     if (result != null) {
       return result;
     }
+    if (name.startsWith(InstanceType.MASTER.toString())) {
+      return CACHED_METRICS.computeIfAbsent(name, n -> name);
+    }
     return CACHED_METRICS.computeIfAbsent(name, n -> InstanceType.MASTER.toString() + "." + name);
   }
 
@@ -265,6 +270,17 @@ public final class MetricsSystem {
     if (result != null) {
       return result;
     }
+
+    // Added for integration tests where process type is always client
+    if (name.startsWith(InstanceType.MASTER.toString())
+        || name.startsWith(InstanceType.CLUSTER.toString())) {
+      return CACHED_METRICS.computeIfAbsent(name, n -> name);
+    }
+    if (name.startsWith(InstanceType.WORKER.toString())) {
+      return CACHED_METRICS.computeIfAbsent(name,
+          n -> getMetricNameWithUniqueId(InstanceType.WORKER, name));
+    }
+
     return CACHED_METRICS.computeIfAbsent(name,
         n -> getMetricNameWithUniqueId(InstanceType.CLIENT, name));
   }
@@ -286,6 +302,9 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   public static String getClusterMetricName(String name) {
+    if (name.startsWith(CLUSTER)) {
+      return name;
+    }
     return Joiner.on(".").join(CLUSTER, name);
   }
 
@@ -296,6 +315,9 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getJobMasterMetricName(String name) {
+    if (name.startsWith(InstanceType.JOB_MASTER.toString())) {
+      return name;
+    }
     return Joiner.on(".").join(InstanceType.JOB_MASTER, name);
   }
 
@@ -312,17 +334,19 @@ public final class MetricsSystem {
 
   /**
    * Builds unique metric registry names with unique ID (set to host name). The pattern is
-   * instance.hostname.metricName.
+   * instance.metricName.hostname
    *
    * @param instance the instance name
    * @param name the metric name
    * @return the metric registry name
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
-    return instance
-        + "."
-        + NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout)
-        + "." + name;
+    if (name.startsWith(instance.toString())) {
+      return Joiner.on(".").join(name,
+          NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
+    }
+    return Joiner.on(".").join(instance, name,
+        NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
   }
 
   /**
@@ -347,11 +371,14 @@ public final class MetricsSystem {
    */
   public static String stripInstanceAndHost(String metricsName) {
     String[] pieces = metricsName.split("\\.");
-    Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", metricsName);
-
+    if (pieces.length <= 1) {
+      return metricsName;
+    }
     // Master metrics doesn't have hostname included.
-    if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())) {
-      pieces[1] = null;
+    if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())
+        && !pieces[0].equals(InstanceType.CLUSTER.toString())
+        && pieces.length > 2) {
+      pieces[2] = null;
     }
     pieces[0] = null;
     return Joiner.on(".").skipNulls().join(pieces);
@@ -439,10 +466,12 @@ public final class MetricsSystem {
    *
    * By sending only the difference since the last RPC, this method will allow the master to
    * track the metrics for a given worker, even if the worker is restarted.
+   *
+   * The synchronized keyword is added for correctness with {@link #resetAllMetrics}
    */
-  private static List<alluxio.grpc.Metric> reportMetrics(InstanceType instanceType) {
+  private static synchronized List<alluxio.grpc.Metric> reportMetrics(InstanceType instanceType) {
     List<alluxio.grpc.Metric> rpcMetrics = new ArrayList<>(20);
-    for (Metric m : allMetrics(instanceType)) {
+    for (Metric m : allInstanceMetrics(instanceType)) {
       // last reported metrics only need to be tracked for COUNTER metrics
       // Store the last metric value which was sent, but the rpc metric returned should only
       // contain the difference of the current value, and the last value sent. If it doesn't
@@ -482,24 +511,62 @@ public final class MetricsSystem {
    * @return all the master's metrics in the format of {@link Metric}
    */
   public static List<Metric> allMasterMetrics() {
-    return allMetrics(InstanceType.MASTER);
+    return allInstanceMetrics(InstanceType.MASTER);
+  }
+
+  /**
+   * @return a map of all metrics stored in the current node
+   *         from metric name to {@link MetricValue}
+   */
+  public static Map<String, MetricValue> allMetrics() {
+    Map<String, MetricValue> metricsMap = new HashMap<>();
+    for (Entry<String, Gauge> entry : METRIC_REGISTRY.getGauges().entrySet()) {
+      Object value = entry.getValue().getValue();
+      MetricValue.Builder valueBuilder = MetricValue.newBuilder().setMetricType(MetricType.GAUGE);
+      if (!(value instanceof Number)) {
+        valueBuilder.setStringValue(value.toString());
+      } else {
+        valueBuilder.setDoubleValue(((Number) value).doubleValue());
+      }
+      metricsMap.put(entry.getKey(), valueBuilder.build());
+    }
+    for (Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
+      metricsMap.put(entry.getKey(), MetricValue.newBuilder()
+          .setDoubleValue(entry.getValue().getCount()).setMetricType(MetricType.COUNTER).build());
+    }
+    for (Entry<String, Meter> entry : METRIC_REGISTRY.getMeters().entrySet()) {
+      metricsMap.put(entry.getKey(), MetricValue.newBuilder()
+          .setDoubleValue(entry.getValue().getOneMinuteRate())
+          .setMetricType(MetricType.METER).build());
+    }
+    for (Entry<String, Timer> entry : METRIC_REGISTRY.getTimers().entrySet()) {
+      metricsMap.put(entry.getKey(), MetricValue.newBuilder()
+          .setDoubleValue(entry.getValue().getCount()).setMetricType(MetricType.TIMER).build());
+    }
+    return metricsMap;
   }
 
   /**
    * @return all the worker's metrics in the format of {@link Metric}
    */
   public static List<Metric> allWorkerMetrics() {
-    return allMetrics(InstanceType.WORKER);
+    return allInstanceMetrics(InstanceType.WORKER);
   }
 
   /**
    * @return all the client's metrics in the format of {@link Metric}
    */
   public static List<Metric> allClientMetrics() {
-    return allMetrics(InstanceType.CLIENT);
+    return allInstanceMetrics(InstanceType.CLIENT);
   }
 
-  private static List<Metric> allMetrics(MetricsSystem.InstanceType instanceType) {
+  /**
+   * Gets all metrics of the given instance type.
+   *
+   * @param instanceType the requested instance type
+   * @return all metrics of the given instance type
+   */
+  private static List<Metric> allInstanceMetrics(MetricsSystem.InstanceType instanceType) {
     List<Metric> metrics = new ArrayList<>();
     for (Entry<String, Gauge> entry : METRIC_REGISTRY.getGauges().entrySet()) {
       if (entry.getKey().startsWith(instanceType.toString())) {
@@ -514,17 +581,23 @@ public final class MetricsSystem {
       }
     }
     for (Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
-      metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount(), MetricType.COUNTER));
+      if (entry.getKey().startsWith(instanceType.toString())) {
+        metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount(), MetricType.COUNTER));
+      }
     }
     for (Entry<String, Meter> entry : METRIC_REGISTRY.getMeters().entrySet()) {
-      // TODO(yupeng): From Meter's implementation, getOneMinuteRate can only report at rate of at
-      // least seconds. if the client's duration is too short (i.e. < 1s), then getOneMinuteRate
-      // would return 0
-      metrics.add(Metric.from(entry.getKey(), entry.getValue().getOneMinuteRate(),
-          MetricType.METER));
+      if (entry.getKey().startsWith(instanceType.toString())) {
+        // TODO(yupeng): From Meter's implementation, getOneMinuteRate can only report at rate of at
+        // least seconds. if the client's duration is too short (i.e. < 1s), then getOneMinuteRate
+        // would return 0
+        metrics.add(Metric.from(entry.getKey(), entry.getValue().getOneMinuteRate(),
+            MetricType.METER));
+      }
     }
     for (Entry<String, Timer> entry : METRIC_REGISTRY.getTimers().entrySet()) {
-      metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount(), MetricType.TIMER));
+      if (entry.getKey().startsWith(instanceType.toString())) {
+        metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount(), MetricType.TIMER));
+      }
     }
     return metrics;
   }
@@ -552,6 +625,7 @@ public final class MetricsSystem {
       METRIC_REGISTRY.remove(timerName);
       METRIC_REGISTRY.timer(timerName);
     }
+    LAST_REPORTED_METRICS.clear();
   }
 
   /**

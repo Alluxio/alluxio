@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.job.plan.transform.Format;
 import alluxio.job.plan.transform.HiveConstants;
 import alluxio.job.plan.transform.PartitionInfo;
+import alluxio.job.plan.transform.format.JobPath;
 import alluxio.job.plan.transform.format.ReadWriterUtils;
 import alluxio.job.plan.transform.format.TableReader;
 import alluxio.job.plan.transform.format.TableRow;
@@ -51,13 +52,13 @@ public final class CsvReader implements TableReader {
    * @param pInfo the partition info
    * @throws IOException when failed to open the input
    */
-  private CsvReader(Path inputPath, PartitionInfo pInfo) throws IOException {
+  private CsvReader(JobPath inputPath, PartitionInfo pInfo) throws IOException {
     mCloser = Closer.create();
     try {
       mSchema = new CsvSchema(pInfo.getFields());
 
       Configuration conf = ReadWriterUtils.readNoCacheConf();
-      mFs = mCloser.register(inputPath.getFileSystem(conf));
+      mFs = inputPath.getFileSystem(conf);
       boolean isGzipped = pInfo.getFormat(inputPath.getName()).equals(Format.GZIP_CSV);
       InputStream input = open(mFs, inputPath, isGzipped);
 
@@ -109,7 +110,7 @@ public final class CsvReader implements TableReader {
    * @throws IOException when failed to create the reader
    */
   public static CsvReader create(AlluxioURI uri, PartitionInfo pInfo) throws IOException {
-    Path path = new Path(uri.getScheme(), uri.getAuthority().toString(), uri.getPath());
+    JobPath path = new JobPath(uri.getScheme(), uri.getAuthority().toString(), uri.getPath());
     return new CsvReader(path, pInfo);
   }
 

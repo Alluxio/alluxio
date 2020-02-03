@@ -134,7 +134,7 @@ public class TransformManagerTest {
     // Try to run another transformation on the same table, since the previous transformation on
     // the table hasn't finished, this transformation should not be able to proceed.
     expectException(IOException.class,
-        ExceptionMessage.TABLE_BEING_TRANSFORMED.getMessage(jobId, TABLE1, DB));
+        ExceptionMessage.TABLE_BEING_TRANSFORMED.getMessage(Long.toString(jobId), TABLE1, DB));
     transform(TABLE1, DEFINITION2);
   }
 

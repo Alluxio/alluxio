@@ -27,7 +27,7 @@ import java.util.Properties;
 public final class MetricsSystemTest {
   private MetricsConfig mMetricsConfig;
   private static Counter sCounter =
-      MetricsSystem.METRIC_REGISTRY.counter(MetricsSystem.getMetricName("counter"));
+      MetricsSystem.METRIC_REGISTRY.counter(MetricsSystem.getMetricName("Worker.counter"));
 
   /**
    * Sets up the properties for the configuration of the metrics before a test runs.
@@ -42,7 +42,7 @@ public final class MetricsSystemTest {
     metricsProps.setProperty("sink.jmx.class", "alluxio.metrics.sink.JmxSink");
     mMetricsConfig = new MetricsConfig(metricsProps);
     // Clear the counter
-    sCounter.dec(sCounter.getCount());
+    MetricsSystem.resetAllMetrics();
   }
 
   /**
@@ -116,6 +116,16 @@ public final class MetricsSystemTest {
     sCounter.inc();
     assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
     MetricsSystem.reportWorkerMetrics();
+    sCounter.inc();
+    assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
+  }
+
+  @Test
+  public void testResetAllMetrics() {
+    sCounter.inc();
+    assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
+    MetricsSystem.resetAllMetrics();
+    assertEquals(0.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
     sCounter.inc();
     assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
   }

@@ -267,7 +267,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
       }
 
       for (T resource : resourcesToGc) {
-        LOG.info("Resource {} is garbage collected.", resource);
+        LOG.debug("Resource {} is garbage collected.", resource);
         try {
           closeResource(resource);
         } catch (IOException e) {
@@ -474,7 +474,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     if (isHealthy(resource)) {
       return resource;
     } else {
-      LOG.info("Clearing unhealthy resource {}.", resource);
+      LOG.debug("Clearing unhealthy resource {}.", resource);
       remove(resource);
       closeResource(resource);
       return acquire(endTimeMs - mClock.millis(), TimeUnit.MILLISECONDS);

@@ -1289,6 +1289,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setIsHidden(true)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_PROXY_HOST)
+          .setDescription(String.format(
+              "Used to bind embedded journal servers to a proxied host."
+                  + "Proxy hostname will still make use of %s for bind port.",
+              Name.MASTER_EMBEDDED_JOURNAL_PORT))
+          // No default value for proxy-host. Server will bind to "alluxio.master.hostname"
+          // as default.
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
           .setDescription(String.format("A comma-separated list of journal addresses for all "
@@ -2820,11 +2829,35 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // User related properties
   //
-  public static final PropertyKey USER_BLOCK_MASTER_CLIENT_THREADS =
-      new Builder(Name.USER_BLOCK_MASTER_CLIENT_THREADS)
+  public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN =
+      new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN)
+          .setDefaultValue(0)
+          .setDescription("The minimum number of block master clients cached in the block master "
+              + "client pool. For long running processes, this should be set to zero.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX =
+      new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX)
           .setDefaultValue(10)
-          .setDescription("The number of threads used by a block master client pool to talk "
-              + "to the block master.")
+          .setDescription("The maximum number of block master clients cached in the block master "
+              + "client pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .setAlias(new String[] {"alluxio.user.block.master.client.threads"})
+          .build();
+  public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
+      new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS)
+          .setDefaultValue("120sec")
+          .setDescription("The interval at which block master client GC checks occur.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
+      new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS)
+          .setDefaultValue("120sec")
+          .setDescription("A block master client is closed if it has been idle for more than this "
+              + "threshold.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -2930,8 +2963,35 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "before attempting to delete persisted directories recursively.")
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_FILE_MASTER_CLIENT_THREADS =
-      new Builder(Name.USER_FILE_MASTER_CLIENT_THREADS)
+  public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN =
+      new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN)
+          .setDefaultValue(0)
+          .setDescription("The minimum number of fs master clients cached in the fs master "
+              + "client pool. For long running processes, this should be set to zero.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX =
+      new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX)
+          .setDefaultValue(10)
+          .setDescription("The maximum number of fs master clients cached in the fs master "
+              + "client pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .setAlias(new String[] {"alluxio.user.file.master.client.threads"})
+          .build();
+  public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
+      new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS)
+          .setDefaultValue("120sec")
+          .setDescription("The interval at which file system master client GC checks occur.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
+      new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_GC_THRESHOLD_MS)
+          .setDefaultValue("120sec")
+          .setDescription("A fs master client is closed if it has been idle for more than this "
+              + "threshold.")
           .setDefaultValue(10)
           .setDescription("The number of threads used by a file master client to talk to the "
               + "file master.")
@@ -3059,6 +3119,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILESYSTEM_CLASS =
+      new Builder(Name.USER_FILESYSTEM_CLASS)
+          .setDefaultValue("alluxio.client.file.BaseFileSystem")
+          .setDescription("Type of file system to use. Users can select augmented file systems "
+              + "based on the use case. For example, MetadataCachingBaseFileSystem is efficient "
+              + "for FUSE workloads. Possible values are alluxio.client.file.BaseFileSystem "
+              + "(default) and alluxio.client.file.MetadataCachingBaseFileSystem.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_HOSTNAME = new Builder(Name.USER_HOSTNAME)
       .setDescription("The hostname to use for an Alluxio client.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3078,6 +3148,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_LOCAL_CACHE_ENABLED =
+      new Builder(Name.USER_LOCAL_CACHE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If this is enabled, data will be cached on Alluxio client.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_LOCAL_READER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_LOCAL_READER_CHUNK_SIZE_BYTES)
           .setDefaultValue("8MB")
@@ -3092,6 +3169,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_METADATA_CACHE_MAX_SIZE =
+      new Builder(Name.USER_METADATA_CACHE_MAX_SIZE)
+          .setDefaultValue(100000)
+          .setDescription("Maximum number of paths with cached metadata. Only valid if the "
+              + "filesystem is alluxio.client.file.MetadataCachingBaseFileSystem.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_METADATA_CACHE_EXPIRATION_TIME =
+      new Builder(Name.USER_METADATA_CACHE_EXPIRATION_TIME)
+          .setDefaultValue("10min")
+          .setDescription("Metadata will expire and be evicted after being cached for this time "
+              + "period. Only valid if the filesystem is "
+              + "alluxio.client.file.MetadataCachingBaseFileSystem.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_METRICS_COLLECTION_ENABLED =
       new Builder(Name.USER_METRICS_COLLECTION_ENABLED)
           .setDefaultValue(false)
@@ -3102,7 +3196,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_METRICS_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.USER_METRICS_HEARTBEAT_INTERVAL_MS)
           .setAlias("alluxio.user.metrics.heartbeat.interval.ms")
-          .setDefaultValue("3sec")
+          .setDefaultValue("1min")
           .setDescription("The time period of client master heartbeat to "
               + "send the client-side metrics.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3314,32 +3408,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("When short circuit and domain socket both enabled, "
               + "prefer to use short circuit.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_METADATA_CACHE_ENABLED =
-      new Builder(Name.USER_METADATA_CACHE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("If this is enabled, metadata of paths will be cached. "
-              + "The cached metadata will be evicted when it expires after "
-              + Name.USER_METADATA_CACHE_EXPIRATION_TIME
-              + " or the cache size is over the limit of "
-              + Name.USER_METADATA_CACHE_MAX_SIZE + ".")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_METADATA_CACHE_MAX_SIZE =
-      new Builder(Name.USER_METADATA_CACHE_MAX_SIZE)
-          .setDefaultValue(100000)
-          .setDescription("Maximum number of paths with cached metadata.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_METADATA_CACHE_EXPIRATION_TIME =
-      new Builder(Name.USER_METADATA_CACHE_EXPIRATION_TIME)
-          .setDefaultValue("10min")
-          .setDescription("Metadata will expire and be evicted after being cached for this time "
-              + "period.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -4101,6 +4169,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
         "alluxio.master.journal.tailer.sleep.time";
     public static final String MASTER_RPC_ADDRESSES = "alluxio.master.rpc.addresses";
+    public static final String MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
+        "alluxio.master.embedded.journal.bind.host";
     public static final String MASTER_EMBEDDED_JOURNAL_ADDRESSES =
         "alluxio.master.embedded.journal.addresses";
     public static final String MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
@@ -4372,8 +4442,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES =
         "alluxio.user.block.avoid.eviction.policy.reserved.size.bytes";
-    public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
-        "alluxio.user.block.master.client.threads";
+    public static final String USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN =
+        "alluxio.user.block.master.client.pool.size.min";
+    public static final String USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX =
+        "alluxio.user.block.master.client.pool.size.max";
+    public static final String USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
+        "alluxio.user.block.master.client.pool.gc.interval";
+    public static final String USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
+        "alluxio.user.block.master.client.pool.gc.threshold";
     public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.block.remote.read.buffer.size.bytes";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
@@ -4395,8 +4471,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.copyfromlocal.block.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
         "alluxio.user.file.delete.unchecked";
-    public static final String USER_FILE_MASTER_CLIENT_THREADS =
-        "alluxio.user.file.master.client.threads";
+    public static final String USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN =
+        "alluxio.user.file.master.client.pool.size.min";
+    public static final String USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX =
+        "alluxio.user.file.master.client.pool.size.max";
+    public static final String USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
+        "alluxio.user.file.master.client.pool.gc.interval";
+    public static final String USER_FILE_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
+        "alluxio.user.file.master.client.pool.gc.threshold";
     public static final String USER_FILE_METADATA_LOAD_TYPE =
         "alluxio.user.file.metadata.load.type";
     public static final String USER_FILE_METADATA_SYNC_INTERVAL =
@@ -4421,11 +4503,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";
+    public static final String USER_FILESYSTEM_CLASS = "alluxio.user.filesystem.class";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
+    public static final String USER_LOCAL_CACHE_ENABLED = "alluxio.user.local.cache.enabled";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.reader.chunk.size.bytes";
     public static final String USER_LOCAL_WRITER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.writer.chunk.size.bytes";
+    public static final String USER_METADATA_CACHE_MAX_SIZE =
+        "alluxio.user.metadata.cache.max.size";
+    public static final String USER_METADATA_CACHE_EXPIRATION_TIME =
+        "alluxio.user.metadata.cache.expiration.time";
     public static final String USER_METRICS_COLLECTION_ENABLED =
         "alluxio.user.metrics.collection.enabled";
     public static final String USER_METRICS_HEARTBEAT_INTERVAL_MS =
@@ -4476,12 +4564,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.short.circuit.preferred";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
-    public static final String USER_METADATA_CACHE_ENABLED =
-        "alluxio.user.metadata.cache.enabled";
-    public static final String USER_METADATA_CACHE_MAX_SIZE =
-        "alluxio.user.metadata.cache.max.size";
-    public static final String USER_METADATA_CACHE_EXPIRATION_TIME =
-        "alluxio.user.metadata.cache.expiration.time";
 
     //
     // FUSE integration related properties

@@ -12,7 +12,6 @@
 package alluxio.client.file;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -81,7 +80,7 @@ public final class BaseFileSystemTest {
 
   private class DummyAlluxioFileSystem extends BaseFileSystem {
     public DummyAlluxioFileSystem(FileSystemContext fsContext) {
-      super(fsContext, false);
+      super(fsContext);
     }
   }
 
@@ -129,10 +128,9 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     when(mFileSystemMasterClient.createFile(any(AlluxioURI.class), any(CreateFilePOptions.class)))
         .thenReturn(status);
-    FileOutStream out = mFileSystem.createFile(file, CreateFilePOptions.getDefaultInstance());
+    mFileSystem.createFile(file, CreateFilePOptions.getDefaultInstance());
     verify(mFileSystemMasterClient).createFile(file, FileSystemOptions.createFileDefaults(mConf)
             .toBuilder().mergeFrom(CreateFilePOptions.getDefaultInstance()).build());
-    assertEquals(out.mUri, file);
 
     verifyFilesystemContextAcquiredAndReleased();
   }

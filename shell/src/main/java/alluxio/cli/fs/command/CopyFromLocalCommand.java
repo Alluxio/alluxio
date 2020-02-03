@@ -62,6 +62,13 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  public void close() throws IOException {
+    // Close updated {@link FileSystem} instance that is created for internal cp command.
+    // This will close the {@link FileSystemContext} associated with it.
+    mFileSystem.close();
+  }
+
+  @Override
   public String getCommandName() {
     return "copyFromLocal";
   }
