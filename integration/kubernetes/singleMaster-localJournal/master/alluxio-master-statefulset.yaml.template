@@ -81,8 +81,6 @@ spec:
             name: rpc
           - containerPort: 19999
             name: web
-          - containerPort: 19200
-            name: embedded
           volumeMounts:
             - name: alluxio-journal
               mountPath: /journal

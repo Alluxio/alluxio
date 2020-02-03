@@ -49,6 +49,8 @@ public final class AlluxioJobMaster {
       System.exit(-1);
       throw t;
     }
+
+    ProcessUtils.stopProcessOnShutdown(process);
     ProcessUtils.run(process);
   }
 

@@ -26,7 +26,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.block.BlockId;
-import alluxio.metrics.MasterMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
@@ -54,7 +53,6 @@ import alluxio.worker.block.meta.BlockMeta;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -392,38 +390,13 @@ public final class AlluxioWorkerRestServiceHandler {
       response.setWorkerCapacityUsedPercentage(workerCapacityUsedPercentage);
       response.setWorkerCapacityFreePercentage(100 - workerCapacityUsedPercentage);
 
-      Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
-        @Override
-        public boolean matches(String name, Metric metric) {
-          return !(name.endsWith("Ops"));
-        }
-      });
-
-      Map<String, Counter> rpcInvocations = mr.getCounters(new MetricFilter() {
-        @Override
-        public boolean matches(String name, Metric metric) {
-          return name.endsWith("Ops");
-        }
-      });
-
       Map<String, Metric> operations = new TreeMap<>();
       // Remove the instance name from the metrics.
-      for (Map.Entry<String, Counter> entry : counters.entrySet()) {
+      for (Map.Entry<String, Counter> entry : mr.getCounters().entrySet()) {
         operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
       }
-      String filesPinnedProperty = MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
-      operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
-          mr.getGauges().get(filesPinnedProperty));
 
       response.setOperationMetrics(operations);
-
-      Map<String, Counter> rpcInvocationsUpdated = new TreeMap<>();
-      for (Map.Entry<String, Counter> entry : rpcInvocations.entrySet()) {
-        rpcInvocationsUpdated
-            .put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
-      }
-
-      response.setRpcInvocationMetrics(rpcInvocations);
 
       return response;
     }, ServerConfiguration.global());

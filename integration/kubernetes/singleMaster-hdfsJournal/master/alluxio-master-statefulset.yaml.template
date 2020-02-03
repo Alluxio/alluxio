@@ -71,8 +71,6 @@ spec:
             name: rpc
           - containerPort: 19999
             name: web
-          - containerPort: 19200
-            name: embedded
           volumeMounts:
             - name: secret-alluxio-hdfs-config-volume
               mountPath: /secrets/hdfsConfig
