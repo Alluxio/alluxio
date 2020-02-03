@@ -288,7 +288,7 @@ public class GrpcChannelKey {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper("")
+    return MoreObjects.toStringHelper(this)
         .add("ClientType", getStringFromOptional(mClientType))
         .add("ServerAddress", mServerAddress)
         .add("ChannelId", mChannelId)
@@ -305,7 +305,7 @@ public class GrpcChannelKey {
    * @return short representation of this channel key
    */
   public String toStringShort() {
-    return MoreObjects.toStringHelper("")
+    return MoreObjects.toStringHelper(this)
         .add("ClientType", getStringFromOptional(mClientType))
         .add("ClientHostname", mLocalHostName)
         .add("ServerAddress", mServerAddress)
