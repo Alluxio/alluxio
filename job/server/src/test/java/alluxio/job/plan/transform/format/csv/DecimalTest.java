@@ -14,9 +14,9 @@ package alluxio.job.plan.transform.format.csv;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.collections.Pair;
+
 import org.junit.Test;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 
 public class DecimalTest {
@@ -47,5 +47,4 @@ public class DecimalTest {
     assertEquals((Integer) 10, precisionAndScale.getFirst());
     assertEquals((Integer) 2, precisionAndScale.getSecond());
   }
-
 }
