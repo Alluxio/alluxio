@@ -38,7 +38,7 @@ import java.util.stream.Stream;
  * class does not need to provide thread-safety.
  */
 public interface PageStore extends AutoCloseable {
-  Logger LOG = LoggerFactory.getLogger(LocalPageStore.class);
+  Logger LOG = LoggerFactory.getLogger(PageStore.class);
 
   /**
    * Creates a new {@link PageStore}.
@@ -118,7 +118,7 @@ public interface PageStore extends AutoCloseable {
             try {
               FileUtils.deletePathRecursively(path.toString());
             } catch (IOException e) {
-              LOG.warn("failed to delete {} in cache directory: {}", path, e.getMessage());
+              LOG.warn("failed to delete {} in cache directory: {}", path, e.toString());
             }
           });
     }

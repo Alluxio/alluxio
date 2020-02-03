@@ -619,7 +619,7 @@ public class FileSystemContext implements Closeable {
           try {
             sCacheManager = Optional.of(CacheManager.create(fsContext));
           } catch (IOException e) {
-            LOG.warn("Failed to create CacheManager: {}", e.getMessage());
+            LOG.warn("Failed to create CacheManager: {}", e.toString());
             sCacheManager = Optional.empty();
           }
         }
