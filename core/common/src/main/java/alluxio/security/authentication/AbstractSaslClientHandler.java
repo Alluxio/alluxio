@@ -46,6 +46,9 @@ public abstract class AbstractSaslClientHandler implements SaslClientHandler {
     mAuthScheme = authScheme;
   }
 
+  /**
+   * This is synchronized in order to protect {@link #mSaslClient}.
+   */
   @Override
   public synchronized SaslMessage handleMessage(SaslMessage message) throws SaslException {
     if (mSaslClient == null) {
@@ -87,14 +90,18 @@ public abstract class AbstractSaslClientHandler implements SaslClientHandler {
     }
   }
 
+  /**
+   * This is synchronized in order to protect {@link #mSaslClient}.
+   */
   @Override
   public synchronized void close() {
     if (mSaslClient != null) {
       try {
         mSaslClient.dispose();
-        mSaslClient = null;
       } catch (SaslException exc) {
         LOG.debug("Failed to close SaslClient.", exc);
+      } finally {
+        mSaslClient = null;
       }
     }
   }

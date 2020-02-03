@@ -94,6 +94,10 @@ public final class GrpcChannel extends Channel {
 
   /**
    * Shuts down the channel.
+   *
+   * Shutdown should be synchronized as it could be called concurrently due to:
+   *  - Authentication long polling
+   *  - gRPC messaging stream.
    */
   public synchronized void shutdown() {
     if (mAuthDriver != null) {
