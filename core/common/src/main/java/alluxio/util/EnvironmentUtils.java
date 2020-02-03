@@ -39,9 +39,6 @@ import java.util.List;
 @ThreadSafe
 public final class EnvironmentUtils {
   private static final Logger LOG = LoggerFactory.getLogger(EnvironmentUtils.class);
-  private static final String EC2_UUID_FILE_PATH = "/sys/hypervisor/uuid";
-  private static final String EC2_PRODUCT_UUID_FILE_PATH
-      = "/sys/devices/virtual/dmi/id/product_uuid";
 
   /**
    * Utility to detect the docker deployment environment.
@@ -140,9 +137,10 @@ public final class EnvironmentUtils {
    *
    * @return true if jvm runs in EC2 instance with UUID file, false otherwise
    */
+  @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
   private static boolean isEC2WithUUID() {
     try {
-      return fileExistAndStartWithIdentifier(EC2_UUID_FILE_PATH, "ec2");
+      return fileExistAndStartWithIdentifier("/sys/hypervisor/uuid", "ec2");
     } catch (Throwable t) {
       // Exceptions are expected if this instance is not EC2 instance
       // or this check is not valid
@@ -156,9 +154,10 @@ public final class EnvironmentUtils {
    *
    * @return true if jvm runs in EC2 instance with product UUID file, false otherwise
    */
+  @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
   private static boolean isEC2WithProductUUID() {
     try {
-      return fileExistAndStartWithIdentifier(EC2_PRODUCT_UUID_FILE_PATH, "EC2");
+      return fileExistAndStartWithIdentifier("/sys/devices/virtual/dmi/id/product_uuid", "EC2");
     } catch (Throwable t) {
       // Exceptions are expected if this instance is not EC2 instance
       // or this check is not valid
