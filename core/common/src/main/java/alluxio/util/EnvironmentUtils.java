@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.HttpURLConnection;
@@ -97,38 +98,26 @@ public final class EnvironmentUtils {
   }
 
   /**
+   * Checks whether the given user data belongs to an instance launched
+   * through CFT.
+   *
+   * @param userData the ec2 instance user data
    * @return true if this instance is launched from CFT, false otherwise
    */
-  public static boolean isCFT() {
-    try {
-      String userData = EC2MetadataUtils.getUserData();
-      if (!userData.isEmpty() && userData.contains("cft_configure")) {
-        return true;
-      }
-    } catch (Throwable t) {
-      // Exceptions are expected if this instance is not EC2 instance
-      // or this EC2 does not have user data
-      return false;
-    }
-    return false;
+  public static boolean isCFT(String userData) {
+    return !userData.isEmpty() && userData.contains("cft_configure");
   }
 
   /**
+   * Checks whether the given user data belongs to an instance launched
+   * through EMR.
+   *
+   * @param userData the ec2 instance user data
    * @return true if this instance is launched from EMR, false otherwise
    */
-  public static boolean isEMR() {
-    try {
-      String userData = EC2MetadataUtils.getUserData();
-      if (!userData.isEmpty() && userData.contains("emr-apps")
-          && userData.contains("emr-platform")) {
-        return true;
-      }
-    } catch (Throwable t) {
-      // Exceptions are expected if this instance is not EC2 instance
-      // or this EC2 does not have user data
-      return false;
-    }
-    return false;
+  public static boolean isEMR(String userData) {
+    return !userData.isEmpty() && userData.contains("emr-apps")
+        && userData.contains("emr-platform");
   }
 
   /**
@@ -140,7 +129,7 @@ public final class EnvironmentUtils {
   @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
   private static boolean isEC2WithUUID() {
     try {
-      return fileExistAndStartWithIdentifier("/sys/hypervisor/uuid", "ec2");
+      return ec2UUIDFileExistsWithID("/sys/hypervisor/uuid", "ec2");
     } catch (Throwable t) {
       // Exceptions are expected if this instance is not EC2 instance
       // or this check is not valid
@@ -157,7 +146,7 @@ public final class EnvironmentUtils {
   @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
   private static boolean isEC2WithProductUUID() {
     try {
-      return fileExistAndStartWithIdentifier("/sys/devices/virtual/dmi/id/product_uuid", "EC2");
+      return ec2UUIDFileExistsWithID("/sys/devices/virtual/dmi/id/product_uuid", "EC2");
     } catch (Throwable t) {
       // Exceptions are expected if this instance is not EC2 instance
       // or this check is not valid
@@ -232,18 +221,33 @@ public final class EnvironmentUtils {
   }
 
   /**
-   * Checks if the target file exists and starts with the identifier string.
+   * Checks if the target ec2 UUID file exists and starts with the identifier string.
    *
    * @param filePath the file to check
    * @param identifier the string identifier to check
    * @return true if file exists and starts with the identifier
    */
-  private static boolean fileExistAndStartWithIdentifier(String filePath,
+  private static boolean ec2UUIDFileExistsWithID(String filePath,
       String identifier) throws IOException {
     if (FileUtils.exists(filePath)) {
-      try (Reader reader = new InputStreamReader(new FileInputStream(filePath))) {
-        String content = CharStreams.toString(reader);
-        if (content.startsWith(identifier)) {
+      int length = identifier.length();
+      // Read the first several bytes to see
+      // if file starts with id
+      byte[] array = new byte[length];
+      try (InputStream in = new FileInputStream(filePath)) {
+        int offset = 0;
+        while (offset < length) {
+          int read = in.read(array, offset, length - offset);
+          if (read == -1) {
+            break;
+          }
+          offset += read;
+        }
+        if (offset != length) {
+          return false;
+        }
+        String content = new String(array);
+        if (content.equals(identifier)) {
           return true;
         }
       }

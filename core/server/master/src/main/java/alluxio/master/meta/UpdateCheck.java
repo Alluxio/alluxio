@@ -14,6 +14,7 @@ package alluxio.master.meta;
 import alluxio.ProjectConstants;
 import alluxio.util.EnvironmentUtils;
 
+import com.amazonaws.util.EC2MetadataUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import org.apache.http.HttpResponse;
@@ -114,12 +115,14 @@ public final class UpdateCheck {
       isEC2 = true;
     }
 
-    if (EnvironmentUtils.isCFT()) {
-      ec2Info.add("cft");
+    String userData = EC2MetadataUtils.getUserData();
+    if (!userData.isEmpty()) {
       isEC2 = true;
-    } else if (EnvironmentUtils.isEMR()) {
-      ec2Info.add("emr");
-      isEC2 = true;
+      if (EnvironmentUtils.isCFT(userData)) {
+        ec2Info.add("cft");
+      } else if (EnvironmentUtils.isEMR(userData)) {
+        ec2Info.add("emr");
+      }
     } else if (!isEC2 && EnvironmentUtils.isEC2()) {
       isEC2 = true;
     }
