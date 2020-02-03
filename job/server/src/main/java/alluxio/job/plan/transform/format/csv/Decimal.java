@@ -58,6 +58,7 @@ public class Decimal {
    * @return the decimal's precision and scale as a Pair
    */
   public static Pair<Integer, Integer> getPrecisionAndScale(String type) {
+    type = type.trim();
     String param = type.substring(8, type.length() - 1);
     String[] params = param.split(",");
     return new Pair<>(Integer.parseInt(params[0].trim()), Integer.parseInt(params[1].trim()));
