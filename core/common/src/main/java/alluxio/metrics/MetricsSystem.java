@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -61,8 +62,14 @@ public final class MetricsSystem {
   private static int sResolveTimeout =
       (int) new InstancedConfiguration(ConfigurationUtils.defaults())
           .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
-  private static final ConcurrentHashMap<String, Metric> LAST_REPORTED_METRICS =
-      new ConcurrentHashMap<>();
+  // A map from the metric name to its previous reported value
+  // This map is used for calculated the counter diff value that will be reported
+  private static final Map<String, Long> LAST_REPORTED_METRICS = new HashMap<>();
+  // A map that records all the metrics that should be reported and aggregated at leading master
+  // from full metric name to its metric type
+  private static final Map<String, MetricType> SHOULD_REPORT_METRICS = new HashMap<>();
+  // Adds to make sure the SHOULD_REPORT_METRICS is initialized only once
+  private static boolean sReported = false;
 
   /**
    * An enum of supported instance type.
@@ -422,6 +429,25 @@ public final class MetricsSystem {
   }
 
   /**
+   * Get or add counter with the given name with tags.
+   * The counter stores in the metrics system is never removed but may reset to zero.
+   * If this metric can be aggregated at cluster level and should report to leading master,
+   * add it to the should report metrics map.
+   *
+   * @param name the metric name
+   * @param shouldReport whether this metric should be reported
+   * @param tags the tag name and tag value pairs
+   * @return a counter object with the qualified metric name
+   */
+  public static Counter counterWithTags(String name, boolean shouldReport, String... tags) {
+    String fullName = getMetricName(Metric.getMetricNameWithTags(name, tags));
+    if (shouldReport) {
+      SHOULD_REPORT_METRICS.putIfAbsent(fullName, MetricType.COUNTER);
+    }
+    return METRIC_REGISTRY.counter(fullName);
+  }
+
+  /**
    * Get or add meter with the given name.
    * The returned meter may be changed due to {@link #resetAllMetrics}
    *
@@ -430,6 +456,25 @@ public final class MetricsSystem {
    */
   public static Meter meter(String name) {
     return METRIC_REGISTRY.meter(getMetricName(name));
+  }
+
+  /**
+   * Get or add meter with the given name.
+   * The returned meter may be changed due to {@link #resetAllMetrics}
+   * If this metric can be aggregated at cluster level and should report to leading master,
+   * add it to the should report metrics map.
+   *
+   * @param name the name of the metric
+   * @param shouldReport whether this metric should be reported
+   * @param tags the tag name and tag value pairs
+   * @return a meter object with the qualified metric name
+   */
+  public static Meter meterWithTags(String name, boolean shouldReport, String... tags) {
+    String fullName = getMetricName(Metric.getMetricNameWithTags(name, tags));
+    if (shouldReport) {
+      SHOULD_REPORT_METRICS.putIfAbsent(fullName, MetricType.METER);
+    }
+    return METRIC_REGISTRY.meter(fullName);
   }
 
   /**
@@ -470,24 +515,56 @@ public final class MetricsSystem {
    * The synchronized keyword is added for correctness with {@link #resetAllMetrics}
    */
   private static synchronized List<alluxio.grpc.Metric> reportMetrics(InstanceType instanceType) {
+    if (!sReported) {
+      initShouldReportMetrics(instanceType);
+      sReported = true;
+    }
     List<alluxio.grpc.Metric> rpcMetrics = new ArrayList<>(20);
-    for (Metric m : allInstanceMetrics(instanceType)) {
-      // last reported metrics only need to be tracked for COUNTER metrics
-      // Store the last metric value which was sent, but the rpc metric returned should only
-      // contain the difference of the current value, and the last value sent. If it doesn't
-      // yet exist, just send the current value
-      if (m.getMetricType() == MetricType.COUNTER) {
-        Metric prev = LAST_REPORTED_METRICS.replace(m.getFullMetricName(), m);
+    // Use the getMetrics() call instead of getGauges(),getCounters()... to avoid
+    // unneeded metrics copy
+    Map<String, com.codahale.metrics.Metric> metrics = METRIC_REGISTRY.getMetrics();
+
+    for (Map.Entry<String, MetricType> entry : SHOULD_REPORT_METRICS.entrySet()) {
+      com.codahale.metrics.Metric metric = metrics.get(entry.getKey());
+      if (metric == null) {
+        // This metric does not registered in the metric registry
+        continue;
+      }
+      if (metric instanceof Gauge) {
+        Gauge gauge = (Gauge) metric;
+        if (!(gauge.getValue() instanceof Number)) {
+          LOG.debug("The value of metric {} of type {} is not sent to metrics master,"
+                  + " only metrics value of number can be collected",
+              entry.getKey(), entry.getValue().getClass().getSimpleName());
+          continue;
+        }
+        rpcMetrics.add(Metric.from(entry.getKey(),
+            ((Number) gauge.getValue()).longValue(), MetricType.GAUGE).toProto());
+      } else if (metric instanceof Counter) {
+        Counter counter = (Counter) metric;
+        long value = counter.getCount();
+        Long prev = LAST_REPORTED_METRICS.replace(entry.getKey(), value);
         // On restarts counters will be reset to 0, so whatever the value is the first time
         // this method is called represents the value which should be added to the master's
         // counter.
         if (prev == null) {
-          LAST_REPORTED_METRICS.put(m.getFullMetricName(), m);
+          LAST_REPORTED_METRICS.put(entry.getKey(), value);
         }
-        double diff = prev != null ? m.getValue() - prev.getValue() : m.getValue();
-        rpcMetrics.add(m.toProto().toBuilder().setValue(diff).build());
+        double diff = prev != null ? value - prev : value;
+        if (diff != 0) { // Only report non-zero counter values
+          rpcMetrics.add(Metric.from(entry.getKey(), diff, MetricType.COUNTER).toProto());
+        }
+      } else if (metric instanceof Meter) {
+        Meter meter = (Meter) metric;
+        rpcMetrics.add(Metric.from(entry.getKey(), meter.getOneMinuteRate(),
+            MetricType.METER).toProto());
+      } else if (metric instanceof Timer) {
+        Timer timer = (Timer) metric;
+        rpcMetrics.add(Metric.from(entry.getKey(), timer.getCount(),
+            MetricType.TIMER).toProto());
       } else {
-        rpcMetrics.add(m.toProto());
+        LOG.warn("Metric {} has invalid metric type {} which cannot be reported",
+            entry.getKey(), entry.getValue());
       }
     }
     return rpcMetrics;
@@ -504,6 +581,7 @@ public final class MetricsSystem {
    * @return the client metrics to send via RPC
    */
   public static List<alluxio.grpc.Metric> reportClientMetrics() {
+    LOG.info("Report client metrics from {}", NetworkAddressUtils.getLocalHostMetricName(5000));
     return reportMetrics(InstanceType.CLIENT);
   }
 
@@ -600,6 +678,20 @@ public final class MetricsSystem {
       }
     }
     return metrics;
+  }
+
+  /**
+   * Initialize the should report metrics. This should be called only once.
+   *
+   * @param instanceType the instance type
+   */
+  private static void initShouldReportMetrics(InstanceType instanceType) {
+    Set<MetricKey> metricKeys = MetricKey.allShouldReportMetricKeys(instanceType);
+    for (MetricKey metricKey : metricKeys) {
+      SHOULD_REPORT_METRICS.putIfAbsent(
+          getMetricNameWithUniqueId(instanceType, metricKey.getName()),
+          metricKey.getMetricType());
+    }
   }
 
   /**

@@ -96,6 +96,7 @@ public class MetricsStore {
    * @param metrics the new worker metrics
    */
   public void putWorkerMetrics(String hostname, List<Metric> metrics) {
+    LOG.info("Putting worker metrics");
     if (metrics.isEmpty()) {
       return;
     }
@@ -114,6 +115,7 @@ public class MetricsStore {
    * @param metrics the new metrics
    */
   public void putClientMetrics(String hostname, String clientId, List<Metric> metrics) {
+    LOG.info("Putting client metrics");
     if (metrics.isEmpty()) {
       return;
     }
