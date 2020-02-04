@@ -128,6 +128,9 @@
   <profiles>
     <profile>
       <id>java11</id>
+      <activation>
+        <jdk>11</jdk>
+      </activation>
       <dependencies>
         <dependency>
           <groupId>org.apache.hive</groupId>
