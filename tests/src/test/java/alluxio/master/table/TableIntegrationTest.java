@@ -86,9 +86,8 @@ public final class TableIntegrationTest extends BaseIntegrationTest {
     String[] lines = {
         String.format("CREATE DATABASE %s; USE %s;", DB_NAME, DB_NAME),
         String.format(
-            "CREATE EXTERNAL TABLE test_table(`int1` int, `long2` bigint, `string3` string, `float4` "
-                + "float, "
-                + "`long5` bigint, `partitionint6` int) LOCATION 'file://%s';",
+            "CREATE EXTERNAL TABLE test_table(`int1` int, `long2` bigint, `string3` string, "
+                + "`float4` float, " + "`long5` bigint, `partitionint6` int) LOCATION 'file://%s';",
             dbDir.getAbsolutePath() + "/test_table"),
         String.format(
             "CREATE EXTERNAL TABLE test_table_part(`int1` int, `long2` bigint, `string3` string, "

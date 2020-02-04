@@ -18,7 +18,6 @@ import alluxio.table.common.UdbPartition;
 import alluxio.table.common.transform.TransformContext;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
-import alluxio.util.CommonUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,7 +31,7 @@ public class Partition {
   private final String mPartitionSpec;
   private final Layout mBaseLayout;
 //  private final long mVersion;
-  private final long mVersionCreationTime;
+//  private final long mVersionCreationTime;
   private volatile Transformation mTransformation;
   // TODO(gpang): version number
 
@@ -98,7 +97,7 @@ public class Partition {
   private Partition(String partitionSpec, Layout baseLayout) {
     mPartitionSpec = partitionSpec;
     mBaseLayout = baseLayout;
-    mVersionCreationTime = CommonUtils.getCurrentMs();
+//    mVersionCreationTime = CommonUtils.getCurrentMs();
   }
 
   /**
