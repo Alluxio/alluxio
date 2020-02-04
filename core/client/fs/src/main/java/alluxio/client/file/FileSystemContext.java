@@ -611,25 +611,6 @@ public class FileSystemContext implements Closeable {
   }
 
   /**
-   * @return the client side cache manager
-   */
-  public CacheManager getCacheManager() {
-    return getCacheManager(this);
-  }
-
-  private static CacheManager getCacheManager(FileSystemContext fsContext) {
-    // TODO(feng): support multiple cache managers
-    if (sCacheManager == null) {
-      synchronized (FileSystemContext.class) {
-        if (sCacheManager == null) {
-          sCacheManager = CacheManager.create(fsContext);
-        }
-      }
-    }
-    return sCacheManager;
-  }
-
-  /**
    * Key for block worker client pools. This requires both the worker address and the username, so
    * that block workers are created for different users.
    */

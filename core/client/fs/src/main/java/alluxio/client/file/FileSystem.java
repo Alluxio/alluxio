@@ -130,9 +130,17 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context) {
+      return create(context, context.getClusterConf());
+    }
+
+    /**
+     * @param context the FileSystemContext to use with the FileSystem
+     * @param conf the Alluxio configuration
+     * @return a new FileSystem instance
+     */
+    public static FileSystem create(FileSystemContext context, AlluxioConfiguration conf) {
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
         // Sort properties by name to keep output ordered.
-        AlluxioConfiguration conf = context.getClusterConf();
         List<PropertyKey> keys = new ArrayList<>(conf.keySet());
         keys.sort(Comparator.comparing(PropertyKey::getName));
         for (PropertyKey key : keys) {
@@ -141,13 +149,13 @@ public interface FileSystem extends Closeable {
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
-      Class fsClass = context.getClusterConf().getClass(PropertyKey.USER_FILESYSTEM_CLASS);
+      Class fsClass = conf.getClass(PropertyKey.USER_FILESYSTEM_CLASS);
       Class[] ctorArgClasses = new Class[] {FileSystemContext.class};
       Object[] ctorArgs = new Object[] {context};
       FileSystem fs =
           (FileSystem) CommonUtils.createNewClassInstance(fsClass, ctorArgClasses, ctorArgs);
-      if (context.getClusterConf().getBoolean(PropertyKey.USER_LOCAL_CACHE_ENABLED)) {
-        return new LocalCacheFileSystem(fs, context);
+      if (conf.getBoolean(PropertyKey.USER_LOCAL_CACHE_ENABLED)) {
+        return new LocalCacheFileSystem(fs, conf);
       } else {
         return fs;
       }

@@ -16,27 +16,47 @@ import alluxio.client.file.DelegatingFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.OpenFilePOptions;
+import com.google.common.base.Preconditions;
 
 /**
  * A FileSystem implementation with a local cache.
  */
 public class LocalCacheFileSystem extends DelegatingFileSystem {
-  private final FileSystemContext mFsContext;
+  private static CacheManager sCacheManager;
+
+  private final AlluxioConfiguration mConf;
 
   /**
    * @param fs a FileSystem instance to query on local cache miss
-   * @param fsContext file system context
+   * @param conf the configuration, only respected for the first call
    */
-  public LocalCacheFileSystem(FileSystem fs, FileSystemContext fsContext) {
+  public LocalCacheFileSystem(FileSystem fs, AlluxioConfiguration conf) {
     super(fs);
-    mFsContext = fsContext;
+    // TODO(feng): support multiple cache managers
+    if (sCacheManager == null) {
+      synchronized (LocalCacheFileSystem.class) {
+        if (sCacheManager == null) {
+          sCacheManager = CacheManager.create(conf);
+        }
+      }
+    }
+    mConf = conf;
+  }
+
+  @Override
+  public AlluxioConfiguration getConf() {
+    if (mConf.getBoolean(PropertyKey.USER_LOCAL_CACHE_LIBRARY)) {
+      return mConf;
+    }
+    return mDelegatedFileSystem.getConf();
   }
 
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) {
     // TODO(calvin): We should add another API to reduce the cost of openFile
-    return new LocalCacheFileInStream(path, options, mDelegatedFileSystem,
-        mFsContext.getCacheManager());
+    return new LocalCacheFileInStream(path, options, mDelegatedFileSystem, sCacheManager);
   }
 }

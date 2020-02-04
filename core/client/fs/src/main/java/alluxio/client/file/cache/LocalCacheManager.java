@@ -13,6 +13,7 @@ package alluxio.client.file.cache;
 
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.Pair;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 import alluxio.resource.LockResource;
@@ -62,31 +63,28 @@ public class LocalCacheManager implements CacheManager {
   private final ReadWriteLock mMetaLock = new ReentrantReadWriteLock();
   @GuardedBy("mMetaLock")
   private final MetaStore mMetaStore;
-  private final FileSystemContext mFsContext;
 
   /**
-   * @param fsContext filesystem context
+   * @param conf the Alluxio configuration
    */
-  public LocalCacheManager(FileSystemContext fsContext) {
-    this(fsContext, MetaStore.create(), PageStore.create(fsContext.getClusterConf()),
-        CacheEvictor.create(fsContext.getClusterConf()));
+  public LocalCacheManager(AlluxioConfiguration conf) {
+    this(conf, MetaStore.create(), PageStore.create(conf), CacheEvictor.create(conf));
   }
 
   /**
-   * @param fsContext filesystem context
+   * @param conf the Alluxio configuration
    * @param evictor the eviction strategy to use
    * @param metaStore the meta store manages the metadata
    * @param pageStore the page store manages the cache data
    */
   @VisibleForTesting
-  LocalCacheManager(FileSystemContext fsContext, MetaStore metaStore,
-                    PageStore pageStore, CacheEvictor evictor) {
-    mFsContext = fsContext;
+  LocalCacheManager(AlluxioConfiguration conf, MetaStore metaStore,
+      PageStore pageStore, CacheEvictor evictor) {
     mMetaStore = metaStore;
     mPageStore = pageStore;
     mEvictor = evictor;
-    mPageSize = (int) mFsContext.getClusterConf().getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
-    mCacheSize = mFsContext.getClusterConf().getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE)
+    mPageSize = (int) conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+    mCacheSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE)
         / mPageSize;
     for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock();
