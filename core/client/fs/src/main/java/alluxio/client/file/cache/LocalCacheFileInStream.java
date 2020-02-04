@@ -73,6 +73,9 @@ public class LocalCacheFileInStream extends FileInStream {
       CacheManager cacheManager) {
     mPageSize = externalFs.getConf().getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     mPath = path;
+    mOpenOptions = options;
+    mExternalFs = externalFs;
+    mCacheManager = cacheManager;
     // Lazy init of status object
     mStatus = Suppliers.memoize(() -> {
       try {
@@ -81,9 +84,6 @@ public class LocalCacheFileInStream extends FileInStream {
         throw new RuntimeException(e);
       }
     }).get();
-    mOpenOptions = options;
-    mExternalFs = externalFs;
-    mCacheManager = cacheManager;
   }
 
   @Override

@@ -16,12 +16,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.when;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
@@ -31,7 +28,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -58,7 +54,6 @@ public final class LocalCacheManagerTest {
 
   private LocalCacheManager mCacheManager;
   private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
-  private FileSystemContext mFileContext;
   private HashSetMetaStore mMetaStore;
   private HashMapPageStore mPageStore;
   private CacheEvictor mEvictor;
@@ -70,14 +65,10 @@ public final class LocalCacheManagerTest {
   public void before() {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
-    mFileContext = Mockito.mock(FileSystemContext.class);
-    when(mFileContext.getClusterConf()).thenReturn(mConf);
-    when(mFileContext.getPathConf(any())).thenReturn(mConf);
-    when(mFileContext.getUriValidationEnabled()).thenReturn(true);
     mMetaStore = new HashSetMetaStore();
     mPageStore = new HashMapPageStore();
     mEvictor = new FIFOEvictor(mMetaStore);
-    mCacheManager = new LocalCacheManager(mFileContext, mMetaStore, mPageStore, mEvictor);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
   }
 
   @Test
@@ -100,7 +91,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void putEvict() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
-    mCacheManager = new LocalCacheManager(mFileContext, mMetaStore, mPageStore, mEvictor);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
     mCacheManager.put(PAGE_ID1, PAGE1);
     assertEquals(1, mPageStore.size());
     mCacheManager.put(PAGE_ID2, PAGE2);

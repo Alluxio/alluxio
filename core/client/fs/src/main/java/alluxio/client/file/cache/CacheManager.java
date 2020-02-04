@@ -11,7 +11,7 @@
 
 package alluxio.client.file.cache;
 
-import alluxio.client.file.FileSystemContext;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
@@ -24,11 +24,11 @@ import javax.annotation.Nullable;
  */
 public interface CacheManager {
   /**
-   * @param fsContext filesystem context
+   * @param conf the Alluxio configuration
    * @return an instance of {@link CacheManager}
    */
-  static CacheManager create(FileSystemContext fsContext) {
-    return new LocalCacheManager(fsContext);
+  static CacheManager create(AlluxioConfiguration conf) {
+    return new LocalCacheManager(conf);
   }
 
   /**
