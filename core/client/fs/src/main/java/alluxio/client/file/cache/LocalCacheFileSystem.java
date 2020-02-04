@@ -31,6 +31,9 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
    * @param fs a FileSystem instance to query on local cache miss
    * @param conf the configuration, only respected for the first call
    */
+  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+      value = "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD",
+      justification = "write to static is made threadsafe")
   public LocalCacheFileSystem(FileSystem fs, AlluxioConfiguration conf) {
     super(fs);
     // TODO(feng): support multiple cache managers
