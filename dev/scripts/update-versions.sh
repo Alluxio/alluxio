@@ -79,6 +79,13 @@ function update_k8s() {
     popd
 }
 
+# Arguments:
+#  $1: old version
+#  $2: new version
+function update_yarn() {
+    perl -pi -e "s/${1}/${2}/g" integration/yarn/pom.xml
+}
+
 
 function main() {
     local skip_maven="false"
@@ -109,6 +116,7 @@ function main() {
         update_poms "$_old" "$_new"
     fi
 
+    update_yarn "$_old" "$_new"
     update_libexec "$_old" "$_new"
     update_docs "$_old" "$_new"
     update_k8s "$_old" "$_new"
