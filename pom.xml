@@ -91,7 +91,7 @@
     <repository>
       <id>mapr-repo</id>
       <name>MapR Repository</name>
-      <url>http://repository.mapr.com/maven/</url>
+      <url>https://repository.mapr.com/maven/</url>
       <releases>
         <enabled>true</enabled>
       </releases>
@@ -103,7 +103,7 @@
       <!-- for Pivotal's distribution -->
       <id>spring-releases</id>
       <name>Spring Release Repository</name>
-      <url>http://repo.spring.io/libs-release</url>
+      <url>https://repo.spring.io/libs-release</url>
       <releases>
         <enabled>true</enabled>
       </releases>
@@ -114,7 +114,7 @@
     <repository>
       <id>HDPReleases</id>
       <name>HDP Releases</name>
-      <url>http://repo.hortonworks.com/content/repositories/releases/</url>
+      <url>https://repo.hortonworks.com/content/repositories/releases/</url>
       <layout>default</layout>
       <releases>
         <enabled>true</enabled>
@@ -129,7 +129,7 @@
     </repository>
     <repository>
       <id>alluxio.artifacts</id>
-      <url>http://alluxio.artifacts.s3-website-us-east-1.amazonaws.com/release</url>
+      <url>https://alluxio.artifacts.s3-website-us-east-1.amazonaws.com/release</url>
     </repository>
   </repositories>
 
@@ -857,7 +857,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.2</version>
+          <version>3.8.1</version>
           <configuration>
             <source>${java.version}</source>
             <target>${java.version}</target>
@@ -1284,6 +1284,12 @@
 
     <profile>
       <id>java11</id>
+      <activation>
+        <jdk>11</jdk>
+      </activation>
+      <properties>
+        <java.version>11</java.version>
+      </properties>
       <dependencyManagement>
         <dependencies>
           <dependency>
