@@ -20,6 +20,7 @@ import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDirEvictorView;
+import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
@@ -97,8 +98,10 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
           if (block.getBlockLocation().belongsTo(location)) {
             String tierAlias = block.getParentDir().getParentTier().getTierAlias();
             int dirIndex = block.getParentDir().getDirIndex();
-            dirCandidates.add((StorageDirEvictorView) mMetadataView.getTierView(tierAlias)
-                .getDirView(dirIndex), blockId, block.getBlockSize());
+            StorageDirView dirView = mMetadataView.getTierView(tierAlias).getDirView(dirIndex);
+            if (dirView != null) {
+              dirCandidates.add((StorageDirEvictorView) dirView, blockId, block.getBlockSize());
+            }
           }
         }
       } catch (BlockDoesNotExistException e) {

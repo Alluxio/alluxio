@@ -34,6 +34,8 @@ export interface IMetrics {
   totalBytesReadRemoteThroughput: string;
   totalBytesReadUfs: string;
   totalBytesReadUfsThroughput: string;
+  totalBytesWrittenLocal: string;
+  totalBytesWrittenLocalThroughput: string;
   totalBytesWrittenAlluxio: string;
   totalBytesWrittenAlluxioThroughput: string;
   totalBytesWrittenDomainSocket: string;

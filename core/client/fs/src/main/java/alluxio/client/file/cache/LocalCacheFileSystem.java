@@ -15,36 +15,66 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.DelegatingFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.OpenFilePOptions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * A FileSystem implementation with a local cache.
  */
 public class LocalCacheFileSystem extends DelegatingFileSystem {
-  private final FileSystemContext mFsContext;
+  private static final Logger LOG = LoggerFactory.getLogger(LocalCacheFileSystem.class);
+  private static Optional<CacheManager> sCacheManager;
+
+  private final AlluxioConfiguration mConf;
 
   /**
    * @param fs a FileSystem instance to query on local cache miss
-   * @param fsContext file system context
+   * @param conf the configuration, only respected for the first call
    */
-  public LocalCacheFileSystem(FileSystem fs, FileSystemContext fsContext) {
+  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+      value = "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD",
+      justification = "write to static is made threadsafe")
+  public LocalCacheFileSystem(FileSystem fs, AlluxioConfiguration conf) {
     super(fs);
-    mFsContext = fsContext;
+    // TODO(feng): support multiple cache managers
+    if (sCacheManager == null) {
+      synchronized (LocalCacheFileSystem.class) {
+        if (sCacheManager == null) {
+          try {
+            sCacheManager = Optional.of(CacheManager.create(conf));
+          } catch (IOException e) {
+            LOG.warn("Failed to create CacheManager: {}", e.toString());
+            sCacheManager = Optional.empty();
+          }
+        }
+      }
+    }
+    mConf = conf;
+  }
+
+  @Override
+  public AlluxioConfiguration getConf() {
+    if (mConf.getBoolean(PropertyKey.USER_LOCAL_CACHE_LIBRARY)) {
+      return mConf;
+    }
+    return mDelegatedFileSystem.getConf();
   }
 
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws IOException, AlluxioException {
     // TODO(calvin): We should add another API to reduce the cost of openFile
-    CacheManager cacheManager = mFsContext.getCacheManager();
-    if (cacheManager == null) {
+    if (sCacheManager == null || !sCacheManager.isPresent()) {
       return mDelegatedFileSystem.openFile(path, options);
     }
-    return new LocalCacheFileInStream(path, options, mDelegatedFileSystem,
-       cacheManager);
+    return new LocalCacheFileInStream(path, options, mDelegatedFileSystem, sCacheManager.get());
   }
 }

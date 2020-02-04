@@ -16,6 +16,7 @@ import alluxio.clock.SystemClock;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.MetricValue;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -158,6 +159,10 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
         MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL));
     addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT,
         MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT));
+    addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_WRITTEN_LOCAL,
+        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_WRITTEN_LOCAL));
+    addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_WRITTEN_LOCAL_THROUGHPUT,
+        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_WRITTEN_LOCAL_THROUGHPUT));
 
     // multi-value aggregators
     addAggregator(new SingleTagValueAggregator(WorkerMetrics.BYTES_READ_UFS,
@@ -211,6 +216,11 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   @Override
   public void clearMetrics() {
     mMetricsStore.clear();
+  }
+
+  @Override
+  public Map<String, MetricValue> getMetrics() {
+    return MetricsSystem.allMetrics();
   }
 
   /**

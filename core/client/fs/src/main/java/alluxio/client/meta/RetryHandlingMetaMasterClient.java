@@ -13,24 +13,20 @@ package alluxio.client.meta;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.CheckpointPOptions;
 import alluxio.grpc.GetConfigReportPOptions;
 import alluxio.grpc.GetMasterInfoPOptions;
-import alluxio.grpc.GetMetricsPOptions;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
-import alluxio.grpc.MetricValue;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BackupStatus;
 import alluxio.wire.ConfigCheckReport;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -96,12 +92,6 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
     return retryRPC(() -> mClient
         .getMasterInfo(GetMasterInfoPOptions.newBuilder().addAllFilter(fields).build())
         .getMasterInfo());
-  }
-
-  @Override
-  public Map<String, MetricValue> getMetrics() throws AlluxioStatusException {
-    return retryRPC(
-        () -> mClient.getMetrics(GetMetricsPOptions.getDefaultInstance()).getMetricsMap());
   }
 
   @Override

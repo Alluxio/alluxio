@@ -18,7 +18,6 @@ import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
-import alluxio.client.file.cache.CacheManager;
 import alluxio.client.metrics.MetricsHeartbeatContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -53,7 +52,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -89,11 +87,6 @@ import javax.security.auth.Subject;
 @ThreadSafe
 public class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
-
-  /**
-   * The local cache manager for the file system.
-   */
-  private static volatile Optional<CacheManager> sCacheManager;
 
   /**
    * Unique ID for each FileSystemContext.
@@ -236,16 +229,25 @@ public class FileSystemContext implements Closeable {
     mClosed.set(false);
     mMasterClientContext = MasterClientContext.newBuilder(ctx)
         .setMasterInquireClient(masterInquireClient).build();
+    mMetricsEnabled = getClusterConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED);
+    if (mMetricsEnabled) {
+      try {
+        InetSocketAddress masterAddr = masterInquireClient.getPrimaryRpcAddress();
+        mMasterClientContext.loadConf(masterAddr, true, true);
+      } catch (UnavailableException e) {
+        LOG.error("Failed to get master address during initialization", e);
+      } catch (AlluxioStatusException ae) {
+        LOG.error("Failed to load configuration from "
+            + "meta master during initialization", ae);
+      }
+      MetricsSystem.startSinks(getClusterConf().get(PropertyKey.METRICS_CONF_FILE));
+      MetricsHeartbeatContext.addHeartbeat(getClientContext(), masterInquireClient);
+    }
     mFileSystemMasterClientPool = new FileSystemMasterClientPool(mMasterClientContext);
     mBlockMasterClientPool = new BlockMasterClientPool(mMasterClientContext);
     mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(getClusterConf()),
         getClusterConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
         String.format("alluxio-client-nettyPool-%s-%%d", mId), true);
-    mMetricsEnabled = getClusterConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED);
-    if (mMetricsEnabled) {
-      MetricsSystem.startSinks(getClusterConf().get(PropertyKey.METRICS_CONF_FILE));
-      MetricsHeartbeatContext.addHeartbeat(getClientContext(), masterInquireClient);
-    }
     mUriValidationEnabled = ctx.getUriValidationEnabled();
   }
 
@@ -600,32 +602,6 @@ public class FileSystemContext implements Closeable {
     }
 
     return localWorkerNetAddresses.isEmpty() ? workerNetAddresses : localWorkerNetAddresses;
-  }
-
-  /**
-   * @return the client side cache manager, or null if failed to create the cache manager
-   */
-  @Nullable
-  public CacheManager getCacheManager() {
-    return getCacheManager(this);
-  }
-
-  @Nullable
-  private static CacheManager getCacheManager(FileSystemContext fsContext) {
-    // TODO(feng): support multiple cache managers
-    if (sCacheManager == null) {
-      synchronized (FileSystemContext.class) {
-        if (sCacheManager == null) {
-          try {
-            sCacheManager = Optional.of(CacheManager.create(fsContext));
-          } catch (IOException e) {
-            LOG.warn("Failed to create CacheManager: {}", e.toString());
-            sCacheManager = Optional.empty();
-          }
-        }
-      }
-    }
-    return sCacheManager.orElse(null);
   }
 
   /**

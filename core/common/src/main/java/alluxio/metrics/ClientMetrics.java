@@ -18,6 +18,8 @@ public final class ClientMetrics {
   /** Total number of bytes short-circuit read from local storage. */
   public static final String BYTES_READ_LOCAL = "BytesReadLocal";
   public static final String BYTES_READ_LOCAL_THROUGHPUT = "BytesReadLocalThroughput";
+  public static final String BYTES_WRITTEN_LOCAL = "BytesWrittenLocal";
+  public static final String BYTES_WRITTEN_LOCAL_THROUGHPUT = "BytesWrittenLocalThroughput";
   public static final String BYTES_WRITTEN_UFS = "BytesWrittenUfs";
 
   /** Metrics for LocalCacheFileSystem, prefixed with Cache. */

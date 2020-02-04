@@ -11,7 +11,7 @@
 
 package alluxio.client.file.cache;
 
-import alluxio.client.file.FileSystemContext;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
@@ -24,12 +24,12 @@ import javax.annotation.Nullable;
  */
 public interface CacheManager extends AutoCloseable  {
   /**
-   * @param fsContext filesystem context
+   * @param conf the Alluxio configuration
    * @return an instance of {@link CacheManager}
    */
-  static CacheManager create(FileSystemContext fsContext) throws IOException {
+  static CacheManager create(AlluxioConfiguration conf) throws IOException {
     // TODO(feng): make cache manager type configurable when we introduce more implementations.
-    return LocalCacheManager.create(fsContext);
+    return LocalCacheManager.create(conf);
   }
 
   /**

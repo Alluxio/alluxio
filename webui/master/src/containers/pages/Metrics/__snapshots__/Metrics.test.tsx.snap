@@ -35,15 +35,11 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
           <th>
             Local Alluxio (Short-circuit) Read
           </th>
-          <td>
-            N/A
-          </td>
+          <td />
           <th>
             Local Alluxio (Short-circuit) Write
           </th>
-          <td>
-            N/A
-          </td>
+          <td />
         </tr>
         <tr>
           <th>
@@ -94,15 +90,11 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
           <th>
             Local Alluxio (Short-circuit) Read
           </th>
-          <td>
-            N/A
-          </td>
+          <td />
           <th>
             Local Alluxio (Short-circuit) Write
           </th>
-          <td>
-            N/A
-          </td>
+          <td />
         </tr>
         <tr>
           <th>

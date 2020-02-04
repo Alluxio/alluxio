@@ -11,8 +11,8 @@
 
 package alluxio.client.file.cache;
 
-import alluxio.client.file.FileSystemContext;
 import alluxio.collections.Pair;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 import alluxio.resource.LockResource;
@@ -63,23 +63,22 @@ public class LocalCacheManager implements CacheManager {
   private final ReadWriteLock mMetaLock = new ReentrantReadWriteLock();
   @GuardedBy("mMetaLock")
   private final MetaStore mMetaStore;
-  private final FileSystemContext mFsContext;
 
   /**
-   * @param fsContext filesystem context
+   * @param conf the Alluxio configuration
    * @return an instance of {@link LocalCacheManager}
    */
-  public static LocalCacheManager create(FileSystemContext fsContext) throws IOException {
+  public static LocalCacheManager create(AlluxioConfiguration conf) throws IOException {
     MetaStore metaStore = MetaStore.create();
-    CacheEvictor evictor = CacheEvictor.create(fsContext.getClusterConf());
-    PageStore pageStore = PageStore.create(fsContext.getClusterConf());
+    CacheEvictor evictor = CacheEvictor.create(conf);
+    PageStore pageStore = PageStore.create(conf);
     try {
       Collection<PageId> pages = pageStore.getPages();
       for (PageId page : pages) {
         metaStore.addPage(page);
         evictor.updateOnPut(page);
       }
-      return new LocalCacheManager(fsContext, metaStore, pageStore, evictor);
+      return new LocalCacheManager(conf, metaStore, pageStore, evictor);
     } catch (Exception e) {
       try {
         pageStore.close();
@@ -91,20 +90,19 @@ public class LocalCacheManager implements CacheManager {
   }
 
   /**
-   * @param fsContext filesystem context
+   * @param conf the Alluxio configuration
    * @param evictor the eviction strategy to use
    * @param metaStore the meta store manages the metadata
    * @param pageStore the page store manages the cache data
    */
   @VisibleForTesting
-  LocalCacheManager(FileSystemContext fsContext, MetaStore metaStore,
-                    PageStore pageStore, CacheEvictor evictor) {
-    mFsContext = fsContext;
+  LocalCacheManager(AlluxioConfiguration conf, MetaStore metaStore,
+      PageStore pageStore, CacheEvictor evictor) {
     mMetaStore = metaStore;
     mPageStore = pageStore;
     mEvictor = evictor;
-    mPageSize = (int) mFsContext.getClusterConf().getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
-    mCacheSize = mFsContext.getClusterConf().getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE)
+    mPageSize = (int) conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+    mCacheSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE)
         / mPageSize;
     for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock();
