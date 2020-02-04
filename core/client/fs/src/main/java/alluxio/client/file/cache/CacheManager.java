@@ -11,7 +11,6 @@
 
 package alluxio.client.file.cache;
 
-import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.PageNotFoundException;
 

@@ -15,11 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.DelegatingFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.OpenFilePOptions;
-import com.google.common.base.Preconditions;
 
 /**
  * A FileSystem implementation with a local cache.
