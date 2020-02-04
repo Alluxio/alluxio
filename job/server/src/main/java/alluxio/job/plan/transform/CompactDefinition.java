@@ -97,7 +97,8 @@ public final class CompactDefinition
     AlluxioURI outputDir = new AlluxioURI(config.getOutput());
 
     List<URIStatus> files = Lists.newArrayList();
-    long totalFileSize = 0;
+    // use double to prevent overflow
+    double totalFileSize = 0;
     for (URIStatus status : context.getFileSystem().listStatus(inputDir)) {
       if (!shouldIgnore(status)) {
         files.add(status);
@@ -107,9 +108,9 @@ public final class CompactDefinition
     Map<WorkerInfo, ArrayList<CompactTask>> assignments = Maps.newHashMap();
     int numFiles = config.getNumFiles();
     if (numFiles == CompactConfig.DYNAMIC_NUM_OF_FILES) {
-      numFiles = calcNumOfFiles(files.size(), totalFileSize / files.size(), config.getFileSize());
+      numFiles = calcNumOfFiles(files.size(), Math.round(totalFileSize / files.size()), config.getFileSize());
     }
-    long groupMaxSize = totalFileSize / numFiles;
+    long groupMaxSize = Math.round(totalFileSize / numFiles);
     // Files to be compacted are grouped into different groups,
     // each group of files are compacted to one file,
     // one task is to compact one group of files,

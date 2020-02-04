@@ -22,17 +22,20 @@ import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.SelectExecutorsTest;
 import alluxio.wire.WorkerInfo;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 public class CompactDefinitionSelectExecutorsTest extends SelectExecutorsTest {
 
   private static final String INPUT_DIR = "/input";
   private static final String OUTPUT_DIR = "/output";
+  private static final Random sRandom = new Random();
 
   @Test
   public void testExecutorsParallel() throws Exception {
@@ -41,7 +44,7 @@ public class CompactDefinitionSelectExecutorsTest extends SelectExecutorsTest {
     int totalFiles = 5000;
 
     CompactConfig config = new CompactConfig(null, INPUT_DIR, OUTPUT_DIR, "test",
-        numCompactedFiles);
+        numCompactedFiles, FileUtils.ONE_GB);
 
     List<URIStatus> inputFiles = new ArrayList<>();
     for (int i = 0; i < totalFiles; i++) {
@@ -66,6 +69,7 @@ public class CompactDefinitionSelectExecutorsTest extends SelectExecutorsTest {
     URIStatus mockFileStatus = Mockito.mock(URIStatus.class);
     when(mockFileStatus.isFolder()).thenReturn(false);
     when(mockFileStatus.getName()).thenReturn(name);
+    when(mockFileStatus.getLength()).thenReturn((long)sRandom.nextInt(Integer.MAX_VALUE));
     return mockFileStatus;
   }
 }
