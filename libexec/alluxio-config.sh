@@ -53,7 +53,8 @@ fi
 
 # Check Java version == 1.8
 JAVA_VERSION=$(${JAVA} -version 2>&1 | awk -F '"' '/version/ {print $2}')
-if [[ $(echo "${JAVA_VERSION}" | awk -F. '{printf("%03d%03d",$1,$2);}') != 001008 ]]; then
+NUMERIC_VERSION="$(echo "${JAVA_VERSION}" | awk -F. '{printf("%03d%03d",$1,$2);}')"
+if [[ ${NUMERIC_VERSION} != 001008 && ${NUMERIC_VERSION} != 011* ]]; then
   echo "Error: Alluxio requires Java 8, currently Java $JAVA_VERSION found."
   exit 1
 fi

@@ -20,9 +20,6 @@ import alluxio.job.wire.JobInfo;
 import alluxio.master.AlluxioJobMasterProcess;
 import alluxio.web.JobMasterWebServer;
 
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.jaxrs.annotation.JacksonFeatures;
-
 import java.util.List;
 
 import javax.servlet.ServletContext;
@@ -110,7 +107,6 @@ public final class JobMasterClientRestServiceHandler {
    */
   @GET
   @Path(ServiceConstants.GET_STATUS)
-  @JacksonFeatures(serializationEnable = {SerializationFeature.INDENT_OUTPUT})
   public Response getStatus(@QueryParam("jobId") final long jobId) {
     return RestUtils.call(new RestUtils.RestCallable<JobInfo>() {
       @Override

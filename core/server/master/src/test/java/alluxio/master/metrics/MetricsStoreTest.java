@@ -18,7 +18,7 @@ import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
 
 import com.google.common.collect.Lists;
-import jersey.repackaged.com.google.common.collect.Sets;
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 

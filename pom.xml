@@ -1289,6 +1289,8 @@
       </activation>
       <properties>
         <java.version>11</java.version>
+        <jersey.version>2.30</jersey.version>
+        <guava.version>27.1-jre</guava.version>
       </properties>
       <dependencyManagement>
         <dependencies>
@@ -1297,6 +1299,11 @@
             <artifactId>javax.annotation-api</artifactId>
             <version>1.3.2</version>
           </dependency>
+          <dependency>
+            <groupId>org.glassfish.jersey.inject</groupId>
+            <artifactId>jersey-hk2</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>        
         </dependencies>
       </dependencyManagement>
       <build>
