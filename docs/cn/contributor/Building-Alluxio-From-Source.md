@@ -23,10 +23,11 @@ priority: 1
 $ git clone git://github.com/alluxio/alluxio.git
 $ cd alluxio
 ```
-您可以编译特定版本的Alluxio，例如{{site.ALLUXIO_RELEASED_VERSION}}。否则这将编译源码的master分支。
+您可以编译特定版本的Alluxio，否则这将编译源码的master分支。
 
 ```console
-$ git checkout v{{site.ALLUXIO_RELEASED_VERSION}}
+$ git tag
+$ git checkout <TAG_NAME>
 ```
 
 ### 编译
