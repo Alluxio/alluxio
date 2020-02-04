@@ -20,10 +20,12 @@ import alluxio.util.LogUtils;
 
 import com.google.common.util.concurrent.SettableFuture;
 import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.security.sasl.SaslException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -60,6 +62,8 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
   private volatile boolean mChannelAuthenticated;
   /** Used to wait during authentication handshake. */
   private SettableFuture<Void> mChannelAuthenticatedFuture;
+  /** Initiating message for authentication. */
+  private SaslMessage mInitiateMessage;
 
   /**
    * Creates client driver with given handshake handler.
@@ -68,11 +72,13 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
    * @param channelKey channel key
    */
   public AuthenticatedChannelClientDriver(SaslClientHandler saslClientHandler,
-      GrpcChannelKey channelKey) {
+      GrpcChannelKey channelKey) throws SaslException {
     mSaslClientHandler = saslClientHandler;
     mChannelKey = channelKey;
     mChannelAuthenticated = false;
     mChannelAuthenticatedFuture = SettableFuture.create();
+    // Generate the initiating message while sasl handler is valid.
+    mInitiateMessage = generateInitialMessage();
   }
 
   /**
@@ -87,7 +93,8 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
   @Override
   public void onNext(SaslMessage saslMessage) {
     try {
-      LOG.debug("Received message for {}. Message: {}", mChannelKey.toStringShort(), saslMessage);
+      LOG.debug("Received message for channel: {}. Message: {}",
+          mChannelKey.toStringShort(), saslMessage);
       SaslMessage response = mSaslClientHandler.handleMessage(saslMessage);
       if (response != null) {
         mRequestObserver.onNext(response);
@@ -108,7 +115,7 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
 
   @Override
   public void onError(Throwable throwable) {
-    LOG.debug("Received error for {}. Error: {}", mChannelKey.toStringShort(), throwable);
+    LOG.debug("Received error for channel: {}. Error: {}", mChannelKey.toStringShort(), throwable);
     closeAuthenticatedChannel(false);
 
     // Fail blocked waiters.
@@ -117,7 +124,8 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
 
   @Override
   public void onCompleted() {
-    LOG.debug("Authenticated channel revoked by server for {}", mChannelKey.toStringShort());
+    LOG.debug("Authenticated channel revoked by server for channel: {}",
+        mChannelKey.toStringShort());
     closeAuthenticatedChannel(false);
   }
 
@@ -125,7 +133,7 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
    * Stops authenticated session with the server by releasing the long poll.
    */
   public void close() {
-    LOG.debug("Closing authentication for {}", mChannelKey.toStringShort());
+    LOG.debug("Closing authentication for channel: {}", mChannelKey.toStringShort());
     closeAuthenticatedChannel(true);
   }
 
@@ -144,12 +152,13 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
    */
   public void startAuthenticatedChannel(long timeoutMs) throws AlluxioStatusException {
     try {
-      LOG.debug("Initiating authentication for {}", mChannelKey.toStringShort());
+      LOG.debug("Initiating authentication for channel: {}", mChannelKey.toStringShort());
       // Send the server initial message.
-      SaslMessage.Builder initialMsg = mSaslClientHandler.handleMessage(null).toBuilder();
-      initialMsg.setClientId(mChannelKey.getChannelId().toString());
-      initialMsg.setChannelRef(mChannelKey.toStringShort());
-      mRequestObserver.onNext(initialMsg.build());
+      try {
+        mRequestObserver.onNext(mInitiateMessage);
+      } catch (StatusRuntimeException e) {
+        // Ignore. waitUntilChannelAuthenticated() will throw stored cause.
+      }
 
       // Utility to return from start when channel is secured.
       waitUntilChannelAuthenticated(timeoutMs);
@@ -157,6 +166,13 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
       closeAuthenticatedChannel(true);
       throw AlluxioStatusException.fromThrowable(t);
     }
+  }
+
+  private SaslMessage generateInitialMessage() throws SaslException {
+    SaslMessage.Builder initialMsg = mSaslClientHandler.handleMessage(null).toBuilder();
+    initialMsg.setClientId(mChannelKey.getChannelId().toString());
+    initialMsg.setChannelRef(mChannelKey.toStringShort());
+    return initialMsg.build();
   }
 
   private void waitUntilChannelAuthenticated(long timeoutMs) throws AlluxioStatusException {
