@@ -79,6 +79,7 @@ message Transformation {
     optional string definition = 2;
 }
 
+// next available id: 6
 message Partition {
     optional PartitionSpec partition_spec = 1;
     optional Layout base_layout = 2;
@@ -86,6 +87,8 @@ message Partition {
      * The latest transformation is in the back of the list.
      */
     repeated Transformation transformations = 3;
+    optional int64 version = 4;
+    optional int64 version_creation_time = 5;
 }
 
 message ColumnStatisticsInfo {

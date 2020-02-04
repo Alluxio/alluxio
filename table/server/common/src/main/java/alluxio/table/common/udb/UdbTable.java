@@ -24,7 +24,6 @@ import java.util.Map;
  * The interface for the underdb table.
  */
 public interface UdbTable {
-  long UNDEFINED_TIME = -1;
 
   /**
    * @return the table name
@@ -66,9 +65,4 @@ public interface UdbTable {
    * @return returns partitions for the table
    */
   List<UdbPartition> getPartitions();
-
-  /**
-   * @return the last modified time of the table definition (not data), or {@link #UNDEFINED_TIME}
-   */
-  long getLastModifiedTime();
 }

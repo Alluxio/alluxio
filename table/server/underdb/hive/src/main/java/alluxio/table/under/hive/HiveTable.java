@@ -31,7 +31,6 @@ import java.util.Map;
  */
 public class HiveTable implements UdbTable {
   private static final Logger LOG = LoggerFactory.getLogger(HiveTable.class);
-  private static final String LAST_DDL_TIME = "transient_lastDdlTime";
 
   private final String mName;
   private final Schema mSchema;
@@ -41,7 +40,6 @@ public class HiveTable implements UdbTable {
   private final List<UdbPartition> mUdbPartitions;
   private final Map<String, String> mParameters;
   private final Layout mLayout;
-  private final long mLastModifiedTime;
 
   /**
    * Creates a new instance.
@@ -64,11 +62,6 @@ public class HiveTable implements UdbTable {
     mOwner = table.getOwner();
     mParameters = (table.getParameters() != null) ? table.getParameters() : Collections.emptyMap();
     mLayout = layout;
-    if (mParameters.containsKey(LAST_DDL_TIME)) {
-      mLastModifiedTime = Long.parseLong(mParameters.get(LAST_DDL_TIME));
-    } else {
-      mLastModifiedTime = UNDEFINED_TIME;
-    }
   }
 
   @Override
@@ -109,10 +102,5 @@ public class HiveTable implements UdbTable {
   @Override
   public List<UdbPartition> getPartitions() {
     return mUdbPartitions;
-  }
-
-  @Override
-  public long getLastModifiedTime() {
-    return mLastModifiedTime;
   }
 }

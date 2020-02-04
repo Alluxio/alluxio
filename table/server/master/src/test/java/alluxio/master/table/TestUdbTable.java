@@ -117,11 +117,6 @@ public class TestUdbTable implements UdbTable {
     return mTestPartitions;
   }
 
-  @Override
-  public long getLastModifiedTime() {
-    return UNDEFINED_TIME;
-  }
-
   private class TestPartition implements UdbPartition {
     private HiveLayout mLayout;
 

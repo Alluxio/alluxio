@@ -87,10 +87,12 @@ public class Table {
               .collect(Collectors.toMap(Partition::getSpec, Function.identity()));
       for (UdbPartition udbPartition : udbTable.getPartitions()) {
         Partition newPartition = existingPartitions.get(udbPartition.getSpec());
-        if (newPartition == null || !newPartition.getLayout()
-            .equals(udbPartition.getLayout())) {
-          // create a new partition (didnt exist, or layout was updated)
+        if (newPartition == null) {
+          // partition does not exist yet
           newPartition = new Partition(udbPartition);
+        } else if (!newPartition.getLayout().equals(udbPartition.getLayout())) {
+          // existing partition is updated
+          newPartition = newPartition.createNext(udbPartition);
         }
         partitions.add(newPartition);
       }
