@@ -125,9 +125,10 @@ public final class CompactDefinition
       // add the file to the group if
       // 1. group is empty
       // 2. group is the last group
-      // 3. group size with the new file will not exceed the max group size
+      // 3. group size with the new file is closer to the groupMaxSize than group size without it
       if (group.isEmpty() || groupIndex == numFiles - 1
-          || currentGroupSize + file.getLength() <= groupMaxSize) {
+          || (Math.abs(currentGroupSize + file.getLength() - groupMaxSize)
+          <= Math.abs(currentGroupSize - groupMaxSize))) {
         group.add(inputDir.join(file.getName()).toString());
         currentGroupSize += file.getLength();
       } else {
