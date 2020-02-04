@@ -35,6 +35,7 @@ message Database {
     optional string comment = 7;
 }
 
+// next available id: 12
 message TableInfo {
     optional string db_name = 1;
     optional string table_name = 2;
@@ -50,6 +51,10 @@ message TableInfo {
 
     // partitioning scheme
     repeated FieldSchema partition_cols = 8;
+
+    optional int64 previous_version = 9;
+    optional int64 version = 10;
+    optional int64 version_creation_time = 11;
 }
 
 // TODO(gpang): update

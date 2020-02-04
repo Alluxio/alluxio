@@ -22,7 +22,6 @@ import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.UdbTable;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -114,8 +113,13 @@ public class TestUdbTable implements UdbTable {
   }
 
   @Override
-  public List<UdbPartition> getPartitions() throws IOException {
+  public List<UdbPartition> getPartitions() {
     return mTestPartitions;
+  }
+
+  @Override
+  public long getLastModifiedTime() {
+    return UNDEFINED_TIME;
   }
 
   private class TestPartition implements UdbPartition {

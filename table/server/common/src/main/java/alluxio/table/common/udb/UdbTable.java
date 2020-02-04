@@ -17,7 +17,6 @@ import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.Schema;
 import alluxio.table.common.UdbPartition;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +24,7 @@ import java.util.Map;
  * The interface for the underdb table.
  */
 public interface UdbTable {
+  long UNDEFINED_TIME = -1;
 
   /**
    * @return the table name
@@ -65,5 +65,10 @@ public interface UdbTable {
   /**
    * @return returns partitions for the table
    */
-  List<UdbPartition> getPartitions() throws IOException;
+  List<UdbPartition> getPartitions();
+
+  /**
+   * @return the last modified time of the table definition (not data), or {@link #UNDEFINED_TIME}
+   */
+  long getLastModifiedTime();
 }

@@ -2144,10 +2144,37 @@ public final class Table {
      */
     alluxio.grpc.table.PartitionOrBuilder getPartitionsOrBuilder(
         int index);
+
+    /**
+     * <code>optional int64 previous_version = 10;</code>
+     */
+    boolean hasPreviousVersion();
+    /**
+     * <code>optional int64 previous_version = 10;</code>
+     */
+    long getPreviousVersion();
+
+    /**
+     * <code>optional int64 version = 11;</code>
+     */
+    boolean hasVersion();
+    /**
+     * <code>optional int64 version = 11;</code>
+     */
+    long getVersion();
+
+    /**
+     * <code>optional int64 version_creation_time = 12;</code>
+     */
+    boolean hasVersionCreationTime();
+    /**
+     * <code>optional int64 version_creation_time = 12;</code>
+     */
+    long getVersionCreationTime();
   }
   /**
    * <pre>
-   * next available id: 10
+   * next available id: 13
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.journal.AddTableEntry}
@@ -2168,6 +2195,9 @@ public final class Table {
       tableStats_ = java.util.Collections.emptyList();
       partitionCols_ = java.util.Collections.emptyList();
       partitions_ = java.util.Collections.emptyList();
+      previousVersion_ = 0L;
+      version_ = 0L;
+      versionCreationTime_ = 0L;
     }
 
     @java.lang.Override
@@ -2283,6 +2313,21 @@ public final class Table {
               }
               partitions_.add(
                   input.readMessage(alluxio.grpc.table.Partition.PARSER, extensionRegistry));
+              break;
+            }
+            case 80: {
+              bitField0_ |= 0x00000020;
+              previousVersion_ = input.readInt64();
+              break;
+            }
+            case 88: {
+              bitField0_ |= 0x00000040;
+              version_ = input.readInt64();
+              break;
+            }
+            case 96: {
+              bitField0_ |= 0x00000080;
+              versionCreationTime_ = input.readInt64();
               break;
             }
           }
@@ -2699,6 +2744,51 @@ public final class Table {
       return partitions_.get(index);
     }
 
+    public static final int PREVIOUS_VERSION_FIELD_NUMBER = 10;
+    private long previousVersion_;
+    /**
+     * <code>optional int64 previous_version = 10;</code>
+     */
+    public boolean hasPreviousVersion() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <code>optional int64 previous_version = 10;</code>
+     */
+    public long getPreviousVersion() {
+      return previousVersion_;
+    }
+
+    public static final int VERSION_FIELD_NUMBER = 11;
+    private long version_;
+    /**
+     * <code>optional int64 version = 11;</code>
+     */
+    public boolean hasVersion() {
+      return ((bitField0_ & 0x00000040) == 0x00000040);
+    }
+    /**
+     * <code>optional int64 version = 11;</code>
+     */
+    public long getVersion() {
+      return version_;
+    }
+
+    public static final int VERSION_CREATION_TIME_FIELD_NUMBER = 12;
+    private long versionCreationTime_;
+    /**
+     * <code>optional int64 version_creation_time = 12;</code>
+     */
+    public boolean hasVersionCreationTime() {
+      return ((bitField0_ & 0x00000080) == 0x00000080);
+    }
+    /**
+     * <code>optional int64 version_creation_time = 12;</code>
+     */
+    public long getVersionCreationTime() {
+      return versionCreationTime_;
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -2759,6 +2849,15 @@ public final class Table {
       for (int i = 0; i < partitions_.size(); i++) {
         output.writeMessage(9, partitions_.get(i));
       }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        output.writeInt64(10, previousVersion_);
+      }
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+        output.writeInt64(11, version_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        output.writeInt64(12, versionCreationTime_);
+      }
       unknownFields.writeTo(output);
     }
 
@@ -2805,6 +2904,18 @@ public final class Table {
       for (int i = 0; i < partitions_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(9, partitions_.get(i));
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(10, previousVersion_);
+      }
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(11, version_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(12, versionCreationTime_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -2855,6 +2966,21 @@ public final class Table {
           .equals(other.getPartitionColsList());
       result = result && getPartitionsList()
           .equals(other.getPartitionsList());
+      result = result && (hasPreviousVersion() == other.hasPreviousVersion());
+      if (hasPreviousVersion()) {
+        result = result && (getPreviousVersion()
+            == other.getPreviousVersion());
+      }
+      result = result && (hasVersion() == other.hasVersion());
+      if (hasVersion()) {
+        result = result && (getVersion()
+            == other.getVersion());
+      }
+      result = result && (hasVersionCreationTime() == other.hasVersionCreationTime());
+      if (hasVersionCreationTime()) {
+        result = result && (getVersionCreationTime()
+            == other.getVersionCreationTime());
+      }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -2901,6 +3027,21 @@ public final class Table {
       if (getPartitionsCount() > 0) {
         hash = (37 * hash) + PARTITIONS_FIELD_NUMBER;
         hash = (53 * hash) + getPartitionsList().hashCode();
+      }
+      if (hasPreviousVersion()) {
+        hash = (37 * hash) + PREVIOUS_VERSION_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getPreviousVersion());
+      }
+      if (hasVersion()) {
+        hash = (37 * hash) + VERSION_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getVersion());
+      }
+      if (hasVersionCreationTime()) {
+        hash = (37 * hash) + VERSION_CREATION_TIME_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getVersionCreationTime());
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -2997,7 +3138,7 @@ public final class Table {
     }
     /**
      * <pre>
-     * next available id: 10
+     * next available id: 13
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.journal.AddTableEntry}
@@ -3099,6 +3240,12 @@ public final class Table {
         } else {
           partitionsBuilder_.clear();
         }
+        previousVersion_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000200);
+        version_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000400);
+        versionCreationTime_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000800);
         return this;
       }
 
@@ -3180,6 +3327,18 @@ public final class Table {
         } else {
           result.partitions_ = partitionsBuilder_.build();
         }
+        if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
+          to_bitField0_ |= 0x00000020;
+        }
+        result.previousVersion_ = previousVersion_;
+        if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
+          to_bitField0_ |= 0x00000040;
+        }
+        result.version_ = version_;
+        if (((from_bitField0_ & 0x00000800) == 0x00000800)) {
+          to_bitField0_ |= 0x00000080;
+        }
+        result.versionCreationTime_ = versionCreationTime_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -3322,6 +3481,15 @@ public final class Table {
               partitionsBuilder_.addAllMessages(other.partitions_);
             }
           }
+        }
+        if (other.hasPreviousVersion()) {
+          setPreviousVersion(other.getPreviousVersion());
+        }
+        if (other.hasVersion()) {
+          setVersion(other.getVersion());
+        }
+        if (other.hasVersionCreationTime()) {
+          setVersionCreationTime(other.getVersionCreationTime());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -4743,6 +4911,102 @@ public final class Table {
           partitions_ = null;
         }
         return partitionsBuilder_;
+      }
+
+      private long previousVersion_ ;
+      /**
+       * <code>optional int64 previous_version = 10;</code>
+       */
+      public boolean hasPreviousVersion() {
+        return ((bitField0_ & 0x00000200) == 0x00000200);
+      }
+      /**
+       * <code>optional int64 previous_version = 10;</code>
+       */
+      public long getPreviousVersion() {
+        return previousVersion_;
+      }
+      /**
+       * <code>optional int64 previous_version = 10;</code>
+       */
+      public Builder setPreviousVersion(long value) {
+        bitField0_ |= 0x00000200;
+        previousVersion_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 previous_version = 10;</code>
+       */
+      public Builder clearPreviousVersion() {
+        bitField0_ = (bitField0_ & ~0x00000200);
+        previousVersion_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long version_ ;
+      /**
+       * <code>optional int64 version = 11;</code>
+       */
+      public boolean hasVersion() {
+        return ((bitField0_ & 0x00000400) == 0x00000400);
+      }
+      /**
+       * <code>optional int64 version = 11;</code>
+       */
+      public long getVersion() {
+        return version_;
+      }
+      /**
+       * <code>optional int64 version = 11;</code>
+       */
+      public Builder setVersion(long value) {
+        bitField0_ |= 0x00000400;
+        version_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 version = 11;</code>
+       */
+      public Builder clearVersion() {
+        bitField0_ = (bitField0_ & ~0x00000400);
+        version_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long versionCreationTime_ ;
+      /**
+       * <code>optional int64 version_creation_time = 12;</code>
+       */
+      public boolean hasVersionCreationTime() {
+        return ((bitField0_ & 0x00000800) == 0x00000800);
+      }
+      /**
+       * <code>optional int64 version_creation_time = 12;</code>
+       */
+      public long getVersionCreationTime() {
+        return versionCreationTime_;
+      }
+      /**
+       * <code>optional int64 version_creation_time = 12;</code>
+       */
+      public Builder setVersionCreationTime(long value) {
+        bitField0_ |= 0x00000800;
+        versionCreationTime_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 version_creation_time = 12;</code>
+       */
+      public Builder clearVersionCreationTime() {
+        bitField0_ = (bitField0_ & ~0x00000800);
+        versionCreationTime_ = 0L;
+        onChanged();
+        return this;
       }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -9643,7 +9907,7 @@ public final class Table {
       "0.alluxio.proto.journal.AttachDbEntry.Co" +
       "nfigEntry\032-\n\013ConfigEntry\022\013\n\003key\030\001 \001(\t\022\r\n" +
       "\005value\030\002 \001(\t:\0028\001\" \n\rDetachDbEntry\022\017\n\007db_" +
-      "name\030\001 \001(\t\"\303\003\n\rAddTableEntry\022\017\n\007db_name\030" +
+      "name\030\001 \001(\t\"\215\004\n\rAddTableEntry\022\017\n\007db_name\030" +
       "\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\022\r\n\005owner\030\003 \001(\t" +
       "\022*\n\006schema\030\004 \001(\0132\032.alluxio.grpc.table.Sc" +
       "hema\022*\n\006layout\030\005 \001(\0132\032.alluxio.grpc.tabl" +
@@ -9653,31 +9917,33 @@ public final class Table {
       "ableEntry.ParametersEntry\0227\n\016partition_c" +
       "ols\030\010 \003(\0132\037.alluxio.grpc.table.FieldSche" +
       "ma\0221\n\npartitions\030\t \003(\0132\035.alluxio.grpc.ta" +
-      "ble.Partition\0321\n\017ParametersEntry\022\013\n\003key\030" +
-      "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\226\002\n\033CompleteTra" +
-      "nsformTableEntry\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntab" +
-      "le_name\030\002 \001(\t\022\022\n\ndefinition\030\003 \001(\t\022g\n\023tra" +
-      "nsformed_layouts\030\004 \003(\0132J.alluxio.proto.j" +
-      "ournal.CompleteTransformTableEntry.Trans" +
-      "formedLayoutsEntry\032U\n\027TransformedLayouts" +
-      "Entry\022\013\n\003key\030\001 \001(\t\022)\n\005value\030\002 \001(\0132\032.allu" +
-      "xio.grpc.table.Layout:\0028\001\"\240\002\n\030AddTransfo" +
-      "rmJobInfoEntry\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable" +
-      "_name\030\002 \001(\t\022\022\n\ndefinition\030\003 \001(\t\022\016\n\006job_i" +
-      "d\030\004 \001(\003\022d\n\023transformed_layouts\030\005 \003(\0132G.a" +
-      "lluxio.proto.journal.AddTransformJobInfo" +
-      "Entry.TransformedLayoutsEntry\032U\n\027Transfo" +
-      "rmedLayoutsEntry\022\013\n\003key\030\001 \001(\t\022)\n\005value\030\002" +
-      " \001(\0132\032.alluxio.grpc.table.Layout:\0028\001\"B\n\033" +
-      "RemoveTransformJobInfoEntry\022\017\n\007db_name\030\001" +
-      " \001(\t\022\022\n\ntable_name\030\002 \001(\t\"\234\002\n\027UpdateDatab" +
-      "aseInfoEntry\022\017\n\007db_name\030\001 \001(\t\022\020\n\010locatio" +
-      "n\030\002 \001(\t\022P\n\tparameter\030\003 \003(\0132=.alluxio.pro" +
-      "to.journal.UpdateDatabaseInfoEntry.Param" +
-      "eterEntry\022\022\n\nowner_name\030\004 \001(\t\0225\n\nowner_t" +
-      "ype\030\005 \001(\0162!.alluxio.grpc.table.Principal" +
-      "Type\022\017\n\007comment\030\006 \001(\t\0320\n\016ParameterEntry\022" +
-      "\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001"
+      "ble.Partition\022\030\n\020previous_version\030\n \001(\003\022" +
+      "\017\n\007version\030\013 \001(\003\022\035\n\025version_creation_tim" +
+      "e\030\014 \001(\003\0321\n\017ParametersEntry\022\013\n\003key\030\001 \001(\t\022" +
+      "\r\n\005value\030\002 \001(\t:\0028\001\"\226\002\n\033CompleteTransform" +
+      "TableEntry\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_nam" +
+      "e\030\002 \001(\t\022\022\n\ndefinition\030\003 \001(\t\022g\n\023transform" +
+      "ed_layouts\030\004 \003(\0132J.alluxio.proto.journal" +
+      ".CompleteTransformTableEntry.Transformed" +
+      "LayoutsEntry\032U\n\027TransformedLayoutsEntry\022" +
+      "\013\n\003key\030\001 \001(\t\022)\n\005value\030\002 \001(\0132\032.alluxio.gr" +
+      "pc.table.Layout:\0028\001\"\240\002\n\030AddTransformJobI" +
+      "nfoEntry\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030" +
+      "\002 \001(\t\022\022\n\ndefinition\030\003 \001(\t\022\016\n\006job_id\030\004 \001(" +
+      "\003\022d\n\023transformed_layouts\030\005 \003(\0132G.alluxio" +
+      ".proto.journal.AddTransformJobInfoEntry." +
+      "TransformedLayoutsEntry\032U\n\027TransformedLa" +
+      "youtsEntry\022\013\n\003key\030\001 \001(\t\022)\n\005value\030\002 \001(\0132\032" +
+      ".alluxio.grpc.table.Layout:\0028\001\"B\n\033Remove" +
+      "TransformJobInfoEntry\022\017\n\007db_name\030\001 \001(\t\022\022" +
+      "\n\ntable_name\030\002 \001(\t\"\234\002\n\027UpdateDatabaseInf" +
+      "oEntry\022\017\n\007db_name\030\001 \001(\t\022\020\n\010location\030\002 \001(" +
+      "\t\022P\n\tparameter\030\003 \003(\0132=.alluxio.proto.jou" +
+      "rnal.UpdateDatabaseInfoEntry.ParameterEn" +
+      "try\022\022\n\nowner_name\030\004 \001(\t\0225\n\nowner_type\030\005 " +
+      "\001(\0162!.alluxio.grpc.table.PrincipalType\022\017" +
+      "\n\007comment\030\006 \001(\t\0320\n\016ParameterEntry\022\013\n\003key" +
+      "\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -9715,7 +9981,7 @@ public final class Table {
     internal_static_alluxio_proto_journal_AddTableEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_AddTableEntry_descriptor,
-        new java.lang.String[] { "DbName", "TableName", "Owner", "Schema", "Layout", "TableStats", "Parameters", "PartitionCols", "Partitions", });
+        new java.lang.String[] { "DbName", "TableName", "Owner", "Schema", "Layout", "TableStats", "Parameters", "PartitionCols", "Partitions", "PreviousVersion", "Version", "VersionCreationTime", });
     internal_static_alluxio_proto_journal_AddTableEntry_ParametersEntry_descriptor =
       internal_static_alluxio_proto_journal_AddTableEntry_descriptor.getNestedTypes().get(0);
     internal_static_alluxio_proto_journal_AddTableEntry_ParametersEntry_fieldAccessorTable = new

@@ -22,6 +22,7 @@ import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
 import alluxio.master.table.DatabaseInfo;
+import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
@@ -30,6 +31,7 @@ import alluxio.table.common.udb.UnderDatabase;
 import alluxio.table.under.hive.util.PathTranslator;
 import alluxio.util.io.PathUtils;
 
+import org.apache.hadoop.hive.common.FileUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaHookLoader;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
@@ -49,6 +51,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -251,9 +255,55 @@ public class HiveDatabase implements UnderDatabase {
           // ignore spec and statistics for table layout
           .build();
 
-      return new HiveTable(this, pathTranslator, tableName,
-          HiveUtils.toProtoSchema(table.getSd().getCols()), colStats,
-          HiveUtils.toProto(table.getPartitionKeys()), partitions, layout, table);
+      // construct the partition statistics
+      List<String> dataColumns = table.getSd().getCols().stream()
+          .map(org.apache.hadoop.hive.metastore.api.FieldSchema::getName)
+          .collect(Collectors.toList());
+      List<String> partitionColumns = table.getPartitionKeys().stream()
+          .map(org.apache.hadoop.hive.metastore.api.FieldSchema::getName)
+          .collect(Collectors.toList());
+      List<String> partitionNames = partitions.stream()
+          .map(partition -> FileUtils.makePartName(partitionColumns, partition.getValues()))
+          .collect(Collectors.toList());
+      Map<String, List<ColumnStatisticsInfo>> statsMap = getHive()
+          .getPartitionColumnStatistics(mHiveDbName, tableName, partitionNames, dataColumns)
+          .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
+              e -> e.getValue().stream().map(HiveUtils::toProto).collect(Collectors.toList()),
+              (e1, e2) -> e2));
+
+      // create udb partitions info
+      List<UdbPartition> udbPartitions = new ArrayList<>();
+      if (partitionColumns.isEmpty()) {
+        // unpartitioned table, generate a partition
+        PartitionInfo.Builder pib = PartitionInfo.newBuilder()
+            .setDbName(getUdbContext().getDbName())
+            .setTableName(tableName)
+            .addAllDataCols(HiveUtils.toProto(table.getSd().getCols()))
+            .setStorage(HiveUtils.toProto(table.getSd(), pathTranslator))
+            .setPartitionName(tableName)
+            .putAllParameters(table.getParameters());
+        udbPartitions.add(new HivePartition(
+            new HiveLayout(pib.build(), Collections.emptyList())));
+      } else {
+        for (Partition partition : partitions) {
+          String partName = FileUtils.makePartName(partitionColumns, partition.getValues());
+          PartitionInfo.Builder pib = PartitionInfo.newBuilder()
+              .setDbName(getUdbContext().getDbName())
+              .setTableName(tableName)
+              .addAllDataCols(HiveUtils.toProto(partition.getSd().getCols()))
+              .setStorage(HiveUtils.toProto(partition.getSd(), pathTranslator))
+              .setPartitionName(partName)
+              .putAllParameters(partition.getParameters());
+          if (partition.getValues() != null) {
+            pib.addAllValues(partition.getValues());
+          }
+          udbPartitions.add(new HivePartition(new HiveLayout(pib.build(),
+              statsMap.getOrDefault(partName, Collections.emptyList()))));
+        }
+      }
+
+      return new HiveTable(tableName, HiveUtils.toProtoSchema(table.getSd().getCols()), colStats,
+          HiveUtils.toProto(table.getPartitionKeys()), udbPartitions, layout, table);
     } catch (NoSuchObjectException e) {
       throw new NotFoundException("Table " + tableName + " does not exist.", e);
     } catch (TException e) {

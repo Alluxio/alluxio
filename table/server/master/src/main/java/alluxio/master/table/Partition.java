@@ -18,6 +18,7 @@ import alluxio.table.common.UdbPartition;
 import alluxio.table.common.transform.TransformContext;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
+import alluxio.util.CommonUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,9 +27,14 @@ import java.util.List;
  * The table partition class.
  */
 public class Partition {
+  private static final long FIRST_VERSION = 1;
+
   private final String mPartitionSpec;
   private final Layout mBaseLayout;
+//  private final long mVersion;
+  private final long mVersionCreationTime;
   private volatile Transformation mTransformation;
+  // TODO(gpang): version number
 
   /**
    * Information kept for the latest transformation on the partition.
@@ -89,9 +95,10 @@ public class Partition {
    * @param partitionSpec the partition spec
    * @param baseLayout the partition layout
    */
-  public Partition(String partitionSpec, Layout baseLayout) {
+  private Partition(String partitionSpec, Layout baseLayout) {
     mPartitionSpec = partitionSpec;
     mBaseLayout = baseLayout;
+    mVersionCreationTime = CommonUtils.getCurrentMs();
   }
 
   /**
@@ -108,6 +115,13 @@ public class Partition {
    */
   public Layout getLayout() {
     return mTransformation == null ? mBaseLayout : mTransformation.getLayout();
+  }
+
+  /**
+   * @return the base layout
+   */
+  public Layout getBaseLayout() {
+    return mBaseLayout;
   }
 
   /**
