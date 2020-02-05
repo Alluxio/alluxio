@@ -82,7 +82,7 @@ public class TieredIdentityFactoryTest {
 
   @Test
   public void fromScriptClasspath() throws Exception {
-    JdkTestUtils.assumeJdk8();
+    JdkTestUtils.assumeJdk8(); // Can't add URLs to classpath with JDK 11
     String customScriptName = "my-alluxio-locality.sh";
     File dir = mFolder.newFolder("fromScriptClasspath");
     Whitebox.invokeMethod(ClassLoader.getSystemClassLoader(), "addURL", dir.toURI().toURL());

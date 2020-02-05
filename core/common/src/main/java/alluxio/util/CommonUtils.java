@@ -784,22 +784,23 @@ public final class CommonUtils {
     return result;
   }
 
-  private static final String JAVA_VERSION_PROPERTY = "java.version";
-  private static final String JDK_8_VERSION = "1.8";
-  private static final String JDK_11_VERSION = "11";
+  private static final boolean IS_JDK_8 = System.getProperty("java.version")
+      .startsWith("1.8");
+  private static final boolean IS_JDK_11 =  System.getProperty("java.version")
+      .startsWith("11");
 
   /**
-   * @return if this JVM is running on Java version 8
+   * @return true if this JVM is running on Java version 8
    */
   public static boolean isJdk8() {
-    return System.getProperty(JAVA_VERSION_PROPERTY).startsWith(JDK_8_VERSION);
+    return IS_JDK_8;
   }
 
   /**
-   * @return if this JVM is running on Java version 11
+   * @return true if this JVM is running on Java version 11
    */
   public static boolean isJdk11() {
-    return System.getProperty(JAVA_VERSION_PROPERTY).startsWith(JDK_11_VERSION);
+    return IS_JDK_11;
   }
 
   private CommonUtils() {} // prevent instantiation
