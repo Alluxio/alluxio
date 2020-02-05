@@ -73,7 +73,7 @@ public class PageStoreTest {
 
   @After
   public void after() throws Exception{
-  mPageStore.close();
+    mPageStore.close();
   }
 
   @Test
