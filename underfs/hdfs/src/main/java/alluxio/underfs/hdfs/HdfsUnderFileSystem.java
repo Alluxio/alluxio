@@ -570,8 +570,10 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
             inputStream.close();
             throw e;
           }
+          LOG.info("AMDEBUG: not using pread");
           return new HdfsUnderFileInputStream(inputStream);
         }
+        LOG.info("AMDEBUG: using pread");
         // pread API instead of seek is more efficient for FSDataInputStream.
         // A seek on FSDataInputStream uses a skip op which is implemented as read + discard
         // and hence ends up reading extra data from the datanode.

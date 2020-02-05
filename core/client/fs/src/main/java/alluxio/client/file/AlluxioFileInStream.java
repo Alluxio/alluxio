@@ -234,7 +234,9 @@ public class AlluxioFileInStream extends FileInStream {
       return -1;
     }
 
+    LOG.info("AMDEBUG pread len {} ", len);
     if (len > 1 * Constants.MB) {
+      LOG.info("AMDEBUG set switch for pread len {} ", len);
       mOptions.setSwitch(true);
     }
     int lenCopy = len;
