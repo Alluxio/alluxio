@@ -72,23 +72,6 @@ public final class CompactDefinition
         || status.getName().endsWith(CRC_FILENAME_SUFFIX);
   }
 
-  private static int calcNumOfFiles(int numOfSourceFiles, long averageSize, long fileSizeParam) {
-    long ret = numOfSourceFiles;
-    if (averageSize < fileSizeParam) {
-      ret = numOfSourceFiles * averageSize / fileSizeParam;
-    }
-    if (ret > 100) {
-      ret = 100;
-    }
-    if (numOfSourceFiles * averageSize / ret > fileSizeParam * 10) {
-      ret = numOfSourceFiles * averageSize / (fileSizeParam * 10);
-    }
-    if (ret >= numOfSourceFiles) {
-      return numOfSourceFiles;
-    }
-    return (int) ret;
-  }
-
   @Override
   public Set<Pair<WorkerInfo, ArrayList<CompactTask>>> selectExecutors(CompactConfig config,
       List<WorkerInfo> jobWorkers, SelectExecutorsContext context) throws Exception {
@@ -106,29 +89,31 @@ public final class CompactDefinition
       }
     }
     Map<WorkerInfo, ArrayList<CompactTask>> assignments = Maps.newHashMap();
-    int numFiles = config.getNumFiles();
-    if (numFiles == CompactConfig.DYNAMIC_NUM_OF_FILES) {
-      numFiles = calcNumOfFiles(files.size(), Math.round(totalFileSize / files.size()), config.getFileSize());
+    int maxNumFiles = config.getMaxNumFiles();
+    long groupMinSize = config.getMinFileSize();
+    if (totalFileSize / config.getMinFileSize() >= maxNumFiles) {
+      groupMinSize = Math.round(totalFileSize / maxNumFiles);
     }
-    long groupMaxSize = Math.round(totalFileSize / numFiles);
     // Files to be compacted are grouped into different groups,
     // each group of files are compacted to one file,
     // one task is to compact one group of files,
     // different tasks are assigned to different workers in a round robin way.
-    // We keep adding files to the group, until it exceeds the newFileSize.
+    // We keep adding files to the group, until adding more files makes it too big.
     ArrayList<String> group = new ArrayList<>();
     int workerIndex = 0;
     int outputIndex = 0;
-    int groupIndex = 0; // Number of groups already generated
+    // Number of groups already generated
+    int groupIndex = 0;
     long currentGroupSize = 0;
     for (URIStatus file : files) {
       // add the file to the group if
       // 1. group is empty
       // 2. group is the last group
-      // 3. group size with the new file is closer to the groupMaxSize than group size without it
-      if (group.isEmpty() || groupIndex == numFiles - 1
-          || (Math.abs(currentGroupSize + file.getLength() - groupMaxSize)
-          <= Math.abs(currentGroupSize - groupMaxSize))) {
+      // 3. group size with the new file is closer to the groupMinSize than group size without it
+      if (group.isEmpty() || groupIndex == maxNumFiles - 1
+          || (currentGroupSize + file.getLength()) <= groupMinSize / 2
+          || (Math.abs(currentGroupSize + file.getLength() - groupMinSize)
+          <= Math.abs(currentGroupSize - groupMinSize))) {
         group.add(inputDir.join(file.getName()).toString());
         currentGroupSize += file.getLength();
       } else {

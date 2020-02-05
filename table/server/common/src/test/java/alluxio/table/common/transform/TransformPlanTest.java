@@ -41,6 +41,6 @@ public class TransformPlanTest {
     assertEquals("hive", compact.getDatabaseType());
     assertEquals("/from", compact.getInput());
     assertEquals("/to", compact.getOutput());
-    assertEquals(12, compact.getNumFiles());
+    assertEquals(12, compact.getMaxNumFiles());
   }
 }

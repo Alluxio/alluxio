@@ -66,8 +66,8 @@ public class WriteActionTest {
     assertEquals("hive", compact.getDatabaseType());
     assertEquals("/from", compact.getInput());
     assertEquals("/to", compact.getOutput());
-    assertEquals(0, compact.getNumFiles());
-    assertEquals(1024, compact.getFileSize());
+    assertEquals(0, compact.getMaxNumFiles());
+    assertEquals(1024, compact.getMinFileSize());
   }
 
   @Test
@@ -85,6 +85,6 @@ public class WriteActionTest {
     assertEquals("hive", compact.getDatabaseType());
     assertEquals("/from", compact.getInput());
     assertEquals("/to", compact.getOutput());
-    assertEquals(12, compact.getNumFiles());
+    assertEquals(12, compact.getMaxNumFiles());
   }
 }
