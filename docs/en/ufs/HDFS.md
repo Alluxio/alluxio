@@ -47,7 +47,7 @@ Please visit the
 page for more information about support for other distributions.
 
 If everything succeeds, you should see
-`alluxio-assembly-server-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` created in
+`alluxio-assembly-server-{{site.ALLUXIO_VERSION_STRING}}-jar-with-dependencies.jar` created in
 the `${ALLUXIO_HOME}/assembly/server/target` directory.
 
 ## Basic Setup
@@ -245,7 +245,7 @@ alluxio.master.mount.table.root.option.alluxio.underfs.version=1.2
 
 #### Supported HDFS Versions
 
-Alluxio v{{site.ALLUXIO_RELEASED_VERSION}} supports the following versions of HDFS as a valid argument of mount option `alluxio.underfs.version`:
+Alluxio supports the following versions of HDFS as a valid argument of mount option `alluxio.underfs.version`:
 
 - Apache Hadoop: 1.0, 1.2, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1
 

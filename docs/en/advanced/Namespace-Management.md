@@ -121,7 +121,7 @@ Note that mount points can be nested as well. For example, if a UFS is mounted a
 
 ### Mount UFS with Specific Versions
 
-Alluxio v{{site.ALLUXIO_RELEASED_VERSION}} supports mounting HDFS with specified versions.
+Alluxio supports mounting HDFS with specified versions.
 As a result, users can mount HDFS with different versions into a single Alluxio namespace. Please
 refer to [HDFS Under Store]({{ '/en/ufs/HDFS.html' | relativize_url }}) for more details.
 

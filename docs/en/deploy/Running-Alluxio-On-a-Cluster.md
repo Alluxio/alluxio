@@ -25,7 +25,7 @@ To deploy Alluxio in production, we highly recommend running Alluxio masters in
   nodes (including nodes running masters and workers).
   
   ```console
-  $ tar -xvzpf alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz
+  $ tar -xvzpf alluxio-{{site.ALLUXIO_VERSION_STRING}}-bin.tar.gz
   ```
   
 * Enable SSH login without password from master node to worker nodes. You can add a public SSH key for
