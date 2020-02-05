@@ -26,17 +26,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UpdateChecker implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(UpdateChecker.class);
   private MetaMaster mMetaMaster;
-  private String mClusterId;
 
   /**
    * Creates a new instance of {@link UpdateChecker}.
    *
    * @param metaMaster the meta master
-   * @param clusterId the id of the current cluster
    */
-  public UpdateChecker(DefaultMetaMaster metaMaster, String clusterId) {
+  public UpdateChecker(DefaultMetaMaster metaMaster) {
     mMetaMaster = metaMaster;
-    mClusterId = clusterId;
   }
 
   /**
@@ -46,7 +43,7 @@ public final class UpdateChecker implements HeartbeatExecutor {
   public void heartbeat() {
     try {
       String latestVersion =
-          UpdateCheck.getLatestVersion(mClusterId, 3000, 3000, 3000);
+          UpdateCheck.getLatestVersion(mMetaMaster.getClusterID(), 3000, 3000, 3000);
       if (!ProjectConstants.VERSION.equals(latestVersion)) {
         System.out.println("The latest version (" + latestVersion + ") is not the same "
             + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "

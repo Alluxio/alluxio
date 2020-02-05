@@ -315,7 +315,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         if (Boolean.valueOf(ProjectConstants.UPDATE_CHECK_ENABLED)
             && ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)) {
           getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_UPDATE_CHECK,
-              new UpdateChecker(this, mState.getClusterID()),
+              new UpdateChecker(this),
               (int) ServerConfiguration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL),
               ServerConfiguration.global(), mMasterContext.getUserState()));
         }
