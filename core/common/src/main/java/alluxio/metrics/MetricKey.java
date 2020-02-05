@@ -533,10 +533,83 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Worker metrics
+  public static final MetricKey WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS =
+      new Builder(Name.WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS)
+          .setDescription("Total number of duplicated async cache request received by this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggreagated(false)
+          .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_FAILED_BLOCKS =
+      new Builder(Name.WORKER_ASYNC_CACHE_FAILED_BLOCKS)
+          .setDescription("Total number of async cache failed blocks in this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggreagated(false)
+          .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_REMOTE_BLOCKS =
+      new Builder(Name.WORKER_ASYNC_CACHE_REMOTE_BLOCKS)
+          .setDescription("Total number of blocks that need to be async cached from remote source")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggreagated(false)
+          .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_REQUESTS =
+      new Builder(Name.WORKER_ASYNC_CACHE_REQUESTS)
+          .setDescription("Total number of async cache request received by this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggreagated(false)
+          .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_SUCCEEDED_BLOCKS =
+      new Builder(Name.WORKER_ASYNC_CACHE_SUCCEEDED_BLOCKS)
+          .setDescription("Total number of async cache succeeded blocks in this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggreagated(false)
+          .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_UFS_BLOCKS =
+      new Builder(Name.WORKER_ASYNC_CACHE_UFS_BLOCKS)
+          .setDescription("Total number of blocks that need to be async cached from local source")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggreagated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCKS_ACCESSED =
+      new Builder(Name.WORKER_BLOCKS_ACCESSED)
+          .setDescription("Total number of times any one of the blocks in this worker is accessed.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggreagated(false)
+          .build();
   public static final MetricKey WORKER_BLOCKS_CACHED =
       new Builder(Name.WORKER_BLOCKS_CACHED)
           .setDescription("Total number of blocks used for caching data in an Alluxio worker")
           .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggreagated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCKS_CANCELLED =
+      new Builder(Name.WORKER_BLOCKS_CANCELLED)
+          .setDescription("Total number of aborted temporary blocks in this worker.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggreagated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCKS_DELETED =
+      new Builder(Name.WORKER_BLOCKS_DELETED)
+          .setDescription("Total number of deleted blocks in this worker by external requests.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggreagated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCKS_EVICTED =
+      new Builder(Name.WORKER_BLOCKS_EVICTED)
+          .setDescription("Total number of evicted blocks in this worker.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggreagated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCKS_LOST =
+      new Builder(Name.WORKER_BLOCKS_LOST)
+          .setDescription("Total number of lost blocks in this worker.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggreagated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCKS_PROMOTED =
+      new Builder(Name.WORKER_BLOCKS_PROMOTED)
+          .setDescription("Total number of times any one of the blocks in this worker "
+              + "moved to a new tier.")
+          .setMetricType(MetricType.COUNTER)
           .setIsClusterAggreagated(false)
           .build();
   public static final MetricKey WORKER_BYTES_READ_ALLUXIO =
@@ -815,7 +888,21 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLUSTER_WORKERS = "Cluster.Workers";
 
     // Worker metrics
+    public static final String WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS
+        = "Worker.AsyncCacheDuplicateRequests";
+    public static final String WORKER_ASYNC_CACHE_FAILED_BLOCKS = "Worker.AsyncCacheFailedBlocks";
+    public static final String WORKER_ASYNC_CACHE_REMOTE_BLOCKS = "Worker.AsyncCacheRemoteBlocks";
+    public static final String WORKER_ASYNC_CACHE_REQUESTS = "Worker.AsyncCacheRequests";
+    public static final String WORKER_ASYNC_CACHE_SUCCEEDED_BLOCKS
+        = "Worker.AsyncCacheSucceededBlocks";
+    public static final String WORKER_ASYNC_CACHE_UFS_BLOCKS = "Worker.AsyncCacheUfsBlocks";
+    public static final String WORKER_BLOCKS_ACCESSED = "Worker.BlocksAccessed";
     public static final String WORKER_BLOCKS_CACHED = "Worker.BlocksCached";
+    public static final String WORKER_BLOCKS_CANCELLED = "Worker.BlocksCancelled";
+    public static final String WORKER_BLOCKS_DELETED = "Worker.BlocksDeleted";
+    public static final String WORKER_BLOCKS_EVICTED = "Worker.BlocksEvicted";
+    public static final String WORKER_BLOCKS_LOST = "Worker.BlocksLost";
+    public static final String WORKER_BLOCKS_PROMOTED = "Worker.BlocksPromoted";
     public static final String WORKER_BYTES_READ_ALLUXIO = "Worker.BytesReadAlluxio";
     public static final String WORKER_BYTES_READ_ALLUXIO_THROUGHPUT
         = "Worker.BytesReadAlluxioThroughput";
