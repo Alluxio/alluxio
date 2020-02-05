@@ -422,6 +422,8 @@ public final class MetricsSystem {
    * If this metric can be aggregated at cluster level and should report to leading master,
    * add it to the should report metrics map.
    *
+   * This method is added to add worker metrics with ufs tags into the should report metrics map.
+   *
    * @param name the metric name
    * @param shouldReport whether this metric should be reported
    * @param tags the tag name and tag value pairs
@@ -451,6 +453,8 @@ public final class MetricsSystem {
    * The returned meter may be changed due to {@link #resetAllMetrics}
    * If this metric can be aggregated at cluster level and should report to leading master,
    * add it to the should report metrics map.
+   *
+   * This method is added to add worker metrics with ufs tags into the should report metrics map.
    *
    * @param name the name of the metric
    * @param shouldReport whether this metric should be reported
@@ -569,7 +573,6 @@ public final class MetricsSystem {
    * @return the client metrics to send via RPC
    */
   public static List<alluxio.grpc.Metric> reportClientMetrics() {
-    LOG.info("Report client metrics from {}", NetworkAddressUtils.getLocalHostMetricName(5000));
     return reportMetrics(InstanceType.CLIENT);
   }
 
@@ -652,6 +655,9 @@ public final class MetricsSystem {
 
   /**
    * Initialize the should report metrics. This should be called only once.
+   *
+   * Note that this method is able to catch most of the should report metrics
+   * except worker metrics with ufs tags.
    *
    * @param instanceType the instance type
    */
