@@ -130,7 +130,7 @@ public class LocalCacheManager implements CacheManager {
         if (alreadyCached) {
           pageSize = mMetaStore.getSize(pageId);
         } else {
-          needEvict = mPageStore.size() + page.length > mCacheSize;
+          needEvict = mPageStore.bytes() + page.length > mCacheSize;
           if (needEvict) {
             victim = mEvictor.evict();
             victimSize = mMetaStore.getSize(victim);

@@ -74,7 +74,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void putNew() throws Exception {
     mCacheManager.put(PAGE_ID1, PAGE1);
-    assertEquals(1, mPageStore.size());
+    assertEquals(1, mPageStore.pages());
     assertTrue(mMetaStore.hasPage(PAGE_ID1));
     assertArrayEquals(PAGE1, (byte[]) mPageStore.mStore.get(PAGE_ID1));
   }
@@ -83,7 +83,7 @@ public final class LocalCacheManagerTest {
   public void putExist() throws Exception {
     mCacheManager.put(PAGE_ID1, PAGE1);
     mCacheManager.put(PAGE_ID1, PAGE2);
-    assertEquals(1, mPageStore.size());
+    assertEquals(1, mPageStore.pages());
     assertTrue(mMetaStore.hasPage(PAGE_ID1));
     assertArrayEquals(PAGE2, (byte[]) mPageStore.mStore.get(PAGE_ID1));
   }
@@ -93,9 +93,9 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
     mCacheManager.put(PAGE_ID1, PAGE1);
-    assertEquals(1, mPageStore.size());
+    assertEquals(1, mPageStore.pages());
     mCacheManager.put(PAGE_ID2, PAGE2);
-    assertEquals(1, mPageStore.size());
+    assertEquals(1, mPageStore.pages());
     assertFalse(mMetaStore.hasPage(PAGE_ID1));
     assertTrue(mMetaStore.hasPage(PAGE_ID2));
     assertArrayEquals(PAGE2, (byte[]) mPageStore.mStore.get(PAGE_ID2));
@@ -233,7 +233,7 @@ public final class LocalCacheManagerTest {
     }
 
     @Override
-    public long size() {
+    public long pages() {
       return mStore.size();
     }
 

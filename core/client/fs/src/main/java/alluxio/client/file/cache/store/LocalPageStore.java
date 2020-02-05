@@ -124,7 +124,7 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public long size() {
+  public long pages() {
     return mSize.get();
   }
 

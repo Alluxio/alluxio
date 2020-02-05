@@ -120,7 +120,7 @@ public interface PageStore extends AutoCloseable {
   /**
    * @return the number of pages stored
    */
-  long size();
+  long pages();
 
   /**
    * @return the total size of pages stored in bytes
