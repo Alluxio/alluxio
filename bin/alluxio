@@ -264,6 +264,16 @@ function main {
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.conf.validation.enabled=false"
     runJavaClass "$@"
   ;;
+  "infoBundle")
+    CLASS="alluxio.cli.bundler.InfoCollector"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "infoBundleAll")
+    CLASS="alluxio.cli.bundler.InfoCollectorAll"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
   "job")
     CLASS="alluxio.cli.job.JobShell"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}

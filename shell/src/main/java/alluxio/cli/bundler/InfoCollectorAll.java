@@ -4,6 +4,7 @@ import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShell;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
@@ -20,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import sun.nio.ch.ThreadPool;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -62,6 +64,7 @@ public class InfoCollectorAll extends AbstractShell {
   public Set<String> getHosts() {
     // File
     String confDirPath = mConfiguration.get(PropertyKey.CONF_DIR);
+    System.out.println(String.format("Looking for masters and workers in %s", confDirPath));
     Set<String> hosts = new HashSet<>();
     hosts.addAll(CommandUtils.readNodeList(confDirPath, "masters"));
     hosts.addAll(CommandUtils.readNodeList(confDirPath, "workers"));
@@ -78,12 +81,21 @@ public class InfoCollectorAll extends AbstractShell {
   public static void main(String[] argv) throws IOException {
     int ret = 0;
 
+    String action = argv[0];
+    String targetDir = argv[1];
+
     InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
 
     // Execute the Collectors one by one
     // Reduce the RPC retry max duration to fail earlier for CLIs
     conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);
     InfoCollectorAll shellAll = new InfoCollectorAll(conf);
+
+    // Validate commands
+    if (argv.length < 2) {
+      shellAll.printUsage();
+      System.exit(-1);
+    }
 
     // For each host execute
     // TODO(jiacheng): get hosts from static util call
@@ -106,10 +118,13 @@ public class InfoCollectorAll extends AbstractShell {
 
         // TODO(jiacheng): Now we assume alluxio is on the same path on every machine
         try {
-          CommandReturn cr = ShellUtils.sshExecCommandWithOutput(host, alluxioBinPath, "infoBundle");
+          String[] infoBundleArgs = new String[]{
+                  alluxioBinPath, "infoBundle", action, targetDir
+          };
+          CommandReturn cr = ShellUtils.sshExecCommandWithOutput(host, infoBundleArgs);
           return cr;
         } catch (Exception e) {
-          // TODO(jiacheng): What to do here?
+          // TODO(jiacheng): What exceptions can be thrown here?
           LOG.error("Execution failed %s", e);
           return new CommandReturn(1, e.toString());
         }
@@ -192,8 +207,11 @@ public class InfoCollectorAll extends AbstractShell {
   }
 
   @Override
-  //TODO(jiacheng): load commands
   protected Map<String, Command> loadCommands() {
-    return null;
+    // Give each command the configuration
+    Map<String, Command> commands = CommandUtils.loadCommands(InfoCollector.class.getPackage().getName(),
+            new Class[] {FileSystemContext.class}, new Object[] {FileSystemContext.create(mConfiguration)});
+    System.out.println(String.format("Loaded commands %s", commands));
+    return commands;
   }
 }

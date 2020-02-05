@@ -17,6 +17,7 @@ import java.io.IOException;
 
 public class CollectLogCommand  extends AbstractInfoCollectorCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CollectLogCommand.class);
+  public static final String COMMAND_NAME="collectLog";
 
   private static final Option FORCE_OPTION =
           Option.builder("f")
@@ -42,7 +43,7 @@ public class CollectLogCommand  extends AbstractInfoCollectorCommand {
 
   @Override
   public String getCommandName() {
-    return "collectLog";
+    return COMMAND_NAME;
   }
 
   @Override

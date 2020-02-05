@@ -3,7 +3,7 @@ package alluxio.cli.bundler;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
-import alluxio.cli.bundler.command.AbstractInfoCollectorCommand;
+import alluxio.cli.bundler.command.TarUtils;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
@@ -16,7 +16,11 @@ import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,8 +35,6 @@ public class InfoCollector extends AbstractShell {
   // CMD_ALIAS map.
   private static final Set<String> UNSTABLE_ALIAS = ImmutableSet.<String>builder()
           .build();
-
-  private static Map<String, Command> sCommands;
 
   /**
    * Main method, starts a new FileSystemShell.
@@ -50,7 +52,44 @@ public class InfoCollector extends AbstractShell {
     conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);
     InfoCollector shell = new InfoCollector(conf);
 
-    ret = shell.run(argv);
+    // Determine the working dir path
+    if (argv.length < 2) {
+      throw new IOException(String.format("No target directory specified by args %s",
+              Arrays.toString(argv)));
+    }
+    String subCommand = argv[0];
+    String targetDirPath = argv[1];
+
+    // Invoke all other commands to collect information
+    // FORCE_OPTION will be propagated to child commands
+    if (subCommand.equals("all")) {
+      // Execute all commands if the option is "all"
+      System.out.println("Execute all child commands");
+      for (Command cmd : shell.getCommands()) {
+        System.out.println(String.format("Executing %s", cmd.getCommandName()));
+
+        // TODO(jiacheng): How to handle argv difference?
+
+        // Find the argv for this command
+        argv[0] = cmd.getCommandName();
+        int childRet = shell.run(argv);
+        System.out.println(String.format("Command %s exit with code %s", cmd.getCommandName(), childRet));
+      }
+    } else {
+      int childRet = shell.run(argv);
+      System.out.println(String.format("Command %s exit with code %s", subCommand, childRet));
+    }
+
+    // Generate bundle
+    System.out.println(String.format("Archiving dir %s", targetDirPath));
+    String tarballPath = Paths.get(targetDirPath, "collectAll.tar.gz").toAbsolutePath().toString();
+    // All files to compress
+    File targetDir = new File(targetDirPath);
+    // TODO(jiacheng): verify
+
+    File[] files = targetDir.listFiles();
+    TarUtils.compress(tarballPath, files);
+    System.out.println("Archiving finished");
 
     System.exit(ret);
   }
@@ -70,25 +109,11 @@ public class InfoCollector extends AbstractShell {
   }
 
   @Override
-  // TODO(jiacheng): don't share this method
   protected Map<String, Command> loadCommands() {
     // Give each command the configuration
     Map<String, Command> commands = CommandUtils.loadCommands(InfoCollector.class.getPackage().getName(),
               new Class[] {FileSystemContext.class}, new Object[] {FileSystemContext.create(mConfiguration)});
     System.out.println(String.format("Loaded commands %s", commands));
-
-    // Update the reference
-    if (sCommands == null) {
-      sCommands = commands;
-    }
     return commands;
-  }
-
-  public static Map<String, Command> getIndividualCommands() {
-    if (sCommands.containsKey("collectAll")) {
-      sCommands.remove("collectAll");
-    }
-
-    return sCommands;
   }
 }

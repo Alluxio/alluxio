@@ -7,6 +7,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.CommandReturn;
+import alluxio.shell.ShellCommand;
 import org.apache.commons.cli.CommandLine;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -78,6 +79,48 @@ public class CollectAlluxioInfoCommandTest {
     File[] files = subDir.listFiles();
     System.out.println(new String(Files.readAllBytes(files[0].toPath())));
   }
+
+  @Test
+  public void alternativeAlluxioCmdExecuted() throws IOException, AlluxioException, NoSuchFieldException, IllegalAccessException {
+    CollectAlluxioInfoCommand cmd = new CollectAlluxioInfoCommand(FileSystemContext.create(sConf));
+
+    File targetDir = AlluxioTestDirectory.createTemporaryDirectory("testDir");
+    CommandLine mockCommandLine = mock(CommandLine.class);
+    String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
+    when(mockCommandLine.getArgs()).thenReturn(mockArgs);
+
+    // Replace commands to execute
+    Field f = cmd.getClass().getDeclaredField("mCommands");
+    f.setAccessible(true);
+
+    ShellCommand mockSucceedCommand = mock(ShellCommand.class);
+    when(mockSucceedCommand.runWithOutput()).thenReturn(new CommandReturn(0, "this worked"));
+
+    CollectAlluxioInfoCommand.AlluxioCommand mockFailedCommand = mock(CollectAlluxioInfoCommand.AlluxioCommand.class);
+    when(mockFailedCommand.runWithOutput()).thenReturn(new CommandReturn(1, "this failed"));
+    when(mockFailedCommand.hasAlternativeCommand()).thenReturn(true);
+    when(mockFailedCommand.getAlternativeCommand()).thenReturn(mockSucceedCommand);
+
+    List<CollectAlluxioInfoCommand.AlluxioCommand> mockCommandList = new ArrayList<>();
+    mockCommandList.add(mockFailedCommand);
+    f.set(cmd, mockCommandList);
+
+
+    int ret = cmd.run(mockCommandLine);
+    assertEquals(0, ret);
+
+    // Verify the command has been run
+    verify(mockSucceedCommand).runWithOutput();
+
+    // Files will be copied to sub-dir of target dir
+    File subDir = new File(Paths.get(targetDir.getAbsolutePath(), cmd.getCommandName()).toString());
+    assertEquals(new String[]{"alluxioInfo.txt"}, subDir.list());
+
+    // Verify file context
+    File[] files = subDir.listFiles();
+    System.out.println(new String(Files.readAllBytes(files[0].toPath())));
+  }
+
 
   @Test
   public void foundPreviousWork() throws IOException, AlluxioException {

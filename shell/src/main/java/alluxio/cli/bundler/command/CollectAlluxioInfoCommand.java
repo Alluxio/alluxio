@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CollectAlluxioInfoCommand.class);
+  public static final String COMMAND_NAME="runAlluxioCheck";
 
   private static String OUTPUT_FILE_NAME = "alluxioInfo.txt";
 
@@ -57,9 +58,9 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
   public static class AlluxioCommand extends ShellCommand {
     String mName;
     String mAlluxioPath;
-    String mAlternative;
+    ShellCommand mAlternative;
 
-    public AlluxioCommand(String name, String alluxioPath, String cmd, String alternative) {
+    public AlluxioCommand(String name, String alluxioPath, String cmd, ShellCommand alternative) {
       super((alluxioPath + " " + cmd).split(" "));
       mName = name;
       mAlluxioPath = alluxioPath;
@@ -67,11 +68,11 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
     }
 
     boolean hasAlternativeCommand() {
-      return mAlternative == null;
+      return mAlternative != null;
     }
 
-    AlluxioCommand getAlternativeCommand() {
-      return new AlluxioCommand(mName, mAlluxioPath, mAlternative, null);
+    ShellCommand getAlternativeCommand() {
+      return mAlternative;
     }
   }
 
@@ -86,7 +87,8 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
     mCommands.add(new AlluxioCommand("fsadmin", mAlluxioPath, "fsadmin report", null));
     mCommands.add(new AlluxioCommand("journal", mAlluxioPath,
             String.format("fs ls -R %s", mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER)),
-            String.format("ls -al -R %s", mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER))));
+            new ShellCommand(new String[]{"ls", "-al", "-R",
+                            mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER)})));
     // TODO(jiacheng): a command to find lost blocks
   }
 
@@ -96,7 +98,7 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
 
   @Override
   public String getCommandName() {
-    return "runAlluxioCheck";
+    return COMMAND_NAME;
   }
 
   @Override
@@ -115,39 +117,56 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
 
     StringWriter output = new StringWriter();
     for(AlluxioCommand cmd : getCommands()) {
-      CommandReturn cr = cmd.runWithOutput();
-
-      if (cr.getExitCode() != 0) {
-        String crStr = String.format("Command %s failed: %s", cmd, cr.getFormattedOutput());
+      CommandReturn cr;
+      String crStr = "";
+      boolean cmdCompleted = false;
+      try {
+        cr = cmd.runWithOutput();
+        if (cr.getExitCode() != 0) {
+          crStr = String.format("Command %s failed: %s", cmd, cr.getFormattedOutput());
+          LOG.warn(crStr);
+        } else {
+          // Command completed
+          crStr = String.format("Command %s succeeded %s", cmd, cr.getFormattedOutput());
+          LOG.info(crStr);
+          cmdCompleted = true;
+        }
+      } catch (IOException e) {
+        crStr = String.format("Command %s failed with exception %s", cmd, e.getMessage());
         LOG.warn(crStr);
-        output.write(crStr);
+        if (LOG.isDebugEnabled()) {
+          e.printStackTrace();
+        }
+      }
+      output.write(crStr);
 
-        // Try alternative command if there is one
+      if (!cmdCompleted) {
+        // Command failed, try alternative command
         if (cmd.hasAlternativeCommand()) {
-          AlluxioCommand alternativeCmd = cmd.getAlternativeCommand();
+          ShellCommand alternativeCmd = cmd.getAlternativeCommand();
           String tryAgainMsg = String.format("Try alternative command %s", alternativeCmd);
           output.write(tryAgainMsg);
-          LOG.warn(tryAgainMsg);
+          LOG.info(tryAgainMsg);
 
-          CommandReturn tryAgain = alternativeCmd.runWithOutput();
-          String tryAgainRes;
-          if (tryAgain.getExitCode() != 0) {
-            tryAgainRes = String.format("Alternative command %s failed: %s", alternativeCmd, tryAgain.getFormattedOutput());
-            LOG.warn(tryAgainRes);
-          } else {
-            tryAgainRes = String.format("Alternative command %s succeeded: %s", alternativeCmd, tryAgain.getFormattedOutput());
-            LOG.info(tryAgainRes);
+          String tryAgainRes = "";
+          try {
+            CommandReturn tryAgain = alternativeCmd.runWithOutput();
+            if (tryAgain.getExitCode() != 0) {
+              tryAgainRes = String.format("Alternative command %s failed: %s", alternativeCmd, tryAgain.getFormattedOutput());
+              LOG.warn(tryAgainRes);
+            } else {
+              tryAgainRes = String.format("Alternative command %s succeeded: %s", alternativeCmd, tryAgain.getFormattedOutput());
+              LOG.info(tryAgainRes);
+            }
+          } catch (IOException e) {
+            tryAgainRes = String.format("Alternative command %s failed with exception: %s", alternativeCmd, e.getMessage());
+            if (LOG.isDebugEnabled()) {
+              e.printStackTrace();
+            }
           }
           output.write(tryAgainRes);
         }
-
-        continue;
       }
-
-      // Command completed
-      String crStr = String.format("Command %s succeeded %s", cmd, cr.getFormattedOutput());
-      LOG.info(crStr);
-      output.write(crStr);
     }
 
     File outputFile = getOutputFile(targetDir, OUTPUT_FILE_NAME);

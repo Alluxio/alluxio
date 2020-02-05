@@ -24,6 +24,7 @@ import java.util.Map;
 
 public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CollectJvmInfoCommand.class);
+  public static final String COMMAND_NAME="collectJvmInfo";
 
   private static int COLLECT_JSTACK_TIMES = 3;
   private static int COLLECT_JSTACK_INTERVAL = 3;
@@ -47,7 +48,7 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
 
   @Override
   public String getCommandName() {
-    return "collectJvmInfo";
+    return COMMAND_NAME;
   }
 
   @Override

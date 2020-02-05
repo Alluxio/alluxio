@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 
 public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CollectMetricsCommand.class);
+  public static final String COMMAND_NAME="collectMetrics";
 
   private static int COLLECT_METRIC_INTERVAL = 3;
   private static int COLLECT_METRIC_TIMES = 3;
@@ -53,7 +54,7 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
 
   @Override
   public String getCommandName() {
-    return "collectMetrics";
+    return COMMAND_NAME;
   }
 
   @Override

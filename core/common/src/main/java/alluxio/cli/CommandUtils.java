@@ -125,8 +125,8 @@ public final class CommandUtils {
     try {
       lines = Files.readAllLines(Paths.get(confDir, fileName), StandardCharsets.UTF_8);
     } catch (IOException e) {
-      System.err.format("Failed to read file %s/%s.%n", confDir, fileName);
-      return null;
+      System.err.format("Failed to read file %s/%s. Ignored.", confDir, fileName);
+      return new ArrayList<>();
     }
 
     List<String> nodes = new ArrayList<>();

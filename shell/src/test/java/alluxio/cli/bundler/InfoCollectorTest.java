@@ -4,18 +4,20 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.cli.bundler.command.AbstractInfoCollectorCommand;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.cli.Command;
+import alluxio.exception.AlluxioException;
 import alluxio.util.ConfigurationUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.reflections.Reflections;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
+import java.nio.file.Files;
 import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 public class InfoCollectorTest {
   private static InstancedConfiguration mConf = new InstancedConfiguration(ConfigurationUtils.defaults());
@@ -58,4 +60,27 @@ public class InfoCollectorTest {
     assertEquals(commands.size() + 1, files.length);
   }
 
+  @Test
+  public void runCommand() throws IOException, AlluxioException {
+    InfoCollector shell = new InfoCollector(mConf);
+
+    File targetDir = AlluxioTestDirectory.createTemporaryDirectory("testDir");
+    String[] mockArgs = new String[]{"all", targetDir.getAbsolutePath()};
+
+    shell.main(mockArgs);
+
+    // The final result will be in a tarball
+    File[] files = targetDir.listFiles();
+    for (File f : files) {
+      System.out.println(String.format("File %s", f.getName()));
+      if (!f.isDirectory() && !f.getName().endsWith(".tar.gz")) {
+        System.out.println(String.format("%s", new String(Files.readAllBytes(f.toPath()))));
+      } else if (f.isDirectory()) {
+        for (File ff : f.listFiles()) {
+          System.out.println(String.format("Nested file %s size %s", ff.getName(), ff.getTotalSpace()));
+//          System.out.println(String.format("%s", new String(Files.readAllBytes(ff.toPath()))));
+        }
+      }
+    }
+  }
 }
