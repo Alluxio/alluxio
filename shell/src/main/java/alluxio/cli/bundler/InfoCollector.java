@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.cli.bundler;
 
 import alluxio.cli.AbstractShell;
@@ -5,7 +16,6 @@ import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.bundler.command.AbstractInfoCollectorCommand;
 import alluxio.cli.bundler.command.TarUtils;
-import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -14,8 +24,6 @@ import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,9 +34,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Class for collecting various information about the host instance.
+ */
 public class InfoCollector extends AbstractShell {
-  private static final Logger LOG = LoggerFactory.getLogger(InfoCollector.class);
-
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.<String, String[]>builder()
           .build();
 
@@ -38,7 +47,7 @@ public class InfoCollector extends AbstractShell {
           .build();
 
   /**
-   * Main method, starts a new FileSystemShell.
+   * Main method, starts a new InfoCollector.
    *
    * @param argv array of arguments given by the user's input from the terminal
    */
@@ -79,10 +88,12 @@ public class InfoCollector extends AbstractShell {
         int childRet = shell.run(argv);
 
         // File to collect
-        File infoCmdOutputFile = infoCmd.generateOutputFile(targetDirPath, infoCmd.getCommandName());
+        File infoCmdOutputFile = infoCmd.generateOutputFile(targetDirPath,
+                infoCmd.getCommandName());
         filesToCollect.add(infoCmdOutputFile);
 
-        System.out.println(String.format("Command %s exit with code %s", cmd.getCommandName(), childRet));
+        System.out.println(String.format("Command %s exit with code %s",
+                cmd.getCommandName(), childRet));
       }
     } else {
       AbstractInfoCollectorCommand cmd = shell.findCommand(subCommand);
@@ -112,6 +123,12 @@ public class InfoCollector extends AbstractShell {
     System.exit(ret);
   }
 
+  /**
+   * Finds the {@link AbstractInfoCollectorCommand} given command name.
+   *
+   * @param cmdName command name
+   * @return the command
+   * */
   public AbstractInfoCollectorCommand findCommand(String cmdName) {
     for (Command c : this.getCommands()) {
       if (c.getCommandName().equals(cmdName)) {
@@ -122,7 +139,7 @@ public class InfoCollector extends AbstractShell {
   }
 
   /**
-   * Creates a new instance of {@link FileSystemShell}.
+   * Creates a new instance of {@link InfoCollector}.
    *
    * @param alluxioConf Alluxio configuration
    */
@@ -138,9 +155,10 @@ public class InfoCollector extends AbstractShell {
   @Override
   protected Map<String, Command> loadCommands() {
     // Give each command the configuration
-    Map<String, Command> commands = CommandUtils.loadCommands(InfoCollector.class.getPackage().getName(),
-              new Class[] {FileSystemContext.class}, new Object[] {FileSystemContext.create(mConfiguration)});
-    System.out.println(String.format("Loaded commands %s", commands));
+    Map<String, Command> commands = CommandUtils.loadCommands(
+            InfoCollector.class.getPackage().getName(),
+            new Class[] {FileSystemContext.class},
+            new Object[] {FileSystemContext.create(mConfiguration)});
     return commands;
   }
 }

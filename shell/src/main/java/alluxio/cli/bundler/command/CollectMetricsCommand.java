@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.cli.bundler.command;
 
 import alluxio.client.file.FileSystemContext;
@@ -6,6 +17,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.util.SleepUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -16,23 +29,21 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.FileUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
-
+/**
+ * Command to probe Alluxio metrics for a few times.
+ * */
 public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
+  public static final String COMMAND_NAME = "collectMetrics";
   private static final Logger LOG = LoggerFactory.getLogger(CollectMetricsCommand.class);
-  public static final String COMMAND_NAME="collectMetrics";
-
-  private static int COLLECT_METRIC_INTERVAL = 3;
-  private static int COLLECT_METRIC_TIMES = 3;
+  private static final int COLLECT_METRIC_INTERVAL = 3;
+  private static final int COLLECT_METRIC_TIMES = 3;
 
   private static final Option FORCE_OPTION =
           Option.builder("f")
@@ -47,6 +58,11 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
             .addOption(FORCE_OPTION);
   }
 
+  /**
+   * Creates a new instance of {@link CollectMetricsCommand}.
+   *
+   * @param fsContext the {@link FileSystemContext} to execute in
+   * */
   public CollectMetricsCommand(@Nullable FileSystemContext fsContext) {
     super(fsContext);
   }
@@ -61,7 +77,57 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
     return false;
   }
 
-  // TODO(jiacheng): Add reference
+  @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    int ret = 0;
+
+    // Determine the working dir path
+    String targetDir = getDestDir(cl);
+    boolean force = cl.hasOption("f");
+
+    // Skip if previous work can be reused.
+    if (!force && foundPreviousWork(targetDir)) {
+      LOG.info("Found previous work. Skipped.");
+      return ret;
+    }
+
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+    for (int i = 0; i < COLLECT_METRIC_TIMES; i++) {
+      LocalDateTime now = LocalDateTime.now();
+      String timeString = dtf.format(now);
+      LOG.info(String.format("Collecting metrics for %s", timeString));
+
+      // Write to file
+      File outputFile = generateOutputFile(targetDir, String.format("%s-%s", getCommandName(), i));
+      StringWriter outputBuffer = new StringWriter();
+      outputBuffer.write(String.format("Collect metric at approximately %s", timeString));
+      outputBuffer.write(getMetricsJson());
+      FileUtils.writeStringToFile(outputFile, getMetricsJson());
+
+      // Wait for an interval
+      SleepUtils.sleepMs(LOG, 1000 * COLLECT_METRIC_INTERVAL);
+    }
+
+    return ret;
+  }
+
+  @Override
+  public String getUsage() {
+    return "collectMetrics";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Collect Alluxio metrics";
+  }
+
+  /**
+   * Probes Alluxio metrics json sink.
+   * Ref: https://stackoverflow.com/a/1322354/4933827
+   *
+   * @return HTTP response in JSON string
+   */
+  // TODO(jiacheng): better printouts
   public String getMetricsJson() {
     // Generate URL from parameters
     String masterAddr;
@@ -103,49 +169,5 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
       // Release the connection.
       method.releaseConnection();
     }
-  }
-
-  @Override
-  public int run(CommandLine cl) throws AlluxioException, IOException {
-    int ret = 0;
-
-    // Determine the working dir path
-    String targetDir = getDestDir(cl);
-    boolean force = cl.hasOption("f");
-
-    // Skip if previous work can be reused.
-    if (!force && foundPreviousWork(targetDir)) {
-      LOG.info("Found previous work. Skipped.");
-      return ret;
-    }
-
-    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
-    for (int i=0; i<COLLECT_METRIC_TIMES; i++) {
-      LocalDateTime now = LocalDateTime.now();
-      String timeString = dtf.format(now);
-      LOG.info(String.format("Collecting metrics for %s", timeString));
-
-      // Write to file
-      File outputFile = generateOutputFile(targetDir, String.format("%s-%s", getCommandName(), i));
-      StringWriter outputBuffer = new StringWriter();
-      outputBuffer.write(String.format("Collect metric at approximately %s", timeString));
-      outputBuffer.write(getMetricsJson());
-      FileUtils.writeStringToFile(outputFile, getMetricsJson());
-
-      // Wait for an interval
-      SleepUtils.sleepMs(LOG, 1000 * COLLECT_METRIC_INTERVAL);
-    }
-
-    return ret;
-  }
-
-  @Override
-  public String getUsage() {
-    return "collectMetrics";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Collect Alluxio metrics";
   }
 }

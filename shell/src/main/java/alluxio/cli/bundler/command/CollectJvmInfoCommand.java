@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.cli.bundler.command;
 
 import alluxio.client.file.FileSystemContext;
@@ -22,12 +33,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Command that collects information about the JVMs.
+ * */
 public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
+  public static final String COMMAND_NAME = "collectJvmInfo";
   private static final Logger LOG = LoggerFactory.getLogger(CollectJvmInfoCommand.class);
-  public static final String COMMAND_NAME="collectJvmInfo";
-
-  private static int COLLECT_JSTACK_TIMES = 3;
-  private static int COLLECT_JSTACK_INTERVAL = 3;
+  private static final int COLLECT_JSTACK_TIMES = 3;
+  private static final int COLLECT_JSTACK_INTERVAL = 3;
 
   private static final Option FORCE_OPTION =
           Option.builder("f")
@@ -36,14 +49,19 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
                   .desc("ignores existing work")
                   .build();
 
+  /**
+   * Creates an instance of {@link CollectJvmInfoCommand}.
+   *
+   * @param fsContext the {@link FileSystemContext} to execute in
+   * */
+  public CollectJvmInfoCommand(@Nullable FileSystemContext fsContext) {
+    super(fsContext);
+  }
+
   @Override
   public Options getOptions() {
     return new Options()
             .addOption(FORCE_OPTION);
-  }
-
-  public CollectJvmInfoCommand(@Nullable FileSystemContext fsContext) {
-    super(fsContext);
   }
 
   @Override
@@ -65,7 +83,7 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
       return ret;
     }
 
-    for(int i = 0; i < COLLECT_JSTACK_TIMES; i++) {
+    for (int i = 0; i < COLLECT_JSTACK_TIMES; i++) {
       LOG.info("Checking current JPS");
       Map<String, String> procs = getJps();
       String jstackContent = dumpJstack(procs);
@@ -82,6 +100,11 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
     return ret;
   }
 
+  /**
+   * Gets a map of running JVMs by running the jps command.
+   *
+   * @return JVMs mapping to their process name
+   * */
   public Map<String, String> getJps() throws IOException {
     Map<String, String> procs = new HashMap<>();
 
@@ -95,14 +118,17 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
     }
 
     LOG.info("JPS succeeded");
+    int idx = 0;
     for (String row : cr.getOutput().split("\n")) {
       String[] parts = row.split(" ");
       if (parts.length == 0) {
         LOG.error(String.format("Failed to parse row %s", row));
         continue;
       } else if (parts.length == 1) {
+        // If the JVM has no name, assign it one.
         LOG.info(String.format("Row %s has no process name", row));
-        procs.put(parts[0], "unknown");
+        procs.put(parts[0], "unknown" + idx);
+        idx++;
       } else {
         LOG.info(String.format("Found JVM %s %s", parts[0], parts[1]));
         procs.put(parts[0], parts[1]);
@@ -112,6 +138,12 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
     return procs;
   }
 
+  /**
+   * Dumps Jstack for each of the JVMs.
+   *
+   * @param procs JVMs mapping to their names
+   * @return all outputs in String
+   * */
   public String dumpJstack(Map<String, String> procs) throws IOException {
     // Output file
     StringWriter outputBuffer = new StringWriter();
@@ -129,7 +161,6 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
       String[] jstackCmd = new String[]{"jstack", k};
       CommandReturn cr = ShellUtils.execCommandWithOutput(jstackCmd);
 
-      // Output
       outputBuffer.write(cr.getFormattedOutput());
     }
 

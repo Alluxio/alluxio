@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.cli.bundler;
 
 import alluxio.AlluxioTestDirectory;
@@ -12,35 +23,30 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.shell.CommandReturn;
 import alluxio.util.ConfigurationUtils;
-
 import alluxio.util.ShellUtils;
-import alluxio.util.io.PathUtils;
-import alluxio.wire.Property;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.nio.ch.ThreadPool;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
+/**
+ * Class for collecting various information about all nodes in the cluster.
+ */
 public class InfoCollectorAll extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(InfoCollectorAll.class);
 
@@ -65,6 +71,12 @@ public class InfoCollectorAll extends AbstractShell {
   }
 
   // TODO(jiacheng): consider specifying hosts from cmdline
+  /**
+   * Finds all hosts in the Alluxio cluster.
+   * We assume the masters and workers cover all the nodes in the cluster.
+   *
+   * @return a set of hostnames in the cluster
+   * */
   public Set<String> getHosts() {
     // File
     String confDirPath = mConfiguration.get(PropertyKey.CONF_DIR);
@@ -78,7 +90,10 @@ public class InfoCollectorAll extends AbstractShell {
   }
 
   /**
-   * Main method, starts a new Shell.
+   * Main method, starts a new InfoCollectorAll shell.
+   * InfoCollectorAll will SSH to all hosts and invoke {@link InfoCollector}.
+   * Then collect the tarballs generated on each of the hosts to the localhost.
+   * And tarball all results into one final tarball.
    *
    * @param argv array of arguments given by the user's input from the terminal
    */
@@ -123,7 +138,7 @@ public class InfoCollectorAll extends AbstractShell {
         // TODO(jiacheng): Now we assume alluxio is on the same path on every machine
         try {
           String[] infoBundleArgs = new String[]{
-                  alluxioBinPath, "infoBundle", action, targetDir
+            alluxioBinPath, "infoBundle", action, targetDir
           };
           CommandReturn cr = ShellUtils.sshExecCommandWithOutput(host, infoBundleArgs);
           return cr;
@@ -152,18 +167,17 @@ public class InfoCollectorAll extends AbstractShell {
     if (results.size() != allHosts.size()) {
       System.out.println("Host size mismatch!");
     } else {
-      for (int i=0; i<allHosts.size(); i++) {
+      for (int i = 0; i < allHosts.size(); i++) {
         CommandReturn c = results.get(i);
         String host = allHosts.get(i);
         if (c.getExitCode() != 0) {
-          System.out.println(String.format("Command failed on host %s",host));
+          System.out.println(String.format("Command failed on host %s", host));
           System.out.println(c.getFormattedOutput());
         } else {
           System.out.println(String.format("Success on host %s", host));
         }
       }
     }
-
 
     // Collect all tarballs to local
     // TODO(jiacheng): move to variable
@@ -178,33 +192,43 @@ public class InfoCollectorAll extends AbstractShell {
 
       System.out.println(String.format("Collecting tarball from host %s", host));
       // TODO(jiacheng): move to variable
-      String fromPath = Paths.get(targetDir, "collectAll.tar.gz").toAbsolutePath().toString();
+      String fromPath = Paths.get(targetDir, "collectAll.tar.gz")
+                          .toAbsolutePath().toString();
       String toPath = tarballFromHost.getAbsolutePath();
       System.out.println(String.format("Copying %s:%s to %s", host, fromPath, toPath));
 
       // TODO(jiacheng): asynch this
       CommandReturn cr = ShellUtils.scpCommandWithOutput(host, fromPath, toPath, false);
 
-      if (cr.getExitCode() !=0) {
+      if (cr.getExitCode() != 0) {
         System.out.println(String.format("Failed on host ", host));
         System.out.println(cr.getFormattedOutput());
       }
     }
 
     System.out.println("All tarballs copied to " + tempDir.getAbsolutePath());
-    System.out.println(String.format("Tarballs from hosts in directories: %s", filesFromHosts));
+    System.out.println(String.format("Tarballs from hosts in directories: %s",
+                        filesFromHosts));
 
     // Generate a final tarball containing tarballs from each host
-    String finalTarballpath = Paths.get(targetDir, "InfoCollectorAll.tar.gz").toAbsolutePath().toString();
+    String finalTarballpath = Paths.get(targetDir, "InfoCollectorAll.tar.gz")
+                                .toAbsolutePath().toString();
     TarUtils.compress(finalTarballpath, filesFromHosts.toArray(new File[0]));
     System.out.println("Final tarball compressed to " + finalTarballpath);
 
     System.exit(ret);
   }
 
-  // Waits for *all* futures to complete and returns a list of results.
-// If *any* future completes exceptionally then the resulting future will also complete exceptionally.
-
+  /**
+   * Waits for ALL futures to complete and returns a list of results.
+   * If *any* future completes exceptionally then the resulting future
+   * will also complete exceptionally.
+   * Ref: https://stackoverflow.com/a/36261808/4933827
+   *
+   * @param <T> this is the type the {@link CompletableFuture} contains
+   * @param futures a list of futures to collect
+   * @return a {@link CompletableFuture} of all futures
+   */
   public static <T> CompletableFuture<List<T>> all(List<CompletableFuture<T>> futures) {
     CompletableFuture[] cfs = futures.toArray(new CompletableFuture[futures.size()]);
 
@@ -223,8 +247,10 @@ public class InfoCollectorAll extends AbstractShell {
   @Override
   protected Map<String, Command> loadCommands() {
     // Give each command the configuration
-    Map<String, Command> commands = CommandUtils.loadCommands(InfoCollector.class.getPackage().getName(),
-            new Class[] {FileSystemContext.class}, new Object[] {FileSystemContext.create(mConfiguration)});
+    Map<String, Command> commands = CommandUtils.loadCommands(
+            InfoCollector.class.getPackage().getName(),
+            new Class[] {FileSystemContext.class},
+            new Object[] {FileSystemContext.create(mConfiguration)});
     System.out.println(String.format("Loaded commands %s", commands));
     return commands;
   }

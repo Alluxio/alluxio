@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.cli.bundler.command;
 
 import alluxio.client.file.FileSystemContext;
@@ -5,6 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.CommandReturn;
 import alluxio.shell.ShellCommand;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -20,14 +32,17 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Command to run a set of Alluxio commands.
+ * Collects information about the Alluxio cluster.
+ * */
 public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
+  public static final String COMMAND_NAME = "runAlluxioCheck";
   private static final Logger LOG = LoggerFactory.getLogger(CollectAlluxioInfoCommand.class);
-  public static final String COMMAND_NAME="runAlluxioCheck";
-
-  private static String OUTPUT_FILE_NAME = "alluxioInfo.txt";
+  private static final String OUTPUT_FILE_NAME = "alluxioInfo.txt";
 
   private String mAlluxioPath;
-  private List<AlluxioCommand> mCommands;
+  private List<AlluxioCommand> mAlluxioCommands;
 
   private static final Option FORCE_OPTION =
           Option.builder("f")
@@ -36,12 +51,11 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
                   .desc("ignores existing work")
                   .build();
 
-  @Override
-  public Options getOptions() {
-    return new Options()
-            .addOption(FORCE_OPTION);
-  }
-
+  /**
+   * Creates a new instance of {@link CollectAlluxioInfoCommand}.
+   *
+   * @param fsContext the {@link FileSystemContext} to execute in
+   * */
   public CollectAlluxioInfoCommand(@Nullable FileSystemContext fsContext) {
     super(fsContext);
     mAlluxioPath = Paths.get(fsContext.getClusterConf().get(PropertyKey.WORK_DIR), "bin/alluxio")
@@ -49,11 +63,29 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
     registerCommands();
   }
 
+  @Override
+  public Options getOptions() {
+    return new Options()
+            .addOption(FORCE_OPTION);
+  }
+
+  /**
+   * A special shell command that runs an Alluxio cmdline operation.
+   * */
   public static class AlluxioCommand extends ShellCommand {
     String mName;
     String mAlluxioPath;
     ShellCommand mAlternative;
 
+    /**
+     * Creates an instance of {@link AlluxioCommand}.
+     *
+     * @param name name of this Alluxio operation
+     * @param alluxioPath where Alluxio can be found
+     * @param cmd Alluxio cmd to run
+     * @param alternative an alternative option if the Alluxio operation fails
+     *                    for reasons like the cluster being currently down
+     * */
     public AlluxioCommand(String name, String alluxioPath, String cmd, ShellCommand alternative) {
       super((alluxioPath + " " + cmd).split(" "));
       mName = name;
@@ -61,33 +93,50 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
       mAlternative = alternative;
     }
 
-    boolean hasAlternativeCommand() {
+    /**
+     * @return whether there is an alternative shell command if the Alluxio command fails
+     * */
+    public boolean hasAlternativeCommand() {
       return mAlternative != null;
     }
 
-    ShellCommand getAlternativeCommand() {
+    /**
+     * @return the alternative shell command
+     * */
+    public ShellCommand getAlternativeCommand() {
       return mAlternative;
     }
   }
 
   private void registerCommands() {
-    mCommands = new ArrayList<>();
-    mCommands.add(new AlluxioCommand("getConf", mAlluxioPath, "getConf --master --source",
-            null));
-    mCommands.add(new AlluxioCommand("fsadmin", mAlluxioPath, "fsadmin report", null));
-    mCommands.add(new AlluxioCommand("mount", mAlluxioPath, "fs mount", null));
-    mCommands.add(new AlluxioCommand("version", mAlluxioPath, "version -r", null));
-    mCommands.add(new AlluxioCommand("job", mAlluxioPath, "job ls", null));
-    mCommands.add(new AlluxioCommand("fsadmin", mAlluxioPath, "fsadmin report", null));
-    mCommands.add(new AlluxioCommand("journal", mAlluxioPath,
-            String.format("fs ls -R %s", mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER)),
-            new ShellCommand(new String[]{"ls", "-al", "-R",
-                            mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER)})));
+    mAlluxioCommands = new ArrayList<>();
+    mAlluxioCommands.add(new AlluxioCommand("getConf", mAlluxioPath,
+        "getConf --master --source", null));
+    mAlluxioCommands.add(new AlluxioCommand("fsadmin", mAlluxioPath,
+        "fsadmin report", null));
+    mAlluxioCommands.add(new AlluxioCommand("mount", mAlluxioPath,
+        "fs mount", null));
+    mAlluxioCommands.add(new AlluxioCommand("version", mAlluxioPath,
+        "version -r", null));
+    mAlluxioCommands.add(new AlluxioCommand("job", mAlluxioPath,
+        "job ls", null));
+    mAlluxioCommands.add(new AlluxioCommand("fsadmin", mAlluxioPath,
+        "fsadmin report", null));
+    mAlluxioCommands.add(new AlluxioCommand("journal", mAlluxioPath,
+        String.format("fs ls -R %s",
+                mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER)),
+                new ShellCommand(new String[]{"ls", "-al", "-R",
+                mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER)})));
     // TODO(jiacheng): a command to find lost blocks
   }
 
-  public List<AlluxioCommand> getCommands() {
-    return mCommands;
+  /**
+   * Gets the list of Alluxio operations this command will run.
+   *
+   * @return a list of {@link AlluxioCommand}
+   * */
+  public List<AlluxioCommand> getAlluxioCommands() {
+    return mAlluxioCommands;
   }
 
   @Override
@@ -110,7 +159,7 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
     }
 
     StringWriter output = new StringWriter();
-    for(AlluxioCommand cmd : getCommands()) {
+    for (AlluxioCommand cmd : getAlluxioCommands()) {
       CommandReturn cr;
       String crStr = "";
       boolean cmdCompleted = false;
@@ -146,14 +195,17 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
           try {
             CommandReturn tryAgain = alternativeCmd.runWithOutput();
             if (tryAgain.getExitCode() != 0) {
-              tryAgainRes = String.format("Alternative command %s failed: %s", alternativeCmd, tryAgain.getFormattedOutput());
+              tryAgainRes = String.format("Alternative command %s failed: %s", alternativeCmd,
+                      tryAgain.getFormattedOutput());
               LOG.warn(tryAgainRes);
             } else {
-              tryAgainRes = String.format("Alternative command %s succeeded: %s", alternativeCmd, tryAgain.getFormattedOutput());
+              tryAgainRes = String.format("Alternative command %s succeeded: %s", alternativeCmd,
+                      tryAgain.getFormattedOutput());
               LOG.info(tryAgainRes);
             }
           } catch (IOException e) {
-            tryAgainRes = String.format("Alternative command %s failed with exception: %s", alternativeCmd, e.getMessage());
+            tryAgainRes = String.format("Alternative command %s failed with exception: %s",
+                    alternativeCmd, e.getMessage());
             if (LOG.isDebugEnabled()) {
               e.printStackTrace();
             }

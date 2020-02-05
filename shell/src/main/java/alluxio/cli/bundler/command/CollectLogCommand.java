@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.cli.bundler.command;
 
 import alluxio.client.file.FileSystemContext;
@@ -15,9 +26,12 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * Command to collect Alluxio logs.
+ * */
 public class CollectLogCommand  extends AbstractInfoCollectorCommand {
+  public static final String COMMAND_NAME = "collectLog";
   private static final Logger LOG = LoggerFactory.getLogger(CollectLogCommand.class);
-  public static final String COMMAND_NAME="collectLog";
 
   private static final Option FORCE_OPTION =
           Option.builder("f")
@@ -30,15 +44,20 @@ public class CollectLogCommand  extends AbstractInfoCollectorCommand {
                   .hasArg(true).desc("components to collect logs from")
                   .build();
 
+  /**
+   * Creates a new instance of {@link CollectLogCommand}.
+   *
+   * @param fsContext the {@link FileSystemContext} to execute in
+   * */
+  public CollectLogCommand(@Nullable FileSystemContext fsContext) {
+    super(fsContext);
+  }
+
   @Override
   public Options getOptions() {
     return new Options()
             .addOption(FORCE_OPTION)
             .addOption(COMPONENT_OPTION);
-  }
-
-  public CollectLogCommand(@Nullable FileSystemContext fsContext) {
-    super(fsContext);
   }
 
   @Override

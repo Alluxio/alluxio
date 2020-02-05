@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.cli.bundler.command;
 
 import alluxio.client.file.FileSystemContext;
@@ -5,6 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.CommandReturn;
 import alluxio.shell.ShellCommand;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -19,9 +31,12 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Command to run a set of shell commands to get system information.
+ * */
 public class CollectEnvCommand extends AbstractInfoCollectorCommand {
+  public static final String COMMAND_NAME = "collectEnv";
   private static final Logger LOG = LoggerFactory.getLogger(CollectEnvCommand.class);
-  public static final String COMMAND_NAME="collectEnv";
 
   private static final Option FORCE_OPTION =
           Option.builder("f")
@@ -39,6 +54,11 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
   private Map<String, ShellCommand> mCommands;
   private Map<String, ShellCommand> mCommandsBetter;
 
+  /**
+   * Creates a new instance of {@link CollectEnvCommand}.
+   *
+   * @param fsContext the {@link FileSystemContext} to execute in
+   * */
   public CollectEnvCommand(@Nullable FileSystemContext fsContext) {
     super(fsContext);
     mCommands = new HashMap<>();
@@ -62,7 +82,6 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
     registerCommand("dig", "dig $(hostname -i)", null);
     registerCommand("nslookup", "nslookup $(hostname -i)", null);
     // TODO(jiacheng): does this stop?
-    // TODO(jiacheng): no such command, IOException
     registerCommand("dstat", "dstat -cdgilmnprsty", null);
   }
 
@@ -103,11 +122,9 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
     for (String cmdName : mCommands.keySet()) {
       boolean complete = false;
 
-      System.out.println("Running command "+cmdName);
       // if there is a better option, try it first
       if (mCommandsBetter.containsKey(cmdName)) {
         ShellCommand betterCmd = mCommandsBetter.get(cmdName);
-        System.out.println("Found better command "+betterCmd);
 
         CommandReturn crBetter = null;
         String cmdBetterMsg = "";
@@ -164,7 +181,8 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
 
     // output the buffer
     File outputFile = generateOutputFile(targetDir, String.format("%s.txt", getCommandName()));
-    LOG.info(String.format("Finished all commands. Writing to output file %s", outputFile.getAbsolutePath()));
+    LOG.info(String.format("Finished all commands. Writing to output file %s",
+            outputFile.getAbsolutePath()));
     FileUtils.writeStringToFile(outputFile, outputBuffer.toString());
 
     return ret;
