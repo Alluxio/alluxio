@@ -35,8 +35,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 
 import javax.annotation.Nullable;
@@ -199,6 +199,7 @@ public final class LocalCacheManagerTest {
   class HashMapPageStore implements PageStore {
 
     HashMap mStore = new HashMap<PageId, byte[]>();
+    long mBytes = 0;
 
     public HashMapPageStore() {
     }
@@ -206,6 +207,7 @@ public final class LocalCacheManagerTest {
     @Override
     public void put(PageId pageId, byte[] page) throws IOException {
       mStore.put(pageId, page);
+      mBytes += page.length;
     }
 
     @Override
@@ -218,10 +220,11 @@ public final class LocalCacheManagerTest {
     }
 
     @Override
-    public void delete(PageId pageId) throws IOException, PageNotFoundException {
+    public void delete(PageId pageId, long pageSize) throws IOException, PageNotFoundException {
       if (null == mStore.remove(pageId)) {
         throw new PageNotFoundException("not found key " + pageId);
       }
+      mBytes -= pageSize;
     }
 
     @Override
@@ -230,8 +233,13 @@ public final class LocalCacheManagerTest {
     }
 
     @Override
-    public int size() {
+    public long size() {
       return mStore.size();
+    }
+
+    @Override
+    public long bytes() {
+      return mBytes;
     }
   }
 
@@ -239,21 +247,29 @@ public final class LocalCacheManagerTest {
    * Implementation of meta store that stores cached data in memory.
    */
   class HashSetMetaStore implements MetaStore {
-    HashSet mPages = new HashSet<PageId>();
+    Map<PageId, Long> mPages = new HashMap<>();
 
     @Override
     public boolean hasPage(PageId pageId) {
-      return mPages.contains(pageId);
+      return mPages.containsKey(pageId);
     }
 
     @Override
-    public boolean addPage(PageId pageId) {
-      return mPages.add(pageId);
+    public void addPage(PageId pageId, long pageSize) {
+      mPages.put(pageId, pageSize);
+    }
+
+    @Override
+    public long getSize(PageId pageId) throws PageNotFoundException {
+      if (!mPages.containsKey(pageId)) {
+        throw new PageNotFoundException("page not found " + pageId);
+      }
+      return mPages.get(pageId);
     }
 
     @Override
     public void removePage(PageId pageId) throws PageNotFoundException {
-      if (!mPages.contains(pageId)) {
+      if (!mPages.containsKey(pageId)) {
         throw new PageNotFoundException("page not found " + pageId);
       }
       mPages.remove(pageId);

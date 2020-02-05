@@ -12,8 +12,8 @@
 package alluxio.client.file.cache.store;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.exception.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
+import alluxio.exception.PageNotFoundException;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FileUtils;
@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -42,7 +42,8 @@ public class RocksPageStore implements PageStore {
 
   private final String mRoot;
   private final RocksDB mDb;
-  private final AtomicInteger mSize = new AtomicInteger(0);
+  private final AtomicLong mSize = new AtomicLong(0);
+  private final AtomicLong mBytes = new AtomicLong(0);
 
   /**
    * Creates a new instance of {@link PageStore} backed by RocksDB.
@@ -67,8 +68,10 @@ public class RocksPageStore implements PageStore {
   @Override
   public void put(PageId pageId, byte[] page) throws IOException {
     try {
-      mDb.put(getPageKey(pageId), page);
+      byte[] key = getPageKey(pageId);
+      mDb.put(key, page);
       mSize.incrementAndGet();
+      mBytes.getAndAdd(page.length + key.length);
     } catch (RocksDBException e) {
       throw new IOException("Failed to store page", e);
     }
@@ -94,10 +97,12 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public void delete(PageId pageId) throws PageNotFoundException {
+  public void delete(PageId pageId, long pageSize) throws PageNotFoundException {
     try {
-      mDb.delete(getPageKey(pageId));
+      byte[] key = getPageKey(pageId);
+      mDb.delete(key);
       mSize.decrementAndGet();
+      mBytes.getAndAdd(-(key.length + pageSize));
     } catch (RocksDBException e) {
       throw new PageNotFoundException("Failed to remove page", e);
     }
@@ -121,7 +126,12 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public int size() {
+  public long size() {
     return mSize.get();
+  }
+
+  @Override
+  public long bytes() {
+    return mBytes.get();
   }
 }

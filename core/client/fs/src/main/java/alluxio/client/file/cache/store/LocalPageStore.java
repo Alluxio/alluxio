@@ -12,8 +12,8 @@
 package alluxio.client.file.cache.store;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.exception.PageNotFoundException;
 import alluxio.client.file.cache.PageStore;
+import alluxio.exception.PageNotFoundException;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FileUtils;
@@ -29,7 +29,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -42,7 +42,8 @@ public class LocalPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(LocalPageStore.class);
 
   private final String mRoot;
-  private final AtomicInteger mSize = new AtomicInteger(0);
+  private final AtomicLong mSize = new AtomicLong(0);
+  private final AtomicLong mBytes = new AtomicLong(0);
 
   /**
    * Creates a new instance of {@link LocalPageStore}.
@@ -66,6 +67,7 @@ public class LocalPageStore implements PageStore {
       fos.write(page);
     }
     mSize.incrementAndGet();
+    mBytes.getAndAdd(page.length);
   }
 
   @Override
@@ -90,13 +92,14 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public void delete(PageId pageId) throws IOException, PageNotFoundException {
+  public void delete(PageId pageId, long pageSize) throws IOException, PageNotFoundException {
     Path p = getFilePath(pageId);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
     Files.delete(p);
     mSize.decrementAndGet();
+    mBytes.getAndAdd(-pageSize);
     Path parent = Preconditions.checkNotNull(p.getParent(),
         "parent of cache file should not be null");
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(parent)) {
@@ -121,7 +124,12 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public int size() {
+  public long size() {
     return mSize.get();
+  }
+
+  @Override
+  public long bytes() {
+    return mBytes.get();
   }
 }
