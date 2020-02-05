@@ -53,7 +53,7 @@ public class WriteActionTest {
   @Test
   public void dynamicNumFiles() {
     TransformAction action = TransformAction.Parser.parse(
-        "write(hive).option(hive.num.files, 0).option(hive.file.size, 1024)");
+        "write(hive).option(hive.file.maxcount, 1000).option(hive.file.minsize, 1024)");
     assertEquals(WriteAction.class, action.getClass());
     WriteAction writeAction = (WriteAction) action;
 
@@ -66,13 +66,13 @@ public class WriteActionTest {
     assertEquals("hive", compact.getDatabaseType());
     assertEquals("/from", compact.getInput());
     assertEquals("/to", compact.getOutput());
-    assertEquals(0, compact.getMaxNumFiles());
+    assertEquals(1000, compact.getMaxNumFiles());
     assertEquals(1024, compact.getMinFileSize());
   }
 
   @Test
   public void generateJobConfig() {
-    TransformAction action = TransformAction.Parser.parse("write(hive).option(hive.num.files, 12)");
+    TransformAction action = TransformAction.Parser.parse("write(hive).option(hive.file.maxcount, 12)");
     assertEquals(WriteAction.class, action.getClass());
     WriteAction writeAction = (WriteAction) action;
 

@@ -54,7 +54,7 @@ public class DefaultTableMaster extends CoreMaster
     implements TableMaster, DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultTableMaster.class);
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(FileSystemMaster.class);
-  public static final String DEFAULT_TRANSFORMATION = "write(hive).option(hive.num.files, 0)";
+  public static final String DEFAULT_TRANSFORMATION = "write(hive)";
 
   private final AlluxioCatalog mCatalog;
   private final TransformManager mTransformManager;

@@ -27,10 +27,10 @@ import java.util.Map;
  */
 public class WriteAction implements TransformAction {
   private static final String NAME = "write";
-  private static final String NUM_FILES_OPTION = "hive.num.files";
-  private static final String FILE_SIZE = "hive.file.size";
-  private static final long DEFAULT_FILE_SIZE = FileUtils.ONE_GB;
-  private static final int DEFAULT_NUM_FILES = 1;
+  private static final String NUM_FILES_OPTION = "hive.file.maxcount";
+  private static final String FILE_SIZE_OPTION = "hive.file.minsize";
+  private static final long DEFAULT_FILE_SIZE = FileUtils.ONE_GB * 2;
+  private static final int DEFAULT_NUM_FILES = 100;
 
   /**
    * Layout type, for example "hive".
@@ -63,8 +63,8 @@ public class WriteAction implements TransformAction {
       int numFiles = options.containsKey(NUM_FILES_OPTION)
           ? Integer.parseInt(options.get(NUM_FILES_OPTION))
           : DEFAULT_NUM_FILES;
-      long fileSize = options.containsKey(FILE_SIZE)
-          ? Long.parseLong(options.get(FILE_SIZE))
+      long fileSize = options.containsKey(FILE_SIZE_OPTION)
+          ? Long.parseLong(options.get(FILE_SIZE_OPTION))
           : DEFAULT_FILE_SIZE;
       Preconditions.checkArgument(numFiles >= 0,
           ExceptionMessage.TRANSFORM_WRITE_ACTION_INVALID_NUM_FILES);

@@ -31,14 +31,13 @@ import java.util.List;
 import java.util.PrimitiveIterator;
 import java.util.Random;
 import java.util.Set;
-import java.util.stream.LongStream;
 
 public class CompactDefinitionSelectExecutorsTest extends SelectExecutorsTest {
 
   private static final String INPUT_DIR = "/input";
   private static final String OUTPUT_DIR = "/output";
-  private static final PrimitiveIterator.OfLong sLongStream = (new Random()).longs(FileUtils.ONE_GB * 2, FileUtils.ONE_GB * 10).iterator();
-
+  private static final PrimitiveIterator.OfLong LONG_STREAM
+      = (new Random()).longs(FileUtils.ONE_GB * 2, FileUtils.ONE_GB * 10).iterator();
 
   @Test
   public void testExecutorsParallel() throws Exception {
@@ -72,7 +71,7 @@ public class CompactDefinitionSelectExecutorsTest extends SelectExecutorsTest {
     URIStatus mockFileStatus = Mockito.mock(URIStatus.class);
     when(mockFileStatus.isFolder()).thenReturn(false);
     when(mockFileStatus.getName()).thenReturn(name);
-    when(mockFileStatus.getLength()).thenReturn(sLongStream.next());
+    when(mockFileStatus.getLength()).thenReturn(LONG_STREAM.next());
     return mockFileStatus;
   }
 }

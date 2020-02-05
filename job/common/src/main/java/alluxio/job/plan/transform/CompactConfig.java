@@ -143,7 +143,8 @@ public final class CompactConfig implements PlanConfig {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPartitionInfo, mInput, mOutput, mDatabaseType, mMaxNumFiles, mMinFileSize);
+    return Objects.hashCode(mPartitionInfo, mInput, mOutput,
+        mDatabaseType, mMaxNumFiles, mMinFileSize);
   }
 
   @Override

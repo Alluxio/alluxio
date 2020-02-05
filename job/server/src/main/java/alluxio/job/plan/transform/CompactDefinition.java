@@ -91,7 +91,7 @@ public final class CompactDefinition
     Map<WorkerInfo, ArrayList<CompactTask>> assignments = Maps.newHashMap();
     int maxNumFiles = config.getMaxNumFiles();
     long groupMinSize = config.getMinFileSize();
-    if (totalFileSize / config.getMinFileSize() >= maxNumFiles) {
+    if (totalFileSize / groupMinSize > maxNumFiles) {
       groupMinSize = Math.round(totalFileSize / maxNumFiles);
     }
     // Files to be compacted are grouped into different groups,
@@ -105,13 +105,14 @@ public final class CompactDefinition
     // Number of groups already generated
     int groupIndex = 0;
     long currentGroupSize = 0;
+    long halfGroupMinSize = groupMinSize / 2;
     for (URIStatus file : files) {
       // add the file to the group if
       // 1. group is empty
       // 2. group is the last group
       // 3. group size with the new file is closer to the groupMinSize than group size without it
       if (group.isEmpty() || groupIndex == maxNumFiles - 1
-          || (currentGroupSize + file.getLength()) <= groupMinSize / 2
+          || (currentGroupSize + file.getLength()) <= halfGroupMinSize
           || (Math.abs(currentGroupSize + file.getLength() - groupMinSize)
           <= Math.abs(currentGroupSize - groupMinSize))) {
         group.add(inputDir.join(file.getName()).toString());
