@@ -13,6 +13,8 @@ package alluxio.master.metrics;
 
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.MetricType;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
@@ -23,8 +25,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -69,10 +74,11 @@ public class MetricsStore {
    * @return the full instance id of hostname[:id]
    */
   private static String getFullInstanceId(String hostname, String id) {
-    String str = hostname == null ? "" : hostname;
-    str = str.replace('.', '_');
-    str += (id == null ? "" : "-" + id);
-    return str;
+    hostname = hostname.replace('.', '_');
+    if (id != null) {
+      hostname += Metric.ID_SEPARATOR + id;
+    }
+    return hostname;
   }
 
   // The lock to guarantee that only one thread is clearing the metrics
@@ -87,6 +93,11 @@ public class MetricsStore {
   @GuardedBy("mLock")
   private final IndexedSet<Metric> mClientMetrics =
       new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
+  @GuardedBy("mLock")
+  // A map from the instance id to its last reported time
+  private final ConcurrentHashMap<String, Long> mLastReportedTimeMap = new ConcurrentHashMap<>();
+  private final long mCleanupAge
+      = ServerConfiguration.getMs(PropertyKey.MASTER_REPORTED_METRICS_CLEANUP_AGE);
 
   /**
    * Put the metrics from a worker with a hostname. If all the old metrics associated with this
@@ -96,12 +107,12 @@ public class MetricsStore {
    * @param metrics the new worker metrics
    */
   public void putWorkerMetrics(String hostname, List<Metric> metrics) {
-    if (metrics.isEmpty()) {
+    if (metrics.isEmpty() || hostname == null) {
       return;
     }
     try (LockResource r = new LockResource(mLock.readLock())) {
-      putReportedMetrics(mWorkerMetrics,
-          getFullInstanceId(hostname, null), metrics);
+      mLastReportedTimeMap.put(getFullInstanceId(hostname, null), System.currentTimeMillis());
+      putReportedMetrics(mWorkerMetrics, metrics);
     }
   }
 
@@ -114,11 +125,12 @@ public class MetricsStore {
    * @param metrics the new metrics
    */
   public void putClientMetrics(String hostname, String clientId, List<Metric> metrics) {
-    if (metrics.isEmpty()) {
+    if (metrics.isEmpty() || hostname == null) {
       return;
     }
     try (LockResource r = new LockResource(mLock.readLock())) {
-      putReportedMetrics(mClientMetrics, getFullInstanceId(hostname, clientId), metrics);
+      mLastReportedTimeMap.put(getFullInstanceId(hostname, clientId), System.currentTimeMillis());
+      putReportedMetrics(mClientMetrics, metrics);
     }
   }
 
@@ -126,15 +138,13 @@ public class MetricsStore {
    * Update the reported metrics with the given instanceId and set of metrics received from a
    * worker or client.
    *
-   * Any metrics from the given instanceId which are not reported in the new set of metrics are
-   * removed. Metrics of {@link MetricType} COUNTER are incremented by the reported values.
+   * Metrics of {@link MetricType} COUNTER are incremented by the reported values.
    * Otherwise, all metrics are simply replaced.
    *
    * @param metricSet the {@link IndexedSet} of client or worker metrics to update
-   * @param instanceId the instance id, derived from {@link #getFullInstanceId(String, String)}
    * @param reportedMetrics the metrics received by the RPC handler
    */
-  private static void putReportedMetrics(IndexedSet<Metric> metricSet, String instanceId,
+  private static void putReportedMetrics(IndexedSet<Metric> metricSet,
       List<Metric> reportedMetrics) {
     for (Metric metric : reportedMetrics) {
       if (metric.getHostname() == null) {
@@ -204,6 +214,28 @@ public class MetricsStore {
       mWorkerMetrics.clear();
       mClientMetrics.clear();
       MetricsSystem.resetAllMetrics();
+    }
+  }
+
+  /**
+   * Clears all the orphaned metrics belonging to worker/client
+   * which hasn't reported for a period of time.
+   */
+  public void cleanUpOrphanedMetrics() {
+    try (LockResource r = new LockResource(mLock.writeLock())) {
+      long current = System.currentTimeMillis();
+      Iterator<Map.Entry<String, Long>> iterator = mLastReportedTimeMap.entrySet().iterator();
+      while (iterator.hasNext()) {
+        Map.Entry<String, Long> entry = iterator.next();
+        if (current - entry.getValue() > mCleanupAge) {
+          if (entry.getKey().contains(Metric.ID_SEPARATOR)) {
+            mClientMetrics.removeByField(ID_INDEX, entry.getKey());
+          } else {
+            mWorkerMetrics.removeByField(ID_INDEX, entry.getKey());
+          }
+          iterator.remove();
+        }
+      }
     }
   }
 }

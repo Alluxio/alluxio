@@ -36,7 +36,7 @@ public final class Metric implements Serializable {
   private static final Logger LOG = LoggerFactory.getLogger(Metric.class);
   private static final long serialVersionUID = -2236393414222298333L;
 
-  private static final String ID_SEPARATOR = "-id:";
+  public static final String ID_SEPARATOR = "-id:";
   public static final String TAG_SEPARATOR = ":";
   private static final ConcurrentHashMap<UserMetricKey, String> CACHED_METRICS =
       new ConcurrentHashMap<>();

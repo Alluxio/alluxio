@@ -58,6 +58,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
       new HashSet<>();
   private final MetricsStore mMetricsStore;
   private final HeartbeatThread mClusterMetricsUpdater;
+  private final HeartbeatThread mOrphanedMetricsCleaner;
 
   /**
    * Creates a new instance of {@link MetricsMaster}.
@@ -86,6 +87,11 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
         new HeartbeatThread(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER,
             new ClusterMetricsUpdater(),
             ServerConfiguration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
+            ServerConfiguration.global(), mMasterContext.getUserState());
+    mOrphanedMetricsCleaner =
+        new HeartbeatThread(HeartbeatContext.MASTER_ORPHANED_METRICS_CLEANER,
+            new OrphaneMetricsCleaner(),
+            ServerConfiguration.getMs(PropertyKey.MASTER_REPORTED_METRICS_CLEANUP_INTERVAL),
             ServerConfiguration.global(), mMasterContext.getUserState());
   }
 
@@ -124,6 +130,10 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
         });
       }
     }
+  }
+
+  private void cleanUpOrphaneMetrics() {
+    mMetricsStore.cleanUpOrphanedMetrics();
   }
 
   private void registerAggregators() {
@@ -247,6 +257,21 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     @Override
     public void heartbeat() throws InterruptedException {
       updateMultiValueMetrics();
+    }
+
+    @Override
+    public void close() {
+      // nothing to clean up
+    }
+  }
+
+  /**
+   * Heartbeat executor that cleans the metrics reported by lost workers or clients.
+   */
+  private class OrphaneMetricsCleaner implements HeartbeatExecutor {
+    @Override
+    public void heartbeat() throws InterruptedException {
+      cleanUpOrphaneMetrics();
     }
 
     @Override
