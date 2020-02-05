@@ -3,6 +3,7 @@ package alluxio.cli.bundler;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
+import alluxio.cli.bundler.command.AbstractInfoCollectorCommand;
 import alluxio.cli.bundler.command.TarUtils;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.file.FileSystemContext;
@@ -62,6 +63,7 @@ public class InfoCollector extends AbstractShell {
 
     // Invoke all other commands to collect information
     // FORCE_OPTION will be propagated to child commands
+    List<File> filesToCollect = new ArrayList<>();
     if (subCommand.equals("all")) {
       // Execute all commands if the option is "all"
       System.out.println("Execute all child commands");
@@ -70,28 +72,53 @@ public class InfoCollector extends AbstractShell {
 
         // TODO(jiacheng): How to handle argv difference?
 
+        AbstractInfoCollectorCommand infoCmd = (AbstractInfoCollectorCommand) cmd;
+
         // Find the argv for this command
-        argv[0] = cmd.getCommandName();
+        argv[0] = infoCmd.getCommandName();
         int childRet = shell.run(argv);
+
+        // File to collect
+        File infoCmdOutputFile = infoCmd.generateOutputFile(targetDirPath, infoCmd.getCommandName());
+        filesToCollect.add(infoCmdOutputFile);
+
         System.out.println(String.format("Command %s exit with code %s", cmd.getCommandName(), childRet));
       }
     } else {
+      AbstractInfoCollectorCommand cmd = shell.findCommand(subCommand);
+      if (cmd == null) {
+        // Unknown command (we didn't find the cmd in our dict)
+        System.err.println(String.format("%s is an unknown command.", cmd));
+        shell.printUsage();
+        return;
+      }
+
       int childRet = shell.run(argv);
+
+      File infoCmdOutputFile = cmd.generateOutputFile(targetDirPath, cmd.getCommandName());
+      filesToCollect.add(infoCmdOutputFile);
+
       System.out.println(String.format("Command %s exit with code %s", subCommand, childRet));
     }
 
     // Generate bundle
     System.out.println(String.format("Archiving dir %s", targetDirPath));
+    System.out.println(String.format("Files to include: %s", filesToCollect));
     String tarballPath = Paths.get(targetDirPath, "collectAll.tar.gz").toAbsolutePath().toString();
-    // All files to compress
-    File targetDir = new File(targetDirPath);
-    // TODO(jiacheng): verify
 
-    File[] files = targetDir.listFiles();
-    TarUtils.compress(tarballPath, files);
+    TarUtils.compress(tarballPath, filesToCollect.toArray(new File[0]));
     System.out.println("Archiving finished");
 
     System.exit(ret);
+  }
+
+  public AbstractInfoCollectorCommand findCommand(String cmdName) {
+    for (Command c : this.getCommands()) {
+      if (c.getCommandName().equals(cmdName)) {
+        return (AbstractInfoCollectorCommand) c;
+      }
+    }
+    return null;
   }
 
   /**

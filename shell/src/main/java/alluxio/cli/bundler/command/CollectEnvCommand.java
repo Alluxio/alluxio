@@ -5,7 +5,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.CommandReturn;
 import alluxio.shell.ShellCommand;
-import alluxio.util.ShellUtils;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -17,10 +16,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class CollectEnvCommand extends AbstractInfoCollectorCommand {
@@ -167,7 +163,7 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
     }
 
     // output the buffer
-    File outputFile = getOutputFile(targetDir, String.format("%s.txt", getCommandName()));
+    File outputFile = generateOutputFile(targetDir, String.format("%s.txt", getCommandName()));
     LOG.info(String.format("Finished all commands. Writing to output file %s", outputFile.getAbsolutePath()));
     FileUtils.writeStringToFile(outputFile, outputBuffer.toString());
 

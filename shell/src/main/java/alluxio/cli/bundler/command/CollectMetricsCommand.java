@@ -12,7 +12,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.FileUtils;
@@ -127,7 +126,7 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
       LOG.info(String.format("Collecting metrics for %s", timeString));
 
       // Write to file
-      File outputFile = getOutputFile(targetDir, String.format("%s-%s", getCommandName(), i));
+      File outputFile = generateOutputFile(targetDir, String.format("%s-%s", getCommandName(), i));
       StringWriter outputBuffer = new StringWriter();
       outputBuffer.write(String.format("Collect metric at approximately %s", timeString));
       outputBuffer.write(getMetricsJson());

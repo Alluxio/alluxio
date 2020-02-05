@@ -70,7 +70,7 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
       Map<String, String> procs = getJps();
       String jstackContent = dumpJstack(procs);
 
-      File outputFile = getOutputFile(targetDir, String.format("%s-%s", getCommandName(), i));
+      File outputFile = generateOutputFile(targetDir, String.format("%s-%s", getCommandName(), i));
       FileUtils.writeStringToFile(outputFile, jstackContent);
 
       // Interval

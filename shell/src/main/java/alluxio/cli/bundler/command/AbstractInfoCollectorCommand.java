@@ -28,9 +28,8 @@ public abstract class AbstractInfoCollectorCommand implements Command {
     mFsContext = fsContext;
   }
 
-  public String getDestDir(CommandLine cl) {
+  public static String getDestDir(CommandLine cl) {
     String[] args = cl.getArgs();
-    LOG.info(String.format("Args for %s: %s", getCommandName(), Arrays.toString(args)));
     return args[0];
   }
 
@@ -55,7 +54,7 @@ public abstract class AbstractInfoCollectorCommand implements Command {
     return true;
   }
 
-  public File getOutputFile(String baseDirPath, String fileName) throws IOException {
+  public File generateOutputFile(String baseDirPath, String fileName) throws IOException {
     if (!fileName.endsWith(FILE_NAME_SUFFIX)) {
       fileName += FILE_NAME_SUFFIX;
     }
@@ -65,6 +64,10 @@ public abstract class AbstractInfoCollectorCommand implements Command {
       outputFile.createNewFile();
     }
     return outputFile;
+  }
+
+  public File getOutputFile(CommandLine cl) {
+    return new File(getDestDir(cl), this.getCommandName());
   }
 
   private void createWorkingDirIfNotExisting(String path) {

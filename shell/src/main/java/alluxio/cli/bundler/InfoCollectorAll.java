@@ -1,8 +1,10 @@
 package alluxio.cli.bundler;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
+import alluxio.cli.bundler.command.TarUtils;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
@@ -20,10 +22,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.nio.ch.ThreadPool;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -160,20 +164,26 @@ public class InfoCollectorAll extends AbstractShell {
       }
     }
 
+
     // Collect all tarballs to local
-    String logPath = conf.get(PropertyKey.LOGS_DIR);
     // TODO(jiacheng): move to variable
-    String collectTarballPath = Paths.get(logPath, "infoBundleAll").toAbsolutePath().toString();
-    System.out.println(String.format("Copying all remote tarballs to %s", collectTarballPath));
+    File tempDir = AlluxioTestDirectory.createTemporaryDirectory("testDir");
+
+    List<File> filesFromHosts = new ArrayList<>();
     for (String host : allHosts) {
+      // Create dir for the host
+      File tarballFromHost = new File(tempDir, host);
+      tarballFromHost.mkdir();
+      filesFromHosts.add(tarballFromHost);
+
       System.out.println(String.format("Collecting tarball from host %s", host));
       // TODO(jiacheng): move to variable
-      String remoteTarballPath = Paths.get(logPath, "infoBundleLocal").toAbsolutePath().toString();
-      String localTarballPath = Paths.get(collectTarballPath, host).toAbsolutePath().toString();
-      System.out.println(String.format("Copying %s:%s to %s", host, remoteTarballPath, localTarballPath));
+      String fromPath = Paths.get(targetDir, "collectAll.tar.gz").toAbsolutePath().toString();
+      String toPath = tarballFromHost.getAbsolutePath();
+      System.out.println(String.format("Copying %s:%s to %s", host, fromPath, toPath));
 
       // TODO(jiacheng): asynch this
-      CommandReturn cr = ShellUtils.scpCommandWithOutput(host, remoteTarballPath, localTarballPath,false);
+      CommandReturn cr = ShellUtils.scpCommandWithOutput(host, fromPath, toPath, false);
 
       if (cr.getExitCode() !=0) {
         System.out.println(String.format("Failed on host ", host));
@@ -181,9 +191,13 @@ public class InfoCollectorAll extends AbstractShell {
       }
     }
 
-    // TODO(jiacheng): Generate final tarball
-    // TODO(jiacheng): tarball feature to util
+    System.out.println("All tarballs copied to " + tempDir.getAbsolutePath());
+    System.out.println(String.format("Tarballs from hosts in directories: %s", filesFromHosts));
 
+    // Generate a final tarball containing tarballs from each host
+    String finalTarballpath = Paths.get(targetDir, "InfoCollectorAll.tar.gz").toAbsolutePath().toString();
+    TarUtils.compress(finalTarballpath, filesFromHosts.toArray(new File[0]));
+    System.out.println("Final tarball compressed to " + finalTarballpath);
 
     System.exit(ret);
   }

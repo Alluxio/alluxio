@@ -1,13 +1,10 @@
 package alluxio.cli.bundler.command;
 
-import alluxio.cli.Command;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.CommandReturn;
 import alluxio.shell.ShellCommand;
-import alluxio.util.ShellUtils;
-import jdk.nashorn.tools.Shell;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -19,12 +16,9 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.lang.reflect.Array;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CollectAlluxioInfoCommand.class);
@@ -169,7 +163,7 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
       }
     }
 
-    File outputFile = getOutputFile(targetDir, OUTPUT_FILE_NAME);
+    File outputFile = generateOutputFile(targetDir, OUTPUT_FILE_NAME);
     FileUtils.writeStringToFile(outputFile, output.toString());
 
     return ret;
