@@ -86,6 +86,7 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setPersistDirectory(PersistDirectoryEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setRemovePathProperties(RemovePathPropertiesEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setRemoveSyncPoint(RemoveSyncPointEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setRemoveTable(Table.RemoveTableEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setRename(RenameEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setSetAcl(SetAclEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setSetAttribute(SetAttributeEntry.getDefaultInstance()).build(),

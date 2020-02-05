@@ -13,6 +13,8 @@ package alluxio.master.table;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.master.LocalAlluxioJobCluster;
@@ -46,6 +48,7 @@ public final class TableIntegrationTest extends BaseIntegrationTest {
   /** The docker image name and tag. */
   private static final String HMS_IMAGE = "<REPLACE WITH DOCKER IMAGE/TAG OF HMS>";
   private static final String TEST_TABLE = "test_table";
+  private static final String TEST_TABLE_RENAME = "test_table_rename";
   private static final String TEST_TABLE_PART = "test_table_part";
 
   @ClassRule
@@ -94,6 +97,14 @@ public final class TableIntegrationTest extends BaseIntegrationTest {
     writer.println("2,22,222,2.2,2222");
     writer.close();
 
+    // write data files for table: test_table_rename
+    base = dbDir.getAbsolutePath() + "/" + TEST_TABLE_RENAME + "/";
+    new File(base).mkdirs();
+    writer = new PrintWriter(base + "data.csv");
+    writer.println("1,11,111,1.1,1111,11111");
+    writer.println("2,22,222,2.2,2222,22222");
+    writer.close();
+
     String[] lines = {
         String.format("CREATE DATABASE %s; USE %s;", DB_NAME, DB_NAME),
         String.format(
@@ -107,6 +118,11 @@ public final class TableIntegrationTest extends BaseIntegrationTest {
                 + "float, `long5` bigint) PARTITIONED BY (partitionint6 INT) LOCATION 'file://%s';",
             TEST_TABLE_PART, dbDir.getAbsolutePath() + "/" + TEST_TABLE_PART),
         String.format("MSCK REPAIR TABLE %s;", TEST_TABLE_PART),
+        String.format(
+            "CREATE EXTERNAL TABLE %s(`int1` int, `long2` bigint, `string3` string, "
+                + "`float4` float, " + "`long5` bigint, `partitionint6` int) LOCATION 'file://%s';",
+            TEST_TABLE_RENAME, dbDir.getAbsolutePath() + "/" + TEST_TABLE_RENAME),
+        String.format("MSCK REPAIR TABLE %s;", TEST_TABLE_RENAME),
     };
 
     execBeeline(Arrays.asList(lines));
@@ -175,6 +191,39 @@ public final class TableIntegrationTest extends BaseIntegrationTest {
     assertEquals(newPartitionVersions,
         sTableMaster.getTable(DB_NAME, TEST_TABLE_PART).getPartitions().stream()
             .map(Partition::getVersion).collect(Collectors.toSet()));
+  }
+
+  @Test
+  public void renameTable() throws Exception {
+    String newName = TEST_TABLE_RENAME + "_new";
+
+    // update the tables and partitions
+    String[] lines = {
+        String.format("USE %s;", DB_NAME),
+        String.format("ALTER TABLE %s RENAME TO %s;", TEST_TABLE_RENAME, newName),
+    };
+    execBeeline(Arrays.asList(lines));
+
+    Table table = sTableMaster.getTable(DB_NAME, TEST_TABLE_RENAME);
+    assertNotNull(table);
+    try {
+      sTableMaster.getTable(DB_NAME, newName);
+      fail("getting non-existing table should not succeed.");
+    } catch (Exception e) {
+      // expected
+    }
+
+    sTableMaster.syncDatabase(DB_NAME);
+
+    try {
+      sTableMaster.getTable(DB_NAME, TEST_TABLE_RENAME);
+      fail("previous table name should not exist after the rename.");
+    } catch (Exception e) {
+      // expected
+    }
+
+    table = sTableMaster.getTable(DB_NAME, newName);
+    assertNotNull(table);
   }
 
   /**

@@ -30,10 +30,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
@@ -171,7 +173,9 @@ public class Database implements Journaled {
   }
 
   /**
-   * Syncs the metadata from the under db.
+   * Syncs the metadata from the under db. To avoid concurrent sync operations, this requires
+   * external synchronization.
+   *
    * @param context journal context
    * @return true if the database changed as a result of fullSync
    */
@@ -183,7 +187,8 @@ public class Database implements Journaled {
           .setUpdateDatabaseInfo(toJournalProto(newDbInfo, mName)).build());
       updated = true;
     }
-    for (String tableName : mUdb.getTableNames()) {
+    Set<String> udbTableNames = new HashSet<>(mUdb.getTableNames());
+    for (String tableName : udbTableNames) {
       Table previousTable = mTables.get(tableName);
       UdbTable udbTable = mUdb.getTable(tableName);
       Table newTable = Table.create(this, udbTable, previousTable);
@@ -192,6 +197,22 @@ public class Database implements Journaled {
         // table was created or was updated
         alluxio.proto.journal.Table.AddTableEntry addTableEntry = newTable.toJournalProto();
         Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setAddTable(addTableEntry)
+            .build();
+        applyAndJournal(context, entry);
+        updated = true;
+      }
+    }
+    for (Table existingTable : mTables.values()) {
+      if (!udbTableNames.contains(existingTable.getName())) {
+        // this table no longer exists in udb
+        alluxio.proto.journal.Table.RemoveTableEntry removeTableEntry =
+            alluxio.proto.journal.Table.RemoveTableEntry.newBuilder()
+                .setDbName(mName)
+                .setTableName(existingTable.getName())
+                .setVersion(existingTable.getVersion())
+                .build();
+        Journal.JournalEntry entry = Journal.JournalEntry.newBuilder()
+            .setRemoveTable(removeTableEntry)
             .build();
         applyAndJournal(context, entry);
         updated = true;
@@ -224,6 +245,9 @@ public class Database implements Journaled {
     if (entry.hasAddTable()) {
       return applyAddTable(context, entry);
     }
+    if (entry.hasRemoveTable()) {
+      return applyRemoveTable(context, entry);
+    }
     if (entry.hasUpdateDatabaseInfo()) {
       return applyUpdateDbInfo(context, entry);
     }
@@ -254,13 +278,13 @@ public class Database implements Journaled {
       boolean writeNewTable = false;
       if (existingTable == null && (newTable.getVersion() == Table.FIRST_VERSION)) {
         // this table is being newly inserted, and has the expected first version
-        LOG.info("Adding new table {} into database {}", newTable.getName(), mName);
+        LOG.info("Adding new table {}.{}", mName, newTable.getName());
         writeNewTable = true;
       }
 
       if (existingTable != null && (newTable.getPreviousVersion() == existingTable.getVersion())) {
         // Previous table already exists, and matches the new table's previous version
-        LOG.info("Updating table {} in database {} to version {}", newTable.getName(), mName,
+        LOG.info("Updating table {}.{} to version {}", mName, newTable.getName(),
             newTable.getVersion());
         writeNewTable = true;
       }
@@ -277,6 +301,34 @@ public class Database implements Journaled {
         // have updated the map. Do not modify the map.
         return existingTable;
       }
+    });
+
+    return true;
+  }
+
+  private boolean applyRemoveTable(@Nullable JournalContext context, Journal.JournalEntry entry) {
+    alluxio.proto.journal.Table.RemoveTableEntry removeTable = entry.getRemoveTable();
+    if (!removeTable.getDbName().equals(mName)) {
+      return false;
+    }
+
+    mTables.compute(removeTable.getTableName(), (key, existingTable) -> {
+      if (existingTable != null) {
+        if (removeTable.getVersion() == existingTable.getVersion()) {
+          // this table is being removed, and has the expected version
+          LOG.info("Removing table {}.{}", mName, removeTable.getTableName());
+          if (context != null) {
+            context.append(entry);
+          }
+          return null;
+        }
+        LOG.info("Will not remove table {}.{}, because of mismatched versions. "
+                + "version-to-delete: {} existing-version: {}", mName, removeTable.getTableName(),
+            removeTable.getVersion(), existingTable.getVersion());
+      }
+      LOG.debug("Cannot remove table {}.{}, because it does not exist.", mName,
+          removeTable.getTableName());
+      return existingTable;
     });
 
     return true;

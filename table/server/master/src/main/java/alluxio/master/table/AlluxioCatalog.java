@@ -74,6 +74,7 @@ public class AlluxioCatalog implements Journaled {
   }
 
   private LockResource getLock(String dbName, boolean readLock) {
+    // TODO(gpang): update concurrency model to OCC for the catalog
     ReadWriteLock rwLock = mDbLocks.compute(dbName,
         (key, value) -> value == null ? new ReentrantReadWriteLock() : value);
     if (readLock) {
