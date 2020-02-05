@@ -14,6 +14,7 @@ package alluxio.client.file.cache;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -54,7 +55,7 @@ public final class LocalCacheManagerTest {
 
   private LocalCacheManager mCacheManager;
   private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
-  private HashSetMetaStore mMetaStore;
+  private HashMapMetaStore mMetaStore;
   private HashMapPageStore mPageStore;
   private CacheEvictor mEvictor;
 
@@ -65,7 +66,7 @@ public final class LocalCacheManagerTest {
   public void before() {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
-    mMetaStore = new HashSetMetaStore();
+    mMetaStore = new HashMapMetaStore();
     mPageStore = new HashMapPageStore();
     mEvictor = new FIFOEvictor(mMetaStore);
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
@@ -99,6 +100,47 @@ public final class LocalCacheManagerTest {
     assertFalse(mMetaStore.hasPage(PAGE_ID1));
     assertTrue(mMetaStore.hasPage(PAGE_ID2));
     assertArrayEquals(PAGE2, (byte[]) mPageStore.mStore.get(PAGE_ID2));
+  }
+
+  @Test
+  public void putSmallPages() throws Exception {
+    // Cache size is only one full page, but should be able to store multiple small pages
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
+    int smallPageLen = 8;
+    long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
+    byte[] smallPage = new byte[smallPageLen];
+    for (int i = 0; i < numPages; i++) {
+      PageId id = new PageId(i, 0);
+      mCacheManager.put(id, smallPage);
+    }
+    for (int i = 0; i < numPages; i++) {
+      PageId id = new PageId(i, 0);
+      assertNotNull(mCacheManager.get(id));
+    }
+  }
+
+  @Test
+  public void evictSmallPages() throws Exception {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
+    int smallPageLen = 8;
+    long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
+    byte[] smallPage = new byte[smallPageLen];
+    for (int i = 0; i < numPages; i++) {
+      PageId id = new PageId(i, 0);
+      mCacheManager.put(id, smallPage);
+    }
+    // this should trigger evicting the first page (by FIFO)
+    mCacheManager.put(new PageId(numPages, 0), smallPage);
+    for (int i = 0; i < numPages; i++) {
+      PageId id = new PageId(i, 0);
+      if (i == 0) {
+        assertNull(mCacheManager.get(id));
+      } else {
+        assertNotNull(mCacheManager.get(id));
+      }
+    }
   }
 
   @Test
@@ -246,7 +288,7 @@ public final class LocalCacheManagerTest {
   /**
    * Implementation of meta store that stores cached data in memory.
    */
-  class HashSetMetaStore implements MetaStore {
+  class HashMapMetaStore implements MetaStore {
     Map<PageId, Long> mPages = new HashMap<>();
 
     @Override
@@ -260,7 +302,7 @@ public final class LocalCacheManagerTest {
     }
 
     @Override
-    public long getSize(PageId pageId) throws PageNotFoundException {
+    public long getPageSize(PageId pageId) throws PageNotFoundException {
       if (!mPages.containsKey(pageId)) {
         throw new PageNotFoundException("page not found " + pageId);
       }

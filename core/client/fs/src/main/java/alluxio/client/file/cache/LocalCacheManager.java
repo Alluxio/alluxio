@@ -128,12 +128,12 @@ public class LocalCacheManager implements CacheManager {
       try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
         alreadyCached = mMetaStore.hasPage(pageId);
         if (alreadyCached) {
-          pageSize = mMetaStore.getSize(pageId);
+          pageSize = mMetaStore.getPageSize(pageId);
         } else {
           needEvict = mPageStore.bytes() + page.length > mCacheSize;
           if (needEvict) {
             victim = mEvictor.evict();
-            victimSize = mMetaStore.getSize(victim);
+            victimSize = mMetaStore.getPageSize(victim);
           } else {
             mMetaStore.addPage(pageId, page.length);
           }
@@ -222,7 +222,7 @@ public class LocalCacheManager implements CacheManager {
     long pageSize = 0;
     try (LockResource r = new LockResource(pageLock.writeLock())) {
       try (LockResource r1 = new LockResource(mMetaLock.writeLock())) {
-        pageSize = mMetaStore.getSize(pageId);
+        pageSize = mMetaStore.getPageSize(pageId);
         mMetaStore.removePage(pageId);
       }
       mPageStore.delete(pageId, pageSize);

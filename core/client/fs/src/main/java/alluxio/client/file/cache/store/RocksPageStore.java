@@ -40,6 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class RocksPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
 
+  public static final int KEY_LENGTH = 16;
   private final String mRoot;
   private final RocksDB mDb;
   private final AtomicLong mSize = new AtomicLong(0);
@@ -119,7 +120,7 @@ public class RocksPageStore implements PageStore {
   }
 
   private byte[] getPageKey(PageId pageId) {
-    ByteBuffer buf = ByteBuffer.allocate(16);
+    ByteBuffer buf = ByteBuffer.allocate(KEY_LENGTH);
     buf.putLong(pageId.getFileId());
     buf.putLong(pageId.getPageIndex());
     return buf.array();

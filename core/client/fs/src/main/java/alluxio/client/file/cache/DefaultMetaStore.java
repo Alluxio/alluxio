@@ -34,7 +34,7 @@ public class DefaultMetaStore implements MetaStore {
   }
 
   @Override
-  public long getSize(PageId pageId) throws PageNotFoundException {
+  public long getPageSize(PageId pageId) throws PageNotFoundException {
     if (!mPageMap.containsKey(pageId)) {
       throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }

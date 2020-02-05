@@ -23,6 +23,8 @@ import org.junit.rules.ExpectedException;
  * Tests for the {@link DefaultMetaStore} class.
  */
 public final class DefaultMetaStoreTest {
+  private static final int PAGE_SIZE = 1024;
+
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
@@ -39,20 +41,20 @@ public final class DefaultMetaStoreTest {
 
   @Test
   public void addNew() {
-    Assert.assertTrue(mMetaStore.addPage(mPage));
+    mMetaStore.addPage(mPage, PAGE_SIZE);
     Assert.assertTrue(mMetaStore.hasPage(mPage));
   }
 
   @Test
   public void addExist() {
-    Assert.assertTrue(mMetaStore.addPage(mPage));
-    Assert.assertFalse(mMetaStore.addPage(mPage));
+    mMetaStore.addPage(mPage, PAGE_SIZE);
+    mMetaStore.addPage(mPage, PAGE_SIZE);
     Assert.assertTrue(mMetaStore.hasPage(mPage));
   }
 
   @Test
   public void removeExist() throws Exception {
-    Assert.assertTrue(mMetaStore.addPage(mPage));
+    mMetaStore.addPage(mPage, PAGE_SIZE);
     Assert.assertTrue(mMetaStore.hasPage(mPage));
     mMetaStore.removePage(mPage);
     Assert.assertFalse(mMetaStore.hasPage(mPage));
@@ -67,7 +69,19 @@ public final class DefaultMetaStoreTest {
   @Test
   public void hasPage() {
     Assert.assertFalse(mMetaStore.hasPage(mPage));
-    Assert.assertTrue(mMetaStore.addPage(mPage));
+    mMetaStore.addPage(mPage, PAGE_SIZE);
     Assert.assertTrue(mMetaStore.hasPage(mPage));
+  }
+
+  @Test
+  public void getPageSize() throws Exception {
+    mMetaStore.addPage(mPage, PAGE_SIZE);
+    Assert.assertEquals(PAGE_SIZE, mMetaStore.getPageSize(mPage));
+  }
+
+  @Test
+  public void getPageSizeNotExist() throws Exception {
+    mThrown.expect(PageNotFoundException.class);
+    mMetaStore.getPageSize(mPage);
   }
 }
