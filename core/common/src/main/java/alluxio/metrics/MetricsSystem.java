@@ -209,6 +209,9 @@ public final class MetricsSystem {
    * @return the metric with instance and id tags
    */
   public static String getMetricName(String name) {
+    if (name.startsWith(CLUSTER)) {
+      return name;
+    }
     switch (CommonUtils.PROCESS_TYPE.get()) {
       case CLIENT:
         return getClientMetricName(name);

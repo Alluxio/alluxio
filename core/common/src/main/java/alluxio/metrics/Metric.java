@@ -52,7 +52,7 @@ public final class Metric implements Serializable {
 
   /**
    * The unique identifier to represent this metric.
-   * The pattern is instance.[hostname-id:instanceId.]name[.tagName:tagValue]*.
+   * The pattern is instance.name[.tagName:tagValue]*[hostname-id:instanceId.].
    * Fetched once and assumed to be immutable.
    */
   private final Supplier<String> mFullMetricNameSupplier =
@@ -204,7 +204,7 @@ public final class Metric implements Serializable {
 
   /**
    * @return the fully qualified metric name, which is of pattern
-   *         instance.name[.hostname-id:instanceId][.tagName:tagValue]*, where the tags are appended
+   *         instance.name[.tagName:tagValue]*[.hostname-id:instanceId], where the tags are appended
    *         at the end
    */
   public String getFullMetricName() {
@@ -213,23 +213,22 @@ public final class Metric implements Serializable {
 
   /**
    * @return the fully qualified metric name, which is of pattern
-   *         instance.[hostname-id:instanceId.]name[.tagName:tagValue]*, where the tags are appended
+   *         instance.name[.tagName:tagValue]*[.hostname-id:instanceId], where the tags are appended
    *         at the end
    */
   private String constructFullMetricName() {
     StringBuilder sb = new StringBuilder();
     sb.append(mInstanceType).append('.');
     sb.append(mName);
+    for (Entry<String, String> entry : mTags.entrySet()) {
+      sb.append('.').append(entry.getKey()).append(TAG_SEPARATOR).append(entry.getValue());
+    }
     if (mHostname != null) {
       sb.append('.');
       sb.append(mHostname);
       if (mInstanceId != null) {
         sb.append(ID_SEPARATOR).append(mInstanceId);
       }
-    }
-
-    for (Entry<String, String> entry : mTags.entrySet()) {
-      sb.append('.').append(entry.getKey()).append(TAG_SEPARATOR).append(entry.getValue());
     }
     return sb.toString();
   }
@@ -300,32 +299,31 @@ public final class Metric implements Serializable {
   public static Metric from(String fullName, double value, MetricType metricType) {
     String[] pieces = fullName.split("\\.");
     Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", fullName);
-
+    int len = pieces.length;
     String hostname = null;
     String id = null;
     String name = null;
-    int tagStartIdx = 0;
+    int tagEndIndex = len;
     // Master or cluster metrics don't have hostname included.
     if (pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())
         || pieces[0].equals(MetricsSystem.CLUSTER)) {
       name = pieces[1];
-      tagStartIdx = 2;
     } else {
-      if (pieces[2].contains(ID_SEPARATOR)) {
-        String[] ids = pieces[2].split(ID_SEPARATOR);
+      if (pieces[len - 1].contains(ID_SEPARATOR)) {
+        String[] ids = pieces[len - 1].split(ID_SEPARATOR);
         hostname = ids[0];
         id = ids[1];
       } else {
-        hostname = pieces[2];
+        hostname = pieces[len - 1];
       }
       name = pieces[1];
-      tagStartIdx = 3;
+      tagEndIndex = len - 1;
     }
     MetricsSystem.InstanceType instance = MetricsSystem.InstanceType.fromString(pieces[0]);
     Metric metric = new Metric(instance, hostname, id, metricType, name, value);
 
     // parse tags
-    for (int i = tagStartIdx; i < pieces.length; i++) {
+    for (int i = 2; i < tagEndIndex; i++) {
       String tagStr = pieces[i];
       if (!tagStr.contains(TAG_SEPARATOR)) {
         // Unknown tag
