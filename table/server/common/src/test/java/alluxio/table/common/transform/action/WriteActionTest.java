@@ -53,7 +53,7 @@ public class WriteActionTest {
   @Test
   public void dynamicNumFiles() {
     TransformAction action = TransformAction.Parser.parse(
-        "write(hive).option(hive.file.maxcount, 1000).option(hive.file.minsize, 1024)");
+        "write(hive).option(hive.file.maxcount, 1000).option(hive.file.size.min, 1024)");
     assertEquals(WriteAction.class, action.getClass());
     WriteAction writeAction = (WriteAction) action;
 
@@ -73,7 +73,7 @@ public class WriteActionTest {
   @Test
   public void generateJobConfig() {
     TransformAction action = TransformAction.Parser.parse(
-        "write(hive).option(hive.file.maxcount, 12)");
+        "write(hive).option(hive.file.count.max 12)");
     assertEquals(WriteAction.class, action.getClass());
     WriteAction writeAction = (WriteAction) action;
 
