@@ -306,7 +306,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
             ThreadFactoryUtils.build("DailyMetadataBackup-%d", true)), mUfsManager);
         mDailyBackup.start();
       }
-      if (mState.getClusterID() == INVALID_CLUSTER_ID) {
+      if (mState.getClusterID().equals(INVALID_CLUSTER_ID)) {
         try (JournalContext context = createJournalContext()) {
           String clusterID = java.util.UUID.randomUUID().toString();
           mState.applyAndJournal(context, clusterID);
