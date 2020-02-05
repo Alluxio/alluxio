@@ -19,10 +19,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MetricsSystem.InstanceType;
 import alluxio.resource.LockResource;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -35,7 +31,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class MetricsStore {
-  private static final Logger LOG = LoggerFactory.getLogger(MetricsStore.class);
   private static final IndexDefinition<Metric, String> FULL_NAME_INDEX =
       new IndexDefinition<Metric, String>(true) {
         @Override
@@ -96,7 +91,6 @@ public class MetricsStore {
    * @param metrics the new worker metrics
    */
   public void putWorkerMetrics(String hostname, List<Metric> metrics) {
-    LOG.info("Putting worker metrics");
     if (metrics.isEmpty()) {
       return;
     }
@@ -115,7 +109,6 @@ public class MetricsStore {
    * @param metrics the new metrics
    */
   public void putClientMetrics(String hostname, String clientId, List<Metric> metrics) {
-    LOG.info("Putting client metrics");
     if (metrics.isEmpty()) {
       return;
     }
@@ -184,13 +177,7 @@ public class MetricsStore {
   }
 
   private Set<Metric> getMasterMetrics(String name) {
-    Set<Metric> metrics = new HashSet<>();
-    for (Metric metric : MetricsSystem.allMasterMetrics()) {
-      if (metric.getName().equals(name)) {
-        metrics.add(metric);
-      }
-    }
-    return metrics;
+    return MetricsSystem.getMasterMetric(name);
   }
 
   /**
