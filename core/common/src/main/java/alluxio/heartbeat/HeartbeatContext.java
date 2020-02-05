@@ -48,6 +48,7 @@ public final class HeartbeatContext {
   public static final String MASTER_METRICS_SYNC = "Master Metrics Sync";
   public static final String MASTER_METRICS_TIME_SERIES = "Master Metrics Time Series";
   public static final String MASTER_UFS_CLEANUP = "Master Ufs Cleanup";
+  public static final String MASTER_UPDATE_CHECK = "Master Update Check";
   public static final String MASTER_TTL_CHECK = "Master TTL Check";
   public static final String MASTER_ACTIVE_UFS_SYNC = "Master Active UFS Sync";
   public static final String MASTER_TABLE_TRANSFORMATION_MONITOR =
@@ -78,6 +79,7 @@ public final class HeartbeatContext {
     sTimerClasses.put(MASTER_LOST_MASTER_DETECTION, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_LOST_WORKER_DETECTION, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_UFS_CLEANUP, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_UPDATE_CHECK, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_TTL_CHECK, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_ACTIVE_UFS_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_TABLE_TRANSFORMATION_MONITOR, SLEEPING_TIMER_CLASS);
