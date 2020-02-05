@@ -527,7 +527,7 @@ public final class MetricsSystem {
         if (!(gauge.getValue() instanceof Number)) {
           LOG.debug("The value of metric {} of type {} is not sent to metrics master,"
                   + " only metrics value of number can be collected",
-              entry.getKey(), entry.getValue().getClass().getSimpleName());
+              entry.getKey(), gauge.getValue().getClass().getSimpleName());
           continue;
         }
         rpcMetrics.add(Metric.from(entry.getKey(),
@@ -628,10 +628,10 @@ public final class MetricsSystem {
       com.codahale.metrics.Metric metric = entry.getValue();
       if (metric instanceof Gauge) {
         Object value = ((Gauge) metric).getValue();
-        if (!(value instanceof Number)) {
-          valueBuilder.setStringValue(value.toString());
-        } else {
+        if (value instanceof Number) {
           valueBuilder.setDoubleValue(((Number) value).doubleValue());
+        } else {
+          valueBuilder.setStringValue(value.toString());
         }
         valueBuilder.setMetricType(MetricType.GAUGE);
       } else if (metric instanceof Counter) {
