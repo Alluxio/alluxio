@@ -51,7 +51,7 @@ if [[ -z "${JAVA}" ]]; then
   fi
 fi
 
-# Check Java version == 1.8
+# Check Java version == (1.8 || 11.X)
 JAVA_VERSION=$(${JAVA} -version 2>&1 | awk -F '"' '/version/ {print $2}')
 NUMERIC_VERSION="$(echo "${JAVA_VERSION}" | awk -F. '{printf("%03d%03d",$1,$2);}')"
 if [[ ${NUMERIC_VERSION} != 001008 && ${NUMERIC_VERSION} != 011* ]]; then
