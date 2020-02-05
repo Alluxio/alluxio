@@ -1,15 +1,15 @@
 package alluxio.cli.bundler.command;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.AlluxioTestDirectory;
+
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Arrays;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class TarUtilsTest {
   @Test
@@ -19,8 +19,8 @@ public class TarUtilsTest {
 
     int fileCount = 10;
     // create a list of files in the folder
-    for (int i=0; i<fileCount; i++) {
-      File subFile = new File(targetDir, "file_"+i);
+    for (int i = 0; i < fileCount; i++) {
+      File subFile = new File(targetDir, "file_" + i);
       subFile.createNewFile();
     }
     createFilesInDir(targetDir, 10);
@@ -28,7 +28,7 @@ public class TarUtilsTest {
 
     // Compress the file
     String tarballName = "tarball.tar.gz";
-    String gzFilePath = Paths.get(targetDir.toPath().toString(), tarballName).toAbsolutePath().toString();
+    String gzFilePath = new File(targetDir, tarballName).getAbsolutePath();
     TarUtils.compress(gzFilePath, filesToCompress);
     assertTrue(new File(gzFilePath).exists());
 
@@ -54,7 +54,7 @@ public class TarUtilsTest {
 
     // Compress the file
     String tarballName = "tarball.tar.gz";
-    String gzFilePath = Paths.get(targetDir.toPath().toString(), tarballName).toAbsolutePath().toString();
+    String gzFilePath = new File(targetDir, tarballName).getAbsolutePath();
     TarUtils.compress(gzFilePath, filesToCompress);
     assertTrue(new File(gzFilePath).exists());
 
@@ -70,8 +70,8 @@ public class TarUtilsTest {
   private static void createFilesInDir(File dir, int numOfFiles) throws IOException {
     int fileCount = numOfFiles;
     // create a list of files
-    for (int i=0; i<fileCount; i++) {
-      File subFile = new File(dir, "file_"+i);
+    for (int i = 0; i < fileCount; i++) {
+      File subFile = new File(dir, "file_" + i);
       subFile.createNewFile();
     }
   }
@@ -81,7 +81,7 @@ public class TarUtilsTest {
 
     Arrays.sort(expected);
     Arrays.sort(recovered);
-    for (int i=0; i<expected.length; i++) {
+    for (int i = 0; i < expected.length; i++) {
       assertTrue(recovered[i].exists());
       if (expected[i].isDirectory()) {
         assertTrue(recovered[i].isDirectory());

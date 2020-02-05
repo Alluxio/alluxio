@@ -40,7 +40,7 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
   public static final String COMMAND_NAME = "collectJvmInfo";
   private static final Logger LOG = LoggerFactory.getLogger(CollectJvmInfoCommand.class);
   private static final int COLLECT_JSTACK_TIMES = 3;
-  private static final int COLLECT_JSTACK_INTERVAL = 3;
+  private static final int COLLECT_JSTACK_INTERVAL = 3 * 1000;
 
   private static final Option FORCE_OPTION =
           Option.builder("f")
@@ -83,17 +83,24 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
       return ret;
     }
 
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
     for (int i = 0; i < COLLECT_JSTACK_TIMES; i++) {
+      // Use time as output file name
+      LocalDateTime now = LocalDateTime.now();
+      String timeString = dtf.format(now);
+      LOG.info(String.format("Collecting JVM info at %s", timeString));
+
       LOG.info("Checking current JPS");
       Map<String, String> procs = getJps();
       String jstackContent = dumpJstack(procs);
 
-      File outputFile = generateOutputFile(targetDir, String.format("%s-%s", getCommandName(), i));
+      File outputFile = generateOutputFile(targetDir,
+              String.format("%s-%s", getCommandName(), timeString));
       FileUtils.writeStringToFile(outputFile, jstackContent);
 
       // Interval
       LOG.info(String.format("Wait for an interval of %s seconds", COLLECT_JSTACK_INTERVAL));
-      SleepUtils.sleepMs(LOG, COLLECT_JSTACK_INTERVAL * 1000);
+      SleepUtils.sleepMs(LOG, COLLECT_JSTACK_INTERVAL);
     }
 
     // TODO(jiacheng); return code

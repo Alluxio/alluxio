@@ -38,6 +38,8 @@ import java.util.Set;
  * Class for collecting various information about the host instance.
  */
 public class InfoCollector extends AbstractShell {
+  protected static final String TARBALL_NAME = "collectAll.tar.gz";
+
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.<String, String[]>builder()
           .build();
 
@@ -115,7 +117,7 @@ public class InfoCollector extends AbstractShell {
     // Generate bundle
     System.out.println(String.format("Archiving dir %s", targetDirPath));
     System.out.println(String.format("Files to include: %s", filesToCollect));
-    String tarballPath = Paths.get(targetDirPath, "collectAll.tar.gz").toAbsolutePath().toString();
+    String tarballPath = Paths.get(targetDirPath, TARBALL_NAME).toAbsolutePath().toString();
 
     TarUtils.compress(tarballPath, filesToCollect.toArray(new File[0]));
     System.out.println("Archiving finished");

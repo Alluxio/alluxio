@@ -32,7 +32,7 @@ public abstract class AbstractInfoCollectorCommand implements Command {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractInfoCollectorCommand.class);
   private static final String FILE_NAME_SUFFIX = ".txt";
 
-  private FileSystemContext mFsContext;
+  protected FileSystemContext mFsContext;
 
   /**
    * Creates an instance of {@link AbstractInfoCollectorCommand}.

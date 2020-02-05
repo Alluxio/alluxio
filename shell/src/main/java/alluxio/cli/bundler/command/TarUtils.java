@@ -68,36 +68,32 @@ public class TarUtils {
     }
   }
 
-  // TODO(jiacheng): format
   private static void addToArchiveCompression(TarArchiveOutputStream out, File file, String dir)
           throws IOException {
     String entry = dir + File.separator + file.getName();
-    if (file.isFile()) {
-      out.putArchiveEntry(new TarArchiveEntry(file, entry));
-      try (FileInputStream in = new FileInputStream(file)) {
-        IOUtils.copy(in, out);
-      }
-      out.closeArchiveEntry();
-    } else if (file.isDirectory()) {
+    if (file.isDirectory()) {
       File[] children = file.listFiles();
-      if (children != null) {
+      if (children != null && children.length > 0) {
         for (File child : children) {
           addToArchiveCompression(out, child, entry);
         }
       }
     } else {
-      System.out.println(file.getName() + " is not supported");
+      out.putArchiveEntry(new TarArchiveEntry(file, entry));
+      try (FileInputStream in = new FileInputStream(file)) {
+        IOUtils.copy(in, out);
+      }
+      out.closeArchiveEntry();
     }
   }
 
-  // TODO(jiacheng): format
-  private static TarArchiveOutputStream getTarArchiveOutputStream(String name) throws IOException {
+  private static TarArchiveOutputStream getTarArchiveOutputStream(String path) throws IOException {
     // Generate tar.gz file
     TarArchiveOutputStream taos =
-            new TarArchiveOutputStream(new GzipCompressorOutputStream(new FileOutputStream(name)));
-    // TAR has an 8 gig file limit by default, this gets around that
+            new TarArchiveOutputStream(new GzipCompressorOutputStream(new FileOutputStream(path)));
+    // TAR has an 8G file limit by default, this gets around that
     taos.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_STAR);
-    // TAR originally didn't support long file names, so enable the support for it
+    // TAR originally does not support long file names, enable the support for it
     taos.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
     taos.setAddPaxHeadersForNonAsciiNames(true);
     return taos;

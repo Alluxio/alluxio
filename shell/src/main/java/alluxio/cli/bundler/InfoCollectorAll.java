@@ -49,6 +49,8 @@ import java.util.stream.Collectors;
  */
 public class InfoCollectorAll extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(InfoCollectorAll.class);
+  private static final String TEMP_DIR_NAME = "putAllRemoteTarballs";
+  private static final String FINAL_TARBALL_NAME = "InfoCollectorAll.tar.gz";
 
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.<String, String[]>builder()
           .build();
@@ -162,7 +164,6 @@ public class InfoCollectorAll extends AbstractShell {
       throw new IOException(e);
     }
 
-    // TODO(jiacheng): better error handling?
     // Inspect all command results
     if (results.size() != allHosts.size()) {
       System.out.println("Host size mismatch!");
@@ -180,8 +181,7 @@ public class InfoCollectorAll extends AbstractShell {
     }
 
     // Collect all tarballs to local
-    // TODO(jiacheng): move to variable
-    File tempDir = AlluxioTestDirectory.createTemporaryDirectory("testDir");
+    File tempDir = AlluxioTestDirectory.createTemporaryDirectory(TEMP_DIR_NAME);
 
     List<File> filesFromHosts = new ArrayList<>();
     for (String host : allHosts) {
@@ -191,8 +191,7 @@ public class InfoCollectorAll extends AbstractShell {
       filesFromHosts.add(tarballFromHost);
 
       System.out.println(String.format("Collecting tarball from host %s", host));
-      // TODO(jiacheng): move to variable
-      String fromPath = Paths.get(targetDir, "collectAll.tar.gz")
+      String fromPath = Paths.get(targetDir, InfoCollector.TARBALL_NAME)
                           .toAbsolutePath().toString();
       String toPath = tarballFromHost.getAbsolutePath();
       System.out.println(String.format("Copying %s:%s to %s", host, fromPath, toPath));
@@ -211,7 +210,7 @@ public class InfoCollectorAll extends AbstractShell {
                         filesFromHosts));
 
     // Generate a final tarball containing tarballs from each host
-    String finalTarballpath = Paths.get(targetDir, "InfoCollectorAll.tar.gz")
+    String finalTarballpath = Paths.get(targetDir, FINAL_TARBALL_NAME)
                                 .toAbsolutePath().toString();
     TarUtils.compress(finalTarballpath, filesFromHosts.toArray(new File[0]));
     System.out.println("Final tarball compressed to " + finalTarballpath);

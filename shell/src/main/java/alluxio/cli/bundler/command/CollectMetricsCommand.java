@@ -16,17 +16,13 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.util.SleepUtils;
+import alluxio.util.network.HttpUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.FileUtils;
 
 import javax.annotation.Nullable;
@@ -42,8 +38,10 @@ import java.time.format.DateTimeFormatter;
 public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
   public static final String COMMAND_NAME = "collectMetrics";
   private static final Logger LOG = LoggerFactory.getLogger(CollectMetricsCommand.class);
-  private static final int COLLECT_METRIC_INTERVAL = 3;
-  private static final int COLLECT_METRIC_TIMES = 3;
+  private static final int COLLECT_METRICS_INTERVAL = 3 * 1000;
+  private static final int COLLECT_METRICS_TIMES = 3;
+  private static final int COLLECT_METRICS_TIMEOUT = 5 * 1000;
+  private static final String METRICS_SERVLET_PATH = "/metrics/json/";
 
   private static final Option FORCE_OPTION =
           Option.builder("f")
@@ -92,20 +90,37 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
     }
 
     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
-    for (int i = 0; i < COLLECT_METRIC_TIMES; i++) {
+    for (int i = 0; i < COLLECT_METRICS_TIMES; i++) {
       LocalDateTime now = LocalDateTime.now();
       String timeString = dtf.format(now);
-      LOG.info(String.format("Collecting metrics for %s", timeString));
+      LOG.info(String.format("Collecting metrics at %s", timeString));
 
       // Write to file
       File outputFile = generateOutputFile(targetDir, String.format("%s-%s", getCommandName(), i));
       StringWriter outputBuffer = new StringWriter();
       outputBuffer.write(String.format("Collect metric at approximately %s", timeString));
-      outputBuffer.write(getMetricsJson());
-      FileUtils.writeStringToFile(outputFile, getMetricsJson());
+
+      // Generate URL from config properties
+      String masterAddr;
+      try {
+        masterAddr = mFsContext.getMasterAddress().getHostName();
+      } catch (UnavailableException e) {
+        LOG.error("No Alluxio master available. Skip metrics collection.");
+        continue;
+      }
+      String url = String.format("http://%s:%s%s", masterAddr,
+              mFsContext.getClusterConf().get(PropertyKey.MASTER_WEB_PORT),
+              METRICS_SERVLET_PATH);
+      System.out.println(url);
+      LOG.info(String.format("Metric address URL: %s", url));
+
+      // Get metrics
+      String metricsResponse = getMetricsJson(url);
+      outputBuffer.write(metricsResponse);
+      FileUtils.writeStringToFile(outputFile, metricsResponse);
 
       // Wait for an interval
-      SleepUtils.sleepMs(LOG, 1000 * COLLECT_METRIC_INTERVAL);
+      SleepUtils.sleepMs(LOG, COLLECT_METRICS_INTERVAL);
     }
 
     return ret;
@@ -123,51 +138,12 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
 
   /**
    * Probes Alluxio metrics json sink.
-   * Ref: https://stackoverflow.com/a/1322354/4933827
    *
+   * @param url URL that serves Alluxio metrics
    * @return HTTP response in JSON string
    */
-  // TODO(jiacheng): better printouts
-  public String getMetricsJson() {
-    // Generate URL from parameters
-    String masterAddr;
-    try {
-      masterAddr = mFsContext.getMasterAddress().getHostName();
-    } catch (UnavailableException e) {
-      LOG.error("No Alluxio master available. Skip metrics collection.");
-      e.printStackTrace();
-      return String.format("%s", e.getStackTrace());
-    }
-    // TODO(jiacheng): Where to get /metrics/json/ ?
-    String url = String.format("http://%s:%s/metrics/json/", masterAddr,
-            mFsContext.getClusterConf().get(PropertyKey.MASTER_WEB_PORT));
-    System.out.println(url);
-    LOG.info(String.format("Metric address URL: %s", url));
-
-    // Create an instance of HttpClient and do Http Get
-    HttpClient client = new HttpClient();
-    GetMethod method = new GetMethod(url);
-
-    // Provide custom retry handler is necessary
-    method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,
-            new DefaultHttpMethodRetryHandler(3, false));
-
-    try {
-      // Execute the method.
-      int statusCode = client.executeMethod(method);
-      String response = new String(method.getResponseBody());
-      return String.format("Http StatusCode: %s\nResponse%s", statusCode, response);
-    } catch (HttpException e) {
-      LOG.error("Fatal protocol violation: " + e.getMessage());
-      e.printStackTrace();
-      return String.format("%s", e.getStackTrace());
-    } catch (IOException e) {
-      LOG.error("Fatal transport error: " + e.getMessage());
-      e.printStackTrace();
-      return String.format("%s", e.getStackTrace());
-    } finally {
-      // Release the connection.
-      method.releaseConnection();
-    }
+  public String getMetricsJson(String url) throws IOException {
+    String responseJson = HttpUtils.get(url, COLLECT_METRICS_TIMEOUT);
+    return String.format("Url: %s%nResponse: %s", url, responseJson);
   }
 }
