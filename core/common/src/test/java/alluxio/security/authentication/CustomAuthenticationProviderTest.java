@@ -15,6 +15,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.security.authentication.plain.CustomAuthenticationProvider;
 
+import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -52,8 +53,14 @@ public final class CustomAuthenticationProviderTest {
   public void classNotProvider() {
     String notProviderClass = CustomAuthenticationProviderTest.class.getName();
     mThrown.expect(RuntimeException.class);
-    mThrown.expectMessage("alluxio.security.authentication.CustomAuthenticationProviderTest "
-        + "cannot be cast to alluxio.security.authentication.AuthenticationProvider");
+    mThrown.expectMessage(Matchers.anyOf(Matchers.containsString(
+        // Java 11
+        "alluxio.security.authentication.CustomAuthenticationProviderTest cannot be cast"
+            + " to class alluxio.security.authentication.AuthenticationProvider"),
+        // Java 8
+        Matchers.containsString(
+            "alluxio.security.authentication.CustomAuthenticationProviderTest cannot be cast to"
+                + " alluxio.security.authentication.AuthenticationProvider")));
     new CustomAuthenticationProvider(notProviderClass);
   }
 

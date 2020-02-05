@@ -13,32 +13,19 @@ package alluxio.security.group;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.eq;
 
 import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
-import alluxio.util.CommonUtils;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Unit test for {@link alluxio.security.group.provider.ShellBasedUnixGroupsMapping}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(CommonUtils.class)
 public final class ShellBasedUnixGroupsMappingTest {
-
-  private void setupShellMocks(String username, List<String> groups) throws IOException {
-    PowerMockito.mockStatic(CommonUtils.class);
-    PowerMockito.when(CommonUtils.getUnixGroups(eq(username))).thenReturn(groups);
-  }
 
   /**
    * Tests the {@link ShellBasedUnixGroupsMapping#getGroups(String)} method.
@@ -51,9 +38,13 @@ public final class ShellBasedUnixGroupsMappingTest {
     List<String> userGroups = new ArrayList<>();
     userGroups.add(userGroup1);
     userGroups.add(userGroup2);
-    setupShellMocks(userName, userGroups);
 
-    GroupMappingService groups = new ShellBasedUnixGroupsMapping();
+    GroupMappingService groups = new ShellBasedUnixGroupsMapping((s -> {
+      if (s.equals(userName)) {
+        return userGroups;
+      }
+      return Collections.emptyList();
+    }));
 
     assertNotNull(groups);
     assertNotNull(groups.getGroups(userName));

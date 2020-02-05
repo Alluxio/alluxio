@@ -20,20 +20,16 @@ import static org.junit.Assert.fail;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.security.group.CachedGroupMapping;
-import alluxio.security.group.GroupMappingService;
+import alluxio.util.interfaces.IOFunction;
 
 import com.google.common.collect.Lists;
 import org.hamcrest.Matchers;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -51,8 +47,6 @@ import java.util.function.Supplier;
 /**
  * Tests the {@link CommonUtils} class.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({CommonUtils.class, ShellUtils.class, GroupMappingService.Factory.class})
 public class CommonUtilsTest {
 
   /**
@@ -229,17 +223,6 @@ public class CommonUtilsTest {
     }
   }
 
-  private void setupShellMocks(String username, List<String> groups) throws IOException {
-    PowerMockito.mockStatic(ShellUtils.class);
-    String shellResult = "";
-    for (String group: groups) {
-      shellResult = shellResult + " " + group;
-    }
-    PowerMockito.when(
-        ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand(Mockito.eq(username))))
-        .thenReturn(shellResult);
-  }
-
   /**
    * Tests the {@link CommonUtils#getUnixGroups(String)} method.
    */
@@ -248,12 +231,16 @@ public class CommonUtilsTest {
     String userName = "alluxio-user1";
     String userGroup1 = "alluxio-user1-group1";
     String userGroup2 = "alluxio-user1-group2";
-    List<String> userGroups = new ArrayList<>();
-    userGroups.add(userGroup1);
-    userGroups.add(userGroup2);
-    setupShellMocks(userName, userGroups);
+    String userGroups = userGroup1 + " " + userGroup2;
 
-    List<String> groups = CommonUtils.getUnixGroups(userName);
+    IOFunction<String, String> provider = (u) -> {
+      if (u.equals(userName)) {
+        return userGroups;
+      }
+      return "";
+    };
+
+    List<String> groups = CommonUtils.getUnixGroups(userName, provider);
 
     assertNotNull(groups);
     assertEquals(groups.size(), 2);
@@ -262,8 +249,8 @@ public class CommonUtilsTest {
   }
 
   /**
-   * Test for the {@link CommonUtils#getGroups(String)} and
-   * {@link CommonUtils#getPrimaryGroupName(String)} method.
+   * Test for the {@link CommonUtils#getGroups(String, AlluxioConfiguration)} (String)} and
+   * {@link CommonUtils#getPrimaryGroupName(String, AlluxioConfiguration)} (String)} method.
    */
   @Test
   public void getGroups() throws Throwable {
@@ -275,16 +262,15 @@ public class CommonUtilsTest {
     List<String> userGroups = new ArrayList<>();
     userGroups.add(userGroup1);
     userGroups.add(userGroup2);
-    CachedGroupMapping cachedGroupService = PowerMockito.mock(CachedGroupMapping.class);
-    PowerMockito.when(cachedGroupService.getGroups(Mockito.anyString())).thenReturn(
+    CachedGroupMapping cachedGroupService = Mockito.mock(CachedGroupMapping.class);
+    Mockito.when(cachedGroupService.getGroups(Mockito.anyString())).thenReturn(
         Lists.newArrayList(userGroup1, userGroup2));
-    PowerMockito.mockStatic(GroupMappingService.Factory.class);
-    Mockito.when(GroupMappingService.Factory.get(conf)).thenReturn(cachedGroupService);
 
-    List<String> groups = CommonUtils.getGroups(userName, conf);
+    List<String> groups = CommonUtils.getGroups(userName, conf, (c) -> cachedGroupService);
     assertEquals(Arrays.asList(userGroup1, userGroup2), groups);
 
-    String primaryGroup = CommonUtils.getPrimaryGroupName(userName, conf);
+    String primaryGroup = CommonUtils.getPrimaryGroupName(userName, conf,
+        (c) -> cachedGroupService);
     assertNotNull(primaryGroup);
     assertEquals(userGroup1, primaryGroup);
   }

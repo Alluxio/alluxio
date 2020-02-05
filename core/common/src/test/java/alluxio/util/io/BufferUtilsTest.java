@@ -15,10 +15,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import alluxio.JdkTestUtils;
+
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -293,6 +294,8 @@ public final class BufferUtilsTest {
    */
   @Test
   public void cleanDirectBuffer() {
+    // the implementation to de-allocate buffers changes after JDK 8. It is not backwards-compatible
+    JdkTestUtils.assumeJdk8();
     final int MAX_ITERATIONS = 1024;
     final int BUFFER_SIZE = 16 * 1024 * 1024;
     // bufferArray keeps reference to each buffer to avoid auto GC

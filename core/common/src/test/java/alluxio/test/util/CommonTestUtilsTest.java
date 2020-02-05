@@ -16,19 +16,14 @@ import alluxio.underfs.UnderFileSystem.SpaceType;
 import junit.framework.AssertionFailedError;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Objects;
 
 /**
  * Unit tests for {@link CommonUtils}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(CommonTestUtilsTest.HardToInstantiateClass.class)
 public final class CommonTestUtilsTest {
-  public static final class HardToInstantiateClass {
+  public static class HardToInstantiateClass {
     private HardToInstantiateClass(Object o) {}
   }
 
@@ -83,7 +78,7 @@ public final class CommonTestUtilsTest {
   private static class ManyFields {
     private String mField1;
     private boolean mField2;
-    // Use HardToInstantiateClass as an example of a final class without a no-arg constructor.
+    // Use HardToInstantiateClass as an example of a class without a no-arg constructor.
     private HardToInstantiateClass mField3;
     // Example of an enum.
     private SpaceType mField4;

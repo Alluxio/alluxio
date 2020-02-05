@@ -22,6 +22,7 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.DefaultSupplier;
+import alluxio.JdkTestUtils;
 import alluxio.SystemPropertyRule;
 import alluxio.TestLoggerRule;
 import alluxio.conf.PropertyKey.Template;
@@ -903,6 +904,7 @@ public class InstancedConfigurationTest {
 
   @Test
   public void findPropertiesFileClasspath() throws Exception {
+    JdkTestUtils.assumeJdk8(); // Adding to the system ClassLoader is only viable in Java 8
     try (Closeable p =
         new SystemPropertyRule(PropertyKey.TEST_MODE.toString(), "false").toResource()) {
       File dir = AlluxioTestDirectory.createTemporaryDirectory("findPropertiesFileClasspath");

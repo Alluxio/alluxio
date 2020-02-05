@@ -15,6 +15,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.security.User;
+import alluxio.util.CommonUtils;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -63,9 +64,11 @@ public final class LoginModuleTest {
     loginContext.logout();
     assertTrue(subject.getPrincipals(User.class).isEmpty());
 
-    // logout twice should be no-op.
-    loginContext.logout();
-    assertTrue(subject.getPrincipals(User.class).isEmpty());
+    // logout twice should be no-op on Java 8
+    if (CommonUtils.isJdk8()) {
+      loginContext.logout();
+      assertTrue(subject.getPrincipals(User.class).isEmpty());
+    }
   }
 
    /**

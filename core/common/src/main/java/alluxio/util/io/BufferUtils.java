@@ -11,6 +11,8 @@
 
 package alluxio.util.io;
 
+import alluxio.util.CommonUtils;
+
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +53,10 @@ public final class BufferUtils {
    * this direct buffer should be discarded. This is unsafe operation and currently a work-around to
    * avoid huge memory occupation caused by memory map.
    *
+   * There is no backwards-compatible solution that can be implemented with Java 11, so until
+   * support for Java 8 is dropped this method is a no-op on Java 11. The buffers will eventually be
+   * cleaned and GCed by the JVM.
+   *
    * <p>
    * NOTE: DirectByteBuffers are not guaranteed to be garbage-collected immediately after their
    * references are released and may lead to OutOfMemoryError. This function helps by calling the
@@ -63,6 +69,9 @@ public final class BufferUtils {
   public static synchronized void cleanDirectBuffer(ByteBuffer buffer) {
     Preconditions.checkNotNull(buffer, "buffer");
     Preconditions.checkArgument(buffer.isDirect(), "buffer isn't a DirectByteBuffer");
+    if (CommonUtils.isJdk11()) {
+      return;
+    }
     try {
       if (sByteBufferCleanerMethod == null) {
         sByteBufferCleanerMethod = buffer.getClass().getMethod("cleaner");

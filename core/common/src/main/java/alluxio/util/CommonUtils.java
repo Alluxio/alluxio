@@ -19,6 +19,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
+import alluxio.util.interfaces.IOFunction;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.proto.ProtoUtils;
@@ -57,6 +58,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -282,10 +284,25 @@ public final class CommonUtils {
    * @return the groups list that the {@code user} belongs to. The primary group is returned first
    */
   public static List<String> getUnixGroups(String user) throws IOException {
+    return getUnixGroups(user,
+        (String u) -> ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand(u)));
+  }
+
+  /**
+   * Gets the current user's group list from Unix by running the command 'groups' NOTE. For
+   * non-existing user it will return EMPTY list. This method may return duplicate groups.
+   *
+   * @param user user name
+   * @param groupsProvider function which given a username, returns a list of groups delimited by
+   *                       spaces
+   * @return the groups list that the {@code user} belongs to. The primary group is returned first
+   */
+  public static List<String> getUnixGroups(String user, IOFunction<String, String> groupsProvider)
+      throws IOException {
     String result;
     List<String> groups = new ArrayList<>();
     try {
-      result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand(user));
+      result = groupsProvider.apply(user);
     } catch (ExitCodeException e) {
       // if we didn't get the group - just return empty list
       LOG.warn("got exception trying to get groups for user " + user + ": " + e.getMessage());
@@ -358,7 +375,21 @@ public final class CommonUtils {
    */
   public static String getPrimaryGroupName(String userName, AlluxioConfiguration conf)
       throws IOException {
-    List<String> groups = getGroups(userName, conf);
+    return getPrimaryGroupName(userName, conf, GroupMappingService.Factory::get);
+  }
+
+  /**
+   * Gets the primary group name of a user.
+   *
+   * @param userName Alluxio user name
+   * @param conf Alluxio configuration
+   * @param mappingServiceProvider function providing a {@link GroupMappingService}
+   * @return primary group name
+   */
+  public static String getPrimaryGroupName(String userName, AlluxioConfiguration conf,
+      Function<AlluxioConfiguration, GroupMappingService> mappingServiceProvider)
+      throws IOException {
+    List<String> groups = getGroups(userName, conf, mappingServiceProvider);
     return (groups != null && groups.size() > 0) ? groups.get(0) : "";
   }
 
@@ -371,7 +402,21 @@ public final class CommonUtils {
    */
   public static List<String> getGroups(String userName, AlluxioConfiguration conf)
       throws IOException {
-    GroupMappingService groupMappingService = GroupMappingService.Factory.get(conf);
+    return getGroups(userName, conf, GroupMappingService.Factory::get);
+  }
+
+  /**
+   * Using {@link CachedGroupMapping} to get the group list of a user.
+   *
+   * @param userName Alluxio user name
+   * @param conf Alluxio configuration
+   * @param mappingServiceProvider a function providing a {@link GroupMappingService}
+   * @return the group list of the user
+   */
+  public static List<String> getGroups(String userName, AlluxioConfiguration conf,
+      Function<AlluxioConfiguration, GroupMappingService> mappingServiceProvider)
+      throws IOException {
+    GroupMappingService groupMappingService = mappingServiceProvider.apply(conf);
     return groupMappingService.getGroups(userName);
   }
 
@@ -737,6 +782,24 @@ public final class CommonUtils {
     }
 
     return result;
+  }
+
+  private static final String JAVA_VERSION_PROPERTY = "java.version";
+  private static final String JDK_8_VERSION = "1.8";
+  private static final String JDK_11_VERSION = "11";
+
+  /**
+   * @return if this JVM is running on Java version 8
+   */
+  public static boolean isJdk8() {
+    return System.getProperty(JAVA_VERSION_PROPERTY).startsWith(JDK_8_VERSION);
+  }
+
+  /**
+   * @return if this JVM is running on Java version 11
+   */
+  public static boolean isJdk11() {
+    return System.getProperty(JAVA_VERSION_PROPERTY).startsWith(JDK_11_VERSION);
   }
 
   private CommonUtils() {} // prevent instantiation

@@ -16,15 +16,12 @@ import static org.junit.Assert.assertEquals;
 import alluxio.test.util.CommonUtils;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 
 /**
  * Tests for the {@link DeleteOptions} class.
  */
-@RunWith(PowerMockRunner.class)
 public final class DeleteOptionsTest {
   /**
    * Tests for default {@link DeleteOptions}.

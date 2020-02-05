@@ -18,6 +18,7 @@ import static org.junit.Assert.fail;
 
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
+import alluxio.JdkTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.PropertyKey.Template;
@@ -81,6 +82,7 @@ public class TieredIdentityFactoryTest {
 
   @Test
   public void fromScriptClasspath() throws Exception {
+    JdkTestUtils.assumeJdk8();
     String customScriptName = "my-alluxio-locality.sh";
     File dir = mFolder.newFolder("fromScriptClasspath");
     Whitebox.invokeMethod(ClassLoader.getSystemClassLoader(), "addURL", dir.toURI().toURL());

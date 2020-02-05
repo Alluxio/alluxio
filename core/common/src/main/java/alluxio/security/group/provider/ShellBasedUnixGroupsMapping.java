@@ -13,22 +13,38 @@ package alluxio.security.group.provider;
 
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.CommonUtils;
+import alluxio.util.interfaces.IOFunction;
+
+import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-
 /**
  * A simple shell-based implementation of {@link GroupMappingService} that exec's the {@code groups}
  * shell command to fetch the group memberships of a given user.
  */
 public final class ShellBasedUnixGroupsMapping implements GroupMappingService {
 
+  private final IOFunction<String, List<String>> mGroupMappingProvider;
+
+  /**
+   * Constructs a new {@link ShellBasedUnixGroupsMapping} with the information provider.
+   *
+   * @param mappingProvider a function which supplies a list of group names given a username
+   */
+  @VisibleForTesting
+  public ShellBasedUnixGroupsMapping(IOFunction<String, List<String>> mappingProvider) {
+    mGroupMappingProvider = mappingProvider;
+  }
+
   /**
    * Constructs a new {@link ShellBasedUnixGroupsMapping}.
    */
-  public ShellBasedUnixGroupsMapping() {}
+  public ShellBasedUnixGroupsMapping() {
+    mGroupMappingProvider = CommonUtils::getUnixGroups;
+  }
 
   /**
    * Returns list of groups for a user.
@@ -38,7 +54,7 @@ public final class ShellBasedUnixGroupsMapping implements GroupMappingService {
    */
   @Override
   public List<String> getGroups(String user) throws IOException {
-    List<String> groups = CommonUtils.getUnixGroups(user);
+    List<String> groups = mGroupMappingProvider.apply(user);
     // remove duplicated primary group
     return new ArrayList<>(new LinkedHashSet<>(groups));
   }
