@@ -72,7 +72,8 @@ public class WriteActionTest {
 
   @Test
   public void generateJobConfig() {
-    TransformAction action = TransformAction.Parser.parse("write(hive).option(hive.file.maxcount, 12)");
+    TransformAction action = TransformAction.Parser.parse(
+        "write(hive).option(hive.file.maxcount, 12)");
     assertEquals(WriteAction.class, action.getClass());
     WriteAction writeAction = (WriteAction) action;
 
