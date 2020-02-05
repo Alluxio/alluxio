@@ -1964,6 +1964,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_UPDATE_CHECK_INTERVAL =
+      new Builder(Name.MASTER_UPDATE_CHECK_INTERVAL)
+          .setDefaultValue("7day")
+          .setDescription("The interval to check for update availability.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED =
       new Builder(Name.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED)
           .setDefaultValue(true)
@@ -4288,6 +4295,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.unsafe.direct.persist.object.enabled";
     public static final String MASTER_UPDATE_CHECK_ENABLED =
         "alluxio.master.update.check.enabled";
+    public static final String MASTER_UPDATE_CHECK_INTERVAL =
+        "alluxio.master.update.check.interval";
     public static final String MASTER_WEB_BIND_HOST = "alluxio.master.web.bind.host";
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";

@@ -81,6 +81,13 @@ public interface MetaMaster extends BackupOps, Master {
   void removePathConfiguration(String path) throws UnavailableException;
 
   /**
+   * Sets whether newer version Alluxio is available.
+   *
+   * @param available new version is available
+   */
+  void setNewerVersionAvailable(boolean available);
+
+  /**
    * @return true if newer version is available, false otherwise
    */
   boolean getNewerVersionAvailable();

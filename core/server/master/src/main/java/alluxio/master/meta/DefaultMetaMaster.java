@@ -306,7 +306,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
             ThreadFactoryUtils.build("DailyMetadataBackup-%d", true)), mUfsManager);
         mDailyBackup.start();
       }
-      if (mState.getClusterID() == INVALID_CLUSTER_ID) {
+      if (mState.getClusterID().equals(INVALID_CLUSTER_ID)) {
         try (JournalContext context = createJournalContext()) {
           String clusterID = java.util.UUID.randomUUID().toString();
           mState.applyAndJournal(context, clusterID);
@@ -314,18 +314,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         }
         if (Boolean.valueOf(ProjectConstants.UPDATE_CHECK_ENABLED)
             && ServerConfiguration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)) {
-          try {
-            String latestVersion =
-                UpdateCheck.getLatestVersion(mState.getClusterID(), 3000, 3000, 3000);
-            if (!ProjectConstants.VERSION.equals(latestVersion)) {
-              System.out.println("The latest version (" + latestVersion + ") is not the same "
-                  + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "
-                  + "visit https://www.alluxio.io/download/.");
-              mNewerVersionAvailable = true;
-            }
-          } catch (Exception e) {
-            LOG.debug("Unable to check for updates: {}", e.getMessage());
-          }
+          getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_UPDATE_CHECK,
+              new UpdateChecker(this),
+              (int) ServerConfiguration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL),
+              ServerConfiguration.global(), mMasterContext.getUserState()));
         }
       } else {
         LOG.info("Detected existing cluster ID {}", mState.getClusterID());
@@ -448,6 +440,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     try (JournalContext ctx = createJournalContext()) {
       mPathProperties.removeAll(ctx, path);
     }
+  }
+
+  @Override
+  public void setNewerVersionAvailable(boolean available) {
+    mNewerVersionAvailable = available;
   }
 
   @Override
