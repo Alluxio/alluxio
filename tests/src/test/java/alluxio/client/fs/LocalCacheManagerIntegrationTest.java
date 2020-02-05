@@ -17,7 +17,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.LocalCacheManager;
 import alluxio.client.file.cache.PageId;
 import alluxio.conf.AlluxioProperties;
@@ -51,7 +50,6 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
-  private FileSystemContext mFsContext;
   private LocalCacheManager mCacheManager;
   private InstancedConfiguration mConf;
 
@@ -69,27 +67,22 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     if (mCacheManager != null) {
       mCacheManager.close();
     }
-    if (mFsContext != null) {
-      mFsContext.close();
-    }
   }
 
   @Test
   public void newCacheRocks() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "ROCKS");
-    mFsContext = FileSystemContext.create(mConf);
     testNewCache();
   }
 
   @Test
   public void newCacheLocal() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "LOCAL");
-    mFsContext = FileSystemContext.create(mConf);
     testNewCache();
   }
 
   private void testNewCache() throws Exception {
-    mCacheManager = LocalCacheManager.create(mFsContext);
+    mCacheManager = LocalCacheManager.create(mConf);
     mCacheManager.put(PAGE_ID, PAGE);
     testPageCached();
   }
@@ -110,24 +103,21 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   @Test
   public void loadCacheRocks() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "ROCKS");
-    mFsContext = FileSystemContext.create(mConf);
     testLoadCache();
   }
 
   @Test
   public void loadCacheLocal() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "LOCAL");
-    mFsContext = FileSystemContext.create(mConf);
     testLoadCache();
   }
 
   @Test
   public void loadCacheAndEvict() throws Exception {
-    mFsContext = FileSystemContext.create(mConf);
     loadFullCache();
     mCacheManager.close();
     // creates with same configuration
-    mCacheManager = LocalCacheManager.create(mFsContext);
+    mCacheManager = LocalCacheManager.create(mConf);
     // evicts half of the pages
     for (int i = 0; i < PAGE_COUNT / 2; i++) {
       mCacheManager.put(new PageId(1, i), PAGE);
@@ -153,14 +143,14 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   }
 
   private void testLoadCache() throws Exception {
-    mCacheManager = LocalCacheManager.create(mFsContext);
+    mCacheManager = LocalCacheManager.create(mConf);
     mCacheManager.put(PAGE_ID, PAGE);
     // verify reading from local cache
     testPageCached();
 
     mCacheManager.close();
     // creates with same configuration
-    mCacheManager = LocalCacheManager.create(mFsContext);
+    mCacheManager = LocalCacheManager.create(mConf);
 
     // verify reading from recovered local cache
     testPageCached();
@@ -168,41 +158,35 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
 
   @Test
   public void loadCacheMismatchedPageSize() throws Exception {
-    mFsContext = FileSystemContext.create(mConf);
     testLoadCacheConfMismatch(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES * 2);
   }
 
   @Test
   public void loadCacheMismatchedStoreTypeRocks() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "LOCAL");
-    mFsContext = FileSystemContext.create(mConf);
     testLoadCacheConfMismatch(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "ROCKS");
   }
 
   @Test
   public void loadCacheMismatchedStoreTypeLocal() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "ROCKS");
-    mFsContext = FileSystemContext.create(mConf);
     testLoadCacheConfMismatch(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "LOCAL");
   }
 
   @Test
   public void loadCacheSmallerNewCacheSizeRocks() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "ROCKS");
-    mFsContext = FileSystemContext.create(mConf);
     testLoadCacheConfMismatch(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES / 2);
   }
 
   @Test
   public void loadCacheSmallerNewCacheSizeLocal() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "LOCAL");
-    mFsContext = FileSystemContext.create(mConf);
     loadFullCache();
     mCacheManager.close();
     // creates with different configuration
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES / 2);
-    mFsContext = FileSystemContext.create(mConf);
-    mCacheManager = LocalCacheManager.create(mFsContext);
+    mCacheManager = LocalCacheManager.create(mConf);
     try (ReadableByteChannel channel = mCacheManager.get(PAGE_ID)) {
       assertNull(channel);
     }
@@ -210,13 +194,12 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
 
   @Test
   public void loadCacheLargerNewCacheSize() throws Exception {
-    mFsContext = FileSystemContext.create(mConf);
     testLoadCacheConfChanged(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES * 2);
     testPageCached();
   }
 
   private void testLoadCacheConfChanged(PropertyKey prop, Object value) throws Exception {
-    mCacheManager = LocalCacheManager.create(mFsContext);
+    mCacheManager = LocalCacheManager.create(mConf);
     mCacheManager.put(PAGE_ID, PAGE);
     // verify reading from local cache
     testPageCached();
@@ -224,8 +207,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     mCacheManager.close();
     // creates with different configuration
     mConf.set(prop, value);
-    mFsContext = FileSystemContext.create(mConf);
-    mCacheManager = LocalCacheManager.create(mFsContext);
+    mCacheManager = LocalCacheManager.create(mConf);
   }
 
   private void testLoadCacheConfMismatch(PropertyKey prop, Object value) throws Exception {
@@ -237,7 +219,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   }
 
   private void loadFullCache() throws Exception {
-    mCacheManager = LocalCacheManager.create(mFsContext);
+    mCacheManager = LocalCacheManager.create(mConf);
     for (int i = 0; i < PAGE_COUNT; i++) {
       mCacheManager.put(new PageId(0, i), PAGE);
     }
