@@ -563,6 +563,15 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     while (retryPolicy.attempt()) {
       try {
         FSDataInputStream inputStream = hdfs.open(new Path(path));
+        if (options.getSwitch()) {
+          try {
+            inputStream.seek(options.getOffset());
+          } catch (IOException e) {
+            inputStream.close();
+            throw e;
+          }
+          return new HdfsUnderFileInputStream(inputStream);
+        }
         // pread API instead of seek is more efficient for FSDataInputStream.
         // A seek on FSDataInputStream uses a skip op which is implemented as read + discard
         // and hence ends up reading extra data from the datanode.

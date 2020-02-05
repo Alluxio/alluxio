@@ -320,7 +320,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the block reader instance
    * @throws BlockDoesNotExistException if the block does not exist in the UFS block store
    */
-  BlockReader readUfsBlock(long sessionId, long blockId, long offset)
+  BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean sw)
       throws BlockDoesNotExistException, IOException;
 
   /**

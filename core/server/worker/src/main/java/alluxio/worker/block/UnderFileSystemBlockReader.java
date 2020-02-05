@@ -75,6 +75,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   private final UfsInputStreamManager mUfsInstreamManager;
   /** The ufs client resource. */
   private CloseableResource<UnderFileSystem> mUfsResource;
+  private boolean mSwitch;
 
   /**
    * The position of mUnderFileSystemInputStream (if not null) is blockStart + mInStreamPos.
@@ -96,10 +97,11 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @return the block reader
    */
   public static UnderFileSystemBlockReader create(UnderFileSystemBlockMeta blockMeta, long offset,
+      boolean sw,
       BlockStore localBlockStore, UfsManager ufsManager, UfsInputStreamManager ufsInstreamManager)
       throws IOException {
     UnderFileSystemBlockReader ufsBlockReader =
-        new UnderFileSystemBlockReader(blockMeta, localBlockStore, ufsManager, ufsInstreamManager);
+        new UnderFileSystemBlockReader(blockMeta, sw, localBlockStore, ufsManager, ufsInstreamManager);
     ufsBlockReader.init(offset);
     return ufsBlockReader;
   }
@@ -112,7 +114,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @param ufsManager the manager of ufs
    * @param ufsInstreamManager the manager of ufs instreams
    */
-  private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, BlockStore localBlockStore,
+  private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, boolean sw, BlockStore localBlockStore,
       UfsManager ufsManager, UfsInputStreamManager ufsInstreamManager) throws IOException {
     mInitialBlockSize = ServerConfiguration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
     mBlockMeta = blockMeta;
@@ -123,6 +125,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     UfsManager.UfsClient ufsClient = mUfsManager.get(mBlockMeta.getMountId());
     mUfsResource = ufsClient.acquireUfsResource();
     mUfsMountPointUri = ufsClient.getUfsMountPointUri();
+    mSwitch = sw;
   }
 
   /**
@@ -302,7 +305,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       UnderFileSystem ufs = mUfsResource.get();
       mUnderFileSystemInputStream = mUfsInstreamManager.acquire(ufs,
           mBlockMeta.getUnderFileSystemPath(), IdUtils.fileIdFromBlockId(mBlockMeta.getBlockId()),
-          OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
+          OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset).setSwitch(mSwitch));
       mInStreamPos = offset;
     }
   }

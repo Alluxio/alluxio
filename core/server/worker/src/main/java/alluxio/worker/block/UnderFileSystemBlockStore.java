@@ -228,7 +228,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @throws BlockDoesNotExistException if the UFS block does not exist in the
    * {@link UnderFileSystemBlockStore}
    */
-  public BlockReader getBlockReader(final long sessionId, long blockId, long offset)
+  public BlockReader getBlockReader(final long sessionId, long blockId, long offset, boolean sw)
       throws BlockDoesNotExistException, IOException {
     final BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
@@ -239,7 +239,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
       }
     }
     BlockReader reader =
-        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, mLocalBlockStore,
+        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, sw, mLocalBlockStore,
             mUfsManager, mUfsInstreamManager);
     blockInfo.setBlockReader(reader);
     return reader;

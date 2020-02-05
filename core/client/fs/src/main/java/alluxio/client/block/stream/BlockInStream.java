@@ -108,6 +108,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         ReadRequest.newBuilder().setBlockId(blockId).setPromote(readType.isPromote());
     // Add UFS fallback options
     builder.setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId));
+    builder.setSwitch(options.getSwitch());
     AlluxioConfiguration alluxioConf = context.getClusterConf();
     boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
     boolean shortCircuitPreferred =

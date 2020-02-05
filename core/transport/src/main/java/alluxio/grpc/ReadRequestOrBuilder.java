@@ -61,6 +61,15 @@ public interface ReadRequestOrBuilder extends
   long getChunkSize();
 
   /**
+   * <code>optional bool switch = 8;</code>
+   */
+  boolean hasSwitch();
+  /**
+   * <code>optional bool switch = 8;</code>
+   */
+  boolean getSwitch();
+
+  /**
    * <pre>
    * This is only set for UFS block read.
    * </pre>

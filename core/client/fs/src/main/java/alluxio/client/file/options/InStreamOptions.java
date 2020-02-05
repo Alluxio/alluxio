@@ -42,6 +42,7 @@ public final class InStreamOptions {
   private final URIStatus mStatus;
   private final OpenFilePOptions mProtoOptions;
   private BlockLocationPolicy mUfsReadLocationPolicy;
+  private boolean mSwitch;
 
   /**
    * Creates with the default {@link OpenFilePOptions}.
@@ -74,6 +75,7 @@ public final class InStreamOptions {
     mProtoOptions = openOptions;
     mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(
         alluxioConf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), alluxioConf);
+    mSwitch = false;
   }
 
   /**
@@ -94,6 +96,10 @@ public final class InStreamOptions {
     mUfsReadLocationPolicy = Preconditions.checkNotNull(ufsReadLocationPolicy);
   }
 
+  public void setSwitch(boolean s) {
+    mSwitch = s;
+  }
+
   /**
    * @return the {@link BlockLocationPolicy} associated with the instream
    */
@@ -106,6 +112,10 @@ public final class InStreamOptions {
    */
   public URIStatus getStatus() {
     return mStatus;
+  }
+
+  public boolean getSwitch() {
+    return mSwitch;
   }
 
   /**

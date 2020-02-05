@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
@@ -233,6 +234,9 @@ public class AlluxioFileInStream extends FileInStream {
       return -1;
     }
 
+    if (len > 1 * Constants.MB) {
+      mOptions.setSwitch(true);
+    }
     int lenCopy = len;
     CountingRetry retry = new CountingRetry(mBlockWorkerClientReadRetry);
     IOException lastException = null;

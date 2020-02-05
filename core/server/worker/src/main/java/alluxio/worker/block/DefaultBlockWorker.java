@@ -468,9 +468,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public BlockReader readUfsBlock(long sessionId, long blockId, long offset)
+  public BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean sw)
       throws BlockDoesNotExistException, IOException {
-    return mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset);
+    return mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset, sw);
   }
 
   @Override

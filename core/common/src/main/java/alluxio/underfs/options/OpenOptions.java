@@ -29,6 +29,8 @@ public final class OpenOptions {
 
   private long mLength;
 
+  private boolean mSwitch;
+
   /**
    * If true, attempt to recover after failed opened attempts. Extra effort may be required in
    * order to recover from a failed open.
@@ -49,6 +51,7 @@ public final class OpenOptions {
     mOffset = 0;
     mLength = Long.MAX_VALUE;
     mRecoverFailedOpen = false;
+    mSwitch = false;
   }
 
   /**
@@ -70,6 +73,10 @@ public final class OpenOptions {
    */
   public boolean getRecoverFailedOpen() {
     return mRecoverFailedOpen;
+  }
+
+  public boolean getSwitch() {
+    return mSwitch;
   }
 
   /**
@@ -98,6 +105,11 @@ public final class OpenOptions {
    */
   public OpenOptions setRecoverFailedOpen(boolean recover) {
     mRecoverFailedOpen = recover;
+    return this;
+  }
+
+  public OpenOptions setSwitch(boolean sw) {
+    mSwitch = sw;
     return this;
   }
 

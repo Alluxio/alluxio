@@ -24,6 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockReadRequest extends ReadRequest {
   private final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
   private final boolean mPromote;
+  private final boolean mSwitch;
 
   /**
    * Creates an instance of {@link BlockReadRequest}.
@@ -40,6 +41,7 @@ public final class BlockReadRequest extends ReadRequest {
       mOpenUfsBlockOptions = null;
     }
     mPromote = request.getPromote();
+    mSwitch = request.getSwitch();
     // Note that we do not need to seek to offset since the block worker is created at the offset.
   }
 
@@ -48,6 +50,10 @@ public final class BlockReadRequest extends ReadRequest {
    */
   public boolean isPromote() {
     return mPromote;
+  }
+
+  public boolean isSwitch() {
+    return mSwitch;
   }
 
   /**
