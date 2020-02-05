@@ -14,6 +14,7 @@ package alluxio.metrics;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.grpc.MetricType;
 
 import com.codahale.metrics.Counter;
 import org.junit.Before;
@@ -26,8 +27,8 @@ import java.util.Properties;
  */
 public final class MetricsSystemTest {
   private MetricsConfig mMetricsConfig;
-  private static Counter sCounter =
-      MetricsSystem.METRIC_REGISTRY.counter(MetricsSystem.getMetricName("Worker.counter"));
+  private static final String METRIC_NAME = "Worker.TestMetric";
+  private static Counter sCounter = MetricsSystem.counter(METRIC_NAME);
 
   /**
    * Sets up the properties for the configuration of the metrics before a test runs.
@@ -43,6 +44,11 @@ public final class MetricsSystemTest {
     mMetricsConfig = new MetricsConfig(metricsProps);
     // Clear the counter
     MetricsSystem.resetAllMetrics();
+    if (!MetricKey.isValid(METRIC_NAME)) {
+      MetricKey.register(new MetricKey.Builder(METRIC_NAME)
+          .setMetricType(MetricType.COUNTER).setIsClusterAggreagated(true).build());
+      MetricsSystem.initShouldReportMetrics(MetricsSystem.InstanceType.WORKER);
+    }
   }
 
   /**
@@ -115,7 +121,7 @@ public final class MetricsSystemTest {
   public void testReportMetrics() {
     sCounter.inc();
     assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
-    MetricsSystem.reportWorkerMetrics();
+    assertEquals(0, MetricsSystem.reportWorkerMetrics().size());
     sCounter.inc();
     assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
   }
@@ -125,7 +131,7 @@ public final class MetricsSystemTest {
     sCounter.inc();
     assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
     MetricsSystem.resetAllMetrics();
-    assertEquals(0.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
+    assertEquals(0, MetricsSystem.reportWorkerMetrics().size());
     sCounter.inc();
     assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
   }
