@@ -85,7 +85,8 @@ public final class CountCommand extends AbstractFileSystemCommand {
             : String.valueOf(folderSize);
     String format = "%-25s%-25s%-15s%n";
     System.out.format(format, "File Count", "Folder Count", "Folder Size");
-    System.out.format(format, String.valueOf(fileCount), String.valueOf(folderCount), formatFolderSize);
+    System.out.format(
+            format, String.valueOf(fileCount), String.valueOf(folderCount), formatFolderSize);
   }
 
   private long[] countHelper(AlluxioURI path) throws AlluxioException, IOException {
