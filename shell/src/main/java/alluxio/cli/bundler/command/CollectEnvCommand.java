@@ -99,6 +99,7 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
 
     for (String cmdName : mCommands.keySet()) {
       boolean complete = false;
+      int cmdExitCode = 0;
 
       // if there is a better option, try it first
       if (mCommandsBetter.containsKey(cmdName)) {
@@ -112,21 +113,22 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
             complete = true;
             cmdBetterMsg = String.format("Better option cmd %s succeeded: %s", betterCmd.toString(),
                     crBetter.getFormattedOutput());
-            LOG.warn(cmdBetterMsg);
-            ret = crBetter.getExitCode();
+            LOG.info(cmdBetterMsg);
+
+            // Skip the original command
+            continue;
           } else {
             cmdBetterMsg = String.format("Better option cmd %s failed: %s", betterCmd.toString(),
                     crBetter.getFormattedOutput());
-            LOG.info(cmdBetterMsg);
+            LOG.warn(cmdBetterMsg);
           }
         } catch (IOException e) {
-          // TODO(jiacheng)
-          System.out.println("Caught IOException here");
+          // If the cmd does not exist, an IOException will be thrown
           cmdBetterMsg = String.format("Failed to execute command %s, IOException:%s",
                   betterCmd.toString(), e.getMessage());
           LOG.warn(cmdBetterMsg);
         }
-
+        // If there is no better option command, this writes nothing
         outputBuffer.write(cmdBetterMsg);
       }
 
@@ -137,23 +139,31 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
         try {
           CommandReturn cr = cmd.runWithOutput();
           if (cr.getExitCode() == 0) {
+            cmdExitCode = 0;
             cmdMsg = String.format("Better option cmd %s succeeded: %s", cmd.toString(),
                     cr.getFormattedOutput());
             LOG.warn(cmdMsg);
             ret = cr.getExitCode();
           } else {
+            // Only error code of this command will be kept, not the better one
+            cmdExitCode = cr.getExitCode();
             cmdMsg = String.format("Better option cmd %s failed: %s", cmd.toString(),
                     cr.getFormattedOutput());
             LOG.info(cmdMsg);
           }
         } catch (IOException e) {
-          System.out.println("Caught IOException here");
+          // If the cmd does not exist, an IOException will be thrown
+          cmdExitCode = 1;
           cmdMsg = String.format("Failed to execute command %s, IOException:%s",
                   cmd.toString(), e.getMessage());
           LOG.warn(cmdMsg);
         }
 
         outputBuffer.write(cmdMsg);
+      }
+      // Keep only the larger return code
+      if (cmdExitCode > ret) {
+        ret = cmdExitCode;
       }
     }
 

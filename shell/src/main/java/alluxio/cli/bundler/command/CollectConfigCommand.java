@@ -52,17 +52,13 @@ public class CollectConfigCommand extends AbstractInfoCollectorCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    int ret = 0;
-
-    // Determine the working dir path
     mWorkingDirPath = getWorkingDirectory(cl);
-
     String confDir = mFsContext.getClusterConf().get(PropertyKey.CONF_DIR);
 
-    // TODO(jiacheng): Copy intelligently
+    // TODO(jiacheng): phase 2 copy intelligently, check security risks
     FileUtils.copyDirectory(new File(confDir), new File(mWorkingDirPath), true);
 
-    return ret;
+    return 0;
   }
 
   @Override

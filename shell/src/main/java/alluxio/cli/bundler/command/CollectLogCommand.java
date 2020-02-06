@@ -52,17 +52,15 @@ public class CollectLogCommand  extends AbstractInfoCollectorCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    int ret = 0;
-
     // Determine the working dir path
     mWorkingDirPath = getWorkingDirectory(cl);
     String logDir = mFsContext.getClusterConf().get(PropertyKey.LOGS_DIR);
 
-    // TODO(jiacheng): Copy intelligently
-    // TODO(jiacheng): components option
+    // TODO(jiacheng): phase 2 Copy intelligently find security risks
+    // TODO(jiacheng): phase 2 components option
     FileUtils.copyDirectory(new File(logDir), new File(mWorkingDirPath), true);
 
-    return ret;
+    return 0;
   }
 
   @Override

@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,8 +57,6 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    int ret = 0;
-
     // Determine the working dir path
     mWorkingDirPath = getWorkingDirectory(cl);
 
@@ -81,16 +80,10 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
       SleepUtils.sleepMs(LOG, COLLECT_JSTACK_INTERVAL);
     }
 
-    // TODO(jiacheng); return code
-    return ret;
+    return 0;
   }
 
-  /**
-   * Gets a map of running JVMs by running the jps command.
-   *
-   * @return JVMs mapping to their process name
-   * */
-  public Map<String, String> getJps() throws IOException {
+  private Map<String, String> getJps() throws IOException {
     Map<String, String> procs = new HashMap<>();
 
     // Get Jps output
@@ -123,33 +116,28 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
     return procs;
   }
 
-  /**
-   * Dumps Jstack for each of the JVMs.
-   *
-   * @param procs JVMs mapping to their names
-   * @return all outputs in String
-   * */
-  public String dumpJstack(Map<String, String> procs) throws IOException {
-    // Output file
+  private String dumpJstack(Map<String, String> procs) throws IOException {
     StringWriter outputBuffer = new StringWriter();
 
     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
     LocalDateTime now = LocalDateTime.now();
     String timeString = dtf.format(now);
-    LOG.info(String.format("Dumping jstack time %s", timeString));
-    outputBuffer.write(String.format("Dumping jstack at approximately %s", timeString));
+    String timeMsg = String.format("Dumping jstack at approximately %s", timeString);
+    LOG.info(timeMsg);
+    outputBuffer.write(timeMsg);
 
     for (String k : procs.keySet()) {
-      LOG.info("Dumping jstack on pid %s name %s", k, procs.get(k));
-      outputBuffer.write(String.format("Jstack PID:%s Name:%s", k, procs.get(k)));
+      String jstackMsg = String.format("Jstack PID:%s Name:%s", k, procs.get(k));
+      LOG.info(jstackMsg);
+      outputBuffer.write(jstackMsg);
 
       String[] jstackCmd = new String[]{"jstack", k};
       CommandReturn cr = ShellUtils.execCommandWithOutput(jstackCmd);
-
+      LOG.info("{} finished", Arrays.toString(jstackCmd));
       outputBuffer.write(cr.getFormattedOutput());
     }
 
-    LOG.info("Jstack dump finished");
+    LOG.info("Jstack dump finished on all processes");
     return outputBuffer.toString();
   }
 

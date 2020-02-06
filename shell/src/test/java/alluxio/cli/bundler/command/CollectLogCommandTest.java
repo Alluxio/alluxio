@@ -1,4 +1,18 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.cli.bundler.command;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.cli.bundler.InfoCollectorTestUtils;
@@ -6,8 +20,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.lang.ArrayUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -16,9 +30,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class CollectLogCommandTest {
   private static InstancedConfiguration sConf;
@@ -58,56 +69,6 @@ public class CollectLogCommandTest {
     String[] files = subDir.list();
     Arrays.sort(files);
     String[] expectedFiles = sTestDir.list();
-    Arrays.sort(expectedFiles);
-    Assert.assertEquals(expectedFiles, files);
-  }
-
-  @Test
-  public void foundPreviousWork() throws IOException, AlluxioException {
-    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create(sConf));
-
-    File targetDir = AlluxioTestDirectory.createTemporaryDirectory("logTarget");
-    // Files will be copied to sub-dir of target dir
-    File subDir = new File(Paths.get(targetDir.getAbsolutePath(), cmd.getCommandName()).toString());
-    subDir.mkdir();
-    // Put files in the target dir
-    InfoCollectorTestUtils.createFileInDir(subDir, "test.txt");
-
-    CommandLine mockCommandLine = mock(CommandLine.class);
-    String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
-    when(mockCommandLine.getArgs()).thenReturn(mockArgs);
-    int ret = cmd.run(mockCommandLine);
-    Assert.assertEquals(0, ret);
-
-    // Check the log files are not copied
-    String[] files = subDir.list();
-    Assert.assertEquals(1, files.length);
-    Assert.assertEquals("test.txt", files[0]);
-  }
-
-  @Test
-  public void ignoredPreviousWork() throws IOException, AlluxioException {
-    CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create(sConf));
-
-    File targetDir = AlluxioTestDirectory.createTemporaryDirectory("logTarget");
-    // Files will be copied to sub-dir of target dir
-    File subDir = new File(Paths.get(targetDir.getAbsolutePath(), cmd.getCommandName()).toString());
-    subDir.mkdir();
-    // Put files in the target dir
-    InfoCollectorTestUtils.createFileInDir(subDir, "test.txt");
-
-    CommandLine mockCommandLine = mock(CommandLine.class);
-    String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
-    when(mockCommandLine.getArgs()).thenReturn(mockArgs);
-    when(mockCommandLine.hasOption("f")).thenReturn(true);
-
-    int ret = cmd.run(mockCommandLine);
-    Assert.assertEquals(0, ret);
-
-    // The files are copied into the existing directory
-    String[] files = subDir.list();
-    Arrays.sort(files);
-    String[] expectedFiles = (String[]) ArrayUtils.addAll(sTestDir.list(), new String[]{"test.txt"});
     Arrays.sort(expectedFiles);
     Assert.assertEquals(expectedFiles, files);
   }

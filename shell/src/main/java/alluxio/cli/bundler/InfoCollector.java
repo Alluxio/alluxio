@@ -68,7 +68,7 @@ public class InfoCollector extends AbstractShell {
               Arrays.toString(argv)));
     }
     String subCommand = argv[0];
-    // TODO(jiacheng): get targetDirPath from parsed command
+    // TODO(jiacheng): phase 2 get targetDirPath from parsed command
     String targetDirPath = argv[1];
 
     // Invoke all other commands to collect information
@@ -84,16 +84,20 @@ public class InfoCollector extends AbstractShell {
 
         // Find the argv for this command
         argv[0] = infoCmd.getCommandName();
-        // TODO(jiacheng): How to handle argv difference?
+        // TODO(jiacheng): phase 2 handle argv difference?
         int childRet = shell.run(argv);
+        System.out.println(String.format("Command %s exit with code %s",
+                cmd.getCommandName(), childRet));
 
         // File to collect
         File infoCmdOutputFile = infoCmd.generateOutputFile(targetDirPath,
                 infoCmd.getCommandName());
         filesToCollect.add(infoCmdOutputFile);
 
-        System.out.println(String.format("Command %s exit with code %s",
-                cmd.getCommandName(), childRet));
+        // If any of the commands failed, treat as failed
+        if (childRet > ret) {
+          ret = childRet;
+        }
       }
     } else {
       AbstractInfoCollectorCommand cmd = shell.findCommand(subCommand);
@@ -105,14 +109,17 @@ public class InfoCollector extends AbstractShell {
       }
 
       int childRet = shell.run(argv);
+      System.out.println(String.format("Command %s exit with code %s", subCommand, childRet));
 
       File infoCmdOutputFile = cmd.generateOutputFile(targetDirPath, cmd.getCommandName());
       filesToCollect.add(infoCmdOutputFile);
 
-      System.out.println(String.format("Command %s exit with code %s", subCommand, childRet));
+      if (childRet > ret) {
+        ret = childRet;
+      }
     }
 
-    // TODO(jiacheng): add an option to disable bundle
+    // TODO(jiacheng): phase 2 add an option to disable bundle
     // Generate bundle
     System.out.println(String.format("Archiving dir %s", targetDirPath));
     System.out.println(String.format("Files to include: %s", filesToCollect));

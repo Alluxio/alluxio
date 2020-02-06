@@ -60,7 +60,7 @@ public class InfoCollectorAll extends AbstractShell {
   private static final Set<String> UNSTABLE_ALIAS = ImmutableSet.<String>builder()
           .build();
 
-  // TODO(jiacheng): set max thread num
+  // TODO(jiacheng): what is a good max thread num?
   private ExecutorService mExecutor;
 
   /**
@@ -72,7 +72,7 @@ public class InfoCollectorAll extends AbstractShell {
     super(CMD_ALIAS, UNSTABLE_ALIAS, alluxioConf);
   }
 
-  // TODO(jiacheng): consider specifying hosts from cmdline
+  // TODO(jiacheng): phase 2 specify hosts from cmdline
   /**
    * Finds all hosts in the Alluxio cluster.
    * We assume the masters and workers cover all the nodes in the cluster.

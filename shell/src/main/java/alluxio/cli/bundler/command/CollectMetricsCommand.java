@@ -62,8 +62,6 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    int ret = 0;
-
     // Determine the working dir path
     mWorkingDirPath = getWorkingDirectory(cl);
 
@@ -84,13 +82,14 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
       try {
         masterAddr = mFsContext.getMasterAddress().getHostName();
       } catch (UnavailableException e) {
-        LOG.error("No Alluxio master available. Skip metrics collection.");
+        String noMasterMsg = "No Alluxio master available. Skip metrics collection.";
+        LOG.warn(noMasterMsg);
+        outputBuffer.write(noMasterMsg);
         continue;
       }
       String url = String.format("http://%s:%s%s", masterAddr,
               mFsContext.getClusterConf().get(PropertyKey.MASTER_WEB_PORT),
               METRICS_SERVLET_PATH);
-      System.out.println(url);
       LOG.info(String.format("Metric address URL: %s", url));
 
       // Get metrics
@@ -102,7 +101,7 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
       SleepUtils.sleepMs(LOG, COLLECT_METRICS_INTERVAL);
     }
 
-    return ret;
+    return 0;
   }
 
   @Override
