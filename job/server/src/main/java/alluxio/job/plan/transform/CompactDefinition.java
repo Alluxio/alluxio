@@ -102,7 +102,7 @@ public final class CompactDefinition
       groupMinSize = Math.round(totalFileSize / maxNumFiles);
     }
 
-    if (!files.isEmpty()) {
+    if (!files.isEmpty() && config.getPartitionInfo() != null) {
       // adjust the group minimum size for source compression ratio
       groupMinSize *= COMPRESSION_RATIO.get(
           config.getPartitionInfo().getFormat(files.get(0).getName()));
