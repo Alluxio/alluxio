@@ -43,7 +43,7 @@ public class WriteActionTest {
 
   @Test
   public void negativeNumFiles() {
-    String option = "option(hive.num.files, -1)";
+    String option = "option(hive.file.count.max, -1)";
     String definition = "write(hive)." + option;
     mException.expect(IllegalArgumentException.class);
     mException.expectMessage(ExceptionMessage.TRANSFORM_ACTION_PARSE_FAILED.getMessage(option));
