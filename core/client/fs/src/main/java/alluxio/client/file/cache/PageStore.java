@@ -54,6 +54,9 @@ public interface PageStore extends AutoCloseable {
    * @return the {@link PageStore}
    */
   static PageStore create(AlluxioConfiguration conf) {
+    if (conf.getEnum(PropertyKey.USER_LOCAL_CACHE_MODE, CacheMode.class) == CacheMode.DRYRUN) {
+      return new DryRunPageStore();
+    }
     PageStoreOptions options;
     PageStoreType storeType = conf.getEnum(
         PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);

@@ -70,7 +70,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Unit tests for {@link LocalCacheFileInStream}.
  */
 public class LocalCacheFileInStreamTest {
-  private static AlluxioConfiguration sConf = new InstancedConfiguration(
+  private static InstancedConfiguration sConf = new InstancedConfiguration(
       ConfigurationUtils.defaults());
   private static final int PAGE_SIZE =
       (int) sConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
@@ -78,6 +78,7 @@ public class LocalCacheFileInStreamTest {
   @Before
   public void before() {
     MetricsSystem.resetCountersAndGauges();
+    sConf.set(PropertyKey.USER_LOCAL_CACHE_MODE, CacheMode.ENABLED);
   }
 
   @Test
@@ -305,12 +306,76 @@ public class LocalCacheFileInStreamTest {
         MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL).getCount());
   }
 
+  @Test
+  public void dryRunMetrics() throws Exception {
+    int fileSize = PAGE_SIZE * 5;
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    InstancedConfiguration conf = new InstancedConfiguration(sConf);
+    conf.set(PropertyKey.USER_LOCAL_CACHE_MODE, CacheMode.DRYRUN);
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager, conf);
+    // cache miss
+    int readSize = PAGE_SIZE * 3 - 1;
+    long lastRead;
+    byte[] cacheMiss = new byte[readSize];
+    stream.read(cacheMiss);
+    Assert.assertEquals(0, MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_CACHE).getCount());
+    Assert.assertEquals(readSize,
+        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_REQUESTED_EXTERNAL).getCount());
+    Assert.assertEquals(PAGE_SIZE * 3,
+        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL).getCount());
+
+    MockFileInStream externalStream = (MockFileInStream) stream.getExternalFileInStream();
+    Assert.assertEquals(readSize, externalStream.getBytesRead());
+    MetricsSystem.resetCountersAndGauges();
+    lastRead = externalStream.getBytesRead();
+
+    // cache hit
+    stream.read();
+    Assert.assertEquals(1, MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_CACHE).getCount());
+    Assert.assertEquals(0,
+        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_REQUESTED_EXTERNAL).getCount());
+    Assert.assertEquals(0,
+        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL).getCount());
+    Assert.assertEquals(lastRead + 1, externalStream.getBytesRead());
+    MetricsSystem.resetCountersAndGauges();
+    lastRead = externalStream.getBytesRead();
+
+    // position miss
+    readSize = 5;
+    byte[] positionBuffer = new byte[readSize];
+    stream.positionedRead(PAGE_SIZE * 4, positionBuffer, 0, 5);
+    Assert.assertEquals(0, MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_CACHE).getCount());
+    Assert.assertEquals(5,
+        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_REQUESTED_EXTERNAL).getCount());
+    Assert.assertEquals(PAGE_SIZE,
+        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL).getCount());
+
+    Assert.assertEquals(lastRead + 5, externalStream.getBytesRead());
+    MetricsSystem.resetCountersAndGauges();
+    lastRead = externalStream.getBytesRead();
+
+    // position hit
+    stream.positionedRead(PAGE_SIZE * 4 + 5, positionBuffer, 0, 5);
+    Assert.assertEquals(5, MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_CACHE).getCount());
+    Assert.assertEquals(0,
+        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_REQUESTED_EXTERNAL).getCount());
+    Assert.assertEquals(0,
+        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL).getCount());
+    Assert.assertEquals(lastRead + 5, externalStream.getBytesRead());
+  }
+
   private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager) {
+    return setupWithSingleFile(data, manager, sConf);
+  }
+
+  private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager,
+      AlluxioConfiguration conf) {
     Map<AlluxioURI, byte[]> files = new HashMap<>();
     AlluxioURI testFilename = new AlluxioURI("/test");
     files.put(testFilename, data);
 
-    ByteArrayFileSystem fs = new ByteArrayFileSystem(files);
+    ByteArrayFileSystem fs = new ByteArrayFileSystem(files, conf);
 
     return new LocalCacheFileInStream(
         testFilename, OpenFilePOptions.getDefaultInstance(), fs, manager);
@@ -374,9 +439,11 @@ public class LocalCacheFileInStreamTest {
    */
   private class ByteArrayFileSystem implements FileSystem {
     private final Map<AlluxioURI, byte[]> mFiles;
+    private final AlluxioConfiguration mConf;
 
-    ByteArrayFileSystem(Map<AlluxioURI, byte[]> files) {
+    ByteArrayFileSystem(Map<AlluxioURI, byte[]> files, AlluxioConfiguration conf) {
       mFiles = files;
+      mConf = conf;
     }
 
     @Override
@@ -423,7 +490,7 @@ public class LocalCacheFileInStreamTest {
 
     @Override
     public AlluxioConfiguration getConf() {
-      return sConf;
+      return mConf;
     }
 
     @Override

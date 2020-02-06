@@ -19,7 +19,9 @@ import java.io.IOException;
  */
 public final class MockFileInStream extends FileInStream {
   private final ByteArrayInputStream mStream;
+  private final ByteArrayInputStream mPosStream;
   private final long mLength;
+  private long mBytesRead = 0;
 
   /**
    * Creates a mock {@link FileInStream} which will supply the given bytes.
@@ -28,22 +30,28 @@ public final class MockFileInStream extends FileInStream {
    */
   public MockFileInStream(byte[] bytes) {
     mStream = new ByteArrayInputStream(bytes);
+    mPosStream = new ByteArrayInputStream(bytes);
     mLength = bytes.length;
   }
 
   @Override
   public int read() {
+    mBytesRead++;
     return mStream.read();
   }
 
   @Override
   public int read(byte[] b) throws IOException {
-    return mStream.read(b);
+    int result = mStream.read(b);
+    mBytesRead += result;
+    return result;
   }
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    return mStream.read(b, off, len);
+    int result = mStream.read(b, off, len);
+    mBytesRead += result;
+    return result;
   }
 
   @Override
@@ -68,11 +76,19 @@ public final class MockFileInStream extends FileInStream {
 
   @Override public int positionedRead(long position, byte[] buffer, int offset, int length)
       throws IOException {
-    throw new UnsupportedOperationException("positionedRead not implemented for mock FileInStream");
+    mPosStream.reset();
+    mPosStream.skip(position);
+    int result = mPosStream.read(buffer, offset, length);
+    mBytesRead += result;
+    return result;
   }
 
   @Override
   public long remaining() {
     return mStream.available();
+  }
+
+  public long getBytesRead() {
+    return mBytesRead;
   }
 }

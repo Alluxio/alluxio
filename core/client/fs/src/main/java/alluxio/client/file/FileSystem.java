@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
+import alluxio.client.file.cache.CacheMode;
 import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
@@ -154,7 +155,8 @@ public interface FileSystem extends Closeable {
       Object[] ctorArgs = new Object[] {context};
       FileSystem fs =
           (FileSystem) CommonUtils.createNewClassInstance(fsClass, ctorArgClasses, ctorArgs);
-      if (conf.getBoolean(PropertyKey.USER_LOCAL_CACHE_ENABLED)) {
+      if (!context.getClusterConf().getEnum(PropertyKey.USER_LOCAL_CACHE_MODE, CacheMode.class)
+          .equals(CacheMode.DISABLED)) {
         return new LocalCacheFileSystem(fs, conf);
       } else {
         return fs;

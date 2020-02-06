@@ -3106,12 +3106,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_CLIENT_CACHE_ENABLED =
-      new Builder(Name.USER_CLIENT_CACHE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("If this is enabled, data will be cached on Alluxio client.")
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_CLIENT_CACHE_EVICTOR_CLASS =
       new Builder(Name.USER_CLIENT_CACHE_EVICTOR_CLASS)
           .setDefaultValue("alluxio.client.file.cache.evictor.LRUCacheEvictor")
@@ -3188,11 +3182,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_LOCAL_CACHE_ENABLED =
-      new Builder(Name.USER_LOCAL_CACHE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("If this is enabled, data will be cached on Alluxio client.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+  public static final PropertyKey USER_LOCAL_CACHE_MODE =
+      new Builder(Name.USER_LOCAL_CACHE_MODE)
+          .setDefaultValue("DISABLED")
+          .setDescription("Can be `ENABLED`, `DISABLED`, or `DRYRUN`. In `ENABLED` mode, data will "
+              + "be cached on Alluxio client. In `DRYRUN` mode, data will be fetched from the "
+              + "cluster but metrics will be collected as if the data are cached on the client. "
+              + "In `DISABLED` mode, data will be not be cached on Alluxio client.")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_LOCAL_CACHE_LIBRARY =
@@ -4509,8 +4505,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.worker.client.read.retry";
     public static final String USER_BLOCK_WRITE_LOCATION_POLICY =
         "alluxio.user.block.write.location.policy.class";
-    public static final String USER_CLIENT_CACHE_ENABLED =
-        "alluxio.user.client.cache.enabled";
     public static final String USER_CLIENT_CACHE_EVICTOR_CLASS =
         "alluxio.user.client.cache.evictor.class";
     public static final String USER_CLIENT_CACHE_DIR =
@@ -4564,8 +4558,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.write.tier.default";
     public static final String USER_FILESYSTEM_CLASS = "alluxio.user.filesystem.class";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
-    public static final String USER_LOCAL_CACHE_ENABLED = "alluxio.user.local.cache.enabled";
     public static final String USER_LOCAL_CACHE_LIBRARY = "alluxio.user.local.cache.library";
+    public static final String USER_LOCAL_CACHE_MODE = "alluxio.user.local.cache.enabled";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.reader.chunk.size.bytes";
     public static final String USER_LOCAL_WRITER_CHUNK_SIZE_BYTES =
