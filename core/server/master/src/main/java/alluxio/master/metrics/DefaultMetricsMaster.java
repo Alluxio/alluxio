@@ -57,8 +57,6 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   private final Set<MultiValueMetricsAggregator> mMultiValueMetricsAggregatorRegistry =
       new HashSet<>();
   private final MetricsStore mMetricsStore;
-  private final HeartbeatThread mClusterMetricsUpdater;
-  private final HeartbeatThread mOrphanedMetricsCleaner;
 
   /**
    * Creates a new instance of {@link MetricsMaster}.
@@ -83,16 +81,6 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     super(masterContext, clock, executorServiceFactory);
     mMetricsStore = new MetricsStore();
     registerAggregators();
-    mClusterMetricsUpdater =
-        new HeartbeatThread(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER,
-            new ClusterMetricsUpdater(),
-            ServerConfiguration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
-            ServerConfiguration.global(), mMasterContext.getUserState());
-    mOrphanedMetricsCleaner =
-        new HeartbeatThread(HeartbeatContext.MASTER_ORPHANED_METRICS_CLEANER,
-            new OrphaneMetricsCleaner(),
-            ServerConfiguration.getMs(PropertyKey.MASTER_REPORTED_METRICS_CLEANUP_INTERVAL),
-            ServerConfiguration.global(), mMasterContext.getUserState());
   }
 
   @VisibleForTesting
@@ -198,7 +186,14 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     if (isLeader) {
       mMetricsStore.clear();
       mMetricsStore.init();
-      getExecutorService().submit(mClusterMetricsUpdater);
+      getExecutorService().submit(new HeartbeatThread(
+          HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER, new ClusterMetricsUpdater(),
+          ServerConfiguration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
+          ServerConfiguration.global(), mMasterContext.getUserState()));
+      getExecutorService().submit(new HeartbeatThread(
+          HeartbeatContext.MASTER_ORPHANED_METRICS_CLEANER, new OrphaneMetricsCleaner(),
+          ServerConfiguration.getMs(PropertyKey.MASTER_REPORTED_METRICS_CLEANUP_INTERVAL),
+          ServerConfiguration.global(), mMasterContext.getUserState()));
     }
   }
 
