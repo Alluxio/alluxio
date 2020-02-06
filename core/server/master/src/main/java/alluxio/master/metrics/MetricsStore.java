@@ -272,6 +272,7 @@ public class MetricsStore {
       mClusterCounters.put(MetricKey.CLIENT_BYTES_WRITTEN_LOCAL.getName(),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()));
 
+      // special metrics that have multiple worker metrics to summarize from
       mClusterCounters.put(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName(),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName()));
       mClusterCounters.put(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName(),
