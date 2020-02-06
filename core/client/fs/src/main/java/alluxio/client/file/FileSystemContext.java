@@ -246,7 +246,11 @@ public class FileSystemContext implements Closeable {
         LOG.error("Failed to load configuration from "
             + "meta master during initialization", ae);
       }
-      MetricsSystem.startSinks(getClusterConf().get(PropertyKey.METRICS_CONF_FILE));
+      if (ctx.getMetricsConfig() == null) {
+        MetricsSystem.startSinks(getClusterConf().get(PropertyKey.METRICS_CONF_FILE));
+      } else {
+        MetricsSystem.startSinksFromConfig(ctx.getMetricsConfig());
+      }
       MetricsHeartbeatContext.addHeartbeat(getClientContext(), masterInquireClient);
     }
     mFileSystemMasterClientPool = new FileSystemMasterClientPool(mMasterClientContext);

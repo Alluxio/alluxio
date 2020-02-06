@@ -63,6 +63,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -470,6 +471,11 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
 
+    Properties metricsProps = new Properties();
+    for (Map.Entry<String, String> e : conf) {
+      metricsProps.setProperty(e.getKey(), e.getValue());
+    }
+
     Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
 
     AlluxioProperties alluxioProps =
@@ -492,11 +498,12 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     // Disable URI validation for non-Alluxio schemes.
     boolean disableUriValidation =
         (uri.getScheme() == null) || uri.getScheme().equals(Constants.SCHEME);
+    ClientContext clientCtx = ClientContext.create(subject, alluxioConf, metricsProps);
     if (alluxioConf.getBoolean(PropertyKey.USER_LOCAL_CACHE_LIBRARY)) {
-      mFileSystem = FileSystem.Factory.create(null, alluxioConf);
+      mFileSystem = FileSystem.Factory.create(clientCtx);
     } else {
       mFileSystem = FileSystem.Factory.create(
-          ClientContext.create(subject, alluxioConf).setUriValidationEnabled(disableUriValidation));
+          clientCtx.setUriValidationEnabled(disableUriValidation));
     }
   }
 

@@ -17,11 +17,13 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetConfigurationPResponse;
+import alluxio.metrics.MetricsConfig;
 import alluxio.security.user.UserState;
 import alluxio.util.ConfigurationUtils;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
+import java.util.Properties;
 
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
@@ -51,6 +53,22 @@ public class ClientContext {
   private volatile String mPathConfHash;
   private volatile boolean mIsPathConfLoaded = false;
   private volatile boolean mUriValidationEnabled = true;
+  private final MetricsConfig mMetricsConfig;
+
+  /**
+   * A client context with information about the subject and configuration of the client.
+   *
+   * @param subject the security subject to use
+   * @param alluxioConf the {@link AlluxioConfiguration} to use. If null, the site property defaults
+   *     will be loaded
+   * @param metricsConfig properties used to configure metrics reporting. If null, metrics
+   *        configuration will be pulled from the alluxio metrics configuration file
+   * @return a new client context with the specified properties, subject, and metrics conf
+   */
+  public static ClientContext create(Subject subject, AlluxioConfiguration alluxioConf,
+      Properties metricsConfig) {
+    return new ClientContext(subject, alluxioConf, metricsConfig);
+  }
 
   /**
    * A client context with information about the subject and configuration of the client.
@@ -61,7 +79,7 @@ public class ClientContext {
    * @return a new client context with the specified properties and subject
    */
   public static ClientContext create(Subject subject, AlluxioConfiguration alluxioConf) {
-    return new ClientContext(subject, alluxioConf);
+    return new ClientContext(subject, alluxioConf, null);
   }
 
   /**
@@ -69,7 +87,7 @@ public class ClientContext {
    * @return the client context with the given properties and an empty subject
    */
   public static ClientContext create(AlluxioConfiguration alluxioConf) {
-    return new ClientContext(null, alluxioConf);
+    return new ClientContext(null, alluxioConf, null);
   }
 
   /**
@@ -77,7 +95,7 @@ public class ClientContext {
    * an empty subject.
    */
   public static ClientContext create() {
-    return new ClientContext(null, null);
+    return new ClientContext(null, null, null);
   }
 
   /**
@@ -90,12 +108,20 @@ public class ClientContext {
     mClusterConfHash = ctx.getClusterConfHash();
     mPathConfHash = ctx.getPathConfHash();
     mUriValidationEnabled = ctx.getUriValidationEnabled();
+    mMetricsConfig = ctx.getMetricsConfig();
   }
 
-  private ClientContext(@Nullable Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
+  private ClientContext(@Nullable Subject subject, @Nullable AlluxioConfiguration alluxioConf,
+      @Nullable Properties metricsConf) {
     if (subject == null) {
       subject = new Subject();
     }
+    if (metricsConf == null) {
+      mMetricsConfig = null;
+    } else {
+      mMetricsConfig = new MetricsConfig(metricsConf);
+    }
+
     // Copy the properties so that future modification doesn't affect this ClientContext.
     if (alluxioConf != null) {
       mClusterConf = new InstancedConfiguration(alluxioConf.copyProperties(),
@@ -211,5 +237,13 @@ public class ClientContext {
    */
   public UserState getUserState() {
     return mUserState;
+  }
+
+  /**
+   * @return the metrics configuration, if specified during context creation
+   */
+  @Nullable
+  public MetricsConfig getMetricsConfig() {
+    return mMetricsConfig;
   }
 }

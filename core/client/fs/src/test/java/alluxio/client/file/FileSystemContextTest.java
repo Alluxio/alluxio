@@ -11,6 +11,7 @@
 
 package alluxio.client.file;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import alluxio.ClientContext;
@@ -18,11 +19,15 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 
 import com.google.common.io.Closer;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.Properties;
 
 /**
  * Tests {@link FileSystemContext}.
@@ -34,6 +39,38 @@ public final class FileSystemContextTest {
   @Before
   public void before() {
     mConf = ConfigurationTestUtils.defaults();
+  }
+
+  @Test
+  public void testProgrammaticMetricsSettings() {
+    MetricsSystem.stopSinks();
+    MetricsSystem.resetAllMetrics();
+    Properties metricsProps = new Properties();
+    metricsProps.setProperty("sink.console.class", "alluxio.metrics.sink.ConsoleSink");
+    metricsProps.setProperty("sink.jmx.class", "alluxio.metrics.sink.JmxSink");
+    metricsProps.setProperty("sink.csv.class", "alluxio.metrics.sink.CsvSink");
+    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, true);
+    conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "100ms"); // prevent test from hanging
+
+    ClientContext ctx = ClientContext.create(null, conf, metricsProps);
+    try (FileSystemContext fsCtx = FileSystemContext.create(ctx)) {
+      assertEquals(3, MetricsSystem.getNumSinks());
+    } catch (IOException e) {
+      fail("Couldn't finish test " + e);
+    }
+
+    MetricsSystem.stopSinks();
+    MetricsSystem.resetAllMetrics();
+
+    metricsProps.remove("sink.jmx.class");
+    metricsProps.remove("sink.csv.class");
+    ctx = ClientContext.create(null, conf, metricsProps);
+    try (FileSystemContext fsCtx = FileSystemContext.create(ctx)) {
+      assertEquals(1, MetricsSystem.getNumSinks());
+    } catch (IOException e) {
+      fail("Couldn't finish test " + e);
+    }
   }
 
   /**
