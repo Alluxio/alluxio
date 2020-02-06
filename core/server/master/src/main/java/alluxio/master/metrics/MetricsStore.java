@@ -96,8 +96,9 @@ public class MetricsStore {
   @GuardedBy("mLock")
   private final IndexedSet<Metric> mClientMetrics =
       new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
+  // A map from the full instance id (hostname + client id if exists)
+  // to its last reported time
   @GuardedBy("mLock")
-  // A map from the instance id to its last reported time
   private final ConcurrentHashMap<String, Long> mLastReportedTimeMap = new ConcurrentHashMap<>();
   private final long mCleanupAge
       = ServerConfiguration.getMs(PropertyKey.MASTER_REPORTED_METRICS_CLEANUP_AGE);
@@ -110,6 +111,7 @@ public class MetricsStore {
    * Two exceptions are Cluster.BytesReadUfsAll and Cluster.BytesWrittenUfsAll
    * which record cluster metric names to their Counter directly.
    */
+  @GuardedBy("mLock")
   private final ConcurrentHashMap<String, Counter> mClusterCounters = new ConcurrentHashMap<>();
 
   /**
