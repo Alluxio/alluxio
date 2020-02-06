@@ -90,7 +90,7 @@ public class Table {
         if (newPartition == null) {
           // partition does not exist yet
           newPartition = new Partition(udbPartition);
-        } else if (!newPartition.getLayout().equals(udbPartition.getLayout())) {
+        } else if (!newPartition.getBaseLayout().equals(udbPartition.getLayout())) {
           // existing partition is updated
           newPartition = newPartition.createNext(udbPartition);
         }
@@ -237,8 +237,8 @@ public class Table {
 
     for (UdbPartition udbPartition : udbTable.getPartitions()) {
       Partition newPartition = existingPartitions.get(udbPartition.getSpec());
-      if (newPartition == null || !newPartition.getLayout()
-          .equals(udbPartition.getLayout())) {
+      if (newPartition == null
+          || !newPartition.getBaseLayout().equals(udbPartition.getLayout())) {
         // mismatch of a partition
         return true;
       }
