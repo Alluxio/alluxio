@@ -143,6 +143,11 @@ public class ShellCommand {
     }
   }
 
+  /**
+   * Converts the command to string repr.
+   *
+   * @return the shell command
+   * */
   public String toString() {
     return Arrays.toString(mCommand);
   }
