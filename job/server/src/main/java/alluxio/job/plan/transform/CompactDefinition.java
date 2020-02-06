@@ -26,6 +26,7 @@ import alluxio.job.util.SerializableVoid;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
+import avro.shaded.com.google.common.collect.ImmutableMap;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -49,6 +50,11 @@ public final class CompactDefinition
   private static final String COMPACTED_FILE_PATTERN = "part-%d.parquet";
   private static final String SUCCESS_FILENAME = "_SUCCESS";
   private static final String CRC_FILENAME_SUFFIX = ".crc";
+
+  private static final Map<Format, Double> COMPRESSION_RATIO = ImmutableMap.of(
+      Format.PARQUET, 1.0,
+      Format.CSV, 5.0,
+      Format.GZIP_CSV, 2.5);
 
   /**
    * Constructs a new {@link CompactDefinition}.
@@ -88,12 +94,20 @@ public final class CompactDefinition
         totalFileSize += status.getLength();
       }
     }
+
     Map<WorkerInfo, ArrayList<CompactTask>> assignments = Maps.newHashMap();
     int maxNumFiles = config.getMaxNumFiles();
     long groupMinSize = config.getMinFileSize();
     if (totalFileSize / groupMinSize > maxNumFiles) {
       groupMinSize = Math.round(totalFileSize / maxNumFiles);
     }
+
+    if (!files.isEmpty()) {
+      // adjust the group minimum size for source compression ratio
+      groupMinSize *= COMPRESSION_RATIO.get(
+          config.getPartitionInfo().getFormat(files.get(0).getName()));
+    }
+
     // Files to be compacted are grouped into different groups,
     // each group of files are compacted to one file,
     // one task is to compact one group of files,
