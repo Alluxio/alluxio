@@ -160,8 +160,7 @@ public class MetricsStore {
    * @param instanceType the instance type that reports the metrics
    * @param reportedMetrics the metrics received by the RPC handler
    */
-  private void putReportedMetrics(InstanceType instanceType,
-      List<Metric> reportedMetrics) {
+  private void putReportedMetrics(InstanceType instanceType, List<Metric> reportedMetrics) {
     IndexedSet<Metric> metricSet = mWorkerMetrics;
     if (instanceType.equals(InstanceType.CLIENT)) {
       metricSet = mClientMetrics;

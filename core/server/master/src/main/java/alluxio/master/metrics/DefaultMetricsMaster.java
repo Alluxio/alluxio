@@ -120,7 +120,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     }
   }
 
-  private void cleanUpOrphaneMetrics() {
+  private void cleanUpOrphanedMetrics() {
     mMetricsStore.cleanUpOrphanedMetrics();
   }
 
@@ -191,7 +191,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
           ServerConfiguration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
           ServerConfiguration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(new HeartbeatThread(
-          HeartbeatContext.MASTER_ORPHANED_METRICS_CLEANER, new OrphaneMetricsCleaner(),
+          HeartbeatContext.MASTER_ORPHANED_METRICS_CLEANER, new OrphanedMetricsCleaner(),
           ServerConfiguration.getMs(PropertyKey.MASTER_REPORTED_METRICS_CLEANUP_INTERVAL),
           ServerConfiguration.global(), mMasterContext.getUserState()));
     }
@@ -240,10 +240,10 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   /**
    * Heartbeat executor that cleans the metrics reported by lost workers or clients.
    */
-  private class OrphaneMetricsCleaner implements HeartbeatExecutor {
+  private class OrphanedMetricsCleaner implements HeartbeatExecutor {
     @Override
     public void heartbeat() throws InterruptedException {
-      cleanUpOrphaneMetrics();
+      cleanUpOrphanedMetrics();
     }
 
     @Override
