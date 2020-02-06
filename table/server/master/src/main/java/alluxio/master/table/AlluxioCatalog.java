@@ -46,8 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
@@ -57,7 +56,12 @@ public class AlluxioCatalog implements Journaled {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioCatalog.class);
 
   private final Map<String, Database> mDBs = new ConcurrentHashMap<>();
-  private final Map<String, ReadWriteLock> mDbLocks = new ConcurrentHashMap<>();
+  /**
+   * These locks enforce serialization of updates of the database map, {@link #mDBs}.
+   * Reads do not need to be serialized w.r.t. the writes, and the data structure
+   * (ConcurrentHashMap) is thread-safe.
+   */
+  private final Map<String, ReentrantLock> mDbLocks = new ConcurrentHashMap<>();
   private final UnderDatabaseRegistry mUdbRegistry;
   private final LayoutRegistry mLayoutRegistry;
   private final FileSystem mFileSystem;
@@ -73,14 +77,11 @@ public class AlluxioCatalog implements Journaled {
     mLayoutRegistry.refresh();
   }
 
-  private LockResource getLock(String dbName, boolean readLock) {
-    ReadWriteLock rwLock = mDbLocks.compute(dbName,
-        (key, value) -> value == null ? new ReentrantReadWriteLock() : value);
-    if (readLock) {
-      return new LockResource(rwLock.readLock());
-    } else {
-      return new LockResource(rwLock.writeLock());
-    }
+  private LockResource getDbLock(String dbName) {
+    // TODO(gpang): update concurrency model to OCC for the catalog
+    ReentrantLock lock = mDbLocks.compute(dbName,
+        (key, value) -> value == null ? new ReentrantLock() : value);
+    return new LockResource(lock);
   }
   /**
    * @return the layout registry
@@ -103,7 +104,7 @@ public class AlluxioCatalog implements Journaled {
   public boolean attachDatabase(JournalContext journalContext, String udbType,
       String udbConnectionUri, String udbDbName, String dbName, Map<String, String> map)
       throws IOException {
-    try (LockResource l = getLock(dbName, false)) {
+    try (LockResource l = getDbLock(dbName)) {
       if (mDBs.containsKey(dbName)) {
         throw new IOException(String
             .format("Unable to attach database. Database name %s (type: %s) already exists.",
@@ -142,7 +143,7 @@ public class AlluxioCatalog implements Journaled {
    * @return true if the database changed as a result of fullSync
    */
   public boolean syncDatabase(JournalContext journalContext, String dbName) throws IOException {
-    try (LockResource l = getLock(dbName, false)) {
+    try (LockResource l = getDbLock(dbName)) {
       Database db = getDatabaseByName(dbName);
       return db.sync(journalContext);
     }
@@ -157,7 +158,7 @@ public class AlluxioCatalog implements Journaled {
    */
   public boolean detachDatabase(JournalContext journalContext, String dbName)
       throws IOException {
-    try (LockResource l = getLock(dbName, false)) {
+    try (LockResource l = getDbLock(dbName)) {
       if (!mDBs.containsKey(dbName)) {
         throw new IOException(String
             .format("Unable to detach database. Database name %s does not exist", dbName));
@@ -177,9 +178,7 @@ public class AlluxioCatalog implements Journaled {
    * @return a table object
    */
   public Table getTable(String dbName, String tableName) throws IOException {
-    try (LockResource l = getLock(dbName, true)) {
-      return getTableInternal(dbName, tableName);
-    }
+    return getTableInternal(dbName, tableName);
   }
 
   private Table getTableInternal(String dbName, String tableName) throws IOException {
@@ -204,27 +203,25 @@ public class AlluxioCatalog implements Journaled {
    * @return a database object
    */
   public alluxio.grpc.table.Database getDatabase(String dbName)  throws IOException {
-    try (LockResource l = getLock(dbName, true)) {
-      Database db = getDatabaseByName(dbName);
-      DatabaseInfo dbInfo = db.getDatabaseInfo();
+    Database db = getDatabaseByName(dbName);
+    DatabaseInfo dbInfo = db.getDatabaseInfo();
 
-      alluxio.grpc.table.Database.Builder builder = alluxio.grpc.table.Database.newBuilder()
-          .setDbName(db.getName())
-          .putAllParameter(dbInfo.getParameters());
-      if (dbInfo.getComment() != null) {
-        builder.setComment(dbInfo.getComment());
-      }
-      if (dbInfo.getLocation() != null) {
-        builder.setLocation(dbInfo.getLocation());
-      }
-      if (dbInfo.getOwnerName() != null) {
-        builder.setOwnerName(dbInfo.getOwnerName());
-      }
-      if (dbInfo.getOwnerType() != null) {
-        builder.setOwnerType(dbInfo.getOwnerType());
-      }
-      return builder.build();
+    alluxio.grpc.table.Database.Builder builder = alluxio.grpc.table.Database.newBuilder()
+        .setDbName(db.getName())
+        .putAllParameter(dbInfo.getParameters());
+    if (dbInfo.getComment() != null) {
+      builder.setComment(dbInfo.getComment());
     }
+    if (dbInfo.getLocation() != null) {
+      builder.setLocation(dbInfo.getLocation());
+    }
+    if (dbInfo.getOwnerName() != null) {
+      builder.setOwnerName(dbInfo.getOwnerName());
+    }
+    if (dbInfo.getOwnerType() != null) {
+      builder.setOwnerType(dbInfo.getOwnerType());
+    }
+    return builder.build();
   }
 
   private Database getDatabaseByName(String dbName) throws NotFoundException {
@@ -242,10 +239,8 @@ public class AlluxioCatalog implements Journaled {
    * @return a list of table names in the database
    */
   public List<String> getAllTables(String dbName) throws IOException {
-    try (LockResource l = getLock(dbName, true)) {
-      Database db = getDatabaseByName(dbName);
-      return db.getTables().stream().map(Table::getName).collect(Collectors.toList());
-    }
+    Database db = getDatabaseByName(dbName);
+    return db.getTables().stream().map(Table::getName).collect(Collectors.toList());
   }
 
   /**
@@ -257,13 +252,10 @@ public class AlluxioCatalog implements Journaled {
    * @return the statistics for the specified table
    */
   public List<ColumnStatisticsInfo> getTableColumnStatistics(String dbName, String tableName,
-      List<String> colNames)
-      throws IOException {
-    try (LockResource l = getLock(dbName, true)) {
-      Table table = getTableInternal(dbName, tableName);
-      return table.getStatistics().stream()
-          .filter(info -> colNames.contains(info.getColName())).collect(Collectors.toList());
-    }
+      List<String> colNames) throws IOException {
+    Table table = getTableInternal(dbName, tableName);
+    return table.getStatistics().stream().filter(info -> colNames.contains(info.getColName()))
+        .collect(Collectors.toList());
   }
 
   /**
@@ -277,17 +269,15 @@ public class AlluxioCatalog implements Journaled {
    */
   public Map<String, ColumnStatisticsList> getPartitionColumnStatistics(String dbName,
       String tableName, List<String> partNames, List<String> colNames) throws IOException {
-    try (LockResource l = getLock(dbName, true)) {
-      Table table = getTableInternal(dbName, tableName);
-      List<Partition> partitions = table.getPartitions();
-      return partitions.stream().filter(p -> partNames.contains(p.getSpec()))
-          .map(p -> new Pair<>(p.getSpec(),
-              ColumnStatisticsList.newBuilder().addAllStatistics(
-                  p.getLayout().getColumnStatsData().entrySet().stream()
-                      .filter(entry -> colNames.contains(entry.getKey()))
-                      .map(Map.Entry::getValue).collect(Collectors.toList())).build()))
-          .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond, (e1, e2) -> e2));
-    }
+    Table table = getTableInternal(dbName, tableName);
+    List<Partition> partitions = table.getPartitions();
+    return partitions.stream().filter(p -> partNames.contains(p.getSpec()))
+        .map(p -> new Pair<>(p.getSpec(),
+            ColumnStatisticsList.newBuilder().addAllStatistics(
+                p.getLayout().getColumnStatsData().entrySet().stream()
+                    .filter(entry -> colNames.contains(entry.getKey()))
+                    .map(Map.Entry::getValue).collect(Collectors.toList())).build()))
+        .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond, (e1, e2) -> e2));
   }
 
   /**
@@ -300,11 +290,9 @@ public class AlluxioCatalog implements Journaled {
    */
   public List<alluxio.grpc.table.Partition> readTable(String dbName, String tableName,
       Constraint constraint) throws IOException {
-    try (LockResource l = getLock(dbName, true)) {
-      Table table = getTableInternal(dbName, tableName);
-      // TODO(david): implement partition pruning
-      return table.getPartitions().stream().map(Partition::toProto).collect(Collectors.toList());
-    }
+    Table table = getTableInternal(dbName, tableName);
+    // TODO(david): implement partition pruning
+    return table.getPartitions().stream().map(Partition::toProto).collect(Collectors.toList());
   }
 
   /**
@@ -318,7 +306,7 @@ public class AlluxioCatalog implements Journaled {
    */
   public void completeTransformTable(JournalContext journalContext, String dbName, String tableName,
       String definition, Map<String, Layout> transformedLayouts) throws IOException {
-    try (LockResource l = getLock(dbName, false)) {
+    try (LockResource l = getDbLock(dbName)) {
       // Check existence of table.
       getTableInternal(dbName, tableName);
       alluxio.proto.journal.Table.CompleteTransformTableEntry entry =
@@ -341,9 +329,7 @@ public class AlluxioCatalog implements Journaled {
    */
   public List<TransformPlan> getTransformPlan(String dbName, String tableName,
       TransformDefinition definition) throws IOException {
-    try (LockResource l = getLock(dbName, true)) {
-      return getTableInternal(dbName, tableName).getTransformPlans(definition);
-    }
+    return getTableInternal(dbName, tableName).getTransformPlans(definition);
   }
 
   private void apply(alluxio.proto.journal.Table.AttachDbEntry entry) {
@@ -381,7 +367,7 @@ public class AlluxioCatalog implements Journaled {
       Layout layout = mLayoutRegistry.create(e.getValue());
       Partition partition = table.getPartition(spec);
       partition.transform(entry.getDefinition(), layout);
-      LOG.debug("Transformed partition {} of database {} table {} to {} with definition {}",
+      LOG.debug("Transformed partition {} of table {}.{} to {} with definition {}",
           spec, dbName, tableName, layout.getLocation(), entry.getDefinition());
     }
   }

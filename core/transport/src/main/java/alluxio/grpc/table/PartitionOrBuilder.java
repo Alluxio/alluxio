@@ -81,4 +81,22 @@ public interface PartitionOrBuilder extends
    */
   alluxio.grpc.table.TransformationOrBuilder getTransformationsOrBuilder(
       int index);
+
+  /**
+   * <code>optional int64 version = 4;</code>
+   */
+  boolean hasVersion();
+  /**
+   * <code>optional int64 version = 4;</code>
+   */
+  long getVersion();
+
+  /**
+   * <code>optional int64 version_creation_time = 5;</code>
+   */
+  boolean hasVersionCreationTime();
+  /**
+   * <code>optional int64 version_creation_time = 5;</code>
+   */
+  long getVersionCreationTime();
 }
