@@ -1003,7 +1003,7 @@ public final class AlluxioMasterRestServiceHandler {
             // Unescape the URI for display
             String ufsUnescaped = MetricsSystem.unescape(ufs);
             Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
-            perUfsMap.put(ufsUnescaped, (long) entry.getValue().getValue());
+            perUfsMap.put(ufsUnescaped, (Long) entry.getValue().getValue());
             ufsOpsMap.put(ufsUnescaped, perUfsMap);
           }
         }
