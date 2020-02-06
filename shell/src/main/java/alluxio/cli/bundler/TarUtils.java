@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.bundler.command;
+package alluxio.cli.bundler;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -32,11 +32,10 @@ public class TarUtils {
   /**
    * Compresses a list of files to one destination.
    *
-   * @param name destination path of the .tar.gz file
+   * @param tarballName destination path of the .tar.gz file
    * @param files a list of files to add to the tarball
    * */
-  public static void compress(String name, File... files) throws IOException {
-    String tarballName = name.endsWith(".tar.gz") ? name : name + ".tar.gz";
+  public static void compress(String tarballName, File... files) throws IOException {
     try (TarArchiveOutputStream out = getTarArchiveOutputStream(tarballName)) {
       for (File file : files) {
         addToArchiveCompression(out, file, ".");

@@ -18,8 +18,6 @@ import alluxio.shell.CommandReturn;
 import alluxio.shell.ShellCommand;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,13 +42,6 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
   private String mAlluxioPath;
   private List<AlluxioCommand> mAlluxioCommands;
 
-  private static final Option FORCE_OPTION =
-          Option.builder("f")
-                  .required(false)
-                  .hasArg(false)
-                  .desc("ignores existing work")
-                  .build();
-
   /**
    * Creates a new instance of {@link CollectAlluxioInfoCommand}.
    *
@@ -61,12 +52,6 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
     mAlluxioPath = Paths.get(fsContext.getClusterConf().get(PropertyKey.WORK_DIR), "bin/alluxio")
             .toAbsolutePath().toString();
     registerCommands();
-  }
-
-  @Override
-  public Options getOptions() {
-    return new Options()
-            .addOption(FORCE_OPTION);
   }
 
   /**
@@ -149,14 +134,7 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
     int ret = 0;
 
     // Determine the working dir path
-    String targetDir = getDestDir(cl);
-    boolean force = cl.hasOption("f");
-
-    // Skip if previous work can be reused.
-    if (!force && foundPreviousWork(targetDir)) {
-      LOG.info("Found previous work. Skipped.");
-      return ret;
-    }
+    mWorkingDirPath = getWorkingDirectory(cl);
 
     StringWriter output = new StringWriter();
     for (AlluxioCommand cmd : getAlluxioCommands()) {
@@ -215,7 +193,7 @@ public class CollectAlluxioInfoCommand extends AbstractInfoCollectorCommand {
       }
     }
 
-    File outputFile = generateOutputFile(targetDir, OUTPUT_FILE_NAME);
+    File outputFile = generateOutputFile(mWorkingDirPath, OUTPUT_FILE_NAME);
     FileUtils.writeStringToFile(outputFile, output.toString());
 
     return ret;

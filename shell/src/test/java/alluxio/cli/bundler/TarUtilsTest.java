@@ -1,10 +1,11 @@
-package alluxio.cli.bundler.command;
+package alluxio.cli.bundler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioTestDirectory;
 
+import alluxio.cli.bundler.TarUtils;
 import org.junit.Test;
 
 import java.io.File;

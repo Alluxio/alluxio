@@ -12,8 +12,10 @@
 package alluxio.cli.bundler.command;
 
 import alluxio.cli.Command;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -33,6 +35,7 @@ public abstract class AbstractInfoCollectorCommand implements Command {
   private static final String FILE_NAME_SUFFIX = ".txt";
 
   protected FileSystemContext mFsContext;
+  protected String mWorkingDirPath;
 
   /**
    * Creates an instance of {@link AbstractInfoCollectorCommand}.
@@ -47,28 +50,24 @@ public abstract class AbstractInfoCollectorCommand implements Command {
     mFsContext = fsContext;
   }
 
-  /**
-   * Get the destination dir to put work in.
-   *
-   * @param cl the {@link CommandLine} parsed from command line arguments
-   * @return the destination dir specified by commandline arguments
-   * */
-  public static String getDestDir(CommandLine cl) {
-    String[] args = cl.getArgs();
-    return args[0];
+  @Override
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   /**
    * Gets the directory that this command should output to.
    * Creates the directory if it does not exist.
-   * This will be a under the dest dir of
-   * {@link AbstractInfoCollectorCommand#getDestDir(CommandLine)}.
    *
-   * @param baseDirPath the base directory this command should output to
+   * @param cl the parsed {@link CommandLine}
    * @return the directory path
    * */
-  public String getWorkingDirectory(String baseDirPath) {
+  public String getWorkingDirectory(CommandLine cl) {
+    String[] args = cl.getArgs();
+    String baseDirPath = args[0];
     String workingDirPath =  Paths.get(baseDirPath, this.getCommandName()).toString();
+    System.out.println(String.format("Command %s works in %s", this.getCommandName(),
+            workingDirPath));
     // mkdirs checks existence of the path
     File workingDir = new File(workingDirPath);
     workingDir.mkdirs();
@@ -76,49 +75,21 @@ public abstract class AbstractInfoCollectorCommand implements Command {
   }
 
   /**
-   * Returns true if previous work of this command is found in the working directory.
-   * This means the command can skip doing real work.
-   *
-   * @param baseDirPath the base directory this command should output to
-   * @return whether previous work is found
-   * */
-  public boolean foundPreviousWork(String baseDirPath) {
-    String workingDirPath = getWorkingDirectory(baseDirPath);
-    // TODO(jiacheng): this is wrong!
-    File workingDir = new File(workingDirPath);
-
-    // TODO(jiacheng): better idea?
-    // If the working directory is not empty, assume previous work can be reused.
-    if (workingDir.list().length == 0) {
-      return false;
-    }
-    LOG.info(String.format("Working dir %s is not empty. Assume previous work has completed.",
-            workingDirPath));
-    return true;
-  }
-
-  /**
    * Generates the output file for the command to write printouts to.
    *
-   * @param baseDirPath the base directory this command should output to
+   * @param workingDirPath the base directory this command should output to
    * @param fileName name of the output file
    * @return the output file
    * */
-  public File generateOutputFile(String baseDirPath, String fileName) throws IOException {
+  public File generateOutputFile(String workingDirPath, String fileName) throws IOException {
     if (!fileName.endsWith(FILE_NAME_SUFFIX)) {
       fileName += FILE_NAME_SUFFIX;
     }
-    String outputFilePath = Paths.get(getWorkingDirectory(baseDirPath), fileName).toString();
+    String outputFilePath = Paths.get(workingDirPath, fileName).toString();
     File outputFile = new File(outputFilePath);
     if (!outputFile.exists()) {
       outputFile.createNewFile();
     }
     return outputFile;
-  }
-
-  private void createWorkingDirIfNotExisting(String path) {
-    // mkdirs checks existence of the path
-    File workingDir = new File(path);
-    workingDir.mkdirs();
   }
 }

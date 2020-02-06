@@ -16,8 +16,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,17 +31,6 @@ public class CollectLogCommand  extends AbstractInfoCollectorCommand {
   public static final String COMMAND_NAME = "collectLog";
   private static final Logger LOG = LoggerFactory.getLogger(CollectLogCommand.class);
 
-  private static final Option FORCE_OPTION =
-          Option.builder("f")
-                  .required(false)
-                  .hasArg(false)
-                  .desc("ignores existing work")
-                  .build();
-  private static final Option COMPONENT_OPTION =
-          Option.builder("c").longOpt("components")
-                  .hasArg(true).desc("components to collect logs from")
-                  .build();
-
   /**
    * Creates a new instance of {@link CollectLogCommand}.
    *
@@ -51,13 +38,6 @@ public class CollectLogCommand  extends AbstractInfoCollectorCommand {
    * */
   public CollectLogCommand(@Nullable FileSystemContext fsContext) {
     super(fsContext);
-  }
-
-  @Override
-  public Options getOptions() {
-    return new Options()
-            .addOption(FORCE_OPTION)
-            .addOption(COMPONENT_OPTION);
   }
 
   @Override
@@ -75,20 +55,12 @@ public class CollectLogCommand  extends AbstractInfoCollectorCommand {
     int ret = 0;
 
     // Determine the working dir path
-    String targetDir = getDestDir(cl);
-    boolean force = cl.hasOption("f");
-
-    // Skip if previous work can be reused.
-    if (!force && foundPreviousWork(targetDir)) {
-      LOG.info("Found previous work. Skipped.");
-      return ret;
-    }
-    String workingDir = this.getWorkingDirectory(targetDir);
+    mWorkingDirPath = getWorkingDirectory(cl);
     String logDir = mFsContext.getClusterConf().get(PropertyKey.LOGS_DIR);
 
     // TODO(jiacheng): Copy intelligently
     // TODO(jiacheng): components option
-    FileUtils.copyDirectory(new File(logDir), new File(workingDir), true);
+    FileUtils.copyDirectory(new File(logDir), new File(mWorkingDirPath), true);
 
     return ret;
   }

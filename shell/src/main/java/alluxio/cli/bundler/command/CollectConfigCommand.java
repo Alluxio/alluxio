@@ -16,8 +16,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,13 +31,6 @@ public class CollectConfigCommand extends AbstractInfoCollectorCommand {
   public static final String COMMAND_NAME = "collectConfig";
   private static final Logger LOG = LoggerFactory.getLogger(CollectConfigCommand.class);
 
-  private static final Option FORCE_OPTION =
-          Option.builder("f")
-                  .required(false)
-                  .hasArg(false)
-                  .desc("ignores existing work")
-                  .build();
-
   /**
    * Creates a new instance of {@link CollectConfigCommand}.
    *
@@ -47,12 +38,6 @@ public class CollectConfigCommand extends AbstractInfoCollectorCommand {
    * */
   public CollectConfigCommand(@Nullable FileSystemContext fsContext) {
     super(fsContext);
-  }
-
-  @Override
-  public Options getOptions() {
-    return new Options()
-            .addOption(FORCE_OPTION);
   }
 
   @Override
@@ -70,20 +55,12 @@ public class CollectConfigCommand extends AbstractInfoCollectorCommand {
     int ret = 0;
 
     // Determine the working dir path
-    String targetDir = getDestDir(cl);
-    boolean force = cl.hasOption("f");
+    mWorkingDirPath = getWorkingDirectory(cl);
 
-    // Skip if previous work can be reused.
-    if (!force && foundPreviousWork(targetDir)) {
-      LOG.info("Found previous work. Skipped.");
-      return ret;
-    }
-
-    String workingDir = this.getWorkingDirectory(targetDir);
     String confDir = mFsContext.getClusterConf().get(PropertyKey.CONF_DIR);
 
     // TODO(jiacheng): Copy intelligently
-    FileUtils.copyDirectory(new File(confDir), new File(workingDir), true);
+    FileUtils.copyDirectory(new File(confDir), new File(mWorkingDirPath), true);
 
     return ret;
   }

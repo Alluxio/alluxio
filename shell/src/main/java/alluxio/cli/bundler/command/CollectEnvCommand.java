@@ -18,8 +18,6 @@ import alluxio.shell.CommandReturn;
 import alluxio.shell.ShellCommand;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,19 +35,6 @@ import java.util.Map;
 public class CollectEnvCommand extends AbstractInfoCollectorCommand {
   public static final String COMMAND_NAME = "collectEnv";
   private static final Logger LOG = LoggerFactory.getLogger(CollectEnvCommand.class);
-
-  private static final Option FORCE_OPTION =
-          Option.builder("f")
-                  .required(false)
-                  .hasArg(false)
-                  .desc("ignores existing work")
-                  .build();
-
-  @Override
-  public Options getOptions() {
-    return new Options()
-            .addOption(FORCE_OPTION);
-  }
 
   private Map<String, ShellCommand> mCommands;
   private Map<String, ShellCommand> mCommandsBetter;
@@ -107,14 +92,7 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
     int ret = 0;
 
     // Determine the working dir path
-    String targetDir = getDestDir(cl);
-    boolean force = cl.hasOption("f");
-
-    // Skip if previous work can be reused.
-    if (!force && foundPreviousWork(targetDir)) {
-      LOG.info("Found previous work. Skipped.");
-      return ret;
-    }
+    mWorkingDirPath = getWorkingDirectory(cl);
 
     // Output buffer stream
     StringWriter outputBuffer = new StringWriter();
@@ -180,7 +158,8 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
     }
 
     // output the buffer
-    File outputFile = generateOutputFile(targetDir, String.format("%s.txt", getCommandName()));
+    File outputFile = generateOutputFile(mWorkingDirPath,
+            String.format("%s.txt", getCommandName()));
     LOG.info(String.format("Finished all commands. Writing to output file %s",
             outputFile.getAbsolutePath()));
     FileUtils.writeStringToFile(outputFile, outputBuffer.toString());

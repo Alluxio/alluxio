@@ -21,8 +21,6 @@ import alluxio.util.network.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
 
 import javax.annotation.Nullable;
@@ -42,19 +40,6 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
   private static final int COLLECT_METRICS_TIMES = 3;
   private static final int COLLECT_METRICS_TIMEOUT = 5 * 1000;
   private static final String METRICS_SERVLET_PATH = "/metrics/json/";
-
-  private static final Option FORCE_OPTION =
-          Option.builder("f")
-                  .required(false)
-                  .hasArg(false)
-                  .desc("ignores existing work")
-                  .build();
-
-  @Override
-  public Options getOptions() {
-    return new Options()
-            .addOption(FORCE_OPTION);
-  }
 
   /**
    * Creates a new instance of {@link CollectMetricsCommand}.
@@ -80,14 +65,7 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
     int ret = 0;
 
     // Determine the working dir path
-    String targetDir = getDestDir(cl);
-    boolean force = cl.hasOption("f");
-
-    // Skip if previous work can be reused.
-    if (!force && foundPreviousWork(targetDir)) {
-      LOG.info("Found previous work. Skipped.");
-      return ret;
-    }
+    mWorkingDirPath = getWorkingDirectory(cl);
 
     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
     for (int i = 0; i < COLLECT_METRICS_TIMES; i++) {
@@ -96,7 +74,8 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
       LOG.info(String.format("Collecting metrics at %s", timeString));
 
       // Write to file
-      File outputFile = generateOutputFile(targetDir, String.format("%s-%s", getCommandName(), i));
+      File outputFile = generateOutputFile(mWorkingDirPath,
+              String.format("%s-%s", getCommandName(), i));
       StringWriter outputBuffer = new StringWriter();
       outputBuffer.write(String.format("Collect metric at approximately %s", timeString));
 

@@ -18,8 +18,6 @@ import alluxio.util.ShellUtils;
 import alluxio.util.SleepUtils;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,13 +40,6 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
   private static final int COLLECT_JSTACK_TIMES = 3;
   private static final int COLLECT_JSTACK_INTERVAL = 3 * 1000;
 
-  private static final Option FORCE_OPTION =
-          Option.builder("f")
-                  .required(false)
-                  .hasArg(false)
-                  .desc("ignores existing work")
-                  .build();
-
   /**
    * Creates an instance of {@link CollectJvmInfoCommand}.
    *
@@ -56,12 +47,6 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
    * */
   public CollectJvmInfoCommand(@Nullable FileSystemContext fsContext) {
     super(fsContext);
-  }
-
-  @Override
-  public Options getOptions() {
-    return new Options()
-            .addOption(FORCE_OPTION);
   }
 
   @Override
@@ -74,14 +59,7 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
     int ret = 0;
 
     // Determine the working dir path
-    String targetDir = getDestDir(cl);
-    boolean force = cl.hasOption("f");
-
-    // Skip if previous work can be reused.
-    if (!force && foundPreviousWork(targetDir)) {
-      LOG.info("Found previous work. Skipped.");
-      return ret;
-    }
+    mWorkingDirPath = getWorkingDirectory(cl);
 
     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
     for (int i = 0; i < COLLECT_JSTACK_TIMES; i++) {
@@ -94,7 +72,7 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
       Map<String, String> procs = getJps();
       String jstackContent = dumpJstack(procs);
 
-      File outputFile = generateOutputFile(targetDir,
+      File outputFile = generateOutputFile(mWorkingDirPath,
               String.format("%s-%s", getCommandName(), timeString));
       FileUtils.writeStringToFile(outputFile, jstackContent);
 

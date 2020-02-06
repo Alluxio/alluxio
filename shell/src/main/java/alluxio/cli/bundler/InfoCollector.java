@@ -15,7 +15,6 @@ import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.bundler.command.AbstractInfoCollectorCommand;
-import alluxio.cli.bundler.command.TarUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -57,7 +56,6 @@ public class InfoCollector extends AbstractShell {
     int ret = 0;
 
     InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-    FileSystemContext fsContext = FileSystemContext.create(conf);
 
     // Execute the Collectors one by one
     // Reduce the RPC retry max duration to fall earlier for CLIs
@@ -70,6 +68,7 @@ public class InfoCollector extends AbstractShell {
               Arrays.toString(argv)));
     }
     String subCommand = argv[0];
+    // TODO(jiacheng): get targetDirPath from parsed command
     String targetDirPath = argv[1];
 
     // Invoke all other commands to collect information
@@ -81,12 +80,11 @@ public class InfoCollector extends AbstractShell {
       for (Command cmd : shell.getCommands()) {
         System.out.println(String.format("Executing %s", cmd.getCommandName()));
 
-        // TODO(jiacheng): How to handle argv difference?
-
         AbstractInfoCollectorCommand infoCmd = (AbstractInfoCollectorCommand) cmd;
 
         // Find the argv for this command
         argv[0] = infoCmd.getCommandName();
+        // TODO(jiacheng): How to handle argv difference?
         int childRet = shell.run(argv);
 
         // File to collect
@@ -100,7 +98,7 @@ public class InfoCollector extends AbstractShell {
     } else {
       AbstractInfoCollectorCommand cmd = shell.findCommand(subCommand);
       if (cmd == null) {
-        // Unknown command (we didn't find the cmd in our dict)
+        // Unknown command (we did not find the cmd in our dict)
         System.err.println(String.format("%s is an unknown command.", cmd));
         shell.printUsage();
         return;
@@ -114,11 +112,11 @@ public class InfoCollector extends AbstractShell {
       System.out.println(String.format("Command %s exit with code %s", subCommand, childRet));
     }
 
+    // TODO(jiacheng): add an option to disable bundle
     // Generate bundle
     System.out.println(String.format("Archiving dir %s", targetDirPath));
     System.out.println(String.format("Files to include: %s", filesToCollect));
     String tarballPath = Paths.get(targetDirPath, TARBALL_NAME).toAbsolutePath().toString();
-
     TarUtils.compress(tarballPath, filesToCollect.toArray(new File[0]));
     System.out.println("Archiving finished");
 

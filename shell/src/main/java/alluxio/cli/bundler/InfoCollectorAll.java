@@ -15,7 +15,6 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
-import alluxio.cli.bundler.command.TarUtils;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
@@ -27,6 +26,7 @@ import alluxio.util.ShellUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +60,7 @@ public class InfoCollectorAll extends AbstractShell {
   private static final Set<String> UNSTABLE_ALIAS = ImmutableSet.<String>builder()
           .build();
 
-  // TODO(jiacheng): inspect this executor
+  // TODO(jiacheng): set max thread num
   private ExecutorService mExecutor;
 
   /**
@@ -102,9 +102,6 @@ public class InfoCollectorAll extends AbstractShell {
   public static void main(String[] argv) throws IOException {
     int ret = 0;
 
-    String action = argv[0];
-    String targetDir = argv[1];
-
     InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
 
     // Execute the Collectors one by one
@@ -117,12 +114,10 @@ public class InfoCollectorAll extends AbstractShell {
       shellAll.printUsage();
       System.exit(-1);
     }
+    String action = argv[0];
+    String targetDir = argv[1];
 
-    // For each host execute
-    // TODO(jiacheng): get hosts from static util call
     List<String> allHosts = new ArrayList<>(shellAll.getHosts());
-
-    // TODO(jiacheng): can this be done in a better way?
     System.out.println(String.format("Init thread pool for %s hosts", allHosts.size()));
     shellAll.mExecutor = Executors.newFixedThreadPool(allHosts.size());
 
@@ -137,11 +132,9 @@ public class InfoCollectorAll extends AbstractShell {
                 .toAbsolutePath().toString();
         System.out.println(String.format("host: %s, alluxio path %s", host, alluxioBinPath));
 
-        // TODO(jiacheng): Now we assume alluxio is on the same path on every machine
         try {
-          String[] infoBundleArgs = new String[]{
-            alluxioBinPath, "infoBundle", action, targetDir
-          };
+          String[] infoBundleArgs =
+                  (String[]) ArrayUtils.addAll(new String[]{alluxioBinPath, "infoBundle"}, argv);
           CommandReturn cr = ShellUtils.sshExecCommandWithOutput(host, infoBundleArgs);
           return cr;
         } catch (Exception e) {
