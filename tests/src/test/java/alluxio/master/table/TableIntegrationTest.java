@@ -12,14 +12,20 @@
 package alluxio.master.table;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioJobCluster;
+import alluxio.master.table.transform.TransformJobInfo;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -191,6 +197,87 @@ public final class TableIntegrationTest extends BaseIntegrationTest {
     assertEquals(newPartitionVersions,
         sTableMaster.getTable(DB_NAME, TEST_TABLE_PART).getPartitions().stream()
             .map(Partition::getVersion).collect(Collectors.toSet()));
+  }
+
+  @Test
+  public void syncModifiedTransformedTable() throws Exception {
+    Table table = sTableMaster.getTable(DB_NAME, TEST_TABLE);
+    long version = table.getVersion();
+    table = sTableMaster.getTable(DB_NAME, TEST_TABLE_PART);
+    long versionPart = table.getVersion();
+    Set<Long> partitionVersions =
+        table.getPartitions().stream().map(Partition::getVersion).collect(Collectors.toSet());
+
+    // transform tables
+    long jobId = sTableMaster.transformTable(DB_NAME, TEST_TABLE, null);
+    long jobPartId = sTableMaster.transformTable(DB_NAME, TEST_TABLE_PART, null);
+
+    String definition1 = sTableMaster.getTransformJobInfo(jobId).getDefinition();
+    String definition2 = sTableMaster.getTransformJobInfo(jobPartId).getDefinition();
+
+    CommonUtils.waitFor("Transforms to complete", () -> {
+      try {
+        TransformJobInfo jobInfo1 = sTableMaster.getTransformJobInfo(jobId);
+        TransformJobInfo jobInfo2 = sTableMaster.getTransformJobInfo(jobPartId);
+        return jobInfo1.getJobStatus() == Status.COMPLETED
+            && jobInfo2.getJobStatus() == Status.COMPLETED;
+      } catch (Exception e) {
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(30000).setInterval(1000));
+
+    // verify transformed partitions
+    table = sTableMaster.getTable(DB_NAME, TEST_TABLE);
+    assertEquals(1, table.getPartitions().size());
+    assertTrue(table.getPartitions().get(0).isTransformed(definition1));
+    table = sTableMaster.getTable(DB_NAME, TEST_TABLE_PART);
+    assertEquals(2, table.getPartitions().size());
+    assertTrue(table.getPartitions().get(0).isTransformed(definition2));
+    assertTrue(table.getPartitions().get(1).isTransformed(definition2));
+
+    // update the tables and partitions
+    String[] lines = {
+        String.format("USE %s;", DB_NAME),
+        String.format("ALTER TABLE %s SET LOCATION 'file://%s/test.db/%s';",
+            TEST_TABLE, WAREHOUSE_DIR.getAbsolutePath(), TEST_TABLE),
+        String.format(
+            "ALTER TABLE %s partition(partitionint6=22222) SET LOCATION "
+                + "'file://%s/test.db/%s/partitionint6=22222/';",
+            TEST_TABLE_PART, WAREHOUSE_DIR.getAbsolutePath(), TEST_TABLE_PART),
+    };
+    execBeeline(Arrays.asList(lines));
+
+    // verify new versions after a sync
+    sTableMaster.syncDatabase(DB_NAME);
+    long newVersion = sTableMaster.getTable(DB_NAME, TEST_TABLE).getVersion();
+    long newVersionPart = sTableMaster.getTable(DB_NAME, TEST_TABLE_PART).getVersion();
+    Set<Long> newPartitionVersions =
+        sTableMaster.getTable(DB_NAME, TEST_TABLE_PART).getPartitions().stream()
+            .map(Partition::getVersion).collect(Collectors.toSet());
+    assertNotEquals(version, newVersion);
+    assertNotEquals(versionPart, newVersionPart);
+    assertNotEquals(partitionVersions, newPartitionVersions);
+
+    // verify only the updated partitions have invalidated the transformations
+    table = sTableMaster.getTable(DB_NAME, TEST_TABLE);
+    assertEquals(1, table.getPartitions().size());
+    assertFalse(table.getPartitions().get(0).isTransformed(definition1));
+    version = table.getPartitions().get(0).getVersion();
+    table = sTableMaster.getTable(DB_NAME, TEST_TABLE_PART);
+    assertEquals(2, table.getPartitions().size());
+    assertTrue(table.getPartitions().get(0).isTransformed(definition2)
+        ^ table.getPartitions().get(1).isTransformed(definition2));
+    partitionVersions =
+        table.getPartitions().stream().map(Partition::getVersion).collect(Collectors.toSet());
+
+    // verify transformed partition versions are unchanged when syncing an unmodified udb
+    sTableMaster.syncDatabase(DB_NAME);
+    assertEquals(version,
+        sTableMaster.getTable(DB_NAME, TEST_TABLE).getPartitions().get(0).getVersion());
+    newPartitionVersions =
+        sTableMaster.getTable(DB_NAME, TEST_TABLE_PART).getPartitions().stream()
+            .map(Partition::getVersion).collect(Collectors.toSet());
+    assertEquals(partitionVersions, newPartitionVersions);
   }
 
   @Test
