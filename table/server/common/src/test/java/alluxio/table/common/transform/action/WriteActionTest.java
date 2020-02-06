@@ -51,15 +51,9 @@ public class WriteActionTest {
   }
 
   @Test
-  public void zeroNumFiles() {
-    mException.expect(IllegalArgumentException.class);
-    mException.expectMessage(ExceptionMessage.TRANSFORM_WRITE_ACTION_INVALID_NUM_FILES.toString());
-    TransformAction.Parser.parse("write(hive).option(hive.num.files, 0)");
-  }
-
-  @Test
-  public void generateJobConfig() {
-    TransformAction action = TransformAction.Parser.parse("write(hive).option(hive.num.files, 12)");
+  public void dynamicNumFiles() {
+    TransformAction action = TransformAction.Parser.parse(
+        "write(hive).option(hive.file.count.max, 1000).option(hive.file.size.min, 1024)");
     assertEquals(WriteAction.class, action.getClass());
     WriteAction writeAction = (WriteAction) action;
 
@@ -72,6 +66,26 @@ public class WriteActionTest {
     assertEquals("hive", compact.getDatabaseType());
     assertEquals("/from", compact.getInput());
     assertEquals("/to", compact.getOutput());
-    assertEquals(12, compact.getNumFiles());
+    assertEquals(1000, compact.getMaxNumFiles());
+    assertEquals(1024, compact.getMinFileSize());
+  }
+
+  @Test
+  public void generateJobConfig() {
+    TransformAction action = TransformAction.Parser.parse(
+        "write(hive).option(hive.file.count.max, 12)");
+    assertEquals(WriteAction.class, action.getClass());
+    WriteAction writeAction = (WriteAction) action;
+
+    HiveLayout from = TableTestUtils.createLayout("/from");
+    HiveLayout to = TableTestUtils.createLayout("/to");
+    JobConfig job = writeAction.generateJobConfig(from, to);
+    assertEquals(CompactConfig.class, job.getClass());
+
+    CompactConfig compact = (CompactConfig) job;
+    assertEquals("hive", compact.getDatabaseType());
+    assertEquals("/from", compact.getInput());
+    assertEquals("/to", compact.getOutput());
+    assertEquals(12, compact.getMaxNumFiles());
   }
 }
