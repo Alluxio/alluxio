@@ -296,6 +296,19 @@ public final class MetricsSystem {
   }
 
   /**
+   * Builds metric registry names for cluster. The pattern is cluster.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  public static String getClusterMetricName(String name) {
+    if (name.startsWith(CLUSTER)) {
+      return name;
+    }
+    return Joiner.on(".").join(CLUSTER, name);
+  }
+
+  /**
    * Builds metric registry names for the job master instance. The pattern is instance.metricName.
    *
    * @param name the metric name
