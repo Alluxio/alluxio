@@ -75,6 +75,8 @@
 ## Examples
 # Enable JmxSink by class name
 # sink.jmx.class=alluxio.metrics.sink.JmxSink
+# Jmx domain
+# sink.jmx.domain=org.alluxio
 
 # Enable ConsoleSink by class name
 # sink.console.class=alluxio.metrics.sink.ConsoleSink
