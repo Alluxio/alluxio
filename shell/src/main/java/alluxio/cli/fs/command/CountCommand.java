@@ -18,8 +18,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-
 import alluxio.util.FormatUtils;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -127,5 +127,4 @@ public final class CountCommand extends AbstractFileSystemCommand {
   public Options getOptions() {
     return new Options().addOption(READABLE_OPTION);
   }
-
 }
