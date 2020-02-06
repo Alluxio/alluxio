@@ -289,6 +289,26 @@ public final class Metric implements Serializable {
   }
 
   /**
+   * Gets value of ufs tag from the full metric name.
+   *
+   * @param fullName the full metric name
+   * @return value of ufs tag
+   */
+  public static String getTagUfsValueFromFullName(String fullName) {
+    String[] pieces = fullName.split("\\.");
+    if (pieces.length < 3) {
+      return null;
+    }
+    for (int i = 2; i < pieces.length; i++) {
+      String current = pieces[i];
+      if (current.contains(TAG_SEPARATOR) && current.contains(MetricInfo.TAG_UFS)) {
+        return current.substring(current.indexOf(TAG_SEPARATOR) + 1);
+      }
+    }
+    return null;
+  }
+
+  /**
    * Creates the metric from the full name and the value.
    *
    * @param fullName the full name
