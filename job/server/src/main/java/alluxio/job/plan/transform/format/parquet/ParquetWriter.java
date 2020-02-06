@@ -59,6 +59,20 @@ public final class ParquetWriter implements TableWriter {
    */
   public static ParquetWriter create(TableSchema schema, AlluxioURI uri)
       throws IOException {
+    return ParquetWriter.create(schema, uri, ROW_GROUP_SIZE);
+  }
+
+  /**
+   * Creates a Parquet writer specifying a row group size.
+   *
+   * @param schema the schema
+   * @param uri the URI to the output
+   * @param rowGroupSize the row group size
+   * @return the writer
+   * @throws IOException when failed to create the writer
+   */
+  public static ParquetWriter create(TableSchema schema, AlluxioURI uri, int rowGroupSize)
+      throws IOException {
     Configuration conf = ReadWriterUtils.writeThroughConf();
     ParquetSchema parquetSchema = schema.toParquet();
     return new ParquetWriter(AvroParquetWriter.<Record>builder(
@@ -67,7 +81,7 @@ public final class ParquetWriter implements TableWriter {
         .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_2_0)
         .withConf(conf)
         .withCompressionCodec(CompressionCodecName.SNAPPY)
-        .withRowGroupSize(ROW_GROUP_SIZE)
+        .withRowGroupSize(rowGroupSize)
         .withDictionaryPageSize(org.apache.parquet.hadoop.ParquetWriter.DEFAULT_PAGE_SIZE)
         .withDictionaryEncoding(true)
         .withPageSize(org.apache.parquet.hadoop.ParquetWriter.DEFAULT_PAGE_SIZE)
