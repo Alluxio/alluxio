@@ -102,12 +102,12 @@ public class MetricsMasterTest {
     mMetricsMaster.addAggregator(
         new SingleTagValueAggregator("metric", MetricsSystem.InstanceType.WORKER, "metric", "tag"));
     List<Metric> metrics1 = Lists.newArrayList(
-        Metric.from("worker.metric.192_1_1_1.tag:v1", 10, MetricType.GAUGE),
-        Metric.from("worker.metric.192_1_1_1.tag:v2", 20, MetricType.GAUGE));
+        Metric.from("worker.metric.tag:v1.192_1_1_1", 10, MetricType.GAUGE),
+        Metric.from("worker.metric.tag:v2.192_1_1_1", 20, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_1", metrics1);
     List<Metric> metrics2 = Lists.newArrayList(
-        Metric.from("worker.metric.192_1_1_2.tag:v1", 1, MetricType.GAUGE),
-        Metric.from("worker.metric.192_1_1_2.tag:v2", 2, MetricType.GAUGE));
+        Metric.from("worker.metric.tag:v1.192_1_1_2", 1, MetricType.GAUGE),
+        Metric.from("worker.metric.tag:v2.192_1_1_2", 2, MetricType.GAUGE));
     mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER);
     assertEquals(11L, getGauge("metric", "tag", "v1"));
