@@ -111,6 +111,17 @@ public final class MetricKey implements Comparable<MetricKey> {
   }
 
   /**
+   * @return the name of the Metric without instance prefix
+   */
+  public String getMetricName() {
+    String[] pieces = mName.split("\\.");
+    if (pieces.length <= 1) {
+      return mName;
+    }
+    return pieces[1];
+  }
+
+  /**
    * @return the description of a Metric
    */
   public String getDescription() {
