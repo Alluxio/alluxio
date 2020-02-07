@@ -23,16 +23,12 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MetricsSystem.InstanceType;
 import alluxio.resource.LockResource;
 
-<<<<<<< HEAD
-=======
 import com.codahale.metrics.Counter;
 import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
 import java.util.Iterator;
->>>>>>> 32efede40dcd9d932b3d017cd06e8cea1235b0f2
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,14 +43,11 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class MetricsStore {
-<<<<<<< HEAD
-=======
   private static final Logger LOG = LoggerFactory.getLogger(MetricsStore.class);
   // The following fields are added for reducing the string processing
   // for MetricKey.WORKER_BYTES_READ_UFS and MetricKey.WORKER_BYTES_WRITTEN_UFS
   private static final String BYTES_READ_UFS = "BytesReadPerUfs";
   private static final String BYTES_WRITTEN_UFS = "BytesWrittenPerUfs";
->>>>>>> 32efede40dcd9d932b3d017cd06e8cea1235b0f2
   private static final IndexDefinition<Metric, String> FULL_NAME_INDEX =
       new IndexDefinition<Metric, String>(true) {
         @Override

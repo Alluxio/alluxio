@@ -46,7 +46,7 @@ public final class MetricsSystemTest {
     MetricsSystem.resetAllMetrics();
     if (!MetricKey.isValid(METRIC_NAME)) {
       MetricKey.register(new MetricKey.Builder(METRIC_NAME)
-          .setMetricType(MetricType.COUNTER).setIsClusterAggreagated(true).build());
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(true).build());
       MetricsSystem.initShouldReportMetrics(MetricsSystem.InstanceType.WORKER);
     }
   }
