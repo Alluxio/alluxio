@@ -217,7 +217,7 @@ public class Database implements Journaled {
     }
 
     try {
-      CommonUtils.invokeAll(tasks, 10 * Constants.MINUTE_MS);
+      CommonUtils.invokeAll(service, tasks, 10 * Constants.MINUTE_MS);
     } catch (Exception e) {
       throw new IOException("Failed to sync database " + mName, e);
     }
