@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -115,7 +116,8 @@ public final class StorageDir {
     // Create the storage directory path
     boolean isDirectoryNewlyCreated = FileUtils.createStorageDirPath(mDirPath,
         ServerConfiguration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
-    String tmpDir = ServerConfiguration.get(PropertyKey.WORKER_DATA_TMP_FOLDER).split("/")[0];
+    String tmpDir = Paths.get(ServerConfiguration.get(PropertyKey.WORKER_DATA_TMP_FOLDER))
+        .getName(0).toString();
     if (isDirectoryNewlyCreated) {
       LOG.info("Folder {} was created!", mDirPath);
     }
