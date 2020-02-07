@@ -100,7 +100,7 @@ public final class StorageTier {
             dirMedium[mediumTypeindex]);
         totalCapacity += capacity;
         mDirs.put(i, dir);
-      } catch (IOException e) {
+      } catch (IOException | InvalidPathException e) {
         LOG.error("Unable to initialize storage directory at {}: {}", dirPaths[i], e.getMessage());
         mLostStorage.add(dirPaths[i]);
         continue;
