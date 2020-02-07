@@ -27,6 +27,7 @@ import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.DelegatingJournaled;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.checkpoint.CheckpointName;
@@ -78,15 +79,18 @@ public class DefaultTableMaster extends CoreMaster
   @Override
   public boolean attachDatabase(String udbType, String udbConnectionUri, String udbDbName,
       String dbName, Map<String, String> configuration) throws IOException {
-    return mCatalog
-        .attachDatabase(createJournalContext(), udbType, udbConnectionUri, udbDbName, dbName,
-            configuration);
+    try (JournalContext journalContext = createJournalContext()) {
+      return mCatalog.attachDatabase(journalContext, udbType, udbConnectionUri, udbDbName, dbName,
+          configuration);
+    }
   }
 
   @Override
   public boolean detachDatabase(String dbName)
       throws IOException {
-    return mCatalog.detachDatabase(createJournalContext(), dbName);
+    try (JournalContext journalContext = createJournalContext()) {
+      return mCatalog.detachDatabase(journalContext, dbName);
+    }
   }
 
   @Override
@@ -148,7 +152,9 @@ public class DefaultTableMaster extends CoreMaster
 
   @Override
   public boolean syncDatabase(String dbName) throws IOException {
-    return mCatalog.syncDatabase(createJournalContext(), dbName);
+    try (JournalContext journalContext = createJournalContext()) {
+      return mCatalog.syncDatabase(journalContext, dbName);
+    }
   }
 
   @Override
