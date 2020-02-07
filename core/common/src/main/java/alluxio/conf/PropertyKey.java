@@ -1283,7 +1283,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
       new Builder(Name.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL)
-          .setDefaultValue("1m")
+          .setDefaultValue("1min")
           .setDescription("The interval for periodically updating the cluster level metrics.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -1435,6 +1435,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "when the journal is formatted. The master will search for a file with this "
               + "prefix when determining if the journal is formatted.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_REPORTED_METRICS_CLEANUP_INTERVAL =
+      new Builder(Name.MASTER_REPORTED_METRICS_CLEANUP_INTERVAL)
+          .setDefaultValue("5min")
+          .setDescription("The interval for periodically cleanup the orphaned metrics "
+              + "which are reported by lost workers/clients and stored "
+              + "in the leading master metrics store.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_REPORTED_METRICS_CLEANUP_AGE =
+      new Builder(Name.MASTER_REPORTED_METRICS_CLEANUP_AGE)
+          .setDefaultValue("5min")
+          .setDescription("All the metrics which are reported by workers or clients "
+              + "which haven't reported for period longer than this cleanup age "
+              + "will be removed from the leading master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_STANDBY_HEARTBEAT_INTERVAL =
@@ -4142,6 +4160,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_FILE_ACCESS_TIME_UPDATER_SHUTDOWN_TIMEOUT =
         "alluxio.master.file.access.time.updater.shutdown.timeout";
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file.prefix";
+    public static final String MASTER_REPORTED_METRICS_CLEANUP_INTERVAL =
+        "alluxio.master.reported.metrics.cleanup.interval";
+    public static final String MASTER_REPORTED_METRICS_CLEANUP_AGE =
+        "alluxio.master.reported.metrics.cleanup.age";
     public static final String MASTER_STANDBY_HEARTBEAT_INTERVAL =
         "alluxio.master.standby.heartbeat.interval";
     public static final String MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =

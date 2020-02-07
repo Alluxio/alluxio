@@ -378,10 +378,11 @@ public final class AlluxioWorkerRestServiceHandler {
       WorkerWebUIMetrics response = new WorkerWebUIMetrics();
 
       MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
+      SortedMap<String, Gauge> gauges = mr.getGauges();
 
-      Long workerCapacityTotal = (Long) mr.getGauges().get(MetricsSystem
+      Long workerCapacityTotal = (Long) gauges.get(MetricsSystem
           .getMetricName(MetricKey.WORKER_CAPACITY_TOTAL.getName())).getValue();
-      Long workerCapacityUsed = (Long) mr.getGauges().get(MetricsSystem
+      Long workerCapacityUsed = (Long) gauges.get(MetricsSystem
           .getMetricName(MetricKey.WORKER_CAPACITY_USED.getName())).getValue();
 
       int workerCapacityUsedPercentage =
