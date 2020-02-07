@@ -57,6 +57,9 @@ public final class TableIntegrationTest extends BaseIntegrationTest {
   private static final String TEST_TABLE_RENAME = "test_table_rename";
   private static final String TEST_TABLE_PART = "test_table_part";
 
+  private static String sHmsAddress;
+  private static int sHmsPort;
+
   @ClassRule
   public static TemporaryFolder sFolder = new TemporaryFolder();
 
@@ -74,8 +77,8 @@ public final class TableIntegrationTest extends BaseIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    String hmsAddress = sHms.getContainerIpAddress();
-    int hmsPort = sHms.getMappedPort(9083);
+    sHmsAddress = sHms.getContainerIpAddress();
+    sHmsPort = sHms.getMappedPort(9083);
 
     File dbDir = new File(WAREHOUSE_DIR, DB_NAME + ".db");
     dbDir.mkdirs();
@@ -140,13 +143,24 @@ public final class TableIntegrationTest extends BaseIntegrationTest {
         .getMaster(TableMaster.class);
 
     sTableMaster
-        .attachDatabase("hive", "thrift://" + hmsAddress + ":" + hmsPort, DB_NAME, DB_NAME,
+        .attachDatabase("hive", "thrift://" + sHmsAddress + ":" + sHmsPort, DB_NAME, DB_NAME,
             Collections.emptyMap());
   }
 
   @AfterClass
   public static void afterClass() throws Exception {
     sLocalAlluxioJobCluster.stop();
+  }
+
+  @Test
+  public void attachWrongDb() throws Exception {
+    try {
+      sTableMaster.attachDatabase("hive", "thrift://" + sHmsAddress + ":" + sHmsPort, "wrong_db",
+          "wrong_db", Collections.emptyMap());
+      fail("Attaching wrong db name is expected to fail.");
+    } catch (Exception e) {
+      // this is expected
+    }
   }
 
   @Test

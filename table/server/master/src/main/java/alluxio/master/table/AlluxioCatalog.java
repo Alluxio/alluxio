@@ -46,7 +46,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -65,16 +67,20 @@ public class AlluxioCatalog implements Journaled {
   private final UnderDatabaseRegistry mUdbRegistry;
   private final LayoutRegistry mLayoutRegistry;
   private final FileSystem mFileSystem;
+  private final Supplier<ExecutorService> mExecutorServiceSupplier;
 
   /**
    * Creates an instance.
+   *
+   * @param executorServiceSupplier a supplier of an {@link ExecutorService}
    */
-  public AlluxioCatalog() {
+  public AlluxioCatalog(Supplier<ExecutorService> executorServiceSupplier) {
     mFileSystem = FileSystem.Factory.create(FileSystemContext.create(ServerConfiguration.global()));
     mUdbRegistry = new UnderDatabaseRegistry();
     mUdbRegistry.refresh();
     mLayoutRegistry = new LayoutRegistry();
     mLayoutRegistry.refresh();
+    mExecutorServiceSupplier = executorServiceSupplier;
   }
 
   private LockResource getDbLock(String dbName) {
@@ -120,7 +126,7 @@ public class AlluxioCatalog implements Journaled {
               .putAllConfig(map).build()).build());
 
       try {
-        mDBs.get(dbName).sync(journalContext);
+        mDBs.get(dbName).sync(journalContext, mExecutorServiceSupplier.get());
       } catch (Exception e) {
         // Failed to connect to and sync the udb.
         applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setDetachDb(
@@ -145,7 +151,7 @@ public class AlluxioCatalog implements Journaled {
   public boolean syncDatabase(JournalContext journalContext, String dbName) throws IOException {
     try (LockResource l = getDbLock(dbName)) {
       Database db = getDatabaseByName(dbName);
-      return db.sync(journalContext);
+      return db.sync(journalContext, mExecutorServiceSupplier.get());
     }
   }
 
