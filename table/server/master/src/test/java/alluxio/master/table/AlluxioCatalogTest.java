@@ -36,9 +36,11 @@ import alluxio.table.common.transform.TransformPlan;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
+import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,6 +55,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -60,14 +63,22 @@ public class AlluxioCatalogTest {
   private static final TransformDefinition TRANSFORM_DEFINITION =
       TransformDefinition.parse("write(hive).option(hive.file.count.max, 100);");
 
+  private static ExecutorService sService =
+      ExecutorServiceFactories.cachedThreadPool("AlluxioCatalogTest").create();
+
   private AlluxioCatalog mCatalog;
 
   @Rule
   public ExpectedException mException = ExpectedException.none();
 
+  @AfterClass
+  public static void afterClass() {
+    sService.shutdownNow();
+  }
+
   @Before
   public void before() {
-    mCatalog = new AlluxioCatalog();
+    mCatalog = new AlluxioCatalog(() -> sService);
     TestDatabase.reset();
   }
 
