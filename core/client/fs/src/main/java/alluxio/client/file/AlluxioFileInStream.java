@@ -235,9 +235,9 @@ public class AlluxioFileInStream extends FileInStream {
     }
 
     LOG.info("AMDEBUG pread len {} ", len);
-    if (len > 1 * Constants.MB) {
-      LOG.info("AMDEBUG set switch for pread len {} ", len);
-      mOptions.setSwitch(true);
+    if (len < 2 * Constants.MB) {
+      LOG.info("AMDEBUG set for pread len {} ", len);
+      mOptions.setPositionShort(true);
     }
     int lenCopy = len;
     CountingRetry retry = new CountingRetry(mBlockWorkerClientReadRetry);

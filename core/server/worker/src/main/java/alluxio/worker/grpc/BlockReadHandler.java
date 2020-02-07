@@ -172,7 +172,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
           if (mWorker.openUfsBlock(request.getSessionId(), request.getId(),
                 Protocol.OpenUfsBlockOptions.parseFrom(openUfsBlockOptions.toByteString()))) {
             BlockReader reader =
-                mWorker.readUfsBlock(request.getSessionId(), request.getId(), request.getStart(), request.isSwitch());
+                mWorker.readUfsBlock(request.getSessionId(), request.getId(), request.getStart(), request.isPositionShort());
             AlluxioURI ufsMountPointUri =
                 ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();
             String ufsString = MetricsSystem.escape(ufsMountPointUri);

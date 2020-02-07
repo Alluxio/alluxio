@@ -563,7 +563,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     while (retryPolicy.attempt()) {
       try {
         FSDataInputStream inputStream = hdfs.open(new Path(path));
-        if (options.getSwitch()) {
+        if (options.getPositionShort()) {
           try {
             inputStream.seek(options.getOffset());
           } catch (IOException e) {

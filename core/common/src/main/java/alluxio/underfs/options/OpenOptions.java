@@ -29,7 +29,7 @@ public final class OpenOptions {
 
   private long mLength;
 
-  private boolean mSwitch;
+  private boolean mIsPositionShort;
 
   /**
    * If true, attempt to recover after failed opened attempts. Extra effort may be required in
@@ -51,7 +51,7 @@ public final class OpenOptions {
     mOffset = 0;
     mLength = Long.MAX_VALUE;
     mRecoverFailedOpen = false;
-    mSwitch = false;
+    mIsPositionShort = false;
   }
 
   /**
@@ -75,8 +75,11 @@ public final class OpenOptions {
     return mRecoverFailedOpen;
   }
 
-  public boolean getSwitch() {
-    return mSwitch;
+  /**
+   * @return true if this is positioned read to a small buffer
+   */
+  public boolean getPositionShort() {
+    return mIsPositionShort;
   }
 
   /**
@@ -108,8 +111,11 @@ public final class OpenOptions {
     return this;
   }
 
-  public OpenOptions setSwitch(boolean sw) {
-    mSwitch = sw;
+  /**
+   * @return the updated option object
+   */
+  public OpenOptions setPositionShort(boolean positionShort) {
+    mIsPositionShort = positionShort;
     return this;
   }
 
@@ -124,12 +130,13 @@ public final class OpenOptions {
     OpenOptions that = (OpenOptions) o;
     return Objects.equal(mOffset, that.mOffset)
         && Objects.equal(mLength, that.mLength)
-        && Objects.equal(mRecoverFailedOpen, that.mRecoverFailedOpen);
+        && Objects.equal(mRecoverFailedOpen, that.mRecoverFailedOpen)
+        && Objects.equal(mIsPositionShort, that.mIsPositionShort);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mOffset, mLength, mRecoverFailedOpen);
+    return Objects.hashCode(mOffset, mLength, mRecoverFailedOpen, mIsPositionShort);
   }
 
   @Override
@@ -138,6 +145,7 @@ public final class OpenOptions {
         .add("offset", mOffset)
         .add("length", mLength)
         .add("recoverFailedOpen", mRecoverFailedOpen)
+        .add("isPositionShort", mIsPositionShort)
         .toString();
   }
 }

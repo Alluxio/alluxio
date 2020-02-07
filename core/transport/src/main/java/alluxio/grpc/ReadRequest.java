@@ -26,8 +26,8 @@ private static final long serialVersionUID = 0L;
     length_ = 0L;
     promote_ = false;
     chunkSize_ = 0L;
-    switch_ = false;
     offsetReceived_ = 0L;
+    positionShort_ = false;
   }
 
   @java.lang.Override
@@ -88,7 +88,7 @@ private static final long serialVersionUID = 0L;
           }
           case 50: {
             alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000040) == 0x00000040)) {
+            if (((bitField0_ & 0x00000020) == 0x00000020)) {
               subBuilder = openUfsBlockOptions_.toBuilder();
             }
             openUfsBlockOptions_ = input.readMessage(alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.PARSER, extensionRegistry);
@@ -96,17 +96,17 @@ private static final long serialVersionUID = 0L;
               subBuilder.mergeFrom(openUfsBlockOptions_);
               openUfsBlockOptions_ = subBuilder.buildPartial();
             }
-            bitField0_ |= 0x00000040;
+            bitField0_ |= 0x00000020;
             break;
           }
           case 56: {
-            bitField0_ |= 0x00000080;
+            bitField0_ |= 0x00000040;
             offsetReceived_ = input.readInt64();
             break;
           }
           case 64: {
-            bitField0_ |= 0x00000020;
-            switch_ = input.readBool();
+            bitField0_ |= 0x00000080;
+            positionShort_ = input.readBool();
             break;
           }
         }
@@ -217,21 +217,6 @@ private static final long serialVersionUID = 0L;
     return chunkSize_;
   }
 
-  public static final int SWITCH_FIELD_NUMBER = 8;
-  private boolean switch_;
-  /**
-   * <code>optional bool switch = 8;</code>
-   */
-  public boolean hasSwitch() {
-    return ((bitField0_ & 0x00000020) == 0x00000020);
-  }
-  /**
-   * <code>optional bool switch = 8;</code>
-   */
-  public boolean getSwitch() {
-    return switch_;
-  }
-
   public static final int OPEN_UFS_BLOCK_OPTIONS_FIELD_NUMBER = 6;
   private alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions openUfsBlockOptions_;
   /**
@@ -242,7 +227,7 @@ private static final long serialVersionUID = 0L;
    * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
    */
   public boolean hasOpenUfsBlockOptions() {
-    return ((bitField0_ & 0x00000040) == 0x00000040);
+    return ((bitField0_ & 0x00000020) == 0x00000020);
   }
   /**
    * <pre>
@@ -275,7 +260,7 @@ private static final long serialVersionUID = 0L;
    * <code>optional int64 offset_received = 7;</code>
    */
   public boolean hasOffsetReceived() {
-    return ((bitField0_ & 0x00000080) == 0x00000080);
+    return ((bitField0_ & 0x00000040) == 0x00000040);
   }
   /**
    * <pre>
@@ -286,6 +271,29 @@ private static final long serialVersionUID = 0L;
    */
   public long getOffsetReceived() {
     return offsetReceived_;
+  }
+
+  public static final int POSITION_SHORT_FIELD_NUMBER = 8;
+  private boolean positionShort_;
+  /**
+   * <pre>
+   * Is position read to a small buffer
+   * </pre>
+   *
+   * <code>optional bool position_short = 8;</code>
+   */
+  public boolean hasPositionShort() {
+    return ((bitField0_ & 0x00000080) == 0x00000080);
+  }
+  /**
+   * <pre>
+   * Is position read to a small buffer
+   * </pre>
+   *
+   * <code>optional bool position_short = 8;</code>
+   */
+  public boolean getPositionShort() {
+    return positionShort_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -315,14 +323,14 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000010) == 0x00000010)) {
       output.writeInt64(5, chunkSize_);
     }
-    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+    if (((bitField0_ & 0x00000020) == 0x00000020)) {
       output.writeMessage(6, getOpenUfsBlockOptions());
     }
-    if (((bitField0_ & 0x00000080) == 0x00000080)) {
+    if (((bitField0_ & 0x00000040) == 0x00000040)) {
       output.writeInt64(7, offsetReceived_);
     }
-    if (((bitField0_ & 0x00000020) == 0x00000020)) {
-      output.writeBool(8, switch_);
+    if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      output.writeBool(8, positionShort_);
     }
     unknownFields.writeTo(output);
   }
@@ -352,17 +360,17 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(5, chunkSize_);
     }
-    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+    if (((bitField0_ & 0x00000020) == 0x00000020)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(6, getOpenUfsBlockOptions());
     }
-    if (((bitField0_ & 0x00000080) == 0x00000080)) {
+    if (((bitField0_ & 0x00000040) == 0x00000040)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(7, offsetReceived_);
     }
-    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+    if (((bitField0_ & 0x00000080) == 0x00000080)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(8, switch_);
+        .computeBoolSize(8, positionShort_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -405,11 +413,6 @@ private static final long serialVersionUID = 0L;
       result = result && (getChunkSize()
           == other.getChunkSize());
     }
-    result = result && (hasSwitch() == other.hasSwitch());
-    if (hasSwitch()) {
-      result = result && (getSwitch()
-          == other.getSwitch());
-    }
     result = result && (hasOpenUfsBlockOptions() == other.hasOpenUfsBlockOptions());
     if (hasOpenUfsBlockOptions()) {
       result = result && getOpenUfsBlockOptions()
@@ -419,6 +422,11 @@ private static final long serialVersionUID = 0L;
     if (hasOffsetReceived()) {
       result = result && (getOffsetReceived()
           == other.getOffsetReceived());
+    }
+    result = result && (hasPositionShort() == other.hasPositionShort());
+    if (hasPositionShort()) {
+      result = result && (getPositionShort()
+          == other.getPositionShort());
     }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
@@ -456,11 +464,6 @@ private static final long serialVersionUID = 0L;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getChunkSize());
     }
-    if (hasSwitch()) {
-      hash = (37 * hash) + SWITCH_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-          getSwitch());
-    }
     if (hasOpenUfsBlockOptions()) {
       hash = (37 * hash) + OPEN_UFS_BLOCK_OPTIONS_FIELD_NUMBER;
       hash = (53 * hash) + getOpenUfsBlockOptions().hashCode();
@@ -469,6 +472,11 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + OFFSET_RECEIVED_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getOffsetReceived());
+    }
+    if (hasPositionShort()) {
+      hash = (37 * hash) + POSITION_SHORT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getPositionShort());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -615,15 +623,15 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000008);
       chunkSize_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000010);
-      switch_ = false;
-      bitField0_ = (bitField0_ & ~0x00000020);
       if (openUfsBlockOptionsBuilder_ == null) {
         openUfsBlockOptions_ = null;
       } else {
         openUfsBlockOptionsBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x00000040);
+      bitField0_ = (bitField0_ & ~0x00000020);
       offsetReceived_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000040);
+      positionShort_ = false;
       bitField0_ = (bitField0_ & ~0x00000080);
       return this;
     }
@@ -672,19 +680,19 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
         to_bitField0_ |= 0x00000020;
       }
-      result.switch_ = switch_;
-      if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
-        to_bitField0_ |= 0x00000040;
-      }
       if (openUfsBlockOptionsBuilder_ == null) {
         result.openUfsBlockOptions_ = openUfsBlockOptions_;
       } else {
         result.openUfsBlockOptions_ = openUfsBlockOptionsBuilder_.build();
       }
+      if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+        to_bitField0_ |= 0x00000040;
+      }
+      result.offsetReceived_ = offsetReceived_;
       if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
         to_bitField0_ |= 0x00000080;
       }
-      result.offsetReceived_ = offsetReceived_;
+      result.positionShort_ = positionShort_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -742,14 +750,14 @@ private static final long serialVersionUID = 0L;
       if (other.hasChunkSize()) {
         setChunkSize(other.getChunkSize());
       }
-      if (other.hasSwitch()) {
-        setSwitch(other.getSwitch());
-      }
       if (other.hasOpenUfsBlockOptions()) {
         mergeOpenUfsBlockOptions(other.getOpenUfsBlockOptions());
       }
       if (other.hasOffsetReceived()) {
         setOffsetReceived(other.getOffsetReceived());
+      }
+      if (other.hasPositionShort()) {
+        setPositionShort(other.getPositionShort());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -955,38 +963,6 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private boolean switch_ ;
-    /**
-     * <code>optional bool switch = 8;</code>
-     */
-    public boolean hasSwitch() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
-    }
-    /**
-     * <code>optional bool switch = 8;</code>
-     */
-    public boolean getSwitch() {
-      return switch_;
-    }
-    /**
-     * <code>optional bool switch = 8;</code>
-     */
-    public Builder setSwitch(boolean value) {
-      bitField0_ |= 0x00000020;
-      switch_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional bool switch = 8;</code>
-     */
-    public Builder clearSwitch() {
-      bitField0_ = (bitField0_ & ~0x00000020);
-      switch_ = false;
-      onChanged();
-      return this;
-    }
-
     private alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions openUfsBlockOptions_ = null;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions, alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder, alluxio.proto.dataserver.Protocol.OpenUfsBlockOptionsOrBuilder> openUfsBlockOptionsBuilder_;
@@ -998,7 +974,7 @@ private static final long serialVersionUID = 0L;
      * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
      */
     public boolean hasOpenUfsBlockOptions() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
+      return ((bitField0_ & 0x00000020) == 0x00000020);
     }
     /**
      * <pre>
@@ -1031,7 +1007,7 @@ private static final long serialVersionUID = 0L;
       } else {
         openUfsBlockOptionsBuilder_.setMessage(value);
       }
-      bitField0_ |= 0x00000040;
+      bitField0_ |= 0x00000020;
       return this;
     }
     /**
@@ -1049,7 +1025,7 @@ private static final long serialVersionUID = 0L;
       } else {
         openUfsBlockOptionsBuilder_.setMessage(builderForValue.build());
       }
-      bitField0_ |= 0x00000040;
+      bitField0_ |= 0x00000020;
       return this;
     }
     /**
@@ -1061,7 +1037,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeOpenUfsBlockOptions(alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions value) {
       if (openUfsBlockOptionsBuilder_ == null) {
-        if (((bitField0_ & 0x00000040) == 0x00000040) &&
+        if (((bitField0_ & 0x00000020) == 0x00000020) &&
             openUfsBlockOptions_ != null &&
             openUfsBlockOptions_ != alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance()) {
           openUfsBlockOptions_ =
@@ -1073,7 +1049,7 @@ private static final long serialVersionUID = 0L;
       } else {
         openUfsBlockOptionsBuilder_.mergeFrom(value);
       }
-      bitField0_ |= 0x00000040;
+      bitField0_ |= 0x00000020;
       return this;
     }
     /**
@@ -1090,7 +1066,7 @@ private static final long serialVersionUID = 0L;
       } else {
         openUfsBlockOptionsBuilder_.clear();
       }
-      bitField0_ = (bitField0_ & ~0x00000040);
+      bitField0_ = (bitField0_ & ~0x00000020);
       return this;
     }
     /**
@@ -1101,7 +1077,7 @@ private static final long serialVersionUID = 0L;
      * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
      */
     public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.Builder getOpenUfsBlockOptionsBuilder() {
-      bitField0_ |= 0x00000040;
+      bitField0_ |= 0x00000020;
       onChanged();
       return getOpenUfsBlockOptionsFieldBuilder().getBuilder();
     }
@@ -1150,7 +1126,7 @@ private static final long serialVersionUID = 0L;
      * <code>optional int64 offset_received = 7;</code>
      */
     public boolean hasOffsetReceived() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
+      return ((bitField0_ & 0x00000040) == 0x00000040);
     }
     /**
      * <pre>
@@ -1170,7 +1146,7 @@ private static final long serialVersionUID = 0L;
      * <code>optional int64 offset_received = 7;</code>
      */
     public Builder setOffsetReceived(long value) {
-      bitField0_ |= 0x00000080;
+      bitField0_ |= 0x00000040;
       offsetReceived_ = value;
       onChanged();
       return this;
@@ -1183,8 +1159,56 @@ private static final long serialVersionUID = 0L;
      * <code>optional int64 offset_received = 7;</code>
      */
     public Builder clearOffsetReceived() {
-      bitField0_ = (bitField0_ & ~0x00000080);
+      bitField0_ = (bitField0_ & ~0x00000040);
       offsetReceived_ = 0L;
+      onChanged();
+      return this;
+    }
+
+    private boolean positionShort_ ;
+    /**
+     * <pre>
+     * Is position read to a small buffer
+     * </pre>
+     *
+     * <code>optional bool position_short = 8;</code>
+     */
+    public boolean hasPositionShort() {
+      return ((bitField0_ & 0x00000080) == 0x00000080);
+    }
+    /**
+     * <pre>
+     * Is position read to a small buffer
+     * </pre>
+     *
+     * <code>optional bool position_short = 8;</code>
+     */
+    public boolean getPositionShort() {
+      return positionShort_;
+    }
+    /**
+     * <pre>
+     * Is position read to a small buffer
+     * </pre>
+     *
+     * <code>optional bool position_short = 8;</code>
+     */
+    public Builder setPositionShort(boolean value) {
+      bitField0_ |= 0x00000080;
+      positionShort_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * Is position read to a small buffer
+     * </pre>
+     *
+     * <code>optional bool position_short = 8;</code>
+     */
+    public Builder clearPositionShort() {
+      bitField0_ = (bitField0_ & ~0x00000080);
+      positionShort_ = false;
       onChanged();
       return this;
     }

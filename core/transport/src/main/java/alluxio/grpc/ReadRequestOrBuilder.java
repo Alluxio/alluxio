@@ -61,15 +61,6 @@ public interface ReadRequestOrBuilder extends
   long getChunkSize();
 
   /**
-   * <code>optional bool switch = 8;</code>
-   */
-  boolean hasSwitch();
-  /**
-   * <code>optional bool switch = 8;</code>
-   */
-  boolean getSwitch();
-
-  /**
    * <pre>
    * This is only set for UFS block read.
    * </pre>
@@ -110,4 +101,21 @@ public interface ReadRequestOrBuilder extends
    * <code>optional int64 offset_received = 7;</code>
    */
   long getOffsetReceived();
+
+  /**
+   * <pre>
+   * Is position read to a small buffer
+   * </pre>
+   *
+   * <code>optional bool position_short = 8;</code>
+   */
+  boolean hasPositionShort();
+  /**
+   * <pre>
+   * Is position read to a small buffer
+   * </pre>
+   *
+   * <code>optional bool position_short = 8;</code>
+   */
+  boolean getPositionShort();
 }
