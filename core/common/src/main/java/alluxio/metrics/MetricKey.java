@@ -131,6 +131,17 @@ public final class MetricKey implements Comparable<MetricKey> {
   }
 
   /**
+   * @return the name of the Metric without instance prefix
+   */
+  public String getMetricName() {
+    String[] pieces = mName.split("\\.");
+    if (pieces.length <= 1) {
+      return mName;
+    }
+    return pieces[1];
+  }
+
+  /**
    * @return the description of a Metric
    */
   public String getDescription() {
@@ -187,11 +198,11 @@ public final class MetricKey implements Comparable<MetricKey> {
     }
 
     /**
-     * @param isClusterAggreagated whether this metric can be aggregated at cluster level
+     * @param isClusterAggregated whether this metric can be aggregated at cluster level
      * @return the updated builder instance
      */
-    public MetricKey.Builder setIsClusterAggreagated(boolean isClusterAggreagated) {
-      mIsClusterAggregated = isClusterAggreagated;
+    public MetricKey.Builder setIsClusterAggregated(boolean isClusterAggregated) {
+      mIsClusterAggregated = isClusterAggregated;
       return this;
     }
 
@@ -422,7 +433,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder(Name.CLUSTER_BYTES_READ_ALLUXIO)
           .setDescription("Total number of bytes read from Alluxio storage reported "
               + "by all workers. This does not include UFS reads.")
-          .setMetricType(MetricType.GAUGE)
+          .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT =
       new Builder(Name.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT)
@@ -433,7 +444,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder(Name.CLUSTER_BYTES_READ_DOMAIN)
           .setDescription("Total number of bytes read from Alluxio storage "
               + "via domain socket reported by all workers")
-          .setMetricType(MetricType.GAUGE)
+          .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT =
       new Builder(Name.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT)
@@ -445,7 +456,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder(Name.CLUSTER_BYTES_READ_LOCAL)
           .setDescription("Total number of bytes short-circuit read from local storage "
               + "by all clients")
-          .setMetricType(MetricType.GAUGE)
+          .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_LOCAL_THROUGHPUT =
       new Builder(Name.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT)
@@ -455,12 +466,12 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey CLUSTER_BYTES_READ_UFS =
       new Builder(Name.CLUSTER_BYTES_READ_UFS)
           .setDescription("Total number of bytes read from a specific UFS by all workers")
-          .setMetricType(MetricType.GAUGE)
+          .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_UFS_ALL =
       new Builder(Name.CLUSTER_BYTES_READ_UFS_ALL)
           .setDescription("Total number of bytes read from a all Alluxio UFSes by all workers")
-          .setMetricType(MetricType.GAUGE)
+          .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_UFS_THROUGHPUT =
       new Builder(Name.CLUSTER_BYTES_READ_UFS_THROUGHPUT)
@@ -471,7 +482,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder(Name.CLUSTER_BYTES_WRITTEN_ALLUXIO)
           .setDescription("Total number of bytes written to Alluxio storage in all workers. "
               + "This does not include UFS writes")
-          .setMetricType(MetricType.GAUGE)
+          .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT =
       new Builder(Name.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT)
@@ -482,7 +493,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder(Name.CLUSTER_BYTES_WRITTEN_DOMAIN)
           .setDescription("Total number of bytes written to Alluxio storage "
               + "via domain socket by all workers")
-          .setMetricType(MetricType.GAUGE)
+          .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT =
       new Builder(Name.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT)
@@ -494,7 +505,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder(Name.CLUSTER_BYTES_WRITTEN_LOCAL)
           .setDescription("Total number of bytes short-circuit written to local storage "
               + "by all clients")
-          .setMetricType(MetricType.GAUGE)
+          .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT =
       new Builder(Name.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT)
@@ -504,12 +515,12 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey CLUSTER_BYTES_WRITTEN_UFS =
       new Builder(Name.CLUSTER_BYTES_WRITTEN_UFS)
           .setDescription("Total number of bytes written to a specific Alluxio UFS by all workers")
-          .setMetricType(MetricType.GAUGE)
+          .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_UFS_ALL =
       new Builder(Name.CLUSTER_BYTES_WRITTEN_UFS_ALL)
           .setDescription("Total number of bytes written to all Alluxio UFSes by all workers")
-          .setMetricType(MetricType.GAUGE)
+          .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT =
       new Builder(Name.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT)
@@ -553,107 +564,180 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Worker metrics
+  public static final MetricKey WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS =
+      new Builder(Name.WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS)
+          .setDescription("Total number of duplicated async cache request received by this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_FAILED_BLOCKS =
+      new Builder(Name.WORKER_ASYNC_CACHE_FAILED_BLOCKS)
+          .setDescription("Total number of async cache failed blocks in this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_REMOTE_BLOCKS =
+      new Builder(Name.WORKER_ASYNC_CACHE_REMOTE_BLOCKS)
+          .setDescription("Total number of blocks that need to be async cached from remote source")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_REQUESTS =
+      new Builder(Name.WORKER_ASYNC_CACHE_REQUESTS)
+          .setDescription("Total number of async cache request received by this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_SUCCEEDED_BLOCKS =
+      new Builder(Name.WORKER_ASYNC_CACHE_SUCCEEDED_BLOCKS)
+          .setDescription("Total number of async cache succeeded blocks in this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_UFS_BLOCKS =
+      new Builder(Name.WORKER_ASYNC_CACHE_UFS_BLOCKS)
+          .setDescription("Total number of blocks that need to be async cached from local source")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCKS_ACCESSED =
+      new Builder(Name.WORKER_BLOCKS_ACCESSED)
+          .setDescription("Total number of times any one of the blocks in this worker is accessed.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey WORKER_BLOCKS_CACHED =
       new Builder(Name.WORKER_BLOCKS_CACHED)
           .setDescription("Total number of blocks used for caching data in an Alluxio worker")
           .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggreagated(false)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCKS_CANCELLED =
+      new Builder(Name.WORKER_BLOCKS_CANCELLED)
+          .setDescription("Total number of aborted temporary blocks in this worker.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCKS_DELETED =
+      new Builder(Name.WORKER_BLOCKS_DELETED)
+          .setDescription("Total number of deleted blocks in this worker by external requests.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCKS_EVICTED =
+      new Builder(Name.WORKER_BLOCKS_EVICTED)
+          .setDescription("Total number of evicted blocks in this worker.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCKS_LOST =
+      new Builder(Name.WORKER_BLOCKS_LOST)
+          .setDescription("Total number of lost blocks in this worker.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCKS_PROMOTED =
+      new Builder(Name.WORKER_BLOCKS_PROMOTED)
+          .setDescription("Total number of times any one of the blocks in this worker "
+              + "moved to a new tier.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BYTES_READ_ALLUXIO =
       new Builder(Name.WORKER_BYTES_READ_ALLUXIO)
           .setDescription("Total number of bytes read from Alluxio storage managed by this worker. "
               + "This does not include UFS reads.")
           .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_READ_ALLUXIO_THROUGHPUT =
       new Builder(Name.WORKER_BYTES_READ_ALLUXIO_THROUGHPUT)
           .setDescription("Bytes read throughput from Alluxio storage by this worker")
           .setMetricType(MetricType.METER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_READ_DOMAIN =
       new Builder(Name.WORKER_BYTES_READ_DOMAIN)
           .setDescription("Total number of bytes read from Alluxio storage "
               + "via domain socket by this worker")
           .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_READ_DOMAIN_THROUGHPUT =
       new Builder(Name.WORKER_BYTES_READ_DOMAIN_THROUGHPUT)
           .setDescription("Bytes read throughput from Alluxio storage "
               + "via domain socket by this worker")
           .setMetricType(MetricType.METER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_READ_UFS =
       new Builder(Name.WORKER_BYTES_READ_UFS)
           .setDescription("Total number of bytes read from a specific Alluxio UFS by this worker")
           .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_READ_UFS_THROUGHPUT =
       new MetricKey.Builder(Name.WORKER_BYTES_READ_UFS_THROUGHPUT)
           .setDescription("Bytes read throughput from all Alluxio UFSes by this worker")
           .setMetricType(MetricType.METER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_ALLUXIO =
       new Builder(Name.WORKER_BYTES_WRITTEN_ALLUXIO)
           .setDescription("Total number of bytes written to Alluxio storage by this worker. "
               + "This does not include UFS writes")
           .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT =
       new Builder(Name.WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT)
           .setDescription("Bytes write throughput to Alluxio storage by this worker")
           .setMetricType(MetricType.METER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_DOMAIN =
       new Builder(Name.WORKER_BYTES_WRITTEN_DOMAIN)
           .setDescription("Total number of bytes written to Alluxio storage "
               + "via domain socket by this worker")
           .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT =
       new Builder(Name.WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT)
           .setDescription("Throughput of bytes written to Alluxio storage "
               + "via domain socket by this worker")
           .setMetricType(MetricType.METER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_UFS =
       new Builder(Name.WORKER_BYTES_WRITTEN_UFS)
           .setDescription("Total number of bytes written to a specific Alluxio UFS by this worker")
           .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_UFS_THROUGHPUT =
       new Builder(Name.WORKER_BYTES_WRITTEN_UFS_THROUGHPUT)
           .setDescription("Bytes write throughput to all Alluxio UFSes by this worker")
           .setMetricType(MetricType.METER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_CAPACITY_TOTAL =
       new Builder(Name.WORKER_CAPACITY_TOTAL)
           .setDescription("Total capacity (in bytes) on all tiers of a specific Alluxio worker")
           .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggreagated(false)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_CAPACITY_USED =
       new Builder(Name.WORKER_CAPACITY_USED)
           .setDescription("Total used bytes on all tiers of a specific Alluxio worker")
           .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggreagated(false)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_CAPACITY_FREE =
       new Builder(Name.WORKER_CAPACITY_FREE)
           .setDescription("Total free bytes on all tiers of a specific Alluxio worker")
           .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggreagated(false)
+          .setIsClusterAggregated(false)
           .build();
 
   // Client metrics
@@ -662,32 +746,32 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of bytes short-circuit read from local storage "
               + "by this client")
           .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey CLIENT_BYTES_READ_LOCAL_THROUGHPUT =
       new Builder(Name.CLIENT_BYTES_READ_LOCAL_THROUGHPUT)
           .setDescription("Bytes throughput short-circuit read from local storage by this client")
           .setMetricType(MetricType.METER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey CLIENT_BYTES_WRITTEN_LOCAL =
       new Builder(Name.CLIENT_BYTES_WRITTEN_LOCAL)
           .setDescription("Total number of bytes short-circuit written to local storage "
               + "by this client")
           .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey CLIENT_BYTES_WRITTEN_LOCAL_THROUGHPUT =
       new Builder(Name.CLIENT_BYTES_WRITTEN_LOCAL_THROUGHPUT)
           .setDescription("Bytes throughput short-circuit written to local storage by this client")
           .setMetricType(MetricType.METER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
   public static final MetricKey CLIENT_BYTES_WRITTEN_UFS =
       new Builder(Name.CLIENT_BYTES_WRITTEN_UFS)
           .setDescription("Total number of bytes write to Alluxio UFS by this client")
           .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggreagated(true)
+          .setIsClusterAggregated(true)
           .build();
 
   /**
@@ -835,7 +919,21 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLUSTER_WORKERS = "Cluster.Workers";
 
     // Worker metrics
+    public static final String WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS
+        = "Worker.AsyncCacheDuplicateRequests";
+    public static final String WORKER_ASYNC_CACHE_FAILED_BLOCKS = "Worker.AsyncCacheFailedBlocks";
+    public static final String WORKER_ASYNC_CACHE_REMOTE_BLOCKS = "Worker.AsyncCacheRemoteBlocks";
+    public static final String WORKER_ASYNC_CACHE_REQUESTS = "Worker.AsyncCacheRequests";
+    public static final String WORKER_ASYNC_CACHE_SUCCEEDED_BLOCKS
+        = "Worker.AsyncCacheSucceededBlocks";
+    public static final String WORKER_ASYNC_CACHE_UFS_BLOCKS = "Worker.AsyncCacheUfsBlocks";
+    public static final String WORKER_BLOCKS_ACCESSED = "Worker.BlocksAccessed";
     public static final String WORKER_BLOCKS_CACHED = "Worker.BlocksCached";
+    public static final String WORKER_BLOCKS_CANCELLED = "Worker.BlocksCancelled";
+    public static final String WORKER_BLOCKS_DELETED = "Worker.BlocksDeleted";
+    public static final String WORKER_BLOCKS_EVICTED = "Worker.BlocksEvicted";
+    public static final String WORKER_BLOCKS_LOST = "Worker.BlocksLost";
+    public static final String WORKER_BLOCKS_PROMOTED = "Worker.BlocksPromoted";
     public static final String WORKER_BYTES_READ_ALLUXIO = "Worker.BytesReadAlluxio";
     public static final String WORKER_BYTES_READ_ALLUXIO_THROUGHPUT
         = "Worker.BytesReadAlluxioThroughput";

@@ -217,6 +217,9 @@ public final class MetricsSystem {
    * @return the metric with instance and id tags
    */
   public static String getMetricName(String name) {
+    if (name.startsWith(CLUSTER)) {
+      return name;
+    }
     switch (CommonUtils.PROCESS_TYPE.get()) {
       case CLIENT:
         return getClientMetricName(name);
@@ -488,7 +491,7 @@ public final class MetricsSystem {
    * @param <T> the type
    */
   public static synchronized <T> void registerGaugeIfAbsent(String name, Gauge<T> metric) {
-    if (!METRIC_REGISTRY.getGauges().containsKey(name)) {
+    if (!METRIC_REGISTRY.getMetrics().containsKey(name)) {
       METRIC_REGISTRY.register(name, metric);
     }
   }

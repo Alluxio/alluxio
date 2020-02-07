@@ -16,6 +16,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidPathException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.io.FileUtils;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -92,7 +94,8 @@ public final class StorageDir {
    */
   public static StorageDir newStorageDir(StorageTier tier, int dirIndex, long capacityBytes,
       String dirPath, String dirMedium)
-      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
+      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException,
+      InvalidPathException {
     StorageDir dir = new StorageDir(tier, dirIndex, capacityBytes, dirPath, dirMedium);
     dir.initializeMeta();
     return dir;
@@ -109,11 +112,12 @@ public final class StorageDir {
    * @throws WorkerOutOfSpaceException when metadata can not be added due to limited left space
    */
   private void initializeMeta() throws BlockAlreadyExistsException, IOException,
-      WorkerOutOfSpaceException {
+      WorkerOutOfSpaceException, InvalidPathException {
     // Create the storage directory path
     boolean isDirectoryNewlyCreated = FileUtils.createStorageDirPath(mDirPath,
         ServerConfiguration.get(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS));
-
+    String tmpDir = Paths.get(ServerConfiguration.get(PropertyKey.WORKER_DATA_TMP_FOLDER))
+        .getName(0).toString();
     if (isDirectoryNewlyCreated) {
       LOG.info("Folder {} was created!", mDirPath);
     }
@@ -125,7 +129,9 @@ public final class StorageDir {
     }
     for (File path : paths) {
       if (!path.isFile()) {
-        LOG.error("{} in StorageDir is not a file", path.getAbsolutePath());
+        if (!path.getName().equals(tmpDir)) {
+          LOG.error("{} in StorageDir is not a file", path.getAbsolutePath());
+        }
         try {
           // TODO(calvin): Resolve this conflict in class names.
           org.apache.commons.io.FileUtils.deleteDirectory(path);

@@ -268,7 +268,6 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
       return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
           meta.getLastModified().getTime());
     } catch (CosClientException e) {
-      LOG.warn("Failed to get Object {}, return null", key, e);
       return null;
     }
   }

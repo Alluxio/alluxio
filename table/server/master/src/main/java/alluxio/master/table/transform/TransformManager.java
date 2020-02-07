@@ -285,8 +285,8 @@ public class TransformManager implements DelegatingJournaled {
      * @param job the transformation job
      */
     private void handleJobSuccess(TransformJobInfo job) {
-      try {
-        mCatalog.completeTransformTable(mCreateJournalContext.apply(), job.getDb(), job.getTable(),
+      try (JournalContext journalContext = mCreateJournalContext.apply()) {
+        mCatalog.completeTransformTable(journalContext, job.getDb(), job.getTable(),
             job.getDefinition(), job.getTransformedLayouts());
         job.setJobStatus(Status.COMPLETED);
       } catch (IOException e) {

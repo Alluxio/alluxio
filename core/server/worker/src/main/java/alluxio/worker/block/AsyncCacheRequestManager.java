@@ -22,6 +22,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
@@ -230,15 +231,16 @@ public class AsyncCacheRequestManager {
   }
 
   // Metrics
-  private static final Counter ASYNC_CACHE_REQUESTS = MetricsSystem.counter("AsyncCacheRequests");
+  private static final Counter ASYNC_CACHE_REQUESTS
+      = MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_REQUESTS.getName());
   private static final Counter ASYNC_CACHE_DUPLICATE_REQUESTS =
-      MetricsSystem.counter("AsyncCacheDuplicateRequests");
+      MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS.getName());
   private static final Counter ASYNC_CACHE_FAILED_BLOCKS =
-      MetricsSystem.counter("AsyncCacheFailedBlocks");
+      MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_FAILED_BLOCKS.getName());
   private static final Counter ASYNC_CACHE_REMOTE_BLOCKS =
-      MetricsSystem.counter("AsyncCacheRemoteBlocks");
+      MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_REMOTE_BLOCKS.getName());
   private static final Counter ASYNC_CACHE_SUCCEEDED_BLOCKS =
-      MetricsSystem.counter("AsyncCacheSucceededBlocks");
+      MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_SUCCEEDED_BLOCKS.getName());
   private static final Counter ASYNC_CACHE_UFS_BLOCKS =
-      MetricsSystem.counter("AsyncCacheUfsBlocks");
+      MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_UFS_BLOCKS.getName());
 }

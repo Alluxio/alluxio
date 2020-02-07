@@ -12,8 +12,6 @@
 package alluxio.master.table;
 
 import alluxio.grpc.table.ColumnStatisticsInfo;
-import alluxio.grpc.table.FieldSchema;
-import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.TableInfo;
 import alluxio.proto.journal.Table.AddTableEntry;
@@ -22,6 +20,7 @@ import alluxio.table.common.transform.TransformContext;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
 import alluxio.table.common.udb.UdbTable;
+import alluxio.util.CommonUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,9 +31,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -43,114 +43,110 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class Table {
   private static final Logger LOG = LoggerFactory.getLogger(Table.class);
+  private static final long UNDEFINED_VERSION = -1;
 
-  private String mName;
+  public static final long FIRST_VERSION = 1;
+
   private final Database mDatabase;
-  private Schema mSchema;
-  private PartitionScheme mPartitionScheme;
-  private String mOwner;
-  private List<ColumnStatisticsInfo> mStatistics;
-  private Map<String, String> mParameters;
+  private final String mName;
+  private final long mVersion;
+  private final long mVersionCreationTime;
+  private final long mPreviousVersion;
 
-  private Table(Database database, UdbTable udbTable) {
-    mDatabase = database;
-    sync(udbTable);
-  }
-
-  private Table(Database database, List<Partition> partitions, Schema schema, String tableName,
-      String owner, List<ColumnStatisticsInfo> columnStats,
-      Map<String, String> parameters, List<FieldSchema> partitionCols, Layout layout) {
-    mDatabase = database;
-    mName = tableName;
-    mSchema = schema;
-    mPartitionScheme = PartitionScheme.create(partitions, layout, partitionCols);
-    mOwner = owner;
-    mStatistics = columnStats;
-    mParameters = new HashMap<>(parameters);
-  }
-
-  private boolean isSyncable(UdbTable udbTable) {
-    if (mSchema == null && mPartitionScheme == null) {
-      return true;
-    }
-    if (!Objects.equals(mSchema, udbTable.getSchema())) {
-      // can't sync if the schema is different
-      return false;
-    }
-    if (mPartitionScheme == null || mPartitionScheme.getPartitionCols().isEmpty()) {
-      // can't sync if it is non-partitioned table
-      return false;
-    }
-    List<FieldSchema> partitionCols = new ArrayList<>(udbTable.getPartitionCols());
-    return Objects.equals(partitionCols, mPartitionScheme.getPartitionCols());
-  }
+  private final Schema mSchema;
+  private final PartitionScheme mPartitionScheme;
+  private final String mOwner;
+  private final List<ColumnStatisticsInfo> mStatistics;
+  private final Map<String, String> mParameters;
 
   /**
-   * Sync the table with a udbtable.
-   *
-   * @param udbTable udb table to be synced
-   * @return true if the table changed
+   * @param database the database
+   * @param udbTable the udb table to sync from
+   * @param previousTable the previous table, or {@code null} if creating first version of table
    */
-  public boolean sync(UdbTable udbTable) {
-    boolean changed = false;
-    try {
-      if (!isSyncable(udbTable)) {
-        return false;
-      }
-      // only sync these fields if the table is uninitialized
-      if (mName == null) {
-        mName = udbTable.getName();
-        mSchema = udbTable.getSchema();
-        mOwner = udbTable.getOwner();
-        mStatistics = udbTable.getStatistics();
-        mParameters = new HashMap<>(udbTable.getParameters());
-        changed = true;
-      }
-      List<Partition> partitions = mPartitionScheme == null
-          ? new ArrayList<>() : new ArrayList<>(mPartitionScheme.getPartitions());
-      Layout tableLayout = mPartitionScheme == null
-          ? udbTable.getLayout() : mPartitionScheme.getTableLayout();
-      Set<String> partNames = partitions.stream().map(Partition::getSpec)
-          .collect(Collectors.toSet());
-      for (UdbPartition udbpart : udbTable.getPartitions()) {
-        if (!partNames.contains(udbpart.getSpec())) {
-          partitions.add(new Partition(udbpart));
-          changed = true;
+  private Table(Database database, UdbTable udbTable, @Nullable Table previousTable) {
+    mDatabase = database;
+    mVersion = previousTable == null ? FIRST_VERSION : previousTable.mVersion + 1;
+    mPreviousVersion = previousTable == null ? UNDEFINED_VERSION : previousTable.mVersion;
+    mVersionCreationTime = CommonUtils.getCurrentMs();
+
+    mName = udbTable.getName();
+    mSchema = udbTable.getSchema();
+    mOwner = udbTable.getOwner();
+    mStatistics = udbTable.getStatistics();
+    mParameters = new HashMap<>(udbTable.getParameters());
+
+    // TODO(gpang): inspect listing of table or partition location?
+
+    // Compare udb partitions with the existing partitions
+    List<Partition> partitions = new ArrayList<>(udbTable.getPartitions().size());
+    if (previousTable != null) {
+      // spec to existing partition
+      Map<String, Partition> existingPartitions =
+          previousTable.mPartitionScheme.getPartitions().stream()
+              .collect(Collectors.toMap(Partition::getSpec, Function.identity()));
+      for (UdbPartition udbPartition : udbTable.getPartitions()) {
+        Partition newPartition = existingPartitions.get(udbPartition.getSpec());
+        if (newPartition == null) {
+          // partition does not exist yet
+          newPartition = new Partition(udbPartition);
+        } else if (!newPartition.getBaseLayout().equals(udbPartition.getLayout())) {
+          // existing partition is updated
+          newPartition = newPartition.createNext(udbPartition);
         }
+        partitions.add(newPartition);
       }
-      if (changed) {
-        mPartitionScheme = PartitionScheme.create(partitions,
-            tableLayout, udbTable.getPartitionCols());
-      }
-    } catch (IOException e) {
-      LOG.info("Sync table {} failed {}", mName, e);
+    } else {
+      // Use all the udb partitions
+      partitions =
+          udbTable.getPartitions().stream().map(Partition::new).collect(Collectors.toList());
     }
-    return changed;
+    mPartitionScheme =
+        PartitionScheme.create(partitions, udbTable.getLayout(), udbTable.getPartitionCols());
+  }
+
+  private Table(Database database, alluxio.proto.journal.Table.AddTableEntry entry) {
+    List<Partition> partitions = entry.getPartitionsList().stream()
+        .map(p -> Partition.fromProto(database.getContext().getLayoutRegistry(), p))
+        .collect(Collectors.toList());
+
+    mDatabase = database;
+    mName = entry.getTableName();
+    mPreviousVersion = entry.getPreviousVersion();
+    mVersion = entry.getVersion();
+    mVersionCreationTime = entry.getVersionCreationTime();
+    mSchema = entry.getSchema();
+    mPartitionScheme =
+        PartitionScheme.create(partitions, entry.getLayout(), entry.getPartitionColsList());
+    mOwner = entry.getOwner();
+    mStatistics = entry.getTableStatsList();
+    mParameters = new HashMap<>(entry.getParametersMap());
   }
 
   /**
    * @param database the database
    * @param udbTable the udb table
-   * @return a new instance
+   * @param previousTable the previous table, or {@code null} if creating first version of table
+   * @return a new (or first) version of the table based on the udb table, or {@code null} if there
+   *         no changes in the udb table
    */
-  public static Table create(Database database, UdbTable udbTable) throws IOException {
-    return new Table(database, udbTable);
+  public static Table create(Database database, UdbTable udbTable, @Nullable Table previousTable) {
+    if (previousTable != null && !previousTable.shouldSync(udbTable)) {
+      // no need for a new version
+      return null;
+    }
+    return new Table(database, udbTable, previousTable);
   }
 
   /**
    * @param database the database
-   * @param entry the add table entry
+   * @param entry the add table journal entry
    * @return a new instance
    */
   public static Table create(Database database, alluxio.proto.journal.Table.AddTableEntry entry) {
-    List<Partition> partitions = entry.getPartitionsList().stream()
-        .map(p -> Partition.fromProto(database.getContext().getLayoutRegistry(), p))
-        .collect(Collectors.toList());
-
-    return new Table(database, partitions, entry.getSchema(), entry.getTableName(),
-        entry.getOwner(), entry.getTableStatsList(), entry.getParametersMap(),
-        entry.getPartitionColsList(), entry.getLayout());
+    return new Table(database, entry);
   }
+
   /**
    * @return the table name
    */
@@ -188,6 +184,20 @@ public class Table {
   }
 
   /**
+   * @return the table version
+   */
+  public long getVersion() {
+    return mVersion;
+  }
+
+  /**
+   * @return the previous table version
+   */
+  public long getPreviousVersion() {
+    return mPreviousVersion;
+  }
+
+  /**
    * Returns a list of plans to transform the table, according to the transformation definition.
    *
    * @param definition the transformation definition
@@ -206,6 +216,38 @@ public class Table {
   }
 
   /**
+   * @param udbTable the udb table to check against
+   * @return true if the table should be synced, because of differences in the udb table
+   */
+  public boolean shouldSync(UdbTable udbTable) {
+    if (!Objects.equals(mName, udbTable.getName())
+        || !Objects.equals(mSchema, udbTable.getSchema())
+        || !Objects.equals(mOwner, udbTable.getOwner())
+        || !Objects.equals(mStatistics, udbTable.getStatistics())
+        || !Objects.equals(mParameters, udbTable.getParameters())) {
+      // some fields are different
+      return true;
+    }
+
+    Map<String, Partition> existingPartitions = mPartitionScheme.getPartitions().stream()
+        .collect(Collectors.toMap(Partition::getSpec, Function.identity()));
+    if (existingPartitions.size() != udbTable.getPartitions().size()) {
+      return true;
+    }
+
+    for (UdbPartition udbPartition : udbTable.getPartitions()) {
+      Partition newPartition = existingPartitions.get(udbPartition.getSpec());
+      if (newPartition == null
+          || !newPartition.getBaseLayout().equals(udbPartition.getLayout())) {
+        // mismatch of a partition
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
    * @return the proto representation
    */
   public TableInfo toProto() {
@@ -216,7 +258,10 @@ public class Table {
         .setOwner(mOwner)
         .putAllParameters(mParameters)
         .addAllPartitionCols(mPartitionScheme.getPartitionCols())
-        .setLayout(mPartitionScheme.getTableLayout());
+        .setLayout(mPartitionScheme.getTableLayout())
+        .setPreviousVersion(mPreviousVersion)
+        .setVersion(mVersion)
+        .setVersionCreationTime(mVersionCreationTime);
 
     return builder.build();
   }
@@ -235,7 +280,10 @@ public class Table {
         .setOwner(mOwner)
         .putAllParameters(mParameters)
         .addAllPartitionCols(mPartitionScheme.getPartitionCols())
-        .setLayout(mPartitionScheme.getTableLayout());
+        .setLayout(mPartitionScheme.getTableLayout())
+        .setPreviousVersion(mPreviousVersion)
+        .setVersion(mVersion)
+        .setVersionCreationTime(mVersionCreationTime);
 
     return builder.build();
   }

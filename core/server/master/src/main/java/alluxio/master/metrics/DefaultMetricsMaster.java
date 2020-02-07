@@ -57,7 +57,6 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   private final Set<MultiValueMetricsAggregator> mMultiValueMetricsAggregatorRegistry =
       new HashSet<>();
   private final MetricsStore mMetricsStore;
-  private final HeartbeatThread mClusterMetricsUpdater;
 
   /**
    * Creates a new instance of {@link MetricsMaster}.
@@ -82,11 +81,6 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     super(masterContext, clock, executorServiceFactory);
     mMetricsStore = new MetricsStore();
     registerAggregators();
-    mClusterMetricsUpdater =
-        new HeartbeatThread(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER,
-            new ClusterMetricsUpdater(),
-            ServerConfiguration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
-            ServerConfiguration.global(), mMasterContext.getUserState());
   }
 
   @VisibleForTesting
@@ -126,65 +120,45 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     }
   }
 
+  private void cleanUpOrphanedMetrics() {
+    mMetricsStore.cleanUpOrphanedMetrics();
+  }
+
   private void registerAggregators() {
     // worker metrics
-    addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_READ_ALLUXIO.getName(),
-        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_ALLUXIO.getName()));
     addAggregator(new SumInstancesAggregator(
         MetricKey.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT.getName(),
         MetricsSystem.InstanceType.WORKER,
         MetricKey.WORKER_BYTES_READ_ALLUXIO_THROUGHPUT.getName()));
     addAggregator(new SumInstancesAggregator(
-        MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName(),
-        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_DOMAIN.getName()));
-    addAggregator(new SumInstancesAggregator(
         MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName(),
         MetricsSystem.InstanceType.WORKER,
         MetricKey.WORKER_BYTES_READ_DOMAIN_THROUGHPUT.getName()));
-    addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName(),
-        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_UFS.getName()));
     addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName(),
         MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName()));
 
-    addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName(),
-        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO.getName()));
     addAggregator(new SumInstancesAggregator(
         MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName(),
         MetricsSystem.InstanceType.WORKER,
         MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName()));
-    addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN.getName(),
-        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName()));
     addAggregator(new SumInstancesAggregator(
         MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName(),
         MetricsSystem.InstanceType.WORKER,
         MetricKey.WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()));
-    addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName(),
-        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_WRITTEN_UFS.getName()));
     addAggregator(new SumInstancesAggregator(
         MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName(),
         MetricsSystem.InstanceType.WORKER,
         MetricKey.WORKER_BYTES_WRITTEN_UFS_THROUGHPUT.getName()));
 
     // client metrics
-    addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName(),
-        MetricsSystem.InstanceType.CLIENT, MetricKey.CLIENT_BYTES_READ_LOCAL.getName()));
     addAggregator(new SumInstancesAggregator(
         MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName(),
         MetricsSystem.InstanceType.CLIENT, MetricKey.CLIENT_BYTES_READ_LOCAL_THROUGHPUT.getName()));
-    addAggregator(new SumInstancesAggregator(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName(),
-        MetricsSystem.InstanceType.CLIENT, MetricKey.CLIENT_BYTES_WRITTEN_LOCAL.getName()));
     addAggregator(new SumInstancesAggregator(
         MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName(),
         MetricsSystem.InstanceType.CLIENT,
         MetricKey.CLIENT_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName()));
 
-    // multi-value aggregators
-    addAggregator(new SingleTagValueAggregator(MetricKey.CLUSTER_BYTES_READ_UFS.getName(),
-        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_READ_UFS.getName(),
-        MetricInfo.TAG_UFS));
-    addAggregator(new SingleTagValueAggregator(MetricKey.CLUSTER_BYTES_WRITTEN_UFS.getName(),
-        MetricsSystem.InstanceType.WORKER, MetricKey.WORKER_BYTES_WRITTEN_UFS.getName(),
-        MetricInfo.TAG_UFS));
     // TODO(lu) Create a template for dynamically construct MetricKey
     for (MetricInfo.UfsOps ufsOp : MetricInfo.UfsOps.values()) {
       addAggregator(new SingleTagValueAggregator(MetricInfo.UFS_OP_PREFIX + ufsOp,
@@ -211,7 +185,15 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     super.start(isLeader);
     if (isLeader) {
       mMetricsStore.clear();
-      getExecutorService().submit(mClusterMetricsUpdater);
+      mMetricsStore.init();
+      getExecutorService().submit(new HeartbeatThread(
+          HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER, new ClusterMetricsUpdater(),
+          ServerConfiguration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
+          ServerConfiguration.global(), mMasterContext.getUserState()));
+      getExecutorService().submit(new HeartbeatThread(
+          HeartbeatContext.MASTER_ORPHANED_METRICS_CLEANER, new OrphanedMetricsCleaner(),
+          ServerConfiguration.getMs(PropertyKey.MASTER_REPORTED_METRICS_CLEANUP_INTERVAL),
+          ServerConfiguration.global(), mMasterContext.getUserState()));
     }
   }
 
@@ -247,6 +229,21 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     @Override
     public void heartbeat() throws InterruptedException {
       updateMultiValueMetrics();
+    }
+
+    @Override
+    public void close() {
+      // nothing to clean up
+    }
+  }
+
+  /**
+   * Heartbeat executor that cleans the metrics reported by lost workers or clients.
+   */
+  private class OrphanedMetricsCleaner implements HeartbeatExecutor {
+    @Override
+    public void heartbeat() throws InterruptedException {
+      cleanUpOrphanedMetrics();
     }
 
     @Override
