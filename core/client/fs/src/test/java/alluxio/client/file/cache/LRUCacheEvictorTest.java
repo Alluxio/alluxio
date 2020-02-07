@@ -22,9 +22,9 @@ import org.junit.Test;
  */
 public final class LRUCacheEvictorTest {
   private LRUCacheEvictor mEvictor;
-  private final PageId mFirst = new PageId(1L, 2L);
-  private final PageId mSecond = new PageId(3L, 4L);
-  private final PageId mThird = new PageId(5L, 6L);
+  private final PageId mFirst = new PageId("1L", 2L);
+  private final PageId mSecond = new PageId("3L", 4L);
+  private final PageId mThird = new PageId("5L", 6L);
 
   /**
    * Sets up the instances.

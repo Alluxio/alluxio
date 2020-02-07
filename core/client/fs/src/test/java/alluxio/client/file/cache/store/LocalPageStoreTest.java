@@ -53,7 +53,7 @@ public class LocalPageStoreTest {
 
   void helloWorldTest(PageStore store) throws Exception {
     String msg = "Hello, World!";
-    PageId id = new PageId(0, 0);
+    PageId id = new PageId("0", 0);
     store.put(id, msg.getBytes());
     ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
     ByteBuffer buf = ByteBuffer.allocate(1024);

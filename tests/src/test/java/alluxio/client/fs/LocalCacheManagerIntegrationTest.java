@@ -41,7 +41,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   private static final int PAGE_SIZE_BYTES = Constants.KB;
   private static final int PAGE_COUNT = 32;
   private static final int CACHE_SIZE_BYTES = PAGE_COUNT * PAGE_SIZE_BYTES;
-  private static final PageId PAGE_ID = new PageId(0L, 0L);
+  private static final PageId PAGE_ID = new PageId("0", 0L);
   private static final byte[] PAGE = BufferUtils.getIncreasingByteArray(PAGE_SIZE_BYTES);
 
   @Rule
@@ -120,11 +120,11 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     mCacheManager = LocalCacheManager.create(mConf);
     // evicts half of the pages
     for (int i = 0; i < PAGE_COUNT / 2; i++) {
-      mCacheManager.put(new PageId(1, i), PAGE);
+      mCacheManager.put(new PageId("1", i), PAGE);
     }
     int evicted = 0;
     for (int i = 0; i < PAGE_COUNT; i++) {
-      ReadableByteChannel channel = mCacheManager.get(new PageId(0, i));
+      ReadableByteChannel channel = mCacheManager.get(new PageId("0", i));
       if (channel == null) {
         evicted++;
         continue;
@@ -138,7 +138,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     assertEquals(PAGE_COUNT / 2, evicted);
     // verifies the newly added pages are cached
     for (int i = 0; i < PAGE_COUNT / 2; i++) {
-      testPageCached(new PageId(1, i));
+      testPageCached(new PageId("1", i));
     }
   }
 
@@ -221,10 +221,10 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   private void loadFullCache() throws Exception {
     mCacheManager = LocalCacheManager.create(mConf);
     for (int i = 0; i < PAGE_COUNT; i++) {
-      mCacheManager.put(new PageId(0, i), PAGE);
+      mCacheManager.put(new PageId("0", i), PAGE);
     }
     for (int i = 0; i < PAGE_COUNT; i++) {
-      testPageCached(new PageId(0, i));
+      testPageCached(new PageId("0", i));
     }
   }
 }

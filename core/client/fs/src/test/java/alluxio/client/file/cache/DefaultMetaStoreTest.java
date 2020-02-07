@@ -26,7 +26,7 @@ public final class DefaultMetaStoreTest {
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
-  private final PageId mPage = new PageId(1L, 2L);
+  private final PageId mPage = new PageId("1L", 2L);
   private final PageInfo mPageInfo = new PageInfo(mPage, 1024);
   private DefaultMetaStore mMetaStore;
 

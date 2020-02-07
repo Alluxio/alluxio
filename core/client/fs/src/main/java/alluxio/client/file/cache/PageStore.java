@@ -185,4 +185,11 @@ public interface PageStore extends AutoCloseable {
    * @throws IOException if any error occurs
    */
   Collection<PageInfo> getPages() throws IOException;
+
+  /**
+   * @return an estimated ratio between the overhead storage consumption and the actual data size
+   */
+  default double getOverheadRatio() {
+    return 0;
+  }
 }
