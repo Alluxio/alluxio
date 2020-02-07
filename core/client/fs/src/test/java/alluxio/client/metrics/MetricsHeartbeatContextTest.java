@@ -120,7 +120,9 @@ public class MetricsHeartbeatContextTest {
 
     ScheduledFuture<?> future = Mockito.mock(ScheduledFuture.class);
     when(future.cancel(any(Boolean.class))).thenReturn(true);
-    ClientContext ctx = ClientContext.create();
+    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "1s");
+    ClientContext ctx = ClientContext.create(conf);
     MasterInquireClient client = MasterInquireClient.Factory
         .create(ctx.getClusterConf(), ctx.getUserState());
     MetricsHeartbeatContext.addHeartbeat(ctx, client);
