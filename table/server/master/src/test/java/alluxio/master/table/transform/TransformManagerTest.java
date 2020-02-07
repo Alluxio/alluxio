@@ -82,8 +82,8 @@ public class TransformManagerTest {
   private static final String TABLE2 = TestDatabase.getTableName(1);
   private static final String TABLE3 = TestDatabase.getTableName(2);
   private static final String EMPTY_DEFINITION = "";
-  private static final String DEFINITION1 = "write(hive).option(hive.num.files, 1)";
-  private static final String DEFINITION2 = "write(hive).option(hive.num.files, 2)";
+  private static final String DEFINITION1 = "write(hive).option(hive.file.count.max, 1)";
+  private static final String DEFINITION2 = "write(hive).option(hive.file.count.max, 2)";
 
   private JournalSystem mJournalSystem;
   private TableMaster mTableMaster;
