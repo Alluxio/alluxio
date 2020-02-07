@@ -69,7 +69,7 @@ public final class MetricsSystem {
   // A map that records all the metrics that should be reported and aggregated at leading master
   // from full metric name to its metric type
   private static final Map<String, MetricType> SHOULD_REPORT_METRICS = new HashMap<>();
-  // Adds to make sure the SHOULD_REPORT_METRICS is initialized only once
+A flag telling whether metrics have been reported yet. Using this prevents us from initializing `SHOULD_REPORT_METRICS` more than once
   private static boolean sReported = false;
 
   /**
