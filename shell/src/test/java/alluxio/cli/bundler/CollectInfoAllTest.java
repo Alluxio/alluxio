@@ -13,20 +13,30 @@ package alluxio.cli.bundler;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.AlluxioTestDirectory;
+import alluxio.cli.Command;
 import alluxio.cli.bundler.command.AbstractInfoCollectorCommand;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.cli.Command;
+import alluxio.conf.PropertyKey;
 import alluxio.util.ConfigurationUtils;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.reflections.Reflections;
 
+import java.io.File;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 
-public class InfoCollectorTest {
+public class CollectInfoAllTest {
   private static InstancedConfiguration sConf =
           new InstancedConfiguration(ConfigurationUtils.defaults());
+
+  @BeforeClass
+  public static final void beforeClass() {
+    File targetDir = AlluxioTestDirectory.createTemporaryDirectory("testDir");
+    sConf.set(PropertyKey.CONF_DIR, targetDir);
+  }
 
   private int getNumberOfCommands() {
     Reflections reflections =
@@ -42,8 +52,8 @@ public class InfoCollectorTest {
 
   @Test
   public void loadedCommands() {
-    InfoCollector ic = new InfoCollector(sConf);
-    Collection<Command> commands = ic.getCommands();
+    CollectInfoAll ica = new CollectInfoAll(sConf);
+    Collection<Command> commands = ica.getCommands();
     assertEquals(getNumberOfCommands(), commands.size());
   }
 }

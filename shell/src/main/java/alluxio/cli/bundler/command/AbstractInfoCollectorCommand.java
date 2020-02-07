@@ -14,21 +14,18 @@ package alluxio.cli.bundler.command;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
 /**
- * Abstraction of a command under InfoCollector.
+ * Abstraction of a command under CollectInfo.
  * */
 public abstract class AbstractInfoCollectorCommand implements Command {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractInfoCollectorCommand.class);
@@ -42,11 +39,7 @@ public abstract class AbstractInfoCollectorCommand implements Command {
    *
    * @param fsContext {@link FileSystemContext} the context to run in
    * */
-  public AbstractInfoCollectorCommand(@Nullable FileSystemContext fsContext) {
-    if (fsContext == null) {
-      fsContext =
-              FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
-    }
+  public AbstractInfoCollectorCommand(FileSystemContext fsContext) {
     mFsContext = fsContext;
   }
 
@@ -66,8 +59,7 @@ public abstract class AbstractInfoCollectorCommand implements Command {
     String[] args = cl.getArgs();
     String baseDirPath = args[0];
     String workingDirPath =  Paths.get(baseDirPath, this.getCommandName()).toString();
-    System.out.println(String.format("Command %s works in %s", this.getCommandName(),
-            workingDirPath));
+    LOG.debug("Command %s works in %s", this.getCommandName(), workingDirPath);
     // mkdirs checks existence of the path
     File workingDir = new File(workingDirPath);
     workingDir.mkdirs();

@@ -20,7 +20,6 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 
@@ -36,7 +35,7 @@ public class CollectConfigCommand extends AbstractInfoCollectorCommand {
    *
    * @param fsContext the {@link FileSystemContext} to execute in
    * */
-  public CollectConfigCommand(@Nullable FileSystemContext fsContext) {
+  public CollectConfigCommand(FileSystemContext fsContext) {
     super(fsContext);
   }
 
@@ -63,11 +62,11 @@ public class CollectConfigCommand extends AbstractInfoCollectorCommand {
 
   @Override
   public String getUsage() {
-    return "collectConfig";
+    return "collectConfig <outputPath>";
   }
 
   @Override
   public String getDescription() {
-    return "Collect configurations";
+    return "Collect Alluxio configurations files";
   }
 }

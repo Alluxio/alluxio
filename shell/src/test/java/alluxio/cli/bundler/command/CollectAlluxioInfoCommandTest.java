@@ -33,8 +33,8 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CollectAlluxioInfoCommandTest {
   private static InstancedConfiguration sConf;
@@ -47,23 +47,25 @@ public class CollectAlluxioInfoCommandTest {
   @Test
   public void alluxioCmdExecuted()
           throws IOException, AlluxioException, NoSuchFieldException, IllegalAccessException {
-    CollectAlluxioInfoCommand cmd =
-            new CollectAlluxioInfoCommand(FileSystemContext.create(sConf));
+    CollectAlluxioInfoCommand cmd = new CollectAlluxioInfoCommand(FileSystemContext.create(sConf));
 
+    // Write to temp dir
     File targetDir = AlluxioTestDirectory.createTemporaryDirectory("testDir");
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
 
     // Replace commands to execute
-    Field f = cmd.getClass().getDeclaredField("mAlluxioCommands");
+    Field f = cmd.getClass().getSuperclass().getDeclaredField("mCommands");
     f.setAccessible(true);
+
     CollectAlluxioInfoCommand.AlluxioCommand mockCommand =
             mock(CollectAlluxioInfoCommand.AlluxioCommand.class);
-    when(mockCommand.runWithOutput()).thenReturn(new CommandReturn(0, "nothing happens"));
-    List<CollectAlluxioInfoCommand.AlluxioCommand> mockCommandList = new ArrayList<>();
-    mockCommandList.add(mockCommand);
-    f.set(cmd, mockCommandList);
+    when(mockCommand.runWithOutput())
+            .thenReturn(new CommandReturn(0, "nothing happens"));
+    Map<String, ShellCommand> mockCommandMap = new HashMap<>();
+    mockCommandMap.put("mockCommand", mockCommand);
+    f.set(cmd, mockCommandMap);
 
     int ret = cmd.run(mockCommandLine);
     assertEquals(0, ret);
@@ -72,54 +74,62 @@ public class CollectAlluxioInfoCommandTest {
     verify(mockCommand).runWithOutput();
 
     // Files will be copied to sub-dir of target dir
-    File subDir = new File(Paths.get(targetDir.getAbsolutePath(), cmd.getCommandName()).toString());
-    assertEquals(new String[]{"alluxioInfo.txt"}, subDir.list());
+    File subDir = new File(Paths.get(targetDir.getAbsolutePath(),
+            cmd.getCommandName()).toString());
+    assertEquals(new String[]{"collectAlluxioInfo.txt"}, subDir.list());
 
-    // Verify file context
+    // Verify the command output is found
     String fileContent = new String(Files.readAllBytes(subDir.listFiles()[0].toPath()));
     assertTrue(fileContent.contains("nothing happens"));
   }
 
   @Test
-  public void alternativeAlluxioCmdExecuted()
+  public void backupCmdExecuted()
           throws IOException, AlluxioException, NoSuchFieldException, IllegalAccessException {
-    CollectAlluxioInfoCommand cmd =
-            new CollectAlluxioInfoCommand(FileSystemContext.create(sConf));
+    CollectAlluxioInfoCommand cmd = new CollectAlluxioInfoCommand(FileSystemContext.create(sConf));
 
+    // Write to temp dir
     File targetDir = AlluxioTestDirectory.createTemporaryDirectory("testDir");
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
 
     // Replace commands to execute
-    Field f = cmd.getClass().getDeclaredField("mAlluxioCommands");
+    Field f = cmd.getClass().getSuperclass().getDeclaredField("mCommands");
     f.setAccessible(true);
-
-    ShellCommand mockSucceedCommand = mock(ShellCommand.class);
-    when(mockSucceedCommand.runWithOutput()).thenReturn(new CommandReturn(0, "this worked"));
-
-    CollectAlluxioInfoCommand.AlluxioCommand mockFailedCommand =
+    CollectAlluxioInfoCommand.AlluxioCommand mockCommandFail =
             mock(CollectAlluxioInfoCommand.AlluxioCommand.class);
-    when(mockFailedCommand.runWithOutput()).thenReturn(new CommandReturn(1, "this failed"));
-    when(mockFailedCommand.hasAlternativeCommand()).thenReturn(true);
-    when(mockFailedCommand.getAlternativeCommand()).thenReturn(mockSucceedCommand);
+    when(mockCommandFail.runWithOutput()).thenReturn(
+            new CommandReturn(255, "command failed"));
+    Map<String, ShellCommand> mockCommandMap = new HashMap<>();
+    mockCommandMap.put("mockCommand", mockCommandFail);
+    f.set(cmd, mockCommandMap);
 
-    List<CollectAlluxioInfoCommand.AlluxioCommand> mockCommandList = new ArrayList<>();
-    mockCommandList.add(mockFailedCommand);
-    f.set(cmd, mockCommandList);
+    // Replace better command to execute
+    Field cb = cmd.getClass().getSuperclass().getDeclaredField("mCommandsAlt");
+    cb.setAccessible(true);
+    ShellCommand mockCommandBackup = mock(ShellCommand.class);
+    when(mockCommandBackup.runWithOutput()).thenReturn(
+            new CommandReturn(0, "backup command executed"));
+    Map<String, ShellCommand> mockBetterMap = new HashMap<>();
+    mockBetterMap.put("mockCommand", mockCommandBackup);
+    cb.set(cmd, mockBetterMap);
 
+    // The backup command worked so exit code is 0
     int ret = cmd.run(mockCommandLine);
     assertEquals(0, ret);
 
-    // Verify the command has been run
-    verify(mockSucceedCommand).runWithOutput();
+    // Verify the 1st option command failed, then backup executed
+    verify(mockCommandFail).runWithOutput();
+    verify(mockCommandBackup).runWithOutput();
 
     // Files will be copied to sub-dir of target dir
     File subDir = new File(Paths.get(targetDir.getAbsolutePath(), cmd.getCommandName()).toString());
-    assertEquals(new String[]{"alluxioInfo.txt"}, subDir.list());
+    assertEquals(new String[]{"collectAlluxioInfo.txt"}, subDir.list());
 
-    // Verify file context
+    // Verify only the better version command output is found
     String fileContent = new String(Files.readAllBytes(subDir.listFiles()[0].toPath()));
-    assertTrue(fileContent.contains("this worked"));
+    assertTrue(fileContent.contains("command failed"));
+    assertTrue(fileContent.contains("backup command executed"));
   }
 }

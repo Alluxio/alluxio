@@ -81,7 +81,7 @@ public class CollectEnvCommandTest {
   }
 
   @Test
-  public void betterCmdExecuted()
+  public void backupCmdExecuted()
           throws IOException, AlluxioException, NoSuchFieldException, IllegalAccessException {
     CollectEnvCommand cmd = new CollectEnvCommand(FileSystemContext.create(sConf));
 
@@ -94,28 +94,30 @@ public class CollectEnvCommandTest {
     // Replace commands to execute
     Field f = cmd.getClass().getDeclaredField("mCommands");
     f.setAccessible(true);
-    ShellCommand mockCommand = mock(ShellCommand.class);
-    when(mockCommand.runWithOutput()).thenReturn(
-            new CommandReturn(0, "command normal executed"));
+    ShellCommand mockCommandFail = mock(ShellCommand.class);
+    when(mockCommandFail.runWithOutput()).thenReturn(
+            new CommandReturn(255, "command failed"));
     Map<String, ShellCommand> mockCommandMap = new HashMap<>();
-    mockCommandMap.put("mockCommand", mockCommand);
+    mockCommandMap.put("mockCommand", mockCommandFail);
     f.set(cmd, mockCommandMap);
 
     // Replace better command to execute
-    Field cb = cmd.getClass().getDeclaredField("mCommandsBetter");
+    Field cb = cmd.getClass().getDeclaredField("mCommandsAlt");
     cb.setAccessible(true);
-    ShellCommand mockCommandBetter = mock(ShellCommand.class);
-    when(mockCommandBetter.runWithOutput()).thenReturn(
-            new CommandReturn(0, "command better executed"));
+    ShellCommand mockCommandBackup = mock(ShellCommand.class);
+    when(mockCommandBackup.runWithOutput()).thenReturn(
+            new CommandReturn(0, "backup command executed"));
     Map<String, ShellCommand> mockBetterMap = new HashMap<>();
-    mockBetterMap.put("mockCommand", mockCommandBetter);
+    mockBetterMap.put("mockCommand", mockCommandBackup);
     cb.set(cmd, mockBetterMap);
 
+    // The backup command worked so exit code is 0
     int ret = cmd.run(mockCommandLine);
     assertEquals(0, ret);
 
-    // Verify the better version command has been run
-    verify(mockCommandBetter).runWithOutput();
+    // Verify the 1st option command failed, then backup executed
+    verify(mockCommandFail).runWithOutput();
+    verify(mockCommandBackup).runWithOutput();
 
     // Files will be copied to sub-dir of target dir
     File subDir = new File(Paths.get(targetDir.getAbsolutePath(), cmd.getCommandName()).toString());
@@ -123,6 +125,7 @@ public class CollectEnvCommandTest {
 
     // Verify only the better version command output is found
     String fileContent = new String(Files.readAllBytes(subDir.listFiles()[0].toPath()));
-    assertTrue(fileContent.contains("command better executed"));
+    assertTrue(fileContent.contains("command failed"));
+    assertTrue(fileContent.contains("backup command executed"));
   }
 }

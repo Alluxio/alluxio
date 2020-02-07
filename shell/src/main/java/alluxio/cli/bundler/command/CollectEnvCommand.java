@@ -12,6 +12,7 @@
 package alluxio.cli.bundler.command;
 
 import alluxio.client.file.FileSystemContext;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.CommandReturn;
@@ -22,7 +23,6 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -36,44 +36,46 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
   public static final String COMMAND_NAME = "collectEnv";
   private static final Logger LOG = LoggerFactory.getLogger(CollectEnvCommand.class);
 
-  private Map<String, ShellCommand> mCommands;
-  private Map<String, ShellCommand> mCommandsBetter;
+  protected Map<String, ShellCommand> mCommands;
+  protected Map<String, ShellCommand> mCommandsAlt;
 
   /**
    * Creates a new instance of {@link CollectEnvCommand}.
    *
    * @param fsContext the {@link FileSystemContext} to execute in
    * */
-  public CollectEnvCommand(@Nullable FileSystemContext fsContext) {
+  public CollectEnvCommand(FileSystemContext fsContext) {
     super(fsContext);
     mCommands = new HashMap<>();
-    mCommandsBetter = new HashMap<>();
+    mCommandsAlt = new HashMap<>();
     registerCommands();
   }
 
   private void registerCommands() {
-    registerCommand("ps", "ps -ef | grep alluxio*", null);
-    registerCommand("env", "env", null);
-    registerCommand("top", "top -b -n 1", "atop -b -n 1");
-    registerCommand("mount", "mount", null);
-    registerCommand("df", "df -H", null);
-    registerCommand("ulimit", "ulimit -Ha", null);
-    registerCommand("uname", "uname -a", null);
-    registerCommand("hostname", "hostname", null);
-    registerCommand("host ip", "hostname -i", null);
-    registerCommand("host fqdn", "hostname -v", null);
-    registerCommand("list Alluxio home", String.format("ls -al -R %s",
-            mFsContext.getClusterConf().get(PropertyKey.HOME)), null);
-    registerCommand("dig", "dig $(hostname -i)", null);
-    registerCommand("nslookup", "nslookup $(hostname -i)", null);
+    registerCommand("ps", new ShellCommand(new String[]{"ps", "-ef", "|grep alluxio*"}), null);
+    registerCommand("env", new ShellCommand(new String[]{"env"}), null);
+    registerCommand("top", new ShellCommand(new String[]{"atop", "-b", "-n", "1"}),
+            new ShellCommand(new String[]{"top", "-b", "-n", "1"}));
+    registerCommand("mount", new ShellCommand(new String[]{"mount"}), null);
+    registerCommand("df", new ShellCommand(new String[]{"df", "-H"}), null);
+    registerCommand("ulimit", new ShellCommand(new String[]{"ulimit -Ha"}), null);
+    registerCommand("uname", new ShellCommand(new String[]{"uname", "-a"}), null);
+    registerCommand("hostname", new ShellCommand(new String[]{"hostname"}), null);
+    registerCommand("host ip", new ShellCommand(new String[]{"hostname", "-i"}), null);
+    registerCommand("host fqdn", new ShellCommand(new String[]{"hostname", "-v"}), null);
+    registerCommand("list Alluxio home",
+            new ShellCommand(new String[]{String.format("ls -al -R %s",
+                    mFsContext.getClusterConf().get(PropertyKey.HOME))}), null);
+    registerCommand("dig", new ShellCommand(new String[]{"dig $(hostname -i)"}), null);
+    registerCommand("nslookup", new ShellCommand(new String[]{"nslookup", "$(hostname -i)"}), null);
     // TODO(jiacheng): does this stop?
-    registerCommand("dstat", "dstat -cdgilmnprsty", null);
+    registerCommand("dstat", new ShellCommand(new String[]{"dstat", "-cdgilmnprsty"}), null);
   }
 
-  private void registerCommand(String name, String cmd, String betterVersion) {
-    mCommands.put(name, new ShellCommand(cmd.split(" ")));
-    if (betterVersion != null && betterVersion.trim() != "") {
-      mCommandsBetter.put(name, new ShellCommand(betterVersion.split(" ")));
+  protected void registerCommand(String name, ShellCommand cmd, ShellCommand alternativeCmd) {
+    mCommands.put(name, cmd);
+    if (alternativeCmd != null) {
+      mCommandsAlt.put(name, alternativeCmd);
     }
   }
 
@@ -87,6 +89,29 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
     return false;
   }
 
+  protected Pair<Integer, String> runAndFormatOutput(ShellCommand cmd) {
+    String crStr;
+    int cmdExitCode;
+    try {
+      CommandReturn cr = cmd.runWithOutput();
+      cmdExitCode = cr.getExitCode();
+      if (cr.getExitCode() != 0) {
+        crStr = String.format("Command %s failed: %s", cmd, cr.getFormattedOutput());
+        LOG.warn(crStr);
+      } else {
+        // Command succeeded
+        crStr = String.format("Command %s succeeded %s", cmd, cr.getFormattedOutput());
+        LOG.info(crStr);
+      }
+    } catch (IOException e) {
+      cmdExitCode = 1;
+      crStr = String.format("Command %s failed with exception %s", cmd, e.getMessage());
+      LOG.warn(crStr);
+      LOG.debug("%s", e);
+    }
+    return new Pair<>(cmdExitCode, crStr);
+  }
+
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     int ret = 0;
@@ -98,76 +123,36 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
     StringWriter outputBuffer = new StringWriter();
 
     for (String cmdName : mCommands.keySet()) {
-      boolean complete = false;
       int cmdExitCode = 0;
 
-      // if there is a better option, try it first
-      if (mCommandsBetter.containsKey(cmdName)) {
-        ShellCommand betterCmd = mCommandsBetter.get(cmdName);
+      ShellCommand cmd = mCommands.get(cmdName);
+      Pair<Integer, String> cmdOutput = runAndFormatOutput(cmd);
+      outputBuffer.write(cmdOutput.getSecond());
 
-        CommandReturn crBetter = null;
-        String cmdBetterMsg = "";
-        try {
-          crBetter = betterCmd.runWithOutput();
-          if (crBetter.getExitCode() == 0) {
-            complete = true;
-            cmdBetterMsg = String.format("Better option cmd %s succeeded: %s", betterCmd.toString(),
-                    crBetter.getFormattedOutput());
-            LOG.info(cmdBetterMsg);
-
-            // Skip the original command
-            continue;
-          } else {
-            cmdBetterMsg = String.format("Better option cmd %s failed: %s", betterCmd.toString(),
-                    crBetter.getFormattedOutput());
-            LOG.warn(cmdBetterMsg);
-          }
-        } catch (IOException e) {
-          // If the cmd does not exist, an IOException will be thrown
-          cmdBetterMsg = String.format("Failed to execute command %s, IOException:%s",
-                  betterCmd.toString(), e.getMessage());
-          LOG.warn(cmdBetterMsg);
-        }
-        // If there is no better option command, this writes nothing
-        outputBuffer.write(cmdBetterMsg);
+      if (cmdOutput.getFirst() == 0) {
+        continue;
+      } else {
+        cmdExitCode = cmdOutput.getFirst();
       }
 
-      // If the better option does not work, fall back
-      if (!complete) {
-        ShellCommand cmd = mCommands.get(cmdName);
-        String cmdMsg = "";
-        try {
-          CommandReturn cr = cmd.runWithOutput();
-          if (cr.getExitCode() == 0) {
-            cmdExitCode = 0;
-            cmdMsg = String.format("Better option cmd %s succeeded: %s", cmd.toString(),
-                    cr.getFormattedOutput());
-            LOG.warn(cmdMsg);
-            ret = cr.getExitCode();
-          } else {
-            // Only error code of this command will be kept, not the better one
-            cmdExitCode = cr.getExitCode();
-            cmdMsg = String.format("Better option cmd %s failed: %s", cmd.toString(),
-                    cr.getFormattedOutput());
-            LOG.info(cmdMsg);
-          }
-        } catch (IOException e) {
-          // If the cmd does not exist, an IOException will be thrown
-          cmdExitCode = 1;
-          cmdMsg = String.format("Failed to execute command %s, IOException:%s",
-                  cmd.toString(), e.getMessage());
-          LOG.warn(cmdMsg);
+      // if there is a backup option, try it first
+      if (mCommandsAlt.containsKey(cmdName)) {
+        ShellCommand betterCmd = mCommandsAlt.get(cmdName);
+        Pair<Integer, String> cmdAltOutput = runAndFormatOutput(betterCmd);
+        outputBuffer.write(cmdAltOutput.getSecond());
+        // If the backup option succeeded, count as successful
+        if (cmdAltOutput.getFirst() == 0) {
+          cmdExitCode = 0;
         }
-
-        outputBuffer.write(cmdMsg);
       }
+
       // Keep only the larger return code
-      if (cmdExitCode > ret) {
+      if (cmdExitCode != 0 && ret == 0) {
         ret = cmdExitCode;
       }
     }
 
-    // output the buffer
+    // output the logs
     File outputFile = generateOutputFile(mWorkingDirPath,
             String.format("%s.txt", getCommandName()));
     LOG.info(String.format("Finished all commands. Writing to output file %s",
@@ -179,11 +164,11 @@ public class CollectEnvCommand extends AbstractInfoCollectorCommand {
 
   @Override
   public String getUsage() {
-    return "collectEnv";
+    return "collectEnv <outputPath>";
   }
 
   @Override
   public String getDescription() {
-    return "Collect environment information by running a set of commands. ";
+    return "Collect environment information by running a set of shell commands. ";
   }
 }

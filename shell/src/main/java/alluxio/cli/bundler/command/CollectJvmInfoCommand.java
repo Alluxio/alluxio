@@ -22,7 +22,6 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -46,7 +45,7 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
    *
    * @param fsContext the {@link FileSystemContext} to execute in
    * */
-  public CollectJvmInfoCommand(@Nullable FileSystemContext fsContext) {
+  public CollectJvmInfoCommand(FileSystemContext fsContext) {
     super(fsContext);
   }
 
@@ -143,11 +142,11 @@ public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
 
   @Override
   public String getUsage() {
-    return null;
+    return "collectJvmInfo <outputPath>";
   }
 
   @Override
   public String getDescription() {
-    return null;
+    return "Collect JVM information by collecting jstack";
   }
 }

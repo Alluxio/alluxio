@@ -19,16 +19,18 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang.ArrayUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,23 +38,21 @@ import java.util.Set;
 /**
  * Class for collecting various information about the host instance.
  */
-public class InfoCollector extends AbstractShell {
-  protected static final String TARBALL_NAME = "collectAll.tar.gz";
+public class CollectInfo extends AbstractShell {
+  protected static final String TARBALL_NAME = "alluxio-info.tar.gz";
 
-  private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.<String, String[]>builder()
-          .build();
+  private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.of();
 
   // In order for a warning to be displayed for an unstable alias, it must also exist within the
   // CMD_ALIAS map.
-  private static final Set<String> UNSTABLE_ALIAS = ImmutableSet.<String>builder()
-          .build();
+  private static final Set<String> UNSTABLE_ALIAS = ImmutableSet.of();
 
   /**
-   * Main method, starts a new InfoCollector.
+   * Main method, starts a new CollectInfo.
    *
    * @param argv array of arguments given by the user's input from the terminal
    */
-  public static void main(String[] argv) throws IOException {
+  public static void main(String[] argv) throws IOException, InvalidArgumentException {
     int ret = 0;
 
     InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
@@ -60,83 +60,89 @@ public class InfoCollector extends AbstractShell {
     // Execute the Collectors one by one
     // Reduce the RPC retry max duration to fall earlier for CLIs
     conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);
-    InfoCollector shell = new InfoCollector(conf);
+    CollectInfo shell = new CollectInfo(conf);
 
-    // Determine the working dir path
+    // If the args are not valid, return early
+    // TODO(jiacheng): catch in CollectInfoAll
     if (argv.length < 2) {
-      throw new IOException(String.format("No target directory specified by args %s",
-              Arrays.toString(argv)));
+      shell.printUsage();
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
+              .getMessage("collectInfo", 2, argv.length));
     }
+
+    // Determine the command and working dir path
     String subCommand = argv[0];
     // TODO(jiacheng): phase 2 get targetDirPath from parsed command
     String targetDirPath = argv[1];
 
-    // Invoke all other commands to collect information
-    // FORCE_OPTION will be propagated to child commands
+    // There are 2 cases:
+    // 1. Execute "all" commands
+    // 2. Execute a single command
     List<File> filesToCollect = new ArrayList<>();
     if (subCommand.equals("all")) {
-      // Execute all commands if the option is "all"
+      // Case 1. Execute "all" commands
       System.out.println("Execute all child commands");
       for (Command cmd : shell.getCommands()) {
-        System.out.println(String.format("Executing %s", cmd.getCommandName()));
+        System.out.format("Executing %s", cmd.getCommandName());
 
-        AbstractInfoCollectorCommand infoCmd = (AbstractInfoCollectorCommand) cmd;
-
-        // Find the argv for this command
-        argv[0] = infoCmd.getCommandName();
+        // Replace the action with the command to execute
         // TODO(jiacheng): phase 2 handle argv difference?
-        int childRet = shell.run(argv);
-        System.out.println(String.format("Command %s exit with code %s",
-                cmd.getCommandName(), childRet));
-
-        // File to collect
-        File infoCmdOutputFile = infoCmd.generateOutputFile(targetDirPath,
-                infoCmd.getCommandName());
-        filesToCollect.add(infoCmdOutputFile);
+        String[] replacementArgv =
+                (String[]) ArrayUtils.addAll(new String[]{cmd.getCommandName()},
+                        ArrayUtils.subarray(argv, 1, argv.length));
+        int childRet = shell.executeAndAddFile(replacementArgv, filesToCollect);
 
         // If any of the commands failed, treat as failed
-        if (childRet > ret) {
+        if (ret == 0 && childRet != 0) {
           ret = childRet;
         }
       }
     } else {
-      AbstractInfoCollectorCommand cmd = shell.findCommand(subCommand);
-      if (cmd == null) {
-        // Unknown command (we did not find the cmd in our dict)
-        System.err.println(String.format("%s is an unknown command.", cmd));
-        shell.printUsage();
-        return;
-      }
-
-      int childRet = shell.run(argv);
-      System.out.println(String.format("Command %s exit with code %s", subCommand, childRet));
-
-      File infoCmdOutputFile = cmd.generateOutputFile(targetDirPath, cmd.getCommandName());
-      filesToCollect.add(infoCmdOutputFile);
-
-      if (childRet > ret) {
+      // Case 2. Execute a single command
+      int childRet = shell.executeAndAddFile(argv, filesToCollect);
+      if (ret == 0 && childRet != 0) {
         ret = childRet;
       }
     }
 
     // TODO(jiacheng): phase 2 add an option to disable bundle
     // Generate bundle
-    System.out.println(String.format("Archiving dir %s", targetDirPath));
-    System.out.println(String.format("Files to include: %s", filesToCollect));
+    System.out.format("Archiving dir %s", targetDirPath);
     String tarballPath = Paths.get(targetDirPath, TARBALL_NAME).toAbsolutePath().toString();
+    if (filesToCollect.size() == 0) {
+      System.err.format("No files to add. Tarball %s will be empty!", tarballPath);
+    }
     TarUtils.compress(tarballPath, filesToCollect.toArray(new File[0]));
     System.out.println("Archiving finished");
 
     System.exit(ret);
   }
 
-  /**
-   * Finds the {@link AbstractInfoCollectorCommand} given command name.
-   *
-   * @param cmdName command name
-   * @return the command
-   * */
-  public AbstractInfoCollectorCommand findCommand(String cmdName) {
+  private int executeAndAddFile(String[] argv, List<File> filesToCollect) throws IOException {
+    // The argv length has been validated
+    String subCommand = argv[0];
+    // TODO(jiacheng): phase 2 get targetDirPath from parsed command
+    String targetDirPath = argv[1];
+
+    AbstractInfoCollectorCommand cmd = this.findCommand(subCommand);
+
+    if (cmd == null) {
+      // Unknown command (we did not find the cmd in our dict)
+      System.err.format("%s is an unknown command.", cmd);
+      printUsage();
+      return 1;
+    }
+    int ret = run(argv);
+
+    // File to collect
+    File infoCmdOutputFile = cmd.generateOutputFile(targetDirPath,
+            cmd.getCommandName());
+    filesToCollect.add(infoCmdOutputFile);
+
+    return ret;
+  }
+
+  private AbstractInfoCollectorCommand findCommand(String cmdName) {
     for (Command c : this.getCommands()) {
       if (c.getCommandName().equals(cmdName)) {
         return (AbstractInfoCollectorCommand) c;
@@ -146,11 +152,11 @@ public class InfoCollector extends AbstractShell {
   }
 
   /**
-   * Creates a new instance of {@link InfoCollector}.
+   * Creates a new instance of {@link CollectInfo}.
    *
    * @param alluxioConf Alluxio configuration
    */
-  public InfoCollector(InstancedConfiguration alluxioConf) {
+  public CollectInfo(InstancedConfiguration alluxioConf) {
     super(CMD_ALIAS, UNSTABLE_ALIAS, alluxioConf);
   }
 
@@ -163,7 +169,7 @@ public class InfoCollector extends AbstractShell {
   protected Map<String, Command> loadCommands() {
     // Give each command the configuration
     Map<String, Command> commands = CommandUtils.loadCommands(
-            InfoCollector.class.getPackage().getName(),
+            CollectInfo.class.getPackage().getName(),
             new Class[] {FileSystemContext.class},
             new Object[] {FileSystemContext.create(mConfiguration)});
     return commands;

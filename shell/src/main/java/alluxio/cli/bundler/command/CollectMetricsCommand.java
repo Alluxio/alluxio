@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -46,7 +45,7 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
    *
    * @param fsContext the {@link FileSystemContext} to execute in
    * */
-  public CollectMetricsCommand(@Nullable FileSystemContext fsContext) {
+  public CollectMetricsCommand(FileSystemContext fsContext) {
     super(fsContext);
   }
 
@@ -66,16 +65,12 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
     mWorkingDirPath = getWorkingDirectory(cl);
 
     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+    StringWriter outputBuffer = new StringWriter();
     for (int i = 0; i < COLLECT_METRICS_TIMES; i++) {
       LocalDateTime now = LocalDateTime.now();
-      String timeString = dtf.format(now);
-      LOG.info(String.format("Collecting metrics at %s", timeString));
-
-      // Write to file
-      File outputFile = generateOutputFile(mWorkingDirPath,
-              String.format("%s-%s", getCommandName(), i));
-      StringWriter outputBuffer = new StringWriter();
-      outputBuffer.write(String.format("Collect metric at approximately %s", timeString));
+      String timeMsg = String.format("Collecting metrics at %s", dtf.format(now));
+      LOG.info(timeMsg);
+      outputBuffer.write(timeMsg);
 
       // Generate URL from config properties
       String masterAddr;
@@ -85,7 +80,7 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
         String noMasterMsg = "No Alluxio master available. Skip metrics collection.";
         LOG.warn(noMasterMsg);
         outputBuffer.write(noMasterMsg);
-        continue;
+        break;
       }
       String url = String.format("http://%s:%s%s", masterAddr,
               mFsContext.getClusterConf().get(PropertyKey.MASTER_WEB_PORT),
@@ -95,18 +90,27 @@ public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
       // Get metrics
       String metricsResponse = getMetricsJson(url);
       outputBuffer.write(metricsResponse);
+
+      // Write to file
+      File outputFile = generateOutputFile(mWorkingDirPath,
+              String.format("%s-%s", getCommandName(), i));
       FileUtils.writeStringToFile(outputFile, metricsResponse);
 
       // Wait for an interval
       SleepUtils.sleepMs(LOG, COLLECT_METRICS_INTERVAL);
     }
 
+    // TODO(jiacheng): phase 2 consider outputting partial results in a finally block
+    File outputFile = generateOutputFile(mWorkingDirPath,
+            String.format("%s.txt", getCommandName()));
+    FileUtils.writeStringToFile(outputFile, outputBuffer.toString());
+
     return 0;
   }
 
   @Override
   public String getUsage() {
-    return "collectMetrics";
+    return "collectMetrics <outputPath>";
   }
 
   @Override
