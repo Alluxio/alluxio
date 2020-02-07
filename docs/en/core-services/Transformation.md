@@ -19,10 +19,10 @@ Once the transformation is done, Presto users can transparently query against th
 
 There are two kinds of supported transformations:
 
-1. coalesce the files to 100 files (if there are more than 100 files)
+1. coalesce the files so that each file is at least a certain size and there will be a maximum of certain number of files.
 2. convert CSV files to Parquet files
 
-> In 2.1.0, the transformed data is always written in Parquet format.
+> In Alluxio version {{site.ALLUXIO_VERSION_STRING}}, the transformed data is always written in Parquet format.
 
 Before running a transformation, you should first attach a database.
 The following command attaches the "default" database in Hive to Alluxio.
@@ -32,7 +32,7 @@ $ ${ALLUXIO_HOME}/bin/alluxio table attachdb hive thrift://localhost:9083 defaul
 ```
 
 Transformations are invoked via the command-line interface.
-The following command coalesce files under each partition of table "test" to one file.
+The following command coalesce files under each partition of table "test" to a maximum of 100 files.
 Additional details on the transform command can be found in the
 [command line interface documentation]({{ '/en/operation/User-CLI.html' | relativize_url }}#table-operations).
 
@@ -57,7 +57,7 @@ It will show the status of the transformation job:
 ```console
 database: default
 table: test
-transformation: write(hive).option(hive.num.files, 1)
+transformation: write(hive).option(hive.file.count.max, 100).option(hive.file.size.min, 2147483648)
 job ID: 1572296710137
 job status: COMPLETED
 ```

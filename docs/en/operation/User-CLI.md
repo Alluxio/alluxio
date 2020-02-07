@@ -1189,8 +1189,8 @@ format.
 > In 2.1.0, the supported file formats which can be transformed are: parquet and csv
 > file formats. The resulting transformations are in the parquet file format. Additional formats
 > for input and output will be implemented in future versions.
-> For the coalesce feature, if a partition contains more than 100 files, then the coalesce
-> transformation will result in 100 files.
+> For the coalesce feature, by default it will coalesce into a maximum of 100 files, 
+> with each file no smaller than 2GB. 
 
 ### transformStatus
 
