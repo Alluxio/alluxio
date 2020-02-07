@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
 
 public class AlluxioCatalogTest {
   private static final TransformDefinition TRANSFORM_DEFINITION =
-      TransformDefinition.parse("write(hive).option(hive.num.files, 100);");
+      TransformDefinition.parse("write(hive).option(hive.file.count.max, 100);");
 
   private AlluxioCatalog mCatalog;
 
