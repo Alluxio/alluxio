@@ -11,6 +11,7 @@
 
 package alluxio.master.table;
 
+import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.FileStatistics;
@@ -22,6 +23,7 @@ import alluxio.proto.journal.Journal;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
+import alluxio.util.CommonUtils;
 
 import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
@@ -36,7 +38,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
@@ -177,31 +182,46 @@ public class Database implements Journaled {
    * external synchronization.
    *
    * @param context journal context
-   * @return true if the database changed as a result of fullSync
+   * @param service executor service for parallezing the sync
+   * @return true if the database changed as a result of syncing with UDB
    */
-  public boolean sync(JournalContext context) throws IOException {
-    boolean updated = false;
+  public boolean sync(JournalContext context, ExecutorService service) throws IOException {
+    AtomicBoolean updated = new AtomicBoolean(false);
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
     if (!newDbInfo.equals(mDatabaseInfo)) {
       applyAndJournal(context, Journal.JournalEntry.newBuilder()
           .setUpdateDatabaseInfo(toJournalProto(newDbInfo, mName)).build());
-      updated = true;
+      updated.set(true);
     }
     Set<String> udbTableNames = new HashSet<>(mUdb.getTableNames());
-    for (String tableName : udbTableNames) {
-      Table previousTable = mTables.get(tableName);
-      UdbTable udbTable = mUdb.getTable(tableName);
-      Table newTable = Table.create(this, udbTable, previousTable);
 
-      if (newTable != null) {
-        // table was created or was updated
-        alluxio.proto.journal.Table.AddTableEntry addTableEntry = newTable.toJournalProto();
-        Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setAddTable(addTableEntry)
-            .build();
-        applyAndJournal(context, entry);
-        updated = true;
-      }
+    // sync each table in parallel, with the executor service
+    List<Callable<Void>> tasks = new ArrayList<>(udbTableNames.size());
+    final Database thisDb = this;
+    for (String tableName : udbTableNames) {
+      tasks.add(() -> {
+        Table previousTable = mTables.get(tableName);
+        UdbTable udbTable = mUdb.getTable(tableName);
+        Table newTable = Table.create(thisDb, udbTable, previousTable);
+
+        if (newTable != null) {
+          // table was created or was updated
+          alluxio.proto.journal.Table.AddTableEntry addTableEntry = newTable.toJournalProto();
+          Journal.JournalEntry entry =
+              Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
+          applyAndJournal(context, entry);
+          updated.set(true);
+        }
+        return null;
+      });
     }
+
+    try {
+      CommonUtils.invokeAll(tasks, 10 * Constants.MINUTE_MS);
+    } catch (Exception e) {
+      throw new IOException("Failed to sync database " + mName, e);
+    }
+
     for (Table existingTable : mTables.values()) {
       if (!udbTableNames.contains(existingTable.getName())) {
         // this table no longer exists in udb
@@ -215,10 +235,10 @@ public class Database implements Journaled {
             .setRemoveTable(removeTableEntry)
             .build();
         applyAndJournal(context, entry);
-        updated = true;
+        updated.set(true);
       }
     }
-    return updated;
+    return updated.get();
   }
 
   @Override
