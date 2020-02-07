@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -69,7 +70,8 @@ public final class MetricsSystem {
   // A map that records all the metrics that should be reported and aggregated at leading master
   // from full metric name to its metric type
   private static final Map<String, MetricType> SHOULD_REPORT_METRICS = new HashMap<>();
-A flag telling whether metrics have been reported yet. Using this prevents us from initializing `SHOULD_REPORT_METRICS` more than once
+  // A flag telling whether metrics have been reported yet.
+  // Using this prevents us from initializing {@link #SHOULD_REPORT_METRICS} more than once
   private static boolean sReported = false;
 
   /**
@@ -600,6 +602,7 @@ A flag telling whether metrics have been reported yet. Using this prevents us fr
     return set;
   }
 
+  @Nullable
   private static Metric getAlluxioMetricFromCodahaleMetric(String name,
       com.codahale.metrics.Metric metric) {
     if (metric instanceof Gauge) {
@@ -657,7 +660,7 @@ A flag telling whether metrics have been reported yet. Using this prevents us fr
   }
 
   /**
-   * Initialize the should report metrics. This should be called only once.
+   * Initialize the {@link #SHOULD_REPORT_METRICS}. This should be called only once.
    *
    * Note that this method is able to catch most of the should report metrics
    * except worker metrics with ufs tags.
