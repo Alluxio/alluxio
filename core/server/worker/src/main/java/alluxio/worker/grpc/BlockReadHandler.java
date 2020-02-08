@@ -21,7 +21,6 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ReadResponse;
-import alluxio.metrics.Metric;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MetricInfo;
@@ -176,14 +175,14 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
             AlluxioURI ufsMountPointUri =
                 ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();
             String ufsString = MetricsSystem.escape(ufsMountPointUri);
-            String counterName = Metric.getMetricNameWithTags(
-                MetricKey.WORKER_BYTES_READ_UFS.getName(), MetricInfo.TAG_UFS, ufsString);
             context.setBlockReader(reader);
-            context.setCounter(MetricsSystem.counter(counterName));
-            String meterName = Metric.getMetricNameWithTags(
-                MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT.getName(),
-                MetricInfo.TAG_UFS, ufsString);
-            context.setMeter(MetricsSystem.meter(meterName));
+
+            MetricKey counterKey = MetricKey.WORKER_BYTES_READ_UFS;
+            MetricKey meterKey = MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT;
+            context.setCounter(MetricsSystem.counterWithTags(counterKey.getName(),
+                counterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString));
+            context.setMeter(MetricsSystem.meterWithTags(meterKey.getName(),
+                meterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString));
             return;
           }
         } catch (Exception e) {

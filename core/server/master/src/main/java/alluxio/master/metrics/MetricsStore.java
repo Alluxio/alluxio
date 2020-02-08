@@ -28,7 +28,6 @@ import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -251,13 +250,7 @@ public class MetricsStore {
   }
 
   private Set<Metric> getMasterMetrics(String name) {
-    Set<Metric> metrics = new HashSet<>();
-    for (Metric metric : MetricsSystem.allMasterMetrics()) {
-      if (metric.getName().equals(name)) {
-        metrics.add(metric);
-      }
-    }
-    return metrics;
+    return MetricsSystem.getMasterMetric(name);
   }
 
   /**

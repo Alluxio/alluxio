@@ -24,7 +24,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -101,6 +103,24 @@ public final class MetricKey implements Comparable<MetricKey> {
    */
   public static Collection<? extends MetricKey> allMetricKeys() {
     return Sets.newHashSet(METRIC_KEYS_MAP.values());
+  }
+
+  /**
+   * Gets all the metric keys that belong to the given instance type
+   * and should be reported.
+   *
+   * @param instanceType the instance type that should be reported
+   * @return all pre-defined Alluxio metric keys
+   */
+  public static Set<MetricKey> allShouldReportMetricKeys(MetricsSystem.InstanceType instanceType) {
+    Set<MetricKey> shouldReportMetrics = new HashSet<>();
+    for (Map.Entry<String, MetricKey> entry : METRIC_KEYS_MAP.entrySet()) {
+      if (entry.getKey().startsWith(instanceType.toString())
+          && entry.getValue().isClusterAggregated()) {
+        shouldReportMetrics.add(entry.getValue());
+      }
+    }
+    return shouldReportMetrics;
   }
 
   /**

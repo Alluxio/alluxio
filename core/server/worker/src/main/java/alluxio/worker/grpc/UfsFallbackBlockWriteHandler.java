@@ -19,7 +19,6 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
-import alluxio.metrics.Metric;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MetricInfo;
@@ -241,13 +240,12 @@ public final class UfsFallbackBlockWriteHandler
     context.setOutputStream(ufsOutputStream);
     context.setUfsPath(ufsPath);
 
-    String counterName = Metric.getMetricNameWithTags(
-        MetricKey.WORKER_BYTES_WRITTEN_UFS.getName(), MetricInfo.TAG_UFS, ufsString);
-    String meterName = Metric.getMetricNameWithTags(
-        MetricKey.WORKER_BYTES_WRITTEN_UFS_THROUGHPUT.getName(),
-        MetricInfo.TAG_UFS, ufsString);
-    context.setCounter(MetricsSystem.counter(counterName));
-    context.setMeter(MetricsSystem.meter(meterName));
+    MetricKey counterKey = MetricKey.WORKER_BYTES_WRITTEN_UFS;
+    MetricKey meterKey = MetricKey.WORKER_BYTES_WRITTEN_UFS_THROUGHPUT;
+    context.setCounter(MetricsSystem.counterWithTags(counterKey.getName(),
+        counterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString));
+    context.setMeter(MetricsSystem.meterWithTags(meterKey.getName(),
+        meterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString));
   }
 
   /**
