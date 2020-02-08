@@ -311,7 +311,7 @@ public final class UfsJournalCheckpointThread extends Thread {
         if (Thread.interrupted() && !mShutdownInitiated) {
           LOG.warn("{}: Checkpoint was interrupted but shutdown has not be initiated",
               mMaster.getName());
-          Thread.currentThread().interrupt();
+          //Thread.currentThread().interrupt();
         }
         journalWriter.close();
       }
