@@ -1570,9 +1570,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
         }
       }
 
-      MountTable.Resolution resolution = mSyncManager.resolveSyncPoint(inodePath.getUri());
-      if (resolution != null) {
-        mSyncManager.stopSyncInternal(inodePath.getUri(), resolution.getMountId());
+      if (mSyncManager.isSyncPoint(inodePath.getUri())) {
+        mSyncManager.stopSyncAndJournal(RpcContext.NOOP, inodePath.getUri());
       }
 
       // Delete Inodes
@@ -3842,37 +3841,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
     }
   }
 
-  private void stopSyncAndJournal(RpcContext rpcContext,
-      LockingScheme lockingScheme, LockedInodePath lockedInodePath)
-      throws IOException, InvalidPathException {
-    try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
-      MountTable.Resolution resolution = mSyncManager.resolveSyncPoint(lockedInodePath.getUri());
-      if (resolution == null) {
-        throw new InvalidPathException(lockedInodePath.getUri() + " is not a sync point.");
-      }
-      AlluxioURI uri = lockedInodePath.getUri();
-      RemoveSyncPointEntry removeSyncPoint = File.RemoveSyncPointEntry.newBuilder()
-              .setSyncpointPath(lockedInodePath.getUri().toString())
-              .setMountId(resolution.getMountId())
-              .build();
-      mSyncManager.applyAndJournal(rpcContext, removeSyncPoint);
-
-      try {
-        long mountId = resolution.getMountId();
-        mSyncManager.stopSyncPostJournal(lockedInodePath.getUri());
-      } catch (Throwable e) {
-        LOG.warn("Stop sync failed on {}", uri, e);
-        // revert state;
-        AddSyncPointEntry addSyncPoint =
-            File.AddSyncPointEntry.newBuilder()
-                .setSyncpointPath(uri.toString()).build();
-        mSyncManager.applyAndJournal(rpcContext, addSyncPoint);
-        mSyncManager.recoverFromStopSync(uri, resolution.getMountId());
-        throw e;
-      }
-    }
-  }
-
   @Override
   public void stopSync(AlluxioURI syncPoint)
       throws IOException, InvalidPathException, AccessControlException {
@@ -3889,7 +3857,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         auditContext.setAllowed(false);
         throw e;
       }
-      stopSyncAndJournal(rpcContext, lockingScheme, inodePath);
+      mSyncManager.stopSyncAndJournal(rpcContext, inodePath.getUri());
       auditContext.setSucceeded(true);
     }
   }

@@ -21,6 +21,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.RpcContext;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.JournalContext;
@@ -64,6 +65,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Manager for the Active UFS sync process.
+ *
  * There are several threads cooperating to make the active sync process happen.
  * 1. An active polling thread that polls HDFS for change events and aggregates these events.
  * 2. A heartbeat thread that wakes up periodically to consume the aggregated events, and perform
@@ -146,18 +148,15 @@ public class ActiveSyncManager implements Journaled {
   }
 
   /**
-   * start the polling threads.
-   *
+   * Start the polling threads.
    */
   public void start() throws IOException {
     // Initialize UFS states
     for (AlluxioURI syncPoint : mSyncPathList) {
 
-      MountTable.Resolution resolution = null;
-      long mountId = 0;
+      MountTable.Resolution resolution;
       try {
         resolution = mMountTable.resolve(syncPoint);
-        mountId = resolution.getMountId();
       } catch (InvalidPathException e) {
         LOG.info("Invalid Path encountered during start up of ActiveSyncManager, "
             + "path {}, exception {}", syncPoint, e);
@@ -232,8 +231,9 @@ public class ActiveSyncManager implements Journaled {
   }
 
   /**
-   * Apply AddSyncPoint entry and journal the entry.
-   *  @param context journal context
+   * Apply {@link AddSyncPointEntry} and journal the entry.
+   *
+   * @param context journal context
    * @param entry addSyncPoint entry
    */
   public void applyAndJournal(Supplier<JournalContext> context, AddSyncPointEntry entry) {
@@ -248,7 +248,8 @@ public class ActiveSyncManager implements Journaled {
   }
 
   /**
-   * Apply removeSyncPoint entry and journal the entry.
+   * Apply {@link RemoveSyncPointEntry} and journal the entry.
+   *
    * @param context journal context
    * @param entry removeSyncPoint entry
    */
@@ -263,7 +264,7 @@ public class ActiveSyncManager implements Journaled {
   }
 
   /**
-   * stop active sync on a mount id.
+   * Stop active sync on a mount id.
    *
    * @param mountId mountId to stop active sync
    */
@@ -272,49 +273,48 @@ public class ActiveSyncManager implements Journaled {
     if (mFilterMap.containsKey(mountId)) {
       List<AlluxioURI> toBeDeleted = new ArrayList<>(mFilterMap.get(mountId));
       for (AlluxioURI uri : toBeDeleted) {
-        stopSyncInternal(uri, mountId);
+        stopSyncAndJournal(RpcContext.NOOP, uri);
       }
     }
   }
 
   /**
-   * Perform various checks of stopping a sync point.
-   *
-   * @param syncPoint sync point to stop
-   * @return the path resolution result if successfully passed all checks
+   * @return true if the given path is a sync point
    */
-
   @Nullable
-  public MountTable.Resolution resolveSyncPoint(AlluxioURI syncPoint) throws InvalidPathException {
-    if (!mSyncPathList.contains(syncPoint)) {
-      LOG.debug("syncPoint not found {}", syncPoint.getPath());
-      return null;
-    }
-    MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
-    return resolution;
+  public boolean isSyncPoint(AlluxioURI syncPoint) {
+    return mSyncPathList.contains(syncPoint);
   }
+
   /**
-   * stop active sync on a URI.
+   * Stop active sync on a URI and journal the remove entry.
    *
+   * @param rpcContext the master rpc or no-op context
    * @param syncPoint sync point to be stopped
-   * @param mountId mountId
    */
-  public void stopSyncInternal(AlluxioURI syncPoint, long mountId) {
+  public void stopSyncAndJournal(RpcContext rpcContext, AlluxioURI syncPoint)
+      throws InvalidPathException{
     try (LockResource r = new LockResource(mSyncManagerLock)) {
+      MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
+      if (resolution == null) {
+        throw new InvalidPathException(syncPoint + " is not a sync point.");
+      }
       LOG.debug("stop syncPoint {}", syncPoint.getPath());
+      final long mountId = resolution.getMountId();
       RemoveSyncPointEntry removeSyncPoint = File.RemoveSyncPointEntry.newBuilder()
           .setSyncpointPath(syncPoint.toString())
           .setMountId(mountId)
           .build();
-      apply(removeSyncPoint);
+      applyAndJournal(rpcContext, removeSyncPoint);
       try {
-        stopSyncPostJournal(syncPoint);
+        stopSyncInternal(syncPoint);
       } catch (Throwable e) {
+        LOG.warn("Stop sync failed on {}", syncPoint, e);
         // revert state;
         AddSyncPointEntry addSyncPoint =
             File.AddSyncPointEntry.newBuilder()
                 .setSyncpointPath(syncPoint.toString()).build();
-        apply(addSyncPoint);
+        applyAndJournal(rpcContext, addSyncPoint);
         recoverFromStopSync(syncPoint, mountId);
       }
     }
@@ -454,7 +454,7 @@ public class ActiveSyncManager implements Journaled {
    * @param syncPoint the sync point to stop
    * @throws InvalidPathException
    */
-  public void stopSyncPostJournal(AlluxioURI syncPoint) throws InvalidPathException {
+  public void stopSyncInternal(AlluxioURI syncPoint) throws InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
     long mountId = resolution.getMountId();
     // Remove initial sync thread
@@ -550,6 +550,7 @@ public class ActiveSyncManager implements Journaled {
 
   /**
    * Stops the sync manager and any outstanding threads, does not change the sync points.
+   *
    * This stops four things in the following order.
    * 1. Stop any outstanding initial sync futures for the sync points. (syncFuture.cancel)
    * 2. Stop the heartbeat thread that periodically wakes up to process events that have been
@@ -567,17 +568,9 @@ public class ActiveSyncManager implements Journaled {
             syncPoint,  e);
         return;
       }
-      long mountId = resolution.getMountId();
-      // Remove initial sync thread
-      Future<?> syncFuture = mSyncPathStatus.remove(syncPoint);
-      if (syncFuture != null) {
-        syncFuture.cancel(true);
-      }
 
-      Future<?> future = mPollerMap.remove(mountId);
-      if (future != null) {
-        future.cancel(true);
-      }
+      // Remove initial sync thread
+      stopInitSync(syncPoint, resolution);
 
       // Tell UFS to stop monitoring the path
       try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
@@ -613,6 +606,19 @@ public class ActiveSyncManager implements Journaled {
           });
 
       mSyncPathStatus.put(uri, syncFuture);
+    }
+  }
+
+  private void stopInitSync(AlluxioURI syncPoint, MountTable.Resolution resolution) {
+    Future<?> syncFuture = mSyncPathStatus.remove(syncPoint);
+    if (syncFuture != null) {
+      syncFuture.cancel(true);
+    }
+
+    long mountId = resolution.getMountId();
+    Future<?> future = mPollerMap.remove(mountId);
+    if (future != null) {
+      future.cancel(true);
     }
   }
 
