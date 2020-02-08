@@ -74,7 +74,7 @@ public final class LocalCacheManagerTest {
 
   @Test
   public void putNew() throws Exception {
-    mCacheManager.put(PAGE_ID1, PAGE1);
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     assertEquals(1, mPageStore.pages());
     assertTrue(mMetaStore.hasPage(PAGE_ID1));
     assertArrayEquals(PAGE1, (byte[]) mPageStore.mStore.get(PAGE_ID1));
@@ -82,20 +82,20 @@ public final class LocalCacheManagerTest {
 
   @Test
   public void putExist() throws Exception {
-    mCacheManager.put(PAGE_ID1, PAGE1);
-    mCacheManager.put(PAGE_ID1, PAGE2);
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE2));
     assertEquals(1, mPageStore.pages());
     assertTrue(mMetaStore.hasPage(PAGE_ID1));
-    assertArrayEquals(PAGE2, (byte[]) mPageStore.mStore.get(PAGE_ID1));
+    assertArrayEquals(PAGE1, (byte[]) mPageStore.mStore.get(PAGE_ID1));
   }
 
   @Test
   public void putEvict() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
-    mCacheManager.put(PAGE_ID1, PAGE1);
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     assertEquals(1, mPageStore.pages());
-    mCacheManager.put(PAGE_ID2, PAGE2);
+    assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));
     assertEquals(1, mPageStore.pages());
     assertFalse(mMetaStore.hasPage(PAGE_ID1));
     assertTrue(mMetaStore.hasPage(PAGE_ID2));
@@ -112,7 +112,7 @@ public final class LocalCacheManagerTest {
     byte[] smallPage = new byte[smallPageLen];
     for (int i = 0; i < numPages; i++) {
       PageId id = new PageId(i, 0);
-      mCacheManager.put(id, smallPage);
+      assertTrue(mCacheManager.put(id, smallPage));
     }
     for (int i = 0; i < numPages; i++) {
       PageId id = new PageId(i, 0);
@@ -121,7 +121,7 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
-  public void evictSmallPages() throws Exception {
+  public void evictSmallPageByPutSmallPage() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
     int smallPageLen = 8;
@@ -129,10 +129,10 @@ public final class LocalCacheManagerTest {
     byte[] smallPage = new byte[smallPageLen];
     for (int i = 0; i < numPages; i++) {
       PageId id = new PageId(i, 0);
-      mCacheManager.put(id, smallPage);
+      assertTrue(mCacheManager.put(id, smallPage));
     }
     // this should trigger evicting the first page (by FIFO)
-    mCacheManager.put(new PageId(numPages, 0), smallPage);
+    assertTrue(mCacheManager.put(new PageId(numPages, 0), smallPage));
     for (int i = 0; i < numPages; i++) {
       PageId id = new PageId(i, 0);
       if (i == 0) {
@@ -144,12 +144,48 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
+  public void evictSmallPagesByPutPigPage() throws Exception {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
+    int smallPageLen = 8;
+    long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
+    byte[] smallPage = BufferUtils.getIncreasingByteArray(smallPageLen);
+    for (int i = 0; i < numPages; i++) {
+      PageId id = new PageId(i, 0);
+      assertTrue(mCacheManager.put(id, smallPage));
+    }
+    byte[] bigPage = BufferUtils.getIncreasingByteArray(PAGE_SIZE_BYTES);
+    PageId bigPageId = new PageId(-1, 0);
+    for (int i = 0; i < numPages - 1; i++) {
+      assertFalse(mCacheManager.put(bigPageId, bigPage));
+    }
+    assertTrue(mCacheManager.put(bigPageId, bigPage));
+    assertArrayEquals(bigPage, (byte[]) mPageStore.mStore.get(bigPageId));
+  }
+
+  @Test
+  public void evictBigPagesByPutSmallPage() throws Exception {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
+    byte[] bigPage = BufferUtils.getIncreasingByteArray(PAGE_SIZE_BYTES);
+    PageId bigPageId = new PageId(-1, 0);
+    assertTrue(mCacheManager.put(bigPageId, bigPage));
+    int smallPageLen = 8;
+    long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
+    byte[] smallPage = BufferUtils.getIncreasingByteArray(smallPageLen);
+    for (int i = 0; i < numPages; i++) {
+      PageId id = new PageId(i, 0);
+      assertTrue(mCacheManager.put(id, smallPage));
+    }
+  }
+
+  @Test
   public void putGetPartialPage() throws Exception {
     int[] sizeArray = {1, PAGE_SIZE_BYTES / 2, PAGE_SIZE_BYTES - 1};
     for (int size: sizeArray) {
       PageId pageId = new PageId(3, size);
       byte[] page = BufferUtils.getIncreasingByteArray(size);
-      mCacheManager.put(pageId, page);
+      assertTrue(mCacheManager.put(pageId, page));
       try (ReadableByteChannel ret = mCacheManager.get(pageId)) {
         ByteBuffer buf = ByteBuffer.allocate(PAGE_SIZE_BYTES);
         assertEquals(size, ret.read(buf));
