@@ -62,7 +62,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   @Before
   public void before() throws IOException {
     mContext = FileSystemContext.create(ServerConfiguration.global());
-    mContext.getClientContext().loadConf(mContext.getMasterAddress(), true, true);
+    mContext.getClientContext().loadConfForClient(mContext.getMasterAddress(), true, true);
     mConfSyncHeartbeatThreadName = HeartbeatThread.generateThreadName(
         HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC, mContext.getId());
     updateHash();

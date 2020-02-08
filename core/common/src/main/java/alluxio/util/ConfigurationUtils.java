@@ -504,21 +504,22 @@ public final class ConfigurationUtils {
   }
 
   /**
-   * Loads client scope properties from the property list returned by grpc.
+   * Filters and loads properties contains certain scope from the property list returned by grpc.
    *
    * @param properties the property list returned by grpc
+   * @param scope the scope to filter the received property list
    * @param logMessage a function with key and value as parameter and returns debug log message
    * @return the loaded properties
    */
-  private static Properties loadClientProperties(List<ConfigProperty> properties,
-      BiFunction<PropertyKey, String, String> logMessage) {
+  private static Properties filterAndLoadProperties(List<ConfigProperty> properties,
+      Scope scope, BiFunction<PropertyKey, String, String> logMessage) {
     Properties props = new Properties();
     for (ConfigProperty property : properties) {
       String name = property.getName();
       // TODO(binfan): support propagating unsetting properties from master
       if (PropertyKey.isValid(name) && property.hasValue()) {
         PropertyKey key = PropertyKey.fromString(name);
-        if (!GrpcUtils.contains(key.getScope(), Scope.CLIENT)) {
+        if (!GrpcUtils.contains(key.getScope(), scope)) {
           // Only propagate client properties.
           continue;
         }
@@ -531,26 +532,28 @@ public final class ConfigurationUtils {
   }
 
   /**
-   * Loads the cluster level configuration from the get configuration response, and merges it with
-   * the existing configuration.
+   * Loads the cluster level configuration from the get configuration response,
+   * filters out the configuration for certain scope,
+   * and merges it with the existing configuration.
    *
    * @param response the get configuration RPC response
    * @param conf the existing configuration
+   * @param scope the target scope
    * @return the merged configuration
    */
   public static AlluxioConfiguration getClusterConf(GetConfigurationPResponse response,
-      AlluxioConfiguration conf) {
+      AlluxioConfiguration conf, Scope scope) {
     String clientVersion = conf.get(PropertyKey.VERSION);
-    LOG.debug("Alluxio client (version {}) is trying to load cluster level configurations",
-        clientVersion);
+    LOG.debug("Alluxio {} (version {}) is trying to load cluster level configurations",
+        scope, clientVersion);
     List<alluxio.grpc.ConfigProperty> clusterConfig = response.getClusterConfigsList();
-    Properties clusterProps = loadClientProperties(clusterConfig, (key, value) ->
+    Properties clusterProps = filterAndLoadProperties(clusterConfig, scope, (key, value) ->
         String.format("Loading property: %s (%s) -> %s", key, key.getScope(), value));
     // Check version.
     String clusterVersion = clusterProps.get(PropertyKey.VERSION).toString();
     if (!clientVersion.equals(clusterVersion)) {
-      LOG.warn("Alluxio client version ({}) does not match Alluxio cluster version ({})",
-          clientVersion, clusterVersion);
+      LOG.warn("Alluxio {} version ({}) does not match Alluxio cluster version ({})",
+          scope, clientVersion, clusterVersion);
       clusterProps.remove(PropertyKey.VERSION);
     }
     // Merge conf returned by master as the cluster default into conf object
@@ -559,7 +562,7 @@ public final class ConfigurationUtils {
     // Use the constructor to set cluster defaults as being loaded.
     InstancedConfiguration updatedConf = new InstancedConfiguration(props, true);
     updatedConf.validate();
-    LOG.debug("Alluxio client has loaded cluster level configurations");
+    LOG.debug("Alluxio {} has loaded cluster level configurations", scope);
     return updatedConf;
   }
 
@@ -579,7 +582,7 @@ public final class ConfigurationUtils {
         clientVersion);
     Map<String, AlluxioConfiguration> pathConfs = new HashMap<>();
     response.getPathConfigsMap().forEach((path, conf) -> {
-      Properties props = loadClientProperties(conf.getPropertiesList(),
+      Properties props = filterAndLoadProperties(conf.getPropertiesList(), Scope.CLIENT,
           (key, value) -> String.format("Loading property: %s (%s) -> %s for path %s",
               key, key.getScope(), value, path));
       AlluxioProperties properties = new AlluxioProperties();

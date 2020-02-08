@@ -17,6 +17,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetConfigurationPResponse;
+import alluxio.grpc.Scope;
 import alluxio.security.user.UserState;
 import alluxio.util.ConfigurationUtils;
 
@@ -124,7 +125,7 @@ public class ClientContext {
    * @param loadPathConf whether to load path level configuration
    * @throws AlluxioStatusException
    */
-  public synchronized void loadConf(InetSocketAddress address, boolean loadClusterConf,
+  public synchronized void loadConfForClient(InetSocketAddress address, boolean loadClusterConf,
       boolean loadPathConf) throws AlluxioStatusException {
     AlluxioConfiguration conf = mClusterConf;
     if (!loadClusterConf && !loadPathConf) {
@@ -133,7 +134,7 @@ public class ClientContext {
     GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
         conf, !loadClusterConf, !loadPathConf);
     if (loadClusterConf) {
-      mClusterConf = ConfigurationUtils.getClusterConf(response, conf);
+      mClusterConf = ConfigurationUtils.getClusterConf(response, conf, Scope.CLIENT);
       mClusterConfHash = response.getClusterConfigHash();
     }
     if (loadPathConf) {
@@ -149,9 +150,9 @@ public class ClientContext {
    * @param address meta master address
    * @throws AlluxioStatusException
    */
-  public synchronized void loadConfIfNotLoaded(InetSocketAddress address)
+  public synchronized void loadConfIfNotLoadedForClient(InetSocketAddress address)
       throws AlluxioStatusException {
-    loadConf(address, !mClusterConf.clusterDefaultsLoaded(), !mIsPathConfLoaded);
+    loadConfForClient(address, !mClusterConf.clusterDefaultsLoaded(), !mIsPathConfLoaded);
     mUserState = UserState.Factory.create(mClusterConf, mUserState.getSubject());
   }
 

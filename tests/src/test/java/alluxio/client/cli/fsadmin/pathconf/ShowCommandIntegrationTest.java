@@ -60,7 +60,7 @@ public class ShowCommandIntegrationTest extends AbstractShellIntegrationTest {
     InetSocketAddress address = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
         .getAddress();
     FileSystemContext fsCtx = FileSystemContext.create(ServerConfiguration.global());
-    fsCtx.getClientContext().loadConf(address, true, true);
+    fsCtx.getClientContext().loadConfForClient(address, true, true);
     return (InstancedConfiguration) fsCtx.getClusterConf();
   }
 

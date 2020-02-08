@@ -233,7 +233,7 @@ public final class FileSystemContext implements Closeable {
     if (mMetricsEnabled) {
       try {
         InetSocketAddress masterAddr = masterInquireClient.getPrimaryRpcAddress();
-        mMasterClientContext.loadConf(masterAddr, true, true);
+        mMasterClientContext.loadConfForClient(masterAddr, true, true);
       } catch (UnavailableException e) {
         LOG.error("Failed to get master address during initialization", e);
       } catch (AlluxioStatusException ae) {
@@ -343,7 +343,7 @@ public final class FileSystemContext implements Closeable {
         throw new UnavailableException("Failed to get master address during reinitialization", e);
       }
       try {
-        getClientContext().loadConf(masterAddr, updateClusterConf, updatePathConf);
+        getClientContext().loadConfForClient(masterAddr, updateClusterConf, updatePathConf);
       } catch (AlluxioStatusException e) {
         // Failed to load configuration from meta master, maybe master is being restarted,
         // or their is a temporary network problem, give up reinitialization. The heartbeat thread

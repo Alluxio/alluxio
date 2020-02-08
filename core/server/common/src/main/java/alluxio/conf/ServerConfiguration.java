@@ -13,6 +13,7 @@ package alluxio.conf;
 
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetConfigurationPResponse;
+import alluxio.grpc.Scope;
 import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
@@ -345,13 +346,13 @@ public final class ServerConfiguration {
    *
    * @param address the master address
    */
-  public static synchronized void loadClusterDefaultsIfNotLoaded(InetSocketAddress address)
+  public static synchronized void loadClusterDefaultsIfNotLoadedForWorker(InetSocketAddress address)
       throws AlluxioStatusException {
     if (sConf.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)
         && !sConf.clusterDefaultsLoaded()) {
       GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address, sConf,
           false, true);
-      AlluxioConfiguration conf = ConfigurationUtils.getClusterConf(response, sConf);
+      AlluxioConfiguration conf = ConfigurationUtils.getClusterConf(response, sConf, Scope.WORKER);
       sConf = new InstancedConfiguration(conf.copyProperties(), conf.clusterDefaultsLoaded());
     }
   }
