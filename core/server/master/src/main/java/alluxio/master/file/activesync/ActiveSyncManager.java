@@ -117,6 +117,16 @@ public class ActiveSyncManager implements Journaled {
     mExecutorService =
         Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
   }
+
+  /**
+   * Gets the lock protecting the syncManager.
+   *
+   * @return syncmanager lock
+   */
+  public Lock getSyncManagerLock() {
+    return mSyncManagerLock;
+  }
+
   /**
    * @return true if the given path is a sync point
    */
