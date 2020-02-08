@@ -1761,24 +1761,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("1s")
           .setDescription("How often the  master persistence checker checks persistence status "
               + "for files written using ASYNC_THROUGH")
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_PERSISTENCE_MAX_INTERVAL_MS =
       new Builder(Name.MASTER_PERSISTENCE_MAX_INTERVAL_MS)
           .setDefaultValue("1hr")
           .setDescription("Max wait interval for master persistence checker persistence status "
               + "for files written using ASYNC_THROUGH")
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS =
       new Builder(Name.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)
           .setDefaultValue("1day")
           .setDescription("Total wait time for master persistence checker persistence status "
               + "for files written using ASYNC_THROUGH")
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS =
       new Builder(Name.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS)
           .setDefaultValue("1s")
           .setDescription("How often the master schedules persistence jobs "
               + "for files written using ASYNC_THROUGH")
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_PERSISTENCE_BLACKLIST =
       new Builder(Name.MASTER_PERSISTENCE_BLACKLIST)
@@ -1795,6 +1799,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("1min")
           .setDescription("How often the master runs background process to check replication "
               + "level for files")
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_PRINCIPAL = new Builder(Name.MASTER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio master.")
