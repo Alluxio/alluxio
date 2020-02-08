@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Periodically sync the files for a particular mountpoint.
+ * Periodically sync the files for a particular mount point.
  */
 @NotThreadSafe
 public class ActiveSyncer implements HeartbeatExecutor {

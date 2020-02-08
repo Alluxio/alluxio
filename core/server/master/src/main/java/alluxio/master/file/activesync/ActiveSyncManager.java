@@ -128,6 +128,7 @@ public class ActiveSyncManager implements Journaled {
   }
 
   /**
+   * @param syncPoint the uri to check
    * @return true if the given path is a sync point
    */
   public boolean isSyncPoint(AlluxioURI syncPoint) {
@@ -159,7 +160,6 @@ public class ActiveSyncManager implements Journaled {
   public void start() throws IOException {
     // Initialize UFS states
     for (AlluxioURI syncPoint : mSyncPathList) {
-
       MountTable.Resolution resolution;
       try {
         resolution = mMountTable.resolve(syncPoint);
@@ -275,7 +275,8 @@ public class ActiveSyncManager implements Journaled {
    * @param rpcContext the master rpc or no-op context
    * @param syncPoint sync point to be start
    */
-  public void startSyncAndJournal(RpcContext rpcContext, AlluxioURI syncPoint) throws InvalidPathException {
+  public void startSyncAndJournal(RpcContext rpcContext, AlluxioURI syncPoint)
+      throws InvalidPathException {
     try (LockResource r = new LockResource(mLock)) {
       MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
       long mountId = resolution.getMountId();
@@ -628,7 +629,7 @@ public class ActiveSyncManager implements Journaled {
   }
 
   /**
-   * set the transaction id for a particular mountId.
+   * Set the transaction id for a particular mountId.
    *
    * @param mountId mount id
    * @param txId transaction id
