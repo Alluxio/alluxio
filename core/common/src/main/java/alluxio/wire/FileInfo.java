@@ -685,7 +685,7 @@ public final class FileInfo implements Serializable {
         && mFileBlockInfoList.equals(that.mFileBlockInfoList) && mTtlAction == that.mTtlAction
         && mMountId == that.mMountId && mInAlluxioPercentage == that.mInAlluxioPercentage
         && mUfsFingerprint.equals(that.mUfsFingerprint)
-        && Objects.equal(mFileIdentifier, that.mFileIdentifier)
+        && Objects.equal(getFileIdentifier(), that.getFileIdentifier())
         && Objects.equal(mAcl, that.mAcl)
         && Objects.equal(mDefaultAcl, that.mDefaultAcl)
         && Objects.equal(mMediumTypes, that.mMediumTypes);
@@ -698,7 +698,7 @@ public final class FileInfo implements Serializable {
         mInMemoryPercentage, mLastModificationTimeMs, mLastAccessTimeMs, mTtl, mOwner, mGroup,
         mMode, mReplicationMax, mReplicationMin, mPersistenceState, mMountPoint, mFileBlockInfoList,
         mTtlAction, mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl, mMediumTypes,
-        mFileIdentifier);
+        getFileIdentifier());
   }
 
   @Override
