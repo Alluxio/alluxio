@@ -171,6 +171,8 @@ public class LocalCacheManager implements CacheManager {
           mMetaStore.addPage(pageId, page.length);
         }
       }
+      mEvictor.updateOnDelete(victim);
+      mEvictor.updateOnPut(pageId);
       try {
         mPageStore.delete(victim, victimPageSize);
         mEvictor.updateOnDelete(victim);
