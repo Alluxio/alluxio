@@ -40,11 +40,18 @@ public final class CountCommandTest extends AbstractFileSystemShellTest {
         WritePType.MUST_CACHE, 20);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileB",
         WritePType.MUST_CACHE, 30);
+
+    //count a folders
     mFsShell.run("count", "/testRoot");
     String expected = "";
     String format = "%-25s%-25s%-15s\n";
-    expected += String.format(format, "File Count", "Folder Count", "Total Bytes");
+    expected += String.format(format, "File Count", "Folder Count", "Folder Size");
     expected += String.format(format, 3, 2, 60);
+
+    //count a folders
+    mFsShell.run("count", "-h", "/testRoot");
+    expected += String.format(format, "File Count", "Folder Count", "Folder Size");
+    expected += String.format(format, 3, 2, "60B");
     assertEquals(expected, mOutput.toString());
   }
 }
