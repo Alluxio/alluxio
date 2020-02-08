@@ -40,12 +40,14 @@ import javax.annotation.concurrent.ThreadSafe;
  * unit.
  *
  * Lock hierarchy in this class: All operations must follow this order to operate on pages:
- * <ul>
- * <li>1. Acquire page lock</li>
- * <li>2. Acquire metastore lock mMetaLock</li>
- * <li>3. Release metastore lock mMetaLock</li>
- * <li>4. Release page lock</li>
- * </ul>
+ * <ol>
+ * <li>Acquire corresponding page lock</li>
+ * <li>Acquire metastore lock mMetaLock</li>
+ * <li>Update metastore</li>
+ * <li>Release metastore lock mMetaLock</li>
+ * <li>Update the pagestore and evictor</li>
+ * <li>Release corresponding page lock</li>
+ * </ol>
  */
 @ThreadSafe
 public class LocalCacheManager implements CacheManager {
@@ -117,44 +119,32 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws IOException {
+  public boolean put(PageId pageId, byte[] page) throws IOException {
     PageId victim = null;
-    long victimSize = 0;
-    long pageSize = 0;
+    long victimPageSize = 0;
+    boolean enoughSpace;
+
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.writeLock())) {
-      boolean alreadyCached;
-      boolean needEvict = false;
       try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
-        alreadyCached = mMetaStore.hasPage(pageId);
-        if (alreadyCached) {
-          pageSize = mMetaStore.getPageSize(pageId);
+        if (mMetaStore.hasPage(pageId)) {
+          LOG.debug("{} is already inserted before", pageId);
+          return false;
+        }
+        enoughSpace = mPageStore.bytes() + page.length <= mCacheSize;
+        if (enoughSpace) {
+          mMetaStore.addPage(pageId, page.length);
         } else {
-          needEvict = mPageStore.bytes() + page.length > mCacheSize;
-          if (needEvict) {
-            victim = mEvictor.evict();
-            victimSize = mMetaStore.getPageSize(victim);
-          } else {
-            mMetaStore.addPage(pageId, page.length);
-          }
+          victim = mEvictor.evict();
+          victimPageSize = mMetaStore.getPageSize(victim);
         }
       } catch (PageNotFoundException e) {
         throw new IllegalStateException("we shall not reach here");
       }
-      if (alreadyCached) {
-        try {
-          mPageStore.delete(pageId, pageSize);
-        } catch (PageNotFoundException e) {
-          throw new IllegalStateException(
-              String.format("Page store is missing page %s.", pageId), e);
-        }
-        mEvictor.updateOnPut(pageId);
+      if (enoughSpace) {
         mPageStore.put(pageId, page);
-        return;
-      } else if (!needEvict) {
         mEvictor.updateOnPut(pageId);
-        mPageStore.put(pageId, page);
-        return;
+        return true;
       }
     }
 
@@ -163,12 +153,12 @@ public class LocalCacheManager implements CacheManager {
         LockResource r2 = new LockResource(pageLockPair.getSecond().writeLock())) {
       try (LockResource r3 = new LockResource(mMetaLock.writeLock())) {
         if (mMetaStore.hasPage(pageId)) {
-          LOG.warn("{} is already inserted by a racing thread", pageId);
-          return;
+          LOG.debug("{} is already inserted by a racing thread", pageId);
+          return false;
         }
         if (!mMetaStore.hasPage(victim)) {
-          LOG.warn("{} is already evicted by a racing thread", pageId);
-          return;
+          LOG.debug("{} is already evicted by a racing thread", pageId);
+          return false;
         }
         try {
           mMetaStore.removePage(victim);
@@ -176,17 +166,23 @@ public class LocalCacheManager implements CacheManager {
           throw new IllegalStateException(
               String.format("Page store is missing page %s.", victim), e);
         }
-        mEvictor.updateOnDelete(victim);
-        mMetaStore.addPage(pageId, page.length);
-        mEvictor.updateOnPut(pageId);
+        enoughSpace = mPageStore.bytes() - victimPageSize + page.length <= mCacheSize;
+        if (enoughSpace) {
+          mMetaStore.addPage(pageId, page.length);
+        }
       }
       try {
-        mPageStore.delete(victim, victimSize);
+        mPageStore.delete(victim, victimPageSize);
+        mEvictor.updateOnDelete(victim);
       } catch (PageNotFoundException e) {
         throw new IllegalStateException(String.format("Page store is missing page %s.", victim), e);
       }
-      mPageStore.put(pageId, page);
+      if (enoughSpace) {
+        mPageStore.put(pageId, page);
+        mEvictor.updateOnPut(pageId);
+      }
     }
+    return enoughSpace;
   }
 
   @Override
@@ -208,8 +204,9 @@ public class LocalCacheManager implements CacheManager {
       if (!hasPage) {
         return null;
       }
+      ReadableByteChannel ret = mPageStore.get(pageId, pageOffset);
       mEvictor.updateOnGet(pageId);
-      return mPageStore.get(pageId, pageOffset);
+      return ret;
     } catch (PageNotFoundException e) {
       throw new IllegalStateException(
           String.format("Page store is missing page %s.", pageId), e);
@@ -226,6 +223,7 @@ public class LocalCacheManager implements CacheManager {
         mMetaStore.removePage(pageId);
       }
       mPageStore.delete(pageId, pageSize);
+      mEvictor.updateOnDelete(pageId);
     }
   }
 }

@@ -338,9 +338,10 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public void put(PageId pageId, byte[] page) throws IOException {
+    public boolean put(PageId pageId, byte[] page) throws IOException {
       mPages.put(pageId, page);
       mPagesCached++;
+      return true;
     }
 
     @Override
