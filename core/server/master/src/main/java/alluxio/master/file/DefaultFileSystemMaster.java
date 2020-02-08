@@ -116,9 +116,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.TimeSeries;
 import alluxio.proto.journal.File;
-import alluxio.proto.journal.File.AddSyncPointEntry;
 import alluxio.proto.journal.File.NewBlockEntry;
-import alluxio.proto.journal.File.RemoveSyncPointEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAclEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry;
@@ -2689,7 +2687,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     long newMountId = IdUtils.createMountId();
     // lock sync manager to ensure no sync point is added before the mount point is removed
-    try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
+    try (LockResource r = new LockResource(mSyncManager.getLock())) {
       List<AlluxioURI> syncPoints = mSyncManager.getFilterList(mountInfo.getMountId());
       if (syncPoints != null && !syncPoints.isEmpty()) {
         throw new InvalidArgumentException("Updating a mount point with ActiveSync enabled is not"

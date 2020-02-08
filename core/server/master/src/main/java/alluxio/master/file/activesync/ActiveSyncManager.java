@@ -90,7 +90,7 @@ public class ActiveSyncManager implements Journaled {
   // Future == null => NOT_INITIALLY_SYNCED
   private final Map<AlluxioURI, Future<?>> mSyncPathStatus;
   // a lock which protects the above data structures
-  private final Lock mSyncManagerLock;
+  private final Lock mLock;
   // a reference to FSM
   private FileSystemMaster mFileSystemMaster;
   // a local executor service used to launch polling threads
@@ -112,7 +112,7 @@ public class ActiveSyncManager implements Journaled {
     mSyncPathStatus = new ConcurrentHashMap<>();
 
     // A lock used to protect the state stored in the above maps and lists
-    mSyncManagerLock = new ReentrantLock();
+    mLock = new ReentrantLock();
     // Executor Service for active syncing
     mExecutorService =
         Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -123,8 +123,8 @@ public class ActiveSyncManager implements Journaled {
    *
    * @return syncmanager lock
    */
-  public Lock getSyncManagerLock() {
-    return mSyncManagerLock;
+  public Lock getLock() {
+    return mLock;
   }
 
   /**
@@ -292,7 +292,7 @@ public class ActiveSyncManager implements Journaled {
    */
   public void stopSyncAndJournal(RpcContext rpcContext, AlluxioURI syncPoint)
       throws InvalidPathException{
-    try (LockResource r = new LockResource(mSyncManagerLock)) {
+    try (LockResource r = new LockResource(mLock)) {
       MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
       if (resolution == null) {
         throw new InvalidPathException(syncPoint + " is not a sync point.");
@@ -410,7 +410,7 @@ public class ActiveSyncManager implements Journaled {
     AlluxioURI syncPoint = new AlluxioURI(removeSyncPoint.getSyncpointPath());
     long mountId = removeSyncPoint.getMountId();
 
-    try (LockResource r = new LockResource(mSyncManagerLock)) {
+    try (LockResource r = new LockResource(mLock)) {
       LOG.info("SyncPoint stopped {}", syncPoint.getPath());
 
       if (mFilterMap.containsKey(mountId)) {
@@ -627,7 +627,7 @@ public class ActiveSyncManager implements Journaled {
    * @param syncPoint sync point to be start
    */
   public void startSyncAndJournal(RpcContext rpcContext, AlluxioURI syncPoint) throws InvalidPathException {
-    try (LockResource r = new LockResource(mSyncManagerLock)) {
+    try (LockResource r = new LockResource(mLock)) {
       MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
       long mountId = resolution.getMountId();
       try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
