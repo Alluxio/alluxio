@@ -3783,43 +3783,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
     return mSyncManager.getSyncPathList();
   }
 
-  private void startSyncAndJournal(RpcContext rpcContext, AlluxioURI uri)
-      throws InvalidPathException, IOException {
-    try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
-      MountTable.Resolution resolution = mMountTable.resolve(uri);
-      long mountId = resolution.getMountId();
-      try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-        if (!ufsResource.get().supportsActiveSync()) {
-          throw new UnsupportedOperationException(
-              "Active Syncing is not supported on this UFS type: "
-              + ufsResource.get().getUnderFSType());
-        }
-      }
-
-      if (mSyncManager.isActivelySynced(uri)) {
-        throw new InvalidPathException("URI " + uri + " is already a sync point");
-      }
-      AddSyncPointEntry addSyncPoint =
-          AddSyncPointEntry.newBuilder()
-              .setSyncpointPath(uri.toString())
-              .setMountId(mountId)
-              .build();
-      mSyncManager.applyAndJournal(rpcContext, addSyncPoint);
-      try {
-        mSyncManager.startSyncPostJournal(uri);
-      } catch (Throwable e) {
-        LOG.warn("Start sync failed on {}", uri, e);
-        // revert state;
-        RemoveSyncPointEntry removeSyncPoint =
-            File.RemoveSyncPointEntry.newBuilder()
-                .setSyncpointPath(uri.toString()).build();
-        mSyncManager.applyAndJournal(rpcContext, removeSyncPoint);
-        mSyncManager.recoverFromStartSync(uri, resolution.getMountId());
-        throw e;
-      }
-    }
-  }
-
   @Override
   public void startSync(AlluxioURI syncPoint)
       throws IOException, InvalidPathException, AccessControlException, ConnectionFailedException {
@@ -3836,7 +3799,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         auditContext.setAllowed(false);
         throw e;
       }
-      startSyncAndJournal(rpcContext, syncPoint);
+      mSyncManager.startSyncAndJournal(rpcContext, syncPoint);
       auditContext.setSucceeded(true);
     }
   }

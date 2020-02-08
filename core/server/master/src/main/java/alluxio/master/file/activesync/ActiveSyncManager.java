@@ -60,7 +60,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -118,6 +117,12 @@ public class ActiveSyncManager implements Journaled {
     mExecutorService =
         Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
   }
+  /**
+   * @return true if the given path is a sync point
+   */
+  public boolean isSyncPoint(AlluxioURI syncPoint) {
+    return mSyncPathList.contains(syncPoint);
+  }
 
   /**
    * Check if a URI is actively synced.
@@ -125,7 +130,7 @@ public class ActiveSyncManager implements Journaled {
    * @param path path to check
    * @return true if a URI is being actively synced
    */
-  public boolean isActivelySynced(AlluxioURI path) {
+  public boolean isUnderSyncPoint(AlluxioURI path) {
     for (AlluxioURI syncedPath : mSyncPathList) {
       try {
         if (PathUtils.hasPrefix(path.getPath(), syncedPath.getPath())) {
@@ -136,15 +141,6 @@ public class ActiveSyncManager implements Journaled {
       }
     }
     return false;
-  }
-
-  /**
-   * Gets the lock protecting the syncManager.
-   *
-   * @return syncmanager lock
-   */
-  public Lock getSyncManagerLock() {
-    return mSyncManagerLock;
   }
 
   /**
@@ -276,14 +272,6 @@ public class ActiveSyncManager implements Journaled {
         stopSyncAndJournal(RpcContext.NOOP, uri);
       }
     }
-  }
-
-  /**
-   * @return true if the given path is a sync point
-   */
-  @Nullable
-  public boolean isSyncPoint(AlluxioURI syncPoint) {
-    return mSyncPathList.contains(syncPoint);
   }
 
   /**
@@ -454,7 +442,7 @@ public class ActiveSyncManager implements Journaled {
    * @param syncPoint the sync point to stop
    * @throws InvalidPathException
    */
-  public void stopSyncInternal(AlluxioURI syncPoint) throws InvalidPathException {
+  private void stopSyncInternal(AlluxioURI syncPoint) throws InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
     long mountId = resolution.getMountId();
     // Remove initial sync thread
@@ -623,11 +611,53 @@ public class ActiveSyncManager implements Journaled {
   }
 
   /**
+   * Start active sync on a URI and journal the add entry.
+   *
+   * @param rpcContext the master rpc or no-op context
+   * @param syncPoint sync point to be start
+   */
+  public void startSyncAndJournal(RpcContext rpcContext, AlluxioURI syncPoint) throws InvalidPathException {
+    try (LockResource r = new LockResource(mSyncManagerLock)) {
+      MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
+      long mountId = resolution.getMountId();
+      try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+        if (!ufsResource.get().supportsActiveSync()) {
+          throw new UnsupportedOperationException(
+              "Active Syncing is not supported on this UFS type: "
+                  + ufsResource.get().getUnderFSType());
+        }
+      }
+
+      if (isUnderSyncPoint(syncPoint)) {
+        throw new InvalidPathException("URI " + syncPoint + " is already a sync point");
+      }
+      AddSyncPointEntry addSyncPoint =
+          AddSyncPointEntry.newBuilder()
+              .setSyncpointPath(syncPoint.toString())
+              .setMountId(mountId)
+              .build();
+      applyAndJournal(rpcContext, addSyncPoint);
+      try {
+        startSyncInternal(syncPoint);
+      } catch (Throwable e) {
+        LOG.warn("Start sync failed on {}", syncPoint, e);
+        // revert state;
+        RemoveSyncPointEntry removeSyncPoint =
+            File.RemoveSyncPointEntry.newBuilder()
+                .setSyncpointPath(syncPoint.toString()).build();
+        applyAndJournal(rpcContext, removeSyncPoint);
+        recoverFromStartSync(syncPoint, resolution.getMountId());
+        throw e;
+      }
+    }
+  }
+
+  /**
    * Continue to start sync after we have journaled the operation.
    *
    * @param uri the sync point that we are trying to start
    */
-  public void startSyncPostJournal(AlluxioURI uri) throws InvalidPathException {
+  private void startSyncInternal(AlluxioURI uri) throws InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(uri);
     startInitSync(uri, resolution);
     launchPollingThread(resolution.getMountId(), SyncInfo.INVALID_TXID);
