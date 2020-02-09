@@ -23,12 +23,11 @@ import org.junit.rules.ExpectedException;
  * Tests for the {@link DefaultMetaStore} class.
  */
 public final class DefaultMetaStoreTest {
-  private static final int PAGE_SIZE = 1024;
-
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
   private final PageId mPage = new PageId(1L, 2L);
+  private final PageInfo mPageInfo = new PageInfo(mPage, 1024);
   private DefaultMetaStore mMetaStore;
 
   /**
@@ -41,20 +40,20 @@ public final class DefaultMetaStoreTest {
 
   @Test
   public void addNew() {
-    mMetaStore.addPage(mPage, PAGE_SIZE);
+    mMetaStore.addPage(mPage, mPageInfo);
     Assert.assertTrue(mMetaStore.hasPage(mPage));
   }
 
   @Test
   public void addExist() {
-    mMetaStore.addPage(mPage, PAGE_SIZE);
-    mMetaStore.addPage(mPage, PAGE_SIZE);
+    mMetaStore.addPage(mPage, mPageInfo);
+    mMetaStore.addPage(mPage, mPageInfo);
     Assert.assertTrue(mMetaStore.hasPage(mPage));
   }
 
   @Test
   public void removeExist() throws Exception {
-    mMetaStore.addPage(mPage, PAGE_SIZE);
+    mMetaStore.addPage(mPage, mPageInfo);
     Assert.assertTrue(mMetaStore.hasPage(mPage));
     mMetaStore.removePage(mPage);
     Assert.assertFalse(mMetaStore.hasPage(mPage));
@@ -69,19 +68,19 @@ public final class DefaultMetaStoreTest {
   @Test
   public void hasPage() {
     Assert.assertFalse(mMetaStore.hasPage(mPage));
-    mMetaStore.addPage(mPage, PAGE_SIZE);
+    mMetaStore.addPage(mPage, mPageInfo);
     Assert.assertTrue(mMetaStore.hasPage(mPage));
   }
 
   @Test
-  public void getPageSize() throws Exception {
-    mMetaStore.addPage(mPage, PAGE_SIZE);
-    Assert.assertEquals(PAGE_SIZE, mMetaStore.getPageSize(mPage));
+  public void getPageInfo() throws Exception {
+    mMetaStore.addPage(mPage, mPageInfo);
+    Assert.assertEquals(mPageInfo, mMetaStore.getPageInfo(mPage));
   }
 
   @Test
-  public void getPageSizeNotExist() throws Exception {
+  public void getPageInfoNotExist() throws Exception {
     mThrown.expect(PageNotFoundException.class);
-    mMetaStore.getPageSize(mPage);
+    mMetaStore.getPageInfo(mPage);
   }
 }

@@ -35,15 +35,15 @@ public interface MetaStore {
    * Adds a new page to the cache.
    *
    * @param pageId page identifier
-   * @param pageSize page size in bytes
+   * @param pageInfo info of the page
    */
-  void addPage(PageId pageId, long pageSize);
+  void addPage(PageId pageId, PageInfo pageInfo);
 
   /**
    * @param pageId page identifier
-   * @return page size in bytes
+   * @return page info
    */
-  long getPageSize(PageId pageId) throws PageNotFoundException;
+  PageInfo getPageInfo(PageId pageId) throws PageNotFoundException;
 
   /**
    * Removes a page.

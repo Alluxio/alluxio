@@ -184,5 +184,5 @@ public interface PageStore extends AutoCloseable {
    * @return collection of ids representing all pages loaded from disk
    * @throws IOException if any error occurs
    */
-  Collection<PageId> getPages() throws IOException;
+  Collection<PageInfo> getPages() throws IOException;
 }

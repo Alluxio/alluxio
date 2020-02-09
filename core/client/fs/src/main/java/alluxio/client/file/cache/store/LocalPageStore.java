@@ -12,6 +12,7 @@
 package alluxio.client.file.cache.store;
 
 import alluxio.client.file.cache.PageId;
+import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
 
@@ -29,10 +30,10 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -78,7 +79,7 @@ public class LocalPageStore implements PageStore {
             mSize.incrementAndGet();
             return false;
           });
-      if (invalidPage || (long) mSize.get() * mPageSize > options.getCacheSize()) {
+      if (invalidPage || mSize.get() * mPageSize > options.getCacheSize()) {
         LOG.warn("Cannot recover from cached data: {}",
             invalidPage ? "Invalid page file found" : "Cached data size exceeded configured value");
         FileUtils.cleanDirectory(new File(mRoot));
@@ -170,6 +171,26 @@ public class LocalPageStore implements PageStore {
     }
   }
 
+  /**
+   * @param path path of a file
+   * @return the corresponding page info for the file otherwise null
+   */
+  @Nullable
+  private PageInfo getPageInfo(Path path) {
+    PageId pageId = getPageId(path);
+    long pageSize;
+    if (pageId == null) {
+      return null;
+    }
+    try {
+      pageSize = Files.size(path);
+    } catch (IOException e) {
+      LOG.error("Failed to get file size for " + path, e);
+      return null;
+    }
+    return new PageInfo(pageId, pageSize);
+  }
+
   @Override
   public void close() {
     // no-op
@@ -186,7 +207,7 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public Collection<PageId> getPages() throws IOException {
+  public Collection<PageInfo> getPages() throws IOException {
     Path rootDir = Paths.get(mRoot);
     if (!Files.exists(rootDir)) {
       return Collections.emptyList();
@@ -194,7 +215,7 @@ public class LocalPageStore implements PageStore {
     try (Stream<Path> stream = Files.walk(rootDir)) {
       return stream
           .filter(Files::isRegularFile)
-          .map(this::getPageId)
+          .map(this::getPageInfo)
           .filter(Objects::nonNull)
           .collect(Collectors.toList());
     }

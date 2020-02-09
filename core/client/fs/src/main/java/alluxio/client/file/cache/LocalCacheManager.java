@@ -75,10 +75,11 @@ public class LocalCacheManager implements CacheManager {
     CacheEvictor evictor = CacheEvictor.create(conf);
     PageStore pageStore = PageStore.create(conf);
     try {
-      Collection<PageId> pages = pageStore.getPages();
-      for (PageId page : pages) {
-        metaStore.addPage(page, 0); //fixme
-        evictor.updateOnPut(page);
+      Collection<PageInfo> pageInfos = pageStore.getPages();
+      for (PageInfo pageInfo : pageInfos) {
+        PageId pageId = pageInfo.getPageId();
+        metaStore.addPage(pageId, pageInfo);
+        evictor.updateOnPut(pageId);
       }
       return new LocalCacheManager(conf, metaStore, pageStore, evictor);
     } catch (Exception e) {
@@ -140,7 +141,7 @@ public class LocalCacheManager implements CacheManager {
   @Override
   public boolean put(PageId pageId, byte[] page) throws IOException {
     PageId victim = null;
-    long victimPageSize = 0;
+    PageInfo victimPageInfo = null;
     boolean enoughSpace;
 
     ReadWriteLock pageLock = getPageLock(pageId);
@@ -152,10 +153,10 @@ public class LocalCacheManager implements CacheManager {
         }
         enoughSpace = mPageStore.bytes() + page.length <= mCacheSize;
         if (enoughSpace) {
-          mMetaStore.addPage(pageId, page.length);
+          mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
         } else {
           victim = mEvictor.evict();
-          victimPageSize = mMetaStore.getPageSize(victim);
+          victimPageInfo = mMetaStore.getPageInfo(victim);
         }
       } catch (PageNotFoundException e) {
         throw new IllegalStateException("we shall not reach here");
@@ -185,13 +186,13 @@ public class LocalCacheManager implements CacheManager {
           throw new IllegalStateException(
               String.format("Page store is missing page %s.", victim), e);
         }
-        enoughSpace = mPageStore.bytes() - victimPageSize + page.length <= mCacheSize;
+        enoughSpace = mPageStore.bytes() - victimPageInfo.getPageSize() + page.length <= mCacheSize;
         if (enoughSpace) {
-          mMetaStore.addPage(pageId, page.length);
+          mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
         }
       }
       try {
-        mPageStore.delete(victim, victimPageSize);
+        mPageStore.delete(victim, victimPageInfo.getPageSize());
         mEvictor.updateOnDelete(victim);
       } catch (PageNotFoundException e) {
         throw new IllegalStateException(String.format("Page store is missing page %s.", victim), e);
@@ -235,13 +236,13 @@ public class LocalCacheManager implements CacheManager {
   @Override
   public void delete(PageId pageId) throws IOException, PageNotFoundException {
     ReadWriteLock pageLock = getPageLock(pageId);
-    long pageSize = 0;
+    PageInfo pageInfo;
     try (LockResource r = new LockResource(pageLock.writeLock())) {
       try (LockResource r1 = new LockResource(mMetaLock.writeLock())) {
-        pageSize = mMetaStore.getPageSize(pageId);
+        pageInfo = mMetaStore.getPageInfo(pageId);
         mMetaStore.removePage(pageId);
       }
-      mPageStore.delete(pageId, pageSize);
+      mPageStore.delete(pageId, pageInfo.getPageSize());
       mEvictor.updateOnDelete(pageId);
     }
   }

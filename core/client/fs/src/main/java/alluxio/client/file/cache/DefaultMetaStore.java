@@ -20,8 +20,8 @@ import java.util.Map;
  * The default implementation of a metadata store for pages stored in cache.
  */
 public class DefaultMetaStore implements MetaStore {
-  /** A map from PageId to page size. */
-  private final Map<PageId, Long> mPageMap = new HashMap<>();
+  /** A map from PageId to page info. */
+  private final Map<PageId, PageInfo> mPageMap = new HashMap<>();
 
   @Override
   public boolean hasPage(PageId pageId) {
@@ -29,12 +29,12 @@ public class DefaultMetaStore implements MetaStore {
   }
 
   @Override
-  public void addPage(PageId pageId, long pageSize) {
-    mPageMap.put(pageId, pageSize);
+  public void addPage(PageId pageId, PageInfo pageInfo) {
+    mPageMap.put(pageId, pageInfo);
   }
 
   @Override
-  public long getPageSize(PageId pageId) throws PageNotFoundException {
+  public PageInfo getPageInfo(PageId pageId) throws PageNotFoundException {
     if (!mPageMap.containsKey(pageId)) {
       throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }

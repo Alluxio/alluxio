@@ -12,6 +12,7 @@
 package alluxio.client.file.cache.store;
 
 import alluxio.client.file.cache.PageId;
+import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
 import alluxio.proto.client.Cache;
@@ -32,9 +33,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -178,15 +179,15 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public Collection<PageId> getPages() {
+  public Collection<PageInfo> getPages() {
     try (RocksIterator iter = mDb.newIterator()) {
       return Streams.stream(new PageIterator(iter)).collect(Collectors.toList());
     }
   }
 
-  private class PageIterator implements Iterator<PageId>, AutoCloseable {
+  private class PageIterator implements Iterator<PageInfo>, AutoCloseable {
     private final RocksIterator mIter;
-    private PageId mValue;
+    private PageInfo mValue;
 
     PageIterator(RocksIterator iter) {
       mIter = iter;
@@ -199,20 +200,21 @@ public class RocksPageStore implements PageStore {
     }
 
     @Override
-    public PageId next() {
-      PageId value = ensureValue();
+    public PageInfo next() {
+      PageInfo value = ensureValue();
       mIter.next();
       mValue = null;
       return value;
     }
 
     @Nullable
-    private PageId ensureValue() {
+    private PageInfo ensureValue() {
       if (mValue == null) {
         for (; mIter.isValid(); mIter.next()) {
           PageId id = getPageIdFromKey(mIter.key());
+          long size = mIter.value().length;
           if (id != null) {
-            mValue = id;
+            mValue = new PageInfo(id, size);
             break;
           }
         }
