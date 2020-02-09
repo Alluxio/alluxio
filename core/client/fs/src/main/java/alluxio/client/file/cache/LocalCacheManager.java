@@ -77,7 +77,7 @@ public class LocalCacheManager implements CacheManager {
     try {
       Collection<PageId> pages = pageStore.getPages();
       for (PageId page : pages) {
-        metaStore.addPage(page);
+        metaStore.addPage(page, 0); //fixme
         evictor.updateOnPut(page);
       }
       return new LocalCacheManager(conf, metaStore, pageStore, evictor);

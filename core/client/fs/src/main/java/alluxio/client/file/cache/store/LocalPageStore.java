@@ -30,7 +30,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -169,6 +168,11 @@ public class LocalPageStore implements PageStore {
     } catch (NumberFormatException e) {
       return null;
     }
+  }
+
+  @Override
+  public void close() {
+    // no-op
   }
 
   @Override

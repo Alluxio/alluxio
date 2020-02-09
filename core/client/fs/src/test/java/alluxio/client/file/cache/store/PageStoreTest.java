@@ -11,7 +11,7 @@
 
 package alluxio.client.file.cache.store;
 
-import static alluxio.client.file.cache.store.RocksPageStore.KEY_LENGTH;
+import static alluxio.client.file.cache.store.RocksPageStore.KEY_LEN;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -161,7 +161,7 @@ public class PageStoreTest {
       if (mOptions.getType() == PageStoreType.LOCAL) {
         totalBytes += i;
       } else {
-        totalBytes += KEY_LENGTH + i;
+        totalBytes += KEY_LEN + i;
       }
       assertEquals(i, mPageStore.pages());
       assertEquals(totalBytes, mPageStore.bytes());
@@ -172,7 +172,7 @@ public class PageStoreTest {
       if (mOptions.getType() == PageStoreType.LOCAL) {
         totalBytes -= i;
       } else {
-        totalBytes -= KEY_LENGTH + i;
+        totalBytes -= KEY_LEN + i;
       }
       assertEquals(i - 1, mPageStore.pages());
       assertEquals(totalBytes, mPageStore.bytes());

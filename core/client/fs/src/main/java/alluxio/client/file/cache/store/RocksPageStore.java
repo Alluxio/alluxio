@@ -46,7 +46,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class RocksPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
-  private static final int KEY_LEN = 16;
+  public static final int KEY_LEN = Long.BYTES * 2;
   private static final byte[] CONF_KEY = "CONF".getBytes();
 
   private final String mRoot;
