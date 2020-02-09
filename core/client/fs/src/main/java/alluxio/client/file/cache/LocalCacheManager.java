@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Collection;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -67,9 +68,27 @@ public class LocalCacheManager implements CacheManager {
 
   /**
    * @param conf the Alluxio configuration
+   * @return an instance of {@link LocalCacheManager}
    */
-  public LocalCacheManager(AlluxioConfiguration conf) {
-    this(conf, MetaStore.create(), PageStore.create(conf), CacheEvictor.create(conf));
+  public static LocalCacheManager create(AlluxioConfiguration conf) throws IOException {
+    MetaStore metaStore = MetaStore.create();
+    CacheEvictor evictor = CacheEvictor.create(conf);
+    PageStore pageStore = PageStore.create(conf);
+    try {
+      Collection<PageId> pages = pageStore.getPages();
+      for (PageId page : pages) {
+        metaStore.addPage(page);
+        evictor.updateOnPut(page);
+      }
+      return new LocalCacheManager(conf, metaStore, pageStore, evictor);
+    } catch (Exception e) {
+      try {
+        pageStore.close();
+      } catch (Exception ex) {
+        e.addSuppressed(ex);
+      }
+      throw new IOException("failed to create local cache manager", e);
+    }
   }
 
   /**
@@ -225,5 +244,10 @@ public class LocalCacheManager implements CacheManager {
       mPageStore.delete(pageId, pageSize);
       mEvictor.updateOnDelete(pageId);
     }
+  }
+
+  @Override
+  public void close() throws Exception {
+    mPageStore.close();
   }
 }

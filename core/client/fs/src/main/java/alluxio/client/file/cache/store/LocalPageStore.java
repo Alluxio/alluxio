@@ -30,7 +30,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -44,14 +53,41 @@ public class LocalPageStore implements PageStore {
   private final String mRoot;
   private final AtomicLong mSize = new AtomicLong(0);
   private final AtomicLong mBytes = new AtomicLong(0);
+  private final long mPageSize;
+  private final Pattern mPagePattern;
 
   /**
    * Creates a new instance of {@link LocalPageStore}.
    *
    * @param options options for the local page store
+   * @throws IOException when fails to create a {@link LocalPageStore}
    */
-  public LocalPageStore(LocalPageStoreOptions options) {
+  public LocalPageStore(LocalPageStoreOptions options) throws IOException {
     mRoot = options.getRootDir();
+    mPageSize = options.getPageSize();
+    Path rootDir = Paths.get(mRoot);
+    mPagePattern = Pattern.compile(
+        String.format("%s/%d/(\\d+)/(\\d+)", Pattern.quote(rootDir.toString()), mPageSize));
+    try {
+      boolean invalidPage = Files.exists(rootDir) && Files.walk(rootDir)
+          .filter(Files::isRegularFile)
+          .anyMatch(path -> {
+            if (getPageId(path) == null) {
+              LOG.warn("Invalid page path {}", path);
+              return true;
+            }
+            mSize.incrementAndGet();
+            return false;
+          });
+      if (invalidPage || (long) mSize.get() * mPageSize > options.getCacheSize()) {
+        LOG.warn("Cannot recover from cached data: {}",
+            invalidPage ? "Invalid page file found" : "Cached data size exceeded configured value");
+        FileUtils.cleanDirectory(new File(mRoot));
+        mSize.set(0);
+      }
+    } catch (IOException e) {
+      throw new IOException(String.format("can't initialize page store at %s", mRoot), e);
+    }
   }
 
   @Override
@@ -110,16 +146,28 @@ public class LocalPageStore implements PageStore {
   }
 
   private Path getFilePath(PageId pageId) {
-    return Paths.get(mRoot, Long.toString(pageId.getFileId()),
+    return Paths.get(mRoot, Long.toString(mPageSize), Long.toString(pageId.getFileId()),
         Long.toString(pageId.getPageIndex()));
   }
 
-  @Override
-  public void close() {
+  /**
+   * @param path path of a file
+   * @return the corresponding page id, or null if the file name does not match the pattern
+   */
+  @Nullable
+  private PageId getPageId(Path path) {
+    Matcher matcher = mPagePattern.matcher(path.toString());
+    if (!matcher.matches()) {
+      return null;
+    }
     try {
-      FileUtils.deleteDirectory(new File(mRoot));
-    } catch (IOException e) {
-      LOG.warn("Failed to clean up local page store directory", e);
+      String parentName = Preconditions.checkNotNull(matcher.group(1));
+      String fileName = Preconditions.checkNotNull(matcher.group(2));
+      long fileId = Long.parseLong(parentName);
+      long pageIndex = Long.parseLong(fileName);
+      return new PageId(fileId, pageIndex);
+    } catch (NumberFormatException e) {
+      return null;
     }
   }
 
@@ -131,5 +179,20 @@ public class LocalPageStore implements PageStore {
   @Override
   public long bytes() {
     return mBytes.get();
+  }
+
+  @Override
+  public Collection<PageId> getPages() throws IOException {
+    Path rootDir = Paths.get(mRoot);
+    if (!Files.exists(rootDir)) {
+      return Collections.emptyList();
+    }
+    try (Stream<Path> stream = Files.walk(rootDir)) {
+      return stream
+          .filter(Files::isRegularFile)
+          .map(this::getPageId)
+          .filter(Objects::nonNull)
+          .collect(Collectors.toList());
+    }
   }
 }

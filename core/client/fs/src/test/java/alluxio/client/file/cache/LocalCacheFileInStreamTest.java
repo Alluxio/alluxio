@@ -367,6 +367,11 @@ public class LocalCacheFileInStreamTest {
     public void delete(PageId pageId) throws IOException {
       mPages.remove(pageId);
     }
+
+    @Override
+    public void close() throws Exception {
+      // no-op
+    }
   }
 
   /**

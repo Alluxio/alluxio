@@ -22,13 +22,14 @@ import javax.annotation.Nullable;
 /**
  * Interface for managing cached pages.
  */
-public interface CacheManager {
+public interface CacheManager extends AutoCloseable  {
   /**
    * @param conf the Alluxio configuration
    * @return an instance of {@link CacheManager}
    */
-  static CacheManager create(AlluxioConfiguration conf) {
-    return new LocalCacheManager(conf);
+  static CacheManager create(AlluxioConfiguration conf) throws IOException {
+    // TODO(feng): make cache manager type configurable when we introduce more implementations.
+    return LocalCacheManager.create(conf);
   }
 
   /**

@@ -62,7 +62,7 @@ public final class LocalCacheManagerTest {
   public final ExpectedException mThrown = ExpectedException.none();
 
   @Before
-  public void before() {
+  public void before() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getAbsolutePath());
