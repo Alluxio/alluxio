@@ -19,6 +19,7 @@ import static org.junit.Assert.fail;
 import alluxio.Constants;
 import alluxio.ProjectConstants;
 import alluxio.client.file.cache.PageId;
+import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
 import alluxio.util.io.BufferUtils;
@@ -137,11 +138,11 @@ public class PageStoreTest {
     int len = 32;
     int count = 16;
     byte[] data = BufferUtils.getIncreasingByteArray(len);
-    Set<PageId> pages = new HashSet<>(count);
+    Set<PageInfo> pages = new HashSet<>(count);
     for (int i = 0; i < count; i++) {
       PageId id = new PageId(0, i);
       mPageStore.put(id, data);
-      pages.add(id);
+      pages.add(new PageInfo(id, data.length));
     }
     mPageStore.close();
     try (PageStore store = PageStore.create(mOptions)) {
