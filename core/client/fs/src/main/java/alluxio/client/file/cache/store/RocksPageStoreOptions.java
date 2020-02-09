@@ -12,6 +12,8 @@
 package alluxio.client.file.cache.store;
 
 import alluxio.Constants;
+import alluxio.proto.client.Cache.PRocksPageStoreOptions;
+import alluxio.proto.client.Cache.PPageStoreCommonOptions;
 
 import org.rocksdb.CompressionType;
 
@@ -109,5 +111,18 @@ public class RocksPageStoreOptions extends PageStoreOptions {
   @Override
   public PageStoreType getType() {
     return PageStoreType.ROCKS;
+  }
+
+  /**
+   * @return protobuf representation of the options
+   */
+  public PRocksPageStoreOptions toProto() {
+    return PRocksPageStoreOptions.newBuilder()
+        .setCommonOptions(PPageStoreCommonOptions.newBuilder()
+            .setPageSize(getPageSize())
+            .setCacheSize(getCacheSize())
+            .setAlluxioVersion(getAlluxioVersion())
+        )
+        .build();
   }
 }

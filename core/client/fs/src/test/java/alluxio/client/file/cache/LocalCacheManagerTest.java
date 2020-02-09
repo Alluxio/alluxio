@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -232,6 +233,11 @@ public final class LocalCacheManagerTest {
     @Override
     public int size() {
       return mStore.size();
+    }
+
+    @Override
+    public Collection<PageId> getPages() {
+      return mStore.keySet();
     }
   }
 
