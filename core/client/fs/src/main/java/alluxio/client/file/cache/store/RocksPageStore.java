@@ -80,6 +80,7 @@ public class RocksPageStore implements PageStore {
         if (persistedOptions.equals(pOptions)) {
           try (RocksIterator iter = db.newIterator()) {
             mSize.set((int) Streams.stream(new PageIterator(iter)).count());
+            // fix bytes
           }
         } else {
           db.close();

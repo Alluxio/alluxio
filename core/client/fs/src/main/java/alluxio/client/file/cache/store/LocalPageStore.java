@@ -76,14 +76,20 @@ public class LocalPageStore implements PageStore {
               LOG.warn("Invalid page path {}", path);
               return true;
             }
+            try {
+              mBytes.getAndAdd(Files.size(path));
+            } catch (IOException e) {
+              LOG.warn("Fail to get file size {}", e.toString());
+            }
             mSize.incrementAndGet();
             return false;
           });
-      if (invalidPage || mSize.get() * mPageSize > options.getCacheSize()) {
+      if (invalidPage || mBytes.get() > options.getCacheSize()) {
         LOG.warn("Cannot recover from cached data: {}",
             invalidPage ? "Invalid page file found" : "Cached data size exceeded configured value");
         FileUtils.cleanDirectory(new File(mRoot));
         mSize.set(0);
+        mBytes.set(0);
       }
     } catch (IOException e) {
       throw new IOException(String.format("can't initialize page store at %s", mRoot), e);
