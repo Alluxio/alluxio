@@ -32,7 +32,7 @@ import java.time.format.DateTimeFormatter;
 /**
  * Command to probe Alluxio metrics for a few times.
  * */
-public class CollectMetricsCommand extends AbstractInfoCollectorCommand {
+public class CollectMetricsCommand extends AbstractCollectInfoCommand {
   public static final String COMMAND_NAME = "collectMetrics";
   private static final Logger LOG = LoggerFactory.getLogger(CollectMetricsCommand.class);
   private static final int COLLECT_METRICS_INTERVAL = 3 * 1000;

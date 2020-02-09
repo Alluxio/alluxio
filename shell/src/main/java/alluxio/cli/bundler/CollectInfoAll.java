@@ -35,7 +35,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -51,8 +51,7 @@ import java.util.stream.Collectors;
  */
 public class CollectInfoAll extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(CollectInfoAll.class);
-  private static final String TEMP_DIR_NAME = "putAllRemoteTarballs";
-  private static final String FINAL_TARBALL_NAME =  "alluxio-cluster-info-{timestamp}.tar.gz";
+  private static final String FINAL_TARBALL_NAME =  "alluxio-cluster-info-%s.tar.gz";
 
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.of();
 
@@ -157,9 +156,7 @@ public class CollectInfoAll extends AbstractShell {
 
     // Inspect all command results
     if (results.size() != allHosts.size()) {
-      System.out.format(
-              "Error occurred while collection information on the following hosts: "
-                      + "Failed to collect %d/%d results",
+      System.out.format("Error occurred while collecting information on %d/%d hosts",
               allHosts.size() - results.size());
     } else {
       int successCnt = 0;
@@ -254,6 +251,6 @@ public class CollectInfoAll extends AbstractShell {
   protected Map<String, Command> loadCommands() {
     // We do not load any commands here.
     // All calls will be delegated to CollectInfo local calls on each host.
-    return new HashMap<>();
+    return Collections.EMPTY_MAP;
   }
 }

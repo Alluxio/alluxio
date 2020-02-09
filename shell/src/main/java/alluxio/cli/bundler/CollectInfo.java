@@ -14,7 +14,7 @@ package alluxio.cli.bundler;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
-import alluxio.cli.bundler.command.AbstractInfoCollectorCommand;
+import alluxio.cli.bundler.command.AbstractCollectInfoCommand;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -25,12 +25,12 @@ import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.lang.ArrayUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -82,15 +82,14 @@ public class CollectInfo extends AbstractShell {
     if (subCommand.equals("all")) {
       // Case 1. Execute "all" commands
       System.out.println("Execute all child commands");
+      String[] childArgs = Arrays.copyOf(argv, argv.length);
       for (Command cmd : shell.getCommands()) {
         System.out.format("Executing %s", cmd.getCommandName());
 
-        // Replace the action with the command to execute
         // TODO(jiacheng): phase 2 handle argv difference?
-        String[] replacementArgv =
-                (String[]) ArrayUtils.addAll(new String[]{cmd.getCommandName()},
-                        ArrayUtils.subarray(argv, 1, argv.length));
-        int childRet = shell.executeAndAddFile(replacementArgv, filesToCollect);
+        // Replace the action with the command to execute
+        childArgs[0] = cmd.getCommandName();
+        int childRet = shell.executeAndAddFile(childArgs, filesToCollect);
 
         // If any of the commands failed, treat as failed
         if (ret == 0 && childRet != 0) {
@@ -124,7 +123,7 @@ public class CollectInfo extends AbstractShell {
     // TODO(jiacheng): phase 2 get targetDirPath from parsed command
     String targetDirPath = argv[1];
 
-    AbstractInfoCollectorCommand cmd = this.findCommand(subCommand);
+    AbstractCollectInfoCommand cmd = this.findCommand(subCommand);
 
     if (cmd == null) {
       // Unknown command (we did not find the cmd in our dict)
@@ -142,10 +141,10 @@ public class CollectInfo extends AbstractShell {
     return ret;
   }
 
-  private AbstractInfoCollectorCommand findCommand(String cmdName) {
+  private AbstractCollectInfoCommand findCommand(String cmdName) {
     for (Command c : this.getCommands()) {
       if (c.getCommandName().equals(cmdName)) {
-        return (AbstractInfoCollectorCommand) c;
+        return (AbstractCollectInfoCommand) c;
       }
     }
     return null;

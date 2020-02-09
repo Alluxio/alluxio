@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Command to collect Alluxio config files.
  * */
-public class CollectConfigCommand extends AbstractInfoCollectorCommand {
+public class CollectConfigCommand extends AbstractCollectInfoCommand {
   public static final String COMMAND_NAME = "collectConfig";
   private static final Logger LOG = LoggerFactory.getLogger(CollectConfigCommand.class);
 

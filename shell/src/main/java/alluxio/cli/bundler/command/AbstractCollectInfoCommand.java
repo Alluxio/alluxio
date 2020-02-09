@@ -27,19 +27,19 @@ import java.nio.file.Paths;
 /**
  * Abstraction of a command under CollectInfo.
  * */
-public abstract class AbstractInfoCollectorCommand implements Command {
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractInfoCollectorCommand.class);
+public abstract class AbstractCollectInfoCommand implements Command {
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractCollectInfoCommand.class);
   private static final String FILE_NAME_SUFFIX = ".txt";
 
   protected FileSystemContext mFsContext;
   protected String mWorkingDirPath;
 
   /**
-   * Creates an instance of {@link AbstractInfoCollectorCommand}.
+   * Creates an instance of {@link AbstractCollectInfoCommand}.
    *
    * @param fsContext {@link FileSystemContext} the context to run in
    * */
-  public AbstractInfoCollectorCommand(FileSystemContext fsContext) {
+  public AbstractCollectInfoCommand(FileSystemContext fsContext) {
     mFsContext = fsContext;
   }
 

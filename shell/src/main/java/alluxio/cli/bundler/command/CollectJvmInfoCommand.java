@@ -34,7 +34,7 @@ import java.util.Map;
 /**
  * Command that collects information about the JVMs.
  * */
-public class CollectJvmInfoCommand extends AbstractInfoCollectorCommand {
+public class CollectJvmInfoCommand extends AbstractCollectInfoCommand {
   public static final String COMMAND_NAME = "collectJvmInfo";
   private static final Logger LOG = LoggerFactory.getLogger(CollectJvmInfoCommand.class);
   private static final int COLLECT_JSTACK_TIMES = 3;

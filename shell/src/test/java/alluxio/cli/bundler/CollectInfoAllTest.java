@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.cli.Command;
-import alluxio.cli.bundler.command.AbstractInfoCollectorCommand;
+import alluxio.cli.bundler.command.AbstractCollectInfoCommand;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.ConfigurationUtils;
@@ -40,7 +40,7 @@ public class CollectInfoAllTest {
 
   private int getNumberOfCommands() {
     Reflections reflections =
-            new Reflections(AbstractInfoCollectorCommand.class.getPackage().getName());
+            new Reflections(AbstractCollectInfoCommand.class.getPackage().getName());
     int cnt = 0;
     for (Class<? extends Command> cls : reflections.getSubTypesOf(Command.class)) {
       if (!Modifier.isAbstract(cls.getModifiers())) {
