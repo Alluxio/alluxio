@@ -336,12 +336,21 @@ public class BaseFileSystem implements FileSystem {
             .setAccessMode(Bits.READ)
             .setUpdateTimestamps(options.getUpdateLastAccessTime())
             .build());
+    return openFile(status, options);
+  }
+
+  @Override
+  public FileInStream openFile(URIStatus status, OpenFilePOptions options)
+      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+      IOException, AlluxioException {
+    AlluxioURI path = new AlluxioURI(status.getPath());
     if (status.isFolder()) {
       throw new OpenDirectoryException(path);
     }
     if (!status.isCompleted()) {
       throw new FileIncompleteException(path);
     }
+    AlluxioConfiguration conf = mFsContext.getPathConf(path);
     OpenFilePOptions mergedOptions = FileSystemOptions.openFileDefaults(conf)
         .toBuilder().mergeFrom(options).build();
     InStreamOptions inStreamOptions = new InStreamOptions(status, mergedOptions, conf);
