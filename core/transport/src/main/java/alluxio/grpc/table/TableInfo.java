@@ -4,6 +4,10 @@
 package alluxio.grpc.table;
 
 /**
+ * <pre>
+ * next available id: 12
+ * </pre>
+ *
  * Protobuf type {@code alluxio.grpc.table.TableInfo}
  */
 public  final class TableInfo extends
@@ -21,6 +25,9 @@ private static final long serialVersionUID = 0L;
     type_ = 0;
     owner_ = "";
     partitionCols_ = java.util.Collections.emptyList();
+    previousVersion_ = 0L;
+    version_ = 0L;
+    versionCreationTime_ = 0L;
   }
 
   @java.lang.Override
@@ -129,6 +136,21 @@ private static final long serialVersionUID = 0L;
             }
             partitionCols_.add(
                 input.readMessage(alluxio.grpc.table.FieldSchema.PARSER, extensionRegistry));
+            break;
+          }
+          case 72: {
+            bitField0_ |= 0x00000040;
+            previousVersion_ = input.readInt64();
+            break;
+          }
+          case 80: {
+            bitField0_ |= 0x00000080;
+            version_ = input.readInt64();
+            break;
+          }
+          case 88: {
+            bitField0_ |= 0x00000100;
+            versionCreationTime_ = input.readInt64();
             break;
           }
         }
@@ -575,6 +597,51 @@ private static final long serialVersionUID = 0L;
     return partitionCols_.get(index);
   }
 
+  public static final int PREVIOUS_VERSION_FIELD_NUMBER = 9;
+  private long previousVersion_;
+  /**
+   * <code>optional int64 previous_version = 9;</code>
+   */
+  public boolean hasPreviousVersion() {
+    return ((bitField0_ & 0x00000040) == 0x00000040);
+  }
+  /**
+   * <code>optional int64 previous_version = 9;</code>
+   */
+  public long getPreviousVersion() {
+    return previousVersion_;
+  }
+
+  public static final int VERSION_FIELD_NUMBER = 10;
+  private long version_;
+  /**
+   * <code>optional int64 version = 10;</code>
+   */
+  public boolean hasVersion() {
+    return ((bitField0_ & 0x00000080) == 0x00000080);
+  }
+  /**
+   * <code>optional int64 version = 10;</code>
+   */
+  public long getVersion() {
+    return version_;
+  }
+
+  public static final int VERSION_CREATION_TIME_FIELD_NUMBER = 11;
+  private long versionCreationTime_;
+  /**
+   * <code>optional int64 version_creation_time = 11;</code>
+   */
+  public boolean hasVersionCreationTime() {
+    return ((bitField0_ & 0x00000100) == 0x00000100);
+  }
+  /**
+   * <code>optional int64 version_creation_time = 11;</code>
+   */
+  public long getVersionCreationTime() {
+    return versionCreationTime_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -620,6 +687,15 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < partitionCols_.size(); i++) {
       output.writeMessage(8, partitionCols_.get(i));
     }
+    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      output.writeInt64(9, previousVersion_);
+    }
+    if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      output.writeInt64(10, version_);
+    }
+    if (((bitField0_ & 0x00000100) == 0x00000100)) {
+      output.writeInt64(11, versionCreationTime_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -662,6 +738,18 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < partitionCols_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(8, partitionCols_.get(i));
+    }
+    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(9, previousVersion_);
+    }
+    if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(10, version_);
+    }
+    if (((bitField0_ & 0x00000100) == 0x00000100)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(11, versionCreationTime_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -712,6 +800,21 @@ private static final long serialVersionUID = 0L;
         other.internalGetParameters());
     result = result && getPartitionColsList()
         .equals(other.getPartitionColsList());
+    result = result && (hasPreviousVersion() == other.hasPreviousVersion());
+    if (hasPreviousVersion()) {
+      result = result && (getPreviousVersion()
+          == other.getPreviousVersion());
+    }
+    result = result && (hasVersion() == other.hasVersion());
+    if (hasVersion()) {
+      result = result && (getVersion()
+          == other.getVersion());
+    }
+    result = result && (hasVersionCreationTime() == other.hasVersionCreationTime());
+    if (hasVersionCreationTime()) {
+      result = result && (getVersionCreationTime()
+          == other.getVersionCreationTime());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -754,6 +857,21 @@ private static final long serialVersionUID = 0L;
     if (getPartitionColsCount() > 0) {
       hash = (37 * hash) + PARTITION_COLS_FIELD_NUMBER;
       hash = (53 * hash) + getPartitionColsList().hashCode();
+    }
+    if (hasPreviousVersion()) {
+      hash = (37 * hash) + PREVIOUS_VERSION_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getPreviousVersion());
+    }
+    if (hasVersion()) {
+      hash = (37 * hash) + VERSION_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getVersion());
+    }
+    if (hasVersionCreationTime()) {
+      hash = (37 * hash) + VERSION_CREATION_TIME_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getVersionCreationTime());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -849,6 +967,10 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   * next available id: 12
+   * </pre>
+   *
    * Protobuf type {@code alluxio.grpc.table.TableInfo}
    */
   public static final class Builder extends
@@ -936,6 +1058,12 @@ private static final long serialVersionUID = 0L;
       } else {
         partitionColsBuilder_.clear();
       }
+      previousVersion_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000100);
+      version_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000200);
+      versionCreationTime_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000400);
       return this;
     }
 
@@ -1003,6 +1131,18 @@ private static final long serialVersionUID = 0L;
       } else {
         result.partitionCols_ = partitionColsBuilder_.build();
       }
+      if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
+        to_bitField0_ |= 0x00000040;
+      }
+      result.previousVersion_ = previousVersion_;
+      if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
+        to_bitField0_ |= 0x00000080;
+      }
+      result.version_ = version_;
+      if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
+        to_bitField0_ |= 0x00000100;
+      }
+      result.versionCreationTime_ = versionCreationTime_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -1096,6 +1236,15 @@ private static final long serialVersionUID = 0L;
             partitionColsBuilder_.addAllMessages(other.partitionCols_);
           }
         }
+      }
+      if (other.hasPreviousVersion()) {
+        setPreviousVersion(other.getPreviousVersion());
+      }
+      if (other.hasVersion()) {
+        setVersion(other.getVersion());
+      }
+      if (other.hasVersionCreationTime()) {
+        setVersionCreationTime(other.getVersionCreationTime());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -2063,6 +2212,102 @@ private static final long serialVersionUID = 0L;
         partitionCols_ = null;
       }
       return partitionColsBuilder_;
+    }
+
+    private long previousVersion_ ;
+    /**
+     * <code>optional int64 previous_version = 9;</code>
+     */
+    public boolean hasPreviousVersion() {
+      return ((bitField0_ & 0x00000100) == 0x00000100);
+    }
+    /**
+     * <code>optional int64 previous_version = 9;</code>
+     */
+    public long getPreviousVersion() {
+      return previousVersion_;
+    }
+    /**
+     * <code>optional int64 previous_version = 9;</code>
+     */
+    public Builder setPreviousVersion(long value) {
+      bitField0_ |= 0x00000100;
+      previousVersion_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 previous_version = 9;</code>
+     */
+    public Builder clearPreviousVersion() {
+      bitField0_ = (bitField0_ & ~0x00000100);
+      previousVersion_ = 0L;
+      onChanged();
+      return this;
+    }
+
+    private long version_ ;
+    /**
+     * <code>optional int64 version = 10;</code>
+     */
+    public boolean hasVersion() {
+      return ((bitField0_ & 0x00000200) == 0x00000200);
+    }
+    /**
+     * <code>optional int64 version = 10;</code>
+     */
+    public long getVersion() {
+      return version_;
+    }
+    /**
+     * <code>optional int64 version = 10;</code>
+     */
+    public Builder setVersion(long value) {
+      bitField0_ |= 0x00000200;
+      version_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 version = 10;</code>
+     */
+    public Builder clearVersion() {
+      bitField0_ = (bitField0_ & ~0x00000200);
+      version_ = 0L;
+      onChanged();
+      return this;
+    }
+
+    private long versionCreationTime_ ;
+    /**
+     * <code>optional int64 version_creation_time = 11;</code>
+     */
+    public boolean hasVersionCreationTime() {
+      return ((bitField0_ & 0x00000400) == 0x00000400);
+    }
+    /**
+     * <code>optional int64 version_creation_time = 11;</code>
+     */
+    public long getVersionCreationTime() {
+      return versionCreationTime_;
+    }
+    /**
+     * <code>optional int64 version_creation_time = 11;</code>
+     */
+    public Builder setVersionCreationTime(long value) {
+      bitField0_ |= 0x00000400;
+      versionCreationTime_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 version_creation_time = 11;</code>
+     */
+    public Builder clearVersionCreationTime() {
+      bitField0_ = (bitField0_ & ~0x00000400);
+      versionCreationTime_ = 0L;
+      onChanged();
+      return this;
     }
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

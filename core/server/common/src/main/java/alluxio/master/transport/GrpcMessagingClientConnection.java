@@ -51,8 +51,8 @@ public class GrpcMessagingClientConnection extends GrpcMessagingConnection {
     super.close().whenComplete((result, error) -> {
       try {
         mChannel.shutdown();
-      } catch (Exception exc) {
-        LOG.warn("Failed to close underlying gRPC channel.{}", mChannel);
+      } catch (Exception e) {
+        LOG.warn("Failed to close channel: {}. Error: {}", mChannel.toStringShort(), e);
       } finally {
         resultFuture.complete(null);
       }

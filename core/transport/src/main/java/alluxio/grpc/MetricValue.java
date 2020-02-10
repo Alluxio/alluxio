@@ -5,7 +5,7 @@ package alluxio.grpc;
 
 /**
  * <pre>
- * This type is used as a union, only one of doubleValue or longValue should be set
+ * This type is used as a union, only one of doubleValue or stringValue should be set
  * </pre>
  *
  * Protobuf type {@code alluxio.grpc.metric.MetricValue}
@@ -367,7 +367,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * This type is used as a union, only one of doubleValue or longValue should be set
+   * This type is used as a union, only one of doubleValue or stringValue should be set
    * </pre>
    *
    * Protobuf type {@code alluxio.grpc.metric.MetricValue}

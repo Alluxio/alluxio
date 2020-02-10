@@ -161,4 +161,31 @@ public interface TableInfoOrBuilder extends
    */
   alluxio.grpc.table.FieldSchemaOrBuilder getPartitionColsOrBuilder(
       int index);
+
+  /**
+   * <code>optional int64 previous_version = 9;</code>
+   */
+  boolean hasPreviousVersion();
+  /**
+   * <code>optional int64 previous_version = 9;</code>
+   */
+  long getPreviousVersion();
+
+  /**
+   * <code>optional int64 version = 10;</code>
+   */
+  boolean hasVersion();
+  /**
+   * <code>optional int64 version = 10;</code>
+   */
+  long getVersion();
+
+  /**
+   * <code>optional int64 version_creation_time = 11;</code>
+   */
+  boolean hasVersionCreationTime();
+  /**
+   * <code>optional int64 version_creation_time = 11;</code>
+   */
+  long getVersionCreationTime();
 }

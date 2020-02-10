@@ -26,6 +26,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.block.BlockId;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
@@ -47,7 +48,6 @@ import alluxio.wire.WorkerWebUIMetrics;
 import alluxio.wire.WorkerWebUIOverview;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.meta.BlockMeta;
 
 import com.codahale.metrics.Counter;
@@ -378,11 +378,12 @@ public final class AlluxioWorkerRestServiceHandler {
       WorkerWebUIMetrics response = new WorkerWebUIMetrics();
 
       MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
+      SortedMap<String, Gauge> gauges = mr.getGauges();
 
-      Long workerCapacityTotal = (Long) mr.getGauges()
-          .get(MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.CAPACITY_TOTAL)).getValue();
-      Long workerCapacityUsed = (Long) mr.getGauges()
-          .get(MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.CAPACITY_USED)).getValue();
+      Long workerCapacityTotal = (Long) gauges.get(MetricsSystem
+          .getMetricName(MetricKey.WORKER_CAPACITY_TOTAL.getName())).getValue();
+      Long workerCapacityUsed = (Long) gauges.get(MetricsSystem
+          .getMetricName(MetricKey.WORKER_CAPACITY_USED.getName())).getValue();
 
       int workerCapacityUsedPercentage =
           (workerCapacityTotal > 0) ? (int) (100L * workerCapacityUsed / workerCapacityTotal) : 0;
@@ -723,7 +724,7 @@ public final class AlluxioWorkerRestServiceHandler {
     // Only the gauge for cached blocks is retrieved here, other gauges are statistics of
     // free/used spaces, those statistics can be gotten via other REST apis.
     String blocksCachedProperty =
-        MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
+        MetricsSystem.getMetricName(MetricKey.WORKER_BLOCKS_CACHED.getName());
     @SuppressWarnings("unchecked") Gauge<Integer> blocksCached =
         (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);
 

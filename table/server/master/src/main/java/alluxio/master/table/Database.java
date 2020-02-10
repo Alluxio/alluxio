@@ -11,6 +11,7 @@
 
 package alluxio.master.table;
 
+import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.FileStatistics;
@@ -22,6 +23,7 @@ import alluxio.proto.journal.Journal;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
+import alluxio.util.CommonUtils;
 
 import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
@@ -30,11 +32,19 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
+
+import javax.annotation.Nullable;
 
 /**
  * The database implementation that manages a collection of tables.
@@ -160,17 +170,6 @@ public class Database implements Journaled {
   }
 
   /**
-   * add a table to the database.
-   *
-   * @param tableName table name
-   * @param table table object
-   */
-  public void addTable(String tableName, Table table) {
-    // TODO(gpang): concurrency control
-    mTables.put(tableName, table);
-  }
-
-  /**
    *
    * @return the configuration for the database
    */
@@ -179,70 +178,180 @@ public class Database implements Journaled {
   }
 
   /**
-   * Syncs the metadata from the under db.
+   * Syncs the metadata from the under db. To avoid concurrent sync operations, this requires
+   * external synchronization.
+   *
    * @param context journal context
-   * @return true if the database changed as a result of fullSync
+   * @param service executor service for parallezing the sync
+   * @return true if the database changed as a result of syncing with UDB
    */
-  public boolean sync(JournalContext context) throws IOException {
-    boolean returnVal = false;
+  public boolean sync(JournalContext context, ExecutorService service) throws IOException {
+    AtomicBoolean updated = new AtomicBoolean(false);
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
     if (!newDbInfo.equals(mDatabaseInfo)) {
       applyAndJournal(context, Journal.JournalEntry.newBuilder()
           .setUpdateDatabaseInfo(toJournalProto(newDbInfo, mName)).build());
+      updated.set(true);
+    }
+    Set<String> udbTableNames = new HashSet<>(mUdb.getTableNames());
+
+    // sync each table in parallel, with the executor service
+    List<Callable<Void>> tasks = new ArrayList<>(udbTableNames.size());
+    final Database thisDb = this;
+    for (String tableName : udbTableNames) {
+      tasks.add(() -> {
+        Table previousTable = mTables.get(tableName);
+        UdbTable udbTable = mUdb.getTable(tableName);
+        Table newTable = Table.create(thisDb, udbTable, previousTable);
+
+        if (newTable != null) {
+          // table was created or was updated
+          alluxio.proto.journal.Table.AddTableEntry addTableEntry = newTable.toJournalProto();
+          Journal.JournalEntry entry =
+              Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
+          applyAndJournal(context, entry);
+          updated.set(true);
+        }
+        return null;
+      });
     }
 
-    for (String tableName : mUdb.getTableNames()) {
-      // TODO(gpang): concurrency control
-      boolean tableUpdated = false;
-      Table table = mTables.get(tableName);
-      if (table == null) {
-        // add table from udb
-        LOG.debug("Importing a new table " + tableName + " into database " + mName);
-        UdbTable udbTable = mUdb.getTable(tableName);
-        table = Table.create(this, udbTable);
-        tableUpdated = true;
-      } else {
-        LOG.debug("Syncing an existing table " + tableName + " in database " + mName);
-        tableUpdated = table.sync(mUdb.getTable(tableName));
-      }
-      if (tableUpdated) {
-        alluxio.proto.journal.Table.AddTableEntry addTableEntry = table.toJournalProto();
-        Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setAddTable(addTableEntry)
+    try {
+      CommonUtils.invokeAll(service, tasks, 10 * Constants.MINUTE_MS);
+    } catch (Exception e) {
+      throw new IOException("Failed to sync database " + mName, e);
+    }
+
+    for (Table existingTable : mTables.values()) {
+      if (!udbTableNames.contains(existingTable.getName())) {
+        // this table no longer exists in udb
+        alluxio.proto.journal.Table.RemoveTableEntry removeTableEntry =
+            alluxio.proto.journal.Table.RemoveTableEntry.newBuilder()
+                .setDbName(mName)
+                .setTableName(existingTable.getName())
+                .setVersion(existingTable.getVersion())
+                .build();
+        Journal.JournalEntry entry = Journal.JournalEntry.newBuilder()
+            .setRemoveTable(removeTableEntry)
             .build();
         applyAndJournal(context, entry);
-        returnVal = true;
+        updated.set(true);
       }
     }
-    return returnVal;
+    return updated.get();
+  }
+
+  @Override
+  public void applyAndJournal(Supplier<JournalContext> context, Journal.JournalEntry entry) {
+    // This is journaled differently from others components, since optimistic concurrency control
+    // is utilized. There are no external locks for the table, so the locking will happen during
+    // the access of the tables map.
+    processJournalEntryInternal(entry, context.get());
   }
 
   @Override
   public boolean processJournalEntry(Journal.JournalEntry entry) {
+    // Do not journal when processing journal entries
+    return processJournalEntryInternal(entry, null);
+  }
+
+  /**
+   * @param entry the journal entry to process
+   * @param context the journal context, will not journal if null
+   * @return whether the entry type is supported by this journaled object
+   */
+  private boolean processJournalEntryInternal(Journal.JournalEntry entry,
+      @Nullable JournalContext context) {
     if (entry.hasAddTable()) {
-      alluxio.proto.journal.Table.AddTableEntry addTable = entry.getAddTable();
-      if (addTable.getDbName().equals(mName)) {
-        apply(addTable);
-        return true;
-      }
+      return applyAddTable(context, entry);
+    }
+    if (entry.hasRemoveTable()) {
+      return applyRemoveTable(context, entry);
     }
     if (entry.hasUpdateDatabaseInfo()) {
-      alluxio.proto.journal.Table.UpdateDatabaseInfoEntry updateDb = entry.getUpdateDatabaseInfo();
-      if (updateDb.getDbName().equals(mName)) {
-        apply(updateDb);
-        return true;
-      }
+      return applyUpdateDbInfo(context, entry);
     }
     return false;
   }
 
-  private void apply(alluxio.proto.journal.Table.UpdateDatabaseInfoEntry updateDb) {
+  private boolean applyUpdateDbInfo(@Nullable JournalContext context, Journal.JournalEntry entry) {
+    alluxio.proto.journal.Table.UpdateDatabaseInfoEntry updateDb = entry.getUpdateDatabaseInfo();
+    if (!updateDb.getDbName().equals(mName)) {
+      return false;
+    }
+    if (context != null) {
+      context.append(entry);
+    }
     mDatabaseInfo = new DatabaseInfo(updateDb.getLocation(), updateDb.getOwnerName(),
         updateDb.getOwnerType(), updateDb.getComment(), updateDb.getParameterMap());
+    return true;
   }
 
-  private void apply(alluxio.proto.journal.Table.AddTableEntry entry) {
-    Table table = Table.create(this, entry);
-    addTable(entry.getTableName(), table);
+  private boolean applyAddTable(@Nullable JournalContext context, Journal.JournalEntry entry) {
+    alluxio.proto.journal.Table.AddTableEntry addTable = entry.getAddTable();
+    if (!addTable.getDbName().equals(mName)) {
+      return false;
+    }
+
+    Table newTable = Table.create(this, addTable);
+    mTables.compute(newTable.getName(), (key, existingTable) -> {
+      boolean writeNewTable = false;
+      if (existingTable == null && (newTable.getVersion() == Table.FIRST_VERSION)) {
+        // this table is being newly inserted, and has the expected first version
+        LOG.info("Adding new table {}.{}", mName, newTable.getName());
+        writeNewTable = true;
+      }
+
+      if (existingTable != null && (newTable.getPreviousVersion() == existingTable.getVersion())) {
+        // Previous table already exists, and matches the new table's previous version
+        LOG.info("Updating table {}.{} to version {}", mName, newTable.getName(),
+            newTable.getVersion());
+        writeNewTable = true;
+      }
+
+      if (writeNewTable) {
+        // The new table has been successfully validated, so update the map with the new table,
+        // and journal the entry if the journal context exists.
+        if (context != null) {
+          context.append(entry);
+        }
+        return newTable;
+      } else {
+        // The table to add does not validate with the existing table, so another thread must
+        // have updated the map. Do not modify the map.
+        return existingTable;
+      }
+    });
+
+    return true;
+  }
+
+  private boolean applyRemoveTable(@Nullable JournalContext context, Journal.JournalEntry entry) {
+    alluxio.proto.journal.Table.RemoveTableEntry removeTable = entry.getRemoveTable();
+    if (!removeTable.getDbName().equals(mName)) {
+      return false;
+    }
+
+    mTables.compute(removeTable.getTableName(), (key, existingTable) -> {
+      if (existingTable != null) {
+        if (removeTable.getVersion() == existingTable.getVersion()) {
+          // this table is being removed, and has the expected version
+          LOG.info("Removing table {}.{}", mName, removeTable.getTableName());
+          if (context != null) {
+            context.append(entry);
+          }
+          return null;
+        }
+        LOG.info("Will not remove table {}.{}, because of mismatched versions. "
+                + "version-to-delete: {} existing-version: {}", mName, removeTable.getTableName(),
+            removeTable.getVersion(), existingTable.getVersion());
+      }
+      LOG.debug("Cannot remove table {}.{}, because it does not exist.", mName,
+          removeTable.getTableName());
+      return existingTable;
+    });
+
+    return true;
   }
 
   @Override

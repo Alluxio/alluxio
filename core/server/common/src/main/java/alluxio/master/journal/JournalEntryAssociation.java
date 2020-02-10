@@ -59,6 +59,7 @@ public final class JournalEntryAssociation {
     }
     if (entry.hasAttachDb()
         || entry.hasAddTable()
+        || entry.hasRemoveTable()
         || entry.hasDetachDb()
         || entry.hasUpdateDatabaseInfo()
         || entry.hasAddTransformJobInfo()

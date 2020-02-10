@@ -84,7 +84,7 @@ across different Alluxio nodes as well as alert the operator when worker storage
 # shows server-side configuration errors and warnings
 $ ./bin/alluxio fsadmin doctor configuration
 # shows worker storage health errors and warnings
-$ ./bin/alluixo fsadmin doctor storage
+$ ./bin/alluxio fsadmin doctor storage
 ```
 
 ### getBlockInfo

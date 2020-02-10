@@ -33,9 +33,6 @@ If you are trying to speedup SQL analytics, you can try the Presto Alluxio Getti
  <img src="https://www.alluxio.io/app/uploads/2019/07/amazon-aws-ami.png" width="250" alt="AWS with AMI"/></a>
 </p>
 
-In addition, you can try more advanced testing with a cluster of Alluxio. 
-- Request [a sandbox cluster](https://www.alluxio.io/sandbox-request/) with Alluxio and Spark installed on AWS for free
-
 ## Prerequisites
 
 * MacOS or Linux
@@ -46,15 +43,15 @@ In addition, you can try more advanced testing with a cluster of Alluxio.
 ## Downloading Alluxio
 
 Download Alluxio from [this page](https://www.alluxio.io/download). Select the
-{{site.ALLUXIO_RELEASED_VERSION}} release followed by the distribution built for default Hadoop.
+desired release followed by the distribution built for default Hadoop.
 Unpack the downloaded file with the following commands.
 
 ```console
-$ tar -xzf alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz
-$ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
+$ tar -xzf alluxio-{{site.ALLUXIO_VERSION_STRING}}-bin.tar.gz
+$ cd alluxio-{{site.ALLUXIO_VERSION_STRING}}
 ```
 
-This creates a directory `alluxio-{{site.ALLUXIO_RELEASED_VERSION}}` with all of the Alluxio
+This creates a directory `alluxio-{{site.ALLUXIO_VERSION_STRING}}` with all of the Alluxio
 source files and Java binaries. Through this tutorial, the path of this directory will be referred
 to as `${ALLUXIO_HOME}`.
 
