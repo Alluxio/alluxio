@@ -12,6 +12,7 @@
 package alluxio.client.file.cache.store;
 
 import alluxio.client.file.cache.PageId;
+import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
 import alluxio.proto.client.Cache;
@@ -34,8 +35,9 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -46,12 +48,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class RocksPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
-  private static final int KEY_LEN = 16;
+  public static final int KEY_LEN = Long.BYTES * 2;
   private static final byte[] CONF_KEY = "CONF".getBytes();
 
   private final String mRoot;
   private final RocksDB mDb;
-  private final AtomicInteger mSize = new AtomicInteger(0);
+  private final AtomicLong mSize = new AtomicLong(0);
+  private final AtomicLong mBytes = new AtomicLong(0);
 
   /**
    * Creates a new instance of {@link PageStore} backed by RocksDB.
@@ -76,8 +79,11 @@ public class RocksPageStore implements PageStore {
         Cache.PRocksPageStoreOptions persistedOptions =
             Cache.PRocksPageStoreOptions.parseFrom(confData);
         if (persistedOptions.equals(pOptions)) {
-          try (RocksIterator iter = db.newIterator()) {
-            mSize.set((int) Streams.stream(new PageIterator(iter)).count());
+          try (Stream<PageInfo> stream = Streams.stream(new PageIterator(db.newIterator()))) {
+            stream.forEach(pageInfo -> {
+              mSize.incrementAndGet();
+              mBytes.getAndAdd(pageInfo.getPageSize() + KEY_LEN);
+            });
           }
         } else {
           db.close();
@@ -99,8 +105,10 @@ public class RocksPageStore implements PageStore {
   @Override
   public void put(PageId pageId, byte[] page) throws IOException {
     try {
-      mDb.put(getKeyFromPageId(pageId), page);
+      byte[] key = getKeyFromPageId(pageId);
+      mDb.put(key, page);
       mSize.incrementAndGet();
+      mBytes.getAndAdd(page.length + key.length);
     } catch (RocksDBException e) {
       throw new IOException("Failed to store page", e);
     }
@@ -126,10 +134,12 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public void delete(PageId pageId) throws PageNotFoundException {
+  public void delete(PageId pageId, long pageSize) throws PageNotFoundException {
     try {
-      mDb.delete(getKeyFromPageId(pageId));
+      byte[] key = getKeyFromPageId(pageId);
+      mDb.delete(key);
       mSize.decrementAndGet();
+      mBytes.getAndAdd(-(key.length + pageSize));
     } catch (RocksDBException e) {
       throw new PageNotFoundException("Failed to remove page", e);
     }
@@ -163,20 +173,25 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public int size() {
+  public long pages() {
     return mSize.get();
   }
 
   @Override
-  public Collection<PageId> getPages() {
+  public long bytes() {
+    return mBytes.get();
+  }
+
+  @Override
+  public Collection<PageInfo> getPages() {
     try (RocksIterator iter = mDb.newIterator()) {
       return Streams.stream(new PageIterator(iter)).collect(Collectors.toList());
     }
   }
 
-  private class PageIterator implements Iterator<PageId>, AutoCloseable {
+  private class PageIterator implements Iterator<PageInfo>, AutoCloseable {
     private final RocksIterator mIter;
-    private PageId mValue;
+    private PageInfo mValue;
 
     PageIterator(RocksIterator iter) {
       mIter = iter;
@@ -189,20 +204,21 @@ public class RocksPageStore implements PageStore {
     }
 
     @Override
-    public PageId next() {
-      PageId value = ensureValue();
+    public PageInfo next() {
+      PageInfo value = ensureValue();
       mIter.next();
       mValue = null;
       return value;
     }
 
     @Nullable
-    private PageId ensureValue() {
+    private PageInfo ensureValue() {
       if (mValue == null) {
         for (; mIter.isValid(); mIter.next()) {
           PageId id = getPageIdFromKey(mIter.key());
+          long size = mIter.value().length;
           if (id != null) {
-            mValue = id;
+            mValue = new PageInfo(id, size);
             break;
           }
         }

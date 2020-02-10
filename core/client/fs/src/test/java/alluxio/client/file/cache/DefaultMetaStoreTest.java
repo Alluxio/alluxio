@@ -27,6 +27,7 @@ public final class DefaultMetaStoreTest {
   public final ExpectedException mThrown = ExpectedException.none();
 
   private final PageId mPage = new PageId(1L, 2L);
+  private final PageInfo mPageInfo = new PageInfo(mPage, 1024);
   private DefaultMetaStore mMetaStore;
 
   /**
@@ -39,20 +40,20 @@ public final class DefaultMetaStoreTest {
 
   @Test
   public void addNew() {
-    Assert.assertTrue(mMetaStore.addPage(mPage));
+    mMetaStore.addPage(mPage, mPageInfo);
     Assert.assertTrue(mMetaStore.hasPage(mPage));
   }
 
   @Test
   public void addExist() {
-    Assert.assertTrue(mMetaStore.addPage(mPage));
-    Assert.assertFalse(mMetaStore.addPage(mPage));
+    mMetaStore.addPage(mPage, mPageInfo);
+    mMetaStore.addPage(mPage, mPageInfo);
     Assert.assertTrue(mMetaStore.hasPage(mPage));
   }
 
   @Test
   public void removeExist() throws Exception {
-    Assert.assertTrue(mMetaStore.addPage(mPage));
+    mMetaStore.addPage(mPage, mPageInfo);
     Assert.assertTrue(mMetaStore.hasPage(mPage));
     mMetaStore.removePage(mPage);
     Assert.assertFalse(mMetaStore.hasPage(mPage));
@@ -67,7 +68,19 @@ public final class DefaultMetaStoreTest {
   @Test
   public void hasPage() {
     Assert.assertFalse(mMetaStore.hasPage(mPage));
-    Assert.assertTrue(mMetaStore.addPage(mPage));
+    mMetaStore.addPage(mPage, mPageInfo);
     Assert.assertTrue(mMetaStore.hasPage(mPage));
+  }
+
+  @Test
+  public void getPageInfo() throws Exception {
+    mMetaStore.addPage(mPage, mPageInfo);
+    Assert.assertEquals(mPageInfo, mMetaStore.getPageInfo(mPage));
+  }
+
+  @Test
+  public void getPageInfoNotExist() throws Exception {
+    mThrown.expect(PageNotFoundException.class);
+    mMetaStore.getPageInfo(mPage);
   }
 }

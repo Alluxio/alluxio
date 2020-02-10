@@ -33,13 +33,16 @@ public interface CacheManager extends AutoCloseable  {
   }
 
   /**
-   * Writes a new page from a source channel with best effort.
+   * Writes a new page from a source channel with best effort. It is possible that this put
+   * operation returns without page written due to transient behavior not due to failures writing
+   * to disks.
    *
    * @param pageId page identifier
    * @param page page data
-   * @throws IOException if error happens when writing the page
+   * @throws IOException if error happens when writing the page to disk
+   * @return true on a successful put or false due to transient
    */
-  void put(PageId pageId, byte[] page) throws IOException;
+  boolean put(PageId pageId, byte[] page) throws IOException;
 
   /**
    * Wraps the page in a channel or null if the queried page is not found in the cache.

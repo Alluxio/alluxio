@@ -55,7 +55,7 @@ public class LocalCacheManager implements CacheManager {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheManager.class);
 
   private static final int LOCK_SIZE = 1024;
-  private final int mPageSize;
+  private final long mPageSize;
   private final long mCacheSize;
   private final CacheEvictor mEvictor;
   /** A readwrite lock pool to guard individual pages based on striping. */
@@ -75,10 +75,11 @@ public class LocalCacheManager implements CacheManager {
     CacheEvictor evictor = CacheEvictor.create(conf);
     PageStore pageStore = PageStore.create(conf);
     try {
-      Collection<PageId> pages = pageStore.getPages();
-      for (PageId page : pages) {
-        metaStore.addPage(page);
-        evictor.updateOnPut(page);
+      Collection<PageInfo> pageInfos = pageStore.getPages();
+      for (PageInfo pageInfo : pageInfos) {
+        PageId pageId = pageInfo.getPageId();
+        metaStore.addPage(pageId, pageInfo);
+        evictor.updateOnPut(pageId);
       }
       return new LocalCacheManager(conf, metaStore, pageStore, evictor);
     } catch (Exception e) {
@@ -103,9 +104,8 @@ public class LocalCacheManager implements CacheManager {
     mMetaStore = metaStore;
     mPageStore = pageStore;
     mEvictor = evictor;
-    mPageSize = (int) conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
-    mCacheSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE)
-        / mPageSize;
+    mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+    mCacheSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE);
     for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock();
     }
@@ -139,38 +139,32 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws IOException {
+  public boolean put(PageId pageId, byte[] page) throws IOException {
     PageId victim = null;
+    PageInfo victimPageInfo = null;
+    boolean enoughSpace;
 
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.writeLock())) {
-      boolean alreadyCached;
-      boolean needEvict = false;
       try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
-        alreadyCached = mMetaStore.hasPage(pageId);
-        if (!alreadyCached) {
-          needEvict = mPageStore.size() + 1 > mCacheSize;
-          if (needEvict) {
-            victim = mEvictor.evict();
-          } else {
-            mMetaStore.addPage(pageId);
-          }
+        if (mMetaStore.hasPage(pageId)) {
+          LOG.debug("{} is already inserted before", pageId);
+          return false;
         }
+        enoughSpace = mPageStore.bytes() + page.length <= mCacheSize;
+        if (enoughSpace) {
+          mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
+        } else {
+          victim = mEvictor.evict();
+          victimPageInfo = mMetaStore.getPageInfo(victim);
+        }
+      } catch (PageNotFoundException e) {
+        throw new IllegalStateException("we shall not reach here");
       }
-      if (alreadyCached) {
-        try {
-          mPageStore.delete(pageId);
-        } catch (PageNotFoundException e) {
-          throw new IllegalStateException(
-              String.format("Page store is missing page %s.", pageId), e);
-        }
-        mEvictor.updateOnPut(pageId);
+      if (enoughSpace) {
         mPageStore.put(pageId, page);
-        return;
-      } else if (!needEvict) {
         mEvictor.updateOnPut(pageId);
-        mPageStore.put(pageId, page);
-        return;
+        return true;
       }
     }
 
@@ -179,12 +173,12 @@ public class LocalCacheManager implements CacheManager {
         LockResource r2 = new LockResource(pageLockPair.getSecond().writeLock())) {
       try (LockResource r3 = new LockResource(mMetaLock.writeLock())) {
         if (mMetaStore.hasPage(pageId)) {
-          LOG.warn("{} is already inserted by a racing thread", pageId);
-          return;
+          LOG.debug("{} is already inserted by a racing thread", pageId);
+          return false;
         }
         if (!mMetaStore.hasPage(victim)) {
-          LOG.warn("{} is already evicted by a racing thread", pageId);
-          return;
+          LOG.debug("{} is already evicted by a racing thread", pageId);
+          return false;
         }
         try {
           mMetaStore.removePage(victim);
@@ -192,17 +186,23 @@ public class LocalCacheManager implements CacheManager {
           throw new IllegalStateException(
               String.format("Page store is missing page %s.", victim), e);
         }
-        mMetaStore.addPage(pageId);
+        enoughSpace = mPageStore.bytes() - victimPageInfo.getPageSize() + page.length <= mCacheSize;
+        if (enoughSpace) {
+          mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
+        }
       }
-      mEvictor.updateOnDelete(victim);
-      mEvictor.updateOnPut(pageId);
       try {
-        mPageStore.delete(victim);
+        mPageStore.delete(victim, victimPageInfo.getPageSize());
+        mEvictor.updateOnDelete(victim);
       } catch (PageNotFoundException e) {
         throw new IllegalStateException(String.format("Page store is missing page %s.", victim), e);
       }
-      mPageStore.put(pageId, page);
+      if (enoughSpace) {
+        mPageStore.put(pageId, page);
+        mEvictor.updateOnPut(pageId);
+      }
     }
+    return enoughSpace;
   }
 
   @Override
@@ -224,8 +224,9 @@ public class LocalCacheManager implements CacheManager {
       if (!hasPage) {
         return null;
       }
+      ReadableByteChannel ret = mPageStore.get(pageId, pageOffset);
       mEvictor.updateOnGet(pageId);
-      return mPageStore.get(pageId, pageOffset);
+      return ret;
     } catch (PageNotFoundException e) {
       throw new IllegalStateException(
           String.format("Page store is missing page %s.", pageId), e);
@@ -235,12 +236,14 @@ public class LocalCacheManager implements CacheManager {
   @Override
   public void delete(PageId pageId) throws IOException, PageNotFoundException {
     ReadWriteLock pageLock = getPageLock(pageId);
+    PageInfo pageInfo;
     try (LockResource r = new LockResource(pageLock.writeLock())) {
       try (LockResource r1 = new LockResource(mMetaLock.writeLock())) {
+        pageInfo = mMetaStore.getPageInfo(pageId);
         mMetaStore.removePage(pageId);
       }
+      mPageStore.delete(pageId, pageInfo.getPageSize());
       mEvictor.updateOnDelete(pageId);
-      mPageStore.delete(pageId);
     }
   }
 
