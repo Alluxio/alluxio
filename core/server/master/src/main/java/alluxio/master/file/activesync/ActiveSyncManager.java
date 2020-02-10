@@ -334,7 +334,7 @@ public class ActiveSyncManager implements Journaled {
    * @param syncPoint sync point to be stopped
    */
   public void stopSyncAndJournal(RpcContext rpcContext, AlluxioURI syncPoint)
-      throws InvalidPathException{
+      throws InvalidPathException {
     try (LockResource r = new LockResource(mLock)) {
       MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
       if (resolution == null) {
