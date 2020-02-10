@@ -1914,6 +1914,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT =
+      new Builder(Name.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)
+          .setDefaultValue("10sec")
+          .setDescription("Max time to retry failed sync operation")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
 
   public static final PropertyKey MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
       new Builder(Name.MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY)
@@ -4283,6 +4290,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.ufs.active.sync.max.age";
     public static final String MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED =
         "alluxio.master.ufs.active.sync.initial.sync.enabled";
+    public static final String MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT =
+        "alluxio.master.ufs.active.sync.retry.timeout";
     public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
         "alluxio.master.ufs.block.location.cache.capacity";
     public static final String MASTER_UFS_MANAGED_BLOCKING_ENABLED =

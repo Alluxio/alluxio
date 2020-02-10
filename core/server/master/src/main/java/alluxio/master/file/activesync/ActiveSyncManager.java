@@ -186,21 +186,22 @@ public class ActiveSyncManager implements Journaled {
       try {
         if ((txId == SyncInfo.INVALID_TXID) && ServerConfiguration.getBoolean(
             PropertyKey.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)) {
-          mExecutorService.submit(
-              () -> mFilterMap.get(mountId).parallelStream().forEach(
-                  syncPoint -> {
-                    try {
-                      RetryUtils.retry("active sync during start",
-                          () -> mFileSystemMaster.activeSyncMetadata(syncPoint,
-                              null, getExecutor()),
-                          RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
-                              .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT)));
-                    } catch (IOException e) {
-                      LOG.warn("IOException encountered during active sync while starting: {}",
-                          e.toString());
-                    }
-                  }
-          ));
+          mFilterMap.get(mountId).parallelStream().forEach(
+              syncPoint ->
+                  mExecutorService.submit(
+                      () -> {
+                        MountTable.Resolution resolution;
+                        try {
+                          resolution = mMountTable.resolve(syncPoint);
+                        } catch (InvalidPathException e) {
+                          LOG.info("Invalid Path encountered during start up of ActiveSyncManager, "
+                              + "path {}, exception {}", syncPoint, e);
+                          return;
+                        }
+                        startInitSync(syncPoint, resolution);
+                      }
+                  )
+          );
         }
       } catch (Exception e) {
         LOG.warn("exception encountered during initial sync: {}", e.toString());
@@ -298,7 +299,7 @@ public class ActiveSyncManager implements Journaled {
               .build();
       applyAndJournal(rpcContext, addSyncPoint);
       try {
-        startSyncInternal(syncPoint);
+        startSyncInternal(syncPoint, resolution);
       } catch (Throwable e) {
         LOG.warn("Start sync failed on {}", syncPoint, e);
         // revert state;
@@ -356,7 +357,7 @@ public class ActiveSyncManager implements Journaled {
             File.AddSyncPointEntry.newBuilder()
                 .setSyncpointPath(syncPoint.toString()).build();
         applyAndJournal(rpcContext, addSyncPoint);
-        recoverFromStopSync(syncPoint, mountId);
+        recoverFromStopSync(syncPoint);
       }
     }
   }
@@ -492,11 +493,11 @@ public class ActiveSyncManager implements Journaled {
   /**
    * Continue to start sync after we have journaled the operation.
    *
-   * @param uri the sync point that we are trying to start
+   * @param syncPoint the sync point that we are trying to start
+   * @param resolution the mount table resolution of sync point
    */
-  private void startSyncInternal(AlluxioURI uri) throws InvalidPathException {
-    MountTable.Resolution resolution = mMountTable.resolve(uri);
-    startInitSync(uri, resolution);
+  private void startSyncInternal(AlluxioURI syncPoint, MountTable.Resolution resolution) {
+    startInitSync(syncPoint, resolution);
     launchPollingThread(resolution.getMountId(), SyncInfo.INVALID_TXID);
   }
 
@@ -516,7 +517,11 @@ public class ActiveSyncManager implements Journaled {
               // Start the initial metadata sync between the ufs and alluxio for the specified uri
               if (ServerConfiguration.getBoolean(
                   PropertyKey.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)) {
-                mFileSystemMaster.activeSyncMetadata(syncPoint, null, getExecutor());
+                RetryUtils.retry("active sync during start",
+                    () -> mFileSystemMaster.activeSyncMetadata(syncPoint,
+                        null, getExecutor()),
+                    RetryUtils.defaultActiveSyncClientRetry(ServerConfiguration
+                        .getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)));
               }
             } catch (IOException e) {
               LOG.info(ExceptionMessage.FAILED_INITIAL_SYNC.getMessage(
@@ -690,9 +695,8 @@ public class ActiveSyncManager implements Journaled {
    * Recover from a stop sync operation.
    *
    * @param uri uri to stop sync
-   * @param mountId mount id of the uri
    */
-  public void recoverFromStopSync(AlluxioURI uri, long mountId) {
+  public void recoverFromStopSync(AlluxioURI uri) {
     if (mSyncPathStatus.containsKey(uri)) {
       // nothing to recover from, since the syncPathStatus still contains syncPoint
       return;
