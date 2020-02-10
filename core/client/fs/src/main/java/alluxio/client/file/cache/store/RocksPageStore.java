@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -78,9 +79,11 @@ public class RocksPageStore implements PageStore {
         Cache.PRocksPageStoreOptions persistedOptions =
             Cache.PRocksPageStoreOptions.parseFrom(confData);
         if (persistedOptions.equals(pOptions)) {
-          try (RocksIterator iter = db.newIterator()) {
-            mSize.set((int) Streams.stream(new PageIterator(iter)).count());
-            // fix bytes
+          try (Stream<PageInfo> stream = Streams.stream(new PageIterator(db.newIterator()))) {
+            stream.forEach(pageInfo -> {
+              mSize.incrementAndGet();
+              mBytes.getAndAdd(pageInfo.getPageSize() + KEY_LEN);
+            });
           }
         } else {
           db.close();
