@@ -42,7 +42,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.metrics.ClientMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.AclEntry;
 import alluxio.util.ConfigurationUtils;
@@ -290,19 +290,21 @@ public class LocalCacheFileInStreamTest {
     int readSize = fileSize - 1;
     byte[] cacheMiss = new byte[readSize];
     stream.read(cacheMiss);
-    Assert.assertEquals(0, MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_CACHE).getCount());
+    Assert.assertEquals(0,
+        MetricsSystem.counter(MetricKey.CACHE_BYTES_READ_CACHE.getName()).getCount());
     Assert.assertEquals(readSize,
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_REQUESTED_EXTERNAL).getCount());
+        MetricsSystem.counter(MetricKey.CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(fileSize,
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL).getCount());
+        MetricsSystem.counter(MetricKey.CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
 
     // cache hit
     stream.read();
-    Assert.assertEquals(1, MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_CACHE).getCount());
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CACHE_BYTES_READ_CACHE.getName()).getCount());
     Assert.assertEquals(readSize,
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_REQUESTED_EXTERNAL).getCount());
+        MetricsSystem.counter(MetricKey.CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(fileSize,
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL).getCount());
+        MetricsSystem.counter(MetricKey.CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
   }
 
   private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager) {
