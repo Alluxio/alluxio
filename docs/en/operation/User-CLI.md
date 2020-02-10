@@ -565,6 +565,19 @@ For example, `cp` can be used to copy files between under storage systems.
 $ ./bin/alluxio fs cp /hdfs/file1 /s3/
 ```
 
+### distributedLoad
+
+The `distributedLoad` command moves a file or directory from the under storage system into Alluxio storage in distributed 
+across workers. The job is a no-op if the file is already loaded into Alluxio.
+
+If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
+on a random worker.
+The `--replication` flag can be used to load the data into multiple workers.
+
+```console
+$ ./bin/alluxio fs distributedLoad --replication 2 /data/today
+```
+
 ### du
 
 The `du` command outputs the total size and in Alluxio size of files and folders.
