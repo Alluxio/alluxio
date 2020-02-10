@@ -199,7 +199,6 @@ public abstract class AbstractClient implements Client {
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
-    mContext.getUserState().relogin();
     IOException lastConnectFailure = null;
     RetryPolicy retryPolicy = mRetryPolicySupplier.get();
 
@@ -238,6 +237,12 @@ public abstract class AbstractClient implements Client {
         LOG.debug("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
         lastConnectFailure = e;
+        if (e instanceof UnauthenticatedException) {
+          // If there has been a failure in opening GrpcChannel, it's possible because
+          // the authentication credential has expired. Relogin. This is a no-op for
+          // authTypes other than KERBEROS.
+          mContext.getUserState().relogin();
+        }
         if (e instanceof NotFoundException) {
           // service is not found in the server, skip retry
           break;
