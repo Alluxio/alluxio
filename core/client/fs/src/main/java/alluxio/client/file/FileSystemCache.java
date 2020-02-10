@@ -337,6 +337,16 @@ public class FileSystemCache {
     }
 
     @Override
+    public FileInStream openFile(URIStatus status, OpenFilePOptions options)
+        throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+        IOException, AlluxioException {
+      if (mClosed) {
+        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
+      }
+      return super.openFile(status, options);
+    }
+
+    @Override
     public void persist(AlluxioURI path, ScheduleAsyncPersistencePOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
       if (mClosed) {
