@@ -55,7 +55,7 @@ public class CollectAlluxioInfoCommand extends ExecuteShellCollectInfoCommand {
      * @param cmd         Alluxio cmd to run
      */
     public AlluxioCommand(String alluxioPath, String cmd) {
-      super(new String[]{alluxioPath, cmd});
+      super((alluxioPath + " " + cmd).split(" "));
       mAlluxioPath = alluxioPath;
     }
   }

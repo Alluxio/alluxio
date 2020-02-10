@@ -29,7 +29,6 @@ import java.nio.file.Paths;
  * */
 public abstract class AbstractCollectInfoCommand implements Command {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractCollectInfoCommand.class);
-  private static final String FILE_NAME_SUFFIX = ".txt";
 
   protected FileSystemContext mFsContext;
   protected String mWorkingDirPath;
@@ -74,9 +73,6 @@ public abstract class AbstractCollectInfoCommand implements Command {
    * @return the output file
    * */
   public File generateOutputFile(String workingDirPath, String fileName) throws IOException {
-    if (!fileName.endsWith(FILE_NAME_SUFFIX)) {
-      fileName += FILE_NAME_SUFFIX;
-    }
     String outputFilePath = Paths.get(workingDirPath, fileName).toString();
     File outputFile = new File(outputFilePath);
     if (!outputFile.exists()) {

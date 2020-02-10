@@ -49,11 +49,4 @@ public class CollectInfoAllTest {
     }
     return cnt;
   }
-
-  @Test
-  public void loadedCommands() {
-    CollectInfoAll ica = new CollectInfoAll(sConf);
-    Collection<Command> commands = ica.getCommands();
-    assertEquals(getNumberOfCommands(), commands.size());
-  }
 }

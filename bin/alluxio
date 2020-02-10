@@ -265,12 +265,12 @@ function main {
     runJavaClass "$@"
   ;;
   "infoBundle")
-    CLASS="alluxio.cli.bundler.InfoCollector"
+    CLASS="alluxio.cli.bundler.CollectInfo"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
   "infoBundleAll")
-    CLASS="alluxio.cli.bundler.InfoCollectorAll"
+    CLASS="alluxio.cli.bundler.CollectInfoAll"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;

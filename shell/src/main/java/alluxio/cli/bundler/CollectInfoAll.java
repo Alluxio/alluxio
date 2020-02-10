@@ -80,11 +80,11 @@ public class CollectInfoAll extends AbstractShell {
    * */
   public Set<String> getHosts() {
     String confDirPath = mConfiguration.get(PropertyKey.CONF_DIR);
-    System.out.format("Looking for masters and workers in %s", confDirPath);
+    System.out.format("Looking for masters and workers in %s%n", confDirPath);
     Set<String> hosts = new HashSet<>();
     hosts.addAll(CommandUtils.readNodeList(confDirPath, "masters"));
     hosts.addAll(CommandUtils.readNodeList(confDirPath, "workers"));
-    System.out.format("Found %s hosts", hosts.size());
+    System.out.format("Found %s hosts%n", hosts.size());
     return hosts;
   }
 
@@ -114,20 +114,20 @@ public class CollectInfoAll extends AbstractShell {
     String targetDir = argv[1];
 
     List<String> allHosts = new ArrayList<>(shellAll.getHosts());
-    System.out.format("Init thread pool for %s hosts", allHosts.size());
+    System.out.format("Init thread pool for %s hosts%n", allHosts.size());
     shellAll.mExecutor = Executors.newFixedThreadPool(allHosts.size());
 
     // Invoke infoBundle on each host
-    List<CompletableFuture<CommandReturn>> futureList = new ArrayList<>();
+    List<CompletableFuture<CommandReturn>> sshFutureList = new ArrayList<>();
     for (String host : allHosts) {
-      System.out.format("Execute CollectInfo on host %s", host);
+      System.out.format("Execute CollectInfo on host %s%n", host);
 
       CompletableFuture<CommandReturn> future = CompletableFuture.supplyAsync(() -> {
         // We make the assumption that the Alluxio WORK_DIR is the same
         String workDir = conf.get(PropertyKey.WORK_DIR);
         String alluxioBinPath = Paths.get(workDir, "bin/alluxio")
                 .toAbsolutePath().toString();
-        System.out.format("host: %s, alluxio path %s", host, alluxioBinPath);
+        System.out.format("host: %s, alluxio path %s%n", host, alluxioBinPath);
 
         try {
           String[] infoBundleArgs =
@@ -139,70 +139,63 @@ public class CollectInfoAll extends AbstractShell {
           return new CommandReturn(1, e.toString());
         }
       }, shellAll.mExecutor);
-      futureList.add(future);
-      System.out.format("Invoked infoBundle command on host %s", host);
+      sshFutureList.add(future);
+      System.out.format("Invoked infoBundle command on host %s%n", host);
     }
 
-    // Collect the execution results
-    List<CommandReturn> results;
-    try {
-      results = collectAllFuture(futureList).get();
-      System.out.format("Results collected from %d hosts", results.size());
-    } catch (InterruptedException | ExecutionException e) {
-      System.err.format("Failed to collect the results. Error is %s", e.getMessage());
-      LOG.error("Error: %s", e);
-      return;
+    // Collect SSH execution results
+    List<String> sshSucceededHosts =
+            shellAll.collectCommandReturnsFromHosts(sshFutureList, allHosts);
+
+    // If all executions failed, clean up and exit
+    if (sshSucceededHosts.size() == 0) {
+      System.err.println("Failed to invoke infoBundle command on all hosts!");
+      shellAll.close();
+      System.exit(1);
     }
 
-    // Inspect all command results
-    if (results.size() != allHosts.size()) {
-      System.out.format("Error occurred while collecting information on %d/%d hosts",
-              allHosts.size() - results.size());
-    } else {
-      int successCnt = 0;
-      for (int i = 0; i < allHosts.size(); i++) {
-        CommandReturn c = results.get(i);
-        String host = allHosts.get(i);
-        if (c.getExitCode() != 0) {
-          System.out.format("Command failed on host %s", host);
-          System.out.println(c.getFormattedOutput());
-          continue;
-        }
-        successCnt++;
-      }
-      System.out.format("Successfully collected information on %d/%d hosts.",
-              successCnt, allHosts.size());
-    }
-
-    // Collect all tarballs to local
+    // Collect tarballs from where the SSH command completed
     File tempDir = Files.createTempDir();
     List<File> filesFromHosts = new ArrayList<>();
-    int successCnt = 0;
-    for (String host : allHosts) {
+    List<CompletableFuture<CommandReturn>> scpFutures =
+            new ArrayList<>(allHosts.size());
+    for (String host : sshSucceededHosts) {
       // Create dir for the host
       File tarballFromHost = new File(tempDir, host);
       tarballFromHost.mkdir();
       filesFromHosts.add(tarballFromHost);
 
-      System.out.format("Collecting tarball from host %s", host);
-      String fromPath = Paths.get(targetDir, CollectInfo.TARBALL_NAME)
-                          .toAbsolutePath().toString();
-      String toPath = tarballFromHost.getAbsolutePath();
-      LOG.debug("Copying %s:%s to %s", host, fromPath, toPath);
+      // Async execute the SCP step
+      CompletableFuture<CommandReturn> future = CompletableFuture.supplyAsync(() -> {
+        System.out.format("Collecting tarball from host %s%n", host);
+        String fromPath = Paths.get(targetDir, CollectInfo.TARBALL_NAME)
+                .toAbsolutePath().toString();
+        String toPath = tarballFromHost.getAbsolutePath();
+        LOG.debug("Copying %s:%s to %s", host, fromPath, toPath);
 
-      // TODO(jiacheng): asynch this
-      CommandReturn cr = ShellUtils.scpCommandWithOutput(host, fromPath, toPath, false);
-
-      if (cr.getExitCode() != 0) {
-        System.out.format("Failed on host ", host);
-        System.out.println(cr.getFormattedOutput());
-        continue;
-      }
-      successCnt++;
+        try {
+          CommandReturn cr =
+                  ShellUtils.scpCommandWithOutput(host, fromPath, toPath, false);
+          return cr;
+        } catch (IOException e) {
+          LOG.error("Execution failed %s", e);
+          return new CommandReturn(1, e.toString());
+        }
+      }, shellAll.mExecutor);
+      scpFutures.add(future);
     }
 
-    System.out.format("Tarballs of %d/%d hosts copied to %s", successCnt, allHosts.size(),
-            tempDir.getAbsolutePath());
+    List<String> scpSucceededHosts =
+            shellAll.collectCommandReturnsFromHosts(scpFutures, sshSucceededHosts);
+    System.out.format("Tarballs of %d/%d hosts copied to %s%n",
+            scpSucceededHosts.size(), allHosts.size(), tempDir.getAbsolutePath());
+
+    // If all executions failed, clean up and exit
+    if (scpSucceededHosts.size() == 0) {
+      System.err.println("Failed to collect tarballs from all hosts!");
+      shellAll.close();
+      System.exit(1);
+    }
 
     // Generate a final tarball containing tarballs from each host
     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
@@ -219,19 +212,62 @@ public class CollectInfoAll extends AbstractShell {
       LOG.warn("Failed to delete temp dir {}", tempDir.toString());
     }
 
+    // Destroy the thread pool and resources
+    shellAll.close();
     System.exit(ret);
   }
 
   /**
+   * Collects the results of ALL futures from the hosts.
+   * Returns the list of hosts where the execution was successful,
+   * for the next step.
+   * */
+  private List<String> collectCommandReturnsFromHosts(
+          List<CompletableFuture<CommandReturn>> futureList, List<String> hosts) {
+    // Collect the execution results
+    List<CommandReturn> results;
+    try {
+      results = collectAllFutures(futureList).get();
+      System.out.format("Results collected from %d hosts%n", results.size());
+    } catch (InterruptedException | ExecutionException e) {
+      System.err.format("Failed to collect the results. Error is %s%n", e.getMessage());
+      LOG.error("Error: %s", e);
+      return Collections.EMPTY_LIST;
+    }
+
+    // Record the list of hosts where the results are successfully collected
+    if (results.size() != hosts.size()) {
+      System.out.format("Error occurred while collecting information on %d/%d hosts%n",
+              hosts.size() - results.size());
+      // TODO(jiacheng): phase 2 find out what error occurred
+      return Collections.EMPTY_LIST;
+    } else {
+      List<String> successfulHosts = new ArrayList<>();
+      for (int i = 0; i < hosts.size(); i++) {
+        CommandReturn c = results.get(i);
+        String host = hosts.get(i);
+        if (c.getExitCode() != 0) {
+          System.out.format("Execution failed on host %s%n", host);
+          System.out.println(c.getFormattedOutput());
+          continue;
+        }
+        successfulHosts.add(host);
+      }
+      System.out.format("Command successful on %d/%d hosts.%n",
+              successfulHosts.size(), hosts.size());
+      return successfulHosts;
+    }
+  }
+  /**
    * Waits for ALL futures to complete and returns a list of results.
-   * If *any* future completes exceptionally then the resulting future
+   * If any future completes exceptionally then the resulting future
    * will also complete exceptionally.
    *
    * @param <T> this is the type the {@link CompletableFuture} contains
    * @param futures a list of futures to collect
    * @return a {@link CompletableFuture} of all futures
    */
-  public static <T> CompletableFuture<List<T>> collectAllFuture(
+  public static <T> CompletableFuture<List<T>> collectAllFutures(
           List<CompletableFuture<T>> futures) {
     CompletableFuture[] cfs = futures.toArray(new CompletableFuture[futures.size()]);
 
@@ -252,5 +288,13 @@ public class CollectInfoAll extends AbstractShell {
     // We do not load any commands here.
     // All calls will be delegated to CollectInfo local calls on each host.
     return Collections.EMPTY_MAP;
+  }
+
+  @Override
+  public void close() throws IOException {
+    super.close();
+    if (!mExecutor.isShutdown()) {
+      mExecutor.shutdownNow();
+    }
   }
 }

@@ -56,7 +56,7 @@ public class CollectEnvCommandTest {
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
 
     // Replace commands to execute
-    Field f = cmd.getClass().getDeclaredField("mCommands");
+    Field f = cmd.getClass().getSuperclass().getDeclaredField("mCommands");
     f.setAccessible(true);
 
     ShellCommand mockCommand = mock(ShellCommand.class);
@@ -92,7 +92,7 @@ public class CollectEnvCommandTest {
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
 
     // Replace commands to execute
-    Field f = cmd.getClass().getDeclaredField("mCommands");
+    Field f = cmd.getClass().getSuperclass().getDeclaredField("mCommands");
     f.setAccessible(true);
     ShellCommand mockCommandFail = mock(ShellCommand.class);
     when(mockCommandFail.runWithOutput()).thenReturn(
@@ -102,7 +102,7 @@ public class CollectEnvCommandTest {
     f.set(cmd, mockCommandMap);
 
     // Replace better command to execute
-    Field cb = cmd.getClass().getDeclaredField("mCommandsAlt");
+    Field cb = cmd.getClass().getSuperclass().getDeclaredField("mCommandsAlt");
     cb.setAccessible(true);
     ShellCommand mockCommandBackup = mock(ShellCommand.class);
     when(mockCommandBackup.runWithOutput()).thenReturn(

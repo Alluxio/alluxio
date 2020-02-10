@@ -84,7 +84,7 @@ public class CollectInfo extends AbstractShell {
       System.out.println("Execute all child commands");
       String[] childArgs = Arrays.copyOf(argv, argv.length);
       for (Command cmd : shell.getCommands()) {
-        System.out.format("Executing %s", cmd.getCommandName());
+        System.out.format("Executing %s%n", cmd.getCommandName());
 
         // TODO(jiacheng): phase 2 handle argv difference?
         // Replace the action with the command to execute
@@ -93,6 +93,7 @@ public class CollectInfo extends AbstractShell {
 
         // If any of the commands failed, treat as failed
         if (ret == 0 && childRet != 0) {
+          System.err.format("Command %s failed%n", cmd.getCommandName());
           ret = childRet;
         }
       }
@@ -106,10 +107,10 @@ public class CollectInfo extends AbstractShell {
 
     // TODO(jiacheng): phase 2 add an option to disable bundle
     // Generate bundle
-    System.out.format("Archiving dir %s", targetDirPath);
+    System.out.format("Archiving dir %s%n", targetDirPath);
     String tarballPath = Paths.get(targetDirPath, TARBALL_NAME).toAbsolutePath().toString();
     if (filesToCollect.size() == 0) {
-      System.err.format("No files to add. Tarball %s will be empty!", tarballPath);
+      System.err.format("No files to add. Tarball %s will be empty!%n", tarballPath);
     }
     TarUtils.compress(tarballPath, filesToCollect.toArray(new File[0]));
     System.out.println("Archiving finished");
@@ -127,7 +128,7 @@ public class CollectInfo extends AbstractShell {
 
     if (cmd == null) {
       // Unknown command (we did not find the cmd in our dict)
-      System.err.format("%s is an unknown command.", cmd);
+      System.err.format("%s is an unknown command.%n", cmd);
       printUsage();
       return 1;
     }
