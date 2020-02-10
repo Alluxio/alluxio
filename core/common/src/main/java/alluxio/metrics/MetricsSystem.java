@@ -701,7 +701,7 @@ public final class MetricsSystem {
    */
   public static synchronized void resetAllMetrics() {
     // Gauge metrics don't need to be changed because they calculate value when getting them
-    // Counters can be reset to zero values.MetricsStoreTest.jav
+    // Counters can be reset to zero values.
     for (Counter counter : METRIC_REGISTRY.getCounters().values()) {
       counter.dec(counter.getCount());
     }

@@ -132,6 +132,12 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     }
   }
 
+  /**
+   * Registers the corresponding throughput of the given counter.
+   *
+   * @param counterName the counter to get value of
+   * @param throughputName the gauge throughput name to be registered
+   */
   private void registerThroughputGauge(String counterName, String throughputName) {
     MetricsSystem.registerGaugeIfAbsent(throughputName,
         new Gauge<Object>() {
