@@ -187,8 +187,8 @@ public class CollectInfoAll extends AbstractShell {
 
     List<String> scpSucceededHosts =
             shellAll.collectCommandReturnsFromHosts(scpFutures, sshSucceededHosts);
-    System.out.format("Tarballs of %d/%d hosts copied to %s%n",
-            scpSucceededHosts.size(), allHosts.size(), tempDir.getAbsolutePath());
+    System.out.format("Tarballs of %d/%d hosts copied%n",
+            scpSucceededHosts.size(), allHosts.size());
 
     // If all executions failed, clean up and exit
     if (scpSucceededHosts.size() == 0) {

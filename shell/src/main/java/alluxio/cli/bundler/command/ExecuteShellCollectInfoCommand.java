@@ -83,8 +83,6 @@ public abstract class ExecuteShellCollectInfoCommand extends AbstractCollectInfo
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    int ret = 0;
-
     // Determine the working dir path
     mWorkingDirPath = getWorkingDirectory(cl);
 
@@ -99,6 +97,7 @@ public abstract class ExecuteShellCollectInfoCommand extends AbstractCollectInfo
       outputBuffer.write(cmdOutput.getSecond());
 
       if (cmdOutput.getFirst() == 0) {
+        // If the command works, skip the alternative command
         continue;
       } else {
         cmdExitCode = cmdOutput.getFirst();
@@ -115,9 +114,14 @@ public abstract class ExecuteShellCollectInfoCommand extends AbstractCollectInfo
         }
       }
 
-      // Keep only the larger return code
-      if (cmdExitCode != 0 && ret == 0) {
-        ret = cmdExitCode;
+      // If neither command works, log a warning instead of returning with error state
+      // This is because a command can err due to:
+      // 1. The executable does not exist. This results in an IOException.
+      // 2. The command is not compatible to the system, eg. Mac.
+      // 3. The command is wrong.
+      // We choose to tolerate the error state due since we cannot correct state 1 or 2.
+      if (cmdExitCode != 0) {
+        LOG.warn("Command %s failed with exit code %d", cmdName, cmdExitCode);
       }
     }
 
@@ -128,6 +132,6 @@ public abstract class ExecuteShellCollectInfoCommand extends AbstractCollectInfo
             outputFile.getAbsolutePath()));
     FileUtils.writeStringToFile(outputFile, outputBuffer.toString());
 
-    return ret;
+    return 0;
   }
 }

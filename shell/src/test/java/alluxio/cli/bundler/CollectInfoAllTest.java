@@ -11,8 +11,6 @@
 
 package alluxio.cli.bundler;
 
-import static org.junit.Assert.assertEquals;
-
 import alluxio.AlluxioTestDirectory;
 import alluxio.cli.Command;
 import alluxio.cli.bundler.command.AbstractCollectInfoCommand;
@@ -21,12 +19,10 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.ConfigurationUtils;
 
 import org.junit.BeforeClass;
-import org.junit.Test;
 import org.reflections.Reflections;
 
 import java.io.File;
 import java.lang.reflect.Modifier;
-import java.util.Collection;
 
 public class CollectInfoAllTest {
   private static InstancedConfiguration sConf =

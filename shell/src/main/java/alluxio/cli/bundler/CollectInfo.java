@@ -19,8 +19,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -52,7 +50,7 @@ public class CollectInfo extends AbstractShell {
    *
    * @param argv array of arguments given by the user's input from the terminal
    */
-  public static void main(String[] argv) throws IOException, InvalidArgumentException {
+  public static void main(String[] argv) throws IOException {
     int ret = 0;
 
     InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
@@ -63,11 +61,11 @@ public class CollectInfo extends AbstractShell {
     CollectInfo shell = new CollectInfo(conf);
 
     // If the args are not valid, return early
-    // TODO(jiacheng): catch in CollectInfoAll
     if (argv.length < 2) {
+      System.out.format("Command %s requires at least %s arguments (%s provided)%n",
+              2, argv.length);
       shell.printUsage();
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
-              .getMessage("collectInfo", 2, argv.length));
+      System.exit(1);
     }
 
     // Determine the command and working dir path
