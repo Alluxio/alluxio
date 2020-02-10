@@ -12,7 +12,6 @@
 package alluxio.master.table;
 
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
 import alluxio.collections.Pair;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
@@ -75,7 +74,7 @@ public class AlluxioCatalog implements Journaled {
    * @param executorServiceSupplier a supplier of an {@link ExecutorService}
    */
   public AlluxioCatalog(Supplier<ExecutorService> executorServiceSupplier) {
-    mFileSystem = FileSystem.Factory.create(FileSystemContext.create(ServerConfiguration.global()));
+    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
     mUdbRegistry = new UnderDatabaseRegistry();
     mUdbRegistry.refresh();
     mLayoutRegistry = new LayoutRegistry();

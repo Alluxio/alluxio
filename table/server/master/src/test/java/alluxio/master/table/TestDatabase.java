@@ -11,6 +11,8 @@
 
 package alluxio.master.table;
 
+import alluxio.client.file.FileSystem;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.PrincipalType;
 import alluxio.table.common.udb.UdbConfiguration;
@@ -34,6 +36,7 @@ public class TestDatabase implements UnderDatabase {
   public static final String TABLE_NAME_PREFIX = "test_table_name";
   public static DatabaseInfo sTestDbInfo = new DatabaseInfo("test://test", "TestOwner",
       PrincipalType.USER, "comment", ImmutableMap.of("testkey", "testvalue"));
+
   private static final TestDatabase DATABASE = new TestDatabase();
 
   private Map<String, UdbTable> mUdbTables;
@@ -98,11 +101,15 @@ public class TestDatabase implements UnderDatabase {
     return TABLE_NAME_PREFIX + Integer.toString(i);
   }
 
-  public static void genTable(int numOfTable, int numOfPartitions) {
+  public static void genTable(int numOfTable, int numOfPartitions, boolean generateFiles) {
     DATABASE.mUdbTables.clear();
+    FileSystem fs = null;
+    if (generateFiles) {
+      fs = FileSystem.Factory.create(ServerConfiguration.global());
+    }
     for (int i = 0; i < numOfTable; i++) {
       DATABASE.mUdbTables.put(getTableName(i),
-          new TestUdbTable(TEST_UDB_NAME, getTableName(i), numOfPartitions));
+          new TestUdbTable(TEST_UDB_NAME, getTableName(i), numOfPartitions, fs));
     }
   }
 

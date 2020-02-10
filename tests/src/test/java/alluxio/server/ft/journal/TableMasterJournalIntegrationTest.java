@@ -11,13 +11,23 @@
 
 package alluxio.server.ft.journal;
 
+import static alluxio.master.table.TestDatabase.genTable;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.grpc.table.Database;
 import alluxio.grpc.table.PrincipalType;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.job.util.JobTestUtils;
+import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.master.LocalAlluxioJobCluster;
+import alluxio.master.job.JobMaster;
 import alluxio.master.table.DatabaseInfo;
 import alluxio.master.table.Table;
 import alluxio.master.table.TableMaster;
@@ -26,7 +36,8 @@ import alluxio.master.table.TestUdbFactory;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.Before;
+import com.google.common.collect.ImmutableSet;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -45,10 +56,9 @@ public class TableMasterJournalIntegrationTest {
 
   private static final String DB_NAME = TestDatabase.TEST_UDB_NAME;
 
-  @Before
-  public void before() throws Exception {
-    TestDatabase.genTable(1, 2);
-  }
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
+      HeartbeatContext.MASTER_TABLE_TRANSFORMATION_MONITOR);
 
   @Test
   public void journalSync() throws Exception {
@@ -56,7 +66,7 @@ public class TableMasterJournalIntegrationTest {
     LocalAlluxioCluster mCluster = mClusterResource.get();
     TableMaster tableMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
-
+    genTable(1, 2, true);
     tableMaster
         .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
     checkDb(tableMaster, DB_NAME, TestDatabase.sTestDbInfo);
@@ -65,15 +75,14 @@ public class TableMasterJournalIntegrationTest {
         PrincipalType.ROLE, "newcomment", ImmutableMap.of("key", "value"));
 
     checkTable(tableMaster, DB_NAME, 1, 2);
-
-    // Update Udb, the table should stay the same, until we sync
-    TestDatabase.genTable(2, 3);
     checkTable(tableMaster, DB_NAME, 1, 2);
     assertEquals(TestDatabase.getTableName(0), tableMaster.getAllTables(DB_NAME).get(0));
     assertEquals(1, tableMaster.getAllTables(DB_NAME).size());
     assertEquals(2, tableMaster.getTable(DB_NAME, TestDatabase.getTableName(0))
         .getPartitions().size());
 
+    // Update Udb, the table should stay the same, until we sync
+    genTable(2, 3, true);
     tableMaster.syncDatabase(DB_NAME);
     checkTable(tableMaster, DB_NAME, 2, 3);
 
@@ -121,6 +130,7 @@ public class TableMasterJournalIntegrationTest {
     } catch (IOException e) {
       assertEquals("Database " + DB_NAME + " does not exist", e.getMessage());
     }
+    genTable(1, 2, true);
     tableMaster
         .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
     assertEquals(DB_NAME, tableMaster.getDatabase(DB_NAME).getDbName());
@@ -128,11 +138,9 @@ public class TableMasterJournalIntegrationTest {
     Table tableOld = tableMaster.getTable(DB_NAME, oldTableNames.get(0));
 
     mCluster.stopMasters();
-
-    // Update Udb, the table should stay the same, until we detach / reattach
-    TestDatabase.genTable(2, 2);
-
     mCluster.startMasters();
+    // Update Udb, the table should stay the same, until we detach / reattach
+    genTable(2, 2, true);
     TableMaster tableMasterRestart =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     List<String> newTableNames = tableMaster.getAllTables(DB_NAME);
@@ -147,16 +155,60 @@ public class TableMasterJournalIntegrationTest {
     LocalAlluxioCluster mCluster = mClusterResource.get();
     TableMaster tableMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
-
+    genTable(1, 2, true);
     tableMaster
         .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
     tableMaster.detachDatabase(DB_NAME);
     assertTrue(tableMaster.getAllDatabases().isEmpty());
+    genTable(2, 2, true);
     mCluster.stopMasters();
-    TestDatabase.genTable(2, 2);
     mCluster.startMasters();
     TableMaster tableMasterRestart =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     assertTrue(tableMasterRestart.getAllDatabases().isEmpty());
+  }
+
+  @Test
+  public void journalTransformDb() throws Exception {
+    mClusterResource.start();
+    LocalAlluxioCluster mCluster = mClusterResource.get();
+    TableMaster tableMaster =
+        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
+    LocalAlluxioJobCluster jobCluster = new LocalAlluxioJobCluster();
+    jobCluster.start();
+    JobMaster jobMaster = jobCluster.getMaster().getJobMaster();
+    genTable(1, 2, true);
+    tableMaster
+        .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
+    List<String> tables = tableMaster.getAllTables(DB_NAME);
+
+    assertFalse(tables.isEmpty());
+    // all partitions are not transformed, so baselayout is the same as layout
+    String tableName = tables.get(0);
+    assertTrue(tableMaster.getTable(DB_NAME, tableName).getPartitions().stream().allMatch(
+        partition -> partition.getBaseLayout() == partition.getLayout()));
+    long jobid = tableMaster.transformTable(DB_NAME, tableName, null);
+    assertNotEquals(0, jobid);
+    JobTestUtils.waitForJobStatus(jobMaster, jobid, ImmutableSet.of(Status.COMPLETED,
+        Status.CANCELED, Status.FAILED));
+    assertEquals(Status.COMPLETED, jobMaster.getStatus(jobid).getStatus());
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TABLE_TRANSFORMATION_MONITOR);
+    // all partitions are transformed, so baselayout should be different as layout
+    assertTrue(tableMaster.getTable(DB_NAME, tableName).getPartitions().stream().allMatch(
+        partition -> partition.getBaseLayout() != partition.getLayout()));
+    mCluster.stopMasters();
+    mCluster.startMasters();
+    genTable(1, 4, true);
+    TableMaster tableMasterRestart =
+        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
+    Table table = tableMaster.getTable(DB_NAME, tableName);
+    // all partitions remain transformed
+    assertTrue(tableMaster.getTable(DB_NAME, tableName).getPartitions().stream().allMatch(
+        partition -> partition.getBaseLayout() != partition.getLayout()));
+    tableMasterRestart.syncDatabase(DB_NAME);
+    // The first two partitions should remain transformed, the new partitions are not transformed
+    assertTrue(tableMaster.getTable(DB_NAME, tableName).getPartitions().stream().allMatch(
+        partition -> (partition.getSpec().endsWith("0") || partition.getSpec().endsWith("1"))
+            == (partition.getBaseLayout() != partition.getLayout())));
   }
 }
