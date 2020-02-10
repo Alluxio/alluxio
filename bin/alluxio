@@ -264,12 +264,12 @@ function main {
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.conf.validation.enabled=false"
     runJavaClass "$@"
   ;;
-  "infoBundle")
+  "collectInfo")
     CLASS="alluxio.cli.bundler.CollectInfo"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
-  "infoBundleAll")
+  "collectInfoAll")
     CLASS="alluxio.cli.bundler.CollectInfoAll"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
