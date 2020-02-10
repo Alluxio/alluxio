@@ -62,7 +62,7 @@ public class LocalCacheFileInStream extends FileInStream {
   private boolean mEOF = false;
 
   /**
-   * Constructor.
+   * Constructor when only path information is available.
    *
    * @param path path of the file
    * @param options read options
@@ -84,6 +84,25 @@ public class LocalCacheFileInStream extends FileInStream {
         throw new RuntimeException(e);
       }
     }).get();
+  }
+
+  /**
+   * Constructor when the {@link URIStatus} is already available.
+   *
+   * @param status file status
+   * @param options read options
+   * @param externalFs the external file system if a cache miss occurs
+   * @param cacheManager local cache manager
+   */
+  public LocalCacheFileInStream(URIStatus status, OpenFilePOptions options, FileSystem externalFs,
+      CacheManager cacheManager) {
+    mPageSize = externalFs.getConf().getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+    mPath = new AlluxioURI(status.getPath());
+    mOpenOptions = options;
+    mExternalFs = externalFs;
+    mCacheManager = cacheManager;
+    // Lazy init of status object
+    mStatus = status;
   }
 
   @Override

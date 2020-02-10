@@ -443,6 +443,20 @@ public interface FileSystem extends Closeable {
       IOException, AlluxioException;
 
   /**
+   * Opens a file for reading.
+   *
+   * @param status status of the file to read from
+   * @param options options to associate with this operation
+   * @return a {@link FileInStream} for the given path
+   * @throws FileDoesNotExistException when path does not exist
+   * @throws OpenDirectoryException when path is a directory
+   * @throws FileIncompleteException when path is a file and is not completed yet
+   */
+  FileInStream openFile(URIStatus status, OpenFilePOptions options)
+      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+      IOException, AlluxioException;
+
+  /**
    * Convenience method for {@link #persist(AlluxioURI, ScheduleAsyncPersistencePOptions)} which
    * uses the default {@link ScheduleAsyncPersistencePOptions}.
    *

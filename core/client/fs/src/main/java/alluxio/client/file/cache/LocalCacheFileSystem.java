@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.DelegatingFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -71,10 +72,18 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws IOException, AlluxioException {
-    // TODO(calvin): We should add another API to reduce the cost of openFile
     if (sCacheManager == null || !sCacheManager.isPresent()) {
       return mDelegatedFileSystem.openFile(path, options);
     }
     return new LocalCacheFileInStream(path, options, mDelegatedFileSystem, sCacheManager.get());
+  }
+
+  @Override
+  public FileInStream openFile(URIStatus status, OpenFilePOptions options)
+      throws IOException, AlluxioException {
+    if (sCacheManager == null || !sCacheManager.isPresent()) {
+      return mDelegatedFileSystem.openFile(status, options);
+    }
+    return new LocalCacheFileInStream(status, options, mDelegatedFileSystem, sCacheManager.get());
   }
 }
