@@ -31,4 +31,10 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
     // TODO(binfan): implement me
     return null;
   }
+
+  @Override
+  public FileInStream openFile(URIStatus status, OpenFilePOptions options) {
+    // TODO(binfan): implement me
+    return null;
+  }
 }
