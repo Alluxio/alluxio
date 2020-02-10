@@ -527,17 +527,9 @@ public final class MetricsSystem {
         // This metric does not registered in the metric registry
         continue;
       }
-      if (metric instanceof Gauge) {
-        Gauge gauge = (Gauge) metric;
-        if (!(gauge.getValue() instanceof Number)) {
-          LOG.debug("The value of metric {} of type {} is not sent to metrics master,"
-                  + " only metrics value of number can be collected",
-              entry.getKey(), gauge.getValue().getClass().getSimpleName());
-          continue;
-        }
-        rpcMetrics.add(Metric.from(entry.getKey(),
-            ((Number) gauge.getValue()).longValue(), MetricType.GAUGE).toProto());
-      } else if (metric instanceof Counter) {
+      // Currently all metrics that should be reported are all counters,
+      // the logic here is to support reporting metrics of all types for future convenience
+      if (metric instanceof Counter) {
         Counter counter = (Counter) metric;
         long value = counter.getCount();
         Long prev = LAST_REPORTED_METRICS.replace(entry.getKey(), value);
@@ -551,8 +543,22 @@ public final class MetricsSystem {
         if (diff != 0) { // Only report non-zero counter values
           rpcMetrics.add(Metric.from(entry.getKey(), diff, MetricType.COUNTER).toProto());
         }
+      } else if (metric instanceof Gauge) {
+        Gauge gauge = (Gauge) metric;
+        if (!(gauge.getValue() instanceof Number)) {
+          LOG.debug("The value of metric {} of type {} is not sent to metrics master,"
+                  + " only metrics value of number can be collected",
+              entry.getKey(), gauge.getValue().getClass().getSimpleName());
+          continue;
+        }
+        rpcMetrics.add(Metric.from(entry.getKey(),
+            ((Number) gauge.getValue()).longValue(), MetricType.GAUGE).toProto());
       } else if (metric instanceof Meter) {
         Meter meter = (Meter) metric;
+        // Note that one minute rate may return 0 in the first several seconds
+        // that a value marked. For clients, especially short-life clients,
+        // the minute rates will be zero for their whole life.
+        // That's why all throughput meters are not aggregated at cluster level.
         rpcMetrics.add(Metric.from(entry.getKey(), meter.getOneMinuteRate(),
             MetricType.METER).toProto());
       } else if (metric instanceof Timer) {
@@ -589,17 +595,28 @@ public final class MetricsSystem {
    */
   public static Set<Metric> getMasterMetric(String name) {
     Set<Metric> set = new HashSet<>();
-    Map<String, com.codahale.metrics.Metric> metricMap = METRIC_REGISTRY.getMetrics();
     String fullName = getMasterMetricName(name);
-    com.codahale.metrics.Metric metric = metricMap.get(fullName);
-    if (metric == null) {
-      return set;
-    }
-    Metric alluxioMetric = getAlluxioMetricFromCodahaleMetric(fullName, metric);
+    Metric alluxioMetric = getMetricValue(fullName);
     if (alluxioMetric != null) {
       set.add(alluxioMetric);
     }
     return set;
+  }
+
+  /**
+   * Gets metric with the given full metric name.
+   *
+   * @param fullName the full name of the metric to get
+   * @return a metric set with the master metric of the given metric name
+   */
+  @Nullable
+  public static Metric getMetricValue(String fullName) {
+    Map<String, com.codahale.metrics.Metric> metricMap = METRIC_REGISTRY.getMetrics();
+    com.codahale.metrics.Metric metric = metricMap.get(fullName);
+    if (metric == null) {
+      return null;
+    }
+    return getAlluxioMetricFromCodahaleMetric(fullName, metric);
   }
 
   @Nullable
@@ -684,7 +701,7 @@ public final class MetricsSystem {
    */
   public static synchronized void resetAllMetrics() {
     // Gauge metrics don't need to be changed because they calculate value when getting them
-    // Counters can be reset to zero values.
+    // Counters can be reset to zero values.MetricsStoreTest.jav
     for (Counter counter : METRIC_REGISTRY.getCounters().values()) {
       counter.dec(counter.getCount());
     }

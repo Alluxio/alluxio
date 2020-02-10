@@ -70,8 +70,14 @@ public final class ClientMasterSync {
     // future we will support sending per filesystem client-level metrics.
     List<alluxio.grpc.ClientMetrics> fsClientMetrics = new ArrayList<>();
     String hostname = NetworkAddressUtils.getClientHostName(mConf);
+    List<alluxio.grpc.Metric> reportMetrics = MetricsSystem.reportClientMetrics();
+    if (reportMetrics.size() == 0) {
+      // Likely when all should report metrics are counters
+      // and this client doesn't do any actual operations (only used for meta sync)
+      return;
+    }
     List<alluxio.grpc.Metric> metrics = new ArrayList<>();
-    for (alluxio.grpc.Metric metric : MetricsSystem.reportClientMetrics()) {
+    for (alluxio.grpc.Metric metric : reportMetrics) {
       metrics.add(metric.toBuilder().setInstanceId(mApplicationId).build());
     }
     fsClientMetrics.add(ClientMetrics.newBuilder()
