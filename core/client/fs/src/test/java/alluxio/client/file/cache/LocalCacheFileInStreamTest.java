@@ -291,20 +291,20 @@ public class LocalCacheFileInStreamTest {
     byte[] cacheMiss = new byte[readSize];
     stream.read(cacheMiss);
     Assert.assertEquals(0,
-        MetricsSystem.counter(MetricKey.CACHE_BYTES_READ_CACHE.getName()).getCount());
-    Assert.assertEquals(readSize,
-        MetricsSystem.counter(MetricKey.CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
+    Assert.assertEquals(readSize, MetricsSystem.counter(
+        MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(fileSize,
-        MetricsSystem.counter(MetricKey.CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
 
     // cache hit
     stream.read();
     Assert.assertEquals(1,
-        MetricsSystem.counter(MetricKey.CACHE_BYTES_READ_CACHE.getName()).getCount());
-    Assert.assertEquals(readSize,
-        MetricsSystem.counter(MetricKey.CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
+    Assert.assertEquals(readSize, MetricsSystem.counter(
+        MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(fileSize,
-        MetricsSystem.counter(MetricKey.CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
   }
 
   private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager) {
@@ -476,6 +476,17 @@ public class LocalCacheFileInStreamTest {
     @Override public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
         throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
         IOException, AlluxioException {
+      if (mFiles.containsKey(path)) {
+        return new MockFileInStream(mFiles.get(path));
+      } else {
+        throw new FileDoesNotExistException(path);
+      }
+    }
+
+    @Override public FileInStream openFile(URIStatus status, OpenFilePOptions options)
+        throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+        IOException, AlluxioException {
+      AlluxioURI path = new AlluxioURI(status.getPath());
       if (mFiles.containsKey(path)) {
         return new MockFileInStream(mFiles.get(path));
       } else {

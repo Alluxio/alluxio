@@ -328,12 +328,12 @@ public class LocalCacheFileInStream extends FileInStream {
   private static final class Metrics {
     /** Cache hits. */
     private static final Counter BYTES_READ_CACHE =
-        MetricsSystem.counter(MetricKey.CACHE_BYTES_READ_CACHE.getName());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName());
     /** Bytes read from external, may be larger than requests due to reading complete pages. */
     private static final Counter BYTES_READ_EXTERNAL =
-        MetricsSystem.counter(MetricKey.CACHE_BYTES_READ_EXTERNAL.getName());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName());
     /** Cache misses. */
     private static final Counter BYTES_REQUESTED_EXTERNAL =
-        MetricsSystem.counter(MetricKey.CACHE_BYTES_REQUESTED_EXTERNAL.getName());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName());
   }
 }

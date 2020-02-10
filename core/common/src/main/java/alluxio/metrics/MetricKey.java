@@ -774,21 +774,21 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(true)
           .build();
   // Client local cache metrics
-  public static final MetricKey CACHE_BYTES_READ_CACHE =
-      new Builder(Name.CACHE_BYTES_READ_CACHE)
+  public static final MetricKey CLIENT_CACHE_BYTES_READ_CACHE =
+      new Builder(Name.CLIENT_CACHE_BYTES_READ_CACHE)
           .setDescription("Total number of bytes read from the Local Cache.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey CACHE_BYTES_READ_EXTERNAL =
-      new Builder(Name.CACHE_BYTES_READ_EXTERNAL)
+  public static final MetricKey CLIENT_CACHE_BYTES_READ_EXTERNAL =
+      new Builder(Name.CLIENT_CACHE_BYTES_READ_EXTERNAL)
           .setDescription("Total number of bytes read from external storage due to a cache miss "
               + "on the local cache.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey CACHE_BYTES_REQUESTED_EXTERNAL =
-      new Builder(Name.CACHE_BYTES_REQUESTED_EXTERNAL)
+  public static final MetricKey CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL =
+      new Builder(Name.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL)
           .setDescription("Total number of bytes the user requested to read which resulted in a "
               + "cache miss. This number may be smaller than CacheBytesReadExternal due to chunk "
               + "reads.")
@@ -989,9 +989,9 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLIENT_BYTES_WRITTEN_UFS = "Client.BytesWrittenUfs";
 
     // Client local cache metrics
-    public static final String CACHE_BYTES_READ_CACHE = "Client.CacheBytesReadCache";
-    public static final String CACHE_BYTES_READ_EXTERNAL = "Client.CacheBytesReadExternal";
-    public static final String CACHE_BYTES_REQUESTED_EXTERNAL
+    public static final String CLIENT_CACHE_BYTES_READ_CACHE = "Client.CacheBytesReadCache";
+    public static final String CLIENT_CACHE_BYTES_READ_EXTERNAL = "Client.CacheBytesReadExternal";
+    public static final String CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL
         = "Client.CacheBytesRequestedExternal";
 
     private Name() {} // prevent instantiation
