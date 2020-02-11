@@ -179,7 +179,8 @@ public class ActiveSyncManager implements Journaled {
     }
     // attempt to restart from a past txid, if this fails, it will result in MissingEventException
     // therefore forces a sync
-    for (long mountId: mFilterMap.keySet()) {
+    for (Map.Entry<Long, List<AlluxioURI>> entry : mFilterMap.entrySet()) {
+      long mountId = entry.getKey();
       long txId = mStartingTxIdMap.getOrDefault(mountId, SyncInfo.INVALID_TXID);
       launchPollingThread(mountId, txId);
 
@@ -187,7 +188,7 @@ public class ActiveSyncManager implements Journaled {
         if ((txId == SyncInfo.INVALID_TXID) && ServerConfiguration.getBoolean(
             PropertyKey.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)) {
           mExecutorService.submit(
-              () -> mFilterMap.get(mountId).parallelStream().forEach(
+              () -> entry.getValue().parallelStream().forEach(
                   syncPoint -> {
                     MountTable.Resolution resolution;
                     try {
