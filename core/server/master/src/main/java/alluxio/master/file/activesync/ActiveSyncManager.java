@@ -528,7 +528,6 @@ public class ActiveSyncManager implements Journaled {
                   resolution.getUri()), e);
             }
           });
-
       mSyncPathStatus.put(syncPoint, syncFuture);
     }
   }
@@ -541,19 +540,8 @@ public class ActiveSyncManager implements Journaled {
    */
   private void stopSyncInternal(AlluxioURI syncPoint) throws InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
-    long mountId = resolution.getMountId();
     // Remove initial sync thread
-    Future<?> syncFuture = mSyncPathStatus.remove(syncPoint);
-    if (syncFuture != null) {
-      syncFuture.cancel(true);
-    }
-
-    if (mFilterMap.containsKey(mountId) && mFilterMap.get(mountId).isEmpty()) {
-      Future<?> future = mPollerMap.remove(mountId);
-      if (future != null) {
-        future.cancel(true);
-      }
-    }
+    stopInitSync(syncPoint, resolution);
 
     // Tell UFS to stop monitoring the path
     try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
@@ -563,6 +551,7 @@ public class ActiveSyncManager implements Journaled {
     }
 
     // Stop active sync polling on a particular UFS if it is the last sync point
+    long mountId = resolution.getMountId();
     if (mFilterMap.containsKey(mountId) && mFilterMap.get(mountId).isEmpty()) {
       // syncPoint removed was the last syncPoint for the mountId
       mFilterMap.remove(mountId);
@@ -587,9 +576,11 @@ public class ActiveSyncManager implements Journaled {
     }
 
     long mountId = resolution.getMountId();
-    Future<?> future = mPollerMap.remove(mountId);
-    if (future != null) {
-      future.cancel(true);
+    if (mFilterMap.containsKey(mountId) && mFilterMap.get(mountId).isEmpty()) {
+      Future<?> future = mPollerMap.remove(mountId);
+      if (future != null) {
+        future.cancel(true);
+      }
     }
   }
 
