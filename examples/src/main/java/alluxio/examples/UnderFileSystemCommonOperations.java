@@ -66,7 +66,7 @@ public final class UnderFileSystemCommonOperations {
       = "Should failed in UnderFileSystem.isDirectory() check, but succeed";
   private static final String LIST_STATUS_RESULT_INCORRECT
       = "The result of UnderFileSystem.listStatus() is incorrect";
-  private static final int RETRY_TIMEOUT_MS = 60000;
+  private static final int RETRY_TIMEOUT_MS = 180000;
   private static final int RETRY_INTERVAL_MS = 1000;
 
   private final InstancedConfiguration mConfiguration;
