@@ -539,6 +539,11 @@ public final class CommonUtils {
     }
     // Poll the tasks to exit early in case of failure.
     while (!pending.isEmpty()) {
+      if (Thread.interrupted()) {
+        // stop waiting if interrupted
+        Thread.currentThread().interrupt();
+        throw new RuntimeException("Thread was interrupted while waiting for invokeAll.");
+      }
       Iterator<Future<T>> it = pending.iterator();
       while (it.hasNext()) {
         Future<T> future = it.next();
@@ -559,6 +564,10 @@ public final class CommonUtils {
       }
       long remainingMs = endMs - System.currentTimeMillis();
       if (remainingMs <= 0) {
+        // Cancel the pending futures
+        for (Future<T> future : pending) {
+          future.cancel(true);
+        }
         throw new TimeoutException(
             String.format("Timed out after %dms", timeoutMs - remainingMs));
       }
