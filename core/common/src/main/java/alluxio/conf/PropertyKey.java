@@ -4702,6 +4702,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.table.transform.manager.job.monitor.interval";
     public static final String TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
         "alluxio.table.transform.manager.job.history.retention.time";
+
     private Name() {} // prevent instantiation
   }
 
