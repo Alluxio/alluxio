@@ -186,22 +186,20 @@ public class ActiveSyncManager implements Journaled {
       try {
         if ((txId == SyncInfo.INVALID_TXID) && ServerConfiguration.getBoolean(
             PropertyKey.MASTER_UFS_ACTIVE_SYNC_INITIAL_SYNC_ENABLED)) {
-          mFilterMap.get(mountId).parallelStream().forEach(
-              syncPoint ->
-                  mExecutorService.submit(
-                      () -> {
-                        MountTable.Resolution resolution;
-                        try {
-                          resolution = mMountTable.resolve(syncPoint);
-                        } catch (InvalidPathException e) {
-                          LOG.info("Invalid Path encountered during start up of ActiveSyncManager, "
-                              + "path {}, exception {}", syncPoint, e);
-                          return;
-                        }
-                        startInitSync(syncPoint, resolution);
-                      }
-                  )
-          );
+          mExecutorService.submit(
+              () -> mFilterMap.get(mountId).parallelStream().forEach(
+                  syncPoint -> {
+                    MountTable.Resolution resolution;
+                    try {
+                      resolution = mMountTable.resolve(syncPoint);
+                    } catch (InvalidPathException e) {
+                      LOG.info("Invalid Path encountered during start up of ActiveSyncManager, "
+                          + "path {}, exception {}", syncPoint, e);
+                      return;
+                    }
+                    startInitSync(syncPoint, resolution);
+                  }
+              ));
         }
       } catch (Exception e) {
         LOG.warn("exception encountered during initial sync: {}", e.toString());

@@ -3392,6 +3392,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
     // Update metadata for all the mount points
     for (String mountPoint : pathsToLoad) {
+      if (Thread.currentThread().isInterrupted()) {
+        LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
+        return false;
+      }
       AlluxioURI mountPointUri = new AlluxioURI(mountPoint);
       try {
         if (PathUtils.hasPrefix(inodePath.getUri().getPath(), mountPointUri.getPath())) {
@@ -3489,6 +3493,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
+    if (Thread.currentThread().isInterrupted()) {
+      LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
+      return SyncResult.defaults();
+    }
     // Set to true if the given inode was deleted.
     boolean deletedInode = false;
     // Set of paths to sync
