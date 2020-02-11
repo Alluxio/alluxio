@@ -160,7 +160,7 @@ public class CollectInfo extends AbstractShell {
 
   @Override
   protected String getShellName() {
-    return "infoBundle";
+    return "collectInfo";
   }
 
   @Override

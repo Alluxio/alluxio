@@ -28,9 +28,6 @@ public class CollectEnvCommand extends ExecuteShellCollectInfoCommand {
   public static final String COMMAND_NAME = "collectEnv";
   private static final Logger LOG = LoggerFactory.getLogger(CollectEnvCommand.class);
 
-  protected Map<String, ShellCommand> mCommands;
-  protected Map<String, ShellCommand> mCommandsAlt;
-
   /**
    * Creates a new instance of {@link CollectEnvCommand}.
    *
@@ -38,8 +35,6 @@ public class CollectEnvCommand extends ExecuteShellCollectInfoCommand {
    * */
   public CollectEnvCommand(FileSystemContext fsContext) {
     super(fsContext);
-    mCommands = new HashMap<>();
-    mCommandsAlt = new HashMap<>();
     registerCommands();
   }
 

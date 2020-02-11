@@ -117,7 +117,7 @@ public class CollectInfoAll extends AbstractShell {
     System.out.format("Init thread pool for %s hosts%n", allHosts.size());
     shellAll.mExecutor = Executors.newFixedThreadPool(allHosts.size());
 
-    // Invoke infoBundle on each host
+    // Invoke collectInfo on each host
     List<CompletableFuture<CommandReturn>> sshFutureList = new ArrayList<>();
     for (String host : allHosts) {
       System.out.format("Execute CollectInfo on host %s%n", host);
@@ -130,9 +130,9 @@ public class CollectInfoAll extends AbstractShell {
         System.out.format("host: %s, alluxio path %s%n", host, alluxioBinPath);
 
         try {
-          String[] infoBundleArgs =
-                  (String[]) ArrayUtils.addAll(new String[]{alluxioBinPath, "infoBundle"}, argv);
-          CommandReturn cr = ShellUtils.sshExecCommandWithOutput(host, infoBundleArgs);
+          String[] collectInfoArgs =
+                  (String[]) ArrayUtils.addAll(new String[]{alluxioBinPath, "collectInfo"}, argv);
+          CommandReturn cr = ShellUtils.sshExecCommandWithOutput(host, collectInfoArgs);
           return cr;
         } catch (Exception e) {
           LOG.error("Execution failed %s", e);
@@ -140,7 +140,7 @@ public class CollectInfoAll extends AbstractShell {
         }
       }, shellAll.mExecutor);
       sshFutureList.add(future);
-      System.out.format("Invoked infoBundle command on host %s%n", host);
+      System.out.format("Invoked collectInfo command on host %s%n", host);
     }
 
     // Collect SSH execution results
@@ -149,7 +149,7 @@ public class CollectInfoAll extends AbstractShell {
 
     // If all executions failed, clean up and exit
     if (sshSucceededHosts.size() == 0) {
-      System.err.println("Failed to invoke infoBundle command on all hosts!");
+      System.err.println("Failed to invoke collectInfo command on all hosts!");
       shellAll.close();
       System.exit(1);
     }
