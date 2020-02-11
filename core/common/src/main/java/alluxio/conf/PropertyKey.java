@@ -3898,6 +3898,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey TABLE_CATALOG_UDB_SYNC_TIMEOUT =
+      new Builder(Name.TABLE_CATALOG_UDB_SYNC_TIMEOUT)
+          .setDefaultValue("1h")
+          .setDescription("The timeout period for a db sync to finish in the catalog. If a sync"
+              + "takes longer than this timeout, the sync will be terminated.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
       new Builder(Name.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL)
           .setDefaultValue(10 * Constants.SECOND_MS)
@@ -4688,11 +4696,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String TABLE_ENABLED = "alluxio.table.enabled";
     public static final String TABLE_CATALOG_PATH = "alluxio.table.catalog.path";
+    public static final String TABLE_CATALOG_UDB_SYNC_TIMEOUT =
+        "alluxio.table.catalog.udb.sync.timeout";
     public static final String TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
         "alluxio.table.transform.manager.job.monitor.interval";
     public static final String TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
         "alluxio.table.transform.manager.job.history.retention.time";
-
     private Name() {} // prevent instantiation
   }
 

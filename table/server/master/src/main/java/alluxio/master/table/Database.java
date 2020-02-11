@@ -12,6 +12,8 @@
 package alluxio.master.table;
 
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.FileStatistics;
@@ -58,6 +60,8 @@ public class Database implements Journaled {
   private final Map<String, Table> mTables;
   private final UnderDatabase mUdb;
   private final Map<String, String> mConfig;
+  private final long mUdbSyncTimeoutMs =
+      ServerConfiguration.getMs(PropertyKey.TABLE_CATALOG_UDB_SYNC_TIMEOUT);
 
   private DatabaseInfo mDatabaseInfo;
 
@@ -217,7 +221,7 @@ public class Database implements Journaled {
     }
 
     try {
-      CommonUtils.invokeAll(service, tasks, 10 * Constants.MINUTE_MS);
+      CommonUtils.invokeAll(service, tasks, mUdbSyncTimeoutMs);
     } catch (Exception e) {
       throw new IOException("Failed to sync database " + mName, e);
     }
