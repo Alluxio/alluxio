@@ -234,9 +234,8 @@ public class AlluxioFileInStream extends FileInStream {
       return -1;
     }
 
-    LOG.info("AMDEBUG pread len {} ", len);
-    if (len < 2 * Constants.MB) {
-      LOG.info("AMDEBUG set for pread len {} ", len);
+    if (len < mContext.getPathConf(new AlluxioURI(mStatus.getPath()))
+        .getBytes(PropertyKey.USER_FILE_SEQUENTIAL_PREAD_THRESHOLD)) {
       mOptions.setPositionShort(true);
     }
     int lenCopy = len;

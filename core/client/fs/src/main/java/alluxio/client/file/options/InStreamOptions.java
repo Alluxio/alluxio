@@ -42,7 +42,7 @@ public final class InStreamOptions {
   private final URIStatus mStatus;
   private final OpenFilePOptions mProtoOptions;
   private BlockLocationPolicy mUfsReadLocationPolicy;
-  private boolean mIsPositionShort;
+  private boolean mPositionShort;
 
   /**
    * Creates with the default {@link OpenFilePOptions}.
@@ -75,7 +75,7 @@ public final class InStreamOptions {
     mProtoOptions = openOptions;
     mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(
         alluxioConf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), alluxioConf);
-    mIsPositionShort = false;
+    mPositionShort = false;
   }
 
   /**
@@ -100,7 +100,7 @@ public final class InStreamOptions {
    * Sets whether the operation is positioned read to a small buffer.
    */
   public void setPositionShort(boolean positionShort) {
-    mIsPositionShort = positionShort;
+    mPositionShort = positionShort;
   }
 
   /**
@@ -118,10 +118,10 @@ public final class InStreamOptions {
   }
 
   /**
-   * @return is this operation using positioned read to a small buffer size
+   * @return true, if the operation is using positioned read to a small buffer size
    */
   public boolean getPositionShort() {
-    return mIsPositionShort;
+    return mPositionShort;
   }
 
   /**
@@ -177,7 +177,7 @@ public final class InStreamOptions {
     InStreamOptions that = (InStreamOptions) o;
     return Objects.equal(mStatus, that.mStatus)
         && Objects.equal(mProtoOptions, that.mProtoOptions)
-        && Objects.equal(mIsPositionShort, that.mIsPositionShort);
+        && Objects.equal(mPositionShort, that.mPositionShort);
   }
 
   @Override
@@ -185,7 +185,7 @@ public final class InStreamOptions {
     return Objects.hashCode(
         mStatus,
         mProtoOptions,
-        mIsPositionShort
+        mPositionShort
     );
   }
 
@@ -194,7 +194,7 @@ public final class InStreamOptions {
     return MoreObjects.toStringHelper(this)
         .add("URIStatus", mStatus)
         .add("OpenFileOptions", mProtoOptions)
-        .add("IsPositionShort", mIsPositionShort)
+        .add("PositionShort", mPositionShort)
         .toString();
   }
 }

@@ -317,7 +317,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param sessionId the client session ID
    * @param blockId the ID of the UFS block to read
    * @param offset the offset within the block
-   * @param positionShort if this is a positioned read to a small buffer
+   * @param positionShort whether the operation is using positioned read to a small buffer size
    * @return the block reader instance
    * @throws BlockDoesNotExistException if the block does not exist in the UFS block store
    */

@@ -94,14 +94,15 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @param localBlockStore the Local block store
    * @param ufsManager the manager of ufs
    * @param ufsInstreamManager the manager of ufs instreams
-   * @param positionShort if this is a positioned read to a small buffer
+   * @param positionShort whether the client op is a positioned read to a small buffer
    * @return the block reader
    */
   public static UnderFileSystemBlockReader create(UnderFileSystemBlockMeta blockMeta, long offset,
-      boolean positionShort, BlockStore localBlockStore, UfsManager ufsManager, UfsInputStreamManager ufsInstreamManager)
-      throws IOException {
+      boolean positionShort, BlockStore localBlockStore, UfsManager ufsManager,
+      UfsInputStreamManager ufsInstreamManager) throws IOException {
     UnderFileSystemBlockReader ufsBlockReader =
-        new UnderFileSystemBlockReader(blockMeta, positionShort, localBlockStore, ufsManager, ufsInstreamManager);
+        new UnderFileSystemBlockReader(blockMeta, positionShort, localBlockStore, ufsManager,
+            ufsInstreamManager);
     ufsBlockReader.init(offset);
     return ufsBlockReader;
   }
@@ -112,11 +113,12 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @param blockMeta the block meta
    * @param localBlockStore the Local block store
    * @param ufsManager the manager of ufs
-   * @param positionShort if this is a positioned read to a small buffer
+   * @param positionShort whether the client op is a positioned read to a small buffer
    * @param ufsInstreamManager the manager of ufs instreams
    */
-  private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, boolean positionShort, BlockStore localBlockStore,
-      UfsManager ufsManager, UfsInputStreamManager ufsInstreamManager) throws IOException {
+  private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, boolean positionShort,
+      BlockStore localBlockStore, UfsManager ufsManager, UfsInputStreamManager ufsInstreamManager)
+      throws IOException {
     mInitialBlockSize = ServerConfiguration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
     mBlockMeta = blockMeta;
     mLocalBlockStore = localBlockStore;
@@ -306,7 +308,9 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       UnderFileSystem ufs = mUfsResource.get();
       mUnderFileSystemInputStream = mUfsInstreamManager.acquire(ufs,
           mBlockMeta.getUnderFileSystemPath(), IdUtils.fileIdFromBlockId(mBlockMeta.getBlockId()),
-          OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset).setPositionShort(mIsPositionShort));
+          OpenOptions.defaults()
+              .setOffset(mBlockMeta.getOffset() + offset)
+              .setPositionShort(mIsPositionShort));
       mInStreamPos = offset;
     }
   }

@@ -29,7 +29,7 @@ public final class OpenOptions {
 
   private long mLength;
 
-  private boolean mIsPositionShort;
+  private boolean mPositionShort;
 
   /**
    * If true, attempt to recover after failed opened attempts. Extra effort may be required in
@@ -51,7 +51,7 @@ public final class OpenOptions {
     mOffset = 0;
     mLength = Long.MAX_VALUE;
     mRecoverFailedOpen = false;
-    mIsPositionShort = false;
+    mPositionShort = false;
   }
 
   /**
@@ -76,10 +76,10 @@ public final class OpenOptions {
   }
 
   /**
-   * @return true if this is positioned read to a small buffer
+   * @return true, if the operation is using positioned read to a small buffer size
    */
   public boolean getPositionShort() {
-    return mIsPositionShort;
+    return mPositionShort;
   }
 
   /**
@@ -112,10 +112,11 @@ public final class OpenOptions {
   }
 
   /**
+   * @param positionShort whether the operation is positioned read to a small buffer
    * @return the updated option object
    */
   public OpenOptions setPositionShort(boolean positionShort) {
-    mIsPositionShort = positionShort;
+    mPositionShort = positionShort;
     return this;
   }
 
@@ -131,12 +132,12 @@ public final class OpenOptions {
     return Objects.equal(mOffset, that.mOffset)
         && Objects.equal(mLength, that.mLength)
         && Objects.equal(mRecoverFailedOpen, that.mRecoverFailedOpen)
-        && Objects.equal(mIsPositionShort, that.mIsPositionShort);
+        && Objects.equal(mPositionShort, that.mPositionShort);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mOffset, mLength, mRecoverFailedOpen, mIsPositionShort);
+    return Objects.hashCode(mOffset, mLength, mRecoverFailedOpen, mPositionShort);
   }
 
   @Override
@@ -145,7 +146,7 @@ public final class OpenOptions {
         .add("offset", mOffset)
         .add("length", mLength)
         .add("recoverFailedOpen", mRecoverFailedOpen)
-        .add("isPositionShort", mIsPositionShort)
+        .add("positionShort", mPositionShort)
         .toString();
   }
 }
