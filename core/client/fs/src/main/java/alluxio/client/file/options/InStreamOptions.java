@@ -98,6 +98,8 @@ public final class InStreamOptions {
 
   /**
    * Sets whether the operation is positioned read to a small buffer.
+   *
+   * @param positionShort whether the operation is positioned read to a small buffer
    */
   public void setPositionShort(boolean positionShort) {
     mPositionShort = positionShort;
