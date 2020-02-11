@@ -129,6 +129,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   }
 
   private void pingMetaService(InetSocketAddress address) throws AlluxioStatusException {
+    // disable authentication in the channel since version service does not require authentication
     GrpcChannel channel =
         GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), mConfiguration)
             .setSubject(mUserState.getSubject()).setClientType("MasterInquireClient")
