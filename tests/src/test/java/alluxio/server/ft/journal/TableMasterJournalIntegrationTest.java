@@ -37,8 +37,8 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -49,21 +49,24 @@ import java.util.List;
  * Integration tests for table master functionality.
  */
 public class TableMasterJournalIntegrationTest {
-  @Rule
-  public LocalAlluxioClusterResource mClusterResource =
-      new LocalAlluxioClusterResource.Builder().setStartCluster(false)
-          .build();
-
-  private static final String DB_NAME = TestDatabase.TEST_UDB_NAME;
+  @ClassRule
+  public static LocalAlluxioClusterResource sClusterResource =
+      new LocalAlluxioClusterResource.Builder().setNumWorkers(1).build();
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_TABLE_TRANSFORMATION_MONITOR);
 
+  private static final String DB_NAME = TestDatabase.TEST_UDB_NAME;
+
+  @Before
+  public void reset() throws Exception {
+    sClusterResource.get().formatAndRestartMasters();
+  }
+
   @Test
   public void journalSync() throws Exception {
-    mClusterResource.start();
-    LocalAlluxioCluster mCluster = mClusterResource.get();
+    LocalAlluxioCluster mCluster = sClusterResource.get();
     TableMaster tableMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     genTable(1, 2, true);
@@ -120,8 +123,7 @@ public class TableMasterJournalIntegrationTest {
 
   @Test
   public void journalAttachDb() throws Exception {
-    mClusterResource.start();
-    LocalAlluxioCluster mCluster = mClusterResource.get();
+    LocalAlluxioCluster mCluster = sClusterResource.get();
     TableMaster tableMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     try {
@@ -151,8 +153,7 @@ public class TableMasterJournalIntegrationTest {
 
   @Test
   public void journalDetachDb() throws Exception {
-    mClusterResource.start();
-    LocalAlluxioCluster mCluster = mClusterResource.get();
+    LocalAlluxioCluster mCluster = sClusterResource.get();
     TableMaster tableMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     genTable(1, 2, true);
@@ -170,8 +171,7 @@ public class TableMasterJournalIntegrationTest {
 
   @Test
   public void journalTransformDb() throws Exception {
-    mClusterResource.start();
-    LocalAlluxioCluster mCluster = mClusterResource.get();
+    LocalAlluxioCluster mCluster = sClusterResource.get();
     TableMaster tableMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     LocalAlluxioJobCluster jobCluster = new LocalAlluxioJobCluster();
