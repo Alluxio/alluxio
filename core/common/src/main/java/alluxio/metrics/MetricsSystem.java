@@ -12,6 +12,7 @@
 package alluxio.metrics;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.MetricType;
@@ -341,12 +342,17 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
-    if (name.startsWith(instance.toString())) {
-      return Joiner.on(".").join(name,
-          NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
+    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    String identifier;
+    if (conf.isSet(PropertyKey.USER_APP_ID)) {
+      identifier = conf.get(PropertyKey.USER_APP_ID);
+    } else {
+      identifier = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
     }
-    return Joiner.on(".").join(instance, name,
-        NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
+    if (name.startsWith(instance.toString())) {
+      return Joiner.on(".").join(name, identifier);
+    }
+    return Joiner.on(".").join(instance, name, identifier);
   }
 
   /**
