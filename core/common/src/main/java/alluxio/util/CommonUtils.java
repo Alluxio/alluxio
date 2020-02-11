@@ -521,7 +521,8 @@ public final class CommonUtils {
 
   /**
    * Executes the given callables, waiting for them to complete (or time out). If a callable throws
-   * an exception, that exception will be re-thrown from this method.
+   * an exception, that exception will be re-thrown from this method. If the current thread is
+   * interrupted, an Exception will be thrown.
    *
    * @param service the service to execute the callables
    * @param callables the callables to execute
