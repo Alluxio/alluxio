@@ -156,11 +156,7 @@ public class PageStoreTest {
     for (int i = 1; i <= 1024; i++) {
       PageId id = new PageId(Integer.toString(i), 0);
       mPageStore.put(id, new byte[i]);
-      if (mOptions.getType() == PageStoreType.LOCAL) {
-        totalBytes += i;
-      } else {
-        totalBytes += + i;
-      }
+      totalBytes += i;
       assertEquals(i, mPageStore.pages());
       assertEquals(totalBytes, mPageStore.bytes());
     }
