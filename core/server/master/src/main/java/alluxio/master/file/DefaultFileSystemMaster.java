@@ -1351,9 +1351,12 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public Map<String, MountPointInfo> getMountTable() {
+    LOG.info("DefaultFSM getMountTable()");
     SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
     for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
       mountPoints.put(mountPoint.getKey(), getDisplayMountPointInfo(mountPoint.getValue()));
+      MountPointInfo info = getDisplayMountPointInfo(mountPoint.getValue());
+      LOG.info("MountPointInfo {}", info);
     }
     return mountPoints;
   }

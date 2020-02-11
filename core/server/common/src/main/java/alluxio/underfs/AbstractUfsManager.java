@@ -165,6 +165,7 @@ public abstract class AbstractUfsManager implements UfsManager {
     Preconditions.checkNotNull(ufsUri, "ufsUri");
     Preconditions.checkNotNull(ufsConf, "ufsConf");
     mMountIdToUfsInfoMap.put(mountId, new UfsClient(() -> getOrAdd(ufsUri, ufsConf), ufsUri));
+    LOG.info("MountId={}, shared={}, readonly={}", mountId, ufsConf.isShared(), ufsConf.isReadOnly());
   }
 
   @Override
@@ -194,6 +195,7 @@ public abstract class AbstractUfsManager implements UfsManager {
             ServerConfiguration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
         boolean rootShared = ServerConfiguration
             .getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
+        LOG.info("Creating root shared={}, readonly={}", rootShared, rootReadOnly);
         Map<String, String> rootConf =
             ServerConfiguration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
         addMount(IdUtils.ROOT_MOUNT_ID, new AlluxioURI(rootUri),

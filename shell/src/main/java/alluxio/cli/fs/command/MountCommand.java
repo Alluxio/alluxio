@@ -85,6 +85,9 @@ public final class MountCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     if (args.length == 0) {
+      // TODO(jiacheng): for debugging
+      System.out.format("File system class %s%n", mFileSystem.getClass());
+
       Map<String, MountPointInfo> mountTable = mFileSystem.getMountTable();
       UfsCommand.printMountInfo(mountTable);
       return 0;
