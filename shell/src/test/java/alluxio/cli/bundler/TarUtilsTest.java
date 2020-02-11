@@ -14,8 +14,6 @@ package alluxio.cli.bundler;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.AlluxioTestDirectory;
-
 import org.junit.Test;
 
 import java.io.File;
@@ -26,7 +24,7 @@ public class TarUtilsTest {
   @Test
   public void compressAndDecompressFiles() throws IOException {
     // create temp dir
-    File targetDir = AlluxioTestDirectory.createTemporaryDirectory("logTarget");
+    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory("logTarget");
 
     int fileCount = 10;
     // create a list of files in the folder
@@ -55,9 +53,9 @@ public class TarUtilsTest {
   @Test
   public void compressAndDecompressFilesAndFolder() throws IOException {
     // create temp dir
-    File source1 = AlluxioTestDirectory.createTemporaryDirectory("source1");
-    File source2 = AlluxioTestDirectory.createTemporaryDirectory("source2");
-    File targetDir = AlluxioTestDirectory.createTemporaryDirectory("output");
+    File source1 = InfoCollectorTestUtils.createTemporaryDirectory("source1");
+    File source2 = InfoCollectorTestUtils.createTemporaryDirectory("source2");
+    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory("output");
 
     createFilesInDir(source1, 10);
     createFilesInDir(source2, 10);

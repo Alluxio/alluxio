@@ -11,11 +11,35 @@
 
 package alluxio.cli.bundler;
 
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 public class InfoCollectorTestUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(InfoCollectorTestUtils.class);
+
+  public static File createTemporaryDirectory(String prefix) {
+    final File file = new File(System.getProperty("java.io.tmpdir"),
+            prefix + "-" + UUID.randomUUID());
+    if (!file.mkdir()) {
+      throw new RuntimeException("Failed to create directory " + file.getAbsolutePath());
+    }
+
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      try {
+        FileUtils.deleteDirectory(file);
+      } catch (IOException e) {
+        LOG.warn("Failed to clean up {} : {}", file.getAbsolutePath(), e.toString());
+      }
+    }));
+    return file;
+  }
+
   public static File createFileInDir(File dir, String fileName) throws IOException {
     File newFile = new File(Paths.get(dir.getAbsolutePath(), fileName).toString());
     newFile.createNewFile();

@@ -18,9 +18,6 @@ import alluxio.shell.ShellCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Command to run a set of bash commands to get system information.
  * */

@@ -17,7 +17,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import alluxio.AlluxioTestDirectory;
+import alluxio.cli.bundler.InfoCollectorTestUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
@@ -50,7 +50,7 @@ public class CollectAlluxioInfoCommandTest {
     CollectAlluxioInfoCommand cmd = new CollectAlluxioInfoCommand(FileSystemContext.create(sConf));
 
     // Write to temp dir
-    File targetDir = AlluxioTestDirectory.createTemporaryDirectory("testDir");
+    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory("testDir");
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
@@ -89,7 +89,7 @@ public class CollectAlluxioInfoCommandTest {
     CollectAlluxioInfoCommand cmd = new CollectAlluxioInfoCommand(FileSystemContext.create(sConf));
 
     // Write to temp dir
-    File targetDir = AlluxioTestDirectory.createTemporaryDirectory("testDir");
+    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory("testDir");
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);

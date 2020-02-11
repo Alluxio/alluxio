@@ -14,7 +14,6 @@ package alluxio.cli.bundler.command;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.AlluxioTestDirectory;
 import alluxio.cli.bundler.InfoCollectorTestUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
@@ -45,7 +44,7 @@ public class CollectLogCommandTest {
   // Prepare a temp dir with some log files
   private static File prepareLogDir(String prefix) throws IOException {
     // The dir path will contain randomness so will be different every time
-    File testConfDir = AlluxioTestDirectory.createTemporaryDirectory(prefix);
+    File testConfDir = InfoCollectorTestUtils.createTemporaryDirectory(prefix);
     InfoCollectorTestUtils.createFileInDir(testConfDir, "master.log");
     InfoCollectorTestUtils.createFileInDir(testConfDir, "worker.log");
     return testConfDir;
@@ -55,7 +54,7 @@ public class CollectLogCommandTest {
   public void logDirCopied() throws IOException, AlluxioException {
     CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create(sConf));
 
-    File targetDir = AlluxioTestDirectory.createTemporaryDirectory("logTarget");
+    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory("logTarget");
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
