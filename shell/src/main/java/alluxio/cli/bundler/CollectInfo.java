@@ -109,6 +109,7 @@ public class CollectInfo extends AbstractShell {
     String tarballPath = Paths.get(targetDirPath, TARBALL_NAME).toAbsolutePath().toString();
     if (filesToCollect.size() == 0) {
       System.err.format("No files to add. Tarball %s will be empty!%n", tarballPath);
+      System.exit(2);
     }
     TarUtils.compress(tarballPath, filesToCollect.toArray(new File[0]));
     System.out.println("Archiving finished");
