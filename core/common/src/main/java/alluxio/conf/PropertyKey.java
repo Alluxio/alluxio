@@ -2916,11 +2916,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_FILE_SEQUENTIAL_PREAD_THRESHOLD =
       new Builder(Name.USER_FILE_SEQUENTIAL_PREAD_THRESHOLD)
           .setDefaultValue("2MB")
-          .setDescription("An upper bound on the client buffer size for positioned read to hint " +
-              "at the sequential nature of reads. For reads with a buffer size greater than this " +
-              "threshold, the read op is treated to be sequential and the worker may handle the " +
-              "read differently. For instance, cold reads from the HDFS ufs may use a different " +
-              "HDFS client API.")
+          .setDescription("An upper bound on the client buffer size for positioned read to hint "
+              + "at the sequential nature of reads. For reads with a buffer size greater than this "
+              + "threshold, the read op is treated to be sequential and the worker may handle the "
+              + "read differently. For instance, cold reads from the HDFS ufs may use a different "
+              + "HDFS client API.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
