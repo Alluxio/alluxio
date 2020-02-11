@@ -318,10 +318,19 @@ public class LocalCacheFileInStream extends FileInStream {
     FileInStream stream = getExternalFileInStream(pageStart);
     int pageSize = (int) Math.min(mPageSize, mStatus.getLength() - pageStart);
     byte[] page = new byte[pageSize];
-    if (stream.read(page) != pageSize) {
-      throw new IOException("Failed to read complete page from external storage.");
+    int totalBytesRead = 0;
+    while (totalBytesRead < pageSize) {
+      int bytesRead = stream.read(page, totalBytesRead, pageSize - totalBytesRead);
+      if (bytesRead <= 0) {
+        break;
+      }
+      totalBytesRead += bytesRead;
     }
-    Metrics.BYTES_READ_EXTERNAL.inc(pageSize);
+    Metrics.BYTES_READ_EXTERNAL.inc(totalBytesRead);
+    if (totalBytesRead != pageSize) {
+      throw new IOException("Failed to read complete page from external storage. Bytes read: "
+          + totalBytesRead + " Page size: " + pageSize);
+    }
     return page;
   }
 
