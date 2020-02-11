@@ -75,6 +75,8 @@ public final class AlluxioWorker {
       // fatalError will exit, so we shouldn't reach here.
       throw t;
     }
+
+    ProcessUtils.stopProcessOnShutdown(process);
     ProcessUtils.run(process);
   }
 

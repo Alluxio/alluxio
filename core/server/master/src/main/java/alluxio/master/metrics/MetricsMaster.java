@@ -11,10 +11,12 @@
 
 package alluxio.master.metrics;
 
+import alluxio.grpc.MetricValue;
 import alluxio.master.Master;
 import alluxio.metrics.Metric;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface of the metrics master that aggregates the cluster-level metrics from workers and
@@ -39,6 +41,12 @@ public interface MetricsMaster extends Master {
    * @return the master service handler
    */
   MetricsMasterClientServiceHandler getMasterServiceHandler();
+
+  /**
+   * @return all metrics stored in the current master in a map
+   *         from metric name to corresponding metric value.
+   */
+  Map<String, MetricValue> getMetrics();
 
   /**
    * Handles the worker heartbeat and puts the metrics from an instance with a hostname. If all the

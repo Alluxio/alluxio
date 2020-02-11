@@ -247,7 +247,6 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
           meta.getLastModified().getTime());
     } catch (ServiceException e) {
-      LOG.warn("Failed to get Object {}, return null", key, e);
       return null;
     }
   }

@@ -20,13 +20,22 @@ message Schema {
     repeated FieldSchema cols = 1;
 }
 
+enum PrincipalType {
+    USER = 0;
+    ROLE = 1;
+}
+
 message Database {
     optional string db_name = 1;
     optional string description = 2;
     optional string location = 3;
     map<string, string> parameter = 4;
+    optional string owner_name = 5;
+    optional PrincipalType owner_type = 6;
+    optional string comment = 7;
 }
 
+// next available id: 12
 message TableInfo {
     optional string db_name = 1;
     optional string table_name = 2;
@@ -42,6 +51,10 @@ message TableInfo {
 
     // partitioning scheme
     repeated FieldSchema partition_cols = 8;
+
+    optional int64 previous_version = 9;
+    optional int64 version = 10;
+    optional int64 version_creation_time = 11;
 }
 
 // TODO(gpang): update
@@ -66,6 +79,7 @@ message Transformation {
     optional string definition = 2;
 }
 
+// next available id: 6
 message Partition {
     optional PartitionSpec partition_spec = 1;
     optional Layout base_layout = 2;
@@ -73,6 +87,8 @@ message Partition {
      * The latest transformation is in the back of the list.
      */
     repeated Transformation transformations = 3;
+    optional int64 version = 4;
+    optional int64 version_creation_time = 5;
 }
 
 message ColumnStatisticsInfo {

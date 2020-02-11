@@ -14,6 +14,7 @@ package alluxio.client.rest;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthType;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -82,7 +83,8 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   @Test
   public void getMetrics() throws Exception {
     Assert.assertEquals(Long.valueOf(0),
-        getInfo().getMetrics().get(MetricsSystem.getMetricName("CompleteFileOps")));
+        getInfo().getMetrics().get(MetricsSystem.getMetricName(
+            MetricKey.MASTER_COMPLETE_FILE_OPS.getName())));
   }
 
   @Test

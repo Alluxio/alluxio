@@ -29,6 +29,7 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOption;
 import alluxio.master.metastore.heap.HeapInodeStore;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 import alluxio.util.ConfigurationUtils;
@@ -267,7 +268,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
   @VisibleForTesting
   class InodeCache extends Cache<Long, MutableInode<?>> {
     public InodeCache(CacheConfiguration conf) {
-      super(conf, "inode-cache");
+      super(conf, "inode-cache", MetricKey.MASTER_INODE_CACHE_SIZE);
     }
 
     @Override
@@ -359,7 +360,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     Map<Long, Set<String>> mUnflushedDeletes = new ConcurrentHashMap<>();
 
     public EdgeCache(CacheConfiguration conf) {
-      super(conf, "edge-cache");
+      super(conf, "edge-cache", MetricKey.MASTER_EDGE_CACHE_SIZE);
     }
 
     /**
@@ -593,7 +594,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       mMaxSize = conf.getMaxSize();
       mHighWaterMark = conf.getHighWaterMark();
       mLowWaterMark = conf.getLowWaterMark();
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName("listing-cache-size"),
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LISTING_CACHE_SIZE.getName(),
           () -> mWeight.get());
     }
 

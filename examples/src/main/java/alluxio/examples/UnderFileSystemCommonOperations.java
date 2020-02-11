@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Examples for under filesystem common operations.
@@ -65,6 +66,8 @@ public final class UnderFileSystemCommonOperations {
       = "Should failed in UnderFileSystem.isDirectory() check, but succeed";
   private static final String LIST_STATUS_RESULT_INCORRECT
       = "The result of UnderFileSystem.listStatus() is incorrect";
+  private static final int RETRY_TIMEOUT_MS = 180000;
+  private static final int RETRY_INTERVAL_MS = 1000;
 
   private final InstancedConfiguration mConfiguration;
   private final UnderFileSystem mUfs;
@@ -267,6 +270,27 @@ public final class UnderFileSystemCommonOperations {
   }
 
   /**
+   * Test for create file, open and seek.
+   */
+  @RelatedS3Operations(operations = {"upload", "getObject"})
+  public void createOpenSkip() throws IOException {
+    String testFile = PathUtils.concatPath(mTopLevelTestDirectory, "createOpenSkip");
+    prepareMultiBlockFile(testFile);
+    int[] offsets = {0, 256, 511, 512, 513, 768, 1024, 1025};
+    for (int offset : offsets) {
+      InputStream inputStream = mUfs.open(testFile, OpenOptions.defaults());
+      long bytesSkipped = 0;
+      while (bytesSkipped != offset) {
+        bytesSkipped += inputStream.skip(offset - bytesSkipped);
+      }
+      if (TEST_BYTES[offset % TEST_BYTES.length] != inputStream.read()) {
+        throw new IOException(FILE_CONTENT_INCORRECT);
+      }
+      inputStream.close();
+    }
+  }
+
+  /**
    * Test for deleting file.
    */
   @RelatedS3Operations(operations = {"upload", "deleteObject", "getObjectMetadata"})
@@ -329,9 +353,9 @@ public final class UnderFileSystemCommonOperations {
    */
   @RelatedS3Operations(operations = {"putObject", "deleteObjects",
       "listObjectsV2", "getObjectMetadata"})
-  public void deleteLargeDirectoryTest() throws IOException {
+  public void deleteLargeDirectoryTest() throws Exception {
     LargeDirectoryConfig config = prepareLargeDirectory();
-    mUfs.deleteDirectory(config.getTopLevelDirectory(),
+    mUfs.deleteExistingDirectory(config.getTopLevelDirectory(),
         DeleteOptions.defaults().setRecursive(true));
 
     String[] children = config.getChildren();
@@ -339,18 +363,13 @@ public final class UnderFileSystemCommonOperations {
       // Retry for some time to allow list operations eventual consistency for S3 and GCS.
       // See http://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html and
       // https://cloud.google.com/storage/docs/consistency for more details.
-      // Note: not using CommonUtils.waitFor here because we intend to sleep with a longer interval.
-      boolean childDeleted = false;
-      for (int i = 0; i < 20; i++) {
-        childDeleted = !mUfs.isFile(child) && !mUfs.isDirectory(child);
-        if (childDeleted) {
-          break;
+      CommonUtils.waitFor("deleted path does not exist", () -> {
+        try {
+          return !mUfs.isFile(child) && !mUfs.isDirectory(child);
+        } catch (Exception e) {
+          return false;
         }
-        CommonUtils.sleepMs(500);
-      }
-      if (!childDeleted) {
-        throw new IOException("Deleted file or directory still exist");
-      }
+      }, WaitForOptions.defaults().setTimeoutMs(RETRY_TIMEOUT_MS).setInterval(RETRY_INTERVAL_MS));
     }
   }
 
@@ -654,27 +673,24 @@ public final class UnderFileSystemCommonOperations {
    * Test for listing large directory.
    */
   @RelatedS3Operations(operations = {"putObject", "listObjectsV2", "getObjectMetadata"})
-  public void listLargeDirectoryTest() throws IOException {
+  public void listLargeDirectoryTest() throws Exception {
     LargeDirectoryConfig config = prepareLargeDirectory();
     String[] children = config.getChildren();
 
     // Retry for some time to allow list operations eventual consistency for S3 and GCS.
     // See http://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html and
     // https://cloud.google.com/storage/docs/consistency for more details.
-    // Note: not using CommonUtils.waitFor here because we intend to sleep with a longer interval.
-    UfsStatus[] results = new UfsStatus[] {};
-    for (int i = 0; i < 50; i++) {
-      results = mUfs.listStatus(config.getTopLevelDirectory());
-      if (children.length == results.length) {
-        break;
+    AtomicReference<UfsStatus[]> results = new AtomicReference<>();
+    CommonUtils.waitFor("list large directory", () -> {
+      try {
+        results.set(mUfs.listStatus(config.getTopLevelDirectory()));
+        return children.length == results.get().length;
+      } catch (Exception e) {
+        return false;
       }
-      CommonUtils.sleepMs(500);
-    }
-    if (children.length != results.length) {
-      throw new IOException(LIST_STATUS_RESULT_INCORRECT);
-    }
+    }, WaitForOptions.defaults().setTimeoutMs(RETRY_TIMEOUT_MS).setInterval(RETRY_INTERVAL_MS));
 
-    String[] resultNames = UfsStatus.convertToNames(results);
+    String[] resultNames = UfsStatus.convertToNames(results.get());
     Arrays.sort(resultNames);
     for (int i = 0; i < children.length; ++i) {
       if (!resultNames[i].equals(CommonUtils.stripPrefixIfPresent(children[i],
@@ -1108,7 +1124,7 @@ public final class UnderFileSystemCommonOperations {
         } catch (IOException e) {
           return false;
         }
-      }, WaitForOptions.defaults().setTimeoutMs(10000).setInterval(500));
+      }, WaitForOptions.defaults().setTimeoutMs(RETRY_TIMEOUT_MS).setInterval(RETRY_INTERVAL_MS));
     }
     // 2. Check the dst directory exists
     CommonUtils.waitFor("list after create consistency", () -> {
@@ -1131,7 +1147,7 @@ public final class UnderFileSystemCommonOperations {
         return false;
       }
       return true;
-    }, WaitForOptions.defaults().setTimeoutMs(10000).setInterval(500));
+    }, WaitForOptions.defaults().setTimeoutMs(RETRY_TIMEOUT_MS).setInterval(RETRY_INTERVAL_MS));
   }
 
   private void createEmptyFile(String path) throws IOException {

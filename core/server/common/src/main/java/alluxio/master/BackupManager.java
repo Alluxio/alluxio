@@ -16,7 +16,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalEntryStreamReader;
-import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.ThreadFactoryUtils;
@@ -83,14 +83,14 @@ public class BackupManager {
    */
   public BackupManager(MasterRegistry registry) {
     mRegistry = registry;
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem
-        .getMetricName(MasterMetrics.LAST_BACKUP_ENTRIES_COUNT), () -> mBackupEntriesCount);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem
-        .getMetricName(MasterMetrics.LAST_BACKUP_RESTORE_COUNT), () -> mRestoreEntriesCount);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem
-        .getMetricName(MasterMetrics.LAST_BACKUP_TIME_MS), () -> mBackupTimeMs);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem
-        .getMetricName(MasterMetrics.LAST_BACKUP_RESTORE_TIME_MS), () -> mRestoreTimeMs);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_ENTRIES_COUNT.getName(),
+        () -> mBackupEntriesCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_RESTORE_COUNT.getName(),
+        () -> mRestoreEntriesCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_RESTORE_TIME_MS.getName(),
+        () -> mRestoreTimeMs);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_TIME_MS.getName(),
+        () -> mBackupTimeMs);
   }
 
   /**

@@ -86,10 +86,6 @@ public final class RemovedKey {
       put("alluxio.underfs.s3a.consistency.timeout", removedSince(V2_0_0));
       put("alluxio.security.authentication.socket.timeout", removedSince(V2_0_0));
       put("alluxio.security.authentication.socket.timeout.ms", removedSince(V2_0_0));
-      put("alluxio.user.block.master.client.pool.gc.interval", removedSince(V2_0_0));
-      put("alluxio.user.block.master.client.pool.gc.threshold", removedSince(V2_0_0));
-      put("alluxio.user.block.master.client.pool.size.max", removedSince(V2_0_0));
-      put("alluxio.user.block.master.client.pool.size.min", removedSince(V2_0_0));
       put("alluxio.user.block.remote.reader.class", removedSince(V2_0_0));
       put("alluxio.user.block.remote.writer.class", removedSince(V2_0_0));
       put("alluxio.user.block.worker.client.pool.size.max", removedSince(V2_0_0));
@@ -98,10 +94,6 @@ public final class RemovedKey {
       put("alluxio.user.file.cache.partially.read.block", removedSince(V2_0_0));
       put("alluxio.user.file.copyfromlocal.write.location.policy.class", replacedSince(V2_0_0,
           PropertyKey.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY.getName()));
-      put("alluxio.user.file.master.client.pool.gc.interval", removedSince(V2_0_0));
-      put("alluxio.user.file.master.client.pool.gc.threshold", removedSince(V2_0_0));
-      put("alluxio.user.file.master.client.pool.size.max", removedSince(V2_0_0));
-      put("alluxio.user.file.master.client.pool.size.min", removedSince(V2_0_0));
       put("alluxio.user.file.seek.buffer.size.bytes", removedSince(V2_0_0));
       put("alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes",
           replacedSince(V2_0_0,

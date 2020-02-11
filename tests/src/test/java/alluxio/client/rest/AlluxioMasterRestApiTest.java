@@ -23,6 +23,7 @@ import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.meta.AlluxioMasterRestServiceHandler;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthType;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -135,10 +136,11 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getMetricsInfo() throws Exception {
-    long start = getInfo(NO_PARAMS).getMetrics().get(MetricsSystem.getMetricName("FileInfosGot"));
+    long start = getInfo(NO_PARAMS).getMetrics()
+        .get(MetricsSystem.getMetricName(MetricKey.MASTER_FILE_INFOS_GOT.getName()));
     mFileSystemMaster.getFileInfo(new AlluxioURI("/"), GetStatusContext.defaults());
-    assertEquals(Long.valueOf(start + 1),
-        getInfo(NO_PARAMS).getMetrics().get(MetricsSystem.getMetricName("FileInfosGot")));
+    assertEquals(Long.valueOf(start + 1), getInfo(NO_PARAMS).getMetrics()
+        .get(MetricsSystem.getMetricName(MetricKey.MASTER_FILE_INFOS_GOT.getName())));
   }
 
   @Test

@@ -51,6 +51,8 @@ public final class MasterWebUIMetrics implements Serializable {
   private String mTotalBytesReadDomainSocketThroughput;
   private String mTotalBytesReadUfs;
   private String mTotalBytesReadUfsThroughput;
+  private String mTotalBytesWrittenLocal;
+  private String mTotalBytesWrittenLocalThroughput;
   private String mTotalBytesWrittenAlluxio;
   private String mTotalBytesWrittenAlluxioThroughput;
   private String mTotalBytesWrittenDomainSocket;
@@ -197,6 +199,24 @@ public final class MasterWebUIMetrics implements Serializable {
    */
   public String getTotalBytesReadUfsThroughput() {
     return mTotalBytesReadUfsThroughput;
+  }
+
+  /**
+   * Gets total bytes written local.
+   *
+   * @return the total bytes written local
+   */
+  public String getTotalBytesWrittenLocal() {
+    return mTotalBytesWrittenLocal;
+  }
+
+  /**
+   * Gets total bytes written local throughput.
+   *
+   * @return the total bytes written local throughput
+   */
+  public String getTotalBytesWrittenLocalThroughput() {
+    return mTotalBytesWrittenLocalThroughput;
   }
 
   /**
@@ -475,6 +495,29 @@ public final class MasterWebUIMetrics implements Serializable {
   }
 
   /**
+   * Sets total bytes written local.
+   *
+   * @param TotalBytesWrittenLocal the total bytes written local
+   * @return the updated masterWebUIMetrics object
+   */
+  public MasterWebUIMetrics setTotalBytesWrittenLocal(String TotalBytesWrittenLocal) {
+    mTotalBytesWrittenLocal = TotalBytesWrittenLocal;
+    return this;
+  }
+
+  /**
+   * Sets total bytes written local throughput.
+   *
+   * @param TotalBytesWrittenLocalThroughput the total bytes written local throughput
+   * @return the updated masterWebUIMetrics object
+   */
+  public MasterWebUIMetrics setTotalBytesWrittenLocalThroughput(
+      String TotalBytesWrittenLocalThroughput) {
+    mTotalBytesWrittenLocalThroughput = TotalBytesWrittenLocalThroughput;
+    return this;
+  }
+
+  /**
    * Sets total bytes written alluxio.
    *
    * @param TotalBytesWrittenAlluxio the total bytes written alluxio
@@ -615,12 +658,16 @@ public final class MasterWebUIMetrics implements Serializable {
         .add("masterCapacityUsedPercentage", mMasterCapacityUsedPercentage)
         .add("masterUnderfsCapacityFreePercentage", mMasterUnderfsCapacityFreePercentage)
         .add("masterUnderfsCapacityUsedPercentage", mMasterUnderfsCapacityUsedPercentage)
+        .add("totalBytesReadDomainSocket", mTotalBytesReadDomainSocket)
+        .add("totalBytesReadDomainSocketThroughput", mTotalBytesReadDomainSocketThroughput)
         .add("totalBytesReadLocal", mTotalBytesReadLocal)
         .add("totalBytesReadLocalThroughput", mTotalBytesReadLocalThroughput)
         .add("totalBytesReadRemote", mTotalBytesReadRemote)
         .add("totalBytesReadRemoteThroughput", mTotalBytesReadRemoteThroughput)
         .add("totalBytesReadUfs", mTotalBytesReadUfs)
         .add("totalBytesReadUfsThroughput", mTotalBytesReadUfsThroughput)
+        .add("totalBytesWrittenLocal", mTotalBytesWrittenLocal)
+        .add("totalBytesWrittenLocalThroughput", mTotalBytesWrittenLocalThroughput)
         .add("totalBytesWrittenAlluxio", mTotalBytesWrittenAlluxio)
         .add("totalBytesWrittenAlluxioThroughput", mTotalBytesWrittenAlluxioThroughput)
         .add("totalBytesWrittenUfs", mTotalBytesWrittenUfs)
