@@ -55,7 +55,7 @@ public class ListCommandIntegrationTest extends AbstractShellIntegrationTest {
     InetSocketAddress address = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
         .getAddress();
     FileSystemContext fsCtx = FileSystemContext.create(ServerConfiguration.global());
-    fsCtx.getClientContext().loadConfForClient(address, true, true);
+    fsCtx.getClientContext().loadConf(address, true, true);
     return (InstancedConfiguration) fsCtx.getClusterConf();
   }
 

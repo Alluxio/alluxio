@@ -497,7 +497,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "the journal, logs, and under file storage data (if using local filesystem) "
               + "are written here.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.ALL)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey ZOOKEEPER_ADDRESS =
       new Builder(Name.ZOOKEEPER_ADDRESS)
@@ -508,7 +508,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey ZOOKEEPER_CONNECTION_TIMEOUT =
       new Builder(Name.ZOOKEEPER_CONNECTION_TIMEOUT)
           .setDefaultValue("15s") // matches Zookeeper's default
-          .setDescription("Connection timeout to use when connecting to Zookeeper")
+          .setDescription("Connection timeout for Alluxio (job) masters to select "
+              + "the leading (job) master when connecting to Zookeeper")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();

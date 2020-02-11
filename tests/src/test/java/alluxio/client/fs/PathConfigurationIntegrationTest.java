@@ -71,7 +71,7 @@ public class PathConfigurationIntegrationTest {
         MasterClientContext.newBuilder(metaCtx.getClientContext()).build());
     setPathConfigurations(mMetaConfig);
     FileSystemContext fsCtx = FileSystemContext.create(ServerConfiguration.global());
-    fsCtx.getClientContext().loadConfForClient(fsCtx.getMasterAddress(), true, true);
+    fsCtx.getClientContext().loadConf(fsCtx.getMasterAddress(), true, true);
     mFileSystem = mLocalAlluxioClusterResource.get().getClient(fsCtx);
     mWriteThrough = CreateFilePOptions.newBuilder().setRecursive(true)
         .setWriteType(WritePType.THROUGH).build();

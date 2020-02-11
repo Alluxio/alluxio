@@ -342,11 +342,11 @@ public final class ServerConfiguration {
   }
 
   /**
-   * Loads cluster default values from the meta master if it's not loaded yet.
+   * Loads cluster default values for workers from the meta master if it's not loaded yet.
    *
    * @param address the master address
    */
-  public static synchronized void loadClusterDefaultsIfNotLoadedForWorker(InetSocketAddress address)
+  public static synchronized void loadWorkerClusterDefaults(InetSocketAddress address)
       throws AlluxioStatusException {
     if (sConf.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)
         && !sConf.clusterDefaultsLoaded()) {

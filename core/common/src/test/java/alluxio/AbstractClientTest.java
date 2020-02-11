@@ -146,7 +146,7 @@ public final class AbstractClientTest {
 
     Mockito.doThrow(new RuntimeException("test"))
             .when(context)
-            .loadConfIfNotLoadedForClient(argument.capture());
+            .loadConfIfNotLoaded(argument.capture());
     Mockito.doReturn(Mockito.mock(BaseUserState.class))
             .when(context)
             .getUserState();

@@ -168,7 +168,7 @@ public abstract class AbstractClient implements Client {
       throws IOException {
     // Bootstrap once for clients
     if (!isConnected()) {
-      mContext.loadConfIfNotLoadedForClient(mConfAddress);
+      mContext.loadConfIfNotLoaded(mConfAddress);
     }
   }
 

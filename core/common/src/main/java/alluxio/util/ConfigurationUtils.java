@@ -520,7 +520,7 @@ public final class ConfigurationUtils {
       if (PropertyKey.isValid(name) && property.hasValue()) {
         PropertyKey key = PropertyKey.fromString(name);
         if (!GrpcUtils.contains(key.getScope(), scope)) {
-          // Only propagate client properties.
+          // Only propagate properties contains the target scope
           continue;
         }
         String value = property.getValue();
