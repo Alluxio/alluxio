@@ -11,7 +11,6 @@
 
 package alluxio.master.table;
 
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
