@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
@@ -26,12 +27,18 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockMetricsReporter extends AbstractBlockStoreEventListener {
   private final StorageTierAssoc mStorageTierAssoc;
 
-  private static final Counter BLOCKS_ACCESSED = MetricsSystem.counter("BlocksAccessed");
-  private static final Counter BLOCKS_PROMOTED = MetricsSystem.counter("BlocksPromoted");
-  private static final Counter BLOCKS_DELETED = MetricsSystem.counter("BlocksDeleted");
-  private static final Counter BLOCKS_EVICTED = MetricsSystem.counter("BlocksEvicted");
-  private static final Counter BLOCKS_CANCELLED = MetricsSystem.counter("BlocksCanceled");
-  private static final Counter BLOCKS_LOST = MetricsSystem.counter("BlocksLost");
+  private static final Counter BLOCKS_ACCESSED
+      = MetricsSystem.counter(MetricKey.WORKER_BLOCKS_ACCESSED.getName());
+  private static final Counter BLOCKS_PROMOTED
+      = MetricsSystem.counter(MetricKey.WORKER_BLOCKS_PROMOTED.getName());
+  private static final Counter BLOCKS_DELETED
+      = MetricsSystem.counter(MetricKey.WORKER_BLOCKS_DELETED.getName());
+  private static final Counter BLOCKS_EVICTED
+      = MetricsSystem.counter(MetricKey.WORKER_BLOCKS_EVICTED.getName());
+  private static final Counter BLOCKS_CANCELLED
+      = MetricsSystem.counter(MetricKey.WORKER_BLOCKS_CANCELLED.getName());
+  private static final Counter BLOCKS_LOST
+      = MetricsSystem.counter(MetricKey.WORKER_BLOCKS_LOST.getName());
 
   /**
    * Creates a new instance of {@link BlockMetricsReporter}.

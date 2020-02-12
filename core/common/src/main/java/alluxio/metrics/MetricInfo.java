@@ -12,11 +12,11 @@
 package alluxio.metrics;
 
 /**
- * Metrics of an Alluxio worker.
+ * Metric information.
  */
-public final class WorkerMetrics {
+public final class MetricInfo {
   /**
-   * The list of under filesystem operations.
+   * The list of under filesystem operations triggered by master or workers.
    */
   public enum UfsOps {
     CLOSE("Close"),
@@ -60,32 +60,18 @@ public final class WorkerMetrics {
     }
   }
 
-  /**
-   * Total number of bytes read/written from Alluxio storage through this worker. This does not
-   * include UFS reads.
-   */
-  public static final String BYTES_READ_ALLUXIO = "BytesReadAlluxio";
-  public static final String BYTES_READ_ALLUXIO_THROUGHPUT = "BytesReadAlluxioThroughput";
-  public static final String BYTES_WRITTEN_ALLUXIO = "BytesWrittenAlluxio";
-  public static final String BYTES_WRITTEN_ALLUXIO_THROUGHPUT = "BytesWrittenAlluxioThroughput";
-  public static final String BYTES_READ_DOMAIN = "BytesReadDomain";
-  public static final String BYTES_READ_DOMAIN_THROUGHPUT = "BytesReadDomainThroughput";
-  public static final String BYTES_WRITTEN_DOMAIN = "BytesWrittenDomain";
-  public static final String BYTES_WRITTEN_DOMAIN_THROUGHPUT = "BytesWrittenDomainThroughput";
-
-  /** Total number of bytes read/written from UFS through this worker. */
-  public static final String BYTES_READ_UFS = "BytesReadPerUfs";
-  public static final String BYTES_READ_UFS_ALL = "BytesReadUfsAll";
-  public static final String BYTES_READ_UFS_THROUGHPUT = "BytesReadUfsThroughput";
-  public static final String BYTES_WRITTEN_UFS = "BytesWrittenPerUfs";
-  public static final String BYTES_WRITTEN_UFS_ALL = "BytesWrittenUfsAll";
-  public static final String BYTES_WRITTEN_UFS_THROUGHPUT = "BytesWrittenUfsThroughput";
-
-  public static final String UFS_OP_PREFIX = "UfsOp";
+  // The aggregated metric of an operation targeting a specific UFS
+  // triggered by the leading master.
+  // TODO(lu) Aggregate the per ufs per op from master + worker metrics
+  public static final String UFS_OP_PREFIX = "Cluster.PerUfsOp";
 
   // Tags
   public static final String TAG_UFS = "UFS";
   public static final String TAG_UFS_TYPE = "UFS_TYPE";
+  public static final String TAG_USER = "User";
 
-  private WorkerMetrics() {} // prevent instantiation
+  // Metric name component
+  public static final String TIER = "Tier";
+
+  private MetricInfo() {} // prevent instantiation
 }

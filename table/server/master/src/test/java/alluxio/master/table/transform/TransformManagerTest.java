@@ -81,8 +81,9 @@ public class TransformManagerTest {
   private static final String TABLE1 = TestDatabase.getTableName(0);
   private static final String TABLE2 = TestDatabase.getTableName(1);
   private static final String TABLE3 = TestDatabase.getTableName(2);
-  private static final String DEFINITION1 = "write(hive).option(hive.num.files, 1)";
-  private static final String DEFINITION2 = "write(hive).option(hive.num.files, 2)";
+  private static final String EMPTY_DEFINITION = "";
+  private static final String DEFINITION1 = "write(hive).option(hive.file.count.max, 1)";
+  private static final String DEFINITION2 = "write(hive).option(hive.file.count.max, 2)";
 
   private JournalSystem mJournalSystem;
   private TableMaster mTableMaster;
@@ -163,6 +164,29 @@ public class TransformManagerTest {
     expectException(IOException.class,
         ExceptionMessage.TRANSFORM_JOB_DOES_NOT_EXIST.getMessage(nonExistingJobId));
     mTableMaster.getTransformJobInfo(nonExistingJobId);
+  }
+
+  /**
+   * This verifies what kind of definition will be used when the default definition is used.
+   */
+  @Test
+  public void defaultJob() throws Exception {
+    assertTrue(mTableMaster.getAllTransformJobInfo().isEmpty());
+
+    // Starts 1 job.
+    long jobId1 = transform(TABLE1, EMPTY_DEFINITION);
+    checkTransformJobInfo(mTableMaster.getTransformJobInfo(jobId1), TABLE1,
+        DefaultTableMaster.DEFAULT_TRANSFORMATION,
+        jobId1, Status.RUNNING, null);
+    // Updates job status in heartbeat.
+    mockJobStatus(jobId1, Status.COMPLETED, null);
+    heartbeat();
+
+    // Checks that the layout for job1 is the transformed layout.
+    assertEquals(1, mTableMaster.getAllTransformJobInfo().size());
+    TransformJobInfo job1Info = mTableMaster.getTransformJobInfo(jobId1);
+    checkTransformJobInfo(job1Info, TABLE1, DefaultTableMaster.DEFAULT_TRANSFORMATION, jobId1,
+        Status.COMPLETED, null);
   }
 
   /**

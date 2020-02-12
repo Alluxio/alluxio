@@ -21,14 +21,14 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class PageId {
-  private final long mFileId;
+  private final String mFileId;
   private final long mPageIndex;
 
   /**
    * @param fileId file Id
    * @param pageIndex index of the page in file
    */
-  public PageId(long fileId, long pageIndex) {
+  public PageId(String fileId, long pageIndex) {
     mFileId = fileId;
     mPageIndex = pageIndex;
   }
@@ -36,7 +36,7 @@ public class PageId {
   /**
    * @return file id
    */
-  public long getFileId() {
+  public String getFileId() {
     return mFileId;
   }
 
@@ -61,7 +61,7 @@ public class PageId {
       return false;
     }
     PageId that = (PageId) obj;
-    return mFileId == that.mFileId && mPageIndex == that.mPageIndex;
+    return mFileId.equals(that.mFileId) && mPageIndex == that.mPageIndex;
   }
 
   @Override

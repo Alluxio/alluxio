@@ -16,11 +16,15 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.client.file.cache.PageId;
-import alluxio.exception.PageNotFoundException;
+import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
+import alluxio.exception.PageNotFoundException;
 import alluxio.util.io.BufferUtils;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,8 +41,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 @RunWith(Parameterized.class)
 public class PageStoreTest {
@@ -54,79 +60,119 @@ public class PageStoreTest {
   @Parameterized.Parameter
   public PageStoreOptions mOptions;
 
+  private PageStore mPageStore;
+
   @Rule
   public TemporaryFolder mTemp = new TemporaryFolder();
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
-  @Test
-  public void test() throws Exception {
+  @Before
+  public void before() throws Exception {
+    mOptions.setPageSize(1024);
+    mOptions.setCacheSize(65536);
+    mOptions.setAlluxioVersion(ProjectConstants.VERSION);
     mOptions.setRootDir(mTemp.getRoot().getAbsolutePath());
-    try (PageStore store = PageStore.create(mOptions)) {
-      helloWorldTest(store);
+    mPageStore = PageStore.create(mOptions);
+  }
+
+  @After
+  public void after() throws Exception {
+    mPageStore.close();
+  }
+
+  @Test
+  public void helloWorldTest() throws Exception {
+    String msg = "Hello, World!";
+    byte[] msgBytes = msg.getBytes();
+    PageId id = new PageId("0", 0);
+    mPageStore.put(id, msgBytes);
+    assertEquals(1, mPageStore.pages());
+    ByteBuffer buf = ByteBuffer.allocate(1024);
+    mPageStore.get(id).read(buf);
+    buf.flip();
+    String read = StandardCharsets.UTF_8.decode(buf).toString();
+    assertEquals(msg, read);
+    mPageStore.delete(id, msgBytes.length);
+    assertEquals(0, mPageStore.pages());
+    try {
+      buf.clear();
+      mPageStore.get(id).read(buf);
+      fail();
+    } catch (PageNotFoundException e) {
+      // Test completed successfully;
     }
   }
 
   @Test
   public void getOffset() throws Exception {
-    mOptions.setRootDir(mTemp.getRoot().getAbsolutePath());
     int len = 32;
     int offset = 3;
-    try (PageStore store = PageStore.create(mOptions)) {
-      PageId id = new PageId(0, 0);
-      store.put(id, BufferUtils.getIncreasingByteArray(len));
-      ByteBuffer buf = ByteBuffer.allocate(1024);
-      try (ReadableByteChannel channel = store.get(id, offset)) {
-        channel.read(buf);
-      }
-      buf.flip();
-      assertTrue(BufferUtils.equalIncreasingByteBuffer(offset, len - offset, buf));
+    PageId id = new PageId("0", 0);
+    mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
+    ByteBuffer buf = ByteBuffer.allocate(1024);
+    try (ReadableByteChannel channel = mPageStore.get(id, offset)) {
+      channel.read(buf);
     }
+    buf.flip();
+    assertTrue(BufferUtils.equalIncreasingByteBuffer(offset, len - offset, buf));
   }
 
   @Test
   public void getOffsetOverflow() throws Exception {
-    mOptions.setRootDir(mTemp.getRoot().getAbsolutePath());
     int len = 32;
     int offset = 36;
+    PageId id = new PageId("0", 0);
+    mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
+    ByteBuffer buf = ByteBuffer.allocate(1024);
+    mThrown.expect(IllegalArgumentException.class);
+    try (ReadableByteChannel channel = mPageStore.get(id, offset)) {
+      channel.read(buf);
+    }
+  }
+
+  @Test
+  public void getPages() throws Exception {
+    int len = 32;
+    int count = 16;
+    byte[] data = BufferUtils.getIncreasingByteArray(len);
+    Set<PageInfo> pages = new HashSet<>(count);
+    for (int i = 0; i < count; i++) {
+      PageId id = new PageId("0", i);
+      mPageStore.put(id, data);
+      pages.add(new PageInfo(id, data.length));
+    }
+    mPageStore.close();
     try (PageStore store = PageStore.create(mOptions)) {
-      PageId id = new PageId(0, 0);
-      store.put(id, BufferUtils.getIncreasingByteArray(len));
-      ByteBuffer buf = ByteBuffer.allocate(1024);
-      mThrown.expect(IllegalArgumentException.class);
-      try (ReadableByteChannel channel = store.get(id, offset)) {
-        channel.read(buf);
-      }
+      assertEquals(pages, new HashSet<>(store.getPages()));
+    }
+  }
+
+  @Ignore
+  @Test
+  public void testPagesAndBytes() throws Exception {
+    long totalBytes = 0;
+    for (int i = 1; i <= 1024; i++) {
+      PageId id = new PageId(Integer.toString(i), 0);
+      mPageStore.put(id, new byte[i]);
+      totalBytes += i;
+      assertEquals(i, mPageStore.pages());
+      assertEquals(totalBytes, mPageStore.bytes());
+    }
+    for (int i = 1024; i >= 1; i--) {
+      PageId id = new PageId(Integer.toString(i), 0);
+      mPageStore.delete(id, i);
+      totalBytes -= i;
+      assertEquals(i - 1, mPageStore.pages());
+      assertEquals(totalBytes, mPageStore.bytes());
     }
   }
 
   @Ignore
   @Test
   public void perfTest() throws Exception {
-    mOptions.setRootDir(mTemp.getRoot().getAbsolutePath());
-    try (PageStore store = PageStore.create(mOptions)) {
-      thousandGetTest(store);
-    }
-  }
-
-  void helloWorldTest(PageStore store) throws Exception {
-    String msg = "Hello, World!";
-    PageId id = new PageId(0, 0);
-    store.put(id, msg.getBytes());
-    ByteBuffer buf = ByteBuffer.allocate(1024);
-    store.get(id).read(buf);
-    buf.flip();
-    String read = StandardCharsets.UTF_8.decode(buf).toString();
-    assertEquals(msg, read);
-    store.delete(id);
-    try {
-      buf.clear();
-      store.get(id).read(buf);
-      fail();
-    } catch (PageNotFoundException e) {
-      // Test completed successfully;
-    }
+    thousandGetTest(mPageStore);
   }
 
   void thousandGetTest(PageStore store) throws Exception {
@@ -139,7 +185,7 @@ public class PageStoreTest {
     Random r = new Random();
     for (int i = 0; i < numPages; i++) {
       int pind = r.nextInt();
-      store.put(new PageId(0, pind), b);
+      store.put(new PageId("0", pind), b);
       pages.add(pind);
     }
 
@@ -152,7 +198,7 @@ public class PageStoreTest {
       ByteBuffer buf = ByteBuffer.allocate(Constants.MB);
       for (Integer pageIndex  : pages) {
         buf.clear();
-        store.get(new PageId(0, pageIndex)).read(buf);
+        store.get(new PageId("0", pageIndex)).read(buf);
       }
       long end = System.nanoTime();
       times.add(end - start);

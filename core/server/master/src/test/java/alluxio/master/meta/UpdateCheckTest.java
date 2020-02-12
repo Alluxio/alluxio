@@ -14,6 +14,7 @@ package alluxio.master.meta;
 import alluxio.ProjectConstants;
 import alluxio.util.EnvironmentUtils;
 
+import com.amazonaws.util.EC2MetadataUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,7 +27,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
  * Unit tests for {@link UpdateCheck}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(EnvironmentUtils.class)
+@PrepareForTest({EnvironmentUtils.class, EC2MetadataUtils.class})
 public class UpdateCheckTest {
 
   @Test
@@ -34,8 +35,14 @@ public class UpdateCheckTest {
     PowerMockito.mockStatic(EnvironmentUtils.class);
     Mockito.when(EnvironmentUtils.isDocker()).thenReturn(false);
     Mockito.when(EnvironmentUtils.isKubernetes()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("");
+    Mockito.when(EnvironmentUtils.isEC2()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(false);
 
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
+    System.out.println(userAgentString);
     Assert.assertTrue(
         userAgentString.equals(String.format("Alluxio/%s (cluster1)", ProjectConstants.VERSION)));
   }
@@ -45,6 +52,11 @@ public class UpdateCheckTest {
     PowerMockito.mockStatic(EnvironmentUtils.class);
     Mockito.when(EnvironmentUtils.isDocker()).thenReturn(true);
     Mockito.when(EnvironmentUtils.isKubernetes()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isEC2()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("");
+    Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(false);
 
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
     Assert.assertTrue(userAgentString
@@ -56,9 +68,86 @@ public class UpdateCheckTest {
     PowerMockito.mockStatic(EnvironmentUtils.class);
     Mockito.when(EnvironmentUtils.isDocker()).thenReturn(true);
     Mockito.when(EnvironmentUtils.isKubernetes()).thenReturn(true);
+    Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isEC2()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("");
+    Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(false);
 
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
     Assert.assertTrue(userAgentString.equals(
         String.format("Alluxio/%s (cluster1; docker; kubernetes)", ProjectConstants.VERSION)));
+  }
+
+  @Test
+  public void userAgentStringGCP() throws Exception {
+    PowerMockito.mockStatic(EnvironmentUtils.class);
+    Mockito.when(EnvironmentUtils.isDocker()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isKubernetes()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isEC2()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("");
+    Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(true);
+
+    String userAgentString = UpdateCheck.getUserAgentString("cluster1");
+    Assert.assertTrue(userAgentString.equals(
+        String.format("Alluxio/%s (cluster1; gce)", ProjectConstants.VERSION)));
+  }
+
+  @Test
+  public void userAgentStringEC2AMI() throws Exception {
+    PowerMockito.mockStatic(EnvironmentUtils.class);
+    Mockito.when(EnvironmentUtils.isDocker()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isKubernetes()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isEC2()).thenReturn(true);
+    Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("random123code");
+    Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(false);
+
+    String userAgentString = UpdateCheck.getUserAgentString("cluster1");
+    Assert.assertTrue(userAgentString.equals(
+        String.format("Alluxio/%s (cluster1; ProductCode:random123code; ec2)",
+            ProjectConstants.VERSION)));
+  }
+
+  @Test
+  public void userAgentStringEC2CFT() throws Exception {
+    PowerMockito.mockStatic(EnvironmentUtils.class);
+    Mockito.when(EnvironmentUtils.isDocker()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isKubernetes()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isEC2()).thenReturn(true);
+    Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("random123code");
+    Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(true);
+    Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(false);
+    PowerMockito.mockStatic(EC2MetadataUtils.class);
+    Mockito.when(EC2MetadataUtils.getUserData()).thenReturn("{ \"cft_configure\": {}}");
+
+    String userAgentString = UpdateCheck.getUserAgentString("cluster1");
+    Assert.assertTrue(userAgentString.equals(
+        String.format("Alluxio/%s (cluster1; ProductCode:random123code; cft; ec2)",
+            ProjectConstants.VERSION)));
+  }
+
+  @Test
+  public void userAgentStringEC2EMR() throws Exception {
+    PowerMockito.mockStatic(EnvironmentUtils.class);
+    Mockito.when(EnvironmentUtils.isDocker()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isKubernetes()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isEC2()).thenReturn(true);
+    Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("random123code");
+    Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(false);
+    Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(true);
+    PowerMockito.mockStatic(EC2MetadataUtils.class);
+    Mockito.when(EC2MetadataUtils.getUserData()).thenReturn("emr_apps");
+
+    String userAgentString = UpdateCheck.getUserAgentString("cluster1");
+    Assert.assertTrue(userAgentString.equals(
+        String.format("Alluxio/%s (cluster1; ProductCode:random123code; emr; ec2)",
+            ProjectConstants.VERSION)));
   }
 }

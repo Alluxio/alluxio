@@ -22,23 +22,27 @@ import javax.annotation.Nullable;
 /**
  * Interface for managing cached pages.
  */
-public interface CacheManager {
+public interface CacheManager extends AutoCloseable  {
   /**
    * @param conf the Alluxio configuration
    * @return an instance of {@link CacheManager}
    */
-  static CacheManager create(AlluxioConfiguration conf) {
-    return new LocalCacheManager(conf);
+  static CacheManager create(AlluxioConfiguration conf) throws IOException {
+    // TODO(feng): make cache manager type configurable when we introduce more implementations.
+    return LocalCacheManager.create(conf);
   }
 
   /**
-   * Writes a new page from a source channel with best effort.
+   * Writes a new page from a source channel with best effort. It is possible that this put
+   * operation returns without page written due to transient behavior not due to failures writing
+   * to disks.
    *
    * @param pageId page identifier
    * @param page page data
-   * @throws IOException if error happens when writing the page
+   * @throws IOException if error happens when writing the page to disk
+   * @return true on a successful put or false due to transient
    */
-  void put(PageId pageId, byte[] page) throws IOException;
+  boolean put(PageId pageId, byte[] page) throws IOException;
 
   /**
    * Wraps the page in a channel or null if the queried page is not found in the cache.

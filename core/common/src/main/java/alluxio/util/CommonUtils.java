@@ -511,42 +511,58 @@ public final class CommonUtils {
    */
   public static <T> void invokeAll(List<Callable<T>> callables, long timeoutMs)
       throws TimeoutException, ExecutionException {
-    long endMs = System.currentTimeMillis() + timeoutMs;
     ExecutorService service = Executors.newCachedThreadPool();
     try {
-      List<Future<T>> pending = new ArrayList<>();
-      for (Callable<T> c : callables) {
-        pending.add(service.submit(c));
-      }
-      // Poll the tasks to exit early in case of failure.
-      while (!pending.isEmpty()) {
-        Iterator<Future<T>> it = pending.iterator();
-        while (it.hasNext()) {
-          Future<T> future = it.next();
-          if (future.isDone()) {
-            // Check whether the callable threw an exception.
-            try {
-              future.get();
-            } catch (InterruptedException e) {
-              // This should never happen since we already checked isDone().
-              Thread.currentThread().interrupt();
-              throw new RuntimeException(e);
-            }
-            it.remove();
-          }
-        }
-        if (pending.isEmpty()) {
-          break;
-        }
-        long remainingMs = endMs - System.currentTimeMillis();
-        if (remainingMs <= 0) {
-          throw new TimeoutException(
-              String.format("Timed out after %dms", timeoutMs - remainingMs));
-        }
-        CommonUtils.sleepMs(Math.min(remainingMs, 50));
-      }
+      invokeAll(service, callables, timeoutMs);
     } finally {
       service.shutdownNow();
+    }
+  }
+
+  /**
+   * Executes the given callables, waiting for them to complete (or time out). If a callable throws
+   * an exception, that exception will be re-thrown from this method.
+   *
+   * @param service the service to execute the callables
+   * @param callables the callables to execute
+   * @param timeoutMs time to wait for the callables to complete, in milliseconds
+   * @param <T> the return type of the callables
+   * @throws TimeoutException if the callables don't complete before the timeout
+   * @throws ExecutionException if any of the callables throws an exception
+   */
+  public static <T> void invokeAll(ExecutorService service, List<Callable<T>> callables,
+      long timeoutMs) throws TimeoutException, ExecutionException {
+    long endMs = System.currentTimeMillis() + timeoutMs;
+    List<Future<T>> pending = new ArrayList<>();
+    for (Callable<T> c : callables) {
+      pending.add(service.submit(c));
+    }
+    // Poll the tasks to exit early in case of failure.
+    while (!pending.isEmpty()) {
+      Iterator<Future<T>> it = pending.iterator();
+      while (it.hasNext()) {
+        Future<T> future = it.next();
+        if (future.isDone()) {
+          // Check whether the callable threw an exception.
+          try {
+            future.get();
+          } catch (InterruptedException e) {
+            // This should never happen since we already checked isDone().
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+          }
+          it.remove();
+        }
+      }
+      if (pending.isEmpty()) {
+        break;
+      }
+      long remainingMs = endMs - System.currentTimeMillis();
+      if (remainingMs <= 0) {
+        throw new TimeoutException(
+            String.format("Timed out after %dms", timeoutMs - remainingMs));
+      }
+      CommonUtils.sleepMs(Math.min(remainingMs, 50));
     }
   }
 

@@ -18,7 +18,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.OpenFilePOptions;
-import alluxio.metrics.ClientMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.BufferUtils;
 
@@ -64,7 +64,7 @@ public class LocalCacheFileInStream extends FileInStream {
   private boolean mEOF = false;
 
   /**
-   * Constructor.
+   * Constructor when only path information is available.
    *
    * @param path path of the file
    * @param options read options
@@ -90,6 +90,25 @@ public class LocalCacheFileInStream extends FileInStream {
         throw new RuntimeException(e);
       }
     }).get();
+  }
+
+  /**
+   * Constructor when the {@link URIStatus} is already available.
+   *
+   * @param status file status
+   * @param options read options
+   * @param externalFs the external file system if a cache miss occurs
+   * @param cacheManager local cache manager
+   */
+  public LocalCacheFileInStream(URIStatus status, OpenFilePOptions options, FileSystem externalFs,
+      CacheManager cacheManager) {
+    mPageSize = externalFs.getConf().getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+    mPath = new AlluxioURI(status.getPath());
+    mOpenOptions = options;
+    mExternalFs = externalFs;
+    mCacheManager = cacheManager;
+    // Lazy init of status object
+    mStatus = status;
   }
 
   @Override
@@ -121,12 +140,13 @@ public class LocalCacheFileInStream extends FileInStream {
       getExternalFileInStream(mPosition).read(b, off, len);
     }
     int bytesRead = 0;
+    long lengthToRead = Math.min(len, mStatus.getLength() - mPosition);
     // for each page, check if it is available in the cache
-    while (bytesRead < len && mPosition < mStatus.getLength()) {
+    while (bytesRead < lengthToRead) {
       long currentPage = mPosition / mPageSize;
       int currentPageOffset = (int) (mPosition % mPageSize);
-      int bytesLeftInPage = (int) Math.min(mPageSize - currentPageOffset, len - bytesRead);
-      PageId pageId = new PageId(mStatus.getFileId(), currentPage);
+      int bytesLeftInPage = (int) Math.min(mPageSize - currentPageOffset, lengthToRead - bytesRead);
+      PageId pageId = new PageId(mStatus.getFileIdentifier(), currentPage);
       try (ReadableByteChannel cachedData = mCacheManager.get(pageId, currentPageOffset)) {
         if (cachedData != null) { // cache hit
           // wrap return byte array in a bytebuffer and set the pos/limit for the page read
@@ -209,7 +229,7 @@ public class LocalCacheFileInStream extends FileInStream {
       long currentPage = currentPosition / mPageSize;
       int currentPageOffset = (int) (currentPosition % mPageSize);
       int bytesLeftInPage = (int) Math.min(mPageSize - currentPageOffset, lengthToRead - bytesRead);
-      PageId pageId = new PageId(mStatus.getFileId(), currentPage);
+      PageId pageId = new PageId(mStatus.getFileIdentifier(), currentPage);
       try (ReadableByteChannel cachedData = mCacheManager.get(pageId, currentPageOffset)) {
         if (cachedData != null) { // cache hit
           // wrap return byte array in a bytebuffer and set the pos/limit for the page read
@@ -326,23 +346,32 @@ public class LocalCacheFileInStream extends FileInStream {
     if (!mDryRun) {
       FileInStream stream = getExternalFileInStream(pageStart);
       page = new byte[pageSize];
-      if (stream.read(page) != pageSize) {
-        throw new IOException("Failed to read complete page from external storage.");
+      int totalBytesRead = 0;
+      while (totalBytesRead < pageSize) {
+        int bytesRead = stream.read(page, totalBytesRead, pageSize - totalBytesRead);
+        if (bytesRead <= 0) {
+          break;
+        }
+        totalBytesRead += bytesRead;
+      }
+      Metrics.BYTES_READ_EXTERNAL.inc(totalBytesRead);
+      if (totalBytesRead != pageSize) {
+        throw new IOException("Failed to read complete page from external storage. Bytes read: "
+            + totalBytesRead + " Page size: " + pageSize);
       }
     }
-    Metrics.BYTES_READ_EXTERNAL.inc(pageSize);
     return page;
   }
 
   private static final class Metrics {
     /** Cache hits. */
     private static final Counter BYTES_READ_CACHE =
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_CACHE);
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName());
     /** Bytes read from external, may be larger than requests due to reading complete pages. */
     private static final Counter BYTES_READ_EXTERNAL =
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL);
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName());
     /** Cache misses. */
     private static final Counter BYTES_REQUESTED_EXTERNAL =
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_REQUESTED_EXTERNAL);
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName());
   }
 }

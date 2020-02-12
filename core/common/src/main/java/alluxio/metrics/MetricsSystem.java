@@ -37,13 +37,16 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -61,8 +64,15 @@ public final class MetricsSystem {
   private static int sResolveTimeout =
       (int) new InstancedConfiguration(ConfigurationUtils.defaults())
           .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
-  private static final ConcurrentHashMap<String, Metric> LAST_REPORTED_METRICS =
-      new ConcurrentHashMap<>();
+  // A map from the metric name to its previous reported value
+  // This map is used for calculated the counter diff value that will be reported
+  private static final Map<String, Long> LAST_REPORTED_METRICS = new HashMap<>();
+  // A map that records all the metrics that should be reported and aggregated at leading master
+  // from full metric name to its metric type
+  private static final Map<String, MetricType> SHOULD_REPORT_METRICS = new HashMap<>();
+  // A flag telling whether metrics have been reported yet.
+  // Using this prevents us from initializing {@link #SHOULD_REPORT_METRICS} more than once
+  private static boolean sReported = false;
 
   /**
    * An enum of supported instance type.
@@ -209,6 +219,9 @@ public final class MetricsSystem {
    * @return the metric with instance and id tags
    */
   public static String getMetricName(String name) {
+    if (name.startsWith(CLUSTER)) {
+      return name;
+    }
     switch (CommonUtils.PROCESS_TYPE.get()) {
       case CLIENT:
         return getClientMetricName(name);
@@ -237,6 +250,9 @@ public final class MetricsSystem {
     String result = CACHED_METRICS.get(name);
     if (result != null) {
       return result;
+    }
+    if (name.startsWith(InstanceType.MASTER.toString())) {
+      return CACHED_METRICS.computeIfAbsent(name, n -> name);
     }
     return CACHED_METRICS.computeIfAbsent(name, n -> InstanceType.MASTER.toString() + "." + name);
   }
@@ -267,6 +283,17 @@ public final class MetricsSystem {
     if (result != null) {
       return result;
     }
+
+    // Added for integration tests where process type is always client
+    if (name.startsWith(InstanceType.MASTER.toString())
+        || name.startsWith(InstanceType.CLUSTER.toString())) {
+      return CACHED_METRICS.computeIfAbsent(name, n -> name);
+    }
+    if (name.startsWith(InstanceType.WORKER.toString())) {
+      return CACHED_METRICS.computeIfAbsent(name,
+          n -> getMetricNameWithUniqueId(InstanceType.WORKER, name));
+    }
+
     return CACHED_METRICS.computeIfAbsent(name,
         n -> getMetricNameWithUniqueId(InstanceType.CLIENT, name));
   }
@@ -282,22 +309,15 @@ public final class MetricsSystem {
   }
 
   /**
-   * Builds metric registry names for cluster. The pattern is cluster.metricName.
-   *
-   * @param name the metric name
-   * @return the metric registry name
-   */
-  public static String getClusterMetricName(String name) {
-    return Joiner.on(".").join(CLUSTER, name);
-  }
-
-  /**
    * Builds metric registry names for the job master instance. The pattern is instance.metricName.
    *
    * @param name the metric name
    * @return the metric registry name
    */
   private static String getJobMasterMetricName(String name) {
+    if (name.startsWith(InstanceType.JOB_MASTER.toString())) {
+      return name;
+    }
     return Joiner.on(".").join(InstanceType.JOB_MASTER, name);
   }
 
@@ -314,17 +334,19 @@ public final class MetricsSystem {
 
   /**
    * Builds unique metric registry names with unique ID (set to host name). The pattern is
-   * instance.hostname.metricName.
+   * instance.metricName.hostname
    *
    * @param instance the instance name
    * @param name the metric name
    * @return the metric registry name
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
-    return instance
-        + "."
-        + NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout)
-        + "." + name;
+    if (name.startsWith(instance.toString())) {
+      return Joiner.on(".").join(name,
+          NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
+    }
+    return Joiner.on(".").join(instance, name,
+        NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
   }
 
   /**
@@ -349,11 +371,14 @@ public final class MetricsSystem {
    */
   public static String stripInstanceAndHost(String metricsName) {
     String[] pieces = metricsName.split("\\.");
-    Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", metricsName);
-
+    if (pieces.length <= 1) {
+      return metricsName;
+    }
     // Master metrics doesn't have hostname included.
-    if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())) {
-      pieces[1] = null;
+    if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())
+        && !pieces[0].equals(InstanceType.CLUSTER.toString())
+        && pieces.length > 2) {
+      pieces[2] = null;
     }
     pieces[0] = null;
     return Joiner.on(".").skipNulls().join(pieces);
@@ -397,6 +422,27 @@ public final class MetricsSystem {
   }
 
   /**
+   * Get or add counter with the given name with tags.
+   * The counter stores in the metrics system is never removed but may reset to zero.
+   * If this metric can be aggregated at cluster level and should report to leading master,
+   * add it to the should report metrics map.
+   *
+   * This method is added to add worker metrics with ufs tags into the should report metrics map.
+   *
+   * @param name the metric name
+   * @param shouldReport whether this metric should be reported
+   * @param tags the tag name and tag value pairs
+   * @return a counter object with the qualified metric name
+   */
+  public static Counter counterWithTags(String name, boolean shouldReport, String... tags) {
+    String fullName = getMetricName(Metric.getMetricNameWithTags(name, tags));
+    if (shouldReport) {
+      SHOULD_REPORT_METRICS.putIfAbsent(fullName, MetricType.COUNTER);
+    }
+    return METRIC_REGISTRY.counter(fullName);
+  }
+
+  /**
    * Get or add meter with the given name.
    * The returned meter may be changed due to {@link #resetAllMetrics}
    *
@@ -405,6 +451,27 @@ public final class MetricsSystem {
    */
   public static Meter meter(String name) {
     return METRIC_REGISTRY.meter(getMetricName(name));
+  }
+
+  /**
+   * Get or add meter with the given name.
+   * The returned meter may be changed due to {@link #resetAllMetrics}
+   * If this metric can be aggregated at cluster level and should report to leading master,
+   * add it to the should report metrics map.
+   *
+   * This method is added to add worker metrics with ufs tags into the should report metrics map.
+   *
+   * @param name the name of the metric
+   * @param shouldReport whether this metric should be reported
+   * @param tags the tag name and tag value pairs
+   * @return a meter object with the qualified metric name
+   */
+  public static Meter meterWithTags(String name, boolean shouldReport, String... tags) {
+    String fullName = getMetricName(Metric.getMetricNameWithTags(name, tags));
+    if (shouldReport) {
+      SHOULD_REPORT_METRICS.putIfAbsent(fullName, MetricType.METER);
+    }
+    return METRIC_REGISTRY.meter(fullName);
   }
 
   /**
@@ -426,7 +493,7 @@ public final class MetricsSystem {
    * @param <T> the type
    */
   public static synchronized <T> void registerGaugeIfAbsent(String name, Gauge<T> metric) {
-    if (!METRIC_REGISTRY.getGauges().containsKey(name)) {
+    if (!METRIC_REGISTRY.getMetrics().containsKey(name)) {
       METRIC_REGISTRY.register(name, metric);
     }
   }
@@ -445,24 +512,56 @@ public final class MetricsSystem {
    * The synchronized keyword is added for correctness with {@link #resetAllMetrics}
    */
   private static synchronized List<alluxio.grpc.Metric> reportMetrics(InstanceType instanceType) {
+    if (!sReported) {
+      initShouldReportMetrics(instanceType);
+      sReported = true;
+    }
     List<alluxio.grpc.Metric> rpcMetrics = new ArrayList<>(20);
-    for (Metric m : allInstanceMetrics(instanceType)) {
-      // last reported metrics only need to be tracked for COUNTER metrics
-      // Store the last metric value which was sent, but the rpc metric returned should only
-      // contain the difference of the current value, and the last value sent. If it doesn't
-      // yet exist, just send the current value
-      if (m.getMetricType() == MetricType.COUNTER) {
-        Metric prev = LAST_REPORTED_METRICS.replace(m.getFullMetricName(), m);
+    // Use the getMetrics() call instead of getGauges(),getCounters()... to avoid
+    // unneeded metrics copy
+    Map<String, com.codahale.metrics.Metric> metrics = METRIC_REGISTRY.getMetrics();
+
+    for (Map.Entry<String, MetricType> entry : SHOULD_REPORT_METRICS.entrySet()) {
+      com.codahale.metrics.Metric metric = metrics.get(entry.getKey());
+      if (metric == null) {
+        // This metric does not registered in the metric registry
+        continue;
+      }
+      if (metric instanceof Gauge) {
+        Gauge gauge = (Gauge) metric;
+        if (!(gauge.getValue() instanceof Number)) {
+          LOG.debug("The value of metric {} of type {} is not sent to metrics master,"
+                  + " only metrics value of number can be collected",
+              entry.getKey(), gauge.getValue().getClass().getSimpleName());
+          continue;
+        }
+        rpcMetrics.add(Metric.from(entry.getKey(),
+            ((Number) gauge.getValue()).longValue(), MetricType.GAUGE).toProto());
+      } else if (metric instanceof Counter) {
+        Counter counter = (Counter) metric;
+        long value = counter.getCount();
+        Long prev = LAST_REPORTED_METRICS.replace(entry.getKey(), value);
         // On restarts counters will be reset to 0, so whatever the value is the first time
         // this method is called represents the value which should be added to the master's
         // counter.
         if (prev == null) {
-          LAST_REPORTED_METRICS.put(m.getFullMetricName(), m);
+          LAST_REPORTED_METRICS.put(entry.getKey(), value);
         }
-        double diff = prev != null ? m.getValue() - prev.getValue() : m.getValue();
-        rpcMetrics.add(m.toProto().toBuilder().setValue(diff).build());
+        double diff = prev != null ? value - prev : value;
+        if (diff != 0) { // Only report non-zero counter values
+          rpcMetrics.add(Metric.from(entry.getKey(), diff, MetricType.COUNTER).toProto());
+        }
+      } else if (metric instanceof Meter) {
+        Meter meter = (Meter) metric;
+        rpcMetrics.add(Metric.from(entry.getKey(), meter.getOneMinuteRate(),
+            MetricType.METER).toProto());
+      } else if (metric instanceof Timer) {
+        Timer timer = (Timer) metric;
+        rpcMetrics.add(Metric.from(entry.getKey(), timer.getCount(),
+            MetricType.TIMER).toProto());
       } else {
-        rpcMetrics.add(m.toProto());
+        LOG.warn("Metric {} has invalid metric type {} which cannot be reported",
+            entry.getKey(), entry.getValue());
       }
     }
     return rpcMetrics;
@@ -483,10 +582,44 @@ public final class MetricsSystem {
   }
 
   /**
-   * @return all the master's metrics in the format of {@link Metric}
+   * Gets master metric with the given metric name.
+   *
+   * @param name the name of the metric to get
+   * @return a metric set with the master metric of the given metric name
    */
-  public static List<Metric> allMasterMetrics() {
-    return allInstanceMetrics(InstanceType.MASTER);
+  public static Set<Metric> getMasterMetric(String name) {
+    Set<Metric> set = new HashSet<>();
+    Map<String, com.codahale.metrics.Metric> metricMap = METRIC_REGISTRY.getMetrics();
+    String fullName = getMasterMetricName(name);
+    com.codahale.metrics.Metric metric = metricMap.get(fullName);
+    if (metric == null) {
+      return set;
+    }
+    Metric alluxioMetric = getAlluxioMetricFromCodahaleMetric(fullName, metric);
+    if (alluxioMetric != null) {
+      set.add(alluxioMetric);
+    }
+    return set;
+  }
+
+  @Nullable
+  private static Metric getAlluxioMetricFromCodahaleMetric(String name,
+      com.codahale.metrics.Metric metric) {
+    if (metric instanceof Gauge) {
+      Gauge gauge = (Gauge) metric;
+      return Metric.from(name, ((Number) gauge.getValue()).longValue(), MetricType.GAUGE);
+    } else if (metric instanceof Counter) {
+      Counter counter = (Counter) metric;
+      return Metric.from(name, counter.getCount(), MetricType.COUNTER);
+    } else if (metric instanceof Meter) {
+      Meter meter = (Meter) metric;
+      return Metric.from(name, meter.getOneMinuteRate(), MetricType.METER);
+    } else if (metric instanceof Timer) {
+      Timer timer = (Timer) metric;
+      return Metric.from(name, timer.getCount(), MetricType.TIMER);
+    }
+    LOG.warn("Metric {} has invalid metric type {}", name, metric.getClass().getName());
+    return null;
   }
 
   /**
@@ -495,80 +628,53 @@ public final class MetricsSystem {
    */
   public static Map<String, MetricValue> allMetrics() {
     Map<String, MetricValue> metricsMap = new HashMap<>();
-    for (Entry<String, Gauge> entry : METRIC_REGISTRY.getGauges().entrySet()) {
-      Object value = entry.getValue().getValue();
-      MetricValue.Builder valueBuilder = MetricValue.newBuilder().setMetricType(MetricType.GAUGE);
-      if (!(value instanceof Number)) {
-        valueBuilder.setStringValue(value.toString());
+    for (Map.Entry<String, com.codahale.metrics.Metric> entry
+        : METRIC_REGISTRY.getMetrics().entrySet()) {
+      MetricValue.Builder valueBuilder = MetricValue.newBuilder();
+      com.codahale.metrics.Metric metric = entry.getValue();
+      if (metric instanceof Gauge) {
+        Object value = ((Gauge) metric).getValue();
+        if (value instanceof Number) {
+          valueBuilder.setDoubleValue(((Number) value).doubleValue());
+        } else {
+          valueBuilder.setStringValue(value.toString());
+        }
+        valueBuilder.setMetricType(MetricType.GAUGE);
+      } else if (metric instanceof Counter) {
+        valueBuilder.setMetricType(MetricType.COUNTER)
+            .setDoubleValue(((Counter) metric).getCount());
+      } else if (metric instanceof Meter) {
+        valueBuilder.setMetricType(MetricType.METER)
+            .setDoubleValue(((Meter) metric).getOneMinuteRate());
+      } else if (metric instanceof Timer) {
+        valueBuilder.setMetricType(MetricType.TIMER)
+            .setDoubleValue(((Timer) metric).getCount());
       } else {
-        valueBuilder.setDoubleValue(((Number) value).doubleValue());
+        LOG.warn("Metric {} has invalid metric type {}",
+            entry.getKey(), metric.getClass().getName());
+        continue;
       }
       metricsMap.put(entry.getKey(), valueBuilder.build());
-    }
-    for (Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
-      metricsMap.put(entry.getKey(), MetricValue.newBuilder()
-          .setDoubleValue(entry.getValue().getCount()).setMetricType(MetricType.COUNTER).build());
-    }
-    for (Entry<String, Meter> entry : METRIC_REGISTRY.getMeters().entrySet()) {
-      metricsMap.put(entry.getKey(), MetricValue.newBuilder()
-          .setDoubleValue(entry.getValue().getOneMinuteRate())
-          .setMetricType(MetricType.METER).build());
-    }
-    for (Entry<String, Timer> entry : METRIC_REGISTRY.getTimers().entrySet()) {
-      metricsMap.put(entry.getKey(), MetricValue.newBuilder()
-          .setDoubleValue(entry.getValue().getCount()).setMetricType(MetricType.TIMER).build());
     }
     return metricsMap;
   }
 
   /**
-   * @return all the worker's metrics in the format of {@link Metric}
-   */
-  public static List<Metric> allWorkerMetrics() {
-    return allInstanceMetrics(InstanceType.WORKER);
-  }
-
-  /**
-   * @return all the client's metrics in the format of {@link Metric}
-   */
-  public static List<Metric> allClientMetrics() {
-    return allInstanceMetrics(InstanceType.CLIENT);
-  }
-
-  /**
-   * Gets all metrics of the given instance type.
+   * Initialize the {@link #SHOULD_REPORT_METRICS}. This should be called only once.
    *
-   * @param instanceType the requested instance type
-   * @return all metrics of the given instance type
+   * Note that this method is able to catch most of the should report metrics
+   * except worker metrics with ufs tags.
+   *
+   * @param instanceType the instance type
    */
-  private static List<Metric> allInstanceMetrics(MetricsSystem.InstanceType instanceType) {
-    List<Metric> metrics = new ArrayList<>();
-    for (Entry<String, Gauge> entry : METRIC_REGISTRY.getGauges().entrySet()) {
-      if (entry.getKey().startsWith(instanceType.toString())) {
-        Object value = entry.getValue().getValue();
-        if (!(value instanceof Number)) {
-          LOG.warn("The value of metric {} of type {} is not sent to metrics master,"
-                  + " only metrics value of number can be collected",
-              entry.getKey(), entry.getValue().getClass().getSimpleName());
-          continue;
-        }
-        metrics.add(Metric.from(entry.getKey(), ((Number) value).longValue(), MetricType.GAUGE));
-      }
+  @VisibleForTesting
+  public static void initShouldReportMetrics(InstanceType instanceType) {
+    Set<MetricKey> metricKeys = MetricKey.allShouldReportMetricKeys(instanceType);
+    for (MetricKey metricKey : metricKeys) {
+      SHOULD_REPORT_METRICS.putIfAbsent(
+          getMetricNameWithUniqueId(instanceType, metricKey.getName()),
+          metricKey.getMetricType());
     }
-    for (Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
-      metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount(), MetricType.COUNTER));
-    }
-    for (Entry<String, Meter> entry : METRIC_REGISTRY.getMeters().entrySet()) {
-      // TODO(yupeng): From Meter's implementation, getOneMinuteRate can only report at rate of at
-      // least seconds. if the client's duration is too short (i.e. < 1s), then getOneMinuteRate
-      // would return 0
-      metrics.add(Metric.from(entry.getKey(), entry.getValue().getOneMinuteRate(),
-          MetricType.METER));
-    }
-    for (Entry<String, Timer> entry : METRIC_REGISTRY.getTimers().entrySet()) {
-      metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount(), MetricType.TIMER));
-    }
-    return metrics;
   }
 
   /**

@@ -20,23 +20,34 @@ import alluxio.client.file.cache.store.RocksPageStoreOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
+import alluxio.util.io.FileUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * A simple abstraction on the storage to put, get and delete pages. The implementation of this
  * class does not need to provide thread-safety.
  */
 public interface PageStore extends AutoCloseable {
+  Logger LOG = LoggerFactory.getLogger(PageStore.class);
 
   /**
    * Creates a new {@link PageStore}.
    *
    * @param options the options to instantiate the page store
    * @return a PageStore instance
+   * @throws IOException if failed to create a page store
    */
-  static PageStore create(PageStoreOptions options) {
+  static PageStore create(PageStoreOptions options) throws IOException {
     switch (options.getType()) {
       case LOCAL:
         return new LocalPageStore(options.toOptions());
@@ -50,17 +61,17 @@ public interface PageStore extends AutoCloseable {
 
   /**
    * Creates a new instance of {@link PageStore} based on configuration.
+   *
    * @param conf configuration
    * @return the {@link PageStore}
    */
-  static PageStore create(AlluxioConfiguration conf) {
+  static PageStore create(AlluxioConfiguration conf) throws IOException {
     if (conf.getEnum(PropertyKey.USER_LOCAL_CACHE_MODE, CacheMode.class) == CacheMode.DRYRUN) {
       return new DryRunPageStore();
     }
     PageStoreOptions options;
     PageStoreType storeType = conf.getEnum(
         PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);
-    // TODO(feng): add more configurable options
     switch (storeType) {
       case LOCAL:
         options = new LocalPageStoreOptions();
@@ -72,8 +83,48 @@ public interface PageStore extends AutoCloseable {
         throw new IllegalArgumentException(String.format("Unrecognized store type %s",
             storeType.name()));
     }
-    options.setRootDir(conf.get(PropertyKey.USER_CLIENT_CACHE_DIR));
+    String rootDir = conf.get(PropertyKey.USER_CLIENT_CACHE_DIR);
+    initialize(rootDir, storeType);
+    Path storePath = getStorePath(storeType, rootDir);
+    options.setRootDir(storePath.toString());
+    options.setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
+    options.setCacheSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
+    options.setAlluxioVersion(conf.get(PropertyKey.VERSION));
     return create(options);
+  }
+
+  /**
+   * Gets store path given root directory and store type.
+   *
+   * @param storeType the type of the page store
+   * @param rootDir the root directory path
+   * @return the store directory path
+   */
+  static Path getStorePath(PageStoreType storeType, String rootDir) {
+    return Paths.get(rootDir, storeType.name());
+  }
+
+  /**
+   * Initialize a page store at the configured location.
+   * Data from different store type will be removed.
+   *
+   * @param rootPath root path of the page store
+   * @param storeType the page store type
+   */
+  static void initialize(String rootPath, PageStoreType storeType) throws IOException {
+    Path storePath = getStorePath(storeType, rootPath);
+    Files.createDirectories(storePath);
+    LOG.info("Clean cache directory {}", rootPath);
+    try (Stream<Path> stream = Files.list(Paths.get(rootPath))) {
+      stream.filter(path -> !storePath.equals(path))
+          .forEach(path -> {
+            try {
+              FileUtils.deletePathRecursively(path.toString());
+            } catch (IOException e) {
+              LOG.warn("failed to delete {} in cache directory: {}", path, e.toString());
+            }
+          });
+    }
   }
 
   /**
@@ -103,7 +154,7 @@ public interface PageStore extends AutoCloseable {
    * @param pageId page identifier
    * @param pageOffset offset within page
    * @return the number of bytes read
-   * @throws IOException
+   * @throws IOException when the store fails to read this page
    * @throws PageNotFoundException when the page isn't found in the store
    * @throws IllegalArgumentException when the page offset exceeds the page size
    */
@@ -114,13 +165,34 @@ public interface PageStore extends AutoCloseable {
    * Deletes a page from the store.
    *
    * @param pageId page identifier
+   * @param pageSize page size in bytes
    * @throws IOException when the store fails to delete this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  void delete(PageId pageId) throws IOException, PageNotFoundException;
+  void delete(PageId pageId, long pageSize) throws IOException, PageNotFoundException;
 
   /**
    * @return the number of pages stored
    */
-  int size();
+  long pages();
+
+  /**
+   * @return the total size of pages stored in bytes
+   */
+  long bytes();
+
+  /**
+   * Gets all page ids.
+   *
+   * @return collection of ids representing all pages loaded from disk
+   * @throws IOException if any error occurs
+   */
+  Collection<PageInfo> getPages() throws IOException;
+
+  /**
+   * @return an estimated ratio between the overhead storage consumption and the actual data size
+   */
+  default double getOverheadRatio() {
+    return 0;
+  }
 }

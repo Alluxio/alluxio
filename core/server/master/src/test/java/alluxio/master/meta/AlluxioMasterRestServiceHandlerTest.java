@@ -38,7 +38,7 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
-import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.Block;
 import alluxio.underfs.UnderFileSystem;
@@ -144,8 +144,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
         WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_LOCATIONS, NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
 
-    String filesPinnedProperty =
-        MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
+    String filesPinnedProperty = MetricKey.MASTER_FILES_PINNED.getName();
     MetricsSystem.METRIC_REGISTRY.remove(filesPinnedProperty);
   }
 
@@ -204,8 +203,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   @Test
   public void getMetrics() {
     final int FILES_PINNED_TEST_VALUE = 100;
-    String filesPinnedProperty =
-        MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
+    String filesPinnedProperty = MetricKey.MASTER_FILES_PINNED.getName();
     Gauge<Integer> filesPinnedGauge = () -> FILES_PINNED_TEST_VALUE;
     MetricSet mockMetricsSet = mock(MetricSet.class);
     Map<String, Metric> map = new HashMap<>();

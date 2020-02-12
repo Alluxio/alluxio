@@ -67,7 +67,6 @@ import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.activesync.ActiveSyncManager;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
@@ -113,7 +112,7 @@ import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metrics.TimeSeriesStore;
-import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.TimeSeries;
 import alluxio.proto.journal.File;
@@ -4358,20 +4357,19 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
       // % Alluxio space used
       Long masterCapacityTotal = (Long) registry.getGauges()
-          .get(MetricsSystem.getMetricName(DefaultBlockMaster.Metrics.CAPACITY_TOTAL)).getValue();
+          .get(MetricKey.CLUSTER_CAPACITY_TOTAL.getName()).getValue();
       Long masterCapacityUsed = (Long) registry.getGauges()
-          .get(MetricsSystem.getMetricName(DefaultBlockMaster.Metrics.CAPACITY_USED)).getValue();
+          .get(MetricKey.CLUSTER_CAPACITY_USED.getName()).getValue();
       int percentAlluxioSpaceUsed =
           (masterCapacityTotal > 0) ? (int) (100L * masterCapacityUsed / masterCapacityTotal) : 0;
       mTimeSeriesStore.record("% Alluxio Space Used", percentAlluxioSpaceUsed);
 
       // % UFS space used
-      Long masterUnderfsCapacityTotal =
-          (Long) registry.getGauges()
-              .get(MetricsSystem.getMetricName(MasterMetrics.UFS_CAPACITY_TOTAL)).getValue();
+      Long masterUnderfsCapacityTotal = (Long) registry.getGauges()
+          .get(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName()).getValue();
       Long masterUnderfsCapacityUsed =
           (Long) registry.getGauges()
-              .get(MetricsSystem.getMetricName(MasterMetrics.UFS_CAPACITY_USED)).getValue();
+              .get(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName()).getValue();
       int percentUfsSpaceUsed =
           (masterUnderfsCapacityTotal > 0) ? (int) (100L * masterUnderfsCapacityUsed
               / masterUnderfsCapacityTotal) : 0;
@@ -4453,57 +4451,57 @@ public final class DefaultFileSystemMaster extends CoreMaster
    */
   public static final class Metrics {
     private static final Counter DIRECTORIES_CREATED
-        = MetricsSystem.counter(MasterMetrics.DIRECTORIES_CREATED);
+        = MetricsSystem.counter(MetricKey.MASTER_DIRECTORIES_CREATED.getName());
     private static final Counter FILE_BLOCK_INFOS_GOT
-        = MetricsSystem.counter(MasterMetrics.FILE_BLOCK_INFOS_GOT);
+        = MetricsSystem.counter(MetricKey.MASTER_FILE_BLOCK_INFOS_GOT.getName());
     private static final Counter FILE_INFOS_GOT
-        = MetricsSystem.counter(MasterMetrics.FILE_INFOS_GOT);
+        = MetricsSystem.counter(MetricKey.MASTER_FILE_INFOS_GOT.getName());
     private static final Counter FILES_COMPLETED
-        = MetricsSystem.counter(MasterMetrics.FILES_COMPLETED);
+        = MetricsSystem.counter(MetricKey.MASTER_FILES_COMPLETED.getName());
     private static final Counter FILES_CREATED
-        = MetricsSystem.counter(MasterMetrics.FILES_CREATED);
+        = MetricsSystem.counter(MetricKey.MASTER_FILES_CREATED.getName());
     private static final Counter FILES_FREED
-        = MetricsSystem.counter(MasterMetrics.FILES_FREED);
+        = MetricsSystem.counter(MetricKey.MASTER_FILES_FREED.getName());
     private static final Counter FILES_PERSISTED
-        = MetricsSystem.counter(MasterMetrics.FILES_PERSISTED);
+        = MetricsSystem.counter(MetricKey.MASTER_FILES_PERSISTED.getName());
     private static final Counter NEW_BLOCKS_GOT
-        = MetricsSystem.counter(MasterMetrics.NEW_BLOCKS_GOT);
+        = MetricsSystem.counter(MetricKey.MASTER_NEW_BLOCKS_GOT.getName());
     private static final Counter PATHS_DELETED
-        = MetricsSystem.counter(MasterMetrics.PATHS_DELETED);
+        = MetricsSystem.counter(MetricKey.MASTER_PATHS_DELETED.getName());
     private static final Counter PATHS_MOUNTED
-        = MetricsSystem.counter(MasterMetrics.PATHS_MOUNTED);
+        = MetricsSystem.counter(MetricKey.MASTER_PATHS_MOUNTED.getName());
     private static final Counter PATHS_RENAMED
-        = MetricsSystem.counter(MasterMetrics.PATHS_RENAMED);
+        = MetricsSystem.counter(MetricKey.MASTER_PATHS_RENAMED.getName());
     private static final Counter PATHS_UNMOUNTED
-        = MetricsSystem.counter(MasterMetrics.PATHS_UNMOUNTED);
+        = MetricsSystem.counter(MetricKey.MASTER_PATHS_UNMOUNTED.getName());
 
     // TODO(peis): Increment the RPCs OPs at the place where we receive the RPCs.
     private static final Counter COMPLETE_FILE_OPS
-        = MetricsSystem.counter(MasterMetrics.COMPLETE_FILE_OPS);
+        = MetricsSystem.counter(MetricKey.MASTER_COMPLETE_FILE_OPS.getName());
     private static final Counter CREATE_DIRECTORIES_OPS
-        = MetricsSystem.counter(MasterMetrics.CREATE_DIRECTORIES_OPS);
+        = MetricsSystem.counter(MetricKey.MASTER_CREATE_DIRECTORIES_OPS.getName());
     private static final Counter CREATE_FILES_OPS
-        = MetricsSystem.counter(MasterMetrics.CREATE_FILES_OPS);
+        = MetricsSystem.counter(MetricKey.MASTER_CREATE_FILES_OPS.getName());
     private static final Counter DELETE_PATHS_OPS
-        = MetricsSystem.counter(MasterMetrics.DELETE_PATHS_OPS);
+        = MetricsSystem.counter(MetricKey.MASTER_DELETE_PATHS_OPS.getName());
     private static final Counter FREE_FILE_OPS
-        = MetricsSystem.counter(MasterMetrics.FREE_FILE_OPS);
+        = MetricsSystem.counter(MetricKey.MASTER_FREE_FILE_OPS.getName());
     private static final Counter GET_FILE_BLOCK_INFO_OPS
-        = MetricsSystem.counter(MasterMetrics.GET_FILE_BLOCK_INFO_OPS);
+        = MetricsSystem.counter(MetricKey.MASTER_GET_FILE_BLOCK_INFO_OPS.getName());
     private static final Counter GET_FILE_INFO_OPS
-        = MetricsSystem.counter(MasterMetrics.GET_FILE_INFO_OPS);
+        = MetricsSystem.counter(MetricKey.MASTER_GET_FILE_INFO_OPS.getName());
     private static final Counter GET_NEW_BLOCK_OPS
-        = MetricsSystem.counter(MasterMetrics.GET_NEW_BLOCK_OPS);
+        = MetricsSystem.counter(MetricKey.MASTER_GET_NEW_BLOCK_OPS.getName());
     private static final Counter MOUNT_OPS
-        = MetricsSystem.counter(MasterMetrics.MOUNT_OPS);
+        = MetricsSystem.counter(MetricKey.MASTER_MOUNT_OPS.getName());
     private static final Counter RENAME_PATH_OPS
-        = MetricsSystem.counter(MasterMetrics.RENAME_PATH_OPS);
+        = MetricsSystem.counter(MetricKey.MASTER_RENAME_PATH_OPS.getName());
     private static final Counter SET_ACL_OPS
-        = MetricsSystem.counter(MasterMetrics.SET_ACL_OPS);
+        = MetricsSystem.counter(MetricKey.MASTER_SET_ACL_OPS.getName());
     private static final Counter SET_ATTRIBUTE_OPS
-        = MetricsSystem.counter(MasterMetrics.SET_ATTRIBUTE_OPS);
+        = MetricsSystem.counter(MetricKey.MASTER_SET_ATTRIBUTE_OPS.getName());
     private static final Counter UNMOUNT_OPS
-        = MetricsSystem.counter(MasterMetrics.UNMOUNT_OPS);
+        = MetricsSystem.counter(MetricKey.MASTER_UNMOUNT_OPS.getName());
 
     /**
      * Register some file system master related gauges.
@@ -4514,18 +4512,15 @@ public final class DefaultFileSystemMaster extends CoreMaster
     @VisibleForTesting
     public static void registerGauges(
         final FileSystemMaster master, final UfsManager ufsManager) {
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem
-              .getMetricName(MasterMetrics.FILES_PINNED),
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_PINNED.getName(),
           master::getNumberOfPinnedFiles);
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem
-              .getMetricName(MasterMetrics.TOTAL_PATHS),
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_PATHS.getName(),
           () -> master.getInodeCount());
 
       final String ufsDataFolder = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem
-              .getMetricName(MasterMetrics.UFS_CAPACITY_TOTAL),
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName(),
           () -> {
             try (CloseableResource<UnderFileSystem> ufsResource =
                 ufsManager.getRoot().acquireUfsResource()) {
@@ -4537,8 +4532,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             }
           });
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem
-              .getMetricName(MasterMetrics.UFS_CAPACITY_USED),
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_USED.getName(),
           () -> {
             try (CloseableResource<UnderFileSystem> ufsResource =
                 ufsManager.getRoot().acquireUfsResource()) {
@@ -4550,8 +4544,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             }
           });
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem
-              .getMetricName(MasterMetrics.UFS_CAPACITY_FREE),
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_FREE.getName(),
           () -> {
             long ret = 0L;
             try (CloseableResource<UnderFileSystem> ufsResource =
