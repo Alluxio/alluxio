@@ -115,8 +115,8 @@ public class CollectInfo extends AbstractShell {
   }
 
   /**
-   * Main method, starts a new CollectInfoAll shell.
-   * CollectInfoAll will SSH to all hosts and invoke {@link CollectInfo}.
+   * Main method, starts a new CollectInfo shell.
+   * CollectInfo will SSH to all hosts and invoke {@link CollectInfo} with --local option.
    * Then collect the tarballs generated on each of the hosts to the localhost.
    * And tarball all results into one final tarball.
    *
@@ -161,7 +161,16 @@ public class CollectInfo extends AbstractShell {
     System.exit(ret);
   }
 
-  public int collectInfoRemote(CommandLine cmdLine) throws IOException {
+  /**
+   * Finds all nodes in the cluster.
+   * Then invokes collectInfo with --local option on each of them locally.
+   * Collects the generated tarball from each node.
+   * And generates a final tarball as the result.
+   *
+   * @param cmdLine the parsed CommandLine
+   * @return exit code
+   * */
+  private int collectInfoRemote(CommandLine cmdLine) throws IOException {
     int ret = 0;
     String[] args = cmdLine.getArgs();
     String targetDir = args[1];
@@ -274,7 +283,14 @@ public class CollectInfo extends AbstractShell {
     return ret;
   }
 
-  public int collectInfoLocal(CommandLine cmdLine) throws IOException {
+  /**
+   * Executes collectInfo command locally.
+   * And generates a tarball with all the information collected.
+   *
+   * @param cmdLine the parsed CommandLine
+   * @return exit code
+   * */
+  private int collectInfoLocal(CommandLine cmdLine) throws IOException {
     int ret = 0;
     String[] args = cmdLine.getArgs();
 
@@ -423,7 +439,7 @@ public class CollectInfo extends AbstractShell {
 
   @Override
   protected String getShellName() {
-    return "collectInfoAll";
+    return "collectInfo";
   }
 
   @Override
