@@ -45,11 +45,11 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
    * Prepares the configuration for this Wasb as an HDFS configuration.
    *
    * @param conf the configuration for this UFS
-   * @param isWasb whether to use wasb configuration or not
+   * @param isSecure whether blob storage is using https
    * @return the created configuration
    */
   public static Configuration createConfiguration(UnderFileSystemConfiguration conf,
-          Boolean isWasb) {
+          Boolean isSecure) {
     Configuration wasbConf = HdfsUnderFileSystem.createConfiguration(conf);
     for (Map.Entry<String, String> entry : conf.toMap().entrySet()) {
       String key = entry.getKey();
@@ -58,12 +58,12 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
         wasbConf.set(key, value);
       }
     }
-    if (isWasb) {
-      wasbConf.set("fs.AbstractFileSystem.wasb.impl", "org.apache.hadoop.fs.azure.Wasb");
-      wasbConf.set("fs.wasb.impl", "org.apache.hadoop.fs.azure.NativeAzureFileSystem");
-    } else {
+    if (isSecure) {
       wasbConf.set("fs.AbstractFileSystem.wasb.impl", "org.apache.hadoop.fs.azure.Wasbs");
       wasbConf.set("fs.wasbs.impl", "org.apache.hadoop.fs.azure.NativeAzureFileSystem");
+    } else {
+      wasbConf.set("fs.AbstractFileSystem.wasb.impl", "org.apache.hadoop.fs.azure.Wasb");
+      wasbConf.set("fs.wasb.impl", "org.apache.hadoop.fs.azure.NativeAzureFileSystem");
     }
     return wasbConf;
   }
