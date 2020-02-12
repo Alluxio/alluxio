@@ -9,215 +9,263 @@ public interface FileInfoOrBuilder extends
 
   /**
    * <code>optional int64 fileId = 1;</code>
+   * @return Whether the fileId field is set.
    */
   boolean hasFileId();
   /**
    * <code>optional int64 fileId = 1;</code>
+   * @return The fileId.
    */
   long getFileId();
 
   /**
    * <code>optional string name = 2;</code>
+   * @return Whether the name field is set.
    */
   boolean hasName();
   /**
    * <code>optional string name = 2;</code>
+   * @return The name.
    */
   java.lang.String getName();
   /**
    * <code>optional string name = 2;</code>
+   * @return The bytes for name.
    */
   com.google.protobuf.ByteString
       getNameBytes();
 
   /**
    * <code>optional string path = 3;</code>
+   * @return Whether the path field is set.
    */
   boolean hasPath();
   /**
    * <code>optional string path = 3;</code>
+   * @return The path.
    */
   java.lang.String getPath();
   /**
    * <code>optional string path = 3;</code>
+   * @return The bytes for path.
    */
   com.google.protobuf.ByteString
       getPathBytes();
 
   /**
    * <code>optional string ufsPath = 4;</code>
+   * @return Whether the ufsPath field is set.
    */
   boolean hasUfsPath();
   /**
    * <code>optional string ufsPath = 4;</code>
+   * @return The ufsPath.
    */
   java.lang.String getUfsPath();
   /**
    * <code>optional string ufsPath = 4;</code>
+   * @return The bytes for ufsPath.
    */
   com.google.protobuf.ByteString
       getUfsPathBytes();
 
   /**
    * <code>optional int64 length = 5;</code>
+   * @return Whether the length field is set.
    */
   boolean hasLength();
   /**
    * <code>optional int64 length = 5;</code>
+   * @return The length.
    */
   long getLength();
 
   /**
    * <code>optional int64 blockSizeBytes = 6;</code>
+   * @return Whether the blockSizeBytes field is set.
    */
   boolean hasBlockSizeBytes();
   /**
    * <code>optional int64 blockSizeBytes = 6;</code>
+   * @return The blockSizeBytes.
    */
   long getBlockSizeBytes();
 
   /**
    * <code>optional int64 creationTimeMs = 7;</code>
+   * @return Whether the creationTimeMs field is set.
    */
   boolean hasCreationTimeMs();
   /**
    * <code>optional int64 creationTimeMs = 7;</code>
+   * @return The creationTimeMs.
    */
   long getCreationTimeMs();
 
   /**
    * <code>optional bool completed = 8;</code>
+   * @return Whether the completed field is set.
    */
   boolean hasCompleted();
   /**
    * <code>optional bool completed = 8;</code>
+   * @return The completed.
    */
   boolean getCompleted();
 
   /**
    * <code>optional bool folder = 9;</code>
+   * @return Whether the folder field is set.
    */
   boolean hasFolder();
   /**
    * <code>optional bool folder = 9;</code>
+   * @return The folder.
    */
   boolean getFolder();
 
   /**
    * <code>optional bool pinned = 10;</code>
+   * @return Whether the pinned field is set.
    */
   boolean hasPinned();
   /**
    * <code>optional bool pinned = 10;</code>
+   * @return The pinned.
    */
   boolean getPinned();
 
   /**
    * <code>optional bool cacheable = 11;</code>
+   * @return Whether the cacheable field is set.
    */
   boolean hasCacheable();
   /**
    * <code>optional bool cacheable = 11;</code>
+   * @return The cacheable.
    */
   boolean getCacheable();
 
   /**
    * <code>optional bool persisted = 12;</code>
+   * @return Whether the persisted field is set.
    */
   boolean hasPersisted();
   /**
    * <code>optional bool persisted = 12;</code>
+   * @return The persisted.
    */
   boolean getPersisted();
 
   /**
    * <code>repeated int64 blockIds = 13;</code>
+   * @return A list containing the blockIds.
    */
   java.util.List<java.lang.Long> getBlockIdsList();
   /**
    * <code>repeated int64 blockIds = 13;</code>
+   * @return The count of blockIds.
    */
   int getBlockIdsCount();
   /**
    * <code>repeated int64 blockIds = 13;</code>
+   * @param index The index of the element to return.
+   * @return The blockIds at the given index.
    */
   long getBlockIds(int index);
 
   /**
    * <code>optional int64 lastModificationTimeMs = 14;</code>
+   * @return Whether the lastModificationTimeMs field is set.
    */
   boolean hasLastModificationTimeMs();
   /**
    * <code>optional int64 lastModificationTimeMs = 14;</code>
+   * @return The lastModificationTimeMs.
    */
   long getLastModificationTimeMs();
 
   /**
    * <code>optional int64 ttl = 15;</code>
+   * @return Whether the ttl field is set.
    */
   boolean hasTtl();
   /**
    * <code>optional int64 ttl = 15;</code>
+   * @return The ttl.
    */
   long getTtl();
 
   /**
    * <code>optional string owner = 16;</code>
+   * @return Whether the owner field is set.
    */
   boolean hasOwner();
   /**
    * <code>optional string owner = 16;</code>
+   * @return The owner.
    */
   java.lang.String getOwner();
   /**
    * <code>optional string owner = 16;</code>
+   * @return The bytes for owner.
    */
   com.google.protobuf.ByteString
       getOwnerBytes();
 
   /**
    * <code>optional string group = 17;</code>
+   * @return Whether the group field is set.
    */
   boolean hasGroup();
   /**
    * <code>optional string group = 17;</code>
+   * @return The group.
    */
   java.lang.String getGroup();
   /**
    * <code>optional string group = 17;</code>
+   * @return The bytes for group.
    */
   com.google.protobuf.ByteString
       getGroupBytes();
 
   /**
    * <code>optional int32 mode = 18;</code>
+   * @return Whether the mode field is set.
    */
   boolean hasMode();
   /**
    * <code>optional int32 mode = 18;</code>
+   * @return The mode.
    */
   int getMode();
 
   /**
    * <code>optional string persistenceState = 19;</code>
+   * @return Whether the persistenceState field is set.
    */
   boolean hasPersistenceState();
   /**
    * <code>optional string persistenceState = 19;</code>
+   * @return The persistenceState.
    */
   java.lang.String getPersistenceState();
   /**
    * <code>optional string persistenceState = 19;</code>
+   * @return The bytes for persistenceState.
    */
   com.google.protobuf.ByteString
       getPersistenceStateBytes();
 
   /**
    * <code>optional bool mountPoint = 20;</code>
+   * @return Whether the mountPoint field is set.
    */
   boolean hasMountPoint();
   /**
    * <code>optional bool mountPoint = 20;</code>
+   * @return The mountPoint.
    */
   boolean getMountPoint();
 
@@ -247,60 +295,73 @@ public interface FileInfoOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.TtlAction ttlAction = 22;</code>
+   * @return Whether the ttlAction field is set.
    */
   boolean hasTtlAction();
   /**
    * <code>optional .alluxio.grpc.TtlAction ttlAction = 22;</code>
+   * @return The ttlAction.
    */
   alluxio.grpc.TtlAction getTtlAction();
 
   /**
    * <code>optional int64 mountId = 23;</code>
+   * @return Whether the mountId field is set.
    */
   boolean hasMountId();
   /**
    * <code>optional int64 mountId = 23;</code>
+   * @return The mountId.
    */
   long getMountId();
 
   /**
    * <code>optional int32 inAlluxioPercentage = 24;</code>
+   * @return Whether the inAlluxioPercentage field is set.
    */
   boolean hasInAlluxioPercentage();
   /**
    * <code>optional int32 inAlluxioPercentage = 24;</code>
+   * @return The inAlluxioPercentage.
    */
   int getInAlluxioPercentage();
 
   /**
    * <code>optional int32 inMemoryPercentage = 25;</code>
+   * @return Whether the inMemoryPercentage field is set.
    */
   boolean hasInMemoryPercentage();
   /**
    * <code>optional int32 inMemoryPercentage = 25;</code>
+   * @return The inMemoryPercentage.
    */
   int getInMemoryPercentage();
 
   /**
    * <code>optional string ufsFingerprint = 26;</code>
+   * @return Whether the ufsFingerprint field is set.
    */
   boolean hasUfsFingerprint();
   /**
    * <code>optional string ufsFingerprint = 26;</code>
+   * @return The ufsFingerprint.
    */
   java.lang.String getUfsFingerprint();
   /**
    * <code>optional string ufsFingerprint = 26;</code>
+   * @return The bytes for ufsFingerprint.
    */
   com.google.protobuf.ByteString
       getUfsFingerprintBytes();
 
   /**
    * <code>optional .alluxio.grpc.file.PAcl acl = 27;</code>
+   * @return Whether the acl field is set.
    */
   boolean hasAcl();
   /**
    * <code>optional .alluxio.grpc.file.PAcl acl = 27;</code>
+   * @return The acl.
    */
   alluxio.grpc.PAcl getAcl();
   /**
@@ -310,10 +371,12 @@ public interface FileInfoOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.file.PAcl defaultAcl = 28;</code>
+   * @return Whether the defaultAcl field is set.
    */
   boolean hasDefaultAcl();
   /**
    * <code>optional .alluxio.grpc.file.PAcl defaultAcl = 28;</code>
+   * @return The defaultAcl.
    */
   alluxio.grpc.PAcl getDefaultAcl();
   /**
@@ -323,28 +386,34 @@ public interface FileInfoOrBuilder extends
 
   /**
    * <code>optional int32 replicationMax = 29;</code>
+   * @return Whether the replicationMax field is set.
    */
   boolean hasReplicationMax();
   /**
    * <code>optional int32 replicationMax = 29;</code>
+   * @return The replicationMax.
    */
   int getReplicationMax();
 
   /**
    * <code>optional int32 replicationMin = 30;</code>
+   * @return Whether the replicationMin field is set.
    */
   boolean hasReplicationMin();
   /**
    * <code>optional int32 replicationMin = 30;</code>
+   * @return The replicationMin.
    */
   int getReplicationMin();
 
   /**
    * <code>optional int64 lastAccessTimeMs = 31;</code>
+   * @return Whether the lastAccessTimeMs field is set.
    */
   boolean hasLastAccessTimeMs();
   /**
    * <code>optional int64 lastAccessTimeMs = 31;</code>
+   * @return The lastAccessTimeMs.
    */
   long getLastAccessTimeMs();
 }

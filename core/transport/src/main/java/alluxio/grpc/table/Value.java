@@ -19,6 +19,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new Value();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -42,13 +49,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             valueCase_ = 1;
             value_ = input.readInt64();
@@ -70,6 +70,13 @@ private static final long serialVersionUID = 0L;
             value_ = input.readBool();
             break;
           }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -87,6 +94,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Value_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Value_fieldAccessorTable
@@ -98,7 +106,8 @@ private static final long serialVersionUID = 0L;
   private int valueCase_ = 0;
   private java.lang.Object value_;
   public enum ValueCase
-      implements com.google.protobuf.Internal.EnumLite {
+      implements com.google.protobuf.Internal.EnumLite,
+          com.google.protobuf.AbstractMessage.InternalOneOfEnum {
     LONG_TYPE(1),
     DOUBLE_TYPE(2),
     STRING_TYPE(3),
@@ -109,6 +118,8 @@ private static final long serialVersionUID = 0L;
       this.value = value;
     }
     /**
+     * @param value The number of the enum to look for.
+     * @return The enum associated with the given number.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
     @java.lang.Deprecated
@@ -140,12 +151,14 @@ private static final long serialVersionUID = 0L;
   public static final int LONG_TYPE_FIELD_NUMBER = 1;
   /**
    * <code>optional int64 long_type = 1;</code>
+   * @return Whether the longType field is set.
    */
   public boolean hasLongType() {
     return valueCase_ == 1;
   }
   /**
    * <code>optional int64 long_type = 1;</code>
+   * @return The longType.
    */
   public long getLongType() {
     if (valueCase_ == 1) {
@@ -157,12 +170,14 @@ private static final long serialVersionUID = 0L;
   public static final int DOUBLE_TYPE_FIELD_NUMBER = 2;
   /**
    * <code>optional double double_type = 2;</code>
+   * @return Whether the doubleType field is set.
    */
   public boolean hasDoubleType() {
     return valueCase_ == 2;
   }
   /**
    * <code>optional double double_type = 2;</code>
+   * @return The doubleType.
    */
   public double getDoubleType() {
     if (valueCase_ == 2) {
@@ -174,12 +189,14 @@ private static final long serialVersionUID = 0L;
   public static final int STRING_TYPE_FIELD_NUMBER = 3;
   /**
    * <code>optional string string_type = 3;</code>
+   * @return Whether the stringType field is set.
    */
   public boolean hasStringType() {
     return valueCase_ == 3;
   }
   /**
    * <code>optional string string_type = 3;</code>
+   * @return The stringType.
    */
   public java.lang.String getStringType() {
     java.lang.Object ref = "";
@@ -200,6 +217,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string string_type = 3;</code>
+   * @return The bytes for stringType.
    */
   public com.google.protobuf.ByteString
       getStringTypeBytes() {
@@ -223,12 +241,14 @@ private static final long serialVersionUID = 0L;
   public static final int BOOLEAN_TYPE_FIELD_NUMBER = 4;
   /**
    * <code>optional bool boolean_type = 4;</code>
+   * @return Whether the booleanType field is set.
    */
   public boolean hasBooleanType() {
     return valueCase_ == 4;
   }
   /**
    * <code>optional bool boolean_type = 4;</code>
+   * @return The booleanType.
    */
   public boolean getBooleanType() {
     if (valueCase_ == 4) {
@@ -238,6 +258,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -247,6 +268,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (valueCase_ == 1) {
@@ -267,6 +289,7 @@ private static final long serialVersionUID = 0L;
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -305,34 +328,30 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.table.Value other = (alluxio.grpc.table.Value) obj;
 
-    boolean result = true;
-    result = result && getValueCase().equals(
-        other.getValueCase());
-    if (!result) return false;
+    if (!getValueCase().equals(other.getValueCase())) return false;
     switch (valueCase_) {
       case 1:
-        result = result && (getLongType()
-            == other.getLongType());
+        if (getLongType()
+            != other.getLongType()) return false;
         break;
       case 2:
-        result = result && (
-            java.lang.Double.doubleToLongBits(getDoubleType())
-            == java.lang.Double.doubleToLongBits(
-                other.getDoubleType()));
+        if (java.lang.Double.doubleToLongBits(getDoubleType())
+            != java.lang.Double.doubleToLongBits(
+                other.getDoubleType())) return false;
         break;
       case 3:
-        result = result && getStringType()
-            .equals(other.getStringType());
+        if (!getStringType()
+            .equals(other.getStringType())) return false;
         break;
       case 4:
-        result = result && (getBooleanType()
-            == other.getBooleanType());
+        if (getBooleanType()
+            != other.getBooleanType()) return false;
         break;
       case 0:
       default:
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -440,6 +459,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -447,6 +467,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.table.Value prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -470,6 +491,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Value_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Value_fieldAccessorTable
@@ -492,6 +514,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       valueCase_ = 0;
@@ -499,15 +522,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Value_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.Value getDefaultInstanceForType() {
       return alluxio.grpc.table.Value.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.Value build() {
       alluxio.grpc.table.Value result = buildPartial();
       if (!result.isInitialized()) {
@@ -516,6 +542,7 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.Value buildPartial() {
       alluxio.grpc.table.Value result = new alluxio.grpc.table.Value(this);
       int from_bitField0_ = bitField0_;
@@ -538,32 +565,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.table.Value) {
         return mergeFrom((alluxio.grpc.table.Value)other);
@@ -603,10 +637,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -643,12 +679,14 @@ private static final long serialVersionUID = 0L;
 
     /**
      * <code>optional int64 long_type = 1;</code>
+     * @return Whether the longType field is set.
      */
     public boolean hasLongType() {
       return valueCase_ == 1;
     }
     /**
      * <code>optional int64 long_type = 1;</code>
+     * @return The longType.
      */
     public long getLongType() {
       if (valueCase_ == 1) {
@@ -658,6 +696,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 long_type = 1;</code>
+     * @param value The longType to set.
+     * @return This builder for chaining.
      */
     public Builder setLongType(long value) {
       valueCase_ = 1;
@@ -667,6 +707,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 long_type = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearLongType() {
       if (valueCase_ == 1) {
@@ -679,12 +720,14 @@ private static final long serialVersionUID = 0L;
 
     /**
      * <code>optional double double_type = 2;</code>
+     * @return Whether the doubleType field is set.
      */
     public boolean hasDoubleType() {
       return valueCase_ == 2;
     }
     /**
      * <code>optional double double_type = 2;</code>
+     * @return The doubleType.
      */
     public double getDoubleType() {
       if (valueCase_ == 2) {
@@ -694,6 +737,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional double double_type = 2;</code>
+     * @param value The doubleType to set.
+     * @return This builder for chaining.
      */
     public Builder setDoubleType(double value) {
       valueCase_ = 2;
@@ -703,6 +748,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional double double_type = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearDoubleType() {
       if (valueCase_ == 2) {
@@ -715,12 +761,14 @@ private static final long serialVersionUID = 0L;
 
     /**
      * <code>optional string string_type = 3;</code>
+     * @return Whether the stringType field is set.
      */
     public boolean hasStringType() {
       return valueCase_ == 3;
     }
     /**
      * <code>optional string string_type = 3;</code>
+     * @return The stringType.
      */
     public java.lang.String getStringType() {
       java.lang.Object ref = "";
@@ -743,6 +791,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string string_type = 3;</code>
+     * @return The bytes for stringType.
      */
     public com.google.protobuf.ByteString
         getStringTypeBytes() {
@@ -764,6 +813,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string string_type = 3;</code>
+     * @param value The stringType to set.
+     * @return This builder for chaining.
      */
     public Builder setStringType(
         java.lang.String value) {
@@ -777,6 +828,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string string_type = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearStringType() {
       if (valueCase_ == 3) {
@@ -788,6 +840,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string string_type = 3;</code>
+     * @param value The bytes for stringType to set.
+     * @return This builder for chaining.
      */
     public Builder setStringTypeBytes(
         com.google.protobuf.ByteString value) {
@@ -802,12 +856,14 @@ private static final long serialVersionUID = 0L;
 
     /**
      * <code>optional bool boolean_type = 4;</code>
+     * @return Whether the booleanType field is set.
      */
     public boolean hasBooleanType() {
       return valueCase_ == 4;
     }
     /**
      * <code>optional bool boolean_type = 4;</code>
+     * @return The booleanType.
      */
     public boolean getBooleanType() {
       if (valueCase_ == 4) {
@@ -817,6 +873,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool boolean_type = 4;</code>
+     * @param value The booleanType to set.
+     * @return This builder for chaining.
      */
     public Builder setBooleanType(boolean value) {
       valueCase_ = 4;
@@ -826,6 +884,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool boolean_type = 4;</code>
+     * @return This builder for chaining.
      */
     public Builder clearBooleanType() {
       if (valueCase_ == 4) {
@@ -835,11 +894,13 @@ private static final long serialVersionUID = 0L;
       }
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -861,6 +922,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<Value>
       PARSER = new com.google.protobuf.AbstractParser<Value>() {
+    @java.lang.Override
     public Value parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -878,6 +940,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.table.Value getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

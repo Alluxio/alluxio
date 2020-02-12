@@ -17,9 +17,8 @@ message MetricsHeartbeatPOptions {
 }
 
 message ClientMetrics {
-  optional string clientId = 1;
-  optional string hostname = 2;
-  repeated grpc.Metric metrics = 3;
+  optional string source = 1;
+  repeated grpc.Metric metrics = 2;
 }
 
 message MetricsHeartbeatPRequest {

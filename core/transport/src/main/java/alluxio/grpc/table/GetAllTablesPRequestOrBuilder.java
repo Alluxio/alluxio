@@ -9,14 +9,17 @@ public interface GetAllTablesPRequestOrBuilder extends
 
   /**
    * <code>optional string database = 1;</code>
+   * @return Whether the database field is set.
    */
   boolean hasDatabase();
   /**
    * <code>optional string database = 1;</code>
+   * @return The database.
    */
   java.lang.String getDatabase();
   /**
    * <code>optional string database = 1;</code>
+   * @return The bytes for database.
    */
   com.google.protobuf.ByteString
       getDatabaseBytes();

@@ -49,7 +49,7 @@ public final class MetricTest {
     assertEquals(a.getName(), b.getName());
     assertEquals(a.getInstanceType(), b.getInstanceType());
     assertEquals(a.getValue(), b.getValue(), 1e-15);
-    assertEquals(a.getHostname(), b.getHostname());
+    assertEquals(a.getSource(), b.getSource());
     assertEquals(a.getFullMetricName(), b.getFullMetricName());
   }
 

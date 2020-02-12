@@ -12,6 +12,7 @@
 package alluxio.metrics;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.MetricType;
@@ -61,6 +62,8 @@ public final class MetricsSystem {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsSystem.class);
 
   private static final ConcurrentHashMap<String, String> CACHED_METRICS = new ConcurrentHashMap<>();
+  private static final AlluxioConfiguration
+      CONF = new InstancedConfiguration(ConfigurationUtils.defaults());
   private static int sResolveTimeout =
       (int) new InstancedConfiguration(ConfigurationUtils.defaults())
           .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
@@ -73,6 +76,10 @@ public final class MetricsSystem {
   // A flag telling whether metrics have been reported yet.
   // Using this prevents us from initializing {@link #SHOULD_REPORT_METRICS} more than once
   private static boolean sReported = false;
+  // The source of the metrics in this metrics system.
+  // It can be set through property keys based on process types.
+  // Local hostname will be used if no related property key founds.
+  private static String sSourceName;
 
   /**
    * An enum of supported instance type.
@@ -290,8 +297,7 @@ public final class MetricsSystem {
       return CACHED_METRICS.computeIfAbsent(name, n -> name);
     }
     if (name.startsWith(InstanceType.WORKER.toString())) {
-      return CACHED_METRICS.computeIfAbsent(name,
-          n -> getMetricNameWithUniqueId(InstanceType.WORKER, name));
+      return getWorkerMetricName(name);
     }
 
     return CACHED_METRICS.computeIfAbsent(name,
@@ -341,12 +347,36 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
-    if (name.startsWith(instance.toString())) {
-      return Joiner.on(".").join(name,
-          NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
+    switch (instance) {
+      case CLIENT:
+        if (CONF.isSet(PropertyKey.USER_APP_ID)) {
+          sSourceName = CONF.get(PropertyKey.USER_APP_ID);
+        } else {
+          sSourceName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
+        }
+        break;
+      case WORKER:
+        if (CONF.isSet(PropertyKey.WORKER_HOSTNAME)) {
+          sSourceName =  CONF.get(PropertyKey.WORKER_HOSTNAME);
+        } else {
+          sSourceName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
+        }
+        break;
+      case JOB_WORKER:
+        if (CONF.isSet(PropertyKey.JOB_WORKER_HOSTNAME)) {
+          sSourceName =  CONF.get(PropertyKey.JOB_WORKER_HOSTNAME);
+        } else {
+          sSourceName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
+        }
+        break;
+      default:
+        sSourceName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
+        break;
     }
-    return Joiner.on(".").join(instance, name,
-        NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
+    if (name.startsWith(instance.toString())) {
+      return Joiner.on(".").join(name, sSourceName);
+    }
+    return Joiner.on(".").join(instance, name, sSourceName);
   }
 
   /**

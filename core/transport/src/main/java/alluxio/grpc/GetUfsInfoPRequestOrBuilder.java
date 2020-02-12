@@ -13,6 +13,7 @@ public interface GetUfsInfoPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 mountId = 1;</code>
+   * @return Whether the mountId field is set.
    */
   boolean hasMountId();
   /**
@@ -21,15 +22,18 @@ public interface GetUfsInfoPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 mountId = 1;</code>
+   * @return The mountId.
    */
   long getMountId();
 
   /**
    * <code>optional .alluxio.grpc.file.GetUfsInfoPOptions options = 2;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.file.GetUfsInfoPOptions options = 2;</code>
+   * @return The options.
    */
   alluxio.grpc.GetUfsInfoPOptions getOptions();
   /**

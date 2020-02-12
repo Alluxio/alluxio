@@ -9,10 +9,12 @@ public interface GetMasterIdPResponseOrBuilder extends
 
   /**
    * <code>optional int64 masterId = 1;</code>
+   * @return Whether the masterId field is set.
    */
   boolean hasMasterId();
   /**
    * <code>optional int64 masterId = 1;</code>
+   * @return The masterId.
    */
   long getMasterId();
 }

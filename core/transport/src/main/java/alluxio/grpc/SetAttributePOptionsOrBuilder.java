@@ -9,56 +9,68 @@ public interface SetAttributePOptionsOrBuilder extends
 
   /**
    * <code>optional bool pinned = 1;</code>
+   * @return Whether the pinned field is set.
    */
   boolean hasPinned();
   /**
    * <code>optional bool pinned = 1;</code>
+   * @return The pinned.
    */
   boolean getPinned();
 
   /**
    * <code>optional bool persisted = 2;</code>
+   * @return Whether the persisted field is set.
    */
   boolean hasPersisted();
   /**
    * <code>optional bool persisted = 2;</code>
+   * @return The persisted.
    */
   boolean getPersisted();
 
   /**
    * <code>optional string owner = 3;</code>
+   * @return Whether the owner field is set.
    */
   boolean hasOwner();
   /**
    * <code>optional string owner = 3;</code>
+   * @return The owner.
    */
   java.lang.String getOwner();
   /**
    * <code>optional string owner = 3;</code>
+   * @return The bytes for owner.
    */
   com.google.protobuf.ByteString
       getOwnerBytes();
 
   /**
    * <code>optional string group = 4;</code>
+   * @return Whether the group field is set.
    */
   boolean hasGroup();
   /**
    * <code>optional string group = 4;</code>
+   * @return The group.
    */
   java.lang.String getGroup();
   /**
    * <code>optional string group = 4;</code>
+   * @return The bytes for group.
    */
   com.google.protobuf.ByteString
       getGroupBytes();
 
   /**
    * <code>optional .alluxio.grpc.PMode mode = 5;</code>
+   * @return Whether the mode field is set.
    */
   boolean hasMode();
   /**
    * <code>optional .alluxio.grpc.PMode mode = 5;</code>
+   * @return The mode.
    */
   alluxio.grpc.PMode getMode();
   /**
@@ -68,37 +80,45 @@ public interface SetAttributePOptionsOrBuilder extends
 
   /**
    * <code>optional bool recursive = 6;</code>
+   * @return Whether the recursive field is set.
    */
   boolean hasRecursive();
   /**
    * <code>optional bool recursive = 6;</code>
+   * @return The recursive.
    */
   boolean getRecursive();
 
   /**
    * <code>optional int32 replicationMax = 7;</code>
+   * @return Whether the replicationMax field is set.
    */
   boolean hasReplicationMax();
   /**
    * <code>optional int32 replicationMax = 7;</code>
+   * @return The replicationMax.
    */
   int getReplicationMax();
 
   /**
    * <code>optional int32 replicationMin = 8;</code>
+   * @return Whether the replicationMin field is set.
    */
   boolean hasReplicationMin();
   /**
    * <code>optional int32 replicationMin = 8;</code>
+   * @return The replicationMin.
    */
   int getReplicationMin();
 
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 9;</code>
+   * @return Whether the commonOptions field is set.
    */
   boolean hasCommonOptions();
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 9;</code>
+   * @return The commonOptions.
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
@@ -108,19 +128,25 @@ public interface SetAttributePOptionsOrBuilder extends
 
   /**
    * <code>repeated string pinnedMedia = 10;</code>
+   * @return A list containing the pinnedMedia.
    */
   java.util.List<java.lang.String>
       getPinnedMediaList();
   /**
    * <code>repeated string pinnedMedia = 10;</code>
+   * @return The count of pinnedMedia.
    */
   int getPinnedMediaCount();
   /**
    * <code>repeated string pinnedMedia = 10;</code>
+   * @param index The index of the element to return.
+   * @return The pinnedMedia at the given index.
    */
   java.lang.String getPinnedMedia(int index);
   /**
    * <code>repeated string pinnedMedia = 10;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the pinnedMedia at the given index.
    */
   com.google.protobuf.ByteString
       getPinnedMediaBytes(int index);

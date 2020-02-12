@@ -9,10 +9,12 @@ public interface RunPResponseOrBuilder extends
 
   /**
    * <code>optional int64 jobId = 1;</code>
+   * @return Whether the jobId field is set.
    */
   boolean hasJobId();
   /**
    * <code>optional int64 jobId = 1;</code>
+   * @return The jobId.
    */
   long getJobId();
 }

@@ -9,28 +9,34 @@ public interface CreateFilePOptionsOrBuilder extends
 
   /**
    * <code>optional int64 blockSizeBytes = 1;</code>
+   * @return Whether the blockSizeBytes field is set.
    */
   boolean hasBlockSizeBytes();
   /**
    * <code>optional int64 blockSizeBytes = 1;</code>
+   * @return The blockSizeBytes.
    */
   long getBlockSizeBytes();
 
   /**
    * <code>optional bool recursive = 2;</code>
+   * @return Whether the recursive field is set.
    */
   boolean hasRecursive();
   /**
    * <code>optional bool recursive = 2;</code>
+   * @return The recursive.
    */
   boolean getRecursive();
 
   /**
    * <code>optional .alluxio.grpc.PMode mode = 3;</code>
+   * @return Whether the mode field is set.
    */
   boolean hasMode();
   /**
    * <code>optional .alluxio.grpc.PMode mode = 3;</code>
+   * @return The mode.
    */
   alluxio.grpc.PMode getMode();
   /**
@@ -40,55 +46,67 @@ public interface CreateFilePOptionsOrBuilder extends
 
   /**
    * <code>optional int32 replicationMax = 4;</code>
+   * @return Whether the replicationMax field is set.
    */
   boolean hasReplicationMax();
   /**
    * <code>optional int32 replicationMax = 4;</code>
+   * @return The replicationMax.
    */
   int getReplicationMax();
 
   /**
    * <code>optional int32 replicationMin = 5;</code>
+   * @return Whether the replicationMin field is set.
    */
   boolean hasReplicationMin();
   /**
    * <code>optional int32 replicationMin = 5;</code>
+   * @return The replicationMin.
    */
   int getReplicationMin();
 
   /**
    * <code>optional int32 replicationDurable = 6;</code>
+   * @return Whether the replicationDurable field is set.
    */
   boolean hasReplicationDurable();
   /**
    * <code>optional int32 replicationDurable = 6;</code>
+   * @return The replicationDurable.
    */
   int getReplicationDurable();
 
   /**
    * <code>optional int32 writeTier = 7;</code>
+   * @return Whether the writeTier field is set.
    */
   boolean hasWriteTier();
   /**
    * <code>optional int32 writeTier = 7;</code>
+   * @return The writeTier.
    */
   int getWriteTier();
 
   /**
    * <code>optional .alluxio.grpc.file.WritePType writeType = 8;</code>
+   * @return Whether the writeType field is set.
    */
   boolean hasWriteType();
   /**
    * <code>optional .alluxio.grpc.file.WritePType writeType = 8;</code>
+   * @return The writeType.
    */
   alluxio.grpc.WritePType getWriteType();
 
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 9;</code>
+   * @return Whether the commonOptions field is set.
    */
   boolean hasCommonOptions();
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 9;</code>
+   * @return The commonOptions.
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
@@ -98,10 +116,12 @@ public interface CreateFilePOptionsOrBuilder extends
 
   /**
    * <code>optional int64 persistenceWaitTime = 10;</code>
+   * @return Whether the persistenceWaitTime field is set.
    */
   boolean hasPersistenceWaitTime();
   /**
    * <code>optional int64 persistenceWaitTime = 10;</code>
+   * @return The persistenceWaitTime.
    */
   long getPersistenceWaitTime();
 }

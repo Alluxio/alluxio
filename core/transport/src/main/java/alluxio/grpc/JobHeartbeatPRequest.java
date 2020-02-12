@@ -20,6 +20,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new JobHeartbeatPRequest();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -43,16 +50,9 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             alluxio.grpc.JobWorkerHealth.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000001) == 0x00000001)) {
+            if (((bitField0_ & 0x00000001) != 0)) {
               subBuilder = jobWorkerHealth_.toBuilder();
             }
             jobWorkerHealth_ = input.readMessage(alluxio.grpc.JobWorkerHealth.PARSER, extensionRegistry);
@@ -64,7 +64,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 18: {
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
               taskInfos_ = new java.util.ArrayList<alluxio.grpc.JobInfo>();
               mutable_bitField0_ |= 0x00000002;
             }
@@ -74,7 +74,7 @@ private static final long serialVersionUID = 0L;
           }
           case 26: {
             alluxio.grpc.JobHeartbeatPOptions.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000002) == 0x00000002)) {
+            if (((bitField0_ & 0x00000002) != 0)) {
               subBuilder = options_.toBuilder();
             }
             options_ = input.readMessage(alluxio.grpc.JobHeartbeatPOptions.PARSER, extensionRegistry);
@@ -85,6 +85,13 @@ private static final long serialVersionUID = 0L;
             bitField0_ |= 0x00000002;
             break;
           }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -93,7 +100,7 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((mutable_bitField0_ & 0x00000002) != 0)) {
         taskInfos_ = java.util.Collections.unmodifiableList(taskInfos_);
       }
       this.unknownFields = unknownFields.build();
@@ -105,6 +112,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_JobHeartbeatPRequest_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_JobHeartbeatPRequest_fieldAccessorTable
@@ -117,12 +125,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.JobWorkerHealth jobWorkerHealth_;
   /**
    * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
+   * @return Whether the jobWorkerHealth field is set.
    */
   public boolean hasJobWorkerHealth() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
+   * @return The jobWorkerHealth.
    */
   public alluxio.grpc.JobWorkerHealth getJobWorkerHealth() {
     return jobWorkerHealth_ == null ? alluxio.grpc.JobWorkerHealth.getDefaultInstance() : jobWorkerHealth_;
@@ -173,12 +183,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.JobHeartbeatPOptions options_;
   /**
    * <code>optional .alluxio.grpc.job.JobHeartbeatPOptions options = 3;</code>
+   * @return Whether the options field is set.
    */
   public boolean hasOptions() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.job.JobHeartbeatPOptions options = 3;</code>
+   * @return The options.
    */
   public alluxio.grpc.JobHeartbeatPOptions getOptions() {
     return options_ == null ? alluxio.grpc.JobHeartbeatPOptions.getDefaultInstance() : options_;
@@ -191,6 +203,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -200,26 +213,28 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeMessage(1, getJobWorkerHealth());
     }
     for (int i = 0; i < taskInfos_.size(); i++) {
       output.writeMessage(2, taskInfos_.get(i));
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeMessage(3, getOptions());
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(1, getJobWorkerHealth());
     }
@@ -227,7 +242,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(2, taskInfos_.get(i));
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(3, getOptions());
     }
@@ -246,21 +261,20 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.JobHeartbeatPRequest other = (alluxio.grpc.JobHeartbeatPRequest) obj;
 
-    boolean result = true;
-    result = result && (hasJobWorkerHealth() == other.hasJobWorkerHealth());
+    if (hasJobWorkerHealth() != other.hasJobWorkerHealth()) return false;
     if (hasJobWorkerHealth()) {
-      result = result && getJobWorkerHealth()
-          .equals(other.getJobWorkerHealth());
+      if (!getJobWorkerHealth()
+          .equals(other.getJobWorkerHealth())) return false;
     }
-    result = result && getTaskInfosList()
-        .equals(other.getTaskInfosList());
-    result = result && (hasOptions() == other.hasOptions());
+    if (!getTaskInfosList()
+        .equals(other.getTaskInfosList())) return false;
+    if (hasOptions() != other.hasOptions()) return false;
     if (hasOptions()) {
-      result = result && getOptions()
-          .equals(other.getOptions());
+      if (!getOptions()
+          .equals(other.getOptions())) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -357,6 +371,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -364,6 +379,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.JobHeartbeatPRequest prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -387,6 +403,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_JobHeartbeatPRequest_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_JobHeartbeatPRequest_fieldAccessorTable
@@ -412,6 +429,7 @@ private static final long serialVersionUID = 0L;
         getOptionsFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       if (jobWorkerHealthBuilder_ == null) {
@@ -435,15 +453,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_JobHeartbeatPRequest_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.JobHeartbeatPRequest getDefaultInstanceForType() {
       return alluxio.grpc.JobHeartbeatPRequest.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.JobHeartbeatPRequest build() {
       alluxio.grpc.JobHeartbeatPRequest result = buildPartial();
       if (!result.isInitialized()) {
@@ -452,20 +473,21 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.JobHeartbeatPRequest buildPartial() {
       alluxio.grpc.JobHeartbeatPRequest result = new alluxio.grpc.JobHeartbeatPRequest(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        if (jobWorkerHealthBuilder_ == null) {
+          result.jobWorkerHealth_ = jobWorkerHealth_;
+        } else {
+          result.jobWorkerHealth_ = jobWorkerHealthBuilder_.build();
+        }
         to_bitField0_ |= 0x00000001;
       }
-      if (jobWorkerHealthBuilder_ == null) {
-        result.jobWorkerHealth_ = jobWorkerHealth_;
-      } else {
-        result.jobWorkerHealth_ = jobWorkerHealthBuilder_.build();
-      }
       if (taskInfosBuilder_ == null) {
-        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((bitField0_ & 0x00000002) != 0)) {
           taskInfos_ = java.util.Collections.unmodifiableList(taskInfos_);
           bitField0_ = (bitField0_ & ~0x00000002);
         }
@@ -473,45 +495,52 @@ private static final long serialVersionUID = 0L;
       } else {
         result.taskInfos_ = taskInfosBuilder_.build();
       }
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
+        if (optionsBuilder_ == null) {
+          result.options_ = options_;
+        } else {
+          result.options_ = optionsBuilder_.build();
+        }
         to_bitField0_ |= 0x00000002;
-      }
-      if (optionsBuilder_ == null) {
-        result.options_ = options_;
-      } else {
-        result.options_ = optionsBuilder_.build();
       }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.JobHeartbeatPRequest) {
         return mergeFrom((alluxio.grpc.JobHeartbeatPRequest)other);
@@ -560,10 +589,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -583,17 +614,19 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private alluxio.grpc.JobWorkerHealth jobWorkerHealth_ = null;
+    private alluxio.grpc.JobWorkerHealth jobWorkerHealth_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.JobWorkerHealth, alluxio.grpc.JobWorkerHealth.Builder, alluxio.grpc.JobWorkerHealthOrBuilder> jobWorkerHealthBuilder_;
     /**
      * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
+     * @return Whether the jobWorkerHealth field is set.
      */
     public boolean hasJobWorkerHealth() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
+     * @return The jobWorkerHealth.
      */
     public alluxio.grpc.JobWorkerHealth getJobWorkerHealth() {
       if (jobWorkerHealthBuilder_ == null) {
@@ -637,7 +670,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeJobWorkerHealth(alluxio.grpc.JobWorkerHealth value) {
       if (jobWorkerHealthBuilder_ == null) {
-        if (((bitField0_ & 0x00000001) == 0x00000001) &&
+        if (((bitField0_ & 0x00000001) != 0) &&
             jobWorkerHealth_ != null &&
             jobWorkerHealth_ != alluxio.grpc.JobWorkerHealth.getDefaultInstance()) {
           jobWorkerHealth_ =
@@ -704,7 +737,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<alluxio.grpc.JobInfo> taskInfos_ =
       java.util.Collections.emptyList();
     private void ensureTaskInfosIsMutable() {
-      if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!((bitField0_ & 0x00000002) != 0)) {
         taskInfos_ = new java.util.ArrayList<alluxio.grpc.JobInfo>(taskInfos_);
         bitField0_ |= 0x00000002;
        }
@@ -933,7 +966,7 @@ private static final long serialVersionUID = 0L;
         taskInfosBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.JobInfo, alluxio.grpc.JobInfo.Builder, alluxio.grpc.JobInfoOrBuilder>(
                 taskInfos_,
-                ((bitField0_ & 0x00000002) == 0x00000002),
+                ((bitField0_ & 0x00000002) != 0),
                 getParentForChildren(),
                 isClean());
         taskInfos_ = null;
@@ -941,17 +974,19 @@ private static final long serialVersionUID = 0L;
       return taskInfosBuilder_;
     }
 
-    private alluxio.grpc.JobHeartbeatPOptions options_ = null;
+    private alluxio.grpc.JobHeartbeatPOptions options_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.JobHeartbeatPOptions, alluxio.grpc.JobHeartbeatPOptions.Builder, alluxio.grpc.JobHeartbeatPOptionsOrBuilder> optionsBuilder_;
     /**
      * <code>optional .alluxio.grpc.job.JobHeartbeatPOptions options = 3;</code>
+     * @return Whether the options field is set.
      */
     public boolean hasOptions() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.job.JobHeartbeatPOptions options = 3;</code>
+     * @return The options.
      */
     public alluxio.grpc.JobHeartbeatPOptions getOptions() {
       if (optionsBuilder_ == null) {
@@ -995,7 +1030,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeOptions(alluxio.grpc.JobHeartbeatPOptions value) {
       if (optionsBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) == 0x00000004) &&
+        if (((bitField0_ & 0x00000004) != 0) &&
             options_ != null &&
             options_ != alluxio.grpc.JobHeartbeatPOptions.getDefaultInstance()) {
           options_ =
@@ -1058,11 +1093,13 @@ private static final long serialVersionUID = 0L;
       }
       return optionsBuilder_;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1084,6 +1121,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<JobHeartbeatPRequest>
       PARSER = new com.google.protobuf.AbstractParser<JobHeartbeatPRequest>() {
+    @java.lang.Override
     public JobHeartbeatPRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1101,6 +1139,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.JobHeartbeatPRequest getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

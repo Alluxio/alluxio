@@ -17,7 +17,13 @@ private static final long serialVersionUID = 0L;
   }
   private Storage() {
     location_ = "";
-    skewed_ = false;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new Storage();
   }
 
   @java.lang.Override
@@ -44,16 +50,9 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             alluxio.grpc.table.layout.hive.StorageFormat.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000001) == 0x00000001)) {
+            if (((bitField0_ & 0x00000001) != 0)) {
               subBuilder = storageFormat_.toBuilder();
             }
             storageFormat_ = input.readMessage(alluxio.grpc.table.layout.hive.StorageFormat.PARSER, extensionRegistry);
@@ -72,7 +71,7 @@ private static final long serialVersionUID = 0L;
           }
           case 26: {
             alluxio.grpc.table.layout.hive.HiveBucketProperty.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000004) == 0x00000004)) {
+            if (((bitField0_ & 0x00000004) != 0)) {
               subBuilder = bucketProperty_.toBuilder();
             }
             bucketProperty_ = input.readMessage(alluxio.grpc.table.layout.hive.HiveBucketProperty.PARSER, extensionRegistry);
@@ -89,7 +88,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 42: {
-            if (!((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
+            if (!((mutable_bitField0_ & 0x00000010) != 0)) {
               serdeParameters_ = com.google.protobuf.MapField.newMapField(
                   SerdeParametersDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000010;
@@ -99,6 +98,13 @@ private static final long serialVersionUID = 0L;
                 SerdeParametersDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
             serdeParameters_.getMutableMap().put(
                 serdeParameters__.getKey(), serdeParameters__.getValue());
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -119,6 +125,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @SuppressWarnings({"rawtypes"})
+  @java.lang.Override
   protected com.google.protobuf.MapField internalGetMapField(
       int number) {
     switch (number) {
@@ -129,6 +136,7 @@ private static final long serialVersionUID = 0L;
             "Invalid map field number: " + number);
     }
   }
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.table.layout.hive.HiveLayoutProto.internal_static_alluxio_grpc_table_layout_Storage_fieldAccessorTable
@@ -141,12 +149,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.table.layout.hive.StorageFormat storageFormat_;
   /**
    * <code>optional .alluxio.grpc.table.layout.StorageFormat storage_format = 1;</code>
+   * @return Whether the storageFormat field is set.
    */
   public boolean hasStorageFormat() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.table.layout.StorageFormat storage_format = 1;</code>
+   * @return The storageFormat.
    */
   public alluxio.grpc.table.layout.hive.StorageFormat getStorageFormat() {
     return storageFormat_ == null ? alluxio.grpc.table.layout.hive.StorageFormat.getDefaultInstance() : storageFormat_;
@@ -162,12 +172,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object location_;
   /**
    * <code>optional string location = 2;</code>
+   * @return Whether the location field is set.
    */
   public boolean hasLocation() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional string location = 2;</code>
+   * @return The location.
    */
   public java.lang.String getLocation() {
     java.lang.Object ref = location_;
@@ -185,6 +197,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string location = 2;</code>
+   * @return The bytes for location.
    */
   public com.google.protobuf.ByteString
       getLocationBytes() {
@@ -204,12 +217,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.table.layout.hive.HiveBucketProperty bucketProperty_;
   /**
    * <code>optional .alluxio.grpc.table.layout.HiveBucketProperty bucket_property = 3;</code>
+   * @return Whether the bucketProperty field is set.
    */
   public boolean hasBucketProperty() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.table.layout.HiveBucketProperty bucket_property = 3;</code>
+   * @return The bucketProperty.
    */
   public alluxio.grpc.table.layout.hive.HiveBucketProperty getBucketProperty() {
     return bucketProperty_ == null ? alluxio.grpc.table.layout.hive.HiveBucketProperty.getDefaultInstance() : bucketProperty_;
@@ -225,12 +240,14 @@ private static final long serialVersionUID = 0L;
   private boolean skewed_;
   /**
    * <code>optional bool skewed = 4;</code>
+   * @return Whether the skewed field is set.
    */
   public boolean hasSkewed() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000008) != 0);
   }
   /**
    * <code>optional bool skewed = 4;</code>
+   * @return The skewed.
    */
   public boolean getSkewed() {
     return skewed_;
@@ -313,6 +330,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -328,18 +346,19 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeMessage(1, getStorageFormat());
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, location_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       output.writeMessage(3, getBucketProperty());
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       output.writeBool(4, skewed_);
     }
     com.google.protobuf.GeneratedMessageV3
@@ -351,23 +370,24 @@ private static final long serialVersionUID = 0L;
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(1, getStorageFormat());
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, location_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(3, getBucketProperty());
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(4, skewed_);
     }
@@ -396,31 +416,30 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.table.layout.hive.Storage other = (alluxio.grpc.table.layout.hive.Storage) obj;
 
-    boolean result = true;
-    result = result && (hasStorageFormat() == other.hasStorageFormat());
+    if (hasStorageFormat() != other.hasStorageFormat()) return false;
     if (hasStorageFormat()) {
-      result = result && getStorageFormat()
-          .equals(other.getStorageFormat());
+      if (!getStorageFormat()
+          .equals(other.getStorageFormat())) return false;
     }
-    result = result && (hasLocation() == other.hasLocation());
+    if (hasLocation() != other.hasLocation()) return false;
     if (hasLocation()) {
-      result = result && getLocation()
-          .equals(other.getLocation());
+      if (!getLocation()
+          .equals(other.getLocation())) return false;
     }
-    result = result && (hasBucketProperty() == other.hasBucketProperty());
+    if (hasBucketProperty() != other.hasBucketProperty()) return false;
     if (hasBucketProperty()) {
-      result = result && getBucketProperty()
-          .equals(other.getBucketProperty());
+      if (!getBucketProperty()
+          .equals(other.getBucketProperty())) return false;
     }
-    result = result && (hasSkewed() == other.hasSkewed());
+    if (hasSkewed() != other.hasSkewed()) return false;
     if (hasSkewed()) {
-      result = result && (getSkewed()
-          == other.getSkewed());
+      if (getSkewed()
+          != other.getSkewed()) return false;
     }
-    result = result && internalGetSerdeParameters().equals(
-        other.internalGetSerdeParameters());
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!internalGetSerdeParameters().equals(
+        other.internalGetSerdeParameters())) return false;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -526,6 +545,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -533,6 +553,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.table.layout.hive.Storage prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -578,6 +599,7 @@ private static final long serialVersionUID = 0L;
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.table.layout.hive.HiveLayoutProto.internal_static_alluxio_grpc_table_layout_Storage_fieldAccessorTable
@@ -602,6 +624,7 @@ private static final long serialVersionUID = 0L;
         getBucketPropertyFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       if (storageFormatBuilder_ == null) {
@@ -624,15 +647,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.table.layout.hive.HiveLayoutProto.internal_static_alluxio_grpc_table_layout_Storage_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.layout.hive.Storage getDefaultInstanceForType() {
       return alluxio.grpc.table.layout.hive.Storage.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.layout.hive.Storage build() {
       alluxio.grpc.table.layout.hive.Storage result = buildPartial();
       if (!result.isInitialized()) {
@@ -641,34 +667,35 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.layout.hive.Storage buildPartial() {
       alluxio.grpc.table.layout.hive.Storage result = new alluxio.grpc.table.layout.hive.Storage(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        if (storageFormatBuilder_ == null) {
+          result.storageFormat_ = storageFormat_;
+        } else {
+          result.storageFormat_ = storageFormatBuilder_.build();
+        }
         to_bitField0_ |= 0x00000001;
       }
-      if (storageFormatBuilder_ == null) {
-        result.storageFormat_ = storageFormat_;
-      } else {
-        result.storageFormat_ = storageFormatBuilder_.build();
-      }
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
         to_bitField0_ |= 0x00000002;
       }
       result.location_ = location_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
+        if (bucketPropertyBuilder_ == null) {
+          result.bucketProperty_ = bucketProperty_;
+        } else {
+          result.bucketProperty_ = bucketPropertyBuilder_.build();
+        }
         to_bitField0_ |= 0x00000004;
       }
-      if (bucketPropertyBuilder_ == null) {
-        result.bucketProperty_ = bucketProperty_;
-      } else {
-        result.bucketProperty_ = bucketPropertyBuilder_.build();
-      }
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000008) != 0)) {
+        result.skewed_ = skewed_;
         to_bitField0_ |= 0x00000008;
       }
-      result.skewed_ = skewed_;
       result.serdeParameters_ = internalGetSerdeParameters();
       result.serdeParameters_.makeImmutable();
       result.bitField0_ = to_bitField0_;
@@ -676,32 +703,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.table.layout.hive.Storage) {
         return mergeFrom((alluxio.grpc.table.layout.hive.Storage)other);
@@ -734,6 +768,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       if (hasBucketProperty()) {
         if (!getBucketProperty().isInitialized()) {
@@ -743,6 +778,7 @@ private static final long serialVersionUID = 0L;
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -762,17 +798,19 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private alluxio.grpc.table.layout.hive.StorageFormat storageFormat_ = null;
+    private alluxio.grpc.table.layout.hive.StorageFormat storageFormat_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.layout.hive.StorageFormat, alluxio.grpc.table.layout.hive.StorageFormat.Builder, alluxio.grpc.table.layout.hive.StorageFormatOrBuilder> storageFormatBuilder_;
     /**
      * <code>optional .alluxio.grpc.table.layout.StorageFormat storage_format = 1;</code>
+     * @return Whether the storageFormat field is set.
      */
     public boolean hasStorageFormat() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.table.layout.StorageFormat storage_format = 1;</code>
+     * @return The storageFormat.
      */
     public alluxio.grpc.table.layout.hive.StorageFormat getStorageFormat() {
       if (storageFormatBuilder_ == null) {
@@ -816,7 +854,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeStorageFormat(alluxio.grpc.table.layout.hive.StorageFormat value) {
       if (storageFormatBuilder_ == null) {
-        if (((bitField0_ & 0x00000001) == 0x00000001) &&
+        if (((bitField0_ & 0x00000001) != 0) &&
             storageFormat_ != null &&
             storageFormat_ != alluxio.grpc.table.layout.hive.StorageFormat.getDefaultInstance()) {
           storageFormat_ =
@@ -883,12 +921,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object location_ = "";
     /**
      * <code>optional string location = 2;</code>
+     * @return Whether the location field is set.
      */
     public boolean hasLocation() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string location = 2;</code>
+     * @return The location.
      */
     public java.lang.String getLocation() {
       java.lang.Object ref = location_;
@@ -906,6 +946,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string location = 2;</code>
+     * @return The bytes for location.
      */
     public com.google.protobuf.ByteString
         getLocationBytes() {
@@ -922,6 +963,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string location = 2;</code>
+     * @param value The location to set.
+     * @return This builder for chaining.
      */
     public Builder setLocation(
         java.lang.String value) {
@@ -935,6 +978,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string location = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearLocation() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -944,6 +988,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string location = 2;</code>
+     * @param value The bytes for location to set.
+     * @return This builder for chaining.
      */
     public Builder setLocationBytes(
         com.google.protobuf.ByteString value) {
@@ -956,17 +1002,19 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private alluxio.grpc.table.layout.hive.HiveBucketProperty bucketProperty_ = null;
+    private alluxio.grpc.table.layout.hive.HiveBucketProperty bucketProperty_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.layout.hive.HiveBucketProperty, alluxio.grpc.table.layout.hive.HiveBucketProperty.Builder, alluxio.grpc.table.layout.hive.HiveBucketPropertyOrBuilder> bucketPropertyBuilder_;
     /**
      * <code>optional .alluxio.grpc.table.layout.HiveBucketProperty bucket_property = 3;</code>
+     * @return Whether the bucketProperty field is set.
      */
     public boolean hasBucketProperty() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.table.layout.HiveBucketProperty bucket_property = 3;</code>
+     * @return The bucketProperty.
      */
     public alluxio.grpc.table.layout.hive.HiveBucketProperty getBucketProperty() {
       if (bucketPropertyBuilder_ == null) {
@@ -1010,7 +1058,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeBucketProperty(alluxio.grpc.table.layout.hive.HiveBucketProperty value) {
       if (bucketPropertyBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) == 0x00000004) &&
+        if (((bitField0_ & 0x00000004) != 0) &&
             bucketProperty_ != null &&
             bucketProperty_ != alluxio.grpc.table.layout.hive.HiveBucketProperty.getDefaultInstance()) {
           bucketProperty_ =
@@ -1077,18 +1125,22 @@ private static final long serialVersionUID = 0L;
     private boolean skewed_ ;
     /**
      * <code>optional bool skewed = 4;</code>
+     * @return Whether the skewed field is set.
      */
     public boolean hasSkewed() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional bool skewed = 4;</code>
+     * @return The skewed.
      */
     public boolean getSkewed() {
       return skewed_;
     }
     /**
      * <code>optional bool skewed = 4;</code>
+     * @param value The skewed to set.
+     * @return This builder for chaining.
      */
     public Builder setSkewed(boolean value) {
       bitField0_ |= 0x00000008;
@@ -1098,6 +1150,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool skewed = 4;</code>
+     * @return This builder for chaining.
      */
     public Builder clearSkewed() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -1228,11 +1281,13 @@ private static final long serialVersionUID = 0L;
           .putAll(values);
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1254,6 +1309,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<Storage>
       PARSER = new com.google.protobuf.AbstractParser<Storage>() {
+    @java.lang.Override
     public Storage parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1271,6 +1327,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.table.layout.hive.Storage getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

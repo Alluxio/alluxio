@@ -19,8 +19,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.AtomicDouble;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;
@@ -33,26 +31,23 @@ import java.util.function.Supplier;
  * A metric of a given instance. The instance can be master, worker, or client.
  */
 public final class Metric implements Serializable {
-  private static final Logger LOG = LoggerFactory.getLogger(Metric.class);
   private static final long serialVersionUID = -2236393414222298333L;
 
-  public static final String ID_SEPARATOR = "-id:";
   public static final String TAG_SEPARATOR = ":";
   private static final ConcurrentHashMap<UserMetricKey, String> CACHED_METRICS =
       new ConcurrentHashMap<>();
 
   private final MetricsSystem.InstanceType mInstanceType;
-  private final String mHostname;
+  private final String mSource;
   private final String mName;
   private final MetricType mMetricType;
-  private String mInstanceId;
   // TODO(yupeng): consider a dedicated data structure for tag, when more functionality are added to
   // tags in the future
   private final Map<String, String> mTags;
 
   /**
    * The unique identifier to represent this metric.
-   * The pattern is instance.name[.tagName:tagValue]*[hostname-id:instanceId.].
+   * The pattern is instance.name[.tagName:tagValue]*[.source].
    * Fetched once and assumed to be immutable.
    */
   private final Supplier<String> mFullMetricNameSupplier =
@@ -64,32 +59,16 @@ public final class Metric implements Serializable {
    * Constructs a {@link Metric} instance.
    *
    * @param instanceType the instance type
-   * @param hostname the hostname
+   * @param source the metric source
    * @param metricType the type of the metric
    * @param name the metric name
    * @param value the value
    */
-  public Metric(MetricsSystem.InstanceType instanceType, String hostname,
-      MetricType metricType, String name, Double value) {
-    this(instanceType, hostname, null, metricType, name, value);
-  }
-
-  /**
-   * Constructs a {@link Metric} instance.
-   *
-   * @param instanceType the instance type
-   * @param hostname the hostname
-   * @param id the instance id
-   * @param metricType the type of the metric
-   * @param name the metric name
-   * @param value the value
-   */
-  public Metric(MetricsSystem.InstanceType instanceType, String hostname, String id,
+  public Metric(MetricsSystem.InstanceType instanceType, String source,
       MetricType metricType, String name, Double value) {
     Preconditions.checkNotNull(name, "name");
     mInstanceType = instanceType;
-    mHostname = hostname;
-    mInstanceId = id;
+    mSource = source;
     mMetricType = metricType;
     mName = name;
     mValue = new AtomicDouble(value);
@@ -141,10 +120,10 @@ public final class Metric implements Serializable {
   }
 
   /**
-   * @return the hostname
+   * @return the metric source
    */
-  public String getHostname() {
-    return mHostname;
+  public String getSource() {
+    return mSource;
   }
 
   /**
@@ -162,26 +141,10 @@ public final class Metric implements Serializable {
   }
 
   /**
-   * @return the instance id
-   */
-  public String getInstanceId() {
-    return mInstanceId;
-  }
-
-  /**
    * @return the tags
    */
   public Map<String, String> getTags() {
     return mTags;
-  }
-
-  /**
-   * Sets the instance id.
-   *
-   * @param instanceId the instance id;
-   */
-  public void setInstanceId(String instanceId) {
-    mInstanceId = instanceId;
   }
 
   @Override
@@ -213,7 +176,7 @@ public final class Metric implements Serializable {
 
   /**
    * @return the fully qualified metric name, which is of pattern
-   *         instance.name[.tagName:tagValue]*[.hostname-id:instanceId], where the tags are appended
+   *         instance.name[.tagName:tagValue]*[.source], where the tags are appended
    *         at the end
    */
   private String constructFullMetricName() {
@@ -223,12 +186,9 @@ public final class Metric implements Serializable {
     for (Entry<String, String> entry : mTags.entrySet()) {
       sb.append('.').append(entry.getKey()).append(TAG_SEPARATOR).append(entry.getValue());
     }
-    if (mHostname != null) {
+    if (mSource != null) {
       sb.append('.');
-      sb.append(mHostname);
-      if (mInstanceId != null) {
-        sb.append(ID_SEPARATOR).append(mInstanceId);
-      }
+      sb.append(mSource);
     }
     return sb.toString();
   }
@@ -241,12 +201,8 @@ public final class Metric implements Serializable {
     metric.setInstance(mInstanceType.toString()).setMetricType(mMetricType)
         .setName(mName).setValue(mValue.get()).putAllTags(mTags);
 
-    if (mInstanceId != null && !mInstanceId.isEmpty()) {
-      metric.setInstanceId(mInstanceId);
-    }
-
-    if (!mHostname.isEmpty()) {
-      metric.setHostname(mHostname);
+    if (!mSource.isEmpty()) {
+      metric.setSource(mSource);
     }
 
     return metric.build();
@@ -321,26 +277,15 @@ public final class Metric implements Serializable {
     Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", fullName);
     int len = pieces.length;
     String hostname = null;
-    String id = null;
-    String name = null;
     int tagEndIndex = len;
     // Master or cluster metrics don't have hostname included.
-    if (pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())
-        || pieces[0].equals(MetricsSystem.CLUSTER)) {
-      name = pieces[1];
-    } else {
-      if (pieces[len - 1].contains(ID_SEPARATOR)) {
-        String[] ids = pieces[len - 1].split(ID_SEPARATOR);
-        hostname = ids[0];
-        id = ids[1];
-      } else {
-        hostname = pieces[len - 1];
-      }
-      name = pieces[1];
+    if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())
+        && !pieces[0].equals(MetricsSystem.CLUSTER)) {
+      hostname = pieces[len - 1];
       tagEndIndex = len - 1;
     }
     MetricsSystem.InstanceType instance = MetricsSystem.InstanceType.fromString(pieces[0]);
-    Metric metric = new Metric(instance, hostname, id, metricType, name, value);
+    Metric metric = new Metric(instance, hostname, metricType, pieces[1], value);
 
     // parse tags
     for (int i = 2; i < tagEndIndex; i++) {
@@ -364,8 +309,7 @@ public final class Metric implements Serializable {
   public static Metric fromProto(alluxio.grpc.Metric metric) {
     Metric created = new Metric(
         MetricsSystem.InstanceType.fromString(metric.getInstance()),
-        metric.getHostname(),
-        metric.hasInstanceId() ? metric.getInstanceId() : null,
+        metric.getSource(),
         metric.getMetricType(),
         metric.getName(),
         metric.getValue());
@@ -378,8 +322,7 @@ public final class Metric implements Serializable {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("hostname", mHostname)
-        .add("instanceId", mInstanceId)
+        .add("source", mSource)
         .add("instanceType", mInstanceType)
         .add("metricType", mMetricType)
         .add("name", mName)

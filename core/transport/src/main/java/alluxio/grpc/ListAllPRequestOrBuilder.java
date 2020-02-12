@@ -9,10 +9,12 @@ public interface ListAllPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.job.ListAllPOptions options = 1;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.job.ListAllPOptions options = 1;</code>
+   * @return The options.
    */
   alluxio.grpc.ListAllPOptions getOptions();
   /**

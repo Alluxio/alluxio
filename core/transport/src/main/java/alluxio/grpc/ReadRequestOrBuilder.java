@@ -9,28 +9,34 @@ public interface ReadRequestOrBuilder extends
 
   /**
    * <code>optional int64 block_id = 1;</code>
+   * @return Whether the blockId field is set.
    */
   boolean hasBlockId();
   /**
    * <code>optional int64 block_id = 1;</code>
+   * @return The blockId.
    */
   long getBlockId();
 
   /**
    * <code>optional int64 offset = 2;</code>
+   * @return Whether the offset field is set.
    */
   boolean hasOffset();
   /**
    * <code>optional int64 offset = 2;</code>
+   * @return The offset.
    */
   long getOffset();
 
   /**
    * <code>optional int64 length = 3;</code>
+   * @return Whether the length field is set.
    */
   boolean hasLength();
   /**
    * <code>optional int64 length = 3;</code>
+   * @return The length.
    */
   long getLength();
 
@@ -40,6 +46,7 @@ public interface ReadRequestOrBuilder extends
    * </pre>
    *
    * <code>optional bool promote = 4;</code>
+   * @return Whether the promote field is set.
    */
   boolean hasPromote();
   /**
@@ -48,15 +55,18 @@ public interface ReadRequestOrBuilder extends
    * </pre>
    *
    * <code>optional bool promote = 4;</code>
+   * @return The promote.
    */
   boolean getPromote();
 
   /**
    * <code>optional int64 chunk_size = 5;</code>
+   * @return Whether the chunkSize field is set.
    */
   boolean hasChunkSize();
   /**
    * <code>optional int64 chunk_size = 5;</code>
+   * @return The chunkSize.
    */
   long getChunkSize();
 
@@ -66,6 +76,7 @@ public interface ReadRequestOrBuilder extends
    * </pre>
    *
    * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
+   * @return Whether the openUfsBlockOptions field is set.
    */
   boolean hasOpenUfsBlockOptions();
   /**
@@ -74,6 +85,7 @@ public interface ReadRequestOrBuilder extends
    * </pre>
    *
    * <code>optional .alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 6;</code>
+   * @return The openUfsBlockOptions.
    */
   alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions();
   /**
@@ -91,6 +103,7 @@ public interface ReadRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 offset_received = 7;</code>
+   * @return Whether the offsetReceived field is set.
    */
   boolean hasOffsetReceived();
   /**
@@ -99,6 +112,7 @@ public interface ReadRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 offset_received = 7;</code>
+   * @return The offsetReceived.
    */
   long getOffsetReceived();
 }

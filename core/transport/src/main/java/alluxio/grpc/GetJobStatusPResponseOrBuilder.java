@@ -9,10 +9,12 @@ public interface GetJobStatusPResponseOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
+   * @return Whether the jobInfo field is set.
    */
   boolean hasJobInfo();
   /**
    * <code>optional .alluxio.grpc.job.JobInfo jobInfo = 1;</code>
+   * @return The jobInfo.
    */
   alluxio.grpc.JobInfo getJobInfo();
   /**

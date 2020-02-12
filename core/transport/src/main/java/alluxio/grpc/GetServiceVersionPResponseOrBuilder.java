@@ -9,10 +9,12 @@ public interface GetServiceVersionPResponseOrBuilder extends
 
   /**
    * <code>optional int64 version = 1;</code>
+   * @return Whether the version field is set.
    */
   boolean hasVersion();
   /**
    * <code>optional int64 version = 1;</code>
+   * @return The version.
    */
   long getVersion();
 }

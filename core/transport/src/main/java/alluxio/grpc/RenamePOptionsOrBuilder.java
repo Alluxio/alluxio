@@ -9,10 +9,12 @@ public interface RenamePOptionsOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 1;</code>
+   * @return Whether the commonOptions field is set.
    */
   boolean hasCommonOptions();
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 1;</code>
+   * @return The commonOptions.
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
@@ -22,10 +24,12 @@ public interface RenamePOptionsOrBuilder extends
 
   /**
    * <code>optional bool persist = 2;</code>
+   * @return Whether the persist field is set.
    */
   boolean hasPersist();
   /**
    * <code>optional bool persist = 2;</code>
+   * @return The persist.
    */
   boolean getPersist();
 }

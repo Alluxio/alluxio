@@ -13,6 +13,7 @@ public interface BlockHeartbeatPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 workerId = 1;</code>
+   * @return Whether the workerId field is set.
    */
   boolean hasWorkerId();
   /**
@@ -21,6 +22,7 @@ public interface BlockHeartbeatPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 workerId = 1;</code>
+   * @return The workerId.
    */
   long getWorkerId();
 
@@ -84,6 +86,7 @@ public interface BlockHeartbeatPRequestOrBuilder extends
    * </pre>
    *
    * <code>repeated int64 removedBlockIds = 3;</code>
+   * @return A list containing the removedBlockIds.
    */
   java.util.List<java.lang.Long> getRemovedBlockIdsList();
   /**
@@ -92,6 +95,7 @@ public interface BlockHeartbeatPRequestOrBuilder extends
    * </pre>
    *
    * <code>repeated int64 removedBlockIds = 3;</code>
+   * @return The count of removedBlockIds.
    */
   int getRemovedBlockIdsCount();
   /**
@@ -100,6 +104,8 @@ public interface BlockHeartbeatPRequestOrBuilder extends
    * </pre>
    *
    * <code>repeated int64 removedBlockIds = 3;</code>
+   * @param index The index of the element to return.
+   * @return The removedBlockIds at the given index.
    */
   long getRemovedBlockIds(int index);
 
@@ -159,10 +165,12 @@ public interface BlockHeartbeatPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.block.BlockHeartbeatPOptions options = 5;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.block.BlockHeartbeatPOptions options = 5;</code>
+   * @return The options.
    */
   alluxio.grpc.BlockHeartbeatPOptions getOptions();
   /**

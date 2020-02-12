@@ -9,10 +9,12 @@ public interface GetJobServiceSummaryPResponseOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.job.JobServiceSummary summary = 1;</code>
+   * @return Whether the summary field is set.
    */
   boolean hasSummary();
   /**
    * <code>optional .alluxio.grpc.job.JobServiceSummary summary = 1;</code>
+   * @return The summary.
    */
   alluxio.grpc.JobServiceSummary getSummary();
   /**

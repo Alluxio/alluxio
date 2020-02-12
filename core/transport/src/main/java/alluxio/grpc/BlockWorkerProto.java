@@ -188,20 +188,12 @@ public final class BlockWorkerProto {
       "etricsResponseB\"\n\014alluxio.grpcB\020BlockWor" +
       "kerProtoP\001"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           alluxio.proto.dataserver.Protocol.getDescriptor(),
           alluxio.grpc.CommonProto.getDescriptor(),
-        }, assigner);
+        });
     internal_static_alluxio_grpc_block_CheckRequest_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_alluxio_grpc_block_CheckRequest_fieldAccessorTable = new

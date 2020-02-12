@@ -9,84 +9,83 @@ public interface MetricOrBuilder extends
 
   /**
    * <code>optional string instance = 1;</code>
+   * @return Whether the instance field is set.
    */
   boolean hasInstance();
   /**
    * <code>optional string instance = 1;</code>
+   * @return The instance.
    */
   java.lang.String getInstance();
   /**
    * <code>optional string instance = 1;</code>
+   * @return The bytes for instance.
    */
   com.google.protobuf.ByteString
       getInstanceBytes();
 
   /**
-   * <code>optional string hostname = 2;</code>
+   * <code>optional string source = 2;</code>
+   * @return Whether the source field is set.
    */
-  boolean hasHostname();
+  boolean hasSource();
   /**
-   * <code>optional string hostname = 2;</code>
+   * <code>optional string source = 2;</code>
+   * @return The source.
    */
-  java.lang.String getHostname();
+  java.lang.String getSource();
   /**
-   * <code>optional string hostname = 2;</code>
-   */
-  com.google.protobuf.ByteString
-      getHostnameBytes();
-
-  /**
-   * <code>optional string instanceId = 3;</code>
-   */
-  boolean hasInstanceId();
-  /**
-   * <code>optional string instanceId = 3;</code>
-   */
-  java.lang.String getInstanceId();
-  /**
-   * <code>optional string instanceId = 3;</code>
+   * <code>optional string source = 2;</code>
+   * @return The bytes for source.
    */
   com.google.protobuf.ByteString
-      getInstanceIdBytes();
+      getSourceBytes();
 
   /**
-   * <code>optional string name = 4;</code>
+   * <code>optional string name = 3;</code>
+   * @return Whether the name field is set.
    */
   boolean hasName();
   /**
-   * <code>optional string name = 4;</code>
+   * <code>optional string name = 3;</code>
+   * @return The name.
    */
   java.lang.String getName();
   /**
-   * <code>optional string name = 4;</code>
+   * <code>optional string name = 3;</code>
+   * @return The bytes for name.
    */
   com.google.protobuf.ByteString
       getNameBytes();
 
   /**
-   * <code>optional double value = 5;</code>
+   * <code>optional double value = 4;</code>
+   * @return Whether the value field is set.
    */
   boolean hasValue();
   /**
-   * <code>optional double value = 5;</code>
+   * <code>optional double value = 4;</code>
+   * @return The value.
    */
   double getValue();
 
   /**
-   * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+   * <code>required .alluxio.grpc.MetricType metricType = 5;</code>
+   * @return Whether the metricType field is set.
    */
   boolean hasMetricType();
   /**
-   * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+   * <code>required .alluxio.grpc.MetricType metricType = 5;</code>
+   * @return The metricType.
    */
   alluxio.grpc.MetricType getMetricType();
 
   /**
-   * <code>map&lt;string, string&gt; tags = 7;</code>
+   * <code>map&lt;string, string&gt; tags = 6;</code>
    */
   int getTagsCount();
   /**
-   * <code>map&lt;string, string&gt; tags = 7;</code>
+   * <code>map&lt;string, string&gt; tags = 6;</code>
    */
   boolean containsTags(
       java.lang.String key);
@@ -97,19 +96,19 @@ public interface MetricOrBuilder extends
   java.util.Map<java.lang.String, java.lang.String>
   getTags();
   /**
-   * <code>map&lt;string, string&gt; tags = 7;</code>
+   * <code>map&lt;string, string&gt; tags = 6;</code>
    */
   java.util.Map<java.lang.String, java.lang.String>
   getTagsMap();
   /**
-   * <code>map&lt;string, string&gt; tags = 7;</code>
+   * <code>map&lt;string, string&gt; tags = 6;</code>
    */
 
   java.lang.String getTagsOrDefault(
       java.lang.String key,
       java.lang.String defaultValue);
   /**
-   * <code>map&lt;string, string&gt; tags = 7;</code>
+   * <code>map&lt;string, string&gt; tags = 6;</code>
    */
 
   java.lang.String getTagsOrThrow(

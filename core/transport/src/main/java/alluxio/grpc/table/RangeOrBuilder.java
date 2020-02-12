@@ -9,10 +9,12 @@ public interface RangeOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.Value low = 1;</code>
+   * @return Whether the low field is set.
    */
   boolean hasLow();
   /**
    * <code>optional .alluxio.grpc.table.Value low = 1;</code>
+   * @return The low.
    */
   alluxio.grpc.table.Value getLow();
   /**
@@ -22,10 +24,12 @@ public interface RangeOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.Value high = 2;</code>
+   * @return Whether the high field is set.
    */
   boolean hasHigh();
   /**
    * <code>optional .alluxio.grpc.table.Value high = 2;</code>
+   * @return The high.
    */
   alluxio.grpc.table.Value getHigh();
   /**

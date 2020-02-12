@@ -9,14 +9,17 @@ public interface ReverseResolvePRequestOrBuilder extends
 
   /**
    * <code>optional string ufsUri = 1;</code>
+   * @return Whether the ufsUri field is set.
    */
   boolean hasUfsUri();
   /**
    * <code>optional string ufsUri = 1;</code>
+   * @return The ufsUri.
    */
   java.lang.String getUfsUri();
   /**
    * <code>optional string ufsUri = 1;</code>
+   * @return The bytes for ufsUri.
    */
   com.google.protobuf.ByteString
       getUfsUriBytes();

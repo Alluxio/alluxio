@@ -13,6 +13,7 @@ public interface SetAclPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string path = 1;</code>
+   * @return Whether the path field is set.
    */
   boolean hasPath();
   /**
@@ -21,6 +22,7 @@ public interface SetAclPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string path = 1;</code>
+   * @return The path.
    */
   java.lang.String getPath();
   /**
@@ -29,6 +31,7 @@ public interface SetAclPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string path = 1;</code>
+   * @return The bytes for path.
    */
   com.google.protobuf.ByteString
       getPathBytes();
@@ -39,6 +42,7 @@ public interface SetAclPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional .alluxio.grpc.file.SetAclAction action = 2;</code>
+   * @return Whether the action field is set.
    */
   boolean hasAction();
   /**
@@ -47,6 +51,7 @@ public interface SetAclPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional .alluxio.grpc.file.SetAclAction action = 2;</code>
+   * @return The action.
    */
   alluxio.grpc.SetAclAction getAction();
 
@@ -100,6 +105,7 @@ public interface SetAclPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional .alluxio.grpc.file.SetAclPOptions options = 4;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
@@ -108,6 +114,7 @@ public interface SetAclPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional .alluxio.grpc.file.SetAclPOptions options = 4;</code>
+   * @return The options.
    */
   alluxio.grpc.SetAclPOptions getOptions();
   /**

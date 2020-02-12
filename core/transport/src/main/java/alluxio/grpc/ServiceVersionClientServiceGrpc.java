@@ -18,7 +18,7 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 /**
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.17.1)",
+    value = "by gRPC proto compiler (version 1.27.0)",
     comments = "Source: grpc/version.proto")
 public final class ServiceVersionClientServiceGrpc {
 
@@ -41,29 +41,35 @@ public final class ServiceVersionClientServiceGrpc {
     if ((getGetServiceVersionMethod = ServiceVersionClientServiceGrpc.getGetServiceVersionMethod) == null) {
       synchronized (ServiceVersionClientServiceGrpc.class) {
         if ((getGetServiceVersionMethod = ServiceVersionClientServiceGrpc.getGetServiceVersionMethod) == null) {
-          ServiceVersionClientServiceGrpc.getGetServiceVersionMethod = getGetServiceVersionMethod = 
+          ServiceVersionClientServiceGrpc.getGetServiceVersionMethod = getGetServiceVersionMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetServiceVersionPRequest, alluxio.grpc.GetServiceVersionPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.version.ServiceVersionClientService", "getServiceVersion"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "getServiceVersion"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetServiceVersionPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetServiceVersionPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new ServiceVersionClientServiceMethodDescriptorSupplier("getServiceVersion"))
-                  .build();
-          }
+              .setSchemaDescriptor(new ServiceVersionClientServiceMethodDescriptorSupplier("getServiceVersion"))
+              .build();
         }
-     }
-     return getGetServiceVersionMethod;
+      }
+    }
+    return getGetServiceVersionMethod;
   }
 
   /**
    * Creates a new async stub that supports all call types for the service
    */
   public static ServiceVersionClientServiceStub newStub(io.grpc.Channel channel) {
-    return new ServiceVersionClientServiceStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<ServiceVersionClientServiceStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<ServiceVersionClientServiceStub>() {
+        @java.lang.Override
+        public ServiceVersionClientServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new ServiceVersionClientServiceStub(channel, callOptions);
+        }
+      };
+    return ServiceVersionClientServiceStub.newStub(factory, channel);
   }
 
   /**
@@ -71,7 +77,14 @@ public final class ServiceVersionClientServiceGrpc {
    */
   public static ServiceVersionClientServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new ServiceVersionClientServiceBlockingStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<ServiceVersionClientServiceBlockingStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<ServiceVersionClientServiceBlockingStub>() {
+        @java.lang.Override
+        public ServiceVersionClientServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new ServiceVersionClientServiceBlockingStub(channel, callOptions);
+        }
+      };
+    return ServiceVersionClientServiceBlockingStub.newStub(factory, channel);
   }
 
   /**
@@ -79,7 +92,14 @@ public final class ServiceVersionClientServiceGrpc {
    */
   public static ServiceVersionClientServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new ServiceVersionClientServiceFutureStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<ServiceVersionClientServiceFutureStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<ServiceVersionClientServiceFutureStub>() {
+        @java.lang.Override
+        public ServiceVersionClientServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new ServiceVersionClientServiceFutureStub(channel, callOptions);
+        }
+      };
+    return ServiceVersionClientServiceFutureStub.newStub(factory, channel);
   }
 
   /**
@@ -113,19 +133,15 @@ public final class ServiceVersionClientServiceGrpc {
 
   /**
    */
-  public static final class ServiceVersionClientServiceStub extends io.grpc.stub.AbstractStub<ServiceVersionClientServiceStub> {
-    private ServiceVersionClientServiceStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private ServiceVersionClientServiceStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class ServiceVersionClientServiceStub extends io.grpc.stub.AbstractAsyncStub<ServiceVersionClientServiceStub> {
+    private ServiceVersionClientServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected ServiceVersionClientServiceStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected ServiceVersionClientServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new ServiceVersionClientServiceStub(channel, callOptions);
     }
 
@@ -145,19 +161,15 @@ public final class ServiceVersionClientServiceGrpc {
 
   /**
    */
-  public static final class ServiceVersionClientServiceBlockingStub extends io.grpc.stub.AbstractStub<ServiceVersionClientServiceBlockingStub> {
-    private ServiceVersionClientServiceBlockingStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private ServiceVersionClientServiceBlockingStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class ServiceVersionClientServiceBlockingStub extends io.grpc.stub.AbstractBlockingStub<ServiceVersionClientServiceBlockingStub> {
+    private ServiceVersionClientServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected ServiceVersionClientServiceBlockingStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected ServiceVersionClientServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new ServiceVersionClientServiceBlockingStub(channel, callOptions);
     }
 
@@ -176,19 +188,15 @@ public final class ServiceVersionClientServiceGrpc {
 
   /**
    */
-  public static final class ServiceVersionClientServiceFutureStub extends io.grpc.stub.AbstractStub<ServiceVersionClientServiceFutureStub> {
-    private ServiceVersionClientServiceFutureStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private ServiceVersionClientServiceFutureStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class ServiceVersionClientServiceFutureStub extends io.grpc.stub.AbstractFutureStub<ServiceVersionClientServiceFutureStub> {
+    private ServiceVersionClientServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected ServiceVersionClientServiceFutureStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected ServiceVersionClientServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new ServiceVersionClientServiceFutureStub(channel, callOptions);
     }
 

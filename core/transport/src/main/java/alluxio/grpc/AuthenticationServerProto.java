@@ -43,18 +43,10 @@ public final class AuthenticationServerProto {
       "alluxio.grpcB\031AuthenticationServerProtoP" +
       "\001"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-        }, assigner);
+        });
     internal_static_alluxio_grpc_sasl_SaslMessage_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_alluxio_grpc_sasl_SaslMessage_fieldAccessorTable = new

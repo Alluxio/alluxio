@@ -13,6 +13,7 @@ public interface RenamePRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string path = 1;</code>
+   * @return Whether the path field is set.
    */
   boolean hasPath();
   /**
@@ -21,6 +22,7 @@ public interface RenamePRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string path = 1;</code>
+   * @return The path.
    */
   java.lang.String getPath();
   /**
@@ -29,6 +31,7 @@ public interface RenamePRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string path = 1;</code>
+   * @return The bytes for path.
    */
   com.google.protobuf.ByteString
       getPathBytes();
@@ -39,6 +42,7 @@ public interface RenamePRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string dstPath = 2;</code>
+   * @return Whether the dstPath field is set.
    */
   boolean hasDstPath();
   /**
@@ -47,6 +51,7 @@ public interface RenamePRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string dstPath = 2;</code>
+   * @return The dstPath.
    */
   java.lang.String getDstPath();
   /**
@@ -55,16 +60,19 @@ public interface RenamePRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string dstPath = 2;</code>
+   * @return The bytes for dstPath.
    */
   com.google.protobuf.ByteString
       getDstPathBytes();
 
   /**
    * <code>optional .alluxio.grpc.file.RenamePOptions options = 3;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.file.RenamePOptions options = 3;</code>
+   * @return The options.
    */
   alluxio.grpc.RenamePOptions getOptions();
   /**

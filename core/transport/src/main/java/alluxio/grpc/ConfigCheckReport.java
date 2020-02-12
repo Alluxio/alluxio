@@ -20,6 +20,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new ConfigCheckReport();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -43,15 +50,8 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
-            if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
               errors_ = com.google.protobuf.MapField.newMapField(
                   ErrorsDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000001;
@@ -64,7 +64,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 18: {
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
               warns_ = com.google.protobuf.MapField.newMapField(
                   WarnsDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000002;
@@ -78,12 +78,20 @@ private static final long serialVersionUID = 0L;
           }
           case 24: {
             int rawValue = input.readEnum();
+              @SuppressWarnings("deprecation")
             alluxio.grpc.ConfigStatus value = alluxio.grpc.ConfigStatus.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(3, rawValue);
             } else {
               bitField0_ |= 0x00000001;
               status_ = rawValue;
+            }
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
             }
             break;
           }
@@ -105,6 +113,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @SuppressWarnings({"rawtypes"})
+  @java.lang.Override
   protected com.google.protobuf.MapField internalGetMapField(
       int number) {
     switch (number) {
@@ -117,6 +126,7 @@ private static final long serialVersionUID = 0L;
             "Invalid map field number: " + number);
     }
   }
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_ConfigCheckReport_fieldAccessorTable
@@ -313,19 +323,23 @@ private static final long serialVersionUID = 0L;
   private int status_;
   /**
    * <code>optional .alluxio.grpc.meta.ConfigStatus status = 3;</code>
+   * @return Whether the status field is set.
    */
   public boolean hasStatus() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.meta.ConfigStatus status = 3;</code>
+   * @return The status.
    */
   public alluxio.grpc.ConfigStatus getStatus() {
+    @SuppressWarnings("deprecation")
     alluxio.grpc.ConfigStatus result = alluxio.grpc.ConfigStatus.valueOf(status_);
     return result == null ? alluxio.grpc.ConfigStatus.PASSED : result;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -335,6 +349,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     com.google.protobuf.GeneratedMessageV3
@@ -349,12 +364,13 @@ private static final long serialVersionUID = 0L;
         internalGetWarns(),
         WarnsDefaultEntryHolder.defaultEntry,
         2);
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeEnum(3, status_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -380,7 +396,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(2, warns__);
     }
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(3, status_);
     }
@@ -399,17 +415,16 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.ConfigCheckReport other = (alluxio.grpc.ConfigCheckReport) obj;
 
-    boolean result = true;
-    result = result && internalGetErrors().equals(
-        other.internalGetErrors());
-    result = result && internalGetWarns().equals(
-        other.internalGetWarns());
-    result = result && (hasStatus() == other.hasStatus());
+    if (!internalGetErrors().equals(
+        other.internalGetErrors())) return false;
+    if (!internalGetWarns().equals(
+        other.internalGetWarns())) return false;
+    if (hasStatus() != other.hasStatus()) return false;
     if (hasStatus()) {
-      result = result && status_ == other.status_;
+      if (status_ != other.status_) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -506,6 +521,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -513,6 +529,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.ConfigCheckReport prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -562,6 +579,7 @@ private static final long serialVersionUID = 0L;
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_ConfigCheckReport_fieldAccessorTable
@@ -584,6 +602,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       internalGetMutableErrors().clear();
@@ -593,15 +612,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_ConfigCheckReport_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.ConfigCheckReport getDefaultInstanceForType() {
       return alluxio.grpc.ConfigCheckReport.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.ConfigCheckReport build() {
       alluxio.grpc.ConfigCheckReport result = buildPartial();
       if (!result.isInitialized()) {
@@ -610,6 +632,7 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.ConfigCheckReport buildPartial() {
       alluxio.grpc.ConfigCheckReport result = new alluxio.grpc.ConfigCheckReport(this);
       int from_bitField0_ = bitField0_;
@@ -618,7 +641,7 @@ private static final long serialVersionUID = 0L;
       result.errors_.makeImmutable();
       result.warns_ = internalGetWarns();
       result.warns_.makeImmutable();
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
         to_bitField0_ |= 0x00000001;
       }
       result.status_ = status_;
@@ -627,32 +650,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.ConfigCheckReport) {
         return mergeFrom((alluxio.grpc.ConfigCheckReport)other);
@@ -676,10 +706,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1004,19 +1036,24 @@ private static final long serialVersionUID = 0L;
     private int status_ = 1;
     /**
      * <code>optional .alluxio.grpc.meta.ConfigStatus status = 3;</code>
+     * @return Whether the status field is set.
      */
     public boolean hasStatus() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.meta.ConfigStatus status = 3;</code>
+     * @return The status.
      */
     public alluxio.grpc.ConfigStatus getStatus() {
+      @SuppressWarnings("deprecation")
       alluxio.grpc.ConfigStatus result = alluxio.grpc.ConfigStatus.valueOf(status_);
       return result == null ? alluxio.grpc.ConfigStatus.PASSED : result;
     }
     /**
      * <code>optional .alluxio.grpc.meta.ConfigStatus status = 3;</code>
+     * @param value The status to set.
+     * @return This builder for chaining.
      */
     public Builder setStatus(alluxio.grpc.ConfigStatus value) {
       if (value == null) {
@@ -1029,6 +1066,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional .alluxio.grpc.meta.ConfigStatus status = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearStatus() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -1036,11 +1074,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1062,6 +1102,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<ConfigCheckReport>
       PARSER = new com.google.protobuf.AbstractParser<ConfigCheckReport>() {
+    @java.lang.Override
     public ConfigCheckReport parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1079,6 +1120,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.ConfigCheckReport getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

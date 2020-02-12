@@ -16,9 +16,14 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private CreateDirectoryPOptions() {
-    recursive_ = false;
-    allowExists_ = false;
     writeType_ = 1;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new CreateDirectoryPOptions();
   }
 
   @java.lang.Override
@@ -45,13 +50,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             bitField0_ |= 0x00000001;
             recursive_ = input.readBool();
@@ -64,7 +62,7 @@ private static final long serialVersionUID = 0L;
           }
           case 26: {
             alluxio.grpc.PMode.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000004) == 0x00000004)) {
+            if (((bitField0_ & 0x00000004) != 0)) {
               subBuilder = mode_.toBuilder();
             }
             mode_ = input.readMessage(alluxio.grpc.PMode.PARSER, extensionRegistry);
@@ -77,6 +75,7 @@ private static final long serialVersionUID = 0L;
           }
           case 32: {
             int rawValue = input.readEnum();
+              @SuppressWarnings("deprecation")
             alluxio.grpc.WritePType value = alluxio.grpc.WritePType.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(4, rawValue);
@@ -88,7 +87,7 @@ private static final long serialVersionUID = 0L;
           }
           case 42: {
             alluxio.grpc.FileSystemMasterCommonPOptions.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000010) == 0x00000010)) {
+            if (((bitField0_ & 0x00000010) != 0)) {
               subBuilder = commonOptions_.toBuilder();
             }
             commonOptions_ = input.readMessage(alluxio.grpc.FileSystemMasterCommonPOptions.PARSER, extensionRegistry);
@@ -97,6 +96,13 @@ private static final long serialVersionUID = 0L;
               commonOptions_ = subBuilder.buildPartial();
             }
             bitField0_ |= 0x00000010;
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -116,6 +122,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_CreateDirectoryPOptions_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_CreateDirectoryPOptions_fieldAccessorTable
@@ -128,12 +135,14 @@ private static final long serialVersionUID = 0L;
   private boolean recursive_;
   /**
    * <code>optional bool recursive = 1;</code>
+   * @return Whether the recursive field is set.
    */
   public boolean hasRecursive() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional bool recursive = 1;</code>
+   * @return The recursive.
    */
   public boolean getRecursive() {
     return recursive_;
@@ -143,12 +152,14 @@ private static final long serialVersionUID = 0L;
   private boolean allowExists_;
   /**
    * <code>optional bool allowExists = 2;</code>
+   * @return Whether the allowExists field is set.
    */
   public boolean hasAllowExists() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional bool allowExists = 2;</code>
+   * @return The allowExists.
    */
   public boolean getAllowExists() {
     return allowExists_;
@@ -158,12 +169,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.PMode mode_;
   /**
    * <code>optional .alluxio.grpc.PMode mode = 3;</code>
+   * @return Whether the mode field is set.
    */
   public boolean hasMode() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.PMode mode = 3;</code>
+   * @return The mode.
    */
   public alluxio.grpc.PMode getMode() {
     return mode_ == null ? alluxio.grpc.PMode.getDefaultInstance() : mode_;
@@ -179,14 +192,17 @@ private static final long serialVersionUID = 0L;
   private int writeType_;
   /**
    * <code>optional .alluxio.grpc.file.WritePType writeType = 4;</code>
+   * @return Whether the writeType field is set.
    */
   public boolean hasWriteType() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000008) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.file.WritePType writeType = 4;</code>
+   * @return The writeType.
    */
   public alluxio.grpc.WritePType getWriteType() {
+    @SuppressWarnings("deprecation")
     alluxio.grpc.WritePType result = alluxio.grpc.WritePType.valueOf(writeType_);
     return result == null ? alluxio.grpc.WritePType.MUST_CACHE : result;
   }
@@ -195,12 +211,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.FileSystemMasterCommonPOptions commonOptions_;
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 5;</code>
+   * @return Whether the commonOptions field is set.
    */
   public boolean hasCommonOptions() {
-    return ((bitField0_ & 0x00000010) == 0x00000010);
+    return ((bitField0_ & 0x00000010) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 5;</code>
+   * @return The commonOptions.
    */
   public alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions() {
     return commonOptions_ == null ? alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance() : commonOptions_;
@@ -213,6 +231,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -228,48 +247,50 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeBool(1, recursive_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeBool(2, allowExists_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       output.writeMessage(3, getMode());
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       output.writeEnum(4, writeType_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       output.writeMessage(5, getCommonOptions());
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(1, recursive_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(2, allowExists_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(3, getMode());
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(4, writeType_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(5, getCommonOptions());
     }
@@ -288,33 +309,32 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.CreateDirectoryPOptions other = (alluxio.grpc.CreateDirectoryPOptions) obj;
 
-    boolean result = true;
-    result = result && (hasRecursive() == other.hasRecursive());
+    if (hasRecursive() != other.hasRecursive()) return false;
     if (hasRecursive()) {
-      result = result && (getRecursive()
-          == other.getRecursive());
+      if (getRecursive()
+          != other.getRecursive()) return false;
     }
-    result = result && (hasAllowExists() == other.hasAllowExists());
+    if (hasAllowExists() != other.hasAllowExists()) return false;
     if (hasAllowExists()) {
-      result = result && (getAllowExists()
-          == other.getAllowExists());
+      if (getAllowExists()
+          != other.getAllowExists()) return false;
     }
-    result = result && (hasMode() == other.hasMode());
+    if (hasMode() != other.hasMode()) return false;
     if (hasMode()) {
-      result = result && getMode()
-          .equals(other.getMode());
+      if (!getMode()
+          .equals(other.getMode())) return false;
     }
-    result = result && (hasWriteType() == other.hasWriteType());
+    if (hasWriteType() != other.hasWriteType()) return false;
     if (hasWriteType()) {
-      result = result && writeType_ == other.writeType_;
+      if (writeType_ != other.writeType_) return false;
     }
-    result = result && (hasCommonOptions() == other.hasCommonOptions());
+    if (hasCommonOptions() != other.hasCommonOptions()) return false;
     if (hasCommonOptions()) {
-      result = result && getCommonOptions()
-          .equals(other.getCommonOptions());
+      if (!getCommonOptions()
+          .equals(other.getCommonOptions())) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -421,6 +441,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -428,6 +449,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.CreateDirectoryPOptions prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -451,6 +473,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_CreateDirectoryPOptions_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_CreateDirectoryPOptions_fieldAccessorTable
@@ -475,6 +498,7 @@ private static final long serialVersionUID = 0L;
         getCommonOptionsFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       recursive_ = false;
@@ -498,15 +522,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_CreateDirectoryPOptions_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.CreateDirectoryPOptions getDefaultInstanceForType() {
       return alluxio.grpc.CreateDirectoryPOptions.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.CreateDirectoryPOptions build() {
       alluxio.grpc.CreateDirectoryPOptions result = buildPartial();
       if (!result.isInitialized()) {
@@ -515,69 +542,77 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.CreateDirectoryPOptions buildPartial() {
       alluxio.grpc.CreateDirectoryPOptions result = new alluxio.grpc.CreateDirectoryPOptions(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        result.recursive_ = recursive_;
         to_bitField0_ |= 0x00000001;
       }
-      result.recursive_ = recursive_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
+        result.allowExists_ = allowExists_;
         to_bitField0_ |= 0x00000002;
       }
-      result.allowExists_ = allowExists_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
+        if (modeBuilder_ == null) {
+          result.mode_ = mode_;
+        } else {
+          result.mode_ = modeBuilder_.build();
+        }
         to_bitField0_ |= 0x00000004;
       }
-      if (modeBuilder_ == null) {
-        result.mode_ = mode_;
-      } else {
-        result.mode_ = modeBuilder_.build();
-      }
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000008) != 0)) {
         to_bitField0_ |= 0x00000008;
       }
       result.writeType_ = writeType_;
-      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((from_bitField0_ & 0x00000010) != 0)) {
+        if (commonOptionsBuilder_ == null) {
+          result.commonOptions_ = commonOptions_;
+        } else {
+          result.commonOptions_ = commonOptionsBuilder_.build();
+        }
         to_bitField0_ |= 0x00000010;
-      }
-      if (commonOptionsBuilder_ == null) {
-        result.commonOptions_ = commonOptions_;
-      } else {
-        result.commonOptions_ = commonOptionsBuilder_.build();
       }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.CreateDirectoryPOptions) {
         return mergeFrom((alluxio.grpc.CreateDirectoryPOptions)other);
@@ -609,6 +644,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       if (hasMode()) {
         if (!getMode().isInitialized()) {
@@ -618,6 +654,7 @@ private static final long serialVersionUID = 0L;
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -640,18 +677,22 @@ private static final long serialVersionUID = 0L;
     private boolean recursive_ ;
     /**
      * <code>optional bool recursive = 1;</code>
+     * @return Whether the recursive field is set.
      */
     public boolean hasRecursive() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional bool recursive = 1;</code>
+     * @return The recursive.
      */
     public boolean getRecursive() {
       return recursive_;
     }
     /**
      * <code>optional bool recursive = 1;</code>
+     * @param value The recursive to set.
+     * @return This builder for chaining.
      */
     public Builder setRecursive(boolean value) {
       bitField0_ |= 0x00000001;
@@ -661,6 +702,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool recursive = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearRecursive() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -672,18 +714,22 @@ private static final long serialVersionUID = 0L;
     private boolean allowExists_ ;
     /**
      * <code>optional bool allowExists = 2;</code>
+     * @return Whether the allowExists field is set.
      */
     public boolean hasAllowExists() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional bool allowExists = 2;</code>
+     * @return The allowExists.
      */
     public boolean getAllowExists() {
       return allowExists_;
     }
     /**
      * <code>optional bool allowExists = 2;</code>
+     * @param value The allowExists to set.
+     * @return This builder for chaining.
      */
     public Builder setAllowExists(boolean value) {
       bitField0_ |= 0x00000002;
@@ -693,6 +739,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool allowExists = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearAllowExists() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -701,17 +748,19 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private alluxio.grpc.PMode mode_ = null;
+    private alluxio.grpc.PMode mode_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.PMode, alluxio.grpc.PMode.Builder, alluxio.grpc.PModeOrBuilder> modeBuilder_;
     /**
      * <code>optional .alluxio.grpc.PMode mode = 3;</code>
+     * @return Whether the mode field is set.
      */
     public boolean hasMode() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.PMode mode = 3;</code>
+     * @return The mode.
      */
     public alluxio.grpc.PMode getMode() {
       if (modeBuilder_ == null) {
@@ -755,7 +804,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeMode(alluxio.grpc.PMode value) {
       if (modeBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) == 0x00000004) &&
+        if (((bitField0_ & 0x00000004) != 0) &&
             mode_ != null &&
             mode_ != alluxio.grpc.PMode.getDefaultInstance()) {
           mode_ =
@@ -822,19 +871,24 @@ private static final long serialVersionUID = 0L;
     private int writeType_ = 1;
     /**
      * <code>optional .alluxio.grpc.file.WritePType writeType = 4;</code>
+     * @return Whether the writeType field is set.
      */
     public boolean hasWriteType() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.file.WritePType writeType = 4;</code>
+     * @return The writeType.
      */
     public alluxio.grpc.WritePType getWriteType() {
+      @SuppressWarnings("deprecation")
       alluxio.grpc.WritePType result = alluxio.grpc.WritePType.valueOf(writeType_);
       return result == null ? alluxio.grpc.WritePType.MUST_CACHE : result;
     }
     /**
      * <code>optional .alluxio.grpc.file.WritePType writeType = 4;</code>
+     * @param value The writeType to set.
+     * @return This builder for chaining.
      */
     public Builder setWriteType(alluxio.grpc.WritePType value) {
       if (value == null) {
@@ -847,6 +901,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional .alluxio.grpc.file.WritePType writeType = 4;</code>
+     * @return This builder for chaining.
      */
     public Builder clearWriteType() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -855,17 +910,19 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private alluxio.grpc.FileSystemMasterCommonPOptions commonOptions_ = null;
+    private alluxio.grpc.FileSystemMasterCommonPOptions commonOptions_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.FileSystemMasterCommonPOptions, alluxio.grpc.FileSystemMasterCommonPOptions.Builder, alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder> commonOptionsBuilder_;
     /**
      * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 5;</code>
+     * @return Whether the commonOptions field is set.
      */
     public boolean hasCommonOptions() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000010) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 5;</code>
+     * @return The commonOptions.
      */
     public alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions() {
       if (commonOptionsBuilder_ == null) {
@@ -909,7 +966,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeCommonOptions(alluxio.grpc.FileSystemMasterCommonPOptions value) {
       if (commonOptionsBuilder_ == null) {
-        if (((bitField0_ & 0x00000010) == 0x00000010) &&
+        if (((bitField0_ & 0x00000010) != 0) &&
             commonOptions_ != null &&
             commonOptions_ != alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance()) {
           commonOptions_ =
@@ -972,11 +1029,13 @@ private static final long serialVersionUID = 0L;
       }
       return commonOptionsBuilder_;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -998,6 +1057,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<CreateDirectoryPOptions>
       PARSER = new com.google.protobuf.AbstractParser<CreateDirectoryPOptions>() {
+    @java.lang.Override
     public CreateDirectoryPOptions parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1015,6 +1075,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.CreateDirectoryPOptions getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

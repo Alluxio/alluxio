@@ -9,19 +9,23 @@ public interface MessagingResponseHeaderOrBuilder extends
 
   /**
    * <code>optional int64 requestId = 1;</code>
+   * @return Whether the requestId field is set.
    */
   boolean hasRequestId();
   /**
    * <code>optional int64 requestId = 1;</code>
+   * @return The requestId.
    */
   long getRequestId();
 
   /**
    * <code>optional bool isThrowable = 2;</code>
+   * @return Whether the isThrowable field is set.
    */
   boolean hasIsThrowable();
   /**
    * <code>optional bool isThrowable = 2;</code>
+   * @return The isThrowable.
    */
   boolean getIsThrowable();
 }

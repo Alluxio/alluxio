@@ -21,7 +21,7 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.17.1)",
+    value = "by gRPC proto compiler (version 1.27.0)",
     comments = "Source: grpc/block_worker.proto")
 public final class BlockWorkerGrpc {
 
@@ -44,22 +44,21 @@ public final class BlockWorkerGrpc {
     if ((getReadBlockMethod = BlockWorkerGrpc.getReadBlockMethod) == null) {
       synchronized (BlockWorkerGrpc.class) {
         if ((getReadBlockMethod = BlockWorkerGrpc.getReadBlockMethod) == null) {
-          BlockWorkerGrpc.getReadBlockMethod = getReadBlockMethod = 
+          BlockWorkerGrpc.getReadBlockMethod = getReadBlockMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.ReadRequest, alluxio.grpc.ReadResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.block.BlockWorker", "ReadBlock"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ReadBlock"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.ReadRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.ReadResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("ReadBlock"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("ReadBlock"))
+              .build();
         }
-     }
-     return getReadBlockMethod;
+      }
+    }
+    return getReadBlockMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.WriteRequest,
@@ -76,22 +75,21 @@ public final class BlockWorkerGrpc {
     if ((getWriteBlockMethod = BlockWorkerGrpc.getWriteBlockMethod) == null) {
       synchronized (BlockWorkerGrpc.class) {
         if ((getWriteBlockMethod = BlockWorkerGrpc.getWriteBlockMethod) == null) {
-          BlockWorkerGrpc.getWriteBlockMethod = getWriteBlockMethod = 
+          BlockWorkerGrpc.getWriteBlockMethod = getWriteBlockMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.WriteRequest, alluxio.grpc.WriteResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.block.BlockWorker", "WriteBlock"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "WriteBlock"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.WriteRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.WriteResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("WriteBlock"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("WriteBlock"))
+              .build();
         }
-     }
-     return getWriteBlockMethod;
+      }
+    }
+    return getWriteBlockMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.OpenLocalBlockRequest,
@@ -108,22 +106,21 @@ public final class BlockWorkerGrpc {
     if ((getOpenLocalBlockMethod = BlockWorkerGrpc.getOpenLocalBlockMethod) == null) {
       synchronized (BlockWorkerGrpc.class) {
         if ((getOpenLocalBlockMethod = BlockWorkerGrpc.getOpenLocalBlockMethod) == null) {
-          BlockWorkerGrpc.getOpenLocalBlockMethod = getOpenLocalBlockMethod = 
+          BlockWorkerGrpc.getOpenLocalBlockMethod = getOpenLocalBlockMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.OpenLocalBlockRequest, alluxio.grpc.OpenLocalBlockResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.block.BlockWorker", "OpenLocalBlock"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "OpenLocalBlock"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.OpenLocalBlockRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.OpenLocalBlockResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("OpenLocalBlock"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("OpenLocalBlock"))
+              .build();
         }
-     }
-     return getOpenLocalBlockMethod;
+      }
+    }
+    return getOpenLocalBlockMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CreateLocalBlockRequest,
@@ -140,22 +137,21 @@ public final class BlockWorkerGrpc {
     if ((getCreateLocalBlockMethod = BlockWorkerGrpc.getCreateLocalBlockMethod) == null) {
       synchronized (BlockWorkerGrpc.class) {
         if ((getCreateLocalBlockMethod = BlockWorkerGrpc.getCreateLocalBlockMethod) == null) {
-          BlockWorkerGrpc.getCreateLocalBlockMethod = getCreateLocalBlockMethod = 
+          BlockWorkerGrpc.getCreateLocalBlockMethod = getCreateLocalBlockMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.CreateLocalBlockRequest, alluxio.grpc.CreateLocalBlockResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.block.BlockWorker", "CreateLocalBlock"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateLocalBlock"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CreateLocalBlockRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CreateLocalBlockResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("CreateLocalBlock"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("CreateLocalBlock"))
+              .build();
         }
-     }
-     return getCreateLocalBlockMethod;
+      }
+    }
+    return getCreateLocalBlockMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.AsyncCacheRequest,
@@ -172,22 +168,21 @@ public final class BlockWorkerGrpc {
     if ((getAsyncCacheMethod = BlockWorkerGrpc.getAsyncCacheMethod) == null) {
       synchronized (BlockWorkerGrpc.class) {
         if ((getAsyncCacheMethod = BlockWorkerGrpc.getAsyncCacheMethod) == null) {
-          BlockWorkerGrpc.getAsyncCacheMethod = getAsyncCacheMethod = 
+          BlockWorkerGrpc.getAsyncCacheMethod = getAsyncCacheMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.AsyncCacheRequest, alluxio.grpc.AsyncCacheResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.block.BlockWorker", "AsyncCache"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "AsyncCache"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.AsyncCacheRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.AsyncCacheResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("AsyncCache"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("AsyncCache"))
+              .build();
         }
-     }
-     return getAsyncCacheMethod;
+      }
+    }
+    return getAsyncCacheMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.RemoveBlockRequest,
@@ -204,22 +199,21 @@ public final class BlockWorkerGrpc {
     if ((getRemoveBlockMethod = BlockWorkerGrpc.getRemoveBlockMethod) == null) {
       synchronized (BlockWorkerGrpc.class) {
         if ((getRemoveBlockMethod = BlockWorkerGrpc.getRemoveBlockMethod) == null) {
-          BlockWorkerGrpc.getRemoveBlockMethod = getRemoveBlockMethod = 
+          BlockWorkerGrpc.getRemoveBlockMethod = getRemoveBlockMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.RemoveBlockRequest, alluxio.grpc.RemoveBlockResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.block.BlockWorker", "RemoveBlock"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "RemoveBlock"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RemoveBlockRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RemoveBlockResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("RemoveBlock"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("RemoveBlock"))
+              .build();
         }
-     }
-     return getRemoveBlockMethod;
+      }
+    }
+    return getRemoveBlockMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.MoveBlockRequest,
@@ -236,22 +230,21 @@ public final class BlockWorkerGrpc {
     if ((getMoveBlockMethod = BlockWorkerGrpc.getMoveBlockMethod) == null) {
       synchronized (BlockWorkerGrpc.class) {
         if ((getMoveBlockMethod = BlockWorkerGrpc.getMoveBlockMethod) == null) {
-          BlockWorkerGrpc.getMoveBlockMethod = getMoveBlockMethod = 
+          BlockWorkerGrpc.getMoveBlockMethod = getMoveBlockMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.MoveBlockRequest, alluxio.grpc.MoveBlockResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.block.BlockWorker", "MoveBlock"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "MoveBlock"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.MoveBlockRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.MoveBlockResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("MoveBlock"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("MoveBlock"))
+              .build();
         }
-     }
-     return getMoveBlockMethod;
+      }
+    }
+    return getMoveBlockMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.ClearMetricsRequest,
@@ -268,29 +261,35 @@ public final class BlockWorkerGrpc {
     if ((getClearMetricsMethod = BlockWorkerGrpc.getClearMetricsMethod) == null) {
       synchronized (BlockWorkerGrpc.class) {
         if ((getClearMetricsMethod = BlockWorkerGrpc.getClearMetricsMethod) == null) {
-          BlockWorkerGrpc.getClearMetricsMethod = getClearMetricsMethod = 
+          BlockWorkerGrpc.getClearMetricsMethod = getClearMetricsMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.ClearMetricsRequest, alluxio.grpc.ClearMetricsResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.block.BlockWorker", "ClearMetrics"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ClearMetrics"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.ClearMetricsRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.ClearMetricsResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("ClearMetrics"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BlockWorkerMethodDescriptorSupplier("ClearMetrics"))
+              .build();
         }
-     }
-     return getClearMetricsMethod;
+      }
+    }
+    return getClearMetricsMethod;
   }
 
   /**
    * Creates a new async stub that supports all call types for the service
    */
   public static BlockWorkerStub newStub(io.grpc.Channel channel) {
-    return new BlockWorkerStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<BlockWorkerStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<BlockWorkerStub>() {
+        @java.lang.Override
+        public BlockWorkerStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new BlockWorkerStub(channel, callOptions);
+        }
+      };
+    return BlockWorkerStub.newStub(factory, channel);
   }
 
   /**
@@ -298,7 +297,14 @@ public final class BlockWorkerGrpc {
    */
   public static BlockWorkerBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new BlockWorkerBlockingStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<BlockWorkerBlockingStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<BlockWorkerBlockingStub>() {
+        @java.lang.Override
+        public BlockWorkerBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new BlockWorkerBlockingStub(channel, callOptions);
+        }
+      };
+    return BlockWorkerBlockingStub.newStub(factory, channel);
   }
 
   /**
@@ -306,7 +312,14 @@ public final class BlockWorkerGrpc {
    */
   public static BlockWorkerFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new BlockWorkerFutureStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<BlockWorkerFutureStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<BlockWorkerFutureStub>() {
+        @java.lang.Override
+        public BlockWorkerFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new BlockWorkerFutureStub(channel, callOptions);
+        }
+      };
+    return BlockWorkerFutureStub.newStub(factory, channel);
   }
 
   /**
@@ -448,19 +461,15 @@ public final class BlockWorkerGrpc {
    * The block worker service
    * </pre>
    */
-  public static final class BlockWorkerStub extends io.grpc.stub.AbstractStub<BlockWorkerStub> {
-    private BlockWorkerStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private BlockWorkerStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class BlockWorkerStub extends io.grpc.stub.AbstractAsyncStub<BlockWorkerStub> {
+    private BlockWorkerStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected BlockWorkerStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected BlockWorkerStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new BlockWorkerStub(channel, callOptions);
     }
 
@@ -543,19 +552,15 @@ public final class BlockWorkerGrpc {
    * The block worker service
    * </pre>
    */
-  public static final class BlockWorkerBlockingStub extends io.grpc.stub.AbstractStub<BlockWorkerBlockingStub> {
-    private BlockWorkerBlockingStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private BlockWorkerBlockingStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class BlockWorkerBlockingStub extends io.grpc.stub.AbstractBlockingStub<BlockWorkerBlockingStub> {
+    private BlockWorkerBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected BlockWorkerBlockingStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected BlockWorkerBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new BlockWorkerBlockingStub(channel, callOptions);
     }
 
@@ -596,19 +601,15 @@ public final class BlockWorkerGrpc {
    * The block worker service
    * </pre>
    */
-  public static final class BlockWorkerFutureStub extends io.grpc.stub.AbstractStub<BlockWorkerFutureStub> {
-    private BlockWorkerFutureStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private BlockWorkerFutureStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class BlockWorkerFutureStub extends io.grpc.stub.AbstractFutureStub<BlockWorkerFutureStub> {
+    private BlockWorkerFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected BlockWorkerFutureStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected BlockWorkerFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new BlockWorkerFutureStub(channel, callOptions);
     }
 

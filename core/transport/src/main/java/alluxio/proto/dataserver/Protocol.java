@@ -20,14 +20,17 @@ public final class Protocol {
 
     /**
      * <code>optional string ufs_path = 1;</code>
+     * @return Whether the ufsPath field is set.
      */
     boolean hasUfsPath();
     /**
      * <code>optional string ufs_path = 1;</code>
+     * @return The ufsPath.
      */
     java.lang.String getUfsPath();
     /**
      * <code>optional string ufs_path = 1;</code>
+     * @return The bytes for ufsPath.
      */
     com.google.protobuf.ByteString
         getUfsPathBytes();
@@ -38,6 +41,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional int64 offset_in_file = 2;</code>
+     * @return Whether the offsetInFile field is set.
      */
     boolean hasOffsetInFile();
     /**
@@ -46,6 +50,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional int64 offset_in_file = 2;</code>
+     * @return The offsetInFile.
      */
     long getOffsetInFile();
 
@@ -55,6 +60,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional int64 block_size = 3;</code>
+     * @return Whether the blockSize field is set.
      */
     boolean hasBlockSize();
     /**
@@ -63,24 +69,29 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional int64 block_size = 3;</code>
+     * @return The blockSize.
      */
     long getBlockSize();
 
     /**
      * <code>optional int32 maxUfsReadConcurrency = 4;</code>
+     * @return Whether the maxUfsReadConcurrency field is set.
      */
     boolean hasMaxUfsReadConcurrency();
     /**
      * <code>optional int32 maxUfsReadConcurrency = 4;</code>
+     * @return The maxUfsReadConcurrency.
      */
     int getMaxUfsReadConcurrency();
 
     /**
      * <code>optional int64 mountId = 5;</code>
+     * @return Whether the mountId field is set.
      */
     boolean hasMountId();
     /**
      * <code>optional int64 mountId = 5;</code>
+     * @return The mountId.
      */
     long getMountId();
 
@@ -90,6 +101,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional bool no_cache = 6;</code>
+     * @return Whether the noCache field is set.
      */
     boolean hasNoCache();
     /**
@@ -98,6 +110,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional bool no_cache = 6;</code>
+     * @return The noCache.
      */
     boolean getNoCache();
 
@@ -107,6 +120,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional string user = 7;</code>
+     * @return Whether the user field is set.
      */
     boolean hasUser();
     /**
@@ -115,6 +129,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional string user = 7;</code>
+     * @return The user.
      */
     java.lang.String getUser();
     /**
@@ -123,6 +138,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional string user = 7;</code>
+     * @return The bytes for user.
      */
     com.google.protobuf.ByteString
         getUserBytes();
@@ -133,6 +149,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional bool block_in_ufs_tier = 8;</code>
+     * @return Whether the blockInUfsTier field is set.
      */
     boolean hasBlockInUfsTier();
     /**
@@ -141,6 +158,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional bool block_in_ufs_tier = 8;</code>
+     * @return The blockInUfsTier.
      */
     boolean getBlockInUfsTier();
   }
@@ -163,13 +181,14 @@ public final class Protocol {
     }
     private OpenUfsBlockOptions() {
       ufsPath_ = "";
-      offsetInFile_ = 0L;
-      blockSize_ = 0L;
-      maxUfsReadConcurrency_ = 0;
-      mountId_ = 0L;
-      noCache_ = false;
       user_ = "";
-      blockInUfsTier_ = false;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new OpenUfsBlockOptions();
     }
 
     @java.lang.Override
@@ -196,13 +215,6 @@ public final class Protocol {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
@@ -245,6 +257,13 @@ public final class Protocol {
               blockInUfsTier_ = input.readBool();
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -262,6 +281,7 @@ public final class Protocol {
       return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_fieldAccessorTable
@@ -274,12 +294,14 @@ public final class Protocol {
     private volatile java.lang.Object ufsPath_;
     /**
      * <code>optional string ufs_path = 1;</code>
+     * @return Whether the ufsPath field is set.
      */
     public boolean hasUfsPath() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string ufs_path = 1;</code>
+     * @return The ufsPath.
      */
     public java.lang.String getUfsPath() {
       java.lang.Object ref = ufsPath_;
@@ -297,6 +319,7 @@ public final class Protocol {
     }
     /**
      * <code>optional string ufs_path = 1;</code>
+     * @return The bytes for ufsPath.
      */
     public com.google.protobuf.ByteString
         getUfsPathBytes() {
@@ -320,9 +343,10 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional int64 offset_in_file = 2;</code>
+     * @return Whether the offsetInFile field is set.
      */
     public boolean hasOffsetInFile() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <pre>
@@ -330,6 +354,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional int64 offset_in_file = 2;</code>
+     * @return The offsetInFile.
      */
     public long getOffsetInFile() {
       return offsetInFile_;
@@ -343,9 +368,10 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional int64 block_size = 3;</code>
+     * @return Whether the blockSize field is set.
      */
     public boolean hasBlockSize() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <pre>
@@ -353,6 +379,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional int64 block_size = 3;</code>
+     * @return The blockSize.
      */
     public long getBlockSize() {
       return blockSize_;
@@ -362,12 +389,14 @@ public final class Protocol {
     private int maxUfsReadConcurrency_;
     /**
      * <code>optional int32 maxUfsReadConcurrency = 4;</code>
+     * @return Whether the maxUfsReadConcurrency field is set.
      */
     public boolean hasMaxUfsReadConcurrency() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional int32 maxUfsReadConcurrency = 4;</code>
+     * @return The maxUfsReadConcurrency.
      */
     public int getMaxUfsReadConcurrency() {
       return maxUfsReadConcurrency_;
@@ -377,12 +406,14 @@ public final class Protocol {
     private long mountId_;
     /**
      * <code>optional int64 mountId = 5;</code>
+     * @return Whether the mountId field is set.
      */
     public boolean hasMountId() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000010) != 0);
     }
     /**
      * <code>optional int64 mountId = 5;</code>
+     * @return The mountId.
      */
     public long getMountId() {
       return mountId_;
@@ -396,9 +427,10 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional bool no_cache = 6;</code>
+     * @return Whether the noCache field is set.
      */
     public boolean hasNoCache() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000020) != 0);
     }
     /**
      * <pre>
@@ -406,6 +438,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional bool no_cache = 6;</code>
+     * @return The noCache.
      */
     public boolean getNoCache() {
       return noCache_;
@@ -419,9 +452,10 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional string user = 7;</code>
+     * @return Whether the user field is set.
      */
     public boolean hasUser() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
+      return ((bitField0_ & 0x00000040) != 0);
     }
     /**
      * <pre>
@@ -429,6 +463,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional string user = 7;</code>
+     * @return The user.
      */
     public java.lang.String getUser() {
       java.lang.Object ref = user_;
@@ -450,6 +485,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional string user = 7;</code>
+     * @return The bytes for user.
      */
     public com.google.protobuf.ByteString
         getUserBytes() {
@@ -473,9 +509,10 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional bool block_in_ufs_tier = 8;</code>
+     * @return Whether the blockInUfsTier field is set.
      */
     public boolean hasBlockInUfsTier() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
+      return ((bitField0_ & 0x00000080) != 0);
     }
     /**
      * <pre>
@@ -483,12 +520,14 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional bool block_in_ufs_tier = 8;</code>
+     * @return The blockInUfsTier.
      */
     public boolean getBlockInUfsTier() {
       return blockInUfsTier_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -498,67 +537,69 @@ public final class Protocol {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, ufsPath_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         output.writeInt64(2, offsetInFile_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         output.writeInt64(3, blockSize_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000008) != 0)) {
         output.writeInt32(4, maxUfsReadConcurrency_);
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((bitField0_ & 0x00000010) != 0)) {
         output.writeInt64(5, mountId_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((bitField0_ & 0x00000020) != 0)) {
         output.writeBool(6, noCache_);
       }
-      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((bitField0_ & 0x00000040) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 7, user_);
       }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      if (((bitField0_ & 0x00000080) != 0)) {
         output.writeBool(8, blockInUfsTier_);
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, ufsPath_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(2, offsetInFile_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(3, blockSize_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000008) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(4, maxUfsReadConcurrency_);
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((bitField0_ & 0x00000010) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(5, mountId_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((bitField0_ & 0x00000020) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(6, noCache_);
       }
-      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((bitField0_ & 0x00000040) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(7, user_);
       }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      if (((bitField0_ & 0x00000080) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(8, blockInUfsTier_);
       }
@@ -577,49 +618,48 @@ public final class Protocol {
       }
       alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions other = (alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions) obj;
 
-      boolean result = true;
-      result = result && (hasUfsPath() == other.hasUfsPath());
+      if (hasUfsPath() != other.hasUfsPath()) return false;
       if (hasUfsPath()) {
-        result = result && getUfsPath()
-            .equals(other.getUfsPath());
+        if (!getUfsPath()
+            .equals(other.getUfsPath())) return false;
       }
-      result = result && (hasOffsetInFile() == other.hasOffsetInFile());
+      if (hasOffsetInFile() != other.hasOffsetInFile()) return false;
       if (hasOffsetInFile()) {
-        result = result && (getOffsetInFile()
-            == other.getOffsetInFile());
+        if (getOffsetInFile()
+            != other.getOffsetInFile()) return false;
       }
-      result = result && (hasBlockSize() == other.hasBlockSize());
+      if (hasBlockSize() != other.hasBlockSize()) return false;
       if (hasBlockSize()) {
-        result = result && (getBlockSize()
-            == other.getBlockSize());
+        if (getBlockSize()
+            != other.getBlockSize()) return false;
       }
-      result = result && (hasMaxUfsReadConcurrency() == other.hasMaxUfsReadConcurrency());
+      if (hasMaxUfsReadConcurrency() != other.hasMaxUfsReadConcurrency()) return false;
       if (hasMaxUfsReadConcurrency()) {
-        result = result && (getMaxUfsReadConcurrency()
-            == other.getMaxUfsReadConcurrency());
+        if (getMaxUfsReadConcurrency()
+            != other.getMaxUfsReadConcurrency()) return false;
       }
-      result = result && (hasMountId() == other.hasMountId());
+      if (hasMountId() != other.hasMountId()) return false;
       if (hasMountId()) {
-        result = result && (getMountId()
-            == other.getMountId());
+        if (getMountId()
+            != other.getMountId()) return false;
       }
-      result = result && (hasNoCache() == other.hasNoCache());
+      if (hasNoCache() != other.hasNoCache()) return false;
       if (hasNoCache()) {
-        result = result && (getNoCache()
-            == other.getNoCache());
+        if (getNoCache()
+            != other.getNoCache()) return false;
       }
-      result = result && (hasUser() == other.hasUser());
+      if (hasUser() != other.hasUser()) return false;
       if (hasUser()) {
-        result = result && getUser()
-            .equals(other.getUser());
+        if (!getUser()
+            .equals(other.getUser())) return false;
       }
-      result = result && (hasBlockInUfsTier() == other.hasBlockInUfsTier());
+      if (hasBlockInUfsTier() != other.hasBlockInUfsTier()) return false;
       if (hasBlockInUfsTier()) {
-        result = result && (getBlockInUfsTier()
-            == other.getBlockInUfsTier());
+        if (getBlockInUfsTier()
+            != other.getBlockInUfsTier()) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -741,6 +781,7 @@ public final class Protocol {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -748,6 +789,7 @@ public final class Protocol {
     public static Builder newBuilder(alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -776,6 +818,7 @@ public final class Protocol {
         return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_fieldAccessorTable
@@ -798,6 +841,7 @@ public final class Protocol {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         ufsPath_ = "";
@@ -819,15 +863,18 @@ public final class Protocol {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions getDefaultInstanceForType() {
         return alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions build() {
         alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions result = buildPartial();
         if (!result.isInitialized()) {
@@ -836,73 +883,81 @@ public final class Protocol {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions buildPartial() {
         alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions result = new alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
           to_bitField0_ |= 0x00000001;
         }
         result.ufsPath_ = ufsPath_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.offsetInFile_ = offsetInFile_;
           to_bitField0_ |= 0x00000002;
         }
-        result.offsetInFile_ = offsetInFile_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.blockSize_ = blockSize_;
           to_bitField0_ |= 0x00000004;
         }
-        result.blockSize_ = blockSize_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.maxUfsReadConcurrency_ = maxUfsReadConcurrency_;
           to_bitField0_ |= 0x00000008;
         }
-        result.maxUfsReadConcurrency_ = maxUfsReadConcurrency_;
-        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.mountId_ = mountId_;
           to_bitField0_ |= 0x00000010;
         }
-        result.mountId_ = mountId_;
-        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.noCache_ = noCache_;
           to_bitField0_ |= 0x00000020;
         }
-        result.noCache_ = noCache_;
-        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+        if (((from_bitField0_ & 0x00000040) != 0)) {
           to_bitField0_ |= 0x00000040;
         }
         result.user_ = user_;
-        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.blockInUfsTier_ = blockInUfsTier_;
           to_bitField0_ |= 0x00000080;
         }
-        result.blockInUfsTier_ = blockInUfsTier_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions) {
           return mergeFrom((alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions)other);
@@ -947,10 +1002,12 @@ public final class Protocol {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -973,12 +1030,14 @@ public final class Protocol {
       private java.lang.Object ufsPath_ = "";
       /**
        * <code>optional string ufs_path = 1;</code>
+       * @return Whether the ufsPath field is set.
        */
       public boolean hasUfsPath() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional string ufs_path = 1;</code>
+       * @return The ufsPath.
        */
       public java.lang.String getUfsPath() {
         java.lang.Object ref = ufsPath_;
@@ -996,6 +1055,7 @@ public final class Protocol {
       }
       /**
        * <code>optional string ufs_path = 1;</code>
+       * @return The bytes for ufsPath.
        */
       public com.google.protobuf.ByteString
           getUfsPathBytes() {
@@ -1012,6 +1072,8 @@ public final class Protocol {
       }
       /**
        * <code>optional string ufs_path = 1;</code>
+       * @param value The ufsPath to set.
+       * @return This builder for chaining.
        */
       public Builder setUfsPath(
           java.lang.String value) {
@@ -1025,6 +1087,7 @@ public final class Protocol {
       }
       /**
        * <code>optional string ufs_path = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearUfsPath() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -1034,6 +1097,8 @@ public final class Protocol {
       }
       /**
        * <code>optional string ufs_path = 1;</code>
+       * @param value The bytes for ufsPath to set.
+       * @return This builder for chaining.
        */
       public Builder setUfsPathBytes(
           com.google.protobuf.ByteString value) {
@@ -1053,9 +1118,10 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional int64 offset_in_file = 2;</code>
+       * @return Whether the offsetInFile field is set.
        */
       public boolean hasOffsetInFile() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <pre>
@@ -1063,6 +1129,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional int64 offset_in_file = 2;</code>
+       * @return The offsetInFile.
        */
       public long getOffsetInFile() {
         return offsetInFile_;
@@ -1073,6 +1140,8 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional int64 offset_in_file = 2;</code>
+       * @param value The offsetInFile to set.
+       * @return This builder for chaining.
        */
       public Builder setOffsetInFile(long value) {
         bitField0_ |= 0x00000002;
@@ -1086,6 +1155,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional int64 offset_in_file = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearOffsetInFile() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -1101,9 +1171,10 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional int64 block_size = 3;</code>
+       * @return Whether the blockSize field is set.
        */
       public boolean hasBlockSize() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000004) != 0);
       }
       /**
        * <pre>
@@ -1111,6 +1182,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional int64 block_size = 3;</code>
+       * @return The blockSize.
        */
       public long getBlockSize() {
         return blockSize_;
@@ -1121,6 +1193,8 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional int64 block_size = 3;</code>
+       * @param value The blockSize to set.
+       * @return This builder for chaining.
        */
       public Builder setBlockSize(long value) {
         bitField0_ |= 0x00000004;
@@ -1134,6 +1208,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional int64 block_size = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearBlockSize() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -1145,18 +1220,22 @@ public final class Protocol {
       private int maxUfsReadConcurrency_ ;
       /**
        * <code>optional int32 maxUfsReadConcurrency = 4;</code>
+       * @return Whether the maxUfsReadConcurrency field is set.
        */
       public boolean hasMaxUfsReadConcurrency() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
+        return ((bitField0_ & 0x00000008) != 0);
       }
       /**
        * <code>optional int32 maxUfsReadConcurrency = 4;</code>
+       * @return The maxUfsReadConcurrency.
        */
       public int getMaxUfsReadConcurrency() {
         return maxUfsReadConcurrency_;
       }
       /**
        * <code>optional int32 maxUfsReadConcurrency = 4;</code>
+       * @param value The maxUfsReadConcurrency to set.
+       * @return This builder for chaining.
        */
       public Builder setMaxUfsReadConcurrency(int value) {
         bitField0_ |= 0x00000008;
@@ -1166,6 +1245,7 @@ public final class Protocol {
       }
       /**
        * <code>optional int32 maxUfsReadConcurrency = 4;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMaxUfsReadConcurrency() {
         bitField0_ = (bitField0_ & ~0x00000008);
@@ -1177,18 +1257,22 @@ public final class Protocol {
       private long mountId_ ;
       /**
        * <code>optional int64 mountId = 5;</code>
+       * @return Whether the mountId field is set.
        */
       public boolean hasMountId() {
-        return ((bitField0_ & 0x00000010) == 0x00000010);
+        return ((bitField0_ & 0x00000010) != 0);
       }
       /**
        * <code>optional int64 mountId = 5;</code>
+       * @return The mountId.
        */
       public long getMountId() {
         return mountId_;
       }
       /**
        * <code>optional int64 mountId = 5;</code>
+       * @param value The mountId to set.
+       * @return This builder for chaining.
        */
       public Builder setMountId(long value) {
         bitField0_ |= 0x00000010;
@@ -1198,6 +1282,7 @@ public final class Protocol {
       }
       /**
        * <code>optional int64 mountId = 5;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMountId() {
         bitField0_ = (bitField0_ & ~0x00000010);
@@ -1213,9 +1298,10 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional bool no_cache = 6;</code>
+       * @return Whether the noCache field is set.
        */
       public boolean hasNoCache() {
-        return ((bitField0_ & 0x00000020) == 0x00000020);
+        return ((bitField0_ & 0x00000020) != 0);
       }
       /**
        * <pre>
@@ -1223,6 +1309,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional bool no_cache = 6;</code>
+       * @return The noCache.
        */
       public boolean getNoCache() {
         return noCache_;
@@ -1233,6 +1320,8 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional bool no_cache = 6;</code>
+       * @param value The noCache to set.
+       * @return This builder for chaining.
        */
       public Builder setNoCache(boolean value) {
         bitField0_ |= 0x00000020;
@@ -1246,6 +1335,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional bool no_cache = 6;</code>
+       * @return This builder for chaining.
        */
       public Builder clearNoCache() {
         bitField0_ = (bitField0_ & ~0x00000020);
@@ -1261,9 +1351,10 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional string user = 7;</code>
+       * @return Whether the user field is set.
        */
       public boolean hasUser() {
-        return ((bitField0_ & 0x00000040) == 0x00000040);
+        return ((bitField0_ & 0x00000040) != 0);
       }
       /**
        * <pre>
@@ -1271,6 +1362,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional string user = 7;</code>
+       * @return The user.
        */
       public java.lang.String getUser() {
         java.lang.Object ref = user_;
@@ -1292,6 +1384,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional string user = 7;</code>
+       * @return The bytes for user.
        */
       public com.google.protobuf.ByteString
           getUserBytes() {
@@ -1312,6 +1405,8 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional string user = 7;</code>
+       * @param value The user to set.
+       * @return This builder for chaining.
        */
       public Builder setUser(
           java.lang.String value) {
@@ -1329,6 +1424,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional string user = 7;</code>
+       * @return This builder for chaining.
        */
       public Builder clearUser() {
         bitField0_ = (bitField0_ & ~0x00000040);
@@ -1342,6 +1438,8 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional string user = 7;</code>
+       * @param value The bytes for user to set.
+       * @return This builder for chaining.
        */
       public Builder setUserBytes(
           com.google.protobuf.ByteString value) {
@@ -1361,9 +1459,10 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional bool block_in_ufs_tier = 8;</code>
+       * @return Whether the blockInUfsTier field is set.
        */
       public boolean hasBlockInUfsTier() {
-        return ((bitField0_ & 0x00000080) == 0x00000080);
+        return ((bitField0_ & 0x00000080) != 0);
       }
       /**
        * <pre>
@@ -1371,6 +1470,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional bool block_in_ufs_tier = 8;</code>
+       * @return The blockInUfsTier.
        */
       public boolean getBlockInUfsTier() {
         return blockInUfsTier_;
@@ -1381,6 +1481,8 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional bool block_in_ufs_tier = 8;</code>
+       * @param value The blockInUfsTier to set.
+       * @return This builder for chaining.
        */
       public Builder setBlockInUfsTier(boolean value) {
         bitField0_ |= 0x00000080;
@@ -1394,6 +1496,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional bool block_in_ufs_tier = 8;</code>
+       * @return This builder for chaining.
        */
       public Builder clearBlockInUfsTier() {
         bitField0_ = (bitField0_ & ~0x00000080);
@@ -1401,11 +1504,13 @@ public final class Protocol {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -1427,6 +1532,7 @@ public final class Protocol {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<OpenUfsBlockOptions>
         PARSER = new com.google.protobuf.AbstractParser<OpenUfsBlockOptions>() {
+      @java.lang.Override
       public OpenUfsBlockOptions parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1444,6 +1550,7 @@ public final class Protocol {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -1456,70 +1563,85 @@ public final class Protocol {
 
     /**
      * <code>optional string ufs_path = 1;</code>
+     * @return Whether the ufsPath field is set.
      */
     boolean hasUfsPath();
     /**
      * <code>optional string ufs_path = 1;</code>
+     * @return The ufsPath.
      */
     java.lang.String getUfsPath();
     /**
      * <code>optional string ufs_path = 1;</code>
+     * @return The bytes for ufsPath.
      */
     com.google.protobuf.ByteString
         getUfsPathBytes();
 
     /**
      * <code>optional string owner = 2;</code>
+     * @return Whether the owner field is set.
      */
     boolean hasOwner();
     /**
      * <code>optional string owner = 2;</code>
+     * @return The owner.
      */
     java.lang.String getOwner();
     /**
      * <code>optional string owner = 2;</code>
+     * @return The bytes for owner.
      */
     com.google.protobuf.ByteString
         getOwnerBytes();
 
     /**
      * <code>optional string group = 3;</code>
+     * @return Whether the group field is set.
      */
     boolean hasGroup();
     /**
      * <code>optional string group = 3;</code>
+     * @return The group.
      */
     java.lang.String getGroup();
     /**
      * <code>optional string group = 3;</code>
+     * @return The bytes for group.
      */
     com.google.protobuf.ByteString
         getGroupBytes();
 
     /**
      * <code>optional int32 mode = 4;</code>
+     * @return Whether the mode field is set.
      */
     boolean hasMode();
     /**
      * <code>optional int32 mode = 4;</code>
+     * @return The mode.
      */
     int getMode();
 
     /**
      * <code>optional int64 mount_id = 5;</code>
+     * @return Whether the mountId field is set.
      */
     boolean hasMountId();
     /**
      * <code>optional int64 mount_id = 5;</code>
+     * @return The mountId.
      */
     long getMountId();
 
     /**
      * <code>optional .alluxio.proto.shared.AccessControlList acl = 6;</code>
+     * @return Whether the acl field is set.
      */
     boolean hasAcl();
     /**
      * <code>optional .alluxio.proto.shared.AccessControlList acl = 6;</code>
+     * @return The acl.
      */
     alluxio.proto.shared.Acl.AccessControlList getAcl();
     /**
@@ -1548,8 +1670,13 @@ public final class Protocol {
       ufsPath_ = "";
       owner_ = "";
       group_ = "";
-      mode_ = 0;
-      mountId_ = 0L;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new CreateUfsFileOptions();
     }
 
     @java.lang.Override
@@ -1576,13 +1703,6 @@ public final class Protocol {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
@@ -1613,7 +1733,7 @@ public final class Protocol {
             }
             case 50: {
               alluxio.proto.shared.Acl.AccessControlList.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000020) == 0x00000020)) {
+              if (((bitField0_ & 0x00000020) != 0)) {
                 subBuilder = acl_.toBuilder();
               }
               acl_ = input.readMessage(alluxio.proto.shared.Acl.AccessControlList.PARSER, extensionRegistry);
@@ -1622,6 +1742,13 @@ public final class Protocol {
                 acl_ = subBuilder.buildPartial();
               }
               bitField0_ |= 0x00000020;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -1641,6 +1768,7 @@ public final class Protocol {
       return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_fieldAccessorTable
@@ -1653,12 +1781,14 @@ public final class Protocol {
     private volatile java.lang.Object ufsPath_;
     /**
      * <code>optional string ufs_path = 1;</code>
+     * @return Whether the ufsPath field is set.
      */
     public boolean hasUfsPath() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string ufs_path = 1;</code>
+     * @return The ufsPath.
      */
     public java.lang.String getUfsPath() {
       java.lang.Object ref = ufsPath_;
@@ -1676,6 +1806,7 @@ public final class Protocol {
     }
     /**
      * <code>optional string ufs_path = 1;</code>
+     * @return The bytes for ufsPath.
      */
     public com.google.protobuf.ByteString
         getUfsPathBytes() {
@@ -1695,12 +1826,14 @@ public final class Protocol {
     private volatile java.lang.Object owner_;
     /**
      * <code>optional string owner = 2;</code>
+     * @return Whether the owner field is set.
      */
     public boolean hasOwner() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string owner = 2;</code>
+     * @return The owner.
      */
     public java.lang.String getOwner() {
       java.lang.Object ref = owner_;
@@ -1718,6 +1851,7 @@ public final class Protocol {
     }
     /**
      * <code>optional string owner = 2;</code>
+     * @return The bytes for owner.
      */
     public com.google.protobuf.ByteString
         getOwnerBytes() {
@@ -1737,12 +1871,14 @@ public final class Protocol {
     private volatile java.lang.Object group_;
     /**
      * <code>optional string group = 3;</code>
+     * @return Whether the group field is set.
      */
     public boolean hasGroup() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional string group = 3;</code>
+     * @return The group.
      */
     public java.lang.String getGroup() {
       java.lang.Object ref = group_;
@@ -1760,6 +1896,7 @@ public final class Protocol {
     }
     /**
      * <code>optional string group = 3;</code>
+     * @return The bytes for group.
      */
     public com.google.protobuf.ByteString
         getGroupBytes() {
@@ -1779,12 +1916,14 @@ public final class Protocol {
     private int mode_;
     /**
      * <code>optional int32 mode = 4;</code>
+     * @return Whether the mode field is set.
      */
     public boolean hasMode() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional int32 mode = 4;</code>
+     * @return The mode.
      */
     public int getMode() {
       return mode_;
@@ -1794,12 +1933,14 @@ public final class Protocol {
     private long mountId_;
     /**
      * <code>optional int64 mount_id = 5;</code>
+     * @return Whether the mountId field is set.
      */
     public boolean hasMountId() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000010) != 0);
     }
     /**
      * <code>optional int64 mount_id = 5;</code>
+     * @return The mountId.
      */
     public long getMountId() {
       return mountId_;
@@ -1809,12 +1950,14 @@ public final class Protocol {
     private alluxio.proto.shared.Acl.AccessControlList acl_;
     /**
      * <code>optional .alluxio.proto.shared.AccessControlList acl = 6;</code>
+     * @return Whether the acl field is set.
      */
     public boolean hasAcl() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000020) != 0);
     }
     /**
      * <code>optional .alluxio.proto.shared.AccessControlList acl = 6;</code>
+     * @return The acl.
      */
     public alluxio.proto.shared.Acl.AccessControlList getAcl() {
       return acl_ == null ? alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance() : acl_;
@@ -1827,6 +1970,7 @@ public final class Protocol {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -1836,52 +1980,54 @@ public final class Protocol {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, ufsPath_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, owner_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, group_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000008) != 0)) {
         output.writeInt32(4, mode_);
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((bitField0_ & 0x00000010) != 0)) {
         output.writeInt64(5, mountId_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((bitField0_ & 0x00000020) != 0)) {
         output.writeMessage(6, getAcl());
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, ufsPath_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, owner_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, group_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000008) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(4, mode_);
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((bitField0_ & 0x00000010) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(5, mountId_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((bitField0_ & 0x00000020) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(6, getAcl());
       }
@@ -1900,39 +2046,38 @@ public final class Protocol {
       }
       alluxio.proto.dataserver.Protocol.CreateUfsFileOptions other = (alluxio.proto.dataserver.Protocol.CreateUfsFileOptions) obj;
 
-      boolean result = true;
-      result = result && (hasUfsPath() == other.hasUfsPath());
+      if (hasUfsPath() != other.hasUfsPath()) return false;
       if (hasUfsPath()) {
-        result = result && getUfsPath()
-            .equals(other.getUfsPath());
+        if (!getUfsPath()
+            .equals(other.getUfsPath())) return false;
       }
-      result = result && (hasOwner() == other.hasOwner());
+      if (hasOwner() != other.hasOwner()) return false;
       if (hasOwner()) {
-        result = result && getOwner()
-            .equals(other.getOwner());
+        if (!getOwner()
+            .equals(other.getOwner())) return false;
       }
-      result = result && (hasGroup() == other.hasGroup());
+      if (hasGroup() != other.hasGroup()) return false;
       if (hasGroup()) {
-        result = result && getGroup()
-            .equals(other.getGroup());
+        if (!getGroup()
+            .equals(other.getGroup())) return false;
       }
-      result = result && (hasMode() == other.hasMode());
+      if (hasMode() != other.hasMode()) return false;
       if (hasMode()) {
-        result = result && (getMode()
-            == other.getMode());
+        if (getMode()
+            != other.getMode()) return false;
       }
-      result = result && (hasMountId() == other.hasMountId());
+      if (hasMountId() != other.hasMountId()) return false;
       if (hasMountId()) {
-        result = result && (getMountId()
-            == other.getMountId());
+        if (getMountId()
+            != other.getMountId()) return false;
       }
-      result = result && (hasAcl() == other.hasAcl());
+      if (hasAcl() != other.hasAcl()) return false;
       if (hasAcl()) {
-        result = result && getAcl()
-            .equals(other.getAcl());
+        if (!getAcl()
+            .equals(other.getAcl())) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -2042,6 +2187,7 @@ public final class Protocol {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -2049,6 +2195,7 @@ public final class Protocol {
     public static Builder newBuilder(alluxio.proto.dataserver.Protocol.CreateUfsFileOptions prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -2077,6 +2224,7 @@ public final class Protocol {
         return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_fieldAccessorTable
@@ -2100,6 +2248,7 @@ public final class Protocol {
           getAclFieldBuilder();
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         ufsPath_ = "";
@@ -2121,15 +2270,18 @@ public final class Protocol {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.dataserver.Protocol.CreateUfsFileOptions getDefaultInstanceForType() {
         return alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.dataserver.Protocol.CreateUfsFileOptions build() {
         alluxio.proto.dataserver.Protocol.CreateUfsFileOptions result = buildPartial();
         if (!result.isInitialized()) {
@@ -2138,69 +2290,77 @@ public final class Protocol {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.dataserver.Protocol.CreateUfsFileOptions buildPartial() {
         alluxio.proto.dataserver.Protocol.CreateUfsFileOptions result = new alluxio.proto.dataserver.Protocol.CreateUfsFileOptions(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
           to_bitField0_ |= 0x00000001;
         }
         result.ufsPath_ = ufsPath_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
           to_bitField0_ |= 0x00000002;
         }
         result.owner_ = owner_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((from_bitField0_ & 0x00000004) != 0)) {
           to_bitField0_ |= 0x00000004;
         }
         result.group_ = group_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.mode_ = mode_;
           to_bitField0_ |= 0x00000008;
         }
-        result.mode_ = mode_;
-        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.mountId_ = mountId_;
           to_bitField0_ |= 0x00000010;
         }
-        result.mountId_ = mountId_;
-        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          if (aclBuilder_ == null) {
+            result.acl_ = acl_;
+          } else {
+            result.acl_ = aclBuilder_.build();
+          }
           to_bitField0_ |= 0x00000020;
-        }
-        if (aclBuilder_ == null) {
-          result.acl_ = acl_;
-        } else {
-          result.acl_ = aclBuilder_.build();
         }
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.dataserver.Protocol.CreateUfsFileOptions) {
           return mergeFrom((alluxio.proto.dataserver.Protocol.CreateUfsFileOptions)other);
@@ -2241,10 +2401,12 @@ public final class Protocol {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2267,12 +2429,14 @@ public final class Protocol {
       private java.lang.Object ufsPath_ = "";
       /**
        * <code>optional string ufs_path = 1;</code>
+       * @return Whether the ufsPath field is set.
        */
       public boolean hasUfsPath() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional string ufs_path = 1;</code>
+       * @return The ufsPath.
        */
       public java.lang.String getUfsPath() {
         java.lang.Object ref = ufsPath_;
@@ -2290,6 +2454,7 @@ public final class Protocol {
       }
       /**
        * <code>optional string ufs_path = 1;</code>
+       * @return The bytes for ufsPath.
        */
       public com.google.protobuf.ByteString
           getUfsPathBytes() {
@@ -2306,6 +2471,8 @@ public final class Protocol {
       }
       /**
        * <code>optional string ufs_path = 1;</code>
+       * @param value The ufsPath to set.
+       * @return This builder for chaining.
        */
       public Builder setUfsPath(
           java.lang.String value) {
@@ -2319,6 +2486,7 @@ public final class Protocol {
       }
       /**
        * <code>optional string ufs_path = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearUfsPath() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -2328,6 +2496,8 @@ public final class Protocol {
       }
       /**
        * <code>optional string ufs_path = 1;</code>
+       * @param value The bytes for ufsPath to set.
+       * @return This builder for chaining.
        */
       public Builder setUfsPathBytes(
           com.google.protobuf.ByteString value) {
@@ -2343,12 +2513,14 @@ public final class Protocol {
       private java.lang.Object owner_ = "";
       /**
        * <code>optional string owner = 2;</code>
+       * @return Whether the owner field is set.
        */
       public boolean hasOwner() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <code>optional string owner = 2;</code>
+       * @return The owner.
        */
       public java.lang.String getOwner() {
         java.lang.Object ref = owner_;
@@ -2366,6 +2538,7 @@ public final class Protocol {
       }
       /**
        * <code>optional string owner = 2;</code>
+       * @return The bytes for owner.
        */
       public com.google.protobuf.ByteString
           getOwnerBytes() {
@@ -2382,6 +2555,8 @@ public final class Protocol {
       }
       /**
        * <code>optional string owner = 2;</code>
+       * @param value The owner to set.
+       * @return This builder for chaining.
        */
       public Builder setOwner(
           java.lang.String value) {
@@ -2395,6 +2570,7 @@ public final class Protocol {
       }
       /**
        * <code>optional string owner = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearOwner() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -2404,6 +2580,8 @@ public final class Protocol {
       }
       /**
        * <code>optional string owner = 2;</code>
+       * @param value The bytes for owner to set.
+       * @return This builder for chaining.
        */
       public Builder setOwnerBytes(
           com.google.protobuf.ByteString value) {
@@ -2419,12 +2597,14 @@ public final class Protocol {
       private java.lang.Object group_ = "";
       /**
        * <code>optional string group = 3;</code>
+       * @return Whether the group field is set.
        */
       public boolean hasGroup() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000004) != 0);
       }
       /**
        * <code>optional string group = 3;</code>
+       * @return The group.
        */
       public java.lang.String getGroup() {
         java.lang.Object ref = group_;
@@ -2442,6 +2622,7 @@ public final class Protocol {
       }
       /**
        * <code>optional string group = 3;</code>
+       * @return The bytes for group.
        */
       public com.google.protobuf.ByteString
           getGroupBytes() {
@@ -2458,6 +2639,8 @@ public final class Protocol {
       }
       /**
        * <code>optional string group = 3;</code>
+       * @param value The group to set.
+       * @return This builder for chaining.
        */
       public Builder setGroup(
           java.lang.String value) {
@@ -2471,6 +2654,7 @@ public final class Protocol {
       }
       /**
        * <code>optional string group = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearGroup() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -2480,6 +2664,8 @@ public final class Protocol {
       }
       /**
        * <code>optional string group = 3;</code>
+       * @param value The bytes for group to set.
+       * @return This builder for chaining.
        */
       public Builder setGroupBytes(
           com.google.protobuf.ByteString value) {
@@ -2495,18 +2681,22 @@ public final class Protocol {
       private int mode_ ;
       /**
        * <code>optional int32 mode = 4;</code>
+       * @return Whether the mode field is set.
        */
       public boolean hasMode() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
+        return ((bitField0_ & 0x00000008) != 0);
       }
       /**
        * <code>optional int32 mode = 4;</code>
+       * @return The mode.
        */
       public int getMode() {
         return mode_;
       }
       /**
        * <code>optional int32 mode = 4;</code>
+       * @param value The mode to set.
+       * @return This builder for chaining.
        */
       public Builder setMode(int value) {
         bitField0_ |= 0x00000008;
@@ -2516,6 +2706,7 @@ public final class Protocol {
       }
       /**
        * <code>optional int32 mode = 4;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMode() {
         bitField0_ = (bitField0_ & ~0x00000008);
@@ -2527,18 +2718,22 @@ public final class Protocol {
       private long mountId_ ;
       /**
        * <code>optional int64 mount_id = 5;</code>
+       * @return Whether the mountId field is set.
        */
       public boolean hasMountId() {
-        return ((bitField0_ & 0x00000010) == 0x00000010);
+        return ((bitField0_ & 0x00000010) != 0);
       }
       /**
        * <code>optional int64 mount_id = 5;</code>
+       * @return The mountId.
        */
       public long getMountId() {
         return mountId_;
       }
       /**
        * <code>optional int64 mount_id = 5;</code>
+       * @param value The mountId to set.
+       * @return This builder for chaining.
        */
       public Builder setMountId(long value) {
         bitField0_ |= 0x00000010;
@@ -2548,6 +2743,7 @@ public final class Protocol {
       }
       /**
        * <code>optional int64 mount_id = 5;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMountId() {
         bitField0_ = (bitField0_ & ~0x00000010);
@@ -2556,17 +2752,19 @@ public final class Protocol {
         return this;
       }
 
-      private alluxio.proto.shared.Acl.AccessControlList acl_ = null;
+      private alluxio.proto.shared.Acl.AccessControlList acl_;
       private com.google.protobuf.SingleFieldBuilderV3<
           alluxio.proto.shared.Acl.AccessControlList, alluxio.proto.shared.Acl.AccessControlList.Builder, alluxio.proto.shared.Acl.AccessControlListOrBuilder> aclBuilder_;
       /**
        * <code>optional .alluxio.proto.shared.AccessControlList acl = 6;</code>
+       * @return Whether the acl field is set.
        */
       public boolean hasAcl() {
-        return ((bitField0_ & 0x00000020) == 0x00000020);
+        return ((bitField0_ & 0x00000020) != 0);
       }
       /**
        * <code>optional .alluxio.proto.shared.AccessControlList acl = 6;</code>
+       * @return The acl.
        */
       public alluxio.proto.shared.Acl.AccessControlList getAcl() {
         if (aclBuilder_ == null) {
@@ -2610,7 +2808,7 @@ public final class Protocol {
        */
       public Builder mergeAcl(alluxio.proto.shared.Acl.AccessControlList value) {
         if (aclBuilder_ == null) {
-          if (((bitField0_ & 0x00000020) == 0x00000020) &&
+          if (((bitField0_ & 0x00000020) != 0) &&
               acl_ != null &&
               acl_ != alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance()) {
             acl_ =
@@ -2673,11 +2871,13 @@ public final class Protocol {
         }
         return aclBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -2699,6 +2899,7 @@ public final class Protocol {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<CreateUfsFileOptions>
         PARSER = new com.google.protobuf.AbstractParser<CreateUfsFileOptions>() {
+      @java.lang.Override
       public CreateUfsFileOptions parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2716,6 +2917,7 @@ public final class Protocol {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.dataserver.Protocol.CreateUfsFileOptions getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -2733,6 +2935,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional int64 bytes_in_block_store = 1;</code>
+     * @return Whether the bytesInBlockStore field is set.
      */
     boolean hasBytesInBlockStore();
     /**
@@ -2742,6 +2945,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional int64 bytes_in_block_store = 1;</code>
+     * @return The bytesInBlockStore.
      */
     long getBytesInBlockStore();
 
@@ -2751,6 +2955,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional int64 mount_id = 2;</code>
+     * @return Whether the mountId field is set.
      */
     boolean hasMountId();
     /**
@@ -2759,6 +2964,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional int64 mount_id = 2;</code>
+     * @return The mountId.
      */
     long getMountId();
 
@@ -2769,6 +2975,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional bool fallback = 3;</code>
+     * @return Whether the fallback field is set.
      */
     boolean hasFallback();
     /**
@@ -2778,6 +2985,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional bool fallback = 3;</code>
+     * @return The fallback.
      */
     boolean getFallback();
   }
@@ -2799,9 +3007,13 @@ public final class Protocol {
       super(builder);
     }
     private CreateUfsBlockOptions() {
-      bytesInBlockStore_ = 0L;
-      mountId_ = 0L;
-      fallback_ = false;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new CreateUfsBlockOptions();
     }
 
     @java.lang.Override
@@ -2828,13 +3040,6 @@ public final class Protocol {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               bitField0_ |= 0x00000001;
               bytesInBlockStore_ = input.readInt64();
@@ -2848,6 +3053,13 @@ public final class Protocol {
             case 24: {
               bitField0_ |= 0x00000004;
               fallback_ = input.readBool();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -2867,6 +3079,7 @@ public final class Protocol {
       return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_CreateUfsBlockOptions_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_CreateUfsBlockOptions_fieldAccessorTable
@@ -2884,9 +3097,10 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional int64 bytes_in_block_store = 1;</code>
+     * @return Whether the bytesInBlockStore field is set.
      */
     public boolean hasBytesInBlockStore() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <pre>
@@ -2895,6 +3109,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional int64 bytes_in_block_store = 1;</code>
+     * @return The bytesInBlockStore.
      */
     public long getBytesInBlockStore() {
       return bytesInBlockStore_;
@@ -2908,9 +3123,10 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional int64 mount_id = 2;</code>
+     * @return Whether the mountId field is set.
      */
     public boolean hasMountId() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <pre>
@@ -2918,6 +3134,7 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional int64 mount_id = 2;</code>
+     * @return The mountId.
      */
     public long getMountId() {
       return mountId_;
@@ -2932,9 +3149,10 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional bool fallback = 3;</code>
+     * @return Whether the fallback field is set.
      */
     public boolean hasFallback() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <pre>
@@ -2943,12 +3161,14 @@ public final class Protocol {
      * </pre>
      *
      * <code>optional bool fallback = 3;</code>
+     * @return The fallback.
      */
     public boolean getFallback() {
       return fallback_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -2958,34 +3178,36 @@ public final class Protocol {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         output.writeInt64(1, bytesInBlockStore_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         output.writeInt64(2, mountId_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         output.writeBool(3, fallback_);
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, bytesInBlockStore_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(2, mountId_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(3, fallback_);
       }
@@ -3004,24 +3226,23 @@ public final class Protocol {
       }
       alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions other = (alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions) obj;
 
-      boolean result = true;
-      result = result && (hasBytesInBlockStore() == other.hasBytesInBlockStore());
+      if (hasBytesInBlockStore() != other.hasBytesInBlockStore()) return false;
       if (hasBytesInBlockStore()) {
-        result = result && (getBytesInBlockStore()
-            == other.getBytesInBlockStore());
+        if (getBytesInBlockStore()
+            != other.getBytesInBlockStore()) return false;
       }
-      result = result && (hasMountId() == other.hasMountId());
+      if (hasMountId() != other.hasMountId()) return false;
       if (hasMountId()) {
-        result = result && (getMountId()
-            == other.getMountId());
+        if (getMountId()
+            != other.getMountId()) return false;
       }
-      result = result && (hasFallback() == other.hasFallback());
+      if (hasFallback() != other.hasFallback()) return false;
       if (hasFallback()) {
-        result = result && (getFallback()
-            == other.getFallback());
+        if (getFallback()
+            != other.getFallback()) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -3121,6 +3342,7 @@ public final class Protocol {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -3128,6 +3350,7 @@ public final class Protocol {
     public static Builder newBuilder(alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -3156,6 +3379,7 @@ public final class Protocol {
         return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_CreateUfsBlockOptions_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_CreateUfsBlockOptions_fieldAccessorTable
@@ -3178,6 +3402,7 @@ public final class Protocol {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         bytesInBlockStore_ = 0L;
@@ -3189,15 +3414,18 @@ public final class Protocol {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_CreateUfsBlockOptions_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions getDefaultInstanceForType() {
         return alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions build() {
         alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions result = buildPartial();
         if (!result.isInitialized()) {
@@ -3206,53 +3434,61 @@ public final class Protocol {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions buildPartial() {
         alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions result = new alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.bytesInBlockStore_ = bytesInBlockStore_;
           to_bitField0_ |= 0x00000001;
         }
-        result.bytesInBlockStore_ = bytesInBlockStore_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.mountId_ = mountId_;
           to_bitField0_ |= 0x00000002;
         }
-        result.mountId_ = mountId_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.fallback_ = fallback_;
           to_bitField0_ |= 0x00000004;
         }
-        result.fallback_ = fallback_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions) {
           return mergeFrom((alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions)other);
@@ -3278,10 +3514,12 @@ public final class Protocol {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -3309,9 +3547,10 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional int64 bytes_in_block_store = 1;</code>
+       * @return Whether the bytesInBlockStore field is set.
        */
       public boolean hasBytesInBlockStore() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <pre>
@@ -3320,6 +3559,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional int64 bytes_in_block_store = 1;</code>
+       * @return The bytesInBlockStore.
        */
       public long getBytesInBlockStore() {
         return bytesInBlockStore_;
@@ -3331,6 +3571,8 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional int64 bytes_in_block_store = 1;</code>
+       * @param value The bytesInBlockStore to set.
+       * @return This builder for chaining.
        */
       public Builder setBytesInBlockStore(long value) {
         bitField0_ |= 0x00000001;
@@ -3345,6 +3587,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional int64 bytes_in_block_store = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearBytesInBlockStore() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -3360,9 +3603,10 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional int64 mount_id = 2;</code>
+       * @return Whether the mountId field is set.
        */
       public boolean hasMountId() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <pre>
@@ -3370,6 +3614,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional int64 mount_id = 2;</code>
+       * @return The mountId.
        */
       public long getMountId() {
         return mountId_;
@@ -3380,6 +3625,8 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional int64 mount_id = 2;</code>
+       * @param value The mountId to set.
+       * @return This builder for chaining.
        */
       public Builder setMountId(long value) {
         bitField0_ |= 0x00000002;
@@ -3393,6 +3640,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional int64 mount_id = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMountId() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -3409,9 +3657,10 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional bool fallback = 3;</code>
+       * @return Whether the fallback field is set.
        */
       public boolean hasFallback() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000004) != 0);
       }
       /**
        * <pre>
@@ -3420,6 +3669,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional bool fallback = 3;</code>
+       * @return The fallback.
        */
       public boolean getFallback() {
         return fallback_;
@@ -3431,6 +3681,8 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional bool fallback = 3;</code>
+       * @param value The fallback to set.
+       * @return This builder for chaining.
        */
       public Builder setFallback(boolean value) {
         bitField0_ |= 0x00000004;
@@ -3445,6 +3697,7 @@ public final class Protocol {
        * </pre>
        *
        * <code>optional bool fallback = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearFallback() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -3452,11 +3705,13 @@ public final class Protocol {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -3478,6 +3733,7 @@ public final class Protocol {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<CreateUfsBlockOptions>
         PARSER = new com.google.protobuf.AbstractParser<CreateUfsBlockOptions>() {
+      @java.lang.Override
       public CreateUfsBlockOptions parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -3495,6 +3751,7 @@ public final class Protocol {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -3507,23 +3764,28 @@ public final class Protocol {
 
     /**
      * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
+     * @return Whether the status field is set.
      */
     boolean hasStatus();
     /**
      * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
+     * @return The status.
      */
     alluxio.proto.status.Status.PStatus getStatus();
 
     /**
      * <code>optional string message = 2;</code>
+     * @return Whether the message field is set.
      */
     boolean hasMessage();
     /**
      * <code>optional string message = 2;</code>
+     * @return The message.
      */
     java.lang.String getMessage();
     /**
      * <code>optional string message = 2;</code>
+     * @return The bytes for message.
      */
     com.google.protobuf.ByteString
         getMessageBytes();
@@ -3551,6 +3813,13 @@ public final class Protocol {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new Response();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -3574,15 +3843,9 @@ public final class Protocol {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
+                @SuppressWarnings("deprecation")
               alluxio.proto.status.Status.PStatus value = alluxio.proto.status.Status.PStatus.valueOf(rawValue);
               if (value == null) {
                 unknownFields.mergeVarintField(1, rawValue);
@@ -3596,6 +3859,13 @@ public final class Protocol {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000002;
               message_ = bs;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -3615,6 +3885,7 @@ public final class Protocol {
       return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_Response_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable
@@ -3627,14 +3898,17 @@ public final class Protocol {
     private int status_;
     /**
      * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
+     * @return Whether the status field is set.
      */
     public boolean hasStatus() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
+     * @return The status.
      */
     public alluxio.proto.status.Status.PStatus getStatus() {
+      @SuppressWarnings("deprecation")
       alluxio.proto.status.Status.PStatus result = alluxio.proto.status.Status.PStatus.valueOf(status_);
       return result == null ? alluxio.proto.status.Status.PStatus.OK : result;
     }
@@ -3643,12 +3917,14 @@ public final class Protocol {
     private volatile java.lang.Object message_;
     /**
      * <code>optional string message = 2;</code>
+     * @return Whether the message field is set.
      */
     public boolean hasMessage() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string message = 2;</code>
+     * @return The message.
      */
     public java.lang.String getMessage() {
       java.lang.Object ref = message_;
@@ -3666,6 +3942,7 @@ public final class Protocol {
     }
     /**
      * <code>optional string message = 2;</code>
+     * @return The bytes for message.
      */
     public com.google.protobuf.ByteString
         getMessageBytes() {
@@ -3682,6 +3959,7 @@ public final class Protocol {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -3691,27 +3969,29 @@ public final class Protocol {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         output.writeEnum(1, status_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, message_);
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(1, status_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, message_);
       }
       size += unknownFields.getSerializedSize();
@@ -3729,18 +4009,17 @@ public final class Protocol {
       }
       alluxio.proto.dataserver.Protocol.Response other = (alluxio.proto.dataserver.Protocol.Response) obj;
 
-      boolean result = true;
-      result = result && (hasStatus() == other.hasStatus());
+      if (hasStatus() != other.hasStatus()) return false;
       if (hasStatus()) {
-        result = result && status_ == other.status_;
+        if (status_ != other.status_) return false;
       }
-      result = result && (hasMessage() == other.hasMessage());
+      if (hasMessage() != other.hasMessage()) return false;
       if (hasMessage()) {
-        result = result && getMessage()
-            .equals(other.getMessage());
+        if (!getMessage()
+            .equals(other.getMessage())) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -3833,6 +4112,7 @@ public final class Protocol {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -3840,6 +4120,7 @@ public final class Protocol {
     public static Builder newBuilder(alluxio.proto.dataserver.Protocol.Response prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -3868,6 +4149,7 @@ public final class Protocol {
         return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_Response_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable
@@ -3890,6 +4172,7 @@ public final class Protocol {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         status_ = 0;
@@ -3899,15 +4182,18 @@ public final class Protocol {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_Response_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.dataserver.Protocol.Response getDefaultInstanceForType() {
         return alluxio.proto.dataserver.Protocol.Response.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.dataserver.Protocol.Response build() {
         alluxio.proto.dataserver.Protocol.Response result = buildPartial();
         if (!result.isInitialized()) {
@@ -3916,15 +4202,16 @@ public final class Protocol {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.dataserver.Protocol.Response buildPartial() {
         alluxio.proto.dataserver.Protocol.Response result = new alluxio.proto.dataserver.Protocol.Response(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
           to_bitField0_ |= 0x00000001;
         }
         result.status_ = status_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
           to_bitField0_ |= 0x00000002;
         }
         result.message_ = message_;
@@ -3933,32 +4220,39 @@ public final class Protocol {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.dataserver.Protocol.Response) {
           return mergeFrom((alluxio.proto.dataserver.Protocol.Response)other);
@@ -3983,10 +4277,12 @@ public final class Protocol {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -4009,19 +4305,24 @@ public final class Protocol {
       private int status_ = 0;
       /**
        * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
+       * @return Whether the status field is set.
        */
       public boolean hasStatus() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
+       * @return The status.
        */
       public alluxio.proto.status.Status.PStatus getStatus() {
+        @SuppressWarnings("deprecation")
         alluxio.proto.status.Status.PStatus result = alluxio.proto.status.Status.PStatus.valueOf(status_);
         return result == null ? alluxio.proto.status.Status.PStatus.OK : result;
       }
       /**
        * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
+       * @param value The status to set.
+       * @return This builder for chaining.
        */
       public Builder setStatus(alluxio.proto.status.Status.PStatus value) {
         if (value == null) {
@@ -4034,6 +4335,7 @@ public final class Protocol {
       }
       /**
        * <code>optional .alluxio.proto.status.PStatus status = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearStatus() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -4045,12 +4347,14 @@ public final class Protocol {
       private java.lang.Object message_ = "";
       /**
        * <code>optional string message = 2;</code>
+       * @return Whether the message field is set.
        */
       public boolean hasMessage() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <code>optional string message = 2;</code>
+       * @return The message.
        */
       public java.lang.String getMessage() {
         java.lang.Object ref = message_;
@@ -4068,6 +4372,7 @@ public final class Protocol {
       }
       /**
        * <code>optional string message = 2;</code>
+       * @return The bytes for message.
        */
       public com.google.protobuf.ByteString
           getMessageBytes() {
@@ -4084,6 +4389,8 @@ public final class Protocol {
       }
       /**
        * <code>optional string message = 2;</code>
+       * @param value The message to set.
+       * @return This builder for chaining.
        */
       public Builder setMessage(
           java.lang.String value) {
@@ -4097,6 +4404,7 @@ public final class Protocol {
       }
       /**
        * <code>optional string message = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMessage() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -4106,6 +4414,8 @@ public final class Protocol {
       }
       /**
        * <code>optional string message = 2;</code>
+       * @param value The bytes for message to set.
+       * @return This builder for chaining.
        */
       public Builder setMessageBytes(
           com.google.protobuf.ByteString value) {
@@ -4117,11 +4427,13 @@ public final class Protocol {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -4143,6 +4455,7 @@ public final class Protocol {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<Response>
         PARSER = new com.google.protobuf.AbstractParser<Response>() {
+      @java.lang.Override
       public Response parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -4160,6 +4473,7 @@ public final class Protocol {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.dataserver.Protocol.Response getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -4212,20 +4526,12 @@ public final class Protocol {
       "\010Response\022-\n\006status\030\001 \001(\0162\035.alluxio.prot" +
       "o.status.PStatus\022\017\n\007message\030\002 \001(\t"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           alluxio.proto.status.Status.getDescriptor(),
           alluxio.proto.shared.Acl.getDescriptor(),
-        }, assigner);
+        });
     internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_fieldAccessorTable = new

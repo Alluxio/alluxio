@@ -16,8 +16,13 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private CancelTaskCommand() {
-    jobId_ = 0L;
-    taskId_ = 0L;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new CancelTaskCommand();
   }
 
   @java.lang.Override
@@ -44,13 +49,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             bitField0_ |= 0x00000001;
             jobId_ = input.readInt64();
@@ -59,6 +57,13 @@ private static final long serialVersionUID = 0L;
           case 16: {
             bitField0_ |= 0x00000002;
             taskId_ = input.readInt64();
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -78,6 +83,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_CancelTaskCommand_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_CancelTaskCommand_fieldAccessorTable
@@ -90,12 +96,14 @@ private static final long serialVersionUID = 0L;
   private long jobId_;
   /**
    * <code>optional int64 jobId = 1;</code>
+   * @return Whether the jobId field is set.
    */
   public boolean hasJobId() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional int64 jobId = 1;</code>
+   * @return The jobId.
    */
   public long getJobId() {
     return jobId_;
@@ -105,18 +113,21 @@ private static final long serialVersionUID = 0L;
   private long taskId_;
   /**
    * <code>optional int64 taskId = 2;</code>
+   * @return Whether the taskId field is set.
    */
   public boolean hasTaskId() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional int64 taskId = 2;</code>
+   * @return The taskId.
    */
   public long getTaskId() {
     return taskId_;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -126,27 +137,29 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeInt64(1, jobId_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeInt64(2, taskId_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(1, jobId_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(2, taskId_);
     }
@@ -165,19 +178,18 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.CancelTaskCommand other = (alluxio.grpc.CancelTaskCommand) obj;
 
-    boolean result = true;
-    result = result && (hasJobId() == other.hasJobId());
+    if (hasJobId() != other.hasJobId()) return false;
     if (hasJobId()) {
-      result = result && (getJobId()
-          == other.getJobId());
+      if (getJobId()
+          != other.getJobId()) return false;
     }
-    result = result && (hasTaskId() == other.hasTaskId());
+    if (hasTaskId() != other.hasTaskId()) return false;
     if (hasTaskId()) {
-      result = result && (getTaskId()
-          == other.getTaskId());
+      if (getTaskId()
+          != other.getTaskId()) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -272,6 +284,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -279,6 +292,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.CancelTaskCommand prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -302,6 +316,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_CancelTaskCommand_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_CancelTaskCommand_fieldAccessorTable
@@ -324,6 +339,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       jobId_ = 0L;
@@ -333,15 +349,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_CancelTaskCommand_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.CancelTaskCommand getDefaultInstanceForType() {
       return alluxio.grpc.CancelTaskCommand.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.CancelTaskCommand build() {
       alluxio.grpc.CancelTaskCommand result = buildPartial();
       if (!result.isInitialized()) {
@@ -350,49 +369,57 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.CancelTaskCommand buildPartial() {
       alluxio.grpc.CancelTaskCommand result = new alluxio.grpc.CancelTaskCommand(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        result.jobId_ = jobId_;
         to_bitField0_ |= 0x00000001;
       }
-      result.jobId_ = jobId_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
+        result.taskId_ = taskId_;
         to_bitField0_ |= 0x00000002;
       }
-      result.taskId_ = taskId_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.CancelTaskCommand) {
         return mergeFrom((alluxio.grpc.CancelTaskCommand)other);
@@ -415,10 +442,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -441,18 +470,22 @@ private static final long serialVersionUID = 0L;
     private long jobId_ ;
     /**
      * <code>optional int64 jobId = 1;</code>
+     * @return Whether the jobId field is set.
      */
     public boolean hasJobId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional int64 jobId = 1;</code>
+     * @return The jobId.
      */
     public long getJobId() {
       return jobId_;
     }
     /**
      * <code>optional int64 jobId = 1;</code>
+     * @param value The jobId to set.
+     * @return This builder for chaining.
      */
     public Builder setJobId(long value) {
       bitField0_ |= 0x00000001;
@@ -462,6 +495,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 jobId = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearJobId() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -473,18 +507,22 @@ private static final long serialVersionUID = 0L;
     private long taskId_ ;
     /**
      * <code>optional int64 taskId = 2;</code>
+     * @return Whether the taskId field is set.
      */
     public boolean hasTaskId() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional int64 taskId = 2;</code>
+     * @return The taskId.
      */
     public long getTaskId() {
       return taskId_;
     }
     /**
      * <code>optional int64 taskId = 2;</code>
+     * @param value The taskId to set.
+     * @return This builder for chaining.
      */
     public Builder setTaskId(long value) {
       bitField0_ |= 0x00000002;
@@ -494,6 +532,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 taskId = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearTaskId() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -501,11 +540,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -527,6 +568,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<CancelTaskCommand>
       PARSER = new com.google.protobuf.AbstractParser<CancelTaskCommand>() {
+    @java.lang.Override
     public CancelTaskCommand parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -544,6 +586,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.CancelTaskCommand getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

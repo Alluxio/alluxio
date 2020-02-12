@@ -9,14 +9,17 @@ public interface DetachDatabasePRequestOrBuilder extends
 
   /**
    * <code>optional string db_name = 1;</code>
+   * @return Whether the dbName field is set.
    */
   boolean hasDbName();
   /**
    * <code>optional string db_name = 1;</code>
+   * @return The dbName.
    */
   java.lang.String getDbName();
   /**
    * <code>optional string db_name = 1;</code>
+   * @return The bytes for dbName.
    */
   com.google.protobuf.ByteString
       getDbNameBytes();

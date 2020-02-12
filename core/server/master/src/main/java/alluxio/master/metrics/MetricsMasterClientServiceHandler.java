@@ -73,7 +73,7 @@ public final class MetricsMasterClientServiceHandler
               metrics.add(Metric.fromProto(metric));
             }
             mMetricsMaster.clientHeartbeat(
-                clientMetric.getClientId(), clientMetric.getHostname(), metrics);
+                clientMetric.getSource(), metrics);
           }
           return MetricsHeartbeatPResponse.getDefaultInstance();
         }, "metricsHeartbeat", "request=%s", responseObserver, request);

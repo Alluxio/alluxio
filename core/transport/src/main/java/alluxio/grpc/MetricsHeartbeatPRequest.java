@@ -19,6 +19,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new MetricsHeartbeatPRequest();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -42,16 +49,9 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             alluxio.grpc.MetricsHeartbeatPOptions.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000001) == 0x00000001)) {
+            if (((bitField0_ & 0x00000001) != 0)) {
               subBuilder = options_.toBuilder();
             }
             options_ = input.readMessage(alluxio.grpc.MetricsHeartbeatPOptions.PARSER, extensionRegistry);
@@ -60,6 +60,13 @@ private static final long serialVersionUID = 0L;
               options_ = subBuilder.buildPartial();
             }
             bitField0_ |= 0x00000001;
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -79,6 +86,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.MetricMasterProto.internal_static_alluxio_grpc_metric_MetricsHeartbeatPRequest_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.MetricMasterProto.internal_static_alluxio_grpc_metric_MetricsHeartbeatPRequest_fieldAccessorTable
@@ -91,12 +99,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.MetricsHeartbeatPOptions options_;
   /**
    * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
+   * @return Whether the options field is set.
    */
   public boolean hasOptions() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
+   * @return The options.
    */
   public alluxio.grpc.MetricsHeartbeatPOptions getOptions() {
     return options_ == null ? alluxio.grpc.MetricsHeartbeatPOptions.getDefaultInstance() : options_;
@@ -109,6 +119,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -124,20 +135,22 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeMessage(1, getOptions());
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(1, getOptions());
     }
@@ -156,14 +169,13 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.MetricsHeartbeatPRequest other = (alluxio.grpc.MetricsHeartbeatPRequest) obj;
 
-    boolean result = true;
-    result = result && (hasOptions() == other.hasOptions());
+    if (hasOptions() != other.hasOptions()) return false;
     if (hasOptions()) {
-      result = result && getOptions()
-          .equals(other.getOptions());
+      if (!getOptions()
+          .equals(other.getOptions())) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -252,6 +264,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -259,6 +272,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.MetricsHeartbeatPRequest prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -282,6 +296,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.MetricMasterProto.internal_static_alluxio_grpc_metric_MetricsHeartbeatPRequest_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.MetricMasterProto.internal_static_alluxio_grpc_metric_MetricsHeartbeatPRequest_fieldAccessorTable
@@ -305,6 +320,7 @@ private static final long serialVersionUID = 0L;
         getOptionsFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       if (optionsBuilder_ == null) {
@@ -316,15 +332,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.MetricMasterProto.internal_static_alluxio_grpc_metric_MetricsHeartbeatPRequest_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.MetricsHeartbeatPRequest getDefaultInstanceForType() {
       return alluxio.grpc.MetricsHeartbeatPRequest.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.MetricsHeartbeatPRequest build() {
       alluxio.grpc.MetricsHeartbeatPRequest result = buildPartial();
       if (!result.isInitialized()) {
@@ -333,49 +352,57 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.MetricsHeartbeatPRequest buildPartial() {
       alluxio.grpc.MetricsHeartbeatPRequest result = new alluxio.grpc.MetricsHeartbeatPRequest(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        if (optionsBuilder_ == null) {
+          result.options_ = options_;
+        } else {
+          result.options_ = optionsBuilder_.build();
+        }
         to_bitField0_ |= 0x00000001;
-      }
-      if (optionsBuilder_ == null) {
-        result.options_ = options_;
-      } else {
-        result.options_ = optionsBuilder_.build();
       }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.MetricsHeartbeatPRequest) {
         return mergeFrom((alluxio.grpc.MetricsHeartbeatPRequest)other);
@@ -395,6 +422,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       if (hasOptions()) {
         if (!getOptions().isInitialized()) {
@@ -404,6 +432,7 @@ private static final long serialVersionUID = 0L;
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -423,17 +452,19 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private alluxio.grpc.MetricsHeartbeatPOptions options_ = null;
+    private alluxio.grpc.MetricsHeartbeatPOptions options_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.MetricsHeartbeatPOptions, alluxio.grpc.MetricsHeartbeatPOptions.Builder, alluxio.grpc.MetricsHeartbeatPOptionsOrBuilder> optionsBuilder_;
     /**
      * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
+     * @return Whether the options field is set.
      */
     public boolean hasOptions() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
+     * @return The options.
      */
     public alluxio.grpc.MetricsHeartbeatPOptions getOptions() {
       if (optionsBuilder_ == null) {
@@ -477,7 +508,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeOptions(alluxio.grpc.MetricsHeartbeatPOptions value) {
       if (optionsBuilder_ == null) {
-        if (((bitField0_ & 0x00000001) == 0x00000001) &&
+        if (((bitField0_ & 0x00000001) != 0) &&
             options_ != null &&
             options_ != alluxio.grpc.MetricsHeartbeatPOptions.getDefaultInstance()) {
           options_ =
@@ -540,11 +571,13 @@ private static final long serialVersionUID = 0L;
       }
       return optionsBuilder_;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -566,6 +599,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<MetricsHeartbeatPRequest>
       PARSER = new com.google.protobuf.AbstractParser<MetricsHeartbeatPRequest>() {
+    @java.lang.Override
     public MetricsHeartbeatPRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -583,6 +617,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.MetricsHeartbeatPRequest getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

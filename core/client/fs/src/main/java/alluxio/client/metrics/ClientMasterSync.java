@@ -13,6 +13,7 @@ package alluxio.client.metrics;
 
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.ClientMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
@@ -69,7 +70,8 @@ public final class ClientMasterSync {
     // Currently we only support JVM-level metrics. A list is used here because in the near
     // future we will support sending per filesystem client-level metrics.
     List<alluxio.grpc.ClientMetrics> fsClientMetrics = new ArrayList<>();
-    String hostname = NetworkAddressUtils.getClientHostName(mConf);
+    String source = mConf.isSet(PropertyKey.USER_APP_ID)
+        ? mConf.get(PropertyKey.USER_APP_ID) : NetworkAddressUtils.getClientHostName(mConf);
     List<alluxio.grpc.Metric> metrics = MetricsSystem.reportClientMetrics();
     if (metrics.size() == 0) {
       // Likely when all should report metrics are counters
@@ -77,8 +79,7 @@ public final class ClientMasterSync {
       return;
     }
     fsClientMetrics.add(ClientMetrics.newBuilder()
-        .setHostname(hostname)
-        .setClientId(mApplicationId)
+        .setSource(source)
         .addAllMetrics(metrics)
         .build());
     try {

@@ -9,28 +9,34 @@ public interface LocalityTierOrBuilder extends
 
   /**
    * <code>optional string tierName = 1;</code>
+   * @return Whether the tierName field is set.
    */
   boolean hasTierName();
   /**
    * <code>optional string tierName = 1;</code>
+   * @return The tierName.
    */
   java.lang.String getTierName();
   /**
    * <code>optional string tierName = 1;</code>
+   * @return The bytes for tierName.
    */
   com.google.protobuf.ByteString
       getTierNameBytes();
 
   /**
    * <code>optional string value = 2;</code>
+   * @return Whether the value field is set.
    */
   boolean hasValue();
   /**
    * <code>optional string value = 2;</code>
+   * @return The value.
    */
   java.lang.String getValue();
   /**
    * <code>optional string value = 2;</code>
+   * @return The bytes for value.
    */
   com.google.protobuf.ByteString
       getValueBytes();

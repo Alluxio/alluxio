@@ -22,6 +22,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new StorageFormat();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -45,13 +52,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
@@ -71,7 +71,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 34: {
-            if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+            if (!((mutable_bitField0_ & 0x00000008) != 0)) {
               serdelibParameters_ = com.google.protobuf.MapField.newMapField(
                   SerdelibParametersDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000008;
@@ -81,6 +81,13 @@ private static final long serialVersionUID = 0L;
                 SerdelibParametersDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
             serdelibParameters_.getMutableMap().put(
                 serdelibParameters__.getKey(), serdelibParameters__.getValue());
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -101,6 +108,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @SuppressWarnings({"rawtypes"})
+  @java.lang.Override
   protected com.google.protobuf.MapField internalGetMapField(
       int number) {
     switch (number) {
@@ -111,6 +119,7 @@ private static final long serialVersionUID = 0L;
             "Invalid map field number: " + number);
     }
   }
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.table.layout.hive.HiveLayoutProto.internal_static_alluxio_grpc_table_layout_StorageFormat_fieldAccessorTable
@@ -123,12 +132,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object serde_;
   /**
    * <code>optional string serde = 1;</code>
+   * @return Whether the serde field is set.
    */
   public boolean hasSerde() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional string serde = 1;</code>
+   * @return The serde.
    */
   public java.lang.String getSerde() {
     java.lang.Object ref = serde_;
@@ -146,6 +157,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string serde = 1;</code>
+   * @return The bytes for serde.
    */
   public com.google.protobuf.ByteString
       getSerdeBytes() {
@@ -165,12 +177,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object inputFormat_;
   /**
    * <code>optional string input_format = 2;</code>
+   * @return Whether the inputFormat field is set.
    */
   public boolean hasInputFormat() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional string input_format = 2;</code>
+   * @return The inputFormat.
    */
   public java.lang.String getInputFormat() {
     java.lang.Object ref = inputFormat_;
@@ -188,6 +202,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string input_format = 2;</code>
+   * @return The bytes for inputFormat.
    */
   public com.google.protobuf.ByteString
       getInputFormatBytes() {
@@ -207,12 +222,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object outputFormat_;
   /**
    * <code>optional string output_format = 3;</code>
+   * @return Whether the outputFormat field is set.
    */
   public boolean hasOutputFormat() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional string output_format = 3;</code>
+   * @return The outputFormat.
    */
   public java.lang.String getOutputFormat() {
     java.lang.Object ref = outputFormat_;
@@ -230,6 +247,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string output_format = 3;</code>
+   * @return The bytes for outputFormat.
    */
   public com.google.protobuf.ByteString
       getOutputFormatBytes() {
@@ -322,6 +340,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -331,15 +350,16 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, serde_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, inputFormat_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 3, outputFormat_);
     }
     com.google.protobuf.GeneratedMessageV3
@@ -351,18 +371,19 @@ private static final long serialVersionUID = 0L;
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, serde_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, inputFormat_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, outputFormat_);
     }
     for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
@@ -390,26 +411,25 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.table.layout.hive.StorageFormat other = (alluxio.grpc.table.layout.hive.StorageFormat) obj;
 
-    boolean result = true;
-    result = result && (hasSerde() == other.hasSerde());
+    if (hasSerde() != other.hasSerde()) return false;
     if (hasSerde()) {
-      result = result && getSerde()
-          .equals(other.getSerde());
+      if (!getSerde()
+          .equals(other.getSerde())) return false;
     }
-    result = result && (hasInputFormat() == other.hasInputFormat());
+    if (hasInputFormat() != other.hasInputFormat()) return false;
     if (hasInputFormat()) {
-      result = result && getInputFormat()
-          .equals(other.getInputFormat());
+      if (!getInputFormat()
+          .equals(other.getInputFormat())) return false;
     }
-    result = result && (hasOutputFormat() == other.hasOutputFormat());
+    if (hasOutputFormat() != other.hasOutputFormat()) return false;
     if (hasOutputFormat()) {
-      result = result && getOutputFormat()
-          .equals(other.getOutputFormat());
+      if (!getOutputFormat()
+          .equals(other.getOutputFormat())) return false;
     }
-    result = result && internalGetSerdelibParameters().equals(
-        other.internalGetSerdelibParameters());
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!internalGetSerdelibParameters().equals(
+        other.internalGetSerdelibParameters())) return false;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -510,6 +530,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -517,6 +538,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.table.layout.hive.StorageFormat prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -562,6 +584,7 @@ private static final long serialVersionUID = 0L;
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.table.layout.hive.HiveLayoutProto.internal_static_alluxio_grpc_table_layout_StorageFormat_fieldAccessorTable
@@ -584,6 +607,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       serde_ = "";
@@ -596,15 +620,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.table.layout.hive.HiveLayoutProto.internal_static_alluxio_grpc_table_layout_StorageFormat_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.layout.hive.StorageFormat getDefaultInstanceForType() {
       return alluxio.grpc.table.layout.hive.StorageFormat.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.layout.hive.StorageFormat build() {
       alluxio.grpc.table.layout.hive.StorageFormat result = buildPartial();
       if (!result.isInitialized()) {
@@ -613,19 +640,20 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.layout.hive.StorageFormat buildPartial() {
       alluxio.grpc.table.layout.hive.StorageFormat result = new alluxio.grpc.table.layout.hive.StorageFormat(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
         to_bitField0_ |= 0x00000001;
       }
       result.serde_ = serde_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
         to_bitField0_ |= 0x00000002;
       }
       result.inputFormat_ = inputFormat_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
         to_bitField0_ |= 0x00000004;
       }
       result.outputFormat_ = outputFormat_;
@@ -636,32 +664,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.table.layout.hive.StorageFormat) {
         return mergeFrom((alluxio.grpc.table.layout.hive.StorageFormat)other);
@@ -695,10 +730,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -721,12 +758,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object serde_ = "";
     /**
      * <code>optional string serde = 1;</code>
+     * @return Whether the serde field is set.
      */
     public boolean hasSerde() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string serde = 1;</code>
+     * @return The serde.
      */
     public java.lang.String getSerde() {
       java.lang.Object ref = serde_;
@@ -744,6 +783,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string serde = 1;</code>
+     * @return The bytes for serde.
      */
     public com.google.protobuf.ByteString
         getSerdeBytes() {
@@ -760,6 +800,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string serde = 1;</code>
+     * @param value The serde to set.
+     * @return This builder for chaining.
      */
     public Builder setSerde(
         java.lang.String value) {
@@ -773,6 +815,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string serde = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearSerde() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -782,6 +825,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string serde = 1;</code>
+     * @param value The bytes for serde to set.
+     * @return This builder for chaining.
      */
     public Builder setSerdeBytes(
         com.google.protobuf.ByteString value) {
@@ -797,12 +842,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object inputFormat_ = "";
     /**
      * <code>optional string input_format = 2;</code>
+     * @return Whether the inputFormat field is set.
      */
     public boolean hasInputFormat() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string input_format = 2;</code>
+     * @return The inputFormat.
      */
     public java.lang.String getInputFormat() {
       java.lang.Object ref = inputFormat_;
@@ -820,6 +867,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string input_format = 2;</code>
+     * @return The bytes for inputFormat.
      */
     public com.google.protobuf.ByteString
         getInputFormatBytes() {
@@ -836,6 +884,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string input_format = 2;</code>
+     * @param value The inputFormat to set.
+     * @return This builder for chaining.
      */
     public Builder setInputFormat(
         java.lang.String value) {
@@ -849,6 +899,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string input_format = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearInputFormat() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -858,6 +909,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string input_format = 2;</code>
+     * @param value The bytes for inputFormat to set.
+     * @return This builder for chaining.
      */
     public Builder setInputFormatBytes(
         com.google.protobuf.ByteString value) {
@@ -873,12 +926,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object outputFormat_ = "";
     /**
      * <code>optional string output_format = 3;</code>
+     * @return Whether the outputFormat field is set.
      */
     public boolean hasOutputFormat() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional string output_format = 3;</code>
+     * @return The outputFormat.
      */
     public java.lang.String getOutputFormat() {
       java.lang.Object ref = outputFormat_;
@@ -896,6 +951,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string output_format = 3;</code>
+     * @return The bytes for outputFormat.
      */
     public com.google.protobuf.ByteString
         getOutputFormatBytes() {
@@ -912,6 +968,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string output_format = 3;</code>
+     * @param value The outputFormat to set.
+     * @return This builder for chaining.
      */
     public Builder setOutputFormat(
         java.lang.String value) {
@@ -925,6 +983,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string output_format = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearOutputFormat() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -934,6 +993,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string output_format = 3;</code>
+     * @param value The bytes for outputFormat to set.
+     * @return This builder for chaining.
      */
     public Builder setOutputFormatBytes(
         com.google.protobuf.ByteString value) {
@@ -1068,11 +1129,13 @@ private static final long serialVersionUID = 0L;
           .putAll(values);
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1094,6 +1157,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<StorageFormat>
       PARSER = new com.google.protobuf.AbstractParser<StorageFormat>() {
+    @java.lang.Override
     public StorageFormat parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1111,6 +1175,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.table.layout.hive.StorageFormat getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
