@@ -3220,13 +3220,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_LOCAL_CACHE_LIBRARY =
-      new Builder(Name.USER_LOCAL_CACHE_LIBRARY)
-          .setDefaultValue(false)
-          .setIsHidden(true)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_LOCAL_READER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_LOCAL_READER_CHUNK_SIZE_BYTES)
           .setDefaultValue("8MB")
@@ -4596,7 +4589,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILESYSTEM_CLASS = "alluxio.user.filesystem.class";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
     public static final String USER_LOCAL_CACHE_ENABLED = "alluxio.user.local.cache.enabled";
-    public static final String USER_LOCAL_CACHE_LIBRARY = "alluxio.user.local.cache.library";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.reader.chunk.size.bytes";
     public static final String USER_LOCAL_WRITER_CHUNK_SIZE_BYTES =

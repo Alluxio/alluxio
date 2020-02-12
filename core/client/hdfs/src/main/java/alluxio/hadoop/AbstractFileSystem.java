@@ -492,12 +492,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     // Disable URI validation for non-Alluxio schemes.
     boolean disableUriValidation =
         (uri.getScheme() == null) || uri.getScheme().equals(Constants.SCHEME);
-    if (alluxioConf.getBoolean(PropertyKey.USER_LOCAL_CACHE_LIBRARY)) {
-      mFileSystem = FileSystem.Factory.create(null, alluxioConf);
-    } else {
-      mFileSystem = FileSystem.Factory.create(
-          ClientContext.create(subject, alluxioConf).setUriValidationEnabled(disableUriValidation));
-    }
+    mFileSystem = FileSystem.Factory.create(
+        ClientContext.create(subject, alluxioConf).setUriValidationEnabled(disableUriValidation));
   }
 
   /**

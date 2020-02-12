@@ -17,7 +17,6 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.OpenFilePOptions;
 
@@ -63,9 +62,6 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
 
   @Override
   public AlluxioConfiguration getConf() {
-    if (mConf.getBoolean(PropertyKey.USER_LOCAL_CACHE_LIBRARY)) {
-      return mConf;
-    }
     return mDelegatedFileSystem.getConf();
   }
 
