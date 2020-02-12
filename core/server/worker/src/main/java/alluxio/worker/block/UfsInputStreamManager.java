@@ -242,7 +242,9 @@ public class UfsInputStreamManager {
           inputStream = mUnderFileInputStreamCache.get(nextId, () -> {
             SeekableUnderFileInputStream ufsStream
                 = (SeekableUnderFileInputStream) ufs.openExistingFile(path,
-                OpenOptions.defaults().setOffset(openOptions.getOffset()));
+                OpenOptions.defaults()
+                    .setPositionShort(openOptions.getPositionShort())
+                    .setOffset(openOptions.getOffset()));
             LOG.debug("Created the under file input stream resource of {}", newId);
             return new CachedSeekableInputStream(ufsStream, newId, fileId, path);
           });

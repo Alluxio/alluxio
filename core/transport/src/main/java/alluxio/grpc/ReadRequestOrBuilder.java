@@ -101,4 +101,21 @@ public interface ReadRequestOrBuilder extends
    * <code>optional int64 offset_received = 7;</code>
    */
   long getOffsetReceived();
+
+  /**
+   * <pre>
+   * Is position read to a small buffer
+   * </pre>
+   *
+   * <code>optional bool position_short = 8;</code>
+   */
+  boolean hasPositionShort();
+  /**
+   * <pre>
+   * Is position read to a small buffer
+   * </pre>
+   *
+   * <code>optional bool position_short = 8;</code>
+   */
+  boolean getPositionShort();
 }

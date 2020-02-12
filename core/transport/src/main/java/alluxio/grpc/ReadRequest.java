@@ -6,7 +6,7 @@ package alluxio.grpc;
 /**
  * <pre>
  * The read request.
- * next available id: 6
+ * next available id: 9
  * </pre>
  *
  * Protobuf type {@code alluxio.grpc.block.ReadRequest}
@@ -27,6 +27,7 @@ private static final long serialVersionUID = 0L;
     promote_ = false;
     chunkSize_ = 0L;
     offsetReceived_ = 0L;
+    positionShort_ = false;
   }
 
   @java.lang.Override
@@ -101,6 +102,11 @@ private static final long serialVersionUID = 0L;
           case 56: {
             bitField0_ |= 0x00000040;
             offsetReceived_ = input.readInt64();
+            break;
+          }
+          case 64: {
+            bitField0_ |= 0x00000080;
+            positionShort_ = input.readBool();
             break;
           }
         }
@@ -267,6 +273,29 @@ private static final long serialVersionUID = 0L;
     return offsetReceived_;
   }
 
+  public static final int POSITION_SHORT_FIELD_NUMBER = 8;
+  private boolean positionShort_;
+  /**
+   * <pre>
+   * Is position read to a small buffer
+   * </pre>
+   *
+   * <code>optional bool position_short = 8;</code>
+   */
+  public boolean hasPositionShort() {
+    return ((bitField0_ & 0x00000080) == 0x00000080);
+  }
+  /**
+   * <pre>
+   * Is position read to a small buffer
+   * </pre>
+   *
+   * <code>optional bool position_short = 8;</code>
+   */
+  public boolean getPositionShort() {
+    return positionShort_;
+  }
+
   private byte memoizedIsInitialized = -1;
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
@@ -299,6 +328,9 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000040) == 0x00000040)) {
       output.writeInt64(7, offsetReceived_);
+    }
+    if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      output.writeBool(8, positionShort_);
     }
     unknownFields.writeTo(output);
   }
@@ -335,6 +367,10 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000040) == 0x00000040)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(7, offsetReceived_);
+    }
+    if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(8, positionShort_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -387,6 +423,11 @@ private static final long serialVersionUID = 0L;
       result = result && (getOffsetReceived()
           == other.getOffsetReceived());
     }
+    result = result && (hasPositionShort() == other.hasPositionShort());
+    if (hasPositionShort()) {
+      result = result && (getPositionShort()
+          == other.getPositionShort());
+    }
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -431,6 +472,11 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + OFFSET_RECEIVED_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getOffsetReceived());
+    }
+    if (hasPositionShort()) {
+      hash = (37 * hash) + POSITION_SHORT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getPositionShort());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -528,7 +574,7 @@ private static final long serialVersionUID = 0L;
   /**
    * <pre>
    * The read request.
-   * next available id: 6
+   * next available id: 9
    * </pre>
    *
    * Protobuf type {@code alluxio.grpc.block.ReadRequest}
@@ -585,6 +631,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000020);
       offsetReceived_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000040);
+      positionShort_ = false;
+      bitField0_ = (bitField0_ & ~0x00000080);
       return this;
     }
 
@@ -641,6 +689,10 @@ private static final long serialVersionUID = 0L;
         to_bitField0_ |= 0x00000040;
       }
       result.offsetReceived_ = offsetReceived_;
+      if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+        to_bitField0_ |= 0x00000080;
+      }
+      result.positionShort_ = positionShort_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -703,6 +755,9 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasOffsetReceived()) {
         setOffsetReceived(other.getOffsetReceived());
+      }
+      if (other.hasPositionShort()) {
+        setPositionShort(other.getPositionShort());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -1106,6 +1161,54 @@ private static final long serialVersionUID = 0L;
     public Builder clearOffsetReceived() {
       bitField0_ = (bitField0_ & ~0x00000040);
       offsetReceived_ = 0L;
+      onChanged();
+      return this;
+    }
+
+    private boolean positionShort_ ;
+    /**
+     * <pre>
+     * Is position read to a small buffer
+     * </pre>
+     *
+     * <code>optional bool position_short = 8;</code>
+     */
+    public boolean hasPositionShort() {
+      return ((bitField0_ & 0x00000080) == 0x00000080);
+    }
+    /**
+     * <pre>
+     * Is position read to a small buffer
+     * </pre>
+     *
+     * <code>optional bool position_short = 8;</code>
+     */
+    public boolean getPositionShort() {
+      return positionShort_;
+    }
+    /**
+     * <pre>
+     * Is position read to a small buffer
+     * </pre>
+     *
+     * <code>optional bool position_short = 8;</code>
+     */
+    public Builder setPositionShort(boolean value) {
+      bitField0_ |= 0x00000080;
+      positionShort_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * Is position read to a small buffer
+     * </pre>
+     *
+     * <code>optional bool position_short = 8;</code>
+     */
+    public Builder clearPositionShort() {
+      bitField0_ = (bitField0_ & ~0x00000080);
+      positionShort_ = false;
       onChanged();
       return this;
     }

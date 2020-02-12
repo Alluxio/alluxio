@@ -2920,6 +2920,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "before this file is persisted.")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILE_SEQUENTIAL_PREAD_THRESHOLD =
+      new Builder(Name.USER_FILE_SEQUENTIAL_PREAD_THRESHOLD)
+          .setDefaultValue("2MB")
+          .setDescription("An upper bound on the client buffer size for positioned read to hint "
+              + "at the sequential nature of reads. For reads with a buffer size greater than this "
+              + "threshold, the read op is treated to be sequential and the worker may handle the "
+              + "read differently. For instance, cold reads from the HDFS ufs may use a different "
+              + "HDFS client API.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_BLOCK_SIZE_BYTES_DEFAULT =
       new Builder(Name.USER_BLOCK_SIZE_BYTES_DEFAULT)
           .setDefaultValue("64MB")
@@ -4510,6 +4521,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_REPLICATION_MIN = "alluxio.user.file.replication.min";
     public static final String USER_FILE_REPLICATION_DURABLE =
         "alluxio.user.file.replication.durable";
+    public static final String USER_FILE_SEQUENTIAL_PREAD_THRESHOLD =
+        "alluxio.user.file.sequential.pread.threshold";
     public static final String USER_FILE_UFS_TIER_ENABLED = "alluxio.user.file.ufs.tier.enabled";
     public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
         "alluxio.user.file.waitcompleted.poll";
