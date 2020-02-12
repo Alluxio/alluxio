@@ -25,6 +25,8 @@ import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
+import alluxio.wire.Configuration;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterators;
@@ -75,8 +77,8 @@ public class Database implements Journaled {
     mTables = new ConcurrentHashMap<>();
     mUdb = udb;
     mConfig = config;
-    mIgnoreTables = Sets.newHashSet(Splitter.on(",").trimResults().omitEmptyStrings()
-        .split(mConfig.get(CatalogProperty.DB_IGNORE_TABLES)));
+    mIgnoreTables = Sets.newHashSet(
+        ConfigurationUtils.parseAsList(mConfig.get(CatalogProperty.DB_IGNORE_TABLES), ","));
   }
 
   /**

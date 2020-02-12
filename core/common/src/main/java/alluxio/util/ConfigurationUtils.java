@@ -40,6 +40,8 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +75,8 @@ public final class ConfigurationUtils {
 
   private static final Object DEFAULT_PROPERTIES_LOCK = new Object();
 
-  private ConfigurationUtils() {} // prevent instantiation
+  private ConfigurationUtils() {
+  } // prevent instantiation
 
   /**
    * Gets the embedded journal addresses to use for the given service type (either master-raft or
@@ -153,8 +156,7 @@ public final class ConfigurationUtils {
   public static List<InetSocketAddress> getJobMasterRpcAddresses(AlluxioConfiguration conf) {
     // First check whether job rpc addresses are explicitly configured.
     if (conf.isSet(PropertyKey.JOB_MASTER_RPC_ADDRESSES)) {
-      return parseInetSocketAddresses(
-          conf.getList(PropertyKey.JOB_MASTER_RPC_ADDRESSES, ","));
+      return parseInetSocketAddresses(conf.getList(PropertyKey.JOB_MASTER_RPC_ADDRESSES, ","));
     }
 
     int jobRpcPort =
@@ -171,8 +173,8 @@ public final class ConfigurationUtils {
   }
 
   private static List<InetSocketAddress> overridePort(List<InetSocketAddress> addrs, int port) {
-    return StreamUtils.map(addr -> InetSocketAddress.createUnresolved(addr.getHostString(), port),
-        addrs);
+    return StreamUtils
+        .map(addr -> InetSocketAddress.createUnresolved(addr.getHostString(), port), addrs);
   }
 
   /**
@@ -249,8 +251,7 @@ public final class ConfigurationUtils {
    * @return the site properties file on success search, or null if failed
    */
   @Nullable
-  public static String searchPropertiesFile(String propertiesFile,
-      String[] confPathList) {
+  public static String searchPropertiesFile(String propertiesFile, String[] confPathList) {
     if (propertiesFile == null || confPathList == null) {
       return null;
     }
@@ -271,8 +272,7 @@ public final class ConfigurationUtils {
    *         explicit configuration or through zookeeper
    */
   public static boolean jobMasterHostConfigured(AlluxioConfiguration conf) {
-    boolean usingZk = conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
-        && conf.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
+    boolean usingZk = conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED) && conf.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
     return conf.isSet(PropertyKey.JOB_MASTER_HOSTNAME) || usingZk
         || getJobMasterRpcAddresses(conf).size() > 1;
   }
@@ -303,9 +303,9 @@ public final class ConfigurationUtils {
 
   private static String getHostNotConfiguredMessage(String serviceName, String masterName,
       PropertyKey masterHostnameKey, PropertyKey embeddedJournalKey) {
-    return ExceptionMessage.UNABLE_TO_DETERMINE_MASTER_HOSTNAME.getMessage(serviceName, masterName,
-        masterHostnameKey.getName(), PropertyKey.ZOOKEEPER_ENABLED.getName(),
-        PropertyKey.ZOOKEEPER_ADDRESS.getName(), embeddedJournalKey.getName());
+    return ExceptionMessage.UNABLE_TO_DETERMINE_MASTER_HOSTNAME
+        .getMessage(serviceName, masterName, masterHostnameKey.getName(), PropertyKey.ZOOKEEPER_ENABLED.getName(),
+            PropertyKey.ZOOKEEPER_ADDRESS.getName(), embeddedJournalKey.getName());
   }
 
   /**
@@ -331,8 +331,7 @@ public final class ConfigurationUtils {
    *         explicit configuration or through zookeeper
    */
   public static boolean masterHostConfigured(AlluxioConfiguration conf) {
-    boolean usingZk = conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
-        && conf.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
+    boolean usingZk = conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED) && conf.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
     return conf.isSet(PropertyKey.MASTER_HOSTNAME) || usingZk
         || getMasterRpcAddresses(conf).size() > 1;
   }
@@ -358,10 +357,8 @@ public final class ConfigurationUtils {
 
     List<ConfigProperty> configs = new ArrayList<>();
     List<PropertyKey> selectedKeys =
-        conf.keySet().stream()
-            .filter(key -> GrpcUtils.contains(key.getScope(), scope))
-            .filter(key -> key.isValid(key.getName()))
-            .collect(toList());
+        conf.keySet().stream().filter(key -> GrpcUtils.contains(key.getScope(), scope))
+            .filter(key -> key.isValid(key.getName())).collect(toList());
 
     for (PropertyKey key : selectedKeys) {
       ConfigProperty.Builder configProp = ConfigProperty.newBuilder().setName(key.getName())
@@ -424,8 +421,8 @@ public final class ConfigurationUtils {
       // we are not in test mode, load site properties
       String confPaths = conf.get(PropertyKey.SITE_CONF_DIR);
       String[] confPathList = confPaths.split(",");
-      String sitePropertyFile = ConfigurationUtils
-          .searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
+      String sitePropertyFile =
+          ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
       Properties siteProps = null;
       if (sitePropertyFile != null) {
         siteProps = loadPropertiesFromFile(sitePropertyFile);
@@ -493,9 +490,8 @@ public final class ConfigurationUtils {
           "Failed to handshake with master %s to load cluster default configuration values: %s",
           address, e.getMessage()), e);
     } catch (UnauthenticatedException e) {
-      throw new RuntimeException(String.format(
-          "Received authentication exception during boot-strap connect with host:%s", address),
-          e);
+      throw new RuntimeException(String.format("Received authentication exception during boot-strap connect with host:%s",
+          address), e);
     } finally {
       if (channel != null) {
         channel.shutdown();
@@ -544,8 +540,8 @@ public final class ConfigurationUtils {
     LOG.debug("Alluxio client (version {}) is trying to load cluster level configurations",
         clientVersion);
     List<alluxio.grpc.ConfigProperty> clusterConfig = response.getClusterConfigsList();
-    Properties clusterProps = loadClientProperties(clusterConfig, (key, value) ->
-        String.format("Loading property: %s (%s) -> %s", key, key.getScope(), value));
+    Properties clusterProps = loadClientProperties(clusterConfig, (key, value) -> String
+        .format("Loading property: %s (%s) -> %s", key, key.getScope(), value));
     // Check version.
     String clusterVersion = clusterProps.get(PropertyKey.VERSION).toString();
     if (!clientVersion.equals(clusterVersion)) {
@@ -579,9 +575,8 @@ public final class ConfigurationUtils {
         clientVersion);
     Map<String, AlluxioConfiguration> pathConfs = new HashMap<>();
     response.getPathConfigsMap().forEach((path, conf) -> {
-      Properties props = loadClientProperties(conf.getPropertiesList(),
-          (key, value) -> String.format("Loading property: %s (%s) -> %s for path %s",
-              key, key.getScope(), value, path));
+      Properties props = loadClientProperties(conf.getPropertiesList(), (key, value) -> String
+          .format("Loading property: %s (%s) -> %s for path %s", key, key.getScope(), value, path));
       AlluxioProperties properties = new AlluxioProperties();
       properties.merge(props, Source.PATH_DEFAULT);
       pathConfs.put(path, new InstancedConfiguration(properties, true));
@@ -607,5 +602,17 @@ public final class ConfigurationUtils {
 
     return Constants.HEADER + conf.get(PropertyKey.MASTER_HOSTNAME) + ":" + conf
         .get(PropertyKey.MASTER_RPC_PORT);
+  }
+
+  /**
+   * Returns the input string as a list, splitting on a specified delimiter.
+   *
+   * @param value the value to split
+   * @param delimiter the delimiter to split the values
+   * @return the list of values for input string
+   */
+  public static List<String> parseAsList(String value, String delimiter) {
+    return Lists.newArrayList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
+        .split(value));
   }
 }
