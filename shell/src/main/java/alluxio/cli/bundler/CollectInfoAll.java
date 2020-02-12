@@ -25,6 +25,12 @@ import alluxio.util.io.FileUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +65,13 @@ public class CollectInfoAll extends AbstractShell {
   // CMD_ALIAS map.
   private static final Set<String> UNSTABLE_ALIAS = ImmutableSet.of();
 
-  // TODO(jiacheng): what is a good max thread num?
+  private static final String MAX_THREAD_OPTION_NAME = "max-threads";
+  private static final Option THREAD_NUM_OPTION =
+          Option.builder().required(false).longOpt(MAX_THREAD_OPTION_NAME).hasArg(true)
+                  .desc("thread num").build();
+  private static final Options OPTIONS =
+          new Options().addOption(THREAD_NUM_OPTION);
+
   private ExecutorService mExecutor;
 
   /**
@@ -103,6 +115,16 @@ public class CollectInfoAll extends AbstractShell {
   public static void main(String[] argv) throws IOException {
     int ret = 0;
 
+    // Parse cmdline args
+    CommandLineParser parser = new DefaultParser();
+    CommandLine cmd;
+    try {
+      cmd = parser.parse(OPTIONS, argv, true /* stopAtNonOption */);
+    } catch (ParseException e) {
+      return;
+    }
+    String[] args = cmd.getArgs();
+
     InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
 
     // Execute the Collectors one by one
@@ -111,15 +133,22 @@ public class CollectInfoAll extends AbstractShell {
     CollectInfoAll shellAll = new CollectInfoAll(conf);
 
     // Validate commands
-    if (argv.length < 2) {
+    if (args.length < 2) {
       shellAll.printUsage();
       System.exit(-1);
     }
-    String targetDir = argv[1];
+    String targetDir = args[1];
 
     List<String> allHosts = new ArrayList<>(shellAll.getHosts());
     System.out.format("Init thread pool for %s hosts%n", allHosts.size());
-    shellAll.mExecutor = Executors.newFixedThreadPool(allHosts.size());
+    int threadNum = allHosts.size();
+    if (cmd.hasOption("threads")) {
+      int maxThreadNum = Integer.parseInt(cmd.getOptionValue(MAX_THREAD_OPTION_NAME));
+      LOG.info("Max thread number is {}", maxThreadNum);
+      threadNum = Math.min(maxThreadNum, threadNum);
+    }
+    LOG.info("Use {} threads", threadNum);
+    shellAll.mExecutor = Executors.newFixedThreadPool(threadNum);
 
     // Invoke collectInfo on each host
     List<CompletableFuture<CommandReturn>> sshFutureList = new ArrayList<>();
@@ -135,7 +164,7 @@ public class CollectInfoAll extends AbstractShell {
 
         try {
           String[] collectInfoArgs =
-                  (String[]) ArrayUtils.addAll(new String[]{alluxioBinPath, "collectInfo"}, argv);
+                  (String[]) ArrayUtils.addAll(new String[]{alluxioBinPath, "collectInfo"}, args);
           CommandReturn cr = ShellUtils.sshExecCommandWithOutput(host, collectInfoArgs);
           return cr;
         } catch (Exception e) {
