@@ -448,8 +448,10 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
 
       try (FileInStream is = mFileSystem.openFile(uri, FileSystemTestUtils.toOpenFileOptions(op))) {
         byte[] ret = new byte[DELTA - 1];
-        Assert.assertEquals(DELTA - 1, is.positionedRead(MIN_LEN - DELTA + 1, ret, 0, DELTA));
-        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(MIN_LEN - DELTA + 1, DELTA - 1, ret));
+        Assert.assertEquals(DELTA - 1,
+            is.positionedRead(MIN_LEN - DELTA + 1, ret, 0, DELTA));
+        Assert.assertTrue(
+            BufferUtils.equalIncreasingByteArray(MIN_LEN - DELTA + 1, DELTA - 1, ret));
       }
     }
   }
@@ -467,8 +469,10 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
 
       try (FileInStream is = mFileSystem.openFile(uri, FileSystemTestUtils.toOpenFileOptions(op))) {
         byte[] ret = new byte[DELTA - 1];
-        Assert.assertEquals(DELTA - 1, is.positionedRead(MIN_LEN - DELTA + 1, ret, 0, DELTA));
-        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(MIN_LEN - DELTA + 1, DELTA - 1, ret));
+        Assert.assertEquals(DELTA - 1,
+            is.positionedRead(MIN_LEN - DELTA + 1, ret, 0, DELTA));
+        Assert.assertTrue(
+            BufferUtils.equalIncreasingByteArray(MIN_LEN - DELTA + 1, DELTA - 1, ret));
       }
     }
   }
