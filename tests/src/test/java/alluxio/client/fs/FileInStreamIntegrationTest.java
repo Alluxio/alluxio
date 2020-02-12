@@ -435,6 +435,44 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
     }
   }
 
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.USER_FILE_SEQUENTIAL_PREAD_THRESHOLD, "700KB"})
+  public void positionedReadWithLargeThreshold() throws Exception {
+    List<CreateFilePOptions> optionSet = new ArrayList<>(2);
+    optionSet.add(mWriteBoth);
+    optionSet.add(mWriteUnderStore);
+    for (CreateFilePOptions op : optionSet) {
+      String filename = mTestPath + "/file_" + MIN_LEN + "_" + op.hashCode();
+      AlluxioURI uri = new AlluxioURI(filename);
+
+      try (FileInStream is = mFileSystem.openFile(uri, FileSystemTestUtils.toOpenFileOptions(op))) {
+        byte[] ret = new byte[DELTA - 1];
+        Assert.assertEquals(DELTA - 1, is.positionedRead(MIN_LEN - DELTA + 1, ret, 0, DELTA));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(MIN_LEN - DELTA + 1, DELTA - 1, ret));
+      }
+    }
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.USER_FILE_SEQUENTIAL_PREAD_THRESHOLD, "200KB"})
+  public void positionedReadWithSmallThreshold() throws Exception {
+    List<CreateFilePOptions> optionSet = new ArrayList<>(2);
+    optionSet.add(mWriteBoth);
+    optionSet.add(mWriteUnderStore);
+    for (CreateFilePOptions op : optionSet) {
+      String filename = mTestPath + "/file_" + MIN_LEN + "_" + op.hashCode();
+      AlluxioURI uri = new AlluxioURI(filename);
+
+      try (FileInStream is = mFileSystem.openFile(uri, FileSystemTestUtils.toOpenFileOptions(op))) {
+        byte[] ret = new byte[DELTA - 1];
+        Assert.assertEquals(DELTA - 1, is.positionedRead(MIN_LEN - DELTA + 1, ret, 0, DELTA));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(MIN_LEN - DELTA + 1, DELTA - 1, ret));
+      }
+    }
+  }
+
   @Test(timeout = 10000)
   public void asyncCacheFirstBlock() throws Exception {
     String filename = mTestPath + "/file_" + MAX_LEN + "_" + mWriteUnderStore.hashCode();
