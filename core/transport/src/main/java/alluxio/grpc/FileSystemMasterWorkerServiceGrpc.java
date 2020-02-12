@@ -22,7 +22,7 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.17.1)",
+    value = "by gRPC proto compiler (version 1.27.0)",
     comments = "Source: grpc/file_system_master.proto")
 public final class FileSystemMasterWorkerServiceGrpc {
 
@@ -45,22 +45,21 @@ public final class FileSystemMasterWorkerServiceGrpc {
     if ((getFileSystemHeartbeatMethod = FileSystemMasterWorkerServiceGrpc.getFileSystemHeartbeatMethod) == null) {
       synchronized (FileSystemMasterWorkerServiceGrpc.class) {
         if ((getFileSystemHeartbeatMethod = FileSystemMasterWorkerServiceGrpc.getFileSystemHeartbeatMethod) == null) {
-          FileSystemMasterWorkerServiceGrpc.getFileSystemHeartbeatMethod = getFileSystemHeartbeatMethod = 
+          FileSystemMasterWorkerServiceGrpc.getFileSystemHeartbeatMethod = getFileSystemHeartbeatMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.FileSystemHeartbeatPRequest, alluxio.grpc.FileSystemHeartbeatPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterWorkerService", "FileSystemHeartbeat"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "FileSystemHeartbeat"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.FileSystemHeartbeatPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.FileSystemHeartbeatPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterWorkerServiceMethodDescriptorSupplier("FileSystemHeartbeat"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterWorkerServiceMethodDescriptorSupplier("FileSystemHeartbeat"))
+              .build();
         }
-     }
-     return getFileSystemHeartbeatMethod;
+      }
+    }
+    return getFileSystemHeartbeatMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetFileInfoPRequest,
@@ -77,22 +76,21 @@ public final class FileSystemMasterWorkerServiceGrpc {
     if ((getGetFileInfoMethod = FileSystemMasterWorkerServiceGrpc.getGetFileInfoMethod) == null) {
       synchronized (FileSystemMasterWorkerServiceGrpc.class) {
         if ((getGetFileInfoMethod = FileSystemMasterWorkerServiceGrpc.getGetFileInfoMethod) == null) {
-          FileSystemMasterWorkerServiceGrpc.getGetFileInfoMethod = getGetFileInfoMethod = 
+          FileSystemMasterWorkerServiceGrpc.getGetFileInfoMethod = getGetFileInfoMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetFileInfoPRequest, alluxio.grpc.GetFileInfoPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterWorkerService", "GetFileInfo"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetFileInfo"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetFileInfoPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetFileInfoPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterWorkerServiceMethodDescriptorSupplier("GetFileInfo"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterWorkerServiceMethodDescriptorSupplier("GetFileInfo"))
+              .build();
         }
-     }
-     return getGetFileInfoMethod;
+      }
+    }
+    return getGetFileInfoMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetPinnedFileIdsPRequest,
@@ -109,22 +107,21 @@ public final class FileSystemMasterWorkerServiceGrpc {
     if ((getGetPinnedFileIdsMethod = FileSystemMasterWorkerServiceGrpc.getGetPinnedFileIdsMethod) == null) {
       synchronized (FileSystemMasterWorkerServiceGrpc.class) {
         if ((getGetPinnedFileIdsMethod = FileSystemMasterWorkerServiceGrpc.getGetPinnedFileIdsMethod) == null) {
-          FileSystemMasterWorkerServiceGrpc.getGetPinnedFileIdsMethod = getGetPinnedFileIdsMethod = 
+          FileSystemMasterWorkerServiceGrpc.getGetPinnedFileIdsMethod = getGetPinnedFileIdsMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetPinnedFileIdsPRequest, alluxio.grpc.GetPinnedFileIdsPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterWorkerService", "GetPinnedFileIds"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetPinnedFileIds"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetPinnedFileIdsPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetPinnedFileIdsPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterWorkerServiceMethodDescriptorSupplier("GetPinnedFileIds"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterWorkerServiceMethodDescriptorSupplier("GetPinnedFileIds"))
+              .build();
         }
-     }
-     return getGetPinnedFileIdsMethod;
+      }
+    }
+    return getGetPinnedFileIdsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetUfsInfoPRequest,
@@ -141,29 +138,35 @@ public final class FileSystemMasterWorkerServiceGrpc {
     if ((getGetUfsInfoMethod = FileSystemMasterWorkerServiceGrpc.getGetUfsInfoMethod) == null) {
       synchronized (FileSystemMasterWorkerServiceGrpc.class) {
         if ((getGetUfsInfoMethod = FileSystemMasterWorkerServiceGrpc.getGetUfsInfoMethod) == null) {
-          FileSystemMasterWorkerServiceGrpc.getGetUfsInfoMethod = getGetUfsInfoMethod = 
+          FileSystemMasterWorkerServiceGrpc.getGetUfsInfoMethod = getGetUfsInfoMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetUfsInfoPRequest, alluxio.grpc.GetUfsInfoPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterWorkerService", "GetUfsInfo"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetUfsInfo"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetUfsInfoPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetUfsInfoPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterWorkerServiceMethodDescriptorSupplier("GetUfsInfo"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterWorkerServiceMethodDescriptorSupplier("GetUfsInfo"))
+              .build();
         }
-     }
-     return getGetUfsInfoMethod;
+      }
+    }
+    return getGetUfsInfoMethod;
   }
 
   /**
    * Creates a new async stub that supports all call types for the service
    */
   public static FileSystemMasterWorkerServiceStub newStub(io.grpc.Channel channel) {
-    return new FileSystemMasterWorkerServiceStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterWorkerServiceStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterWorkerServiceStub>() {
+        @java.lang.Override
+        public FileSystemMasterWorkerServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new FileSystemMasterWorkerServiceStub(channel, callOptions);
+        }
+      };
+    return FileSystemMasterWorkerServiceStub.newStub(factory, channel);
   }
 
   /**
@@ -171,7 +174,14 @@ public final class FileSystemMasterWorkerServiceGrpc {
    */
   public static FileSystemMasterWorkerServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new FileSystemMasterWorkerServiceBlockingStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterWorkerServiceBlockingStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterWorkerServiceBlockingStub>() {
+        @java.lang.Override
+        public FileSystemMasterWorkerServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new FileSystemMasterWorkerServiceBlockingStub(channel, callOptions);
+        }
+      };
+    return FileSystemMasterWorkerServiceBlockingStub.newStub(factory, channel);
   }
 
   /**
@@ -179,7 +189,14 @@ public final class FileSystemMasterWorkerServiceGrpc {
    */
   public static FileSystemMasterWorkerServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new FileSystemMasterWorkerServiceFutureStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterWorkerServiceFutureStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterWorkerServiceFutureStub>() {
+        @java.lang.Override
+        public FileSystemMasterWorkerServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new FileSystemMasterWorkerServiceFutureStub(channel, callOptions);
+        }
+      };
+    return FileSystemMasterWorkerServiceFutureStub.newStub(factory, channel);
   }
 
   /**
@@ -274,19 +291,15 @@ public final class FileSystemMasterWorkerServiceGrpc {
    * This interface contains file system master service endpoints for Alluxio workers.
    * </pre>
    */
-  public static final class FileSystemMasterWorkerServiceStub extends io.grpc.stub.AbstractStub<FileSystemMasterWorkerServiceStub> {
-    private FileSystemMasterWorkerServiceStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private FileSystemMasterWorkerServiceStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class FileSystemMasterWorkerServiceStub extends io.grpc.stub.AbstractAsyncStub<FileSystemMasterWorkerServiceStub> {
+    private FileSystemMasterWorkerServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected FileSystemMasterWorkerServiceStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected FileSystemMasterWorkerServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new FileSystemMasterWorkerServiceStub(channel, callOptions);
     }
 
@@ -345,19 +358,15 @@ public final class FileSystemMasterWorkerServiceGrpc {
    * This interface contains file system master service endpoints for Alluxio workers.
    * </pre>
    */
-  public static final class FileSystemMasterWorkerServiceBlockingStub extends io.grpc.stub.AbstractStub<FileSystemMasterWorkerServiceBlockingStub> {
-    private FileSystemMasterWorkerServiceBlockingStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private FileSystemMasterWorkerServiceBlockingStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class FileSystemMasterWorkerServiceBlockingStub extends io.grpc.stub.AbstractBlockingStub<FileSystemMasterWorkerServiceBlockingStub> {
+    private FileSystemMasterWorkerServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected FileSystemMasterWorkerServiceBlockingStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected FileSystemMasterWorkerServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new FileSystemMasterWorkerServiceBlockingStub(channel, callOptions);
     }
 
@@ -412,19 +421,15 @@ public final class FileSystemMasterWorkerServiceGrpc {
    * This interface contains file system master service endpoints for Alluxio workers.
    * </pre>
    */
-  public static final class FileSystemMasterWorkerServiceFutureStub extends io.grpc.stub.AbstractStub<FileSystemMasterWorkerServiceFutureStub> {
-    private FileSystemMasterWorkerServiceFutureStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private FileSystemMasterWorkerServiceFutureStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class FileSystemMasterWorkerServiceFutureStub extends io.grpc.stub.AbstractFutureStub<FileSystemMasterWorkerServiceFutureStub> {
+    private FileSystemMasterWorkerServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected FileSystemMasterWorkerServiceFutureStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected FileSystemMasterWorkerServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new FileSystemMasterWorkerServiceFutureStub(channel, callOptions);
     }
 

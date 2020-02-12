@@ -9,61 +9,74 @@ public interface TableInfoOrBuilder extends
 
   /**
    * <code>optional string db_name = 1;</code>
+   * @return Whether the dbName field is set.
    */
   boolean hasDbName();
   /**
    * <code>optional string db_name = 1;</code>
+   * @return The dbName.
    */
   java.lang.String getDbName();
   /**
    * <code>optional string db_name = 1;</code>
+   * @return The bytes for dbName.
    */
   com.google.protobuf.ByteString
       getDbNameBytes();
 
   /**
    * <code>optional string table_name = 2;</code>
+   * @return Whether the tableName field is set.
    */
   boolean hasTableName();
   /**
    * <code>optional string table_name = 2;</code>
+   * @return The tableName.
    */
   java.lang.String getTableName();
   /**
    * <code>optional string table_name = 2;</code>
+   * @return The bytes for tableName.
    */
   com.google.protobuf.ByteString
       getTableNameBytes();
 
   /**
    * <code>optional .alluxio.grpc.table.TableInfo.TableType type = 3;</code>
+   * @return Whether the type field is set.
    */
   boolean hasType();
   /**
    * <code>optional .alluxio.grpc.table.TableInfo.TableType type = 3;</code>
+   * @return The type.
    */
   alluxio.grpc.table.TableInfo.TableType getType();
 
   /**
    * <code>optional string owner = 4;</code>
+   * @return Whether the owner field is set.
    */
   boolean hasOwner();
   /**
    * <code>optional string owner = 4;</code>
+   * @return The owner.
    */
   java.lang.String getOwner();
   /**
    * <code>optional string owner = 4;</code>
+   * @return The bytes for owner.
    */
   com.google.protobuf.ByteString
       getOwnerBytes();
 
   /**
    * <code>optional .alluxio.grpc.table.Schema schema = 5;</code>
+   * @return Whether the schema field is set.
    */
   boolean hasSchema();
   /**
    * <code>optional .alluxio.grpc.table.Schema schema = 5;</code>
+   * @return The schema.
    */
   alluxio.grpc.table.Schema getSchema();
   /**
@@ -73,10 +86,12 @@ public interface TableInfoOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.Layout layout = 6;</code>
+   * @return Whether the layout field is set.
    */
   boolean hasLayout();
   /**
    * <code>optional .alluxio.grpc.table.Layout layout = 6;</code>
+   * @return The layout.
    */
   alluxio.grpc.table.Layout getLayout();
   /**
@@ -164,28 +179,34 @@ public interface TableInfoOrBuilder extends
 
   /**
    * <code>optional int64 previous_version = 9;</code>
+   * @return Whether the previousVersion field is set.
    */
   boolean hasPreviousVersion();
   /**
    * <code>optional int64 previous_version = 9;</code>
+   * @return The previousVersion.
    */
   long getPreviousVersion();
 
   /**
    * <code>optional int64 version = 10;</code>
+   * @return Whether the version field is set.
    */
   boolean hasVersion();
   /**
    * <code>optional int64 version = 10;</code>
+   * @return The version.
    */
   long getVersion();
 
   /**
    * <code>optional int64 version_creation_time = 11;</code>
+   * @return Whether the versionCreationTime field is set.
    */
   boolean hasVersionCreationTime();
   /**
    * <code>optional int64 version_creation_time = 11;</code>
+   * @return The versionCreationTime.
    */
   long getVersionCreationTime();
 }

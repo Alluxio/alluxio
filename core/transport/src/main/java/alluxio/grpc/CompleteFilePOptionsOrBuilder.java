@@ -9,19 +9,23 @@ public interface CompleteFilePOptionsOrBuilder extends
 
   /**
    * <code>optional int64 ufsLength = 1;</code>
+   * @return Whether the ufsLength field is set.
    */
   boolean hasUfsLength();
   /**
    * <code>optional int64 ufsLength = 1;</code>
+   * @return The ufsLength.
    */
   long getUfsLength();
 
   /**
    * <code>optional .alluxio.grpc.file.ScheduleAsyncPersistencePOptions asyncPersistOptions = 2;</code>
+   * @return Whether the asyncPersistOptions field is set.
    */
   boolean hasAsyncPersistOptions();
   /**
    * <code>optional .alluxio.grpc.file.ScheduleAsyncPersistencePOptions asyncPersistOptions = 2;</code>
+   * @return The asyncPersistOptions.
    */
   alluxio.grpc.ScheduleAsyncPersistencePOptions getAsyncPersistOptions();
   /**
@@ -31,10 +35,12 @@ public interface CompleteFilePOptionsOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+   * @return Whether the commonOptions field is set.
    */
   boolean hasCommonOptions();
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+   * @return The commonOptions.
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**

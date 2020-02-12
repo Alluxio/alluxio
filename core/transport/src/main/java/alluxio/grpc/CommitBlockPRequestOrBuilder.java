@@ -13,6 +13,7 @@ public interface CommitBlockPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 workerId = 1;</code>
+   * @return Whether the workerId field is set.
    */
   boolean hasWorkerId();
   /**
@@ -21,6 +22,7 @@ public interface CommitBlockPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 workerId = 1;</code>
+   * @return The workerId.
    */
   long getWorkerId();
 
@@ -30,6 +32,7 @@ public interface CommitBlockPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 usedBytesOnTier = 2;</code>
+   * @return Whether the usedBytesOnTier field is set.
    */
   boolean hasUsedBytesOnTier();
   /**
@@ -38,6 +41,7 @@ public interface CommitBlockPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 usedBytesOnTier = 2;</code>
+   * @return The usedBytesOnTier.
    */
   long getUsedBytesOnTier();
 
@@ -47,6 +51,7 @@ public interface CommitBlockPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string tierAlias = 3;</code>
+   * @return Whether the tierAlias field is set.
    */
   boolean hasTierAlias();
   /**
@@ -55,6 +60,7 @@ public interface CommitBlockPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string tierAlias = 3;</code>
+   * @return The tierAlias.
    */
   java.lang.String getTierAlias();
   /**
@@ -63,6 +69,7 @@ public interface CommitBlockPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string tierAlias = 3;</code>
+   * @return The bytes for tierAlias.
    */
   com.google.protobuf.ByteString
       getTierAliasBytes();
@@ -73,6 +80,7 @@ public interface CommitBlockPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 blockId = 4;</code>
+   * @return Whether the blockId field is set.
    */
   boolean hasBlockId();
   /**
@@ -81,6 +89,7 @@ public interface CommitBlockPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 blockId = 4;</code>
+   * @return The blockId.
    */
   long getBlockId();
 
@@ -90,6 +99,7 @@ public interface CommitBlockPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 length = 5;</code>
+   * @return Whether the length field is set.
    */
   boolean hasLength();
   /**
@@ -98,15 +108,18 @@ public interface CommitBlockPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 length = 5;</code>
+   * @return The length.
    */
   long getLength();
 
   /**
    * <code>optional .alluxio.grpc.block.CommitBlockPOptions options = 6;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.block.CommitBlockPOptions options = 6;</code>
+   * @return The options.
    */
   alluxio.grpc.CommitBlockPOptions getOptions();
   /**
@@ -116,14 +129,17 @@ public interface CommitBlockPRequestOrBuilder extends
 
   /**
    * <code>optional string mediumType = 7;</code>
+   * @return Whether the mediumType field is set.
    */
   boolean hasMediumType();
   /**
    * <code>optional string mediumType = 7;</code>
+   * @return The mediumType.
    */
   java.lang.String getMediumType();
   /**
    * <code>optional string mediumType = 7;</code>
+   * @return The bytes for mediumType.
    */
   com.google.protobuf.ByteString
       getMediumTypeBytes();

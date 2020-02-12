@@ -9,19 +9,23 @@ public interface OpenLocalBlockRequestOrBuilder extends
 
   /**
    * <code>optional int64 block_id = 1;</code>
+   * @return Whether the blockId field is set.
    */
   boolean hasBlockId();
   /**
    * <code>optional int64 block_id = 1;</code>
+   * @return The blockId.
    */
   long getBlockId();
 
   /**
    * <code>optional bool promote = 2;</code>
+   * @return Whether the promote field is set.
    */
   boolean hasPromote();
   /**
    * <code>optional bool promote = 2;</code>
+   * @return The promote.
    */
   boolean getPromote();
 }

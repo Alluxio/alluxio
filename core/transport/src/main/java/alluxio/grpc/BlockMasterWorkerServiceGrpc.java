@@ -22,7 +22,7 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.17.1)",
+    value = "by gRPC proto compiler (version 1.27.0)",
     comments = "Source: grpc/block_master.proto")
 public final class BlockMasterWorkerServiceGrpc {
 
@@ -45,22 +45,21 @@ public final class BlockMasterWorkerServiceGrpc {
     if ((getBlockHeartbeatMethod = BlockMasterWorkerServiceGrpc.getBlockHeartbeatMethod) == null) {
       synchronized (BlockMasterWorkerServiceGrpc.class) {
         if ((getBlockHeartbeatMethod = BlockMasterWorkerServiceGrpc.getBlockHeartbeatMethod) == null) {
-          BlockMasterWorkerServiceGrpc.getBlockHeartbeatMethod = getBlockHeartbeatMethod = 
+          BlockMasterWorkerServiceGrpc.getBlockHeartbeatMethod = getBlockHeartbeatMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.BlockHeartbeatPRequest, alluxio.grpc.BlockHeartbeatPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.block.BlockMasterWorkerService", "BlockHeartbeat"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "BlockHeartbeat"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.BlockHeartbeatPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.BlockHeartbeatPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new BlockMasterWorkerServiceMethodDescriptorSupplier("BlockHeartbeat"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BlockMasterWorkerServiceMethodDescriptorSupplier("BlockHeartbeat"))
+              .build();
         }
-     }
-     return getBlockHeartbeatMethod;
+      }
+    }
+    return getBlockHeartbeatMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockPRequest,
@@ -77,22 +76,21 @@ public final class BlockMasterWorkerServiceGrpc {
     if ((getCommitBlockMethod = BlockMasterWorkerServiceGrpc.getCommitBlockMethod) == null) {
       synchronized (BlockMasterWorkerServiceGrpc.class) {
         if ((getCommitBlockMethod = BlockMasterWorkerServiceGrpc.getCommitBlockMethod) == null) {
-          BlockMasterWorkerServiceGrpc.getCommitBlockMethod = getCommitBlockMethod = 
+          BlockMasterWorkerServiceGrpc.getCommitBlockMethod = getCommitBlockMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.CommitBlockPRequest, alluxio.grpc.CommitBlockPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.block.BlockMasterWorkerService", "CommitBlock"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CommitBlock"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CommitBlockPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CommitBlockPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new BlockMasterWorkerServiceMethodDescriptorSupplier("CommitBlock"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BlockMasterWorkerServiceMethodDescriptorSupplier("CommitBlock"))
+              .build();
         }
-     }
-     return getCommitBlockMethod;
+      }
+    }
+    return getCommitBlockMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CommitBlockInUfsPRequest,
@@ -109,22 +107,21 @@ public final class BlockMasterWorkerServiceGrpc {
     if ((getCommitBlockInUfsMethod = BlockMasterWorkerServiceGrpc.getCommitBlockInUfsMethod) == null) {
       synchronized (BlockMasterWorkerServiceGrpc.class) {
         if ((getCommitBlockInUfsMethod = BlockMasterWorkerServiceGrpc.getCommitBlockInUfsMethod) == null) {
-          BlockMasterWorkerServiceGrpc.getCommitBlockInUfsMethod = getCommitBlockInUfsMethod = 
+          BlockMasterWorkerServiceGrpc.getCommitBlockInUfsMethod = getCommitBlockInUfsMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.CommitBlockInUfsPRequest, alluxio.grpc.CommitBlockInUfsPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.block.BlockMasterWorkerService", "CommitBlockInUfs"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CommitBlockInUfs"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CommitBlockInUfsPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CommitBlockInUfsPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new BlockMasterWorkerServiceMethodDescriptorSupplier("CommitBlockInUfs"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BlockMasterWorkerServiceMethodDescriptorSupplier("CommitBlockInUfs"))
+              .build();
         }
-     }
-     return getCommitBlockInUfsMethod;
+      }
+    }
+    return getCommitBlockInUfsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetWorkerIdPRequest,
@@ -141,22 +138,21 @@ public final class BlockMasterWorkerServiceGrpc {
     if ((getGetWorkerIdMethod = BlockMasterWorkerServiceGrpc.getGetWorkerIdMethod) == null) {
       synchronized (BlockMasterWorkerServiceGrpc.class) {
         if ((getGetWorkerIdMethod = BlockMasterWorkerServiceGrpc.getGetWorkerIdMethod) == null) {
-          BlockMasterWorkerServiceGrpc.getGetWorkerIdMethod = getGetWorkerIdMethod = 
+          BlockMasterWorkerServiceGrpc.getGetWorkerIdMethod = getGetWorkerIdMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetWorkerIdPRequest, alluxio.grpc.GetWorkerIdPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.block.BlockMasterWorkerService", "GetWorkerId"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetWorkerId"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetWorkerIdPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetWorkerIdPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new BlockMasterWorkerServiceMethodDescriptorSupplier("GetWorkerId"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BlockMasterWorkerServiceMethodDescriptorSupplier("GetWorkerId"))
+              .build();
         }
-     }
-     return getGetWorkerIdMethod;
+      }
+    }
+    return getGetWorkerIdMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.RegisterWorkerPRequest,
@@ -173,29 +169,35 @@ public final class BlockMasterWorkerServiceGrpc {
     if ((getRegisterWorkerMethod = BlockMasterWorkerServiceGrpc.getRegisterWorkerMethod) == null) {
       synchronized (BlockMasterWorkerServiceGrpc.class) {
         if ((getRegisterWorkerMethod = BlockMasterWorkerServiceGrpc.getRegisterWorkerMethod) == null) {
-          BlockMasterWorkerServiceGrpc.getRegisterWorkerMethod = getRegisterWorkerMethod = 
+          BlockMasterWorkerServiceGrpc.getRegisterWorkerMethod = getRegisterWorkerMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.RegisterWorkerPRequest, alluxio.grpc.RegisterWorkerPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.block.BlockMasterWorkerService", "RegisterWorker"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "RegisterWorker"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RegisterWorkerPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RegisterWorkerPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new BlockMasterWorkerServiceMethodDescriptorSupplier("RegisterWorker"))
-                  .build();
-          }
+              .setSchemaDescriptor(new BlockMasterWorkerServiceMethodDescriptorSupplier("RegisterWorker"))
+              .build();
         }
-     }
-     return getRegisterWorkerMethod;
+      }
+    }
+    return getRegisterWorkerMethod;
   }
 
   /**
    * Creates a new async stub that supports all call types for the service
    */
   public static BlockMasterWorkerServiceStub newStub(io.grpc.Channel channel) {
-    return new BlockMasterWorkerServiceStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<BlockMasterWorkerServiceStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<BlockMasterWorkerServiceStub>() {
+        @java.lang.Override
+        public BlockMasterWorkerServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new BlockMasterWorkerServiceStub(channel, callOptions);
+        }
+      };
+    return BlockMasterWorkerServiceStub.newStub(factory, channel);
   }
 
   /**
@@ -203,7 +205,14 @@ public final class BlockMasterWorkerServiceGrpc {
    */
   public static BlockMasterWorkerServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new BlockMasterWorkerServiceBlockingStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<BlockMasterWorkerServiceBlockingStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<BlockMasterWorkerServiceBlockingStub>() {
+        @java.lang.Override
+        public BlockMasterWorkerServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new BlockMasterWorkerServiceBlockingStub(channel, callOptions);
+        }
+      };
+    return BlockMasterWorkerServiceBlockingStub.newStub(factory, channel);
   }
 
   /**
@@ -211,7 +220,14 @@ public final class BlockMasterWorkerServiceGrpc {
    */
   public static BlockMasterWorkerServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new BlockMasterWorkerServiceFutureStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<BlockMasterWorkerServiceFutureStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<BlockMasterWorkerServiceFutureStub>() {
+        @java.lang.Override
+        public BlockMasterWorkerServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new BlockMasterWorkerServiceFutureStub(channel, callOptions);
+        }
+      };
+    return BlockMasterWorkerServiceFutureStub.newStub(factory, channel);
   }
 
   /**
@@ -324,19 +340,15 @@ public final class BlockMasterWorkerServiceGrpc {
    * This interface contains block master service endpoints for Alluxio workers.
    * </pre>
    */
-  public static final class BlockMasterWorkerServiceStub extends io.grpc.stub.AbstractStub<BlockMasterWorkerServiceStub> {
-    private BlockMasterWorkerServiceStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private BlockMasterWorkerServiceStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class BlockMasterWorkerServiceStub extends io.grpc.stub.AbstractAsyncStub<BlockMasterWorkerServiceStub> {
+    private BlockMasterWorkerServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected BlockMasterWorkerServiceStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected BlockMasterWorkerServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new BlockMasterWorkerServiceStub(channel, callOptions);
     }
 
@@ -407,19 +419,15 @@ public final class BlockMasterWorkerServiceGrpc {
    * This interface contains block master service endpoints for Alluxio workers.
    * </pre>
    */
-  public static final class BlockMasterWorkerServiceBlockingStub extends io.grpc.stub.AbstractStub<BlockMasterWorkerServiceBlockingStub> {
-    private BlockMasterWorkerServiceBlockingStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private BlockMasterWorkerServiceBlockingStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class BlockMasterWorkerServiceBlockingStub extends io.grpc.stub.AbstractBlockingStub<BlockMasterWorkerServiceBlockingStub> {
+    private BlockMasterWorkerServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected BlockMasterWorkerServiceBlockingStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected BlockMasterWorkerServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new BlockMasterWorkerServiceBlockingStub(channel, callOptions);
     }
 
@@ -485,19 +493,15 @@ public final class BlockMasterWorkerServiceGrpc {
    * This interface contains block master service endpoints for Alluxio workers.
    * </pre>
    */
-  public static final class BlockMasterWorkerServiceFutureStub extends io.grpc.stub.AbstractStub<BlockMasterWorkerServiceFutureStub> {
-    private BlockMasterWorkerServiceFutureStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private BlockMasterWorkerServiceFutureStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class BlockMasterWorkerServiceFutureStub extends io.grpc.stub.AbstractFutureStub<BlockMasterWorkerServiceFutureStub> {
+    private BlockMasterWorkerServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected BlockMasterWorkerServiceFutureStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected BlockMasterWorkerServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new BlockMasterWorkerServiceFutureStub(channel, callOptions);
     }
 

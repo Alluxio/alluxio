@@ -9,10 +9,12 @@ public interface GetServiceVersionPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.version.ServiceType serviceType = 1;</code>
+   * @return Whether the serviceType field is set.
    */
   boolean hasServiceType();
   /**
    * <code>optional .alluxio.grpc.version.ServiceType serviceType = 1;</code>
+   * @return The serviceType.
    */
   alluxio.grpc.ServiceType getServiceType();
 }

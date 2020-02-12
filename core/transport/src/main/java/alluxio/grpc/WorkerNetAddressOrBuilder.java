@@ -9,65 +9,79 @@ public interface WorkerNetAddressOrBuilder extends
 
   /**
    * <code>optional string host = 1;</code>
+   * @return Whether the host field is set.
    */
   boolean hasHost();
   /**
    * <code>optional string host = 1;</code>
+   * @return The host.
    */
   java.lang.String getHost();
   /**
    * <code>optional string host = 1;</code>
+   * @return The bytes for host.
    */
   com.google.protobuf.ByteString
       getHostBytes();
 
   /**
    * <code>optional int32 rpcPort = 2;</code>
+   * @return Whether the rpcPort field is set.
    */
   boolean hasRpcPort();
   /**
    * <code>optional int32 rpcPort = 2;</code>
+   * @return The rpcPort.
    */
   int getRpcPort();
 
   /**
    * <code>optional int32 dataPort = 3;</code>
+   * @return Whether the dataPort field is set.
    */
   boolean hasDataPort();
   /**
    * <code>optional int32 dataPort = 3;</code>
+   * @return The dataPort.
    */
   int getDataPort();
 
   /**
    * <code>optional int32 webPort = 4;</code>
+   * @return Whether the webPort field is set.
    */
   boolean hasWebPort();
   /**
    * <code>optional int32 webPort = 4;</code>
+   * @return The webPort.
    */
   int getWebPort();
 
   /**
    * <code>optional string domainSocketPath = 5;</code>
+   * @return Whether the domainSocketPath field is set.
    */
   boolean hasDomainSocketPath();
   /**
    * <code>optional string domainSocketPath = 5;</code>
+   * @return The domainSocketPath.
    */
   java.lang.String getDomainSocketPath();
   /**
    * <code>optional string domainSocketPath = 5;</code>
+   * @return The bytes for domainSocketPath.
    */
   com.google.protobuf.ByteString
       getDomainSocketPathBytes();
 
   /**
    * <code>optional .alluxio.grpc.TieredIdentity tieredIdentity = 6;</code>
+   * @return Whether the tieredIdentity field is set.
    */
   boolean hasTieredIdentity();
   /**
    * <code>optional .alluxio.grpc.TieredIdentity tieredIdentity = 6;</code>
+   * @return The tieredIdentity.
    */
   alluxio.grpc.TieredIdentity getTieredIdentity();
   /**

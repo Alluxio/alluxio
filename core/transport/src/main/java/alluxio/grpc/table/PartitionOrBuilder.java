@@ -9,10 +9,12 @@ public interface PartitionOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
+   * @return Whether the partitionSpec field is set.
    */
   boolean hasPartitionSpec();
   /**
    * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
+   * @return The partitionSpec.
    */
   alluxio.grpc.table.PartitionSpec getPartitionSpec();
   /**
@@ -22,10 +24,12 @@ public interface PartitionOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
+   * @return Whether the baseLayout field is set.
    */
   boolean hasBaseLayout();
   /**
    * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
+   * @return The baseLayout.
    */
   alluxio.grpc.table.Layout getBaseLayout();
   /**
@@ -84,19 +88,23 @@ public interface PartitionOrBuilder extends
 
   /**
    * <code>optional int64 version = 4;</code>
+   * @return Whether the version field is set.
    */
   boolean hasVersion();
   /**
    * <code>optional int64 version = 4;</code>
+   * @return The version.
    */
   long getVersion();
 
   /**
    * <code>optional int64 version_creation_time = 5;</code>
+   * @return Whether the versionCreationTime field is set.
    */
   boolean hasVersionCreationTime();
   /**
    * <code>optional int64 version_creation_time = 5;</code>
+   * @return The versionCreationTime.
    */
   long getVersionCreationTime();
 }

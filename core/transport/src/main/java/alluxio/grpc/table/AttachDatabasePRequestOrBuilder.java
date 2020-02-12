@@ -9,56 +9,68 @@ public interface AttachDatabasePRequestOrBuilder extends
 
   /**
    * <code>optional string udb_type = 1;</code>
+   * @return Whether the udbType field is set.
    */
   boolean hasUdbType();
   /**
    * <code>optional string udb_type = 1;</code>
+   * @return The udbType.
    */
   java.lang.String getUdbType();
   /**
    * <code>optional string udb_type = 1;</code>
+   * @return The bytes for udbType.
    */
   com.google.protobuf.ByteString
       getUdbTypeBytes();
 
   /**
    * <code>optional string udb_connection_uri = 2;</code>
+   * @return Whether the udbConnectionUri field is set.
    */
   boolean hasUdbConnectionUri();
   /**
    * <code>optional string udb_connection_uri = 2;</code>
+   * @return The udbConnectionUri.
    */
   java.lang.String getUdbConnectionUri();
   /**
    * <code>optional string udb_connection_uri = 2;</code>
+   * @return The bytes for udbConnectionUri.
    */
   com.google.protobuf.ByteString
       getUdbConnectionUriBytes();
 
   /**
    * <code>optional string udb_db_name = 3;</code>
+   * @return Whether the udbDbName field is set.
    */
   boolean hasUdbDbName();
   /**
    * <code>optional string udb_db_name = 3;</code>
+   * @return The udbDbName.
    */
   java.lang.String getUdbDbName();
   /**
    * <code>optional string udb_db_name = 3;</code>
+   * @return The bytes for udbDbName.
    */
   com.google.protobuf.ByteString
       getUdbDbNameBytes();
 
   /**
    * <code>optional string db_name = 4;</code>
+   * @return Whether the dbName field is set.
    */
   boolean hasDbName();
   /**
    * <code>optional string db_name = 4;</code>
+   * @return The dbName.
    */
   java.lang.String getDbName();
   /**
    * <code>optional string db_name = 4;</code>
+   * @return The bytes for dbName.
    */
   com.google.protobuf.ByteString
       getDbNameBytes();

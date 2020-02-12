@@ -13,6 +13,7 @@ public interface UpdateUfsModePRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string ufsPath = 1;</code>
+   * @return Whether the ufsPath field is set.
    */
   boolean hasUfsPath();
   /**
@@ -21,6 +22,7 @@ public interface UpdateUfsModePRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string ufsPath = 1;</code>
+   * @return The ufsPath.
    */
   java.lang.String getUfsPath();
   /**
@@ -29,16 +31,19 @@ public interface UpdateUfsModePRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string ufsPath = 1;</code>
+   * @return The bytes for ufsPath.
    */
   com.google.protobuf.ByteString
       getUfsPathBytes();
 
   /**
    * <code>optional .alluxio.grpc.file.UpdateUfsModePOptions options = 2;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.file.UpdateUfsModePOptions options = 2;</code>
+   * @return The options.
    */
   alluxio.grpc.UpdateUfsModePOptions getOptions();
   /**

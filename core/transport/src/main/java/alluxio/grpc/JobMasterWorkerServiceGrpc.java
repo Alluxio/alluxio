@@ -22,7 +22,7 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.17.1)",
+    value = "by gRPC proto compiler (version 1.27.0)",
     comments = "Source: grpc/job_master.proto")
 public final class JobMasterWorkerServiceGrpc {
 
@@ -45,22 +45,21 @@ public final class JobMasterWorkerServiceGrpc {
     if ((getHeartbeatMethod = JobMasterWorkerServiceGrpc.getHeartbeatMethod) == null) {
       synchronized (JobMasterWorkerServiceGrpc.class) {
         if ((getHeartbeatMethod = JobMasterWorkerServiceGrpc.getHeartbeatMethod) == null) {
-          JobMasterWorkerServiceGrpc.getHeartbeatMethod = getHeartbeatMethod = 
+          JobMasterWorkerServiceGrpc.getHeartbeatMethod = getHeartbeatMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.JobHeartbeatPRequest, alluxio.grpc.JobHeartbeatPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.job.JobMasterWorkerService", "Heartbeat"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Heartbeat"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.JobHeartbeatPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.JobHeartbeatPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new JobMasterWorkerServiceMethodDescriptorSupplier("Heartbeat"))
-                  .build();
-          }
+              .setSchemaDescriptor(new JobMasterWorkerServiceMethodDescriptorSupplier("Heartbeat"))
+              .build();
         }
-     }
-     return getHeartbeatMethod;
+      }
+    }
+    return getHeartbeatMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.RegisterJobWorkerPRequest,
@@ -77,29 +76,35 @@ public final class JobMasterWorkerServiceGrpc {
     if ((getRegisterJobWorkerMethod = JobMasterWorkerServiceGrpc.getRegisterJobWorkerMethod) == null) {
       synchronized (JobMasterWorkerServiceGrpc.class) {
         if ((getRegisterJobWorkerMethod = JobMasterWorkerServiceGrpc.getRegisterJobWorkerMethod) == null) {
-          JobMasterWorkerServiceGrpc.getRegisterJobWorkerMethod = getRegisterJobWorkerMethod = 
+          JobMasterWorkerServiceGrpc.getRegisterJobWorkerMethod = getRegisterJobWorkerMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.RegisterJobWorkerPRequest, alluxio.grpc.RegisterJobWorkerPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.job.JobMasterWorkerService", "RegisterJobWorker"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "RegisterJobWorker"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RegisterJobWorkerPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RegisterJobWorkerPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new JobMasterWorkerServiceMethodDescriptorSupplier("RegisterJobWorker"))
-                  .build();
-          }
+              .setSchemaDescriptor(new JobMasterWorkerServiceMethodDescriptorSupplier("RegisterJobWorker"))
+              .build();
         }
-     }
-     return getRegisterJobWorkerMethod;
+      }
+    }
+    return getRegisterJobWorkerMethod;
   }
 
   /**
    * Creates a new async stub that supports all call types for the service
    */
   public static JobMasterWorkerServiceStub newStub(io.grpc.Channel channel) {
-    return new JobMasterWorkerServiceStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<JobMasterWorkerServiceStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<JobMasterWorkerServiceStub>() {
+        @java.lang.Override
+        public JobMasterWorkerServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new JobMasterWorkerServiceStub(channel, callOptions);
+        }
+      };
+    return JobMasterWorkerServiceStub.newStub(factory, channel);
   }
 
   /**
@@ -107,7 +112,14 @@ public final class JobMasterWorkerServiceGrpc {
    */
   public static JobMasterWorkerServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new JobMasterWorkerServiceBlockingStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<JobMasterWorkerServiceBlockingStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<JobMasterWorkerServiceBlockingStub>() {
+        @java.lang.Override
+        public JobMasterWorkerServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new JobMasterWorkerServiceBlockingStub(channel, callOptions);
+        }
+      };
+    return JobMasterWorkerServiceBlockingStub.newStub(factory, channel);
   }
 
   /**
@@ -115,7 +127,14 @@ public final class JobMasterWorkerServiceGrpc {
    */
   public static JobMasterWorkerServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new JobMasterWorkerServiceFutureStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<JobMasterWorkerServiceFutureStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<JobMasterWorkerServiceFutureStub>() {
+        @java.lang.Override
+        public JobMasterWorkerServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new JobMasterWorkerServiceFutureStub(channel, callOptions);
+        }
+      };
+    return JobMasterWorkerServiceFutureStub.newStub(factory, channel);
   }
 
   /**
@@ -174,19 +193,15 @@ public final class JobMasterWorkerServiceGrpc {
    * This interface contains job master service endpoints for job service workers.
    * </pre>
    */
-  public static final class JobMasterWorkerServiceStub extends io.grpc.stub.AbstractStub<JobMasterWorkerServiceStub> {
-    private JobMasterWorkerServiceStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private JobMasterWorkerServiceStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class JobMasterWorkerServiceStub extends io.grpc.stub.AbstractAsyncStub<JobMasterWorkerServiceStub> {
+    private JobMasterWorkerServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected JobMasterWorkerServiceStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected JobMasterWorkerServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new JobMasterWorkerServiceStub(channel, callOptions);
     }
 
@@ -221,19 +236,15 @@ public final class JobMasterWorkerServiceGrpc {
    * This interface contains job master service endpoints for job service workers.
    * </pre>
    */
-  public static final class JobMasterWorkerServiceBlockingStub extends io.grpc.stub.AbstractStub<JobMasterWorkerServiceBlockingStub> {
-    private JobMasterWorkerServiceBlockingStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private JobMasterWorkerServiceBlockingStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class JobMasterWorkerServiceBlockingStub extends io.grpc.stub.AbstractBlockingStub<JobMasterWorkerServiceBlockingStub> {
+    private JobMasterWorkerServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected JobMasterWorkerServiceBlockingStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected JobMasterWorkerServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new JobMasterWorkerServiceBlockingStub(channel, callOptions);
     }
 
@@ -266,19 +277,15 @@ public final class JobMasterWorkerServiceGrpc {
    * This interface contains job master service endpoints for job service workers.
    * </pre>
    */
-  public static final class JobMasterWorkerServiceFutureStub extends io.grpc.stub.AbstractStub<JobMasterWorkerServiceFutureStub> {
-    private JobMasterWorkerServiceFutureStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private JobMasterWorkerServiceFutureStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class JobMasterWorkerServiceFutureStub extends io.grpc.stub.AbstractFutureStub<JobMasterWorkerServiceFutureStub> {
+    private JobMasterWorkerServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected JobMasterWorkerServiceFutureStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected JobMasterWorkerServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new JobMasterWorkerServiceFutureStub(channel, callOptions);
     }
 

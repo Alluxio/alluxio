@@ -9,10 +9,12 @@ public interface GetConfigReportPResponseOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.meta.ConfigCheckReport report = 1;</code>
+   * @return Whether the report field is set.
    */
   boolean hasReport();
   /**
    * <code>optional .alluxio.grpc.meta.ConfigCheckReport report = 1;</code>
+   * @return The report.
    */
   alluxio.grpc.ConfigCheckReport getReport();
   /**

@@ -21,6 +21,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new GetConfigHashPResponse();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -44,13 +51,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
@@ -61,6 +61,13 @@ private static final long serialVersionUID = 0L;
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000002;
             pathConfigHash_ = bs;
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -80,6 +87,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigHashPResponse_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigHashPResponse_fieldAccessorTable
@@ -92,12 +100,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object clusterConfigHash_;
   /**
    * <code>optional string clusterConfigHash = 1;</code>
+   * @return Whether the clusterConfigHash field is set.
    */
   public boolean hasClusterConfigHash() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional string clusterConfigHash = 1;</code>
+   * @return The clusterConfigHash.
    */
   public java.lang.String getClusterConfigHash() {
     java.lang.Object ref = clusterConfigHash_;
@@ -115,6 +125,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string clusterConfigHash = 1;</code>
+   * @return The bytes for clusterConfigHash.
    */
   public com.google.protobuf.ByteString
       getClusterConfigHashBytes() {
@@ -134,12 +145,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object pathConfigHash_;
   /**
    * <code>optional string pathConfigHash = 2;</code>
+   * @return Whether the pathConfigHash field is set.
    */
   public boolean hasPathConfigHash() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional string pathConfigHash = 2;</code>
+   * @return The pathConfigHash.
    */
   public java.lang.String getPathConfigHash() {
     java.lang.Object ref = pathConfigHash_;
@@ -157,6 +170,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string pathConfigHash = 2;</code>
+   * @return The bytes for pathConfigHash.
    */
   public com.google.protobuf.ByteString
       getPathConfigHashBytes() {
@@ -173,6 +187,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -182,26 +197,28 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, clusterConfigHash_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, pathConfigHash_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, clusterConfigHash_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, pathConfigHash_);
     }
     size += unknownFields.getSerializedSize();
@@ -219,19 +236,18 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.GetConfigHashPResponse other = (alluxio.grpc.GetConfigHashPResponse) obj;
 
-    boolean result = true;
-    result = result && (hasClusterConfigHash() == other.hasClusterConfigHash());
+    if (hasClusterConfigHash() != other.hasClusterConfigHash()) return false;
     if (hasClusterConfigHash()) {
-      result = result && getClusterConfigHash()
-          .equals(other.getClusterConfigHash());
+      if (!getClusterConfigHash()
+          .equals(other.getClusterConfigHash())) return false;
     }
-    result = result && (hasPathConfigHash() == other.hasPathConfigHash());
+    if (hasPathConfigHash() != other.hasPathConfigHash()) return false;
     if (hasPathConfigHash()) {
-      result = result && getPathConfigHash()
-          .equals(other.getPathConfigHash());
+      if (!getPathConfigHash()
+          .equals(other.getPathConfigHash())) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -324,6 +340,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -331,6 +348,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.GetConfigHashPResponse prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -354,6 +372,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigHashPResponse_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigHashPResponse_fieldAccessorTable
@@ -376,6 +395,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       clusterConfigHash_ = "";
@@ -385,15 +405,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_GetConfigHashPResponse_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.GetConfigHashPResponse getDefaultInstanceForType() {
       return alluxio.grpc.GetConfigHashPResponse.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.GetConfigHashPResponse build() {
       alluxio.grpc.GetConfigHashPResponse result = buildPartial();
       if (!result.isInitialized()) {
@@ -402,15 +425,16 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.GetConfigHashPResponse buildPartial() {
       alluxio.grpc.GetConfigHashPResponse result = new alluxio.grpc.GetConfigHashPResponse(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
         to_bitField0_ |= 0x00000001;
       }
       result.clusterConfigHash_ = clusterConfigHash_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
         to_bitField0_ |= 0x00000002;
       }
       result.pathConfigHash_ = pathConfigHash_;
@@ -419,32 +443,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.GetConfigHashPResponse) {
         return mergeFrom((alluxio.grpc.GetConfigHashPResponse)other);
@@ -471,10 +502,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -497,12 +530,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object clusterConfigHash_ = "";
     /**
      * <code>optional string clusterConfigHash = 1;</code>
+     * @return Whether the clusterConfigHash field is set.
      */
     public boolean hasClusterConfigHash() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string clusterConfigHash = 1;</code>
+     * @return The clusterConfigHash.
      */
     public java.lang.String getClusterConfigHash() {
       java.lang.Object ref = clusterConfigHash_;
@@ -520,6 +555,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string clusterConfigHash = 1;</code>
+     * @return The bytes for clusterConfigHash.
      */
     public com.google.protobuf.ByteString
         getClusterConfigHashBytes() {
@@ -536,6 +572,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string clusterConfigHash = 1;</code>
+     * @param value The clusterConfigHash to set.
+     * @return This builder for chaining.
      */
     public Builder setClusterConfigHash(
         java.lang.String value) {
@@ -549,6 +587,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string clusterConfigHash = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearClusterConfigHash() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -558,6 +597,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string clusterConfigHash = 1;</code>
+     * @param value The bytes for clusterConfigHash to set.
+     * @return This builder for chaining.
      */
     public Builder setClusterConfigHashBytes(
         com.google.protobuf.ByteString value) {
@@ -573,12 +614,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object pathConfigHash_ = "";
     /**
      * <code>optional string pathConfigHash = 2;</code>
+     * @return Whether the pathConfigHash field is set.
      */
     public boolean hasPathConfigHash() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string pathConfigHash = 2;</code>
+     * @return The pathConfigHash.
      */
     public java.lang.String getPathConfigHash() {
       java.lang.Object ref = pathConfigHash_;
@@ -596,6 +639,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string pathConfigHash = 2;</code>
+     * @return The bytes for pathConfigHash.
      */
     public com.google.protobuf.ByteString
         getPathConfigHashBytes() {
@@ -612,6 +656,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string pathConfigHash = 2;</code>
+     * @param value The pathConfigHash to set.
+     * @return This builder for chaining.
      */
     public Builder setPathConfigHash(
         java.lang.String value) {
@@ -625,6 +671,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string pathConfigHash = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearPathConfigHash() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -634,6 +681,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string pathConfigHash = 2;</code>
+     * @param value The bytes for pathConfigHash to set.
+     * @return This builder for chaining.
      */
     public Builder setPathConfigHashBytes(
         com.google.protobuf.ByteString value) {
@@ -645,11 +694,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -671,6 +722,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<GetConfigHashPResponse>
       PARSER = new com.google.protobuf.AbstractParser<GetConfigHashPResponse>() {
+    @java.lang.Override
     public GetConfigHashPResponse parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -688,6 +740,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.GetConfigHashPResponse getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

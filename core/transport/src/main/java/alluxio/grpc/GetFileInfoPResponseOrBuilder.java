@@ -9,10 +9,12 @@ public interface GetFileInfoPResponseOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+   * @return Whether the fileInfo field is set.
    */
   boolean hasFileInfo();
   /**
    * <code>optional .alluxio.grpc.file.FileInfo fileInfo = 1;</code>
+   * @return The fileInfo.
    */
   alluxio.grpc.FileInfo getFileInfo();
   /**

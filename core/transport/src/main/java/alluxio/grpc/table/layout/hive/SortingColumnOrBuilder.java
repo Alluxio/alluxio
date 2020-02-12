@@ -9,24 +9,29 @@ public interface SortingColumnOrBuilder extends
 
   /**
    * <code>required string column_name = 1;</code>
+   * @return Whether the columnName field is set.
    */
   boolean hasColumnName();
   /**
    * <code>required string column_name = 1;</code>
+   * @return The columnName.
    */
   java.lang.String getColumnName();
   /**
    * <code>required string column_name = 1;</code>
+   * @return The bytes for columnName.
    */
   com.google.protobuf.ByteString
       getColumnNameBytes();
 
   /**
    * <code>required .alluxio.grpc.table.layout.SortingColumn.SortingOrder order = 2;</code>
+   * @return Whether the order field is set.
    */
   boolean hasOrder();
   /**
    * <code>required .alluxio.grpc.table.layout.SortingColumn.SortingOrder order = 2;</code>
+   * @return The order.
    */
   alluxio.grpc.table.layout.hive.SortingColumn.SortingOrder getOrder();
 }

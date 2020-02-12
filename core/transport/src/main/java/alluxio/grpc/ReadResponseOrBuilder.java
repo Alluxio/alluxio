@@ -9,10 +9,12 @@ public interface ReadResponseOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.block.Chunk chunk = 1;</code>
+   * @return Whether the chunk field is set.
    */
   boolean hasChunk();
   /**
    * <code>optional .alluxio.grpc.block.Chunk chunk = 1;</code>
+   * @return The chunk.
    */
   alluxio.grpc.Chunk getChunk();
   /**

@@ -22,7 +22,7 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.17.1)",
+    value = "by gRPC proto compiler (version 1.27.0)",
     comments = "Source: grpc/table/table_master.proto")
 public final class TableMasterClientServiceGrpc {
 
@@ -45,22 +45,21 @@ public final class TableMasterClientServiceGrpc {
     if ((getGetAllDatabasesMethod = TableMasterClientServiceGrpc.getGetAllDatabasesMethod) == null) {
       synchronized (TableMasterClientServiceGrpc.class) {
         if ((getGetAllDatabasesMethod = TableMasterClientServiceGrpc.getGetAllDatabasesMethod) == null) {
-          TableMasterClientServiceGrpc.getGetAllDatabasesMethod = getGetAllDatabasesMethod = 
+          TableMasterClientServiceGrpc.getGetAllDatabasesMethod = getGetAllDatabasesMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.table.GetAllDatabasesPRequest, alluxio.grpc.table.GetAllDatabasesPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.table.TableMasterClientService", "GetAllDatabases"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAllDatabases"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.GetAllDatabasesPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.GetAllDatabasesPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("GetAllDatabases"))
-                  .build();
-          }
+              .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("GetAllDatabases"))
+              .build();
         }
-     }
-     return getGetAllDatabasesMethod;
+      }
+    }
+    return getGetAllDatabasesMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.table.GetAllTablesPRequest,
@@ -77,22 +76,21 @@ public final class TableMasterClientServiceGrpc {
     if ((getGetAllTablesMethod = TableMasterClientServiceGrpc.getGetAllTablesMethod) == null) {
       synchronized (TableMasterClientServiceGrpc.class) {
         if ((getGetAllTablesMethod = TableMasterClientServiceGrpc.getGetAllTablesMethod) == null) {
-          TableMasterClientServiceGrpc.getGetAllTablesMethod = getGetAllTablesMethod = 
+          TableMasterClientServiceGrpc.getGetAllTablesMethod = getGetAllTablesMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.table.GetAllTablesPRequest, alluxio.grpc.table.GetAllTablesPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.table.TableMasterClientService", "GetAllTables"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAllTables"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.GetAllTablesPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.GetAllTablesPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("GetAllTables"))
-                  .build();
-          }
+              .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("GetAllTables"))
+              .build();
         }
-     }
-     return getGetAllTablesMethod;
+      }
+    }
+    return getGetAllTablesMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.table.GetDatabasePRequest,
@@ -109,22 +107,21 @@ public final class TableMasterClientServiceGrpc {
     if ((getGetDatabaseMethod = TableMasterClientServiceGrpc.getGetDatabaseMethod) == null) {
       synchronized (TableMasterClientServiceGrpc.class) {
         if ((getGetDatabaseMethod = TableMasterClientServiceGrpc.getGetDatabaseMethod) == null) {
-          TableMasterClientServiceGrpc.getGetDatabaseMethod = getGetDatabaseMethod = 
+          TableMasterClientServiceGrpc.getGetDatabaseMethod = getGetDatabaseMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.table.GetDatabasePRequest, alluxio.grpc.table.GetDatabasePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.table.TableMasterClientService", "GetDatabase"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetDatabase"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.GetDatabasePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.GetDatabasePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("GetDatabase"))
-                  .build();
-          }
+              .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("GetDatabase"))
+              .build();
         }
-     }
-     return getGetDatabaseMethod;
+      }
+    }
+    return getGetDatabaseMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.table.GetTablePRequest,
@@ -141,22 +138,21 @@ public final class TableMasterClientServiceGrpc {
     if ((getGetTableMethod = TableMasterClientServiceGrpc.getGetTableMethod) == null) {
       synchronized (TableMasterClientServiceGrpc.class) {
         if ((getGetTableMethod = TableMasterClientServiceGrpc.getGetTableMethod) == null) {
-          TableMasterClientServiceGrpc.getGetTableMethod = getGetTableMethod = 
+          TableMasterClientServiceGrpc.getGetTableMethod = getGetTableMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.table.GetTablePRequest, alluxio.grpc.table.GetTablePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.table.TableMasterClientService", "GetTable"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetTable"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.GetTablePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.GetTablePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("GetTable"))
-                  .build();
-          }
+              .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("GetTable"))
+              .build();
         }
-     }
-     return getGetTableMethod;
+      }
+    }
+    return getGetTableMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.table.AttachDatabasePRequest,
@@ -173,22 +169,21 @@ public final class TableMasterClientServiceGrpc {
     if ((getAttachDatabaseMethod = TableMasterClientServiceGrpc.getAttachDatabaseMethod) == null) {
       synchronized (TableMasterClientServiceGrpc.class) {
         if ((getAttachDatabaseMethod = TableMasterClientServiceGrpc.getAttachDatabaseMethod) == null) {
-          TableMasterClientServiceGrpc.getAttachDatabaseMethod = getAttachDatabaseMethod = 
+          TableMasterClientServiceGrpc.getAttachDatabaseMethod = getAttachDatabaseMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.table.AttachDatabasePRequest, alluxio.grpc.table.AttachDatabasePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.table.TableMasterClientService", "AttachDatabase"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "AttachDatabase"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.AttachDatabasePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.AttachDatabasePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("AttachDatabase"))
-                  .build();
-          }
+              .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("AttachDatabase"))
+              .build();
         }
-     }
-     return getAttachDatabaseMethod;
+      }
+    }
+    return getAttachDatabaseMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.table.DetachDatabasePRequest,
@@ -205,22 +200,21 @@ public final class TableMasterClientServiceGrpc {
     if ((getDetachDatabaseMethod = TableMasterClientServiceGrpc.getDetachDatabaseMethod) == null) {
       synchronized (TableMasterClientServiceGrpc.class) {
         if ((getDetachDatabaseMethod = TableMasterClientServiceGrpc.getDetachDatabaseMethod) == null) {
-          TableMasterClientServiceGrpc.getDetachDatabaseMethod = getDetachDatabaseMethod = 
+          TableMasterClientServiceGrpc.getDetachDatabaseMethod = getDetachDatabaseMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.table.DetachDatabasePRequest, alluxio.grpc.table.DetachDatabasePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.table.TableMasterClientService", "DetachDatabase"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "DetachDatabase"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.DetachDatabasePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.DetachDatabasePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("DetachDatabase"))
-                  .build();
-          }
+              .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("DetachDatabase"))
+              .build();
         }
-     }
-     return getDetachDatabaseMethod;
+      }
+    }
+    return getDetachDatabaseMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.table.SyncDatabasePRequest,
@@ -237,22 +231,21 @@ public final class TableMasterClientServiceGrpc {
     if ((getSyncDatabaseMethod = TableMasterClientServiceGrpc.getSyncDatabaseMethod) == null) {
       synchronized (TableMasterClientServiceGrpc.class) {
         if ((getSyncDatabaseMethod = TableMasterClientServiceGrpc.getSyncDatabaseMethod) == null) {
-          TableMasterClientServiceGrpc.getSyncDatabaseMethod = getSyncDatabaseMethod = 
+          TableMasterClientServiceGrpc.getSyncDatabaseMethod = getSyncDatabaseMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.table.SyncDatabasePRequest, alluxio.grpc.table.SyncDatabasePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.table.TableMasterClientService", "SyncDatabase"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "SyncDatabase"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.SyncDatabasePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.SyncDatabasePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("SyncDatabase"))
-                  .build();
-          }
+              .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("SyncDatabase"))
+              .build();
         }
-     }
-     return getSyncDatabaseMethod;
+      }
+    }
+    return getSyncDatabaseMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.table.GetTableColumnStatisticsPRequest,
@@ -269,22 +262,21 @@ public final class TableMasterClientServiceGrpc {
     if ((getGetTableColumnStatisticsMethod = TableMasterClientServiceGrpc.getGetTableColumnStatisticsMethod) == null) {
       synchronized (TableMasterClientServiceGrpc.class) {
         if ((getGetTableColumnStatisticsMethod = TableMasterClientServiceGrpc.getGetTableColumnStatisticsMethod) == null) {
-          TableMasterClientServiceGrpc.getGetTableColumnStatisticsMethod = getGetTableColumnStatisticsMethod = 
+          TableMasterClientServiceGrpc.getGetTableColumnStatisticsMethod = getGetTableColumnStatisticsMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.table.GetTableColumnStatisticsPRequest, alluxio.grpc.table.GetTableColumnStatisticsPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.table.TableMasterClientService", "GetTableColumnStatistics"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetTableColumnStatistics"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.GetTableColumnStatisticsPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.GetTableColumnStatisticsPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("GetTableColumnStatistics"))
-                  .build();
-          }
+              .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("GetTableColumnStatistics"))
+              .build();
         }
-     }
-     return getGetTableColumnStatisticsMethod;
+      }
+    }
+    return getGetTableColumnStatisticsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.table.GetPartitionColumnStatisticsPRequest,
@@ -301,22 +293,21 @@ public final class TableMasterClientServiceGrpc {
     if ((getGetPartitionColumnStatisticsMethod = TableMasterClientServiceGrpc.getGetPartitionColumnStatisticsMethod) == null) {
       synchronized (TableMasterClientServiceGrpc.class) {
         if ((getGetPartitionColumnStatisticsMethod = TableMasterClientServiceGrpc.getGetPartitionColumnStatisticsMethod) == null) {
-          TableMasterClientServiceGrpc.getGetPartitionColumnStatisticsMethod = getGetPartitionColumnStatisticsMethod = 
+          TableMasterClientServiceGrpc.getGetPartitionColumnStatisticsMethod = getGetPartitionColumnStatisticsMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.table.GetPartitionColumnStatisticsPRequest, alluxio.grpc.table.GetPartitionColumnStatisticsPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.table.TableMasterClientService", "GetPartitionColumnStatistics"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetPartitionColumnStatistics"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.GetPartitionColumnStatisticsPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.GetPartitionColumnStatisticsPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("GetPartitionColumnStatistics"))
-                  .build();
-          }
+              .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("GetPartitionColumnStatistics"))
+              .build();
         }
-     }
-     return getGetPartitionColumnStatisticsMethod;
+      }
+    }
+    return getGetPartitionColumnStatisticsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.table.ReadTablePRequest,
@@ -333,22 +324,21 @@ public final class TableMasterClientServiceGrpc {
     if ((getReadTableMethod = TableMasterClientServiceGrpc.getReadTableMethod) == null) {
       synchronized (TableMasterClientServiceGrpc.class) {
         if ((getReadTableMethod = TableMasterClientServiceGrpc.getReadTableMethod) == null) {
-          TableMasterClientServiceGrpc.getReadTableMethod = getReadTableMethod = 
+          TableMasterClientServiceGrpc.getReadTableMethod = getReadTableMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.table.ReadTablePRequest, alluxio.grpc.table.ReadTablePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.table.TableMasterClientService", "ReadTable"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ReadTable"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.ReadTablePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.ReadTablePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("ReadTable"))
-                  .build();
-          }
+              .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("ReadTable"))
+              .build();
         }
-     }
-     return getReadTableMethod;
+      }
+    }
+    return getReadTableMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.table.TransformTablePRequest,
@@ -365,22 +355,21 @@ public final class TableMasterClientServiceGrpc {
     if ((getTransformTableMethod = TableMasterClientServiceGrpc.getTransformTableMethod) == null) {
       synchronized (TableMasterClientServiceGrpc.class) {
         if ((getTransformTableMethod = TableMasterClientServiceGrpc.getTransformTableMethod) == null) {
-          TableMasterClientServiceGrpc.getTransformTableMethod = getTransformTableMethod = 
+          TableMasterClientServiceGrpc.getTransformTableMethod = getTransformTableMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.table.TransformTablePRequest, alluxio.grpc.table.TransformTablePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.table.TableMasterClientService", "TransformTable"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "TransformTable"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.TransformTablePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.TransformTablePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("TransformTable"))
-                  .build();
-          }
+              .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("TransformTable"))
+              .build();
         }
-     }
-     return getTransformTableMethod;
+      }
+    }
+    return getTransformTableMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.table.GetTransformJobInfoPRequest,
@@ -397,29 +386,35 @@ public final class TableMasterClientServiceGrpc {
     if ((getGetTransformJobInfoMethod = TableMasterClientServiceGrpc.getGetTransformJobInfoMethod) == null) {
       synchronized (TableMasterClientServiceGrpc.class) {
         if ((getGetTransformJobInfoMethod = TableMasterClientServiceGrpc.getGetTransformJobInfoMethod) == null) {
-          TableMasterClientServiceGrpc.getGetTransformJobInfoMethod = getGetTransformJobInfoMethod = 
+          TableMasterClientServiceGrpc.getGetTransformJobInfoMethod = getGetTransformJobInfoMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.table.GetTransformJobInfoPRequest, alluxio.grpc.table.GetTransformJobInfoPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.table.TableMasterClientService", "GetTransformJobInfo"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetTransformJobInfo"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.GetTransformJobInfoPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.table.GetTransformJobInfoPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("GetTransformJobInfo"))
-                  .build();
-          }
+              .setSchemaDescriptor(new TableMasterClientServiceMethodDescriptorSupplier("GetTransformJobInfo"))
+              .build();
         }
-     }
-     return getGetTransformJobInfoMethod;
+      }
+    }
+    return getGetTransformJobInfoMethod;
   }
 
   /**
    * Creates a new async stub that supports all call types for the service
    */
   public static TableMasterClientServiceStub newStub(io.grpc.Channel channel) {
-    return new TableMasterClientServiceStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<TableMasterClientServiceStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<TableMasterClientServiceStub>() {
+        @java.lang.Override
+        public TableMasterClientServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new TableMasterClientServiceStub(channel, callOptions);
+        }
+      };
+    return TableMasterClientServiceStub.newStub(factory, channel);
   }
 
   /**
@@ -427,7 +422,14 @@ public final class TableMasterClientServiceGrpc {
    */
   public static TableMasterClientServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new TableMasterClientServiceBlockingStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<TableMasterClientServiceBlockingStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<TableMasterClientServiceBlockingStub>() {
+        @java.lang.Override
+        public TableMasterClientServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new TableMasterClientServiceBlockingStub(channel, callOptions);
+        }
+      };
+    return TableMasterClientServiceBlockingStub.newStub(factory, channel);
   }
 
   /**
@@ -435,7 +437,14 @@ public final class TableMasterClientServiceGrpc {
    */
   public static TableMasterClientServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new TableMasterClientServiceFutureStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<TableMasterClientServiceFutureStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<TableMasterClientServiceFutureStub>() {
+        @java.lang.Override
+        public TableMasterClientServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new TableMasterClientServiceFutureStub(channel, callOptions);
+        }
+      };
+    return TableMasterClientServiceFutureStub.newStub(factory, channel);
   }
 
   /**
@@ -660,19 +669,15 @@ public final class TableMasterClientServiceGrpc {
    * This interface contains table master service endpoints for Alluxio clients.
    * </pre>
    */
-  public static final class TableMasterClientServiceStub extends io.grpc.stub.AbstractStub<TableMasterClientServiceStub> {
-    private TableMasterClientServiceStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private TableMasterClientServiceStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class TableMasterClientServiceStub extends io.grpc.stub.AbstractAsyncStub<TableMasterClientServiceStub> {
+    private TableMasterClientServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected TableMasterClientServiceStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected TableMasterClientServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new TableMasterClientServiceStub(channel, callOptions);
     }
 
@@ -813,19 +818,15 @@ public final class TableMasterClientServiceGrpc {
    * This interface contains table master service endpoints for Alluxio clients.
    * </pre>
    */
-  public static final class TableMasterClientServiceBlockingStub extends io.grpc.stub.AbstractStub<TableMasterClientServiceBlockingStub> {
-    private TableMasterClientServiceBlockingStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private TableMasterClientServiceBlockingStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class TableMasterClientServiceBlockingStub extends io.grpc.stub.AbstractBlockingStub<TableMasterClientServiceBlockingStub> {
+    private TableMasterClientServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected TableMasterClientServiceBlockingStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected TableMasterClientServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new TableMasterClientServiceBlockingStub(channel, callOptions);
     }
 
@@ -954,19 +955,15 @@ public final class TableMasterClientServiceGrpc {
    * This interface contains table master service endpoints for Alluxio clients.
    * </pre>
    */
-  public static final class TableMasterClientServiceFutureStub extends io.grpc.stub.AbstractStub<TableMasterClientServiceFutureStub> {
-    private TableMasterClientServiceFutureStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private TableMasterClientServiceFutureStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class TableMasterClientServiceFutureStub extends io.grpc.stub.AbstractFutureStub<TableMasterClientServiceFutureStub> {
+    private TableMasterClientServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected TableMasterClientServiceFutureStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected TableMasterClientServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new TableMasterClientServiceFutureStub(channel, callOptions);
     }
 

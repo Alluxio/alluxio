@@ -9,10 +9,12 @@ public interface GetBlockInfoPResponseOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.BlockInfo blockInfo = 1;</code>
+   * @return Whether the blockInfo field is set.
    */
   boolean hasBlockInfo();
   /**
    * <code>optional .alluxio.grpc.BlockInfo blockInfo = 1;</code>
+   * @return The blockInfo.
    */
   alluxio.grpc.BlockInfo getBlockInfo();
   /**

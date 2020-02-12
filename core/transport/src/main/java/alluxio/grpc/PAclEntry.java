@@ -19,7 +19,13 @@ private static final long serialVersionUID = 0L;
     type_ = 0;
     subject_ = "";
     actions_ = java.util.Collections.emptyList();
-    isDefault_ = false;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new PAclEntry();
   }
 
   @java.lang.Override
@@ -46,15 +52,9 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             int rawValue = input.readEnum();
+              @SuppressWarnings("deprecation")
             alluxio.grpc.PAclEntryType value = alluxio.grpc.PAclEntryType.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(1, rawValue);
@@ -72,11 +72,12 @@ private static final long serialVersionUID = 0L;
           }
           case 24: {
             int rawValue = input.readEnum();
+            @SuppressWarnings("deprecation")
             alluxio.grpc.PAclAction value = alluxio.grpc.PAclAction.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(3, rawValue);
             } else {
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+              if (!((mutable_bitField0_ & 0x00000004) != 0)) {
                 actions_ = new java.util.ArrayList<java.lang.Integer>();
                 mutable_bitField0_ |= 0x00000004;
               }
@@ -89,11 +90,12 @@ private static final long serialVersionUID = 0L;
             int oldLimit = input.pushLimit(length);
             while(input.getBytesUntilLimit() > 0) {
               int rawValue = input.readEnum();
+              @SuppressWarnings("deprecation")
               alluxio.grpc.PAclAction value = alluxio.grpc.PAclAction.valueOf(rawValue);
               if (value == null) {
                 unknownFields.mergeVarintField(3, rawValue);
               } else {
-                if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+                if (!((mutable_bitField0_ & 0x00000004) != 0)) {
                   actions_ = new java.util.ArrayList<java.lang.Integer>();
                   mutable_bitField0_ |= 0x00000004;
                 }
@@ -108,6 +110,13 @@ private static final long serialVersionUID = 0L;
             isDefault_ = input.readBool();
             break;
           }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -116,7 +125,7 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((mutable_bitField0_ & 0x00000004) != 0)) {
         actions_ = java.util.Collections.unmodifiableList(actions_);
       }
       this.unknownFields = unknownFields.build();
@@ -128,6 +137,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_PAclEntry_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_PAclEntry_fieldAccessorTable
@@ -140,14 +150,17 @@ private static final long serialVersionUID = 0L;
   private int type_;
   /**
    * <code>optional .alluxio.grpc.file.PAclEntryType type = 1;</code>
+   * @return Whether the type field is set.
    */
   public boolean hasType() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.file.PAclEntryType type = 1;</code>
+   * @return The type.
    */
   public alluxio.grpc.PAclEntryType getType() {
+    @SuppressWarnings("deprecation")
     alluxio.grpc.PAclEntryType result = alluxio.grpc.PAclEntryType.valueOf(type_);
     return result == null ? alluxio.grpc.PAclEntryType.Owner : result;
   }
@@ -156,12 +169,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object subject_;
   /**
    * <code>optional string subject = 2;</code>
+   * @return Whether the subject field is set.
    */
   public boolean hasSubject() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional string subject = 2;</code>
+   * @return The subject.
    */
   public java.lang.String getSubject() {
     java.lang.Object ref = subject_;
@@ -179,6 +194,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string subject = 2;</code>
+   * @return The bytes for subject.
    */
   public com.google.protobuf.ByteString
       getSubjectBytes() {
@@ -201,12 +217,14 @@ private static final long serialVersionUID = 0L;
           new com.google.protobuf.Internal.ListAdapter.Converter<
               java.lang.Integer, alluxio.grpc.PAclAction>() {
             public alluxio.grpc.PAclAction convert(java.lang.Integer from) {
+              @SuppressWarnings("deprecation")
               alluxio.grpc.PAclAction result = alluxio.grpc.PAclAction.valueOf(from);
               return result == null ? alluxio.grpc.PAclAction.Read : result;
             }
           };
   /**
    * <code>repeated .alluxio.grpc.file.PAclAction actions = 3;</code>
+   * @return A list containing the actions.
    */
   public java.util.List<alluxio.grpc.PAclAction> getActionsList() {
     return new com.google.protobuf.Internal.ListAdapter<
@@ -214,12 +232,15 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>repeated .alluxio.grpc.file.PAclAction actions = 3;</code>
+   * @return The count of actions.
    */
   public int getActionsCount() {
     return actions_.size();
   }
   /**
    * <code>repeated .alluxio.grpc.file.PAclAction actions = 3;</code>
+   * @param index The index of the element to return.
+   * @return The actions at the given index.
    */
   public alluxio.grpc.PAclAction getActions(int index) {
     return actions_converter_.convert(actions_.get(index));
@@ -229,18 +250,21 @@ private static final long serialVersionUID = 0L;
   private boolean isDefault_;
   /**
    * <code>optional bool isDefault = 4;</code>
+   * @return Whether the isDefault field is set.
    */
   public boolean hasIsDefault() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional bool isDefault = 4;</code>
+   * @return The isDefault.
    */
   public boolean getIsDefault() {
     return isDefault_;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -250,33 +274,35 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeEnum(1, type_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, subject_);
     }
     for (int i = 0; i < actions_.size(); i++) {
       output.writeEnum(3, actions_.get(i));
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       output.writeBool(4, isDefault_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(1, type_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, subject_);
     }
     {
@@ -288,7 +314,7 @@ private static final long serialVersionUID = 0L;
       size += dataSize;
       size += 1 * actions_.size();
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(4, isDefault_);
     }
@@ -307,24 +333,23 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.PAclEntry other = (alluxio.grpc.PAclEntry) obj;
 
-    boolean result = true;
-    result = result && (hasType() == other.hasType());
+    if (hasType() != other.hasType()) return false;
     if (hasType()) {
-      result = result && type_ == other.type_;
+      if (type_ != other.type_) return false;
     }
-    result = result && (hasSubject() == other.hasSubject());
+    if (hasSubject() != other.hasSubject()) return false;
     if (hasSubject()) {
-      result = result && getSubject()
-          .equals(other.getSubject());
+      if (!getSubject()
+          .equals(other.getSubject())) return false;
     }
-    result = result && actions_.equals(other.actions_);
-    result = result && (hasIsDefault() == other.hasIsDefault());
+    if (!actions_.equals(other.actions_)) return false;
+    if (hasIsDefault() != other.hasIsDefault()) return false;
     if (hasIsDefault()) {
-      result = result && (getIsDefault()
-          == other.getIsDefault());
+      if (getIsDefault()
+          != other.getIsDefault()) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -426,6 +451,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -433,6 +459,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.PAclEntry prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -456,6 +483,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_PAclEntry_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_PAclEntry_fieldAccessorTable
@@ -478,6 +506,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       type_ = 0;
@@ -491,15 +520,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_PAclEntry_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.PAclEntry getDefaultInstanceForType() {
       return alluxio.grpc.PAclEntry.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.PAclEntry build() {
       alluxio.grpc.PAclEntry result = buildPartial();
       if (!result.isInitialized()) {
@@ -508,58 +540,66 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.PAclEntry buildPartial() {
       alluxio.grpc.PAclEntry result = new alluxio.grpc.PAclEntry(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
         to_bitField0_ |= 0x00000001;
       }
       result.type_ = type_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
         to_bitField0_ |= 0x00000002;
       }
       result.subject_ = subject_;
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         actions_ = java.util.Collections.unmodifiableList(actions_);
         bitField0_ = (bitField0_ & ~0x00000004);
       }
       result.actions_ = actions_;
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000008) != 0)) {
+        result.isDefault_ = isDefault_;
         to_bitField0_ |= 0x00000004;
       }
-      result.isDefault_ = isDefault_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.PAclEntry) {
         return mergeFrom((alluxio.grpc.PAclEntry)other);
@@ -597,10 +637,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -623,19 +665,24 @@ private static final long serialVersionUID = 0L;
     private int type_ = 0;
     /**
      * <code>optional .alluxio.grpc.file.PAclEntryType type = 1;</code>
+     * @return Whether the type field is set.
      */
     public boolean hasType() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.file.PAclEntryType type = 1;</code>
+     * @return The type.
      */
     public alluxio.grpc.PAclEntryType getType() {
+      @SuppressWarnings("deprecation")
       alluxio.grpc.PAclEntryType result = alluxio.grpc.PAclEntryType.valueOf(type_);
       return result == null ? alluxio.grpc.PAclEntryType.Owner : result;
     }
     /**
      * <code>optional .alluxio.grpc.file.PAclEntryType type = 1;</code>
+     * @param value The type to set.
+     * @return This builder for chaining.
      */
     public Builder setType(alluxio.grpc.PAclEntryType value) {
       if (value == null) {
@@ -648,6 +695,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional .alluxio.grpc.file.PAclEntryType type = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearType() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -659,12 +707,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object subject_ = "";
     /**
      * <code>optional string subject = 2;</code>
+     * @return Whether the subject field is set.
      */
     public boolean hasSubject() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string subject = 2;</code>
+     * @return The subject.
      */
     public java.lang.String getSubject() {
       java.lang.Object ref = subject_;
@@ -682,6 +732,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string subject = 2;</code>
+     * @return The bytes for subject.
      */
     public com.google.protobuf.ByteString
         getSubjectBytes() {
@@ -698,6 +749,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string subject = 2;</code>
+     * @param value The subject to set.
+     * @return This builder for chaining.
      */
     public Builder setSubject(
         java.lang.String value) {
@@ -711,6 +764,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string subject = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearSubject() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -720,6 +774,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string subject = 2;</code>
+     * @param value The bytes for subject to set.
+     * @return This builder for chaining.
      */
     public Builder setSubjectBytes(
         com.google.protobuf.ByteString value) {
@@ -735,13 +791,14 @@ private static final long serialVersionUID = 0L;
     private java.util.List<java.lang.Integer> actions_ =
       java.util.Collections.emptyList();
     private void ensureActionsIsMutable() {
-      if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (!((bitField0_ & 0x00000004) != 0)) {
         actions_ = new java.util.ArrayList<java.lang.Integer>(actions_);
         bitField0_ |= 0x00000004;
       }
     }
     /**
      * <code>repeated .alluxio.grpc.file.PAclAction actions = 3;</code>
+     * @return A list containing the actions.
      */
     public java.util.List<alluxio.grpc.PAclAction> getActionsList() {
       return new com.google.protobuf.Internal.ListAdapter<
@@ -749,18 +806,24 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated .alluxio.grpc.file.PAclAction actions = 3;</code>
+     * @return The count of actions.
      */
     public int getActionsCount() {
       return actions_.size();
     }
     /**
      * <code>repeated .alluxio.grpc.file.PAclAction actions = 3;</code>
+     * @param index The index of the element to return.
+     * @return The actions at the given index.
      */
     public alluxio.grpc.PAclAction getActions(int index) {
       return actions_converter_.convert(actions_.get(index));
     }
     /**
      * <code>repeated .alluxio.grpc.file.PAclAction actions = 3;</code>
+     * @param index The index to set the value at.
+     * @param value The actions to set.
+     * @return This builder for chaining.
      */
     public Builder setActions(
         int index, alluxio.grpc.PAclAction value) {
@@ -774,6 +837,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated .alluxio.grpc.file.PAclAction actions = 3;</code>
+     * @param value The actions to add.
+     * @return This builder for chaining.
      */
     public Builder addActions(alluxio.grpc.PAclAction value) {
       if (value == null) {
@@ -786,6 +851,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated .alluxio.grpc.file.PAclAction actions = 3;</code>
+     * @param values The actions to add.
+     * @return This builder for chaining.
      */
     public Builder addAllActions(
         java.lang.Iterable<? extends alluxio.grpc.PAclAction> values) {
@@ -798,6 +865,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated .alluxio.grpc.file.PAclAction actions = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearActions() {
       actions_ = java.util.Collections.emptyList();
@@ -809,18 +877,22 @@ private static final long serialVersionUID = 0L;
     private boolean isDefault_ ;
     /**
      * <code>optional bool isDefault = 4;</code>
+     * @return Whether the isDefault field is set.
      */
     public boolean hasIsDefault() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional bool isDefault = 4;</code>
+     * @return The isDefault.
      */
     public boolean getIsDefault() {
       return isDefault_;
     }
     /**
      * <code>optional bool isDefault = 4;</code>
+     * @param value The isDefault to set.
+     * @return This builder for chaining.
      */
     public Builder setIsDefault(boolean value) {
       bitField0_ |= 0x00000008;
@@ -830,6 +902,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool isDefault = 4;</code>
+     * @return This builder for chaining.
      */
     public Builder clearIsDefault() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -837,11 +910,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -863,6 +938,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<PAclEntry>
       PARSER = new com.google.protobuf.AbstractParser<PAclEntry>() {
+    @java.lang.Override
     public PAclEntry parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -880,6 +956,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.PAclEntry getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

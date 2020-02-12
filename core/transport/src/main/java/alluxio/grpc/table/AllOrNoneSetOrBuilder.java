@@ -9,10 +9,12 @@ public interface AllOrNoneSetOrBuilder extends
 
   /**
    * <code>optional bool all = 1;</code>
+   * @return Whether the all field is set.
    */
   boolean hasAll();
   /**
    * <code>optional bool all = 1;</code>
+   * @return The all.
    */
   boolean getAll();
 }

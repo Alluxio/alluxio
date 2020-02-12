@@ -22,7 +22,7 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.17.1)",
+    value = "by gRPC proto compiler (version 1.27.0)",
     comments = "Source: grpc/meta_master.proto")
 public final class MetaMasterMasterServiceGrpc {
 
@@ -45,22 +45,21 @@ public final class MetaMasterMasterServiceGrpc {
     if ((getGetMasterIdMethod = MetaMasterMasterServiceGrpc.getGetMasterIdMethod) == null) {
       synchronized (MetaMasterMasterServiceGrpc.class) {
         if ((getGetMasterIdMethod = MetaMasterMasterServiceGrpc.getGetMasterIdMethod) == null) {
-          MetaMasterMasterServiceGrpc.getGetMasterIdMethod = getGetMasterIdMethod = 
+          MetaMasterMasterServiceGrpc.getGetMasterIdMethod = getGetMasterIdMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetMasterIdPRequest, alluxio.grpc.GetMasterIdPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.meta.MetaMasterMasterService", "GetMasterId"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetMasterId"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetMasterIdPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetMasterIdPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new MetaMasterMasterServiceMethodDescriptorSupplier("GetMasterId"))
-                  .build();
-          }
+              .setSchemaDescriptor(new MetaMasterMasterServiceMethodDescriptorSupplier("GetMasterId"))
+              .build();
         }
-     }
-     return getGetMasterIdMethod;
+      }
+    }
+    return getGetMasterIdMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.RegisterMasterPRequest,
@@ -77,22 +76,21 @@ public final class MetaMasterMasterServiceGrpc {
     if ((getRegisterMasterMethod = MetaMasterMasterServiceGrpc.getRegisterMasterMethod) == null) {
       synchronized (MetaMasterMasterServiceGrpc.class) {
         if ((getRegisterMasterMethod = MetaMasterMasterServiceGrpc.getRegisterMasterMethod) == null) {
-          MetaMasterMasterServiceGrpc.getRegisterMasterMethod = getRegisterMasterMethod = 
+          MetaMasterMasterServiceGrpc.getRegisterMasterMethod = getRegisterMasterMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.RegisterMasterPRequest, alluxio.grpc.RegisterMasterPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.meta.MetaMasterMasterService", "RegisterMaster"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "RegisterMaster"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RegisterMasterPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RegisterMasterPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new MetaMasterMasterServiceMethodDescriptorSupplier("RegisterMaster"))
-                  .build();
-          }
+              .setSchemaDescriptor(new MetaMasterMasterServiceMethodDescriptorSupplier("RegisterMaster"))
+              .build();
         }
-     }
-     return getRegisterMasterMethod;
+      }
+    }
+    return getRegisterMasterMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.MasterHeartbeatPRequest,
@@ -109,29 +107,35 @@ public final class MetaMasterMasterServiceGrpc {
     if ((getMasterHeartbeatMethod = MetaMasterMasterServiceGrpc.getMasterHeartbeatMethod) == null) {
       synchronized (MetaMasterMasterServiceGrpc.class) {
         if ((getMasterHeartbeatMethod = MetaMasterMasterServiceGrpc.getMasterHeartbeatMethod) == null) {
-          MetaMasterMasterServiceGrpc.getMasterHeartbeatMethod = getMasterHeartbeatMethod = 
+          MetaMasterMasterServiceGrpc.getMasterHeartbeatMethod = getMasterHeartbeatMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.MasterHeartbeatPRequest, alluxio.grpc.MasterHeartbeatPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.meta.MetaMasterMasterService", "MasterHeartbeat"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "MasterHeartbeat"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.MasterHeartbeatPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.MasterHeartbeatPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new MetaMasterMasterServiceMethodDescriptorSupplier("MasterHeartbeat"))
-                  .build();
-          }
+              .setSchemaDescriptor(new MetaMasterMasterServiceMethodDescriptorSupplier("MasterHeartbeat"))
+              .build();
         }
-     }
-     return getMasterHeartbeatMethod;
+      }
+    }
+    return getMasterHeartbeatMethod;
   }
 
   /**
    * Creates a new async stub that supports all call types for the service
    */
   public static MetaMasterMasterServiceStub newStub(io.grpc.Channel channel) {
-    return new MetaMasterMasterServiceStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<MetaMasterMasterServiceStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<MetaMasterMasterServiceStub>() {
+        @java.lang.Override
+        public MetaMasterMasterServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new MetaMasterMasterServiceStub(channel, callOptions);
+        }
+      };
+    return MetaMasterMasterServiceStub.newStub(factory, channel);
   }
 
   /**
@@ -139,7 +143,14 @@ public final class MetaMasterMasterServiceGrpc {
    */
   public static MetaMasterMasterServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new MetaMasterMasterServiceBlockingStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<MetaMasterMasterServiceBlockingStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<MetaMasterMasterServiceBlockingStub>() {
+        @java.lang.Override
+        public MetaMasterMasterServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new MetaMasterMasterServiceBlockingStub(channel, callOptions);
+        }
+      };
+    return MetaMasterMasterServiceBlockingStub.newStub(factory, channel);
   }
 
   /**
@@ -147,7 +158,14 @@ public final class MetaMasterMasterServiceGrpc {
    */
   public static MetaMasterMasterServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new MetaMasterMasterServiceFutureStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<MetaMasterMasterServiceFutureStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<MetaMasterMasterServiceFutureStub>() {
+        @java.lang.Override
+        public MetaMasterMasterServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new MetaMasterMasterServiceFutureStub(channel, callOptions);
+        }
+      };
+    return MetaMasterMasterServiceFutureStub.newStub(factory, channel);
   }
 
   /**
@@ -224,19 +242,15 @@ public final class MetaMasterMasterServiceGrpc {
    * This interface contains meta master service endpoints for Alluxio standby masters.
    * </pre>
    */
-  public static final class MetaMasterMasterServiceStub extends io.grpc.stub.AbstractStub<MetaMasterMasterServiceStub> {
-    private MetaMasterMasterServiceStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private MetaMasterMasterServiceStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class MetaMasterMasterServiceStub extends io.grpc.stub.AbstractAsyncStub<MetaMasterMasterServiceStub> {
+    private MetaMasterMasterServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected MetaMasterMasterServiceStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected MetaMasterMasterServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MetaMasterMasterServiceStub(channel, callOptions);
     }
 
@@ -283,19 +297,15 @@ public final class MetaMasterMasterServiceGrpc {
    * This interface contains meta master service endpoints for Alluxio standby masters.
    * </pre>
    */
-  public static final class MetaMasterMasterServiceBlockingStub extends io.grpc.stub.AbstractStub<MetaMasterMasterServiceBlockingStub> {
-    private MetaMasterMasterServiceBlockingStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private MetaMasterMasterServiceBlockingStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class MetaMasterMasterServiceBlockingStub extends io.grpc.stub.AbstractBlockingStub<MetaMasterMasterServiceBlockingStub> {
+    private MetaMasterMasterServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected MetaMasterMasterServiceBlockingStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected MetaMasterMasterServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MetaMasterMasterServiceBlockingStub(channel, callOptions);
     }
 
@@ -339,19 +349,15 @@ public final class MetaMasterMasterServiceGrpc {
    * This interface contains meta master service endpoints for Alluxio standby masters.
    * </pre>
    */
-  public static final class MetaMasterMasterServiceFutureStub extends io.grpc.stub.AbstractStub<MetaMasterMasterServiceFutureStub> {
-    private MetaMasterMasterServiceFutureStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private MetaMasterMasterServiceFutureStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class MetaMasterMasterServiceFutureStub extends io.grpc.stub.AbstractFutureStub<MetaMasterMasterServiceFutureStub> {
+    private MetaMasterMasterServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected MetaMasterMasterServiceFutureStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected MetaMasterMasterServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MetaMasterMasterServiceFutureStub(channel, callOptions);
     }
 

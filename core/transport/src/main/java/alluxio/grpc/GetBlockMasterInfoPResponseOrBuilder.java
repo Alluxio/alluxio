@@ -9,10 +9,12 @@ public interface GetBlockMasterInfoPResponseOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.block.BlockMasterInfo blockMasterInfo = 1;</code>
+   * @return Whether the blockMasterInfo field is set.
    */
   boolean hasBlockMasterInfo();
   /**
    * <code>optional .alluxio.grpc.block.BlockMasterInfo blockMasterInfo = 1;</code>
+   * @return The blockMasterInfo.
    */
   alluxio.grpc.BlockMasterInfo getBlockMasterInfo();
   /**

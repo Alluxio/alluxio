@@ -117,10 +117,12 @@ public interface ConfigCheckReportOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.meta.ConfigStatus status = 3;</code>
+   * @return Whether the status field is set.
    */
   boolean hasStatus();
   /**
    * <code>optional .alluxio.grpc.meta.ConfigStatus status = 3;</code>
+   * @return The status.
    */
   alluxio.grpc.ConfigStatus getStatus();
 }

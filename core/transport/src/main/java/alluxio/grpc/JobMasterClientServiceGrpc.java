@@ -22,7 +22,7 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.17.1)",
+    value = "by gRPC proto compiler (version 1.27.0)",
     comments = "Source: grpc/job_master.proto")
 public final class JobMasterClientServiceGrpc {
 
@@ -45,22 +45,21 @@ public final class JobMasterClientServiceGrpc {
     if ((getCancelMethod = JobMasterClientServiceGrpc.getCancelMethod) == null) {
       synchronized (JobMasterClientServiceGrpc.class) {
         if ((getCancelMethod = JobMasterClientServiceGrpc.getCancelMethod) == null) {
-          JobMasterClientServiceGrpc.getCancelMethod = getCancelMethod = 
+          JobMasterClientServiceGrpc.getCancelMethod = getCancelMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.CancelPRequest, alluxio.grpc.CancelPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.job.JobMasterClientService", "Cancel"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Cancel"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CancelPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CancelPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new JobMasterClientServiceMethodDescriptorSupplier("Cancel"))
-                  .build();
-          }
+              .setSchemaDescriptor(new JobMasterClientServiceMethodDescriptorSupplier("Cancel"))
+              .build();
         }
-     }
-     return getCancelMethod;
+      }
+    }
+    return getCancelMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetJobStatusPRequest,
@@ -77,22 +76,21 @@ public final class JobMasterClientServiceGrpc {
     if ((getGetJobStatusMethod = JobMasterClientServiceGrpc.getGetJobStatusMethod) == null) {
       synchronized (JobMasterClientServiceGrpc.class) {
         if ((getGetJobStatusMethod = JobMasterClientServiceGrpc.getGetJobStatusMethod) == null) {
-          JobMasterClientServiceGrpc.getGetJobStatusMethod = getGetJobStatusMethod = 
+          JobMasterClientServiceGrpc.getGetJobStatusMethod = getGetJobStatusMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetJobStatusPRequest, alluxio.grpc.GetJobStatusPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.job.JobMasterClientService", "GetJobStatus"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetJobStatus"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetJobStatusPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetJobStatusPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new JobMasterClientServiceMethodDescriptorSupplier("GetJobStatus"))
-                  .build();
-          }
+              .setSchemaDescriptor(new JobMasterClientServiceMethodDescriptorSupplier("GetJobStatus"))
+              .build();
         }
-     }
-     return getGetJobStatusMethod;
+      }
+    }
+    return getGetJobStatusMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetJobServiceSummaryPRequest,
@@ -109,22 +107,21 @@ public final class JobMasterClientServiceGrpc {
     if ((getGetJobServiceSummaryMethod = JobMasterClientServiceGrpc.getGetJobServiceSummaryMethod) == null) {
       synchronized (JobMasterClientServiceGrpc.class) {
         if ((getGetJobServiceSummaryMethod = JobMasterClientServiceGrpc.getGetJobServiceSummaryMethod) == null) {
-          JobMasterClientServiceGrpc.getGetJobServiceSummaryMethod = getGetJobServiceSummaryMethod = 
+          JobMasterClientServiceGrpc.getGetJobServiceSummaryMethod = getGetJobServiceSummaryMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetJobServiceSummaryPRequest, alluxio.grpc.GetJobServiceSummaryPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.job.JobMasterClientService", "GetJobServiceSummary"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetJobServiceSummary"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetJobServiceSummaryPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetJobServiceSummaryPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new JobMasterClientServiceMethodDescriptorSupplier("GetJobServiceSummary"))
-                  .build();
-          }
+              .setSchemaDescriptor(new JobMasterClientServiceMethodDescriptorSupplier("GetJobServiceSummary"))
+              .build();
         }
-     }
-     return getGetJobServiceSummaryMethod;
+      }
+    }
+    return getGetJobServiceSummaryMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.ListAllPRequest,
@@ -141,22 +138,21 @@ public final class JobMasterClientServiceGrpc {
     if ((getListAllMethod = JobMasterClientServiceGrpc.getListAllMethod) == null) {
       synchronized (JobMasterClientServiceGrpc.class) {
         if ((getListAllMethod = JobMasterClientServiceGrpc.getListAllMethod) == null) {
-          JobMasterClientServiceGrpc.getListAllMethod = getListAllMethod = 
+          JobMasterClientServiceGrpc.getListAllMethod = getListAllMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.ListAllPRequest, alluxio.grpc.ListAllPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.job.JobMasterClientService", "ListAll"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListAll"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.ListAllPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.ListAllPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new JobMasterClientServiceMethodDescriptorSupplier("ListAll"))
-                  .build();
-          }
+              .setSchemaDescriptor(new JobMasterClientServiceMethodDescriptorSupplier("ListAll"))
+              .build();
         }
-     }
-     return getListAllMethod;
+      }
+    }
+    return getListAllMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.RunPRequest,
@@ -173,22 +169,21 @@ public final class JobMasterClientServiceGrpc {
     if ((getRunMethod = JobMasterClientServiceGrpc.getRunMethod) == null) {
       synchronized (JobMasterClientServiceGrpc.class) {
         if ((getRunMethod = JobMasterClientServiceGrpc.getRunMethod) == null) {
-          JobMasterClientServiceGrpc.getRunMethod = getRunMethod = 
+          JobMasterClientServiceGrpc.getRunMethod = getRunMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.RunPRequest, alluxio.grpc.RunPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.job.JobMasterClientService", "Run"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Run"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RunPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RunPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new JobMasterClientServiceMethodDescriptorSupplier("Run"))
-                  .build();
-          }
+              .setSchemaDescriptor(new JobMasterClientServiceMethodDescriptorSupplier("Run"))
+              .build();
         }
-     }
-     return getRunMethod;
+      }
+    }
+    return getRunMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetAllWorkerHealthPRequest,
@@ -205,29 +200,35 @@ public final class JobMasterClientServiceGrpc {
     if ((getGetAllWorkerHealthMethod = JobMasterClientServiceGrpc.getGetAllWorkerHealthMethod) == null) {
       synchronized (JobMasterClientServiceGrpc.class) {
         if ((getGetAllWorkerHealthMethod = JobMasterClientServiceGrpc.getGetAllWorkerHealthMethod) == null) {
-          JobMasterClientServiceGrpc.getGetAllWorkerHealthMethod = getGetAllWorkerHealthMethod = 
+          JobMasterClientServiceGrpc.getGetAllWorkerHealthMethod = getGetAllWorkerHealthMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetAllWorkerHealthPRequest, alluxio.grpc.GetAllWorkerHealthPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.job.JobMasterClientService", "GetAllWorkerHealth"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAllWorkerHealth"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetAllWorkerHealthPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetAllWorkerHealthPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new JobMasterClientServiceMethodDescriptorSupplier("GetAllWorkerHealth"))
-                  .build();
-          }
+              .setSchemaDescriptor(new JobMasterClientServiceMethodDescriptorSupplier("GetAllWorkerHealth"))
+              .build();
         }
-     }
-     return getGetAllWorkerHealthMethod;
+      }
+    }
+    return getGetAllWorkerHealthMethod;
   }
 
   /**
    * Creates a new async stub that supports all call types for the service
    */
   public static JobMasterClientServiceStub newStub(io.grpc.Channel channel) {
-    return new JobMasterClientServiceStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<JobMasterClientServiceStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<JobMasterClientServiceStub>() {
+        @java.lang.Override
+        public JobMasterClientServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new JobMasterClientServiceStub(channel, callOptions);
+        }
+      };
+    return JobMasterClientServiceStub.newStub(factory, channel);
   }
 
   /**
@@ -235,7 +236,14 @@ public final class JobMasterClientServiceGrpc {
    */
   public static JobMasterClientServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new JobMasterClientServiceBlockingStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<JobMasterClientServiceBlockingStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<JobMasterClientServiceBlockingStub>() {
+        @java.lang.Override
+        public JobMasterClientServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new JobMasterClientServiceBlockingStub(channel, callOptions);
+        }
+      };
+    return JobMasterClientServiceBlockingStub.newStub(factory, channel);
   }
 
   /**
@@ -243,7 +251,14 @@ public final class JobMasterClientServiceGrpc {
    */
   public static JobMasterClientServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new JobMasterClientServiceFutureStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<JobMasterClientServiceFutureStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<JobMasterClientServiceFutureStub>() {
+        @java.lang.Override
+        public JobMasterClientServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new JobMasterClientServiceFutureStub(channel, callOptions);
+        }
+      };
+    return JobMasterClientServiceFutureStub.newStub(factory, channel);
   }
 
   /**
@@ -374,19 +389,15 @@ public final class JobMasterClientServiceGrpc {
    * This interface contains job master service endpoints for job service clients.
    * </pre>
    */
-  public static final class JobMasterClientServiceStub extends io.grpc.stub.AbstractStub<JobMasterClientServiceStub> {
-    private JobMasterClientServiceStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private JobMasterClientServiceStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class JobMasterClientServiceStub extends io.grpc.stub.AbstractAsyncStub<JobMasterClientServiceStub> {
+    private JobMasterClientServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected JobMasterClientServiceStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected JobMasterClientServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new JobMasterClientServiceStub(channel, callOptions);
     }
 
@@ -469,19 +480,15 @@ public final class JobMasterClientServiceGrpc {
    * This interface contains job master service endpoints for job service clients.
    * </pre>
    */
-  public static final class JobMasterClientServiceBlockingStub extends io.grpc.stub.AbstractStub<JobMasterClientServiceBlockingStub> {
-    private JobMasterClientServiceBlockingStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private JobMasterClientServiceBlockingStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class JobMasterClientServiceBlockingStub extends io.grpc.stub.AbstractBlockingStub<JobMasterClientServiceBlockingStub> {
+    private JobMasterClientServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected JobMasterClientServiceBlockingStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected JobMasterClientServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new JobMasterClientServiceBlockingStub(channel, callOptions);
     }
 
@@ -558,19 +565,15 @@ public final class JobMasterClientServiceGrpc {
    * This interface contains job master service endpoints for job service clients.
    * </pre>
    */
-  public static final class JobMasterClientServiceFutureStub extends io.grpc.stub.AbstractStub<JobMasterClientServiceFutureStub> {
-    private JobMasterClientServiceFutureStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private JobMasterClientServiceFutureStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class JobMasterClientServiceFutureStub extends io.grpc.stub.AbstractFutureStub<JobMasterClientServiceFutureStub> {
+    private JobMasterClientServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected JobMasterClientServiceFutureStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected JobMasterClientServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new JobMasterClientServiceFutureStub(channel, callOptions);
     }
 

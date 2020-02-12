@@ -9,10 +9,12 @@ public interface JobCommandOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.job.RunTaskCommand runTaskCommand = 1;</code>
+   * @return Whether the runTaskCommand field is set.
    */
   boolean hasRunTaskCommand();
   /**
    * <code>optional .alluxio.grpc.job.RunTaskCommand runTaskCommand = 1;</code>
+   * @return The runTaskCommand.
    */
   alluxio.grpc.RunTaskCommand getRunTaskCommand();
   /**
@@ -22,10 +24,12 @@ public interface JobCommandOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.job.CancelTaskCommand cancelTaskCommand = 2;</code>
+   * @return Whether the cancelTaskCommand field is set.
    */
   boolean hasCancelTaskCommand();
   /**
    * <code>optional .alluxio.grpc.job.CancelTaskCommand cancelTaskCommand = 2;</code>
+   * @return The cancelTaskCommand.
    */
   alluxio.grpc.CancelTaskCommand getCancelTaskCommand();
   /**
@@ -35,10 +39,12 @@ public interface JobCommandOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.job.RegisterCommand registerCommand = 3;</code>
+   * @return Whether the registerCommand field is set.
    */
   boolean hasRegisterCommand();
   /**
    * <code>optional .alluxio.grpc.job.RegisterCommand registerCommand = 3;</code>
+   * @return The registerCommand.
    */
   alluxio.grpc.RegisterCommand getRegisterCommand();
   /**
@@ -48,10 +54,12 @@ public interface JobCommandOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.job.SetTaskPoolSizeCommand setTaskPoolSizeCommand = 4;</code>
+   * @return Whether the setTaskPoolSizeCommand field is set.
    */
   boolean hasSetTaskPoolSizeCommand();
   /**
    * <code>optional .alluxio.grpc.job.SetTaskPoolSizeCommand setTaskPoolSizeCommand = 4;</code>
+   * @return The setTaskPoolSizeCommand.
    */
   alluxio.grpc.SetTaskPoolSizeCommand getSetTaskPoolSizeCommand();
   /**
