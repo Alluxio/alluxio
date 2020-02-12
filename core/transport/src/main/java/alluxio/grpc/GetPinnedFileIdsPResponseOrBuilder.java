@@ -13,6 +13,7 @@ public interface GetPinnedFileIdsPResponseOrBuilder extends
    * </pre>
    *
    * <code>repeated int64 pinnedFileIds = 1;</code>
+   * @return A list containing the pinnedFileIds.
    */
   java.util.List<java.lang.Long> getPinnedFileIdsList();
   /**
@@ -21,6 +22,7 @@ public interface GetPinnedFileIdsPResponseOrBuilder extends
    * </pre>
    *
    * <code>repeated int64 pinnedFileIds = 1;</code>
+   * @return The count of pinnedFileIds.
    */
   int getPinnedFileIdsCount();
   /**
@@ -29,6 +31,8 @@ public interface GetPinnedFileIdsPResponseOrBuilder extends
    * </pre>
    *
    * <code>repeated int64 pinnedFileIds = 1;</code>
+   * @param index The index of the element to return.
+   * @return The pinnedFileIds at the given index.
    */
   long getPinnedFileIds(int index);
 }

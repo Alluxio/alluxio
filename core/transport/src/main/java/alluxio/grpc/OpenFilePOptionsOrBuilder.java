@@ -9,28 +9,34 @@ public interface OpenFilePOptionsOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.file.ReadPType readType = 1;</code>
+   * @return Whether the readType field is set.
    */
   boolean hasReadType();
   /**
    * <code>optional .alluxio.grpc.file.ReadPType readType = 1;</code>
+   * @return The readType.
    */
   alluxio.grpc.ReadPType getReadType();
 
   /**
    * <code>optional int32 maxUfsReadConcurrency = 2;</code>
+   * @return Whether the maxUfsReadConcurrency field is set.
    */
   boolean hasMaxUfsReadConcurrency();
   /**
    * <code>optional int32 maxUfsReadConcurrency = 2;</code>
+   * @return The maxUfsReadConcurrency.
    */
   int getMaxUfsReadConcurrency();
 
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+   * @return Whether the commonOptions field is set.
    */
   boolean hasCommonOptions();
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+   * @return The commonOptions.
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
@@ -40,10 +46,12 @@ public interface OpenFilePOptionsOrBuilder extends
 
   /**
    * <code>optional bool updateLastAccessTime = 4 [default = true];</code>
+   * @return Whether the updateLastAccessTime field is set.
    */
   boolean hasUpdateLastAccessTime();
   /**
    * <code>optional bool updateLastAccessTime = 4 [default = true];</code>
+   * @return The updateLastAccessTime.
    */
   boolean getUpdateLastAccessTime();
 }

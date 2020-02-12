@@ -9,10 +9,12 @@ public interface GetPinnedFileIdsPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.file.GetPinnedFileIdsPOptions options = 1;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.file.GetPinnedFileIdsPOptions options = 1;</code>
+   * @return The options.
    */
   alluxio.grpc.GetPinnedFileIdsPOptions getOptions();
   /**

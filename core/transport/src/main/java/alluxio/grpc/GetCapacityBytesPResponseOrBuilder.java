@@ -9,10 +9,12 @@ public interface GetCapacityBytesPResponseOrBuilder extends
 
   /**
    * <code>optional int64 bytes = 1;</code>
+   * @return Whether the bytes field is set.
    */
   boolean hasBytes();
   /**
    * <code>optional int64 bytes = 1;</code>
+   * @return The bytes.
    */
   long getBytes();
 }

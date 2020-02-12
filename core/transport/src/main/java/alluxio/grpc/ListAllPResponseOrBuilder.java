@@ -9,14 +9,18 @@ public interface ListAllPResponseOrBuilder extends
 
   /**
    * <code>repeated int64 jobIds = 1;</code>
+   * @return A list containing the jobIds.
    */
   java.util.List<java.lang.Long> getJobIdsList();
   /**
    * <code>repeated int64 jobIds = 1;</code>
+   * @return The count of jobIds.
    */
   int getJobIdsCount();
   /**
    * <code>repeated int64 jobIds = 1;</code>
+   * @param index The index of the element to return.
+   * @return The jobIds at the given index.
    */
   long getJobIds(int index);
 

@@ -41,6 +41,8 @@ public enum SyncPointStatus
   }
 
   /**
+   * @param value The numeric wire value of the corresponding enum entry.
+   * @return The enum associated with the given numeric wire value.
    * @deprecated Use {@link #forNumber(int)} instead.
    */
   @java.lang.Deprecated
@@ -48,6 +50,10 @@ public enum SyncPointStatus
     return forNumber(value);
   }
 
+  /**
+   * @param value The numeric wire value of the corresponding enum entry.
+   * @return The enum associated with the given numeric wire value.
+   */
   public static SyncPointStatus forNumber(int value) {
     switch (value) {
       case 0: return Not_Initially_Synced;

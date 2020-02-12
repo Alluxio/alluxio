@@ -9,14 +9,17 @@ public interface ReverseResolvePResponseOrBuilder extends
 
   /**
    * <code>optional string alluxioPath = 1;</code>
+   * @return Whether the alluxioPath field is set.
    */
   boolean hasAlluxioPath();
   /**
    * <code>optional string alluxioPath = 1;</code>
+   * @return The alluxioPath.
    */
   java.lang.String getAlluxioPath();
   /**
    * <code>optional string alluxioPath = 1;</code>
+   * @return The bytes for alluxioPath.
    */
   com.google.protobuf.ByteString
       getAlluxioPathBytes();

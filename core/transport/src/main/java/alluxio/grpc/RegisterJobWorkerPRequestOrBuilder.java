@@ -9,10 +9,12 @@ public interface RegisterJobWorkerPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.WorkerNetAddress workerNetAddress = 1;</code>
+   * @return Whether the workerNetAddress field is set.
    */
   boolean hasWorkerNetAddress();
   /**
    * <code>optional .alluxio.grpc.WorkerNetAddress workerNetAddress = 1;</code>
+   * @return The workerNetAddress.
    */
   alluxio.grpc.WorkerNetAddress getWorkerNetAddress();
   /**
@@ -22,10 +24,12 @@ public interface RegisterJobWorkerPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.job.RegisterJobWorkerPOptions options = 2;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.job.RegisterJobWorkerPOptions options = 2;</code>
+   * @return The options.
    */
   alluxio.grpc.RegisterJobWorkerPOptions getOptions();
   /**

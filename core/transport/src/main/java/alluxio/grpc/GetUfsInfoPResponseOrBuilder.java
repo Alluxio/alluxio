@@ -9,10 +9,12 @@ public interface GetUfsInfoPResponseOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.file.UfsInfo ufsInfo = 1;</code>
+   * @return Whether the ufsInfo field is set.
    */
   boolean hasUfsInfo();
   /**
    * <code>optional .alluxio.grpc.file.UfsInfo ufsInfo = 1;</code>
+   * @return The ufsInfo.
    */
   alluxio.grpc.UfsInfo getUfsInfo();
   /**

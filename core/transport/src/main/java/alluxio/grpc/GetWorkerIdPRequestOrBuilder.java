@@ -13,6 +13,7 @@ public interface GetWorkerIdPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional .alluxio.grpc.WorkerNetAddress workerNetAddress = 1;</code>
+   * @return Whether the workerNetAddress field is set.
    */
   boolean hasWorkerNetAddress();
   /**
@@ -21,6 +22,7 @@ public interface GetWorkerIdPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional .alluxio.grpc.WorkerNetAddress workerNetAddress = 1;</code>
+   * @return The workerNetAddress.
    */
   alluxio.grpc.WorkerNetAddress getWorkerNetAddress();
   /**
@@ -34,10 +36,12 @@ public interface GetWorkerIdPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.block.GetWorkerIdPOptions options = 2;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.block.GetWorkerIdPOptions options = 2;</code>
+   * @return The options.
    */
   alluxio.grpc.GetWorkerIdPOptions getOptions();
   /**

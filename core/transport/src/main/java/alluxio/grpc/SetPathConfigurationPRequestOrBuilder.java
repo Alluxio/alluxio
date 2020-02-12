@@ -9,14 +9,17 @@ public interface SetPathConfigurationPRequestOrBuilder extends
 
   /**
    * <code>optional string path = 1;</code>
+   * @return Whether the path field is set.
    */
   boolean hasPath();
   /**
    * <code>optional string path = 1;</code>
+   * @return The path.
    */
   java.lang.String getPath();
   /**
    * <code>optional string path = 1;</code>
+   * @return The bytes for path.
    */
   com.google.protobuf.ByteString
       getPathBytes();
@@ -57,10 +60,12 @@ public interface SetPathConfigurationPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.meta.SetPathConfigurationPOptions options = 3;</code>
+   * @return The options.
    */
   alluxio.grpc.SetPathConfigurationPOptions getOptions();
   /**

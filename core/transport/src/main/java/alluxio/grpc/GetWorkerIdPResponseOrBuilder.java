@@ -9,10 +9,12 @@ public interface GetWorkerIdPResponseOrBuilder extends
 
   /**
    * <code>optional int64 workerId = 1;</code>
+   * @return Whether the workerId field is set.
    */
   boolean hasWorkerId();
   /**
    * <code>optional int64 workerId = 1;</code>
+   * @return The workerId.
    */
   long getWorkerId();
 }

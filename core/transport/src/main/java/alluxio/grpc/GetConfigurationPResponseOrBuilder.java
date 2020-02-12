@@ -67,28 +67,34 @@ public interface GetConfigurationPResponseOrBuilder extends
 
   /**
    * <code>optional string clusterConfigHash = 3;</code>
+   * @return Whether the clusterConfigHash field is set.
    */
   boolean hasClusterConfigHash();
   /**
    * <code>optional string clusterConfigHash = 3;</code>
+   * @return The clusterConfigHash.
    */
   java.lang.String getClusterConfigHash();
   /**
    * <code>optional string clusterConfigHash = 3;</code>
+   * @return The bytes for clusterConfigHash.
    */
   com.google.protobuf.ByteString
       getClusterConfigHashBytes();
 
   /**
    * <code>optional string pathConfigHash = 4;</code>
+   * @return Whether the pathConfigHash field is set.
    */
   boolean hasPathConfigHash();
   /**
    * <code>optional string pathConfigHash = 4;</code>
+   * @return The pathConfigHash.
    */
   java.lang.String getPathConfigHash();
   /**
    * <code>optional string pathConfigHash = 4;</code>
+   * @return The bytes for pathConfigHash.
    */
   com.google.protobuf.ByteString
       getPathConfigHashBytes();

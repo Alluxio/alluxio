@@ -9,28 +9,34 @@ public interface PModeOrBuilder extends
 
   /**
    * <code>required .alluxio.grpc.Bits ownerBits = 1;</code>
+   * @return Whether the ownerBits field is set.
    */
   boolean hasOwnerBits();
   /**
    * <code>required .alluxio.grpc.Bits ownerBits = 1;</code>
+   * @return The ownerBits.
    */
   alluxio.grpc.Bits getOwnerBits();
 
   /**
    * <code>required .alluxio.grpc.Bits groupBits = 2;</code>
+   * @return Whether the groupBits field is set.
    */
   boolean hasGroupBits();
   /**
    * <code>required .alluxio.grpc.Bits groupBits = 2;</code>
+   * @return The groupBits.
    */
   alluxio.grpc.Bits getGroupBits();
 
   /**
    * <code>required .alluxio.grpc.Bits otherBits = 3;</code>
+   * @return Whether the otherBits field is set.
    */
   boolean hasOtherBits();
   /**
    * <code>required .alluxio.grpc.Bits otherBits = 3;</code>
+   * @return The otherBits.
    */
   alluxio.grpc.Bits getOtherBits();
 }

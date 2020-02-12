@@ -9,10 +9,12 @@ public interface RemoveQuorumServerPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.journal.RemoveQuorumServerPOptions options = 1;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.journal.RemoveQuorumServerPOptions options = 1;</code>
+   * @return The options.
    */
   alluxio.grpc.RemoveQuorumServerPOptions getOptions();
   /**
@@ -22,10 +24,12 @@ public interface RemoveQuorumServerPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.NetAddress serverAddress = 2;</code>
+   * @return Whether the serverAddress field is set.
    */
   boolean hasServerAddress();
   /**
    * <code>optional .alluxio.grpc.NetAddress serverAddress = 2;</code>
+   * @return The serverAddress.
    */
   alluxio.grpc.NetAddress getServerAddress();
   /**

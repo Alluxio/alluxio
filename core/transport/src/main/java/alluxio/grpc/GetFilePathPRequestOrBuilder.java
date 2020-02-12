@@ -9,10 +9,12 @@ public interface GetFilePathPRequestOrBuilder extends
 
   /**
    * <code>optional int64 fileId = 1;</code>
+   * @return Whether the fileId field is set.
    */
   boolean hasFileId();
   /**
    * <code>optional int64 fileId = 1;</code>
+   * @return The fileId.
    */
   long getFileId();
 }

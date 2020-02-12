@@ -16,9 +16,14 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private FileSystemMasterCommonPOptions() {
-    syncIntervalMs_ = 0L;
-    ttl_ = 0L;
     ttlAction_ = 0;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new FileSystemMasterCommonPOptions();
   }
 
   @java.lang.Override
@@ -45,13 +50,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             bitField0_ |= 0x00000001;
             syncIntervalMs_ = input.readInt64();
@@ -64,12 +62,20 @@ private static final long serialVersionUID = 0L;
           }
           case 24: {
             int rawValue = input.readEnum();
+              @SuppressWarnings("deprecation")
             alluxio.grpc.TtlAction value = alluxio.grpc.TtlAction.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(3, rawValue);
             } else {
               bitField0_ |= 0x00000004;
               ttlAction_ = rawValue;
+            }
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
             }
             break;
           }
@@ -90,6 +96,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileSystemMasterCommonPOptions_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileSystemMasterCommonPOptions_fieldAccessorTable
@@ -102,12 +109,14 @@ private static final long serialVersionUID = 0L;
   private long syncIntervalMs_;
   /**
    * <code>optional int64 syncIntervalMs = 1;</code>
+   * @return Whether the syncIntervalMs field is set.
    */
   public boolean hasSyncIntervalMs() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional int64 syncIntervalMs = 1;</code>
+   * @return The syncIntervalMs.
    */
   public long getSyncIntervalMs() {
     return syncIntervalMs_;
@@ -117,12 +126,14 @@ private static final long serialVersionUID = 0L;
   private long ttl_;
   /**
    * <code>optional int64 ttl = 2;</code>
+   * @return Whether the ttl field is set.
    */
   public boolean hasTtl() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional int64 ttl = 2;</code>
+   * @return The ttl.
    */
   public long getTtl() {
     return ttl_;
@@ -132,19 +143,23 @@ private static final long serialVersionUID = 0L;
   private int ttlAction_;
   /**
    * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
+   * @return Whether the ttlAction field is set.
    */
   public boolean hasTtlAction() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
+   * @return The ttlAction.
    */
   public alluxio.grpc.TtlAction getTtlAction() {
+    @SuppressWarnings("deprecation")
     alluxio.grpc.TtlAction result = alluxio.grpc.TtlAction.valueOf(ttlAction_);
     return result == null ? alluxio.grpc.TtlAction.DELETE : result;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -154,34 +169,36 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeInt64(1, syncIntervalMs_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeInt64(2, ttl_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       output.writeEnum(3, ttlAction_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(1, syncIntervalMs_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(2, ttl_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(3, ttlAction_);
     }
@@ -200,23 +217,22 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.FileSystemMasterCommonPOptions other = (alluxio.grpc.FileSystemMasterCommonPOptions) obj;
 
-    boolean result = true;
-    result = result && (hasSyncIntervalMs() == other.hasSyncIntervalMs());
+    if (hasSyncIntervalMs() != other.hasSyncIntervalMs()) return false;
     if (hasSyncIntervalMs()) {
-      result = result && (getSyncIntervalMs()
-          == other.getSyncIntervalMs());
+      if (getSyncIntervalMs()
+          != other.getSyncIntervalMs()) return false;
     }
-    result = result && (hasTtl() == other.hasTtl());
+    if (hasTtl() != other.hasTtl()) return false;
     if (hasTtl()) {
-      result = result && (getTtl()
-          == other.getTtl());
+      if (getTtl()
+          != other.getTtl()) return false;
     }
-    result = result && (hasTtlAction() == other.hasTtlAction());
+    if (hasTtlAction() != other.hasTtlAction()) return false;
     if (hasTtlAction()) {
-      result = result && ttlAction_ == other.ttlAction_;
+      if (ttlAction_ != other.ttlAction_) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -315,6 +331,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -322,6 +339,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.FileSystemMasterCommonPOptions prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -345,6 +363,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileSystemMasterCommonPOptions_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileSystemMasterCommonPOptions_fieldAccessorTable
@@ -367,6 +386,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       syncIntervalMs_ = 0L;
@@ -378,15 +398,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileSystemMasterCommonPOptions_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.FileSystemMasterCommonPOptions getDefaultInstanceForType() {
       return alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.FileSystemMasterCommonPOptions build() {
       alluxio.grpc.FileSystemMasterCommonPOptions result = buildPartial();
       if (!result.isInitialized()) {
@@ -395,19 +418,20 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.FileSystemMasterCommonPOptions buildPartial() {
       alluxio.grpc.FileSystemMasterCommonPOptions result = new alluxio.grpc.FileSystemMasterCommonPOptions(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        result.syncIntervalMs_ = syncIntervalMs_;
         to_bitField0_ |= 0x00000001;
       }
-      result.syncIntervalMs_ = syncIntervalMs_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
+        result.ttl_ = ttl_;
         to_bitField0_ |= 0x00000002;
       }
-      result.ttl_ = ttl_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
         to_bitField0_ |= 0x00000004;
       }
       result.ttlAction_ = ttlAction_;
@@ -416,32 +440,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.FileSystemMasterCommonPOptions) {
         return mergeFrom((alluxio.grpc.FileSystemMasterCommonPOptions)other);
@@ -467,10 +498,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -493,18 +526,22 @@ private static final long serialVersionUID = 0L;
     private long syncIntervalMs_ ;
     /**
      * <code>optional int64 syncIntervalMs = 1;</code>
+     * @return Whether the syncIntervalMs field is set.
      */
     public boolean hasSyncIntervalMs() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional int64 syncIntervalMs = 1;</code>
+     * @return The syncIntervalMs.
      */
     public long getSyncIntervalMs() {
       return syncIntervalMs_;
     }
     /**
      * <code>optional int64 syncIntervalMs = 1;</code>
+     * @param value The syncIntervalMs to set.
+     * @return This builder for chaining.
      */
     public Builder setSyncIntervalMs(long value) {
       bitField0_ |= 0x00000001;
@@ -514,6 +551,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 syncIntervalMs = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearSyncIntervalMs() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -525,18 +563,22 @@ private static final long serialVersionUID = 0L;
     private long ttl_ ;
     /**
      * <code>optional int64 ttl = 2;</code>
+     * @return Whether the ttl field is set.
      */
     public boolean hasTtl() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional int64 ttl = 2;</code>
+     * @return The ttl.
      */
     public long getTtl() {
       return ttl_;
     }
     /**
      * <code>optional int64 ttl = 2;</code>
+     * @param value The ttl to set.
+     * @return This builder for chaining.
      */
     public Builder setTtl(long value) {
       bitField0_ |= 0x00000002;
@@ -546,6 +588,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 ttl = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearTtl() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -557,19 +600,24 @@ private static final long serialVersionUID = 0L;
     private int ttlAction_ = 0;
     /**
      * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
+     * @return Whether the ttlAction field is set.
      */
     public boolean hasTtlAction() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
+     * @return The ttlAction.
      */
     public alluxio.grpc.TtlAction getTtlAction() {
+      @SuppressWarnings("deprecation")
       alluxio.grpc.TtlAction result = alluxio.grpc.TtlAction.valueOf(ttlAction_);
       return result == null ? alluxio.grpc.TtlAction.DELETE : result;
     }
     /**
      * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
+     * @param value The ttlAction to set.
+     * @return This builder for chaining.
      */
     public Builder setTtlAction(alluxio.grpc.TtlAction value) {
       if (value == null) {
@@ -582,6 +630,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearTtlAction() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -589,11 +638,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -615,6 +666,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<FileSystemMasterCommonPOptions>
       PARSER = new com.google.protobuf.AbstractParser<FileSystemMasterCommonPOptions>() {
+    @java.lang.Override
     public FileSystemMasterCommonPOptions parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -632,6 +684,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.FileSystemMasterCommonPOptions getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

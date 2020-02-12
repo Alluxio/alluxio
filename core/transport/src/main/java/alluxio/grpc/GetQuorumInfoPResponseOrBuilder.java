@@ -9,10 +9,12 @@ public interface GetQuorumInfoPResponseOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.journal.JournalDomain domain = 1;</code>
+   * @return Whether the domain field is set.
    */
   boolean hasDomain();
   /**
    * <code>optional .alluxio.grpc.journal.JournalDomain domain = 1;</code>
+   * @return The domain.
    */
   alluxio.grpc.JournalDomain getDomain();
 

@@ -56,6 +56,8 @@ public final class Acl {
     }
 
     /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
     @java.lang.Deprecated
@@ -63,6 +65,10 @@ public final class Acl {
       return forNumber(value);
     }
 
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
     public static AclAction forNumber(int value) {
       switch (value) {
         case 0: return READ;
@@ -183,6 +189,8 @@ public final class Acl {
     }
 
     /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
     @java.lang.Deprecated
@@ -190,6 +198,10 @@ public final class Acl {
       return forNumber(value);
     }
 
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
     public static AclEntryType forNumber(int value) {
       switch (value) {
         case 0: return OWNER;
@@ -253,14 +265,18 @@ public final class Acl {
 
     /**
      * <code>repeated .alluxio.proto.shared.AclAction actions = 1;</code>
+     * @return A list containing the actions.
      */
     java.util.List<alluxio.proto.shared.Acl.AclAction> getActionsList();
     /**
      * <code>repeated .alluxio.proto.shared.AclAction actions = 1;</code>
+     * @return The count of actions.
      */
     int getActionsCount();
     /**
      * <code>repeated .alluxio.proto.shared.AclAction actions = 1;</code>
+     * @param index The index of the element to return.
+     * @return The actions at the given index.
      */
     alluxio.proto.shared.Acl.AclAction getActions(int index);
   }
@@ -282,6 +298,13 @@ public final class Acl {
     }
     private AclActions() {
       actions_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new AclActions();
     }
 
     @java.lang.Override
@@ -308,20 +331,14 @@ public final class Acl {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
+              @SuppressWarnings("deprecation")
               alluxio.proto.shared.Acl.AclAction value = alluxio.proto.shared.Acl.AclAction.valueOf(rawValue);
               if (value == null) {
                 unknownFields.mergeVarintField(1, rawValue);
               } else {
-                if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                   actions_ = new java.util.ArrayList<java.lang.Integer>();
                   mutable_bitField0_ |= 0x00000001;
                 }
@@ -334,11 +351,12 @@ public final class Acl {
               int oldLimit = input.pushLimit(length);
               while(input.getBytesUntilLimit() > 0) {
                 int rawValue = input.readEnum();
+                @SuppressWarnings("deprecation")
                 alluxio.proto.shared.Acl.AclAction value = alluxio.proto.shared.Acl.AclAction.valueOf(rawValue);
                 if (value == null) {
                   unknownFields.mergeVarintField(1, rawValue);
                 } else {
-                  if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                  if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                     actions_ = new java.util.ArrayList<java.lang.Integer>();
                     mutable_bitField0_ |= 0x00000001;
                   }
@@ -346,6 +364,13 @@ public final class Acl {
                 }
               }
               input.popLimit(oldLimit);
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -356,7 +381,7 @@ public final class Acl {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((mutable_bitField0_ & 0x00000001) != 0)) {
           actions_ = java.util.Collections.unmodifiableList(actions_);
         }
         this.unknownFields = unknownFields.build();
@@ -368,6 +393,7 @@ public final class Acl {
       return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_AclActions_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_AclActions_fieldAccessorTable
@@ -382,12 +408,14 @@ public final class Acl {
             new com.google.protobuf.Internal.ListAdapter.Converter<
                 java.lang.Integer, alluxio.proto.shared.Acl.AclAction>() {
               public alluxio.proto.shared.Acl.AclAction convert(java.lang.Integer from) {
+                @SuppressWarnings("deprecation")
                 alluxio.proto.shared.Acl.AclAction result = alluxio.proto.shared.Acl.AclAction.valueOf(from);
                 return result == null ? alluxio.proto.shared.Acl.AclAction.READ : result;
               }
             };
     /**
      * <code>repeated .alluxio.proto.shared.AclAction actions = 1;</code>
+     * @return A list containing the actions.
      */
     public java.util.List<alluxio.proto.shared.Acl.AclAction> getActionsList() {
       return new com.google.protobuf.Internal.ListAdapter<
@@ -395,18 +423,22 @@ public final class Acl {
     }
     /**
      * <code>repeated .alluxio.proto.shared.AclAction actions = 1;</code>
+     * @return The count of actions.
      */
     public int getActionsCount() {
       return actions_.size();
     }
     /**
      * <code>repeated .alluxio.proto.shared.AclAction actions = 1;</code>
+     * @param index The index of the element to return.
+     * @return The actions at the given index.
      */
     public alluxio.proto.shared.Acl.AclAction getActions(int index) {
       return actions_converter_.convert(actions_.get(index));
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -416,6 +448,7 @@ public final class Acl {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       for (int i = 0; i < actions_.size(); i++) {
@@ -424,6 +457,7 @@ public final class Acl {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
@@ -453,10 +487,9 @@ public final class Acl {
       }
       alluxio.proto.shared.Acl.AclActions other = (alluxio.proto.shared.Acl.AclActions) obj;
 
-      boolean result = true;
-      result = result && actions_.equals(other.actions_);
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!actions_.equals(other.actions_)) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -545,6 +578,7 @@ public final class Acl {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -552,6 +586,7 @@ public final class Acl {
     public static Builder newBuilder(alluxio.proto.shared.Acl.AclActions prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -579,6 +614,7 @@ public final class Acl {
         return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_AclActions_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_AclActions_fieldAccessorTable
@@ -601,6 +637,7 @@ public final class Acl {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         actions_ = java.util.Collections.emptyList();
@@ -608,15 +645,18 @@ public final class Acl {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_AclActions_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.shared.Acl.AclActions getDefaultInstanceForType() {
         return alluxio.proto.shared.Acl.AclActions.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.shared.Acl.AclActions build() {
         alluxio.proto.shared.Acl.AclActions result = buildPartial();
         if (!result.isInitialized()) {
@@ -625,10 +665,11 @@ public final class Acl {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.shared.Acl.AclActions buildPartial() {
         alluxio.proto.shared.Acl.AclActions result = new alluxio.proto.shared.Acl.AclActions(this);
         int from_bitField0_ = bitField0_;
-        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((bitField0_ & 0x00000001) != 0)) {
           actions_ = java.util.Collections.unmodifiableList(actions_);
           bitField0_ = (bitField0_ & ~0x00000001);
         }
@@ -637,32 +678,39 @@ public final class Acl {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.shared.Acl.AclActions) {
           return mergeFrom((alluxio.proto.shared.Acl.AclActions)other);
@@ -689,10 +737,12 @@ public final class Acl {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -715,13 +765,14 @@ public final class Acl {
       private java.util.List<java.lang.Integer> actions_ =
         java.util.Collections.emptyList();
       private void ensureActionsIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (!((bitField0_ & 0x00000001) != 0)) {
           actions_ = new java.util.ArrayList<java.lang.Integer>(actions_);
           bitField0_ |= 0x00000001;
         }
       }
       /**
        * <code>repeated .alluxio.proto.shared.AclAction actions = 1;</code>
+       * @return A list containing the actions.
        */
       public java.util.List<alluxio.proto.shared.Acl.AclAction> getActionsList() {
         return new com.google.protobuf.Internal.ListAdapter<
@@ -729,18 +780,24 @@ public final class Acl {
       }
       /**
        * <code>repeated .alluxio.proto.shared.AclAction actions = 1;</code>
+       * @return The count of actions.
        */
       public int getActionsCount() {
         return actions_.size();
       }
       /**
        * <code>repeated .alluxio.proto.shared.AclAction actions = 1;</code>
+       * @param index The index of the element to return.
+       * @return The actions at the given index.
        */
       public alluxio.proto.shared.Acl.AclAction getActions(int index) {
         return actions_converter_.convert(actions_.get(index));
       }
       /**
        * <code>repeated .alluxio.proto.shared.AclAction actions = 1;</code>
+       * @param index The index to set the value at.
+       * @param value The actions to set.
+       * @return This builder for chaining.
        */
       public Builder setActions(
           int index, alluxio.proto.shared.Acl.AclAction value) {
@@ -754,6 +811,8 @@ public final class Acl {
       }
       /**
        * <code>repeated .alluxio.proto.shared.AclAction actions = 1;</code>
+       * @param value The actions to add.
+       * @return This builder for chaining.
        */
       public Builder addActions(alluxio.proto.shared.Acl.AclAction value) {
         if (value == null) {
@@ -766,6 +825,8 @@ public final class Acl {
       }
       /**
        * <code>repeated .alluxio.proto.shared.AclAction actions = 1;</code>
+       * @param values The actions to add.
+       * @return This builder for chaining.
        */
       public Builder addAllActions(
           java.lang.Iterable<? extends alluxio.proto.shared.Acl.AclAction> values) {
@@ -778,6 +839,7 @@ public final class Acl {
       }
       /**
        * <code>repeated .alluxio.proto.shared.AclAction actions = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearActions() {
         actions_ = java.util.Collections.emptyList();
@@ -785,11 +847,13 @@ public final class Acl {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -811,6 +875,7 @@ public final class Acl {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<AclActions>
         PARSER = new com.google.protobuf.AbstractParser<AclActions>() {
+      @java.lang.Override
       public AclActions parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -828,6 +893,7 @@ public final class Acl {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.shared.Acl.AclActions getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -840,46 +906,57 @@ public final class Acl {
 
     /**
      * <code>optional .alluxio.proto.shared.AclEntryType type = 1;</code>
+     * @return Whether the type field is set.
      */
     boolean hasType();
     /**
      * <code>optional .alluxio.proto.shared.AclEntryType type = 1;</code>
+     * @return The type.
      */
     alluxio.proto.shared.Acl.AclEntryType getType();
 
     /**
      * <code>optional string subject = 2;</code>
+     * @return Whether the subject field is set.
      */
     boolean hasSubject();
     /**
      * <code>optional string subject = 2;</code>
+     * @return The subject.
      */
     java.lang.String getSubject();
     /**
      * <code>optional string subject = 2;</code>
+     * @return The bytes for subject.
      */
     com.google.protobuf.ByteString
         getSubjectBytes();
 
     /**
      * <code>repeated .alluxio.proto.shared.AclAction actions = 3;</code>
+     * @return A list containing the actions.
      */
     java.util.List<alluxio.proto.shared.Acl.AclAction> getActionsList();
     /**
      * <code>repeated .alluxio.proto.shared.AclAction actions = 3;</code>
+     * @return The count of actions.
      */
     int getActionsCount();
     /**
      * <code>repeated .alluxio.proto.shared.AclAction actions = 3;</code>
+     * @param index The index of the element to return.
+     * @return The actions at the given index.
      */
     alluxio.proto.shared.Acl.AclAction getActions(int index);
 
     /**
      * <code>optional bool isDefault = 4;</code>
+     * @return Whether the isDefault field is set.
      */
     boolean hasIsDefault();
     /**
      * <code>optional bool isDefault = 4;</code>
+     * @return The isDefault.
      */
     boolean getIsDefault();
   }
@@ -903,7 +980,13 @@ public final class Acl {
       type_ = 0;
       subject_ = "";
       actions_ = java.util.Collections.emptyList();
-      isDefault_ = false;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new AclEntry();
     }
 
     @java.lang.Override
@@ -930,15 +1013,9 @@ public final class Acl {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               int rawValue = input.readEnum();
+                @SuppressWarnings("deprecation")
               alluxio.proto.shared.Acl.AclEntryType value = alluxio.proto.shared.Acl.AclEntryType.valueOf(rawValue);
               if (value == null) {
                 unknownFields.mergeVarintField(1, rawValue);
@@ -956,11 +1033,12 @@ public final class Acl {
             }
             case 24: {
               int rawValue = input.readEnum();
+              @SuppressWarnings("deprecation")
               alluxio.proto.shared.Acl.AclAction value = alluxio.proto.shared.Acl.AclAction.valueOf(rawValue);
               if (value == null) {
                 unknownFields.mergeVarintField(3, rawValue);
               } else {
-                if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+                if (!((mutable_bitField0_ & 0x00000004) != 0)) {
                   actions_ = new java.util.ArrayList<java.lang.Integer>();
                   mutable_bitField0_ |= 0x00000004;
                 }
@@ -973,11 +1051,12 @@ public final class Acl {
               int oldLimit = input.pushLimit(length);
               while(input.getBytesUntilLimit() > 0) {
                 int rawValue = input.readEnum();
+                @SuppressWarnings("deprecation")
                 alluxio.proto.shared.Acl.AclAction value = alluxio.proto.shared.Acl.AclAction.valueOf(rawValue);
                 if (value == null) {
                   unknownFields.mergeVarintField(3, rawValue);
                 } else {
-                  if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+                  if (!((mutable_bitField0_ & 0x00000004) != 0)) {
                     actions_ = new java.util.ArrayList<java.lang.Integer>();
                     mutable_bitField0_ |= 0x00000004;
                   }
@@ -992,6 +1071,13 @@ public final class Acl {
               isDefault_ = input.readBool();
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -1000,7 +1086,7 @@ public final class Acl {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((mutable_bitField0_ & 0x00000004) != 0)) {
           actions_ = java.util.Collections.unmodifiableList(actions_);
         }
         this.unknownFields = unknownFields.build();
@@ -1012,6 +1098,7 @@ public final class Acl {
       return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_AclEntry_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_AclEntry_fieldAccessorTable
@@ -1024,14 +1111,17 @@ public final class Acl {
     private int type_;
     /**
      * <code>optional .alluxio.proto.shared.AclEntryType type = 1;</code>
+     * @return Whether the type field is set.
      */
     public boolean hasType() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional .alluxio.proto.shared.AclEntryType type = 1;</code>
+     * @return The type.
      */
     public alluxio.proto.shared.Acl.AclEntryType getType() {
+      @SuppressWarnings("deprecation")
       alluxio.proto.shared.Acl.AclEntryType result = alluxio.proto.shared.Acl.AclEntryType.valueOf(type_);
       return result == null ? alluxio.proto.shared.Acl.AclEntryType.OWNER : result;
     }
@@ -1040,12 +1130,14 @@ public final class Acl {
     private volatile java.lang.Object subject_;
     /**
      * <code>optional string subject = 2;</code>
+     * @return Whether the subject field is set.
      */
     public boolean hasSubject() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string subject = 2;</code>
+     * @return The subject.
      */
     public java.lang.String getSubject() {
       java.lang.Object ref = subject_;
@@ -1063,6 +1155,7 @@ public final class Acl {
     }
     /**
      * <code>optional string subject = 2;</code>
+     * @return The bytes for subject.
      */
     public com.google.protobuf.ByteString
         getSubjectBytes() {
@@ -1085,12 +1178,14 @@ public final class Acl {
             new com.google.protobuf.Internal.ListAdapter.Converter<
                 java.lang.Integer, alluxio.proto.shared.Acl.AclAction>() {
               public alluxio.proto.shared.Acl.AclAction convert(java.lang.Integer from) {
+                @SuppressWarnings("deprecation")
                 alluxio.proto.shared.Acl.AclAction result = alluxio.proto.shared.Acl.AclAction.valueOf(from);
                 return result == null ? alluxio.proto.shared.Acl.AclAction.READ : result;
               }
             };
     /**
      * <code>repeated .alluxio.proto.shared.AclAction actions = 3;</code>
+     * @return A list containing the actions.
      */
     public java.util.List<alluxio.proto.shared.Acl.AclAction> getActionsList() {
       return new com.google.protobuf.Internal.ListAdapter<
@@ -1098,12 +1193,15 @@ public final class Acl {
     }
     /**
      * <code>repeated .alluxio.proto.shared.AclAction actions = 3;</code>
+     * @return The count of actions.
      */
     public int getActionsCount() {
       return actions_.size();
     }
     /**
      * <code>repeated .alluxio.proto.shared.AclAction actions = 3;</code>
+     * @param index The index of the element to return.
+     * @return The actions at the given index.
      */
     public alluxio.proto.shared.Acl.AclAction getActions(int index) {
       return actions_converter_.convert(actions_.get(index));
@@ -1113,18 +1211,21 @@ public final class Acl {
     private boolean isDefault_;
     /**
      * <code>optional bool isDefault = 4;</code>
+     * @return Whether the isDefault field is set.
      */
     public boolean hasIsDefault() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional bool isDefault = 4;</code>
+     * @return The isDefault.
      */
     public boolean getIsDefault() {
       return isDefault_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -1134,33 +1235,35 @@ public final class Acl {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         output.writeEnum(1, type_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, subject_);
       }
       for (int i = 0; i < actions_.size(); i++) {
         output.writeEnum(3, actions_.get(i));
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         output.writeBool(4, isDefault_);
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(1, type_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, subject_);
       }
       {
@@ -1172,7 +1275,7 @@ public final class Acl {
         size += dataSize;
         size += 1 * actions_.size();
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(4, isDefault_);
       }
@@ -1191,24 +1294,23 @@ public final class Acl {
       }
       alluxio.proto.shared.Acl.AclEntry other = (alluxio.proto.shared.Acl.AclEntry) obj;
 
-      boolean result = true;
-      result = result && (hasType() == other.hasType());
+      if (hasType() != other.hasType()) return false;
       if (hasType()) {
-        result = result && type_ == other.type_;
+        if (type_ != other.type_) return false;
       }
-      result = result && (hasSubject() == other.hasSubject());
+      if (hasSubject() != other.hasSubject()) return false;
       if (hasSubject()) {
-        result = result && getSubject()
-            .equals(other.getSubject());
+        if (!getSubject()
+            .equals(other.getSubject())) return false;
       }
-      result = result && actions_.equals(other.actions_);
-      result = result && (hasIsDefault() == other.hasIsDefault());
+      if (!actions_.equals(other.actions_)) return false;
+      if (hasIsDefault() != other.hasIsDefault()) return false;
       if (hasIsDefault()) {
-        result = result && (getIsDefault()
-            == other.getIsDefault());
+        if (getIsDefault()
+            != other.getIsDefault()) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -1310,6 +1412,7 @@ public final class Acl {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -1317,6 +1420,7 @@ public final class Acl {
     public static Builder newBuilder(alluxio.proto.shared.Acl.AclEntry prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -1344,6 +1448,7 @@ public final class Acl {
         return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_AclEntry_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_AclEntry_fieldAccessorTable
@@ -1366,6 +1471,7 @@ public final class Acl {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         type_ = 0;
@@ -1379,15 +1485,18 @@ public final class Acl {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_AclEntry_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.shared.Acl.AclEntry getDefaultInstanceForType() {
         return alluxio.proto.shared.Acl.AclEntry.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.shared.Acl.AclEntry build() {
         alluxio.proto.shared.Acl.AclEntry result = buildPartial();
         if (!result.isInitialized()) {
@@ -1396,58 +1505,66 @@ public final class Acl {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.shared.Acl.AclEntry buildPartial() {
         alluxio.proto.shared.Acl.AclEntry result = new alluxio.proto.shared.Acl.AclEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
           to_bitField0_ |= 0x00000001;
         }
         result.type_ = type_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
           to_bitField0_ |= 0x00000002;
         }
         result.subject_ = subject_;
-        if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((bitField0_ & 0x00000004) != 0)) {
           actions_ = java.util.Collections.unmodifiableList(actions_);
           bitField0_ = (bitField0_ & ~0x00000004);
         }
         result.actions_ = actions_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.isDefault_ = isDefault_;
           to_bitField0_ |= 0x00000004;
         }
-        result.isDefault_ = isDefault_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.shared.Acl.AclEntry) {
           return mergeFrom((alluxio.proto.shared.Acl.AclEntry)other);
@@ -1485,10 +1602,12 @@ public final class Acl {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1511,19 +1630,24 @@ public final class Acl {
       private int type_ = 0;
       /**
        * <code>optional .alluxio.proto.shared.AclEntryType type = 1;</code>
+       * @return Whether the type field is set.
        */
       public boolean hasType() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional .alluxio.proto.shared.AclEntryType type = 1;</code>
+       * @return The type.
        */
       public alluxio.proto.shared.Acl.AclEntryType getType() {
+        @SuppressWarnings("deprecation")
         alluxio.proto.shared.Acl.AclEntryType result = alluxio.proto.shared.Acl.AclEntryType.valueOf(type_);
         return result == null ? alluxio.proto.shared.Acl.AclEntryType.OWNER : result;
       }
       /**
        * <code>optional .alluxio.proto.shared.AclEntryType type = 1;</code>
+       * @param value The type to set.
+       * @return This builder for chaining.
        */
       public Builder setType(alluxio.proto.shared.Acl.AclEntryType value) {
         if (value == null) {
@@ -1536,6 +1660,7 @@ public final class Acl {
       }
       /**
        * <code>optional .alluxio.proto.shared.AclEntryType type = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearType() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -1547,12 +1672,14 @@ public final class Acl {
       private java.lang.Object subject_ = "";
       /**
        * <code>optional string subject = 2;</code>
+       * @return Whether the subject field is set.
        */
       public boolean hasSubject() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <code>optional string subject = 2;</code>
+       * @return The subject.
        */
       public java.lang.String getSubject() {
         java.lang.Object ref = subject_;
@@ -1570,6 +1697,7 @@ public final class Acl {
       }
       /**
        * <code>optional string subject = 2;</code>
+       * @return The bytes for subject.
        */
       public com.google.protobuf.ByteString
           getSubjectBytes() {
@@ -1586,6 +1714,8 @@ public final class Acl {
       }
       /**
        * <code>optional string subject = 2;</code>
+       * @param value The subject to set.
+       * @return This builder for chaining.
        */
       public Builder setSubject(
           java.lang.String value) {
@@ -1599,6 +1729,7 @@ public final class Acl {
       }
       /**
        * <code>optional string subject = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearSubject() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -1608,6 +1739,8 @@ public final class Acl {
       }
       /**
        * <code>optional string subject = 2;</code>
+       * @param value The bytes for subject to set.
+       * @return This builder for chaining.
        */
       public Builder setSubjectBytes(
           com.google.protobuf.ByteString value) {
@@ -1623,13 +1756,14 @@ public final class Acl {
       private java.util.List<java.lang.Integer> actions_ =
         java.util.Collections.emptyList();
       private void ensureActionsIsMutable() {
-        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+        if (!((bitField0_ & 0x00000004) != 0)) {
           actions_ = new java.util.ArrayList<java.lang.Integer>(actions_);
           bitField0_ |= 0x00000004;
         }
       }
       /**
        * <code>repeated .alluxio.proto.shared.AclAction actions = 3;</code>
+       * @return A list containing the actions.
        */
       public java.util.List<alluxio.proto.shared.Acl.AclAction> getActionsList() {
         return new com.google.protobuf.Internal.ListAdapter<
@@ -1637,18 +1771,24 @@ public final class Acl {
       }
       /**
        * <code>repeated .alluxio.proto.shared.AclAction actions = 3;</code>
+       * @return The count of actions.
        */
       public int getActionsCount() {
         return actions_.size();
       }
       /**
        * <code>repeated .alluxio.proto.shared.AclAction actions = 3;</code>
+       * @param index The index of the element to return.
+       * @return The actions at the given index.
        */
       public alluxio.proto.shared.Acl.AclAction getActions(int index) {
         return actions_converter_.convert(actions_.get(index));
       }
       /**
        * <code>repeated .alluxio.proto.shared.AclAction actions = 3;</code>
+       * @param index The index to set the value at.
+       * @param value The actions to set.
+       * @return This builder for chaining.
        */
       public Builder setActions(
           int index, alluxio.proto.shared.Acl.AclAction value) {
@@ -1662,6 +1802,8 @@ public final class Acl {
       }
       /**
        * <code>repeated .alluxio.proto.shared.AclAction actions = 3;</code>
+       * @param value The actions to add.
+       * @return This builder for chaining.
        */
       public Builder addActions(alluxio.proto.shared.Acl.AclAction value) {
         if (value == null) {
@@ -1674,6 +1816,8 @@ public final class Acl {
       }
       /**
        * <code>repeated .alluxio.proto.shared.AclAction actions = 3;</code>
+       * @param values The actions to add.
+       * @return This builder for chaining.
        */
       public Builder addAllActions(
           java.lang.Iterable<? extends alluxio.proto.shared.Acl.AclAction> values) {
@@ -1686,6 +1830,7 @@ public final class Acl {
       }
       /**
        * <code>repeated .alluxio.proto.shared.AclAction actions = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearActions() {
         actions_ = java.util.Collections.emptyList();
@@ -1697,18 +1842,22 @@ public final class Acl {
       private boolean isDefault_ ;
       /**
        * <code>optional bool isDefault = 4;</code>
+       * @return Whether the isDefault field is set.
        */
       public boolean hasIsDefault() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
+        return ((bitField0_ & 0x00000008) != 0);
       }
       /**
        * <code>optional bool isDefault = 4;</code>
+       * @return The isDefault.
        */
       public boolean getIsDefault() {
         return isDefault_;
       }
       /**
        * <code>optional bool isDefault = 4;</code>
+       * @param value The isDefault to set.
+       * @return This builder for chaining.
        */
       public Builder setIsDefault(boolean value) {
         bitField0_ |= 0x00000008;
@@ -1718,6 +1867,7 @@ public final class Acl {
       }
       /**
        * <code>optional bool isDefault = 4;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsDefault() {
         bitField0_ = (bitField0_ & ~0x00000008);
@@ -1725,11 +1875,13 @@ public final class Acl {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -1751,6 +1903,7 @@ public final class Acl {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<AclEntry>
         PARSER = new com.google.protobuf.AbstractParser<AclEntry>() {
+      @java.lang.Override
       public AclEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1768,6 +1921,7 @@ public final class Acl {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.shared.Acl.AclEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -1780,24 +1934,29 @@ public final class Acl {
 
     /**
      * <code>optional string name = 1;</code>
+     * @return Whether the name field is set.
      */
     boolean hasName();
     /**
      * <code>optional string name = 1;</code>
+     * @return The name.
      */
     java.lang.String getName();
     /**
      * <code>optional string name = 1;</code>
+     * @return The bytes for name.
      */
     com.google.protobuf.ByteString
         getNameBytes();
 
     /**
      * <code>optional .alluxio.proto.shared.AclActions actions = 2;</code>
+     * @return Whether the actions field is set.
      */
     boolean hasActions();
     /**
      * <code>optional .alluxio.proto.shared.AclActions actions = 2;</code>
+     * @return The actions.
      */
     alluxio.proto.shared.Acl.AclActions getActions();
     /**
@@ -1827,6 +1986,13 @@ public final class Acl {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new NamedAclActions();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -1850,13 +2016,6 @@ public final class Acl {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
@@ -1865,7 +2024,7 @@ public final class Acl {
             }
             case 18: {
               alluxio.proto.shared.Acl.AclActions.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000002) == 0x00000002)) {
+              if (((bitField0_ & 0x00000002) != 0)) {
                 subBuilder = actions_.toBuilder();
               }
               actions_ = input.readMessage(alluxio.proto.shared.Acl.AclActions.PARSER, extensionRegistry);
@@ -1874,6 +2033,13 @@ public final class Acl {
                 actions_ = subBuilder.buildPartial();
               }
               bitField0_ |= 0x00000002;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -1893,6 +2059,7 @@ public final class Acl {
       return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_NamedAclActions_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_NamedAclActions_fieldAccessorTable
@@ -1905,12 +2072,14 @@ public final class Acl {
     private volatile java.lang.Object name_;
     /**
      * <code>optional string name = 1;</code>
+     * @return Whether the name field is set.
      */
     public boolean hasName() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string name = 1;</code>
+     * @return The name.
      */
     public java.lang.String getName() {
       java.lang.Object ref = name_;
@@ -1928,6 +2097,7 @@ public final class Acl {
     }
     /**
      * <code>optional string name = 1;</code>
+     * @return The bytes for name.
      */
     public com.google.protobuf.ByteString
         getNameBytes() {
@@ -1947,12 +2117,14 @@ public final class Acl {
     private alluxio.proto.shared.Acl.AclActions actions_;
     /**
      * <code>optional .alluxio.proto.shared.AclActions actions = 2;</code>
+     * @return Whether the actions field is set.
      */
     public boolean hasActions() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional .alluxio.proto.shared.AclActions actions = 2;</code>
+     * @return The actions.
      */
     public alluxio.proto.shared.Acl.AclActions getActions() {
       return actions_ == null ? alluxio.proto.shared.Acl.AclActions.getDefaultInstance() : actions_;
@@ -1965,6 +2137,7 @@ public final class Acl {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -1974,26 +2147,28 @@ public final class Acl {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, name_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         output.writeMessage(2, getActions());
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, name_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(2, getActions());
       }
@@ -2012,19 +2187,18 @@ public final class Acl {
       }
       alluxio.proto.shared.Acl.NamedAclActions other = (alluxio.proto.shared.Acl.NamedAclActions) obj;
 
-      boolean result = true;
-      result = result && (hasName() == other.hasName());
+      if (hasName() != other.hasName()) return false;
       if (hasName()) {
-        result = result && getName()
-            .equals(other.getName());
+        if (!getName()
+            .equals(other.getName())) return false;
       }
-      result = result && (hasActions() == other.hasActions());
+      if (hasActions() != other.hasActions()) return false;
       if (hasActions()) {
-        result = result && getActions()
-            .equals(other.getActions());
+        if (!getActions()
+            .equals(other.getActions())) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -2117,6 +2291,7 @@ public final class Acl {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -2124,6 +2299,7 @@ public final class Acl {
     public static Builder newBuilder(alluxio.proto.shared.Acl.NamedAclActions prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -2152,6 +2328,7 @@ public final class Acl {
         return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_NamedAclActions_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_NamedAclActions_fieldAccessorTable
@@ -2175,6 +2352,7 @@ public final class Acl {
           getActionsFieldBuilder();
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         name_ = "";
@@ -2188,15 +2366,18 @@ public final class Acl {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_NamedAclActions_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.shared.Acl.NamedAclActions getDefaultInstanceForType() {
         return alluxio.proto.shared.Acl.NamedAclActions.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.shared.Acl.NamedAclActions build() {
         alluxio.proto.shared.Acl.NamedAclActions result = buildPartial();
         if (!result.isInitialized()) {
@@ -2205,53 +2386,61 @@ public final class Acl {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.shared.Acl.NamedAclActions buildPartial() {
         alluxio.proto.shared.Acl.NamedAclActions result = new alluxio.proto.shared.Acl.NamedAclActions(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
           to_bitField0_ |= 0x00000001;
         }
         result.name_ = name_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          if (actionsBuilder_ == null) {
+            result.actions_ = actions_;
+          } else {
+            result.actions_ = actionsBuilder_.build();
+          }
           to_bitField0_ |= 0x00000002;
-        }
-        if (actionsBuilder_ == null) {
-          result.actions_ = actions_;
-        } else {
-          result.actions_ = actionsBuilder_.build();
         }
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.shared.Acl.NamedAclActions) {
           return mergeFrom((alluxio.proto.shared.Acl.NamedAclActions)other);
@@ -2276,10 +2465,12 @@ public final class Acl {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2302,12 +2493,14 @@ public final class Acl {
       private java.lang.Object name_ = "";
       /**
        * <code>optional string name = 1;</code>
+       * @return Whether the name field is set.
        */
       public boolean hasName() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional string name = 1;</code>
+       * @return The name.
        */
       public java.lang.String getName() {
         java.lang.Object ref = name_;
@@ -2325,6 +2518,7 @@ public final class Acl {
       }
       /**
        * <code>optional string name = 1;</code>
+       * @return The bytes for name.
        */
       public com.google.protobuf.ByteString
           getNameBytes() {
@@ -2341,6 +2535,8 @@ public final class Acl {
       }
       /**
        * <code>optional string name = 1;</code>
+       * @param value The name to set.
+       * @return This builder for chaining.
        */
       public Builder setName(
           java.lang.String value) {
@@ -2354,6 +2550,7 @@ public final class Acl {
       }
       /**
        * <code>optional string name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearName() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -2363,6 +2560,8 @@ public final class Acl {
       }
       /**
        * <code>optional string name = 1;</code>
+       * @param value The bytes for name to set.
+       * @return This builder for chaining.
        */
       public Builder setNameBytes(
           com.google.protobuf.ByteString value) {
@@ -2375,17 +2574,19 @@ public final class Acl {
         return this;
       }
 
-      private alluxio.proto.shared.Acl.AclActions actions_ = null;
+      private alluxio.proto.shared.Acl.AclActions actions_;
       private com.google.protobuf.SingleFieldBuilderV3<
           alluxio.proto.shared.Acl.AclActions, alluxio.proto.shared.Acl.AclActions.Builder, alluxio.proto.shared.Acl.AclActionsOrBuilder> actionsBuilder_;
       /**
        * <code>optional .alluxio.proto.shared.AclActions actions = 2;</code>
+       * @return Whether the actions field is set.
        */
       public boolean hasActions() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <code>optional .alluxio.proto.shared.AclActions actions = 2;</code>
+       * @return The actions.
        */
       public alluxio.proto.shared.Acl.AclActions getActions() {
         if (actionsBuilder_ == null) {
@@ -2429,7 +2630,7 @@ public final class Acl {
        */
       public Builder mergeActions(alluxio.proto.shared.Acl.AclActions value) {
         if (actionsBuilder_ == null) {
-          if (((bitField0_ & 0x00000002) == 0x00000002) &&
+          if (((bitField0_ & 0x00000002) != 0) &&
               actions_ != null &&
               actions_ != alluxio.proto.shared.Acl.AclActions.getDefaultInstance()) {
             actions_ =
@@ -2492,11 +2693,13 @@ public final class Acl {
         }
         return actionsBuilder_;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -2518,6 +2721,7 @@ public final class Acl {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<NamedAclActions>
         PARSER = new com.google.protobuf.AbstractParser<NamedAclActions>() {
+      @java.lang.Override
       public NamedAclActions parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2535,6 +2739,7 @@ public final class Acl {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.shared.Acl.NamedAclActions getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -2547,28 +2752,34 @@ public final class Acl {
 
     /**
      * <code>optional string owningUser = 1;</code>
+     * @return Whether the owningUser field is set.
      */
     boolean hasOwningUser();
     /**
      * <code>optional string owningUser = 1;</code>
+     * @return The owningUser.
      */
     java.lang.String getOwningUser();
     /**
      * <code>optional string owningUser = 1;</code>
+     * @return The bytes for owningUser.
      */
     com.google.protobuf.ByteString
         getOwningUserBytes();
 
     /**
      * <code>optional string owningGroup = 2;</code>
+     * @return Whether the owningGroup field is set.
      */
     boolean hasOwningGroup();
     /**
      * <code>optional string owningGroup = 2;</code>
+     * @return The owningGroup.
      */
     java.lang.String getOwningGroup();
     /**
      * <code>optional string owningGroup = 2;</code>
+     * @return The bytes for owningGroup.
      */
     com.google.protobuf.ByteString
         getOwningGroupBytes();
@@ -2623,10 +2834,12 @@ public final class Acl {
 
     /**
      * <code>optional .alluxio.proto.shared.AclActions maskActions = 5;</code>
+     * @return Whether the maskActions field is set.
      */
     boolean hasMaskActions();
     /**
      * <code>optional .alluxio.proto.shared.AclActions maskActions = 5;</code>
+     * @return The maskActions.
      */
     alluxio.proto.shared.Acl.AclActions getMaskActions();
     /**
@@ -2636,10 +2849,12 @@ public final class Acl {
 
     /**
      * <code>optional .alluxio.proto.shared.AclActions otherActions = 6;</code>
+     * @return Whether the otherActions field is set.
      */
     boolean hasOtherActions();
     /**
      * <code>optional .alluxio.proto.shared.AclActions otherActions = 6;</code>
+     * @return The otherActions.
      */
     alluxio.proto.shared.Acl.AclActions getOtherActions();
     /**
@@ -2649,19 +2864,23 @@ public final class Acl {
 
     /**
      * <code>optional bool isDefault = 7;</code>
+     * @return Whether the isDefault field is set.
      */
     boolean hasIsDefault();
     /**
      * <code>optional bool isDefault = 7;</code>
+     * @return The isDefault.
      */
     boolean getIsDefault();
 
     /**
      * <code>optional bool isEmpty = 8;</code>
+     * @return Whether the isEmpty field is set.
      */
     boolean hasIsEmpty();
     /**
      * <code>optional bool isEmpty = 8;</code>
+     * @return The isEmpty.
      */
     boolean getIsEmpty();
   }
@@ -2686,8 +2905,13 @@ public final class Acl {
       owningGroup_ = "";
       userActions_ = java.util.Collections.emptyList();
       groupActions_ = java.util.Collections.emptyList();
-      isDefault_ = false;
-      isEmpty_ = false;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new AccessControlList();
     }
 
     @java.lang.Override
@@ -2714,13 +2938,6 @@ public final class Acl {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
@@ -2734,7 +2951,7 @@ public final class Acl {
               break;
             }
             case 26: {
-              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+              if (!((mutable_bitField0_ & 0x00000004) != 0)) {
                 userActions_ = new java.util.ArrayList<alluxio.proto.shared.Acl.NamedAclActions>();
                 mutable_bitField0_ |= 0x00000004;
               }
@@ -2743,7 +2960,7 @@ public final class Acl {
               break;
             }
             case 34: {
-              if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+              if (!((mutable_bitField0_ & 0x00000008) != 0)) {
                 groupActions_ = new java.util.ArrayList<alluxio.proto.shared.Acl.NamedAclActions>();
                 mutable_bitField0_ |= 0x00000008;
               }
@@ -2753,7 +2970,7 @@ public final class Acl {
             }
             case 42: {
               alluxio.proto.shared.Acl.AclActions.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000004) == 0x00000004)) {
+              if (((bitField0_ & 0x00000004) != 0)) {
                 subBuilder = maskActions_.toBuilder();
               }
               maskActions_ = input.readMessage(alluxio.proto.shared.Acl.AclActions.PARSER, extensionRegistry);
@@ -2766,7 +2983,7 @@ public final class Acl {
             }
             case 50: {
               alluxio.proto.shared.Acl.AclActions.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000008) == 0x00000008)) {
+              if (((bitField0_ & 0x00000008) != 0)) {
                 subBuilder = otherActions_.toBuilder();
               }
               otherActions_ = input.readMessage(alluxio.proto.shared.Acl.AclActions.PARSER, extensionRegistry);
@@ -2787,6 +3004,13 @@ public final class Acl {
               isEmpty_ = input.readBool();
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -2795,10 +3019,10 @@ public final class Acl {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((mutable_bitField0_ & 0x00000004) != 0)) {
           userActions_ = java.util.Collections.unmodifiableList(userActions_);
         }
-        if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+        if (((mutable_bitField0_ & 0x00000008) != 0)) {
           groupActions_ = java.util.Collections.unmodifiableList(groupActions_);
         }
         this.unknownFields = unknownFields.build();
@@ -2810,6 +3034,7 @@ public final class Acl {
       return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_AccessControlList_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_AccessControlList_fieldAccessorTable
@@ -2822,12 +3047,14 @@ public final class Acl {
     private volatile java.lang.Object owningUser_;
     /**
      * <code>optional string owningUser = 1;</code>
+     * @return Whether the owningUser field is set.
      */
     public boolean hasOwningUser() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string owningUser = 1;</code>
+     * @return The owningUser.
      */
     public java.lang.String getOwningUser() {
       java.lang.Object ref = owningUser_;
@@ -2845,6 +3072,7 @@ public final class Acl {
     }
     /**
      * <code>optional string owningUser = 1;</code>
+     * @return The bytes for owningUser.
      */
     public com.google.protobuf.ByteString
         getOwningUserBytes() {
@@ -2864,12 +3092,14 @@ public final class Acl {
     private volatile java.lang.Object owningGroup_;
     /**
      * <code>optional string owningGroup = 2;</code>
+     * @return Whether the owningGroup field is set.
      */
     public boolean hasOwningGroup() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string owningGroup = 2;</code>
+     * @return The owningGroup.
      */
     public java.lang.String getOwningGroup() {
       java.lang.Object ref = owningGroup_;
@@ -2887,6 +3117,7 @@ public final class Acl {
     }
     /**
      * <code>optional string owningGroup = 2;</code>
+     * @return The bytes for owningGroup.
      */
     public com.google.protobuf.ByteString
         getOwningGroupBytes() {
@@ -2976,12 +3207,14 @@ public final class Acl {
     private alluxio.proto.shared.Acl.AclActions maskActions_;
     /**
      * <code>optional .alluxio.proto.shared.AclActions maskActions = 5;</code>
+     * @return Whether the maskActions field is set.
      */
     public boolean hasMaskActions() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional .alluxio.proto.shared.AclActions maskActions = 5;</code>
+     * @return The maskActions.
      */
     public alluxio.proto.shared.Acl.AclActions getMaskActions() {
       return maskActions_ == null ? alluxio.proto.shared.Acl.AclActions.getDefaultInstance() : maskActions_;
@@ -2997,12 +3230,14 @@ public final class Acl {
     private alluxio.proto.shared.Acl.AclActions otherActions_;
     /**
      * <code>optional .alluxio.proto.shared.AclActions otherActions = 6;</code>
+     * @return Whether the otherActions field is set.
      */
     public boolean hasOtherActions() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional .alluxio.proto.shared.AclActions otherActions = 6;</code>
+     * @return The otherActions.
      */
     public alluxio.proto.shared.Acl.AclActions getOtherActions() {
       return otherActions_ == null ? alluxio.proto.shared.Acl.AclActions.getDefaultInstance() : otherActions_;
@@ -3018,12 +3253,14 @@ public final class Acl {
     private boolean isDefault_;
     /**
      * <code>optional bool isDefault = 7;</code>
+     * @return Whether the isDefault field is set.
      */
     public boolean hasIsDefault() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000010) != 0);
     }
     /**
      * <code>optional bool isDefault = 7;</code>
+     * @return The isDefault.
      */
     public boolean getIsDefault() {
       return isDefault_;
@@ -3033,18 +3270,21 @@ public final class Acl {
     private boolean isEmpty_;
     /**
      * <code>optional bool isEmpty = 8;</code>
+     * @return Whether the isEmpty field is set.
      */
     public boolean hasIsEmpty() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000020) != 0);
     }
     /**
      * <code>optional bool isEmpty = 8;</code>
+     * @return The isEmpty.
      */
     public boolean getIsEmpty() {
       return isEmpty_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -3054,12 +3294,13 @@ public final class Acl {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, owningUser_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, owningGroup_);
       }
       for (int i = 0; i < userActions_.size(); i++) {
@@ -3068,30 +3309,31 @@ public final class Acl {
       for (int i = 0; i < groupActions_.size(); i++) {
         output.writeMessage(4, groupActions_.get(i));
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         output.writeMessage(5, getMaskActions());
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000008) != 0)) {
         output.writeMessage(6, getOtherActions());
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((bitField0_ & 0x00000010) != 0)) {
         output.writeBool(7, isDefault_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((bitField0_ & 0x00000020) != 0)) {
         output.writeBool(8, isEmpty_);
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, owningUser_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, owningGroup_);
       }
       for (int i = 0; i < userActions_.size(); i++) {
@@ -3102,19 +3344,19 @@ public final class Acl {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(4, groupActions_.get(i));
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(5, getMaskActions());
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000008) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(6, getOtherActions());
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((bitField0_ & 0x00000010) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(7, isDefault_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((bitField0_ & 0x00000020) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(8, isEmpty_);
       }
@@ -3133,43 +3375,42 @@ public final class Acl {
       }
       alluxio.proto.shared.Acl.AccessControlList other = (alluxio.proto.shared.Acl.AccessControlList) obj;
 
-      boolean result = true;
-      result = result && (hasOwningUser() == other.hasOwningUser());
+      if (hasOwningUser() != other.hasOwningUser()) return false;
       if (hasOwningUser()) {
-        result = result && getOwningUser()
-            .equals(other.getOwningUser());
+        if (!getOwningUser()
+            .equals(other.getOwningUser())) return false;
       }
-      result = result && (hasOwningGroup() == other.hasOwningGroup());
+      if (hasOwningGroup() != other.hasOwningGroup()) return false;
       if (hasOwningGroup()) {
-        result = result && getOwningGroup()
-            .equals(other.getOwningGroup());
+        if (!getOwningGroup()
+            .equals(other.getOwningGroup())) return false;
       }
-      result = result && getUserActionsList()
-          .equals(other.getUserActionsList());
-      result = result && getGroupActionsList()
-          .equals(other.getGroupActionsList());
-      result = result && (hasMaskActions() == other.hasMaskActions());
+      if (!getUserActionsList()
+          .equals(other.getUserActionsList())) return false;
+      if (!getGroupActionsList()
+          .equals(other.getGroupActionsList())) return false;
+      if (hasMaskActions() != other.hasMaskActions()) return false;
       if (hasMaskActions()) {
-        result = result && getMaskActions()
-            .equals(other.getMaskActions());
+        if (!getMaskActions()
+            .equals(other.getMaskActions())) return false;
       }
-      result = result && (hasOtherActions() == other.hasOtherActions());
+      if (hasOtherActions() != other.hasOtherActions()) return false;
       if (hasOtherActions()) {
-        result = result && getOtherActions()
-            .equals(other.getOtherActions());
+        if (!getOtherActions()
+            .equals(other.getOtherActions())) return false;
       }
-      result = result && (hasIsDefault() == other.hasIsDefault());
+      if (hasIsDefault() != other.hasIsDefault()) return false;
       if (hasIsDefault()) {
-        result = result && (getIsDefault()
-            == other.getIsDefault());
+        if (getIsDefault()
+            != other.getIsDefault()) return false;
       }
-      result = result && (hasIsEmpty() == other.hasIsEmpty());
+      if (hasIsEmpty() != other.hasIsEmpty()) return false;
       if (hasIsEmpty()) {
-        result = result && (getIsEmpty()
-            == other.getIsEmpty());
+        if (getIsEmpty()
+            != other.getIsEmpty()) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -3288,6 +3529,7 @@ public final class Acl {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -3295,6 +3537,7 @@ public final class Acl {
     public static Builder newBuilder(alluxio.proto.shared.Acl.AccessControlList prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -3322,6 +3565,7 @@ public final class Acl {
         return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_AccessControlList_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_AccessControlList_fieldAccessorTable
@@ -3348,6 +3592,7 @@ public final class Acl {
           getOtherActionsFieldBuilder();
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         owningUser_ = "";
@@ -3385,15 +3630,18 @@ public final class Acl {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.shared.Acl.internal_static_alluxio_proto_shared_AccessControlList_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.shared.Acl.AccessControlList getDefaultInstanceForType() {
         return alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.shared.Acl.AccessControlList build() {
         alluxio.proto.shared.Acl.AccessControlList result = buildPartial();
         if (!result.isInitialized()) {
@@ -3402,20 +3650,21 @@ public final class Acl {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.shared.Acl.AccessControlList buildPartial() {
         alluxio.proto.shared.Acl.AccessControlList result = new alluxio.proto.shared.Acl.AccessControlList(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
           to_bitField0_ |= 0x00000001;
         }
         result.owningUser_ = owningUser_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
           to_bitField0_ |= 0x00000002;
         }
         result.owningGroup_ = owningGroup_;
         if (userActionsBuilder_ == null) {
-          if (((bitField0_ & 0x00000004) == 0x00000004)) {
+          if (((bitField0_ & 0x00000004) != 0)) {
             userActions_ = java.util.Collections.unmodifiableList(userActions_);
             bitField0_ = (bitField0_ & ~0x00000004);
           }
@@ -3424,7 +3673,7 @@ public final class Acl {
           result.userActions_ = userActionsBuilder_.build();
         }
         if (groupActionsBuilder_ == null) {
-          if (((bitField0_ & 0x00000008) == 0x00000008)) {
+          if (((bitField0_ & 0x00000008) != 0)) {
             groupActions_ = java.util.Collections.unmodifiableList(groupActions_);
             bitField0_ = (bitField0_ & ~0x00000008);
           }
@@ -3432,61 +3681,68 @@ public final class Acl {
         } else {
           result.groupActions_ = groupActionsBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          if (maskActionsBuilder_ == null) {
+            result.maskActions_ = maskActions_;
+          } else {
+            result.maskActions_ = maskActionsBuilder_.build();
+          }
           to_bitField0_ |= 0x00000004;
         }
-        if (maskActionsBuilder_ == null) {
-          result.maskActions_ = maskActions_;
-        } else {
-          result.maskActions_ = maskActionsBuilder_.build();
-        }
-        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          if (otherActionsBuilder_ == null) {
+            result.otherActions_ = otherActions_;
+          } else {
+            result.otherActions_ = otherActionsBuilder_.build();
+          }
           to_bitField0_ |= 0x00000008;
         }
-        if (otherActionsBuilder_ == null) {
-          result.otherActions_ = otherActions_;
-        } else {
-          result.otherActions_ = otherActionsBuilder_.build();
-        }
-        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.isDefault_ = isDefault_;
           to_bitField0_ |= 0x00000010;
         }
-        result.isDefault_ = isDefault_;
-        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.isEmpty_ = isEmpty_;
           to_bitField0_ |= 0x00000020;
         }
-        result.isEmpty_ = isEmpty_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.shared.Acl.AccessControlList) {
           return mergeFrom((alluxio.proto.shared.Acl.AccessControlList)other);
@@ -3577,10 +3833,12 @@ public final class Acl {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -3603,12 +3861,14 @@ public final class Acl {
       private java.lang.Object owningUser_ = "";
       /**
        * <code>optional string owningUser = 1;</code>
+       * @return Whether the owningUser field is set.
        */
       public boolean hasOwningUser() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional string owningUser = 1;</code>
+       * @return The owningUser.
        */
       public java.lang.String getOwningUser() {
         java.lang.Object ref = owningUser_;
@@ -3626,6 +3886,7 @@ public final class Acl {
       }
       /**
        * <code>optional string owningUser = 1;</code>
+       * @return The bytes for owningUser.
        */
       public com.google.protobuf.ByteString
           getOwningUserBytes() {
@@ -3642,6 +3903,8 @@ public final class Acl {
       }
       /**
        * <code>optional string owningUser = 1;</code>
+       * @param value The owningUser to set.
+       * @return This builder for chaining.
        */
       public Builder setOwningUser(
           java.lang.String value) {
@@ -3655,6 +3918,7 @@ public final class Acl {
       }
       /**
        * <code>optional string owningUser = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearOwningUser() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -3664,6 +3928,8 @@ public final class Acl {
       }
       /**
        * <code>optional string owningUser = 1;</code>
+       * @param value The bytes for owningUser to set.
+       * @return This builder for chaining.
        */
       public Builder setOwningUserBytes(
           com.google.protobuf.ByteString value) {
@@ -3679,12 +3945,14 @@ public final class Acl {
       private java.lang.Object owningGroup_ = "";
       /**
        * <code>optional string owningGroup = 2;</code>
+       * @return Whether the owningGroup field is set.
        */
       public boolean hasOwningGroup() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <code>optional string owningGroup = 2;</code>
+       * @return The owningGroup.
        */
       public java.lang.String getOwningGroup() {
         java.lang.Object ref = owningGroup_;
@@ -3702,6 +3970,7 @@ public final class Acl {
       }
       /**
        * <code>optional string owningGroup = 2;</code>
+       * @return The bytes for owningGroup.
        */
       public com.google.protobuf.ByteString
           getOwningGroupBytes() {
@@ -3718,6 +3987,8 @@ public final class Acl {
       }
       /**
        * <code>optional string owningGroup = 2;</code>
+       * @param value The owningGroup to set.
+       * @return This builder for chaining.
        */
       public Builder setOwningGroup(
           java.lang.String value) {
@@ -3731,6 +4002,7 @@ public final class Acl {
       }
       /**
        * <code>optional string owningGroup = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearOwningGroup() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -3740,6 +4012,8 @@ public final class Acl {
       }
       /**
        * <code>optional string owningGroup = 2;</code>
+       * @param value The bytes for owningGroup to set.
+       * @return This builder for chaining.
        */
       public Builder setOwningGroupBytes(
           com.google.protobuf.ByteString value) {
@@ -3755,7 +4029,7 @@ public final class Acl {
       private java.util.List<alluxio.proto.shared.Acl.NamedAclActions> userActions_ =
         java.util.Collections.emptyList();
       private void ensureUserActionsIsMutable() {
-        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+        if (!((bitField0_ & 0x00000004) != 0)) {
           userActions_ = new java.util.ArrayList<alluxio.proto.shared.Acl.NamedAclActions>(userActions_);
           bitField0_ |= 0x00000004;
          }
@@ -3984,7 +4258,7 @@ public final class Acl {
           userActionsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               alluxio.proto.shared.Acl.NamedAclActions, alluxio.proto.shared.Acl.NamedAclActions.Builder, alluxio.proto.shared.Acl.NamedAclActionsOrBuilder>(
                   userActions_,
-                  ((bitField0_ & 0x00000004) == 0x00000004),
+                  ((bitField0_ & 0x00000004) != 0),
                   getParentForChildren(),
                   isClean());
           userActions_ = null;
@@ -3995,7 +4269,7 @@ public final class Acl {
       private java.util.List<alluxio.proto.shared.Acl.NamedAclActions> groupActions_ =
         java.util.Collections.emptyList();
       private void ensureGroupActionsIsMutable() {
-        if (!((bitField0_ & 0x00000008) == 0x00000008)) {
+        if (!((bitField0_ & 0x00000008) != 0)) {
           groupActions_ = new java.util.ArrayList<alluxio.proto.shared.Acl.NamedAclActions>(groupActions_);
           bitField0_ |= 0x00000008;
          }
@@ -4224,7 +4498,7 @@ public final class Acl {
           groupActionsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               alluxio.proto.shared.Acl.NamedAclActions, alluxio.proto.shared.Acl.NamedAclActions.Builder, alluxio.proto.shared.Acl.NamedAclActionsOrBuilder>(
                   groupActions_,
-                  ((bitField0_ & 0x00000008) == 0x00000008),
+                  ((bitField0_ & 0x00000008) != 0),
                   getParentForChildren(),
                   isClean());
           groupActions_ = null;
@@ -4232,17 +4506,19 @@ public final class Acl {
         return groupActionsBuilder_;
       }
 
-      private alluxio.proto.shared.Acl.AclActions maskActions_ = null;
+      private alluxio.proto.shared.Acl.AclActions maskActions_;
       private com.google.protobuf.SingleFieldBuilderV3<
           alluxio.proto.shared.Acl.AclActions, alluxio.proto.shared.Acl.AclActions.Builder, alluxio.proto.shared.Acl.AclActionsOrBuilder> maskActionsBuilder_;
       /**
        * <code>optional .alluxio.proto.shared.AclActions maskActions = 5;</code>
+       * @return Whether the maskActions field is set.
        */
       public boolean hasMaskActions() {
-        return ((bitField0_ & 0x00000010) == 0x00000010);
+        return ((bitField0_ & 0x00000010) != 0);
       }
       /**
        * <code>optional .alluxio.proto.shared.AclActions maskActions = 5;</code>
+       * @return The maskActions.
        */
       public alluxio.proto.shared.Acl.AclActions getMaskActions() {
         if (maskActionsBuilder_ == null) {
@@ -4286,7 +4562,7 @@ public final class Acl {
        */
       public Builder mergeMaskActions(alluxio.proto.shared.Acl.AclActions value) {
         if (maskActionsBuilder_ == null) {
-          if (((bitField0_ & 0x00000010) == 0x00000010) &&
+          if (((bitField0_ & 0x00000010) != 0) &&
               maskActions_ != null &&
               maskActions_ != alluxio.proto.shared.Acl.AclActions.getDefaultInstance()) {
             maskActions_ =
@@ -4350,17 +4626,19 @@ public final class Acl {
         return maskActionsBuilder_;
       }
 
-      private alluxio.proto.shared.Acl.AclActions otherActions_ = null;
+      private alluxio.proto.shared.Acl.AclActions otherActions_;
       private com.google.protobuf.SingleFieldBuilderV3<
           alluxio.proto.shared.Acl.AclActions, alluxio.proto.shared.Acl.AclActions.Builder, alluxio.proto.shared.Acl.AclActionsOrBuilder> otherActionsBuilder_;
       /**
        * <code>optional .alluxio.proto.shared.AclActions otherActions = 6;</code>
+       * @return Whether the otherActions field is set.
        */
       public boolean hasOtherActions() {
-        return ((bitField0_ & 0x00000020) == 0x00000020);
+        return ((bitField0_ & 0x00000020) != 0);
       }
       /**
        * <code>optional .alluxio.proto.shared.AclActions otherActions = 6;</code>
+       * @return The otherActions.
        */
       public alluxio.proto.shared.Acl.AclActions getOtherActions() {
         if (otherActionsBuilder_ == null) {
@@ -4404,7 +4682,7 @@ public final class Acl {
        */
       public Builder mergeOtherActions(alluxio.proto.shared.Acl.AclActions value) {
         if (otherActionsBuilder_ == null) {
-          if (((bitField0_ & 0x00000020) == 0x00000020) &&
+          if (((bitField0_ & 0x00000020) != 0) &&
               otherActions_ != null &&
               otherActions_ != alluxio.proto.shared.Acl.AclActions.getDefaultInstance()) {
             otherActions_ =
@@ -4471,18 +4749,22 @@ public final class Acl {
       private boolean isDefault_ ;
       /**
        * <code>optional bool isDefault = 7;</code>
+       * @return Whether the isDefault field is set.
        */
       public boolean hasIsDefault() {
-        return ((bitField0_ & 0x00000040) == 0x00000040);
+        return ((bitField0_ & 0x00000040) != 0);
       }
       /**
        * <code>optional bool isDefault = 7;</code>
+       * @return The isDefault.
        */
       public boolean getIsDefault() {
         return isDefault_;
       }
       /**
        * <code>optional bool isDefault = 7;</code>
+       * @param value The isDefault to set.
+       * @return This builder for chaining.
        */
       public Builder setIsDefault(boolean value) {
         bitField0_ |= 0x00000040;
@@ -4492,6 +4774,7 @@ public final class Acl {
       }
       /**
        * <code>optional bool isDefault = 7;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsDefault() {
         bitField0_ = (bitField0_ & ~0x00000040);
@@ -4503,18 +4786,22 @@ public final class Acl {
       private boolean isEmpty_ ;
       /**
        * <code>optional bool isEmpty = 8;</code>
+       * @return Whether the isEmpty field is set.
        */
       public boolean hasIsEmpty() {
-        return ((bitField0_ & 0x00000080) == 0x00000080);
+        return ((bitField0_ & 0x00000080) != 0);
       }
       /**
        * <code>optional bool isEmpty = 8;</code>
+       * @return The isEmpty.
        */
       public boolean getIsEmpty() {
         return isEmpty_;
       }
       /**
        * <code>optional bool isEmpty = 8;</code>
+       * @param value The isEmpty to set.
+       * @return This builder for chaining.
        */
       public Builder setIsEmpty(boolean value) {
         bitField0_ |= 0x00000080;
@@ -4524,6 +4811,7 @@ public final class Acl {
       }
       /**
        * <code>optional bool isEmpty = 8;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsEmpty() {
         bitField0_ = (bitField0_ & ~0x00000080);
@@ -4531,11 +4819,13 @@ public final class Acl {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -4557,6 +4847,7 @@ public final class Acl {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<AccessControlList>
         PARSER = new com.google.protobuf.AbstractParser<AccessControlList>() {
+      @java.lang.Override
       public AccessControlList parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -4574,6 +4865,7 @@ public final class Acl {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.shared.Acl.AccessControlList getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -4631,18 +4923,10 @@ public final class Acl {
       "ER\020\001\022\020\n\014OWNING_GROUP\020\002\022\017\n\013NAMED_GROUP\020\003\022" +
       "\010\n\004MASK\020\004\022\t\n\005OTHER\020\005"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-        }, assigner);
+        });
     internal_static_alluxio_proto_shared_AclActions_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_alluxio_proto_shared_AclActions_fieldAccessorTable = new

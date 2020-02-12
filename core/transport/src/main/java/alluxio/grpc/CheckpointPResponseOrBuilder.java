@@ -13,6 +13,7 @@ public interface CheckpointPResponseOrBuilder extends
    * </pre>
    *
    * <code>optional string masterHostname = 1;</code>
+   * @return Whether the masterHostname field is set.
    */
   boolean hasMasterHostname();
   /**
@@ -21,6 +22,7 @@ public interface CheckpointPResponseOrBuilder extends
    * </pre>
    *
    * <code>optional string masterHostname = 1;</code>
+   * @return The masterHostname.
    */
   java.lang.String getMasterHostname();
   /**
@@ -29,6 +31,7 @@ public interface CheckpointPResponseOrBuilder extends
    * </pre>
    *
    * <code>optional string masterHostname = 1;</code>
+   * @return The bytes for masterHostname.
    */
   com.google.protobuf.ByteString
       getMasterHostnameBytes();

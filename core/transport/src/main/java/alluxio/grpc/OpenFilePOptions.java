@@ -17,8 +17,14 @@ private static final long serialVersionUID = 0L;
   }
   private OpenFilePOptions() {
     readType_ = 1;
-    maxUfsReadConcurrency_ = 0;
     updateLastAccessTime_ = true;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new OpenFilePOptions();
   }
 
   @java.lang.Override
@@ -45,15 +51,9 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             int rawValue = input.readEnum();
+              @SuppressWarnings("deprecation")
             alluxio.grpc.ReadPType value = alluxio.grpc.ReadPType.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(1, rawValue);
@@ -70,7 +70,7 @@ private static final long serialVersionUID = 0L;
           }
           case 26: {
             alluxio.grpc.FileSystemMasterCommonPOptions.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000004) == 0x00000004)) {
+            if (((bitField0_ & 0x00000004) != 0)) {
               subBuilder = commonOptions_.toBuilder();
             }
             commonOptions_ = input.readMessage(alluxio.grpc.FileSystemMasterCommonPOptions.PARSER, extensionRegistry);
@@ -84,6 +84,13 @@ private static final long serialVersionUID = 0L;
           case 32: {
             bitField0_ |= 0x00000008;
             updateLastAccessTime_ = input.readBool();
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -103,6 +110,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_OpenFilePOptions_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_OpenFilePOptions_fieldAccessorTable
@@ -115,14 +123,17 @@ private static final long serialVersionUID = 0L;
   private int readType_;
   /**
    * <code>optional .alluxio.grpc.file.ReadPType readType = 1;</code>
+   * @return Whether the readType field is set.
    */
   public boolean hasReadType() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.file.ReadPType readType = 1;</code>
+   * @return The readType.
    */
   public alluxio.grpc.ReadPType getReadType() {
+    @SuppressWarnings("deprecation")
     alluxio.grpc.ReadPType result = alluxio.grpc.ReadPType.valueOf(readType_);
     return result == null ? alluxio.grpc.ReadPType.NO_CACHE : result;
   }
@@ -131,12 +142,14 @@ private static final long serialVersionUID = 0L;
   private int maxUfsReadConcurrency_;
   /**
    * <code>optional int32 maxUfsReadConcurrency = 2;</code>
+   * @return Whether the maxUfsReadConcurrency field is set.
    */
   public boolean hasMaxUfsReadConcurrency() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional int32 maxUfsReadConcurrency = 2;</code>
+   * @return The maxUfsReadConcurrency.
    */
   public int getMaxUfsReadConcurrency() {
     return maxUfsReadConcurrency_;
@@ -146,12 +159,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.FileSystemMasterCommonPOptions commonOptions_;
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+   * @return Whether the commonOptions field is set.
    */
   public boolean hasCommonOptions() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+   * @return The commonOptions.
    */
   public alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions() {
     return commonOptions_ == null ? alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance() : commonOptions_;
@@ -167,18 +182,21 @@ private static final long serialVersionUID = 0L;
   private boolean updateLastAccessTime_;
   /**
    * <code>optional bool updateLastAccessTime = 4 [default = true];</code>
+   * @return Whether the updateLastAccessTime field is set.
    */
   public boolean hasUpdateLastAccessTime() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000008) != 0);
   }
   /**
    * <code>optional bool updateLastAccessTime = 4 [default = true];</code>
+   * @return The updateLastAccessTime.
    */
   public boolean getUpdateLastAccessTime() {
     return updateLastAccessTime_;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -188,41 +206,43 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeEnum(1, readType_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeInt32(2, maxUfsReadConcurrency_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       output.writeMessage(3, getCommonOptions());
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       output.writeBool(4, updateLastAccessTime_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(1, readType_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(2, maxUfsReadConcurrency_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(3, getCommonOptions());
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(4, updateLastAccessTime_);
     }
@@ -241,28 +261,27 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.OpenFilePOptions other = (alluxio.grpc.OpenFilePOptions) obj;
 
-    boolean result = true;
-    result = result && (hasReadType() == other.hasReadType());
+    if (hasReadType() != other.hasReadType()) return false;
     if (hasReadType()) {
-      result = result && readType_ == other.readType_;
+      if (readType_ != other.readType_) return false;
     }
-    result = result && (hasMaxUfsReadConcurrency() == other.hasMaxUfsReadConcurrency());
+    if (hasMaxUfsReadConcurrency() != other.hasMaxUfsReadConcurrency()) return false;
     if (hasMaxUfsReadConcurrency()) {
-      result = result && (getMaxUfsReadConcurrency()
-          == other.getMaxUfsReadConcurrency());
+      if (getMaxUfsReadConcurrency()
+          != other.getMaxUfsReadConcurrency()) return false;
     }
-    result = result && (hasCommonOptions() == other.hasCommonOptions());
+    if (hasCommonOptions() != other.hasCommonOptions()) return false;
     if (hasCommonOptions()) {
-      result = result && getCommonOptions()
-          .equals(other.getCommonOptions());
+      if (!getCommonOptions()
+          .equals(other.getCommonOptions())) return false;
     }
-    result = result && (hasUpdateLastAccessTime() == other.hasUpdateLastAccessTime());
+    if (hasUpdateLastAccessTime() != other.hasUpdateLastAccessTime()) return false;
     if (hasUpdateLastAccessTime()) {
-      result = result && (getUpdateLastAccessTime()
-          == other.getUpdateLastAccessTime());
+      if (getUpdateLastAccessTime()
+          != other.getUpdateLastAccessTime()) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -364,6 +383,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -371,6 +391,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.OpenFilePOptions prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -394,6 +415,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_OpenFilePOptions_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_OpenFilePOptions_fieldAccessorTable
@@ -417,6 +439,7 @@ private static final long serialVersionUID = 0L;
         getCommonOptionsFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       readType_ = 1;
@@ -434,15 +457,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_OpenFilePOptions_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.OpenFilePOptions getDefaultInstanceForType() {
       return alluxio.grpc.OpenFilePOptions.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.OpenFilePOptions build() {
       alluxio.grpc.OpenFilePOptions result = buildPartial();
       if (!result.isInitialized()) {
@@ -451,27 +477,28 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.OpenFilePOptions buildPartial() {
       alluxio.grpc.OpenFilePOptions result = new alluxio.grpc.OpenFilePOptions(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
         to_bitField0_ |= 0x00000001;
       }
       result.readType_ = readType_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
+        result.maxUfsReadConcurrency_ = maxUfsReadConcurrency_;
         to_bitField0_ |= 0x00000002;
       }
-      result.maxUfsReadConcurrency_ = maxUfsReadConcurrency_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
+        if (commonOptionsBuilder_ == null) {
+          result.commonOptions_ = commonOptions_;
+        } else {
+          result.commonOptions_ = commonOptionsBuilder_.build();
+        }
         to_bitField0_ |= 0x00000004;
       }
-      if (commonOptionsBuilder_ == null) {
-        result.commonOptions_ = commonOptions_;
-      } else {
-        result.commonOptions_ = commonOptionsBuilder_.build();
-      }
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000008) != 0)) {
         to_bitField0_ |= 0x00000008;
       }
       result.updateLastAccessTime_ = updateLastAccessTime_;
@@ -480,32 +507,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.OpenFilePOptions) {
         return mergeFrom((alluxio.grpc.OpenFilePOptions)other);
@@ -534,10 +568,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -560,19 +596,24 @@ private static final long serialVersionUID = 0L;
     private int readType_ = 1;
     /**
      * <code>optional .alluxio.grpc.file.ReadPType readType = 1;</code>
+     * @return Whether the readType field is set.
      */
     public boolean hasReadType() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.file.ReadPType readType = 1;</code>
+     * @return The readType.
      */
     public alluxio.grpc.ReadPType getReadType() {
+      @SuppressWarnings("deprecation")
       alluxio.grpc.ReadPType result = alluxio.grpc.ReadPType.valueOf(readType_);
       return result == null ? alluxio.grpc.ReadPType.NO_CACHE : result;
     }
     /**
      * <code>optional .alluxio.grpc.file.ReadPType readType = 1;</code>
+     * @param value The readType to set.
+     * @return This builder for chaining.
      */
     public Builder setReadType(alluxio.grpc.ReadPType value) {
       if (value == null) {
@@ -585,6 +626,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional .alluxio.grpc.file.ReadPType readType = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearReadType() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -596,18 +638,22 @@ private static final long serialVersionUID = 0L;
     private int maxUfsReadConcurrency_ ;
     /**
      * <code>optional int32 maxUfsReadConcurrency = 2;</code>
+     * @return Whether the maxUfsReadConcurrency field is set.
      */
     public boolean hasMaxUfsReadConcurrency() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional int32 maxUfsReadConcurrency = 2;</code>
+     * @return The maxUfsReadConcurrency.
      */
     public int getMaxUfsReadConcurrency() {
       return maxUfsReadConcurrency_;
     }
     /**
      * <code>optional int32 maxUfsReadConcurrency = 2;</code>
+     * @param value The maxUfsReadConcurrency to set.
+     * @return This builder for chaining.
      */
     public Builder setMaxUfsReadConcurrency(int value) {
       bitField0_ |= 0x00000002;
@@ -617,6 +663,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int32 maxUfsReadConcurrency = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearMaxUfsReadConcurrency() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -625,17 +672,19 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private alluxio.grpc.FileSystemMasterCommonPOptions commonOptions_ = null;
+    private alluxio.grpc.FileSystemMasterCommonPOptions commonOptions_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.FileSystemMasterCommonPOptions, alluxio.grpc.FileSystemMasterCommonPOptions.Builder, alluxio.grpc.FileSystemMasterCommonPOptionsOrBuilder> commonOptionsBuilder_;
     /**
      * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+     * @return Whether the commonOptions field is set.
      */
     public boolean hasCommonOptions() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+     * @return The commonOptions.
      */
     public alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions() {
       if (commonOptionsBuilder_ == null) {
@@ -679,7 +728,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeCommonOptions(alluxio.grpc.FileSystemMasterCommonPOptions value) {
       if (commonOptionsBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) == 0x00000004) &&
+        if (((bitField0_ & 0x00000004) != 0) &&
             commonOptions_ != null &&
             commonOptions_ != alluxio.grpc.FileSystemMasterCommonPOptions.getDefaultInstance()) {
           commonOptions_ =
@@ -746,18 +795,22 @@ private static final long serialVersionUID = 0L;
     private boolean updateLastAccessTime_ = true;
     /**
      * <code>optional bool updateLastAccessTime = 4 [default = true];</code>
+     * @return Whether the updateLastAccessTime field is set.
      */
     public boolean hasUpdateLastAccessTime() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional bool updateLastAccessTime = 4 [default = true];</code>
+     * @return The updateLastAccessTime.
      */
     public boolean getUpdateLastAccessTime() {
       return updateLastAccessTime_;
     }
     /**
      * <code>optional bool updateLastAccessTime = 4 [default = true];</code>
+     * @param value The updateLastAccessTime to set.
+     * @return This builder for chaining.
      */
     public Builder setUpdateLastAccessTime(boolean value) {
       bitField0_ |= 0x00000008;
@@ -767,6 +820,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool updateLastAccessTime = 4 [default = true];</code>
+     * @return This builder for chaining.
      */
     public Builder clearUpdateLastAccessTime() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -774,11 +828,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -800,6 +856,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<OpenFilePOptions>
       PARSER = new com.google.protobuf.AbstractParser<OpenFilePOptions>() {
+    @java.lang.Override
     public OpenFilePOptions parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -817,6 +874,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.OpenFilePOptions getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

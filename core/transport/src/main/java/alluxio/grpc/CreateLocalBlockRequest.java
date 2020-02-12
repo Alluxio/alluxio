@@ -20,13 +20,14 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private CreateLocalBlockRequest() {
-    blockId_ = 0L;
-    tier_ = 0;
-    spaceToReserve_ = 0L;
-    onlyReserveSpace_ = false;
-    cleanupOnFailure_ = false;
     mediumType_ = "";
-    pinOnCreate_ = false;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new CreateLocalBlockRequest();
   }
 
   @java.lang.Override
@@ -53,13 +54,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             bitField0_ |= 0x00000001;
             blockId_ = input.readInt64();
@@ -96,6 +90,13 @@ private static final long serialVersionUID = 0L;
             pinOnCreate_ = input.readBool();
             break;
           }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -113,6 +114,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_block_CreateLocalBlockRequest_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_block_CreateLocalBlockRequest_fieldAccessorTable
@@ -125,12 +127,14 @@ private static final long serialVersionUID = 0L;
   private long blockId_;
   /**
    * <code>optional int64 block_id = 1;</code>
+   * @return Whether the blockId field is set.
    */
   public boolean hasBlockId() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional int64 block_id = 1;</code>
+   * @return The blockId.
    */
   public long getBlockId() {
     return blockId_;
@@ -140,12 +144,14 @@ private static final long serialVersionUID = 0L;
   private int tier_;
   /**
    * <code>optional int32 tier = 3;</code>
+   * @return Whether the tier field is set.
    */
   public boolean hasTier() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional int32 tier = 3;</code>
+   * @return The tier.
    */
   public int getTier() {
     return tier_;
@@ -155,12 +161,14 @@ private static final long serialVersionUID = 0L;
   private long spaceToReserve_;
   /**
    * <code>optional int64 space_to_reserve = 4;</code>
+   * @return Whether the spaceToReserve field is set.
    */
   public boolean hasSpaceToReserve() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional int64 space_to_reserve = 4;</code>
+   * @return The spaceToReserve.
    */
   public long getSpaceToReserve() {
     return spaceToReserve_;
@@ -174,9 +182,10 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>optional bool only_reserve_space = 5;</code>
+   * @return Whether the onlyReserveSpace field is set.
    */
   public boolean hasOnlyReserveSpace() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000008) != 0);
   }
   /**
    * <pre>
@@ -184,6 +193,7 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>optional bool only_reserve_space = 5;</code>
+   * @return The onlyReserveSpace.
    */
   public boolean getOnlyReserveSpace() {
     return onlyReserveSpace_;
@@ -193,12 +203,14 @@ private static final long serialVersionUID = 0L;
   private boolean cleanupOnFailure_;
   /**
    * <code>optional bool cleanup_on_failure = 6;</code>
+   * @return Whether the cleanupOnFailure field is set.
    */
   public boolean hasCleanupOnFailure() {
-    return ((bitField0_ & 0x00000010) == 0x00000010);
+    return ((bitField0_ & 0x00000010) != 0);
   }
   /**
    * <code>optional bool cleanup_on_failure = 6;</code>
+   * @return The cleanupOnFailure.
    */
   public boolean getCleanupOnFailure() {
     return cleanupOnFailure_;
@@ -208,12 +220,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object mediumType_;
   /**
    * <code>optional string medium_type = 7;</code>
+   * @return Whether the mediumType field is set.
    */
   public boolean hasMediumType() {
-    return ((bitField0_ & 0x00000020) == 0x00000020);
+    return ((bitField0_ & 0x00000020) != 0);
   }
   /**
    * <code>optional string medium_type = 7;</code>
+   * @return The mediumType.
    */
   public java.lang.String getMediumType() {
     java.lang.Object ref = mediumType_;
@@ -231,6 +245,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string medium_type = 7;</code>
+   * @return The bytes for mediumType.
    */
   public com.google.protobuf.ByteString
       getMediumTypeBytes() {
@@ -250,18 +265,21 @@ private static final long serialVersionUID = 0L;
   private boolean pinOnCreate_;
   /**
    * <code>optional bool pin_on_create = 8;</code>
+   * @return Whether the pinOnCreate field is set.
    */
   public boolean hasPinOnCreate() {
-    return ((bitField0_ & 0x00000040) == 0x00000040);
+    return ((bitField0_ & 0x00000040) != 0);
   }
   /**
    * <code>optional bool pin_on_create = 8;</code>
+   * @return The pinOnCreate.
    */
   public boolean getPinOnCreate() {
     return pinOnCreate_;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -271,61 +289,63 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeInt64(1, blockId_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeInt32(3, tier_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       output.writeInt64(4, spaceToReserve_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       output.writeBool(5, onlyReserveSpace_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       output.writeBool(6, cleanupOnFailure_);
     }
-    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+    if (((bitField0_ & 0x00000020) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 7, mediumType_);
     }
-    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+    if (((bitField0_ & 0x00000040) != 0)) {
       output.writeBool(8, pinOnCreate_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(1, blockId_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(3, tier_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(4, spaceToReserve_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(5, onlyReserveSpace_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(6, cleanupOnFailure_);
     }
-    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+    if (((bitField0_ & 0x00000020) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(7, mediumType_);
     }
-    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+    if (((bitField0_ & 0x00000040) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(8, pinOnCreate_);
     }
@@ -344,44 +364,43 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.CreateLocalBlockRequest other = (alluxio.grpc.CreateLocalBlockRequest) obj;
 
-    boolean result = true;
-    result = result && (hasBlockId() == other.hasBlockId());
+    if (hasBlockId() != other.hasBlockId()) return false;
     if (hasBlockId()) {
-      result = result && (getBlockId()
-          == other.getBlockId());
+      if (getBlockId()
+          != other.getBlockId()) return false;
     }
-    result = result && (hasTier() == other.hasTier());
+    if (hasTier() != other.hasTier()) return false;
     if (hasTier()) {
-      result = result && (getTier()
-          == other.getTier());
+      if (getTier()
+          != other.getTier()) return false;
     }
-    result = result && (hasSpaceToReserve() == other.hasSpaceToReserve());
+    if (hasSpaceToReserve() != other.hasSpaceToReserve()) return false;
     if (hasSpaceToReserve()) {
-      result = result && (getSpaceToReserve()
-          == other.getSpaceToReserve());
+      if (getSpaceToReserve()
+          != other.getSpaceToReserve()) return false;
     }
-    result = result && (hasOnlyReserveSpace() == other.hasOnlyReserveSpace());
+    if (hasOnlyReserveSpace() != other.hasOnlyReserveSpace()) return false;
     if (hasOnlyReserveSpace()) {
-      result = result && (getOnlyReserveSpace()
-          == other.getOnlyReserveSpace());
+      if (getOnlyReserveSpace()
+          != other.getOnlyReserveSpace()) return false;
     }
-    result = result && (hasCleanupOnFailure() == other.hasCleanupOnFailure());
+    if (hasCleanupOnFailure() != other.hasCleanupOnFailure()) return false;
     if (hasCleanupOnFailure()) {
-      result = result && (getCleanupOnFailure()
-          == other.getCleanupOnFailure());
+      if (getCleanupOnFailure()
+          != other.getCleanupOnFailure()) return false;
     }
-    result = result && (hasMediumType() == other.hasMediumType());
+    if (hasMediumType() != other.hasMediumType()) return false;
     if (hasMediumType()) {
-      result = result && getMediumType()
-          .equals(other.getMediumType());
+      if (!getMediumType()
+          .equals(other.getMediumType())) return false;
     }
-    result = result && (hasPinOnCreate() == other.hasPinOnCreate());
+    if (hasPinOnCreate() != other.hasPinOnCreate()) return false;
     if (hasPinOnCreate()) {
-      result = result && (getPinOnCreate()
-          == other.getPinOnCreate());
+      if (getPinOnCreate()
+          != other.getPinOnCreate()) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -499,6 +518,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -506,6 +526,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.CreateLocalBlockRequest prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -533,6 +554,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_block_CreateLocalBlockRequest_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_block_CreateLocalBlockRequest_fieldAccessorTable
@@ -555,6 +577,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       blockId_ = 0L;
@@ -574,15 +597,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_block_CreateLocalBlockRequest_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.CreateLocalBlockRequest getDefaultInstanceForType() {
       return alluxio.grpc.CreateLocalBlockRequest.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.CreateLocalBlockRequest build() {
       alluxio.grpc.CreateLocalBlockRequest result = buildPartial();
       if (!result.isInitialized()) {
@@ -591,69 +617,77 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.CreateLocalBlockRequest buildPartial() {
       alluxio.grpc.CreateLocalBlockRequest result = new alluxio.grpc.CreateLocalBlockRequest(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        result.blockId_ = blockId_;
         to_bitField0_ |= 0x00000001;
       }
-      result.blockId_ = blockId_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
+        result.tier_ = tier_;
         to_bitField0_ |= 0x00000002;
       }
-      result.tier_ = tier_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
+        result.spaceToReserve_ = spaceToReserve_;
         to_bitField0_ |= 0x00000004;
       }
-      result.spaceToReserve_ = spaceToReserve_;
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000008) != 0)) {
+        result.onlyReserveSpace_ = onlyReserveSpace_;
         to_bitField0_ |= 0x00000008;
       }
-      result.onlyReserveSpace_ = onlyReserveSpace_;
-      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((from_bitField0_ & 0x00000010) != 0)) {
+        result.cleanupOnFailure_ = cleanupOnFailure_;
         to_bitField0_ |= 0x00000010;
       }
-      result.cleanupOnFailure_ = cleanupOnFailure_;
-      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((from_bitField0_ & 0x00000020) != 0)) {
         to_bitField0_ |= 0x00000020;
       }
       result.mediumType_ = mediumType_;
-      if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((from_bitField0_ & 0x00000040) != 0)) {
+        result.pinOnCreate_ = pinOnCreate_;
         to_bitField0_ |= 0x00000040;
       }
-      result.pinOnCreate_ = pinOnCreate_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.CreateLocalBlockRequest) {
         return mergeFrom((alluxio.grpc.CreateLocalBlockRequest)other);
@@ -693,10 +727,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -719,18 +755,22 @@ private static final long serialVersionUID = 0L;
     private long blockId_ ;
     /**
      * <code>optional int64 block_id = 1;</code>
+     * @return Whether the blockId field is set.
      */
     public boolean hasBlockId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional int64 block_id = 1;</code>
+     * @return The blockId.
      */
     public long getBlockId() {
       return blockId_;
     }
     /**
      * <code>optional int64 block_id = 1;</code>
+     * @param value The blockId to set.
+     * @return This builder for chaining.
      */
     public Builder setBlockId(long value) {
       bitField0_ |= 0x00000001;
@@ -740,6 +780,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 block_id = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearBlockId() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -751,18 +792,22 @@ private static final long serialVersionUID = 0L;
     private int tier_ ;
     /**
      * <code>optional int32 tier = 3;</code>
+     * @return Whether the tier field is set.
      */
     public boolean hasTier() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional int32 tier = 3;</code>
+     * @return The tier.
      */
     public int getTier() {
       return tier_;
     }
     /**
      * <code>optional int32 tier = 3;</code>
+     * @param value The tier to set.
+     * @return This builder for chaining.
      */
     public Builder setTier(int value) {
       bitField0_ |= 0x00000002;
@@ -772,6 +817,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int32 tier = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearTier() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -783,18 +829,22 @@ private static final long serialVersionUID = 0L;
     private long spaceToReserve_ ;
     /**
      * <code>optional int64 space_to_reserve = 4;</code>
+     * @return Whether the spaceToReserve field is set.
      */
     public boolean hasSpaceToReserve() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional int64 space_to_reserve = 4;</code>
+     * @return The spaceToReserve.
      */
     public long getSpaceToReserve() {
       return spaceToReserve_;
     }
     /**
      * <code>optional int64 space_to_reserve = 4;</code>
+     * @param value The spaceToReserve to set.
+     * @return This builder for chaining.
      */
     public Builder setSpaceToReserve(long value) {
       bitField0_ |= 0x00000004;
@@ -804,6 +854,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 space_to_reserve = 4;</code>
+     * @return This builder for chaining.
      */
     public Builder clearSpaceToReserve() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -819,9 +870,10 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional bool only_reserve_space = 5;</code>
+     * @return Whether the onlyReserveSpace field is set.
      */
     public boolean hasOnlyReserveSpace() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <pre>
@@ -829,6 +881,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional bool only_reserve_space = 5;</code>
+     * @return The onlyReserveSpace.
      */
     public boolean getOnlyReserveSpace() {
       return onlyReserveSpace_;
@@ -839,6 +892,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional bool only_reserve_space = 5;</code>
+     * @param value The onlyReserveSpace to set.
+     * @return This builder for chaining.
      */
     public Builder setOnlyReserveSpace(boolean value) {
       bitField0_ |= 0x00000008;
@@ -852,6 +907,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional bool only_reserve_space = 5;</code>
+     * @return This builder for chaining.
      */
     public Builder clearOnlyReserveSpace() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -863,18 +919,22 @@ private static final long serialVersionUID = 0L;
     private boolean cleanupOnFailure_ ;
     /**
      * <code>optional bool cleanup_on_failure = 6;</code>
+     * @return Whether the cleanupOnFailure field is set.
      */
     public boolean hasCleanupOnFailure() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000010) != 0);
     }
     /**
      * <code>optional bool cleanup_on_failure = 6;</code>
+     * @return The cleanupOnFailure.
      */
     public boolean getCleanupOnFailure() {
       return cleanupOnFailure_;
     }
     /**
      * <code>optional bool cleanup_on_failure = 6;</code>
+     * @param value The cleanupOnFailure to set.
+     * @return This builder for chaining.
      */
     public Builder setCleanupOnFailure(boolean value) {
       bitField0_ |= 0x00000010;
@@ -884,6 +944,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool cleanup_on_failure = 6;</code>
+     * @return This builder for chaining.
      */
     public Builder clearCleanupOnFailure() {
       bitField0_ = (bitField0_ & ~0x00000010);
@@ -895,12 +956,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object mediumType_ = "";
     /**
      * <code>optional string medium_type = 7;</code>
+     * @return Whether the mediumType field is set.
      */
     public boolean hasMediumType() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000020) != 0);
     }
     /**
      * <code>optional string medium_type = 7;</code>
+     * @return The mediumType.
      */
     public java.lang.String getMediumType() {
       java.lang.Object ref = mediumType_;
@@ -918,6 +981,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string medium_type = 7;</code>
+     * @return The bytes for mediumType.
      */
     public com.google.protobuf.ByteString
         getMediumTypeBytes() {
@@ -934,6 +998,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string medium_type = 7;</code>
+     * @param value The mediumType to set.
+     * @return This builder for chaining.
      */
     public Builder setMediumType(
         java.lang.String value) {
@@ -947,6 +1013,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string medium_type = 7;</code>
+     * @return This builder for chaining.
      */
     public Builder clearMediumType() {
       bitField0_ = (bitField0_ & ~0x00000020);
@@ -956,6 +1023,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string medium_type = 7;</code>
+     * @param value The bytes for mediumType to set.
+     * @return This builder for chaining.
      */
     public Builder setMediumTypeBytes(
         com.google.protobuf.ByteString value) {
@@ -971,18 +1040,22 @@ private static final long serialVersionUID = 0L;
     private boolean pinOnCreate_ ;
     /**
      * <code>optional bool pin_on_create = 8;</code>
+     * @return Whether the pinOnCreate field is set.
      */
     public boolean hasPinOnCreate() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
+      return ((bitField0_ & 0x00000040) != 0);
     }
     /**
      * <code>optional bool pin_on_create = 8;</code>
+     * @return The pinOnCreate.
      */
     public boolean getPinOnCreate() {
       return pinOnCreate_;
     }
     /**
      * <code>optional bool pin_on_create = 8;</code>
+     * @param value The pinOnCreate to set.
+     * @return This builder for chaining.
      */
     public Builder setPinOnCreate(boolean value) {
       bitField0_ |= 0x00000040;
@@ -992,6 +1065,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool pin_on_create = 8;</code>
+     * @return This builder for chaining.
      */
     public Builder clearPinOnCreate() {
       bitField0_ = (bitField0_ & ~0x00000040);
@@ -999,11 +1073,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1025,6 +1101,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<CreateLocalBlockRequest>
       PARSER = new com.google.protobuf.AbstractParser<CreateLocalBlockRequest>() {
+    @java.lang.Override
     public CreateLocalBlockRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1042,6 +1119,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.CreateLocalBlockRequest getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

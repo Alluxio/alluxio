@@ -22,12 +22,14 @@ private static final long serialVersionUID = 0L;
   }
   private WriteRequestCommand() {
     type_ = 0;
-    id_ = 0L;
-    offset_ = 0L;
-    tier_ = 0;
-    flush_ = false;
     mediumType_ = "";
-    pinOnCreate_ = false;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new WriteRequestCommand();
   }
 
   @java.lang.Override
@@ -54,15 +56,9 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             int rawValue = input.readEnum();
+              @SuppressWarnings("deprecation")
             alluxio.grpc.RequestType value = alluxio.grpc.RequestType.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(1, rawValue);
@@ -94,7 +90,7 @@ private static final long serialVersionUID = 0L;
           }
           case 50: {
             alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000020) == 0x00000020)) {
+            if (((bitField0_ & 0x00000020) != 0)) {
               subBuilder = createUfsFileOptions_.toBuilder();
             }
             createUfsFileOptions_ = input.readMessage(alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.PARSER, extensionRegistry);
@@ -107,7 +103,7 @@ private static final long serialVersionUID = 0L;
           }
           case 58: {
             alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000040) == 0x00000040)) {
+            if (((bitField0_ & 0x00000040) != 0)) {
               subBuilder = createUfsBlockOptions_.toBuilder();
             }
             createUfsBlockOptions_ = input.readMessage(alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions.PARSER, extensionRegistry);
@@ -129,6 +125,13 @@ private static final long serialVersionUID = 0L;
             pinOnCreate_ = input.readBool();
             break;
           }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -146,6 +149,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_block_WriteRequestCommand_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_block_WriteRequestCommand_fieldAccessorTable
@@ -158,14 +162,17 @@ private static final long serialVersionUID = 0L;
   private int type_;
   /**
    * <code>optional .alluxio.grpc.block.RequestType type = 1;</code>
+   * @return Whether the type field is set.
    */
   public boolean hasType() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.block.RequestType type = 1;</code>
+   * @return The type.
    */
   public alluxio.grpc.RequestType getType() {
+    @SuppressWarnings("deprecation")
     alluxio.grpc.RequestType result = alluxio.grpc.RequestType.valueOf(type_);
     return result == null ? alluxio.grpc.RequestType.ALLUXIO_BLOCK : result;
   }
@@ -178,9 +185,10 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>optional int64 id = 2;</code>
+   * @return Whether the id field is set.
    */
   public boolean hasId() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <pre>
@@ -188,6 +196,7 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>optional int64 id = 2;</code>
+   * @return The id.
    */
   public long getId() {
     return id_;
@@ -197,12 +206,14 @@ private static final long serialVersionUID = 0L;
   private long offset_;
   /**
    * <code>optional int64 offset = 3;</code>
+   * @return Whether the offset field is set.
    */
   public boolean hasOffset() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional int64 offset = 3;</code>
+   * @return The offset.
    */
   public long getOffset() {
     return offset_;
@@ -216,9 +227,10 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>optional int32 tier = 4;</code>
+   * @return Whether the tier field is set.
    */
   public boolean hasTier() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000008) != 0);
   }
   /**
    * <pre>
@@ -226,6 +238,7 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>optional int32 tier = 4;</code>
+   * @return The tier.
    */
   public int getTier() {
     return tier_;
@@ -235,12 +248,14 @@ private static final long serialVersionUID = 0L;
   private boolean flush_;
   /**
    * <code>optional bool flush = 5;</code>
+   * @return Whether the flush field is set.
    */
   public boolean hasFlush() {
-    return ((bitField0_ & 0x00000010) == 0x00000010);
+    return ((bitField0_ & 0x00000010) != 0);
   }
   /**
    * <code>optional bool flush = 5;</code>
+   * @return The flush.
    */
   public boolean getFlush() {
     return flush_;
@@ -254,9 +269,10 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
+   * @return Whether the createUfsFileOptions field is set.
    */
   public boolean hasCreateUfsFileOptions() {
-    return ((bitField0_ & 0x00000020) == 0x00000020);
+    return ((bitField0_ & 0x00000020) != 0);
   }
   /**
    * <pre>
@@ -264,6 +280,7 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
+   * @return The createUfsFileOptions.
    */
   public alluxio.proto.dataserver.Protocol.CreateUfsFileOptions getCreateUfsFileOptions() {
     return createUfsFileOptions_ == null ? alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.getDefaultInstance() : createUfsFileOptions_;
@@ -283,12 +300,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions createUfsBlockOptions_;
   /**
    * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
+   * @return Whether the createUfsBlockOptions field is set.
    */
   public boolean hasCreateUfsBlockOptions() {
-    return ((bitField0_ & 0x00000040) == 0x00000040);
+    return ((bitField0_ & 0x00000040) != 0);
   }
   /**
    * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
+   * @return The createUfsBlockOptions.
    */
   public alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions getCreateUfsBlockOptions() {
     return createUfsBlockOptions_ == null ? alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions.getDefaultInstance() : createUfsBlockOptions_;
@@ -304,12 +323,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object mediumType_;
   /**
    * <code>optional string medium_type = 8;</code>
+   * @return Whether the mediumType field is set.
    */
   public boolean hasMediumType() {
-    return ((bitField0_ & 0x00000080) == 0x00000080);
+    return ((bitField0_ & 0x00000080) != 0);
   }
   /**
    * <code>optional string medium_type = 8;</code>
+   * @return The mediumType.
    */
   public java.lang.String getMediumType() {
     java.lang.Object ref = mediumType_;
@@ -327,6 +348,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string medium_type = 8;</code>
+   * @return The bytes for mediumType.
    */
   public com.google.protobuf.ByteString
       getMediumTypeBytes() {
@@ -346,18 +368,21 @@ private static final long serialVersionUID = 0L;
   private boolean pinOnCreate_;
   /**
    * <code>optional bool pin_on_create = 9;</code>
+   * @return Whether the pinOnCreate field is set.
    */
   public boolean hasPinOnCreate() {
-    return ((bitField0_ & 0x00000100) == 0x00000100);
+    return ((bitField0_ & 0x00000100) != 0);
   }
   /**
    * <code>optional bool pin_on_create = 9;</code>
+   * @return The pinOnCreate.
    */
   public boolean getPinOnCreate() {
     return pinOnCreate_;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -367,75 +392,77 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeEnum(1, type_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeInt64(2, id_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       output.writeInt64(3, offset_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       output.writeInt32(4, tier_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       output.writeBool(5, flush_);
     }
-    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+    if (((bitField0_ & 0x00000020) != 0)) {
       output.writeMessage(6, getCreateUfsFileOptions());
     }
-    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+    if (((bitField0_ & 0x00000040) != 0)) {
       output.writeMessage(7, getCreateUfsBlockOptions());
     }
-    if (((bitField0_ & 0x00000080) == 0x00000080)) {
+    if (((bitField0_ & 0x00000080) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 8, mediumType_);
     }
-    if (((bitField0_ & 0x00000100) == 0x00000100)) {
+    if (((bitField0_ & 0x00000100) != 0)) {
       output.writeBool(9, pinOnCreate_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(1, type_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(2, id_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(3, offset_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(4, tier_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(5, flush_);
     }
-    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+    if (((bitField0_ & 0x00000020) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(6, getCreateUfsFileOptions());
     }
-    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+    if (((bitField0_ & 0x00000040) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(7, getCreateUfsBlockOptions());
     }
-    if (((bitField0_ & 0x00000080) == 0x00000080)) {
+    if (((bitField0_ & 0x00000080) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(8, mediumType_);
     }
-    if (((bitField0_ & 0x00000100) == 0x00000100)) {
+    if (((bitField0_ & 0x00000100) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(9, pinOnCreate_);
     }
@@ -454,53 +481,52 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.WriteRequestCommand other = (alluxio.grpc.WriteRequestCommand) obj;
 
-    boolean result = true;
-    result = result && (hasType() == other.hasType());
+    if (hasType() != other.hasType()) return false;
     if (hasType()) {
-      result = result && type_ == other.type_;
+      if (type_ != other.type_) return false;
     }
-    result = result && (hasId() == other.hasId());
+    if (hasId() != other.hasId()) return false;
     if (hasId()) {
-      result = result && (getId()
-          == other.getId());
+      if (getId()
+          != other.getId()) return false;
     }
-    result = result && (hasOffset() == other.hasOffset());
+    if (hasOffset() != other.hasOffset()) return false;
     if (hasOffset()) {
-      result = result && (getOffset()
-          == other.getOffset());
+      if (getOffset()
+          != other.getOffset()) return false;
     }
-    result = result && (hasTier() == other.hasTier());
+    if (hasTier() != other.hasTier()) return false;
     if (hasTier()) {
-      result = result && (getTier()
-          == other.getTier());
+      if (getTier()
+          != other.getTier()) return false;
     }
-    result = result && (hasFlush() == other.hasFlush());
+    if (hasFlush() != other.hasFlush()) return false;
     if (hasFlush()) {
-      result = result && (getFlush()
-          == other.getFlush());
+      if (getFlush()
+          != other.getFlush()) return false;
     }
-    result = result && (hasCreateUfsFileOptions() == other.hasCreateUfsFileOptions());
+    if (hasCreateUfsFileOptions() != other.hasCreateUfsFileOptions()) return false;
     if (hasCreateUfsFileOptions()) {
-      result = result && getCreateUfsFileOptions()
-          .equals(other.getCreateUfsFileOptions());
+      if (!getCreateUfsFileOptions()
+          .equals(other.getCreateUfsFileOptions())) return false;
     }
-    result = result && (hasCreateUfsBlockOptions() == other.hasCreateUfsBlockOptions());
+    if (hasCreateUfsBlockOptions() != other.hasCreateUfsBlockOptions()) return false;
     if (hasCreateUfsBlockOptions()) {
-      result = result && getCreateUfsBlockOptions()
-          .equals(other.getCreateUfsBlockOptions());
+      if (!getCreateUfsBlockOptions()
+          .equals(other.getCreateUfsBlockOptions())) return false;
     }
-    result = result && (hasMediumType() == other.hasMediumType());
+    if (hasMediumType() != other.hasMediumType()) return false;
     if (hasMediumType()) {
-      result = result && getMediumType()
-          .equals(other.getMediumType());
+      if (!getMediumType()
+          .equals(other.getMediumType())) return false;
     }
-    result = result && (hasPinOnCreate() == other.hasPinOnCreate());
+    if (hasPinOnCreate() != other.hasPinOnCreate()) return false;
     if (hasPinOnCreate()) {
-      result = result && (getPinOnCreate()
-          == other.getPinOnCreate());
+      if (getPinOnCreate()
+          != other.getPinOnCreate()) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -625,6 +651,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -632,6 +659,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.WriteRequestCommand prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -660,6 +688,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_block_WriteRequestCommand_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_block_WriteRequestCommand_fieldAccessorTable
@@ -684,6 +713,7 @@ private static final long serialVersionUID = 0L;
         getCreateUfsBlockOptionsFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       type_ = 0;
@@ -715,15 +745,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.BlockWorkerProto.internal_static_alluxio_grpc_block_WriteRequestCommand_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.WriteRequestCommand getDefaultInstanceForType() {
       return alluxio.grpc.WriteRequestCommand.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.WriteRequestCommand build() {
       alluxio.grpc.WriteRequestCommand result = buildPartial();
       if (!result.isInitialized()) {
@@ -732,85 +765,93 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.WriteRequestCommand buildPartial() {
       alluxio.grpc.WriteRequestCommand result = new alluxio.grpc.WriteRequestCommand(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
         to_bitField0_ |= 0x00000001;
       }
       result.type_ = type_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
+        result.id_ = id_;
         to_bitField0_ |= 0x00000002;
       }
-      result.id_ = id_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
+        result.offset_ = offset_;
         to_bitField0_ |= 0x00000004;
       }
-      result.offset_ = offset_;
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000008) != 0)) {
+        result.tier_ = tier_;
         to_bitField0_ |= 0x00000008;
       }
-      result.tier_ = tier_;
-      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((from_bitField0_ & 0x00000010) != 0)) {
+        result.flush_ = flush_;
         to_bitField0_ |= 0x00000010;
       }
-      result.flush_ = flush_;
-      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((from_bitField0_ & 0x00000020) != 0)) {
+        if (createUfsFileOptionsBuilder_ == null) {
+          result.createUfsFileOptions_ = createUfsFileOptions_;
+        } else {
+          result.createUfsFileOptions_ = createUfsFileOptionsBuilder_.build();
+        }
         to_bitField0_ |= 0x00000020;
       }
-      if (createUfsFileOptionsBuilder_ == null) {
-        result.createUfsFileOptions_ = createUfsFileOptions_;
-      } else {
-        result.createUfsFileOptions_ = createUfsFileOptionsBuilder_.build();
-      }
-      if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((from_bitField0_ & 0x00000040) != 0)) {
+        if (createUfsBlockOptionsBuilder_ == null) {
+          result.createUfsBlockOptions_ = createUfsBlockOptions_;
+        } else {
+          result.createUfsBlockOptions_ = createUfsBlockOptionsBuilder_.build();
+        }
         to_bitField0_ |= 0x00000040;
       }
-      if (createUfsBlockOptionsBuilder_ == null) {
-        result.createUfsBlockOptions_ = createUfsBlockOptions_;
-      } else {
-        result.createUfsBlockOptions_ = createUfsBlockOptionsBuilder_.build();
-      }
-      if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+      if (((from_bitField0_ & 0x00000080) != 0)) {
         to_bitField0_ |= 0x00000080;
       }
       result.mediumType_ = mediumType_;
-      if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
+      if (((from_bitField0_ & 0x00000100) != 0)) {
+        result.pinOnCreate_ = pinOnCreate_;
         to_bitField0_ |= 0x00000100;
       }
-      result.pinOnCreate_ = pinOnCreate_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.WriteRequestCommand) {
         return mergeFrom((alluxio.grpc.WriteRequestCommand)other);
@@ -856,10 +897,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -882,19 +925,24 @@ private static final long serialVersionUID = 0L;
     private int type_ = 0;
     /**
      * <code>optional .alluxio.grpc.block.RequestType type = 1;</code>
+     * @return Whether the type field is set.
      */
     public boolean hasType() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.block.RequestType type = 1;</code>
+     * @return The type.
      */
     public alluxio.grpc.RequestType getType() {
+      @SuppressWarnings("deprecation")
       alluxio.grpc.RequestType result = alluxio.grpc.RequestType.valueOf(type_);
       return result == null ? alluxio.grpc.RequestType.ALLUXIO_BLOCK : result;
     }
     /**
      * <code>optional .alluxio.grpc.block.RequestType type = 1;</code>
+     * @param value The type to set.
+     * @return This builder for chaining.
      */
     public Builder setType(alluxio.grpc.RequestType value) {
       if (value == null) {
@@ -907,6 +955,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional .alluxio.grpc.block.RequestType type = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearType() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -922,9 +971,10 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional int64 id = 2;</code>
+     * @return Whether the id field is set.
      */
     public boolean hasId() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <pre>
@@ -932,6 +982,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional int64 id = 2;</code>
+     * @return The id.
      */
     public long getId() {
       return id_;
@@ -942,6 +993,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional int64 id = 2;</code>
+     * @param value The id to set.
+     * @return This builder for chaining.
      */
     public Builder setId(long value) {
       bitField0_ |= 0x00000002;
@@ -955,6 +1008,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional int64 id = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearId() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -966,18 +1020,22 @@ private static final long serialVersionUID = 0L;
     private long offset_ ;
     /**
      * <code>optional int64 offset = 3;</code>
+     * @return Whether the offset field is set.
      */
     public boolean hasOffset() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional int64 offset = 3;</code>
+     * @return The offset.
      */
     public long getOffset() {
       return offset_;
     }
     /**
      * <code>optional int64 offset = 3;</code>
+     * @param value The offset to set.
+     * @return This builder for chaining.
      */
     public Builder setOffset(long value) {
       bitField0_ |= 0x00000004;
@@ -987,6 +1045,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 offset = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearOffset() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -1002,9 +1061,10 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional int32 tier = 4;</code>
+     * @return Whether the tier field is set.
      */
     public boolean hasTier() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <pre>
@@ -1012,6 +1072,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional int32 tier = 4;</code>
+     * @return The tier.
      */
     public int getTier() {
       return tier_;
@@ -1022,6 +1083,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional int32 tier = 4;</code>
+     * @param value The tier to set.
+     * @return This builder for chaining.
      */
     public Builder setTier(int value) {
       bitField0_ |= 0x00000008;
@@ -1035,6 +1098,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional int32 tier = 4;</code>
+     * @return This builder for chaining.
      */
     public Builder clearTier() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -1046,18 +1110,22 @@ private static final long serialVersionUID = 0L;
     private boolean flush_ ;
     /**
      * <code>optional bool flush = 5;</code>
+     * @return Whether the flush field is set.
      */
     public boolean hasFlush() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000010) != 0);
     }
     /**
      * <code>optional bool flush = 5;</code>
+     * @return The flush.
      */
     public boolean getFlush() {
       return flush_;
     }
     /**
      * <code>optional bool flush = 5;</code>
+     * @param value The flush to set.
+     * @return This builder for chaining.
      */
     public Builder setFlush(boolean value) {
       bitField0_ |= 0x00000010;
@@ -1067,6 +1135,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool flush = 5;</code>
+     * @return This builder for chaining.
      */
     public Builder clearFlush() {
       bitField0_ = (bitField0_ & ~0x00000010);
@@ -1075,7 +1144,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private alluxio.proto.dataserver.Protocol.CreateUfsFileOptions createUfsFileOptions_ = null;
+    private alluxio.proto.dataserver.Protocol.CreateUfsFileOptions createUfsFileOptions_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.proto.dataserver.Protocol.CreateUfsFileOptions, alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.Builder, alluxio.proto.dataserver.Protocol.CreateUfsFileOptionsOrBuilder> createUfsFileOptionsBuilder_;
     /**
@@ -1084,9 +1153,10 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
+     * @return Whether the createUfsFileOptions field is set.
      */
     public boolean hasCreateUfsFileOptions() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000020) != 0);
     }
     /**
      * <pre>
@@ -1094,6 +1164,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
+     * @return The createUfsFileOptions.
      */
     public alluxio.proto.dataserver.Protocol.CreateUfsFileOptions getCreateUfsFileOptions() {
       if (createUfsFileOptionsBuilder_ == null) {
@@ -1149,7 +1220,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeCreateUfsFileOptions(alluxio.proto.dataserver.Protocol.CreateUfsFileOptions value) {
       if (createUfsFileOptionsBuilder_ == null) {
-        if (((bitField0_ & 0x00000020) == 0x00000020) &&
+        if (((bitField0_ & 0x00000020) != 0) &&
             createUfsFileOptions_ != null &&
             createUfsFileOptions_ != alluxio.proto.dataserver.Protocol.CreateUfsFileOptions.getDefaultInstance()) {
           createUfsFileOptions_ =
@@ -1229,17 +1300,19 @@ private static final long serialVersionUID = 0L;
       return createUfsFileOptionsBuilder_;
     }
 
-    private alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions createUfsBlockOptions_ = null;
+    private alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions createUfsBlockOptions_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions, alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions.Builder, alluxio.proto.dataserver.Protocol.CreateUfsBlockOptionsOrBuilder> createUfsBlockOptionsBuilder_;
     /**
      * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
+     * @return Whether the createUfsBlockOptions field is set.
      */
     public boolean hasCreateUfsBlockOptions() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
+      return ((bitField0_ & 0x00000040) != 0);
     }
     /**
      * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
+     * @return The createUfsBlockOptions.
      */
     public alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions getCreateUfsBlockOptions() {
       if (createUfsBlockOptionsBuilder_ == null) {
@@ -1283,7 +1356,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeCreateUfsBlockOptions(alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions value) {
       if (createUfsBlockOptionsBuilder_ == null) {
-        if (((bitField0_ & 0x00000040) == 0x00000040) &&
+        if (((bitField0_ & 0x00000040) != 0) &&
             createUfsBlockOptions_ != null &&
             createUfsBlockOptions_ != alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions.getDefaultInstance()) {
           createUfsBlockOptions_ =
@@ -1350,12 +1423,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object mediumType_ = "";
     /**
      * <code>optional string medium_type = 8;</code>
+     * @return Whether the mediumType field is set.
      */
     public boolean hasMediumType() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
+      return ((bitField0_ & 0x00000080) != 0);
     }
     /**
      * <code>optional string medium_type = 8;</code>
+     * @return The mediumType.
      */
     public java.lang.String getMediumType() {
       java.lang.Object ref = mediumType_;
@@ -1373,6 +1448,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string medium_type = 8;</code>
+     * @return The bytes for mediumType.
      */
     public com.google.protobuf.ByteString
         getMediumTypeBytes() {
@@ -1389,6 +1465,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string medium_type = 8;</code>
+     * @param value The mediumType to set.
+     * @return This builder for chaining.
      */
     public Builder setMediumType(
         java.lang.String value) {
@@ -1402,6 +1480,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string medium_type = 8;</code>
+     * @return This builder for chaining.
      */
     public Builder clearMediumType() {
       bitField0_ = (bitField0_ & ~0x00000080);
@@ -1411,6 +1490,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string medium_type = 8;</code>
+     * @param value The bytes for mediumType to set.
+     * @return This builder for chaining.
      */
     public Builder setMediumTypeBytes(
         com.google.protobuf.ByteString value) {
@@ -1426,18 +1507,22 @@ private static final long serialVersionUID = 0L;
     private boolean pinOnCreate_ ;
     /**
      * <code>optional bool pin_on_create = 9;</code>
+     * @return Whether the pinOnCreate field is set.
      */
     public boolean hasPinOnCreate() {
-      return ((bitField0_ & 0x00000100) == 0x00000100);
+      return ((bitField0_ & 0x00000100) != 0);
     }
     /**
      * <code>optional bool pin_on_create = 9;</code>
+     * @return The pinOnCreate.
      */
     public boolean getPinOnCreate() {
       return pinOnCreate_;
     }
     /**
      * <code>optional bool pin_on_create = 9;</code>
+     * @param value The pinOnCreate to set.
+     * @return This builder for chaining.
      */
     public Builder setPinOnCreate(boolean value) {
       bitField0_ |= 0x00000100;
@@ -1447,6 +1532,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool pin_on_create = 9;</code>
+     * @return This builder for chaining.
      */
     public Builder clearPinOnCreate() {
       bitField0_ = (bitField0_ & ~0x00000100);
@@ -1454,11 +1540,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1480,6 +1568,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<WriteRequestCommand>
       PARSER = new com.google.protobuf.AbstractParser<WriteRequestCommand>() {
+    @java.lang.Override
     public WriteRequestCommand parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1497,6 +1586,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.WriteRequestCommand getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

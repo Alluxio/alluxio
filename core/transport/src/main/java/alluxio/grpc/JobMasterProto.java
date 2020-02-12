@@ -292,19 +292,11 @@ public final class JobMasterProto {
       "o.grpc.job.RegisterJobWorkerPResponseB \n" +
       "\014alluxio.grpcB\016JobMasterProtoP\001"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           alluxio.grpc.CommonProto.getDescriptor(),
-        }, assigner);
+        });
     internal_static_alluxio_grpc_job_JobUnused_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_alluxio_grpc_job_JobUnused_fieldAccessorTable = new
