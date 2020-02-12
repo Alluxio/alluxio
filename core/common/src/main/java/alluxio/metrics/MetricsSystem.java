@@ -169,7 +169,11 @@ public final class MetricsSystem {
    * This should be called after setting the {@link CommonUtils#PROCESS_TYPE}
    * and before creating any metric in the current process.
    */
-  public static void init() {
+  public static synchronized void init() {
+    if (sSourceName != null) {
+      // This metrics system is already initialized
+      return;
+    }
     PropertyKey sourceKey = null;
     switch (CommonUtils.PROCESS_TYPE.get()) {
       case MASTER:
