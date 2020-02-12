@@ -8,13 +8,36 @@ public interface SyncDatabasePResponseOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
+   * <pre>
+   * TODO(gpang): remove in favor of status
+   * </pre>
+   *
    * <code>optional bool success = 1;</code>
    * @return Whether the success field is set.
    */
   boolean hasSuccess();
   /**
+   * <pre>
+   * TODO(gpang): remove in favor of status
+   * </pre>
+   *
    * <code>optional bool success = 1;</code>
    * @return The success.
    */
   boolean getSuccess();
+
+  /**
+   * <code>optional .alluxio.grpc.table.SyncStatus status = 2;</code>
+   * @return Whether the status field is set.
+   */
+  boolean hasStatus();
+  /**
+   * <code>optional .alluxio.grpc.table.SyncStatus status = 2;</code>
+   * @return The status.
+   */
+  alluxio.grpc.table.SyncStatus getStatus();
+  /**
+   * <code>optional .alluxio.grpc.table.SyncStatus status = 2;</code>
+   */
+  alluxio.grpc.table.SyncStatusOrBuilder getStatusOrBuilder();
 }

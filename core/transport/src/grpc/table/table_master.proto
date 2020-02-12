@@ -170,6 +170,13 @@ message DateColumnStatsData {
     optional string bit_vectors = 5;
 }
 
+message SyncStatus {
+    repeated string tables_unchanged = 1;
+    repeated string tables_updated = 2;
+    repeated string tables_removed = 3;
+    map<string, string> tables_errors = 4;
+}
+
 message GetAllDatabasesPRequest {
 }
 
@@ -208,10 +215,13 @@ message AttachDatabasePRequest {
     optional string udb_db_name = 3;
     optional string db_name = 4;
     map<string, string> options = 5;
+    optional bool ignore_sync_errors = 6;
 }
 
 message AttachDatabasePResponse {
+    // TODO(gpang): remove in favor of status
     optional bool success = 1;
+    optional SyncStatus sync_status = 2;
 }
 
 message DetachDatabasePRequest {
@@ -227,7 +237,9 @@ message SyncDatabasePRequest {
 }
 
 message SyncDatabasePResponse {
+    // TODO(gpang): remove in favor of status
     optional bool success = 1;
+    optional SyncStatus status = 2;
 }
 
 message FileStatistics {

@@ -19,6 +19,7 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.ColumnStatisticsList;
 import alluxio.grpc.table.Constraint;
+import alluxio.grpc.table.SyncStatus;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
 import alluxio.master.journal.Journaled;
@@ -104,10 +105,12 @@ public class AlluxioCatalog implements Journaled {
    * @param udbDbName the database name in the udb
    * @param dbName the database name in Alluxio
    * @param map the configuration
-   * @return true if database successfully created
+   * @param ignoreSyncErrors if true, will ignore syncing errors during the attach
+   * @return the sync status for the attach
    */
-  public boolean attachDatabase(JournalContext journalContext, String udbType,
-      String udbConnectionUri, String udbDbName, String dbName, Map<String, String> map)
+  public SyncStatus attachDatabase(JournalContext journalContext, String udbType,
+      String udbConnectionUri, String udbDbName, String dbName, Map<String, String> map,
+      boolean ignoreSyncErrors)
       throws IOException {
     try (LockResource l = getDbLock(dbName)) {
       if (mDBs.containsKey(dbName)) {
@@ -124,19 +127,24 @@ public class AlluxioCatalog implements Journaled {
               .setDbName(dbName)
               .putAllConfig(map).build()).build());
 
+      boolean syncError = false;
       try {
-        mDBs.get(dbName).sync(journalContext, mExecutorServiceSupplier.get());
+        SyncStatus status =
+            mDBs.get(dbName).sync(journalContext, mExecutorServiceSupplier.get());
+        syncError = status.getTablesErrorsCount() > 0;
+        return status;
       } catch (Exception e) {
         // Failed to connect to and sync the udb.
-        applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setDetachDb(
-            alluxio.proto.journal.Table.DetachDbEntry.newBuilder().setDbName(dbName).build())
-            .build());
         throw new IOException(String
             .format("Failed to connect underDb for Alluxio db '%s': %s", dbName,
                 e.getMessage()), e);
+      } finally {
+        if (syncError && !ignoreSyncErrors) {
+          applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setDetachDb(
+              alluxio.proto.journal.Table.DetachDbEntry.newBuilder().setDbName(dbName).build())
+              .build());
+        }
       }
-
-      return true;
     }
   }
 
@@ -145,9 +153,9 @@ public class AlluxioCatalog implements Journaled {
    *
    * @param journalContext journal context
    * @param dbName database name
-   * @return true if the database changed as a result of fullSync
+   * @return the resulting sync status
    */
-  public boolean syncDatabase(JournalContext journalContext, String dbName) throws IOException {
+  public SyncStatus syncDatabase(JournalContext journalContext, String dbName) throws IOException {
     try (LockResource l = getDbLock(dbName)) {
       Database db = getDatabaseByName(dbName);
       return db.sync(journalContext, mExecutorServiceSupplier.get());

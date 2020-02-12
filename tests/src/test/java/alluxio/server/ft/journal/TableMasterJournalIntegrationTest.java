@@ -71,7 +71,8 @@ public class TableMasterJournalIntegrationTest {
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     genTable(1, 2, true);
     tableMaster
-        .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
+        .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap(),
+            false);
     checkDb(tableMaster, DB_NAME, TestDatabase.sTestDbInfo);
     DatabaseInfo oldInfo = TestDatabase.sTestDbInfo;
     DatabaseInfo newInfo = new DatabaseInfo("test2://test2", "newowner",
@@ -134,7 +135,8 @@ public class TableMasterJournalIntegrationTest {
     }
     genTable(1, 2, true);
     tableMaster
-        .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
+        .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap(),
+            false);
     assertEquals(DB_NAME, tableMaster.getDatabase(DB_NAME).getDbName());
     List<String> oldTableNames = tableMaster.getAllTables(DB_NAME);
     Table tableOld = tableMaster.getTable(DB_NAME, oldTableNames.get(0));
@@ -158,7 +160,8 @@ public class TableMasterJournalIntegrationTest {
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(TableMaster.class);
     genTable(1, 2, true);
     tableMaster
-        .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
+        .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap(),
+            false);
     tableMaster.detachDatabase(DB_NAME);
     assertTrue(tableMaster.getAllDatabases().isEmpty());
     genTable(2, 2, true);
@@ -179,7 +182,8 @@ public class TableMasterJournalIntegrationTest {
     JobMaster jobMaster = jobCluster.getMaster().getJobMaster();
     genTable(1, 2, true);
     tableMaster
-        .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap());
+        .attachDatabase(TestUdbFactory.TYPE, "connect", DB_NAME, DB_NAME, Collections.emptyMap(),
+            false);
     List<String> tables = tableMaster.getAllTables(DB_NAME);
 
     assertFalse(tables.isEmpty());
