@@ -131,12 +131,13 @@ public class LocalCacheFileInStream extends FileInStream {
       return -1;
     }
     int bytesRead = 0;
+    long lengthToRead = Math.min(len, mStatus.getLength() - mPosition);
     // for each page, check if it is available in the cache
-    while (bytesRead < len && mPosition < mStatus.getLength()) {
+    while (bytesRead < lengthToRead) {
       long currentPage = mPosition / mPageSize;
       int currentPageOffset = (int) (mPosition % mPageSize);
-      int bytesLeftInPage = (int) Math.min(mPageSize - currentPageOffset, len - bytesRead);
-      PageId pageId = new PageId(mStatus.getFileId(), currentPage);
+      int bytesLeftInPage = (int) Math.min(mPageSize - currentPageOffset, lengthToRead - bytesRead);
+      PageId pageId = new PageId(mStatus.getFileIdentifier(), currentPage);
       try (ReadableByteChannel cachedData = mCacheManager.get(pageId, currentPageOffset)) {
         if (cachedData != null) { // cache hit
           // wrap return byte array in a bytebuffer and set the pos/limit for the page read
@@ -212,7 +213,7 @@ public class LocalCacheFileInStream extends FileInStream {
       long currentPage = currentPosition / mPageSize;
       int currentPageOffset = (int) (currentPosition % mPageSize);
       int bytesLeftInPage = (int) Math.min(mPageSize - currentPageOffset, lengthToRead - bytesRead);
-      PageId pageId = new PageId(mStatus.getFileId(), currentPage);
+      PageId pageId = new PageId(mStatus.getFileIdentifier(), currentPage);
       try (ReadableByteChannel cachedData = mCacheManager.get(pageId, currentPageOffset)) {
         if (cachedData != null) { // cache hit
           // wrap return byte array in a bytebuffer and set the pos/limit for the page read

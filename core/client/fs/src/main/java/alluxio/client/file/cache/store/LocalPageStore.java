@@ -152,7 +152,7 @@ public class LocalPageStore implements PageStore {
   }
 
   private Path getFilePath(PageId pageId) {
-    return Paths.get(mRoot, Long.toString(mPageSize), Long.toString(pageId.getFileId()),
+    return Paths.get(mRoot, Long.toString(mPageSize), pageId.getFileId(),
         Long.toString(pageId.getPageIndex()));
   }
 
@@ -167,9 +167,8 @@ public class LocalPageStore implements PageStore {
       return null;
     }
     try {
-      String parentName = Preconditions.checkNotNull(matcher.group(1));
+      String fileId = Preconditions.checkNotNull(matcher.group(1));
       String fileName = Preconditions.checkNotNull(matcher.group(2));
-      long fileId = Long.parseLong(parentName);
       long pageIndex = Long.parseLong(fileName);
       return new PageId(fileId, pageIndex);
     } catch (NumberFormatException e) {

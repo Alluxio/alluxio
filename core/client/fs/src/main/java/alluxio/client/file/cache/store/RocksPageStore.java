@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicLong;
@@ -55,6 +56,7 @@ public class RocksPageStore implements PageStore {
   private final RocksDB mDb;
   private final AtomicLong mSize = new AtomicLong(0);
   private final AtomicLong mBytes = new AtomicLong(0);
+  private final double mOverheadRatio;
 
   /**
    * Creates a new instance of {@link PageStore} backed by RocksDB.
@@ -65,6 +67,8 @@ public class RocksPageStore implements PageStore {
   public RocksPageStore(RocksPageStoreOptions options) throws IOException {
     Preconditions.checkArgument(options.getMaxPageSize() > 0);
     mRoot = options.getRootDir();
+    // TODO(feng): consider making the overhead ratio configurable
+    mOverheadRatio = (double) KEY_LEN / options.getMaxPageSize();
     Cache.PRocksPageStoreOptions pOptions = options.toProto();
     RocksDB.loadLibrary();
     RocksDB db = null;
@@ -82,7 +86,7 @@ public class RocksPageStore implements PageStore {
           try (Stream<PageInfo> stream = Streams.stream(new PageIterator(db.newIterator()))) {
             stream.forEach(pageInfo -> {
               mSize.incrementAndGet();
-              mBytes.getAndAdd(pageInfo.getPageSize() + KEY_LEN);
+              mBytes.getAndAdd(pageInfo.getPageSize());
             });
           }
         } else {
@@ -151,9 +155,10 @@ public class RocksPageStore implements PageStore {
   }
 
   private static byte[] getKeyFromPageId(PageId pageId) {
-    ByteBuffer buf = ByteBuffer.allocate(KEY_LEN);
-    buf.putLong(pageId.getFileId());
+    byte[] fileId = pageId.getFileId().getBytes();
+    ByteBuffer buf = ByteBuffer.allocate(Long.BYTES + fileId.length);
     buf.putLong(pageId.getPageIndex());
+    buf.put(fileId);
     return buf.array();
   }
 
@@ -163,12 +168,12 @@ public class RocksPageStore implements PageStore {
    */
   @Nullable
   private static PageId getPageIdFromKey(byte[] key) {
-    if (key.length != KEY_LEN) {
+    if (key.length < Long.BYTES) {
       return null;
     }
     ByteBuffer buf = ByteBuffer.wrap(key);
-    long fileId = buf.getLong();
     long pageIndex = buf.getLong();
+    String fileId = Charset.defaultCharset().decode(buf).toString();
     return new PageId(fileId, pageIndex);
   }
 
@@ -187,6 +192,11 @@ public class RocksPageStore implements PageStore {
     try (RocksIterator iter = mDb.newIterator()) {
       return Streams.stream(new PageIterator(iter)).collect(Collectors.toList());
     }
+  }
+
+  @Override
+  public double getOverheadRatio() {
+    return mOverheadRatio;
   }
 
   private class PageIterator implements Iterator<PageInfo>, AutoCloseable {

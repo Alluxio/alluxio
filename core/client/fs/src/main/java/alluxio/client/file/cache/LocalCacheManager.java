@@ -105,7 +105,8 @@ public class LocalCacheManager implements CacheManager {
     mPageStore = pageStore;
     mEvictor = evictor;
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
-    mCacheSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE);
+    mCacheSize = (long) (conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE)
+        / (1.0 + pageStore.getOverheadRatio()));
     for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock();
     }
@@ -119,7 +120,8 @@ public class LocalCacheManager implements CacheManager {
    * @return the corresponding page lock
    */
   private ReadWriteLock getPageLock(PageId pageId) {
-    return mPageLocks[Math.floorMod((int) (pageId.getFileId() + pageId.getPageIndex()), LOCK_SIZE)];
+    return mPageLocks
+        [Math.floorMod((int) (pageId.getFileId().hashCode() + pageId.getPageIndex()), LOCK_SIZE)];
   }
 
   /**
@@ -131,7 +133,8 @@ public class LocalCacheManager implements CacheManager {
    * @return the corresponding page lock pair
    */
   private Pair<ReadWriteLock, ReadWriteLock> getPageLockPair(PageId pageId, PageId pageId2) {
-    if (pageId.getFileId() + pageId.getPageIndex() < pageId2.getFileId() + pageId2.getPageIndex()) {
+    if (pageId.getFileId().hashCode() + pageId.getPageIndex()
+        < pageId2.getFileId().hashCode() + pageId2.getPageIndex()) {
       return new Pair<>(getPageLock(pageId), getPageLock(pageId2));
     } else {
       return new Pair<>(getPageLock(pageId2), getPageLock(pageId));

@@ -11,7 +11,6 @@
 
 package alluxio.client.file.cache.store;
 
-import static alluxio.client.file.cache.store.RocksPageStore.KEY_LEN;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -87,7 +86,7 @@ public class PageStoreTest {
   public void helloWorldTest() throws Exception {
     String msg = "Hello, World!";
     byte[] msgBytes = msg.getBytes();
-    PageId id = new PageId(0, 0);
+    PageId id = new PageId("0", 0);
     mPageStore.put(id, msgBytes);
     assertEquals(1, mPageStore.pages());
     ByteBuffer buf = ByteBuffer.allocate(1024);
@@ -110,7 +109,7 @@ public class PageStoreTest {
   public void getOffset() throws Exception {
     int len = 32;
     int offset = 3;
-    PageId id = new PageId(0, 0);
+    PageId id = new PageId("0", 0);
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     ByteBuffer buf = ByteBuffer.allocate(1024);
     try (ReadableByteChannel channel = mPageStore.get(id, offset)) {
@@ -124,7 +123,7 @@ public class PageStoreTest {
   public void getOffsetOverflow() throws Exception {
     int len = 32;
     int offset = 36;
-    PageId id = new PageId(0, 0);
+    PageId id = new PageId("0", 0);
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     ByteBuffer buf = ByteBuffer.allocate(1024);
     mThrown.expect(IllegalArgumentException.class);
@@ -140,7 +139,7 @@ public class PageStoreTest {
     byte[] data = BufferUtils.getIncreasingByteArray(len);
     Set<PageInfo> pages = new HashSet<>(count);
     for (int i = 0; i < count; i++) {
-      PageId id = new PageId(0, i);
+      PageId id = new PageId("0", i);
       mPageStore.put(id, data);
       pages.add(new PageInfo(id, data.length));
     }
@@ -155,24 +154,16 @@ public class PageStoreTest {
   public void testPagesAndBytes() throws Exception {
     long totalBytes = 0;
     for (int i = 1; i <= 1024; i++) {
-      PageId id = new PageId(i, 0);
+      PageId id = new PageId(Integer.toString(i), 0);
       mPageStore.put(id, new byte[i]);
-      if (mOptions.getType() == PageStoreType.LOCAL) {
-        totalBytes += i;
-      } else {
-        totalBytes += KEY_LEN + i;
-      }
+      totalBytes += i;
       assertEquals(i, mPageStore.pages());
       assertEquals(totalBytes, mPageStore.bytes());
     }
     for (int i = 1024; i >= 1; i--) {
-      PageId id = new PageId(i, 0);
+      PageId id = new PageId(Integer.toString(i), 0);
       mPageStore.delete(id, i);
-      if (mOptions.getType() == PageStoreType.LOCAL) {
-        totalBytes -= i;
-      } else {
-        totalBytes -= KEY_LEN + i;
-      }
+      totalBytes -= i;
       assertEquals(i - 1, mPageStore.pages());
       assertEquals(totalBytes, mPageStore.bytes());
     }
@@ -194,7 +185,7 @@ public class PageStoreTest {
     Random r = new Random();
     for (int i = 0; i < numPages; i++) {
       int pind = r.nextInt();
-      store.put(new PageId(0, pind), b);
+      store.put(new PageId("0", pind), b);
       pages.add(pind);
     }
 
@@ -207,7 +198,7 @@ public class PageStoreTest {
       ByteBuffer buf = ByteBuffer.allocate(Constants.MB);
       for (Integer pageIndex  : pages) {
         buf.clear();
-        store.get(new PageId(0, pageIndex)).read(buf);
+        store.get(new PageId("0", pageIndex)).read(buf);
       }
       long end = System.nanoTime();
       times.add(end - start);

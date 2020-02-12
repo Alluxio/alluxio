@@ -101,6 +101,14 @@ public class URIStatus {
   }
 
   /**
+   * @return the unique string identifier of the entity referenced by this uri used by Alluxio
+   *         servers, immutable
+   */
+  public String getFileIdentifier() {
+    return mInfo.getFileIdentifier();
+  }
+
+  /**
    * @return the group that owns the entity referenced by this uri, mutable
    */
   public String getGroup() {
