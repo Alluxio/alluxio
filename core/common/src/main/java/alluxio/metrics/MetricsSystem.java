@@ -62,8 +62,6 @@ public final class MetricsSystem {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsSystem.class);
 
   private static final ConcurrentHashMap<String, String> CACHED_METRICS = new ConcurrentHashMap<>();
-  private static final AlluxioConfiguration
-      CONF = new InstancedConfiguration(ConfigurationUtils.defaults());
   private static int sResolveTimeout =
       (int) new InstancedConfiguration(ConfigurationUtils.defaults())
           .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
@@ -145,8 +143,9 @@ public final class MetricsSystem {
   private static final int MINIMAL_POLL_PERIOD = 1;
 
   /**
-   * Starts sinks specified in the configuration. This is an no-op if the sinks have already been
-   * started. Note: This has to be called after Alluxio configuration is initialized.
+   * Starts sinks specified in the configuration.
+   * This is an no-op if the sinks have already been started.
+   * Note: This has to be called after Alluxio configuration is initialized.
    *
    * @param metricsConfFile the location of the metrics configuration file
    */
@@ -163,6 +162,37 @@ public final class MetricsSystem {
     }
     MetricsConfig config = new MetricsConfig(metricsConfFile);
     startSinksFromConfig(config);
+  }
+
+  /**
+   * Initialize the {@link MetricsSystem}.
+   * This should be called after setting the {@link CommonUtils#PROCESS_TYPE}
+   * and before creating any metric in the current process.
+   */
+  public static void init() {
+    PropertyKey sourceKey = null;
+    switch (CommonUtils.PROCESS_TYPE.get()) {
+      case MASTER:
+        sourceKey = PropertyKey.MASTER_HOSTNAME;
+        break;
+      case WORKER:
+        sourceKey = PropertyKey.WORKER_HOSTNAME;
+        break;
+      case CLIENT:
+        sourceKey = PropertyKey.USER_APP_ID;
+        break;
+      case JOB_MASTER:
+        sourceKey = PropertyKey.JOB_MASTER_HOSTNAME;
+        break;
+      case JOB_WORKER:
+        sourceKey = PropertyKey.JOB_WORKER_HOSTNAME;
+        break;
+      default:
+        break;
+    }
+    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    sSourceName = sourceKey != null && conf.isSet(sourceKey)
+        ? conf.get(sourceKey) : NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
   }
 
   /**
@@ -347,34 +377,6 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
-    if (sSourceName == null) {
-      switch (instance) {
-        case CLIENT:
-          if (CONF.isSet(PropertyKey.USER_APP_ID)) {
-            sSourceName = CONF.get(PropertyKey.USER_APP_ID);
-          } else {
-            sSourceName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
-          }
-          break;
-        case WORKER:
-          if (CONF.isSet(PropertyKey.WORKER_HOSTNAME)) {
-            sSourceName = CONF.get(PropertyKey.WORKER_HOSTNAME);
-          } else {
-            sSourceName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
-          }
-          break;
-        case JOB_WORKER:
-          if (CONF.isSet(PropertyKey.JOB_WORKER_HOSTNAME)) {
-            sSourceName = CONF.get(PropertyKey.JOB_WORKER_HOSTNAME);
-          } else {
-            sSourceName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
-          }
-          break;
-        default:
-          sSourceName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
-          break;
-      }
-    }
     if (name.startsWith(instance.toString())) {
       return Joiner.on(".").join(name, sSourceName);
     }

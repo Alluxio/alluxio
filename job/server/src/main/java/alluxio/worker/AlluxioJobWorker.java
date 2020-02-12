@@ -16,6 +16,7 @@ import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.MasterInquireClient;
+import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
@@ -61,6 +62,7 @@ public final class AlluxioJobWorker {
     }
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.JOB_WORKER);
+    MetricsSystem.init();
     MasterInquireClient masterInquireClient =
         MasterInquireClient.Factory.create(ServerConfiguration.global(), ServerUserState.global());
     try {

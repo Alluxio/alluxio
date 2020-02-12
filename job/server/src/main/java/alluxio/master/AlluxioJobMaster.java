@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.ProcessUtils;
 import alluxio.RuntimeConstants;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 
 import org.slf4j.Logger;
@@ -40,6 +41,7 @@ public final class AlluxioJobMaster {
     }
 
     CommonUtils.PROCESS_TYPE.set(alluxio.util.CommonUtils.ProcessType.JOB_MASTER);
+    MetricsSystem.init();
     AlluxioJobMasterProcess process;
     try {
       process = AlluxioJobMasterProcess.Factory.create();
