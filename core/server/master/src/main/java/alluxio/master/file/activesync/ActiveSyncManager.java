@@ -198,7 +198,7 @@ public class ActiveSyncManager implements Journaled {
                           + "path {}, exception {}", syncPoint, e);
                       return;
                     }
-                    startInitSync(syncPoint, resolution);
+                    startInitialFullSync(syncPoint, resolution);
                   }
               ));
         }
@@ -496,7 +496,7 @@ public class ActiveSyncManager implements Journaled {
    * @param resolution the mount table resolution of sync point
    */
   private void startSyncInternal(AlluxioURI syncPoint, MountTable.Resolution resolution) {
-    startInitSync(syncPoint, resolution);
+    startInitialFullSync(syncPoint, resolution);
     launchPollingThread(resolution.getMountId(), SyncInfo.INVALID_TXID);
   }
 
@@ -506,7 +506,7 @@ public class ActiveSyncManager implements Journaled {
    * @param syncPoint the sync point
    * @param resolution the mount table resolution
    */
-  private void startInitSync(AlluxioURI syncPoint, MountTable.Resolution resolution) {
+  private void startInitialFullSync(AlluxioURI syncPoint, MountTable.Resolution resolution) {
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       Future<?> syncFuture = mExecutorService.submit(
           () -> {
@@ -540,35 +540,6 @@ public class ActiveSyncManager implements Journaled {
   private void stopSyncInternal(AlluxioURI syncPoint) throws InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
     // Remove initial sync thread
-    stopInitSync(syncPoint, resolution);
-
-    // Tell UFS to stop monitoring the path
-    try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
-      ufs.get().stopSync(resolution.getUri());
-    } catch (IOException e) {
-      LOG.info("Ufs IOException for uri {}, exception is {}", syncPoint, e);
-    }
-
-    // Stop active sync polling on a particular UFS if it is the last sync point
-    long mountId = resolution.getMountId();
-    if (mFilterMap.containsKey(mountId) && mFilterMap.get(mountId).isEmpty()) {
-      // syncPoint removed was the last syncPoint for the mountId
-      mFilterMap.remove(mountId);
-      try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
-        ufs.get().stopActiveSyncPolling();
-      } catch (IOException e) {
-        LOG.warn("Encountered IOException when trying to stop polling thread: {}", e.toString());
-      }
-    }
-  }
-
-  /**
-   * Stop the initial full sync thread.
-   *
-   * @param syncPoint the sync point
-   * @param resolution the mount table resolution
-   */
-  private void stopInitSync(AlluxioURI syncPoint, MountTable.Resolution resolution) {
     Future<?> syncFuture = mSyncPathStatus.remove(syncPoint);
     if (syncFuture != null) {
       syncFuture.cancel(true);
@@ -579,6 +550,24 @@ public class ActiveSyncManager implements Journaled {
       Future<?> future = mPollerMap.remove(mountId);
       if (future != null) {
         future.cancel(true);
+      }
+    }
+
+    // Tell UFS to stop monitoring the path
+    try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
+      ufs.get().stopSync(resolution.getUri());
+    } catch (IOException e) {
+      LOG.info("Ufs IOException for uri {}, exception is {}", syncPoint, e);
+    }
+
+    // Stop active sync polling on a particular UFS if it is the last sync point
+    if (mFilterMap.containsKey(mountId) && mFilterMap.get(mountId).isEmpty()) {
+      // syncPoint removed was the last syncPoint for the mountId
+      mFilterMap.remove(mountId);
+      try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
+        ufs.get().stopActiveSyncPolling();
+      } catch (IOException e) {
+        LOG.warn("Encountered IOException when trying to stop polling thread: {}", e.toString());
       }
     }
   }
@@ -654,29 +643,12 @@ public class ActiveSyncManager implements Journaled {
    */
   public void stop() {
     for (AlluxioURI syncPoint : mSyncPathList) {
-      MountTable.Resolution resolution;
       try {
-        resolution = mMountTable.resolve(syncPoint);
+        stopSyncInternal(syncPoint);
       } catch (InvalidPathException e) {
         LOG.warn("stop: InvalidPathException resolving syncPoint {}, exception {}",
             syncPoint,  e);
         return;
-      }
-
-      // Remove initial sync thread
-      stopInitSync(syncPoint, resolution);
-
-      // Tell UFS to stop monitoring the path
-      try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
-        ufs.get().stopSync(resolution.getUri());
-      } catch (IOException e) {
-        LOG.warn("Ufs IOException for uri {}, exception is {}", syncPoint, e);
-      }
-
-      try (CloseableResource<UnderFileSystem> ufs = resolution.acquireUfsResource()) {
-        ufs.get().stopActiveSyncPolling();
-      } catch (IOException e) {
-        LOG.warn("Encountered IOException when trying to stop polling thread: {}", e.toString());
       }
     }
   }
@@ -694,7 +666,7 @@ public class ActiveSyncManager implements Journaled {
     try {
       // the init sync thread has been removed, to reestablish sync, we need to sync again
       MountTable.Resolution resolution = mMountTable.resolve(uri);
-      startInitSync(uri, resolution);
+      startInitialFullSync(uri, resolution);
       launchPollingThread(resolution.getMountId(), SyncInfo.INVALID_TXID);
     } catch (Throwable t) {
       LOG.warn("Recovering from stop syncing failed: {}", t.toString());
