@@ -1917,7 +1917,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT =
       new Builder(Name.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)
           .setDefaultValue("10sec")
-          .setDescription("Max time to retry failed sync operation")
+          .setDescription("The max total duration to retry failed active sync operations."
+              + "A large duration is useful to handle transient failures such as an "
+              + "unresponsive under storage but can lock the inode tree being synced longer.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();

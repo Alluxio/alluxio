@@ -182,7 +182,9 @@ public class ActiveSyncManager implements Journaled {
     for (Map.Entry<Long, List<AlluxioURI>> entry : mFilterMap.entrySet()) {
       long mountId = entry.getKey();
       long txId = mStartingTxIdMap.getOrDefault(mountId, SyncInfo.INVALID_TXID);
-      launchPollingThread(mountId, txId);
+      if (!entry.getValue().isEmpty()) {
+        launchPollingThread(mountId, txId);
+      }
 
       try {
         if ((txId == SyncInfo.INVALID_TXID) && ServerConfiguration.getBoolean(
@@ -338,7 +340,8 @@ public class ActiveSyncManager implements Journaled {
     try (LockResource r = new LockResource(mLock)) {
       MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
       if (resolution == null) {
-        throw new InvalidPathException(syncPoint + " is not a sync point.");
+        throw new InvalidPathException("Failed to stop sync point " + syncPoint
+            + " because it is not mounted.");
       }
       LOG.debug("stop syncPoint {}", syncPoint.getPath());
       final long mountId = resolution.getMountId();
