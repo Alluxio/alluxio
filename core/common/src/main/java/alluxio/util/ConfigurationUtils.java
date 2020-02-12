@@ -504,7 +504,8 @@ public final class ConfigurationUtils {
   }
 
   /**
-   * Filters and loads properties contains certain scope from the property list returned by grpc.
+   * Filters and loads properties with a certain scope from the property list returned by grpc.
+   * The given scope should only be {@link Scope#WORKER} or {@link Scope#CLIENT}.
    *
    * @param properties the property list returned by grpc
    * @param scope the scope to filter the received property list
