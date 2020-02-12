@@ -20,8 +20,6 @@ import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import java.util.stream.Stream;
-
 /**
  * Factory for creating {@link WasbUnderFileSystem}.
  */

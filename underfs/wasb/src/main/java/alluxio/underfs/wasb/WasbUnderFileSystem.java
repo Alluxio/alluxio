@@ -38,15 +38,18 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(WasbUnderFileSystem.class);
 
   /** Constant for the wasb URI scheme. */
-  public static final List<String> SCHEMES = Stream.of("wasb://", "wasbs://").collect(Collectors.toList());
+  public static final List<String> SCHEMES = Stream.of("wasb://", "wasbs://")
+          .collect(Collectors.toList());
 
   /**
    * Prepares the configuration for this Wasb as an HDFS configuration.
    *
    * @param conf the configuration for this UFS
+   * @param isWasb whether to use wasb configuration or not
    * @return the created configuration
    */
-  public static Configuration createConfiguration(UnderFileSystemConfiguration conf, Boolean isWasb) {
+  public static Configuration createConfiguration(UnderFileSystemConfiguration conf,
+          Boolean isWasb) {
     Configuration wasbConf = HdfsUnderFileSystem.createConfiguration(conf);
     for (Map.Entry<String, String> entry : conf.toMap().entrySet()) {
       String key = entry.getKey();
