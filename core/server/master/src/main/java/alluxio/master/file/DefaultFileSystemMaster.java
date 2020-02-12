@@ -414,6 +414,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = masterContext.getUfsManager();
     mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
+
     mInodeLockManager = new InodeLockManager();
     InodeStore inodeStore = masterContext.getInodeStoreFactory().apply(mInodeLockManager);
     mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);
@@ -456,14 +457,21 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
   private static MountInfo getRootMountInfo(MasterUfsManager ufsManager) {
     try (CloseableResource<UnderFileSystem> resource = ufsManager.getRoot().acquireUfsResource()) {
+      boolean shared;
+      if (resource.get().isObjectStorage()) {
+        shared = ServerConfiguration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY);
+      } else {
+        shared = ServerConfiguration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
+      }
+      boolean readonly = ServerConfiguration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
       String rootUfsUri = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      boolean shared = resource.get().isObjectStorage()
-          && ServerConfiguration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY);
       Map<String, String> rootUfsConf =
           ServerConfiguration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
       MountPOptions mountOptions = MountContext
-          .mergeFrom(MountPOptions.newBuilder().setShared(shared).putAllProperties(rootUfsConf))
+          .mergeFrom(MountPOptions.newBuilder().setShared(shared).setReadOnly(readonly).putAllProperties(rootUfsConf))
           .getOptions().build();
+      MountInfo i = new MountInfo(new AlluxioURI(MountTable.ROOT),
+              new AlluxioURI(rootUfsUri), IdUtils.ROOT_MOUNT_ID, mountOptions);
       return new MountInfo(new AlluxioURI(MountTable.ROOT),
           new AlluxioURI(rootUfsUri), IdUtils.ROOT_MOUNT_ID, mountOptions);
     }
@@ -1354,6 +1362,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     LOG.info("DefaultFSM getMountTable()");
     SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
     for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
+      MountInfo i = mountPoint.getValue();
       mountPoints.put(mountPoint.getKey(), getDisplayMountPointInfo(mountPoint.getValue()));
       MountPointInfo info = getDisplayMountPointInfo(mountPoint.getValue());
       LOG.info("MountPointInfo {}", info);
