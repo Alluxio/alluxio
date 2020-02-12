@@ -16,13 +16,10 @@ import alluxio.conf.AlluxioProperties;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.MountPOptions;
-import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.wire.MountPointInfo;
 
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;
@@ -39,7 +36,6 @@ public class MountInfo {
   private final MountPOptions mOptions;
   private final long mMountId;
 
-  private static final Logger LOG = LoggerFactory.getLogger(MountInfo.class);
   /**
    * Creates a new instance of {@code MountInfo}.
    *
@@ -104,13 +100,9 @@ public class MountInfo {
     UnderFileSystemConfiguration conf =
         UnderFileSystemConfiguration.defaults(new InstancedConfiguration(
             new AlluxioProperties())).createMountSpecificConf(info.getProperties());
-    LOG.info("MountInfo UFSConf shared={} readOnly={}", conf.isShared(), conf.isReadOnly());
     Map<String, String> displayConf = conf.toUserPropertyMap(
         ConfigurationValueOptions.defaults().useDisplayValue(true));
-    LOG.info("MountInfo toDisplayMountPointInfo()");
     info.setProperties(displayConf);
-//    info.setReadOnly(conf.isReadOnly());
-//    info.setShared(conf.isShared());
     return info;
   }
 

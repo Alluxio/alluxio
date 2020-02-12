@@ -414,7 +414,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = masterContext.getUfsManager();
     mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager));
-
     mInodeLockManager = new InodeLockManager();
     InodeStore inodeStore = masterContext.getInodeStoreFactory().apply(mInodeLockManager);
     mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);
@@ -470,8 +469,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
       MountPOptions mountOptions = MountContext
           .mergeFrom(MountPOptions.newBuilder().setShared(shared).setReadOnly(readonly).putAllProperties(rootUfsConf))
           .getOptions().build();
-      MountInfo i = new MountInfo(new AlluxioURI(MountTable.ROOT),
-              new AlluxioURI(rootUfsUri), IdUtils.ROOT_MOUNT_ID, mountOptions);
       return new MountInfo(new AlluxioURI(MountTable.ROOT),
           new AlluxioURI(rootUfsUri), IdUtils.ROOT_MOUNT_ID, mountOptions);
     }
@@ -1359,13 +1356,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public Map<String, MountPointInfo> getMountTable() {
-    LOG.info("DefaultFSM getMountTable()");
     SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
     for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
-      MountInfo i = mountPoint.getValue();
       mountPoints.put(mountPoint.getKey(), getDisplayMountPointInfo(mountPoint.getValue()));
-      MountPointInfo info = getDisplayMountPointInfo(mountPoint.getValue());
-      LOG.info("MountPointInfo {}", info);
     }
     return mountPoints;
   }

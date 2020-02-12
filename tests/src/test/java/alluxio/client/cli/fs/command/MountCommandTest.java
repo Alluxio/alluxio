@@ -13,13 +13,9 @@ package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.UnderFileSystemFactoryRegistryRule;
-import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.testutils.underfs.ConfExpectingUnderFileSystemFactory;
@@ -163,15 +159,5 @@ public final class MountCommandTest extends AbstractFileSystemShellTest {
     String ufsPath = mFolder.getRoot().getAbsolutePath();
     Assert.assertEquals(0, mFsShell.run("mount", mountPoint.toString(), ufsPath));
     Assert.assertEquals(-1, mFsShell.run("mount", mountPoint.toString(), ufsPath));
-  }
-
-  @Test
-  public void displayMountInfo() {
-    InstancedConfiguration conf = ServerConfiguration.global();
-    conf.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY, true);
-    conf.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED, true);
-    FileSystemShell fsShell = new FileSystemShell(conf);
-    int ret = fsShell.run("mount");
-    Assert.assertEquals(0, ret);
   }
 }
