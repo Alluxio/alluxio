@@ -269,11 +269,6 @@ function main {
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
-  "collectInfoAll")
-    CLASS="alluxio.cli.bundler.CollectInfoAll"
-    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
-    runJavaClass "$@"
-  ;;
   "job")
     CLASS="alluxio.cli.job.JobShell"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
