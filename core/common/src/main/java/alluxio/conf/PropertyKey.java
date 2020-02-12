@@ -1329,6 +1329,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           // whether the user explicitly set these addresses. If they did, we determine job master
           // embedded journal addresses using the same hostnames the user set here. Otherwise, we
           // use jobMasterHostname:jobMasterEmbeddedJournalPort by default.
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)
@@ -1367,6 +1368,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_PORT)
           .setDescription("The port to use for embedded journal communication with other masters.")
           .setDefaultValue(19200)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL)
@@ -1418,6 +1420,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "masters when using multiple masters without Zookeeper. This property is not "
               + "used when Zookeeper is enabled, since Zookeeper already stores the master "
               + "addresses.")
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
       new Builder(Name.MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL)
@@ -2750,7 +2753,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(Constants.S3_MULTIPART_TEMPORARY_DIR_SUFFIX)
           .setDescription("Suffix for the directory which holds parts during a multipart upload.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.NONE)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       new Builder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
@@ -3754,7 +3757,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The amount of time that the Alluxio job worker should wait in between "
               + "heartbeats to the Job Master.")
           .setDefaultValue("1sec")
-          .setScope(Scope.MASTER)
+          .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey JOB_MASTER_WORKER_TIMEOUT =
       new Builder(Name.JOB_MASTER_WORKER_TIMEOUT)
@@ -3767,13 +3770,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.JOB_MASTER_BIND_HOST)
           .setDescription("The host that the Alluxio job master will bind to.")
           .setDefaultValue("0.0.0.0")
-          .setScope(Scope.MASTER)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey JOB_MASTER_HOSTNAME =
       new Builder(Name.JOB_MASTER_HOSTNAME)
           .setDescription("The hostname of the Alluxio job master.")
           .setDefaultValue(String.format("${%s}", Name.MASTER_HOSTNAME))
-          .setScope(Scope.MASTER)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey JOB_MASTER_LOST_WORKER_INTERVAL =
       new Builder(Name.JOB_MASTER_LOST_WORKER_INTERVAL)
@@ -3785,7 +3788,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.JOB_MASTER_RPC_PORT)
           .setDescription("The port for Alluxio job master's RPC service.")
           .setDefaultValue(20001)
-          .setScope(Scope.MASTER)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey JOB_MASTER_WEB_BIND_HOST =
       new Builder(Name.JOB_MASTER_WEB_BIND_HOST)
@@ -3865,7 +3868,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "%s using the port defined in %s",
               Name.MASTER_RPC_ADDRESSES, Name.JOB_MASTER_RPC_PORT,
               Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES, Name.JOB_MASTER_RPC_PORT))
-          .setScope(Scope.MASTER)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES =
       new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES)
@@ -3873,14 +3876,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "masters in the cluster. The format is 'hostname1:port1,hostname2:port2,...'. "
               + "Defaults to the journal addresses set for the Alluxio masters (%s), but with the "
               + "job master embedded journal port.", Name.MASTER_EMBEDDED_JOURNAL_ADDRESSES))
-          .setScope(Scope.MASTER)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_PORT =
       new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_PORT)
           .setDescription(
               "The port to use for embedded journal communication with other job masters.")
           .setDefaultValue(20003)
-          .setScope(Scope.MASTER)
+          .setScope(Scope.ALL)
           .build();
 
   public static final PropertyKey ZOOKEEPER_JOB_ELECTION_PATH =
