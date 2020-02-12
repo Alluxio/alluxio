@@ -13,6 +13,7 @@ public interface StorageListOrBuilder extends
    * </pre>
    *
    * <code>repeated string storage = 1;</code>
+   * @return A list containing the storage.
    */
   java.util.List<java.lang.String>
       getStorageList();
@@ -22,6 +23,7 @@ public interface StorageListOrBuilder extends
    * </pre>
    *
    * <code>repeated string storage = 1;</code>
+   * @return The count of storage.
    */
   int getStorageCount();
   /**
@@ -30,6 +32,8 @@ public interface StorageListOrBuilder extends
    * </pre>
    *
    * <code>repeated string storage = 1;</code>
+   * @param index The index of the element to return.
+   * @return The storage at the given index.
    */
   java.lang.String getStorage(int index);
   /**
@@ -38,6 +42,8 @@ public interface StorageListOrBuilder extends
    * </pre>
    *
    * <code>repeated string storage = 1;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the storage at the given index.
    */
   com.google.protobuf.ByteString
       getStorageBytes(int index);

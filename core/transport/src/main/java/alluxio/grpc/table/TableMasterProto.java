@@ -522,20 +522,12 @@ public final class TableMasterProto {
       "JobInfoPResponseB(\n\022alluxio.grpc.tableB\020" +
       "TableMasterProtoP\001"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           alluxio.grpc.CommonProto.getDescriptor(),
           alluxio.grpc.JobMasterProto.getDescriptor(),
-        }, assigner);
+        });
     internal_static_alluxio_grpc_table_FieldSchema_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_alluxio_grpc_table_FieldSchema_fieldAccessorTable = new

@@ -9,10 +9,12 @@ public interface AttachDatabasePResponseOrBuilder extends
 
   /**
    * <code>optional bool success = 1;</code>
+   * @return Whether the success field is set.
    */
   boolean hasSuccess();
   /**
    * <code>optional bool success = 1;</code>
+   * @return The success.
    */
   boolean getSuccess();
 }

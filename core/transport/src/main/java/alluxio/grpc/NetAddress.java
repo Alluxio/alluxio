@@ -22,7 +22,13 @@ private static final long serialVersionUID = 0L;
   }
   private NetAddress() {
     host_ = "";
-    rpcPort_ = 0;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new NetAddress();
   }
 
   @java.lang.Override
@@ -49,13 +55,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
@@ -65,6 +64,13 @@ private static final long serialVersionUID = 0L;
           case 16: {
             bitField0_ |= 0x00000002;
             rpcPort_ = input.readInt32();
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -84,6 +90,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.CommonProto.internal_static_alluxio_grpc_NetAddress_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.CommonProto.internal_static_alluxio_grpc_NetAddress_fieldAccessorTable
@@ -96,12 +103,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object host_;
   /**
    * <code>optional string host = 1;</code>
+   * @return Whether the host field is set.
    */
   public boolean hasHost() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional string host = 1;</code>
+   * @return The host.
    */
   public java.lang.String getHost() {
     java.lang.Object ref = host_;
@@ -119,6 +128,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string host = 1;</code>
+   * @return The bytes for host.
    */
   public com.google.protobuf.ByteString
       getHostBytes() {
@@ -138,18 +148,21 @@ private static final long serialVersionUID = 0L;
   private int rpcPort_;
   /**
    * <code>optional int32 rpcPort = 2;</code>
+   * @return Whether the rpcPort field is set.
    */
   public boolean hasRpcPort() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional int32 rpcPort = 2;</code>
+   * @return The rpcPort.
    */
   public int getRpcPort() {
     return rpcPort_;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -159,26 +172,28 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, host_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeInt32(2, rpcPort_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, host_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(2, rpcPort_);
     }
@@ -197,19 +212,18 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.NetAddress other = (alluxio.grpc.NetAddress) obj;
 
-    boolean result = true;
-    result = result && (hasHost() == other.hasHost());
+    if (hasHost() != other.hasHost()) return false;
     if (hasHost()) {
-      result = result && getHost()
-          .equals(other.getHost());
+      if (!getHost()
+          .equals(other.getHost())) return false;
     }
-    result = result && (hasRpcPort() == other.hasRpcPort());
+    if (hasRpcPort() != other.hasRpcPort()) return false;
     if (hasRpcPort()) {
-      result = result && (getRpcPort()
-          == other.getRpcPort());
+      if (getRpcPort()
+          != other.getRpcPort()) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -302,6 +316,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -309,6 +324,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.NetAddress prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -337,6 +353,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.CommonProto.internal_static_alluxio_grpc_NetAddress_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.CommonProto.internal_static_alluxio_grpc_NetAddress_fieldAccessorTable
@@ -359,6 +376,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       host_ = "";
@@ -368,15 +386,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.CommonProto.internal_static_alluxio_grpc_NetAddress_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.NetAddress getDefaultInstanceForType() {
       return alluxio.grpc.NetAddress.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.NetAddress build() {
       alluxio.grpc.NetAddress result = buildPartial();
       if (!result.isInitialized()) {
@@ -385,49 +406,57 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.NetAddress buildPartial() {
       alluxio.grpc.NetAddress result = new alluxio.grpc.NetAddress(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
         to_bitField0_ |= 0x00000001;
       }
       result.host_ = host_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
+        result.rpcPort_ = rpcPort_;
         to_bitField0_ |= 0x00000002;
       }
-      result.rpcPort_ = rpcPort_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.NetAddress) {
         return mergeFrom((alluxio.grpc.NetAddress)other);
@@ -452,10 +481,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -478,12 +509,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object host_ = "";
     /**
      * <code>optional string host = 1;</code>
+     * @return Whether the host field is set.
      */
     public boolean hasHost() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string host = 1;</code>
+     * @return The host.
      */
     public java.lang.String getHost() {
       java.lang.Object ref = host_;
@@ -501,6 +534,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string host = 1;</code>
+     * @return The bytes for host.
      */
     public com.google.protobuf.ByteString
         getHostBytes() {
@@ -517,6 +551,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string host = 1;</code>
+     * @param value The host to set.
+     * @return This builder for chaining.
      */
     public Builder setHost(
         java.lang.String value) {
@@ -530,6 +566,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string host = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearHost() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -539,6 +576,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string host = 1;</code>
+     * @param value The bytes for host to set.
+     * @return This builder for chaining.
      */
     public Builder setHostBytes(
         com.google.protobuf.ByteString value) {
@@ -554,18 +593,22 @@ private static final long serialVersionUID = 0L;
     private int rpcPort_ ;
     /**
      * <code>optional int32 rpcPort = 2;</code>
+     * @return Whether the rpcPort field is set.
      */
     public boolean hasRpcPort() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional int32 rpcPort = 2;</code>
+     * @return The rpcPort.
      */
     public int getRpcPort() {
       return rpcPort_;
     }
     /**
      * <code>optional int32 rpcPort = 2;</code>
+     * @param value The rpcPort to set.
+     * @return This builder for chaining.
      */
     public Builder setRpcPort(int value) {
       bitField0_ |= 0x00000002;
@@ -575,6 +618,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int32 rpcPort = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearRpcPort() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -582,11 +626,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -608,6 +654,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<NetAddress>
       PARSER = new com.google.protobuf.AbstractParser<NetAddress>() {
+    @java.lang.Override
     public NetAddress parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -625,6 +672,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.NetAddress getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

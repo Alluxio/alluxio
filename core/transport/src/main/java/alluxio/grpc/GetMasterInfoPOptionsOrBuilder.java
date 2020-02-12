@@ -9,14 +9,18 @@ public interface GetMasterInfoPOptionsOrBuilder extends
 
   /**
    * <code>repeated .alluxio.grpc.meta.MasterInfoField filter = 1;</code>
+   * @return A list containing the filter.
    */
   java.util.List<alluxio.grpc.MasterInfoField> getFilterList();
   /**
    * <code>repeated .alluxio.grpc.meta.MasterInfoField filter = 1;</code>
+   * @return The count of filter.
    */
   int getFilterCount();
   /**
    * <code>repeated .alluxio.grpc.meta.MasterInfoField filter = 1;</code>
+   * @param index The index of the element to return.
+   * @return The filter at the given index.
    */
   alluxio.grpc.MasterInfoField getFilter(int index);
 }

@@ -20,110 +20,134 @@ public final class InodeMeta {
 
     /**
      * <code>optional int64 id = 1;</code>
+     * @return Whether the id field is set.
      */
     boolean hasId();
     /**
      * <code>optional int64 id = 1;</code>
+     * @return The id.
      */
     long getId();
 
     /**
      * <code>optional int64 creation_time_ms = 2;</code>
+     * @return Whether the creationTimeMs field is set.
      */
     boolean hasCreationTimeMs();
     /**
      * <code>optional int64 creation_time_ms = 2;</code>
+     * @return The creationTimeMs.
      */
     long getCreationTimeMs();
 
     /**
      * <code>optional bool is_directory = 3;</code>
+     * @return Whether the isDirectory field is set.
      */
     boolean hasIsDirectory();
     /**
      * <code>optional bool is_directory = 3;</code>
+     * @return The isDirectory.
      */
     boolean getIsDirectory();
 
     /**
      * <code>optional int64 ttl = 4;</code>
+     * @return Whether the ttl field is set.
      */
     boolean hasTtl();
     /**
      * <code>optional int64 ttl = 4;</code>
+     * @return The ttl.
      */
     long getTtl();
 
     /**
      * <code>optional .alluxio.grpc.TtlAction ttl_action = 5;</code>
+     * @return Whether the ttlAction field is set.
      */
     boolean hasTtlAction();
     /**
      * <code>optional .alluxio.grpc.TtlAction ttl_action = 5;</code>
+     * @return The ttlAction.
      */
     alluxio.grpc.TtlAction getTtlAction();
 
     /**
      * <code>optional int64 last_modified_ms = 25;</code>
+     * @return Whether the lastModifiedMs field is set.
      */
     boolean hasLastModifiedMs();
     /**
      * <code>optional int64 last_modified_ms = 25;</code>
+     * @return The lastModifiedMs.
      */
     long getLastModifiedMs();
 
     /**
      * <code>optional string name = 6;</code>
+     * @return Whether the name field is set.
      */
     boolean hasName();
     /**
      * <code>optional string name = 6;</code>
+     * @return The name.
      */
     java.lang.String getName();
     /**
      * <code>optional string name = 6;</code>
+     * @return The bytes for name.
      */
     com.google.protobuf.ByteString
         getNameBytes();
 
     /**
      * <code>optional int64 parent_id = 7;</code>
+     * @return Whether the parentId field is set.
      */
     boolean hasParentId();
     /**
      * <code>optional int64 parent_id = 7;</code>
+     * @return The parentId.
      */
     long getParentId();
 
     /**
      * <code>optional string persistence_state = 8;</code>
+     * @return Whether the persistenceState field is set.
      */
     boolean hasPersistenceState();
     /**
      * <code>optional string persistence_state = 8;</code>
+     * @return The persistenceState.
      */
     java.lang.String getPersistenceState();
     /**
      * <code>optional string persistence_state = 8;</code>
+     * @return The bytes for persistenceState.
      */
     com.google.protobuf.ByteString
         getPersistenceStateBytes();
 
     /**
      * <code>optional bool is_pinned = 9;</code>
+     * @return Whether the isPinned field is set.
      */
     boolean hasIsPinned();
     /**
      * <code>optional bool is_pinned = 9;</code>
+     * @return The isPinned.
      */
     boolean getIsPinned();
 
     /**
      * <code>optional .alluxio.proto.shared.AccessControlList access_acl = 10;</code>
+     * @return Whether the accessAcl field is set.
      */
     boolean hasAccessAcl();
     /**
      * <code>optional .alluxio.proto.shared.AccessControlList access_acl = 10;</code>
+     * @return The accessAcl.
      */
     alluxio.proto.shared.Acl.AccessControlList getAccessAcl();
     /**
@@ -133,43 +157,54 @@ public final class InodeMeta {
 
     /**
      * <code>optional string ufs_fingerprint = 11;</code>
+     * @return Whether the ufsFingerprint field is set.
      */
     boolean hasUfsFingerprint();
     /**
      * <code>optional string ufs_fingerprint = 11;</code>
+     * @return The ufsFingerprint.
      */
     java.lang.String getUfsFingerprint();
     /**
      * <code>optional string ufs_fingerprint = 11;</code>
+     * @return The bytes for ufsFingerprint.
      */
     com.google.protobuf.ByteString
         getUfsFingerprintBytes();
 
     /**
      * <code>repeated string medium_type = 27;</code>
+     * @return A list containing the mediumType.
      */
     java.util.List<java.lang.String>
         getMediumTypeList();
     /**
      * <code>repeated string medium_type = 27;</code>
+     * @return The count of mediumType.
      */
     int getMediumTypeCount();
     /**
      * <code>repeated string medium_type = 27;</code>
+     * @param index The index of the element to return.
+     * @return The mediumType at the given index.
      */
     java.lang.String getMediumType(int index);
     /**
      * <code>repeated string medium_type = 27;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the mediumType at the given index.
      */
     com.google.protobuf.ByteString
         getMediumTypeBytes(int index);
 
     /**
      * <code>optional int64 last_accessed_ms = 30;</code>
+     * @return Whether the lastAccessedMs field is set.
      */
     boolean hasLastAccessedMs();
     /**
      * <code>optional int64 last_accessed_ms = 30;</code>
+     * @return The lastAccessedMs.
      */
     long getLastAccessedMs();
 
@@ -179,6 +214,7 @@ public final class InodeMeta {
      * </pre>
      *
      * <code>optional bool is_mount_point = 12;</code>
+     * @return Whether the isMountPoint field is set.
      */
     boolean hasIsMountPoint();
     /**
@@ -187,33 +223,40 @@ public final class InodeMeta {
      * </pre>
      *
      * <code>optional bool is_mount_point = 12;</code>
+     * @return The isMountPoint.
      */
     boolean getIsMountPoint();
 
     /**
      * <code>optional bool has_direct_children_loaded = 13;</code>
+     * @return Whether the hasDirectChildrenLoaded field is set.
      */
     boolean hasHasDirectChildrenLoaded();
     /**
      * <code>optional bool has_direct_children_loaded = 13;</code>
+     * @return The hasDirectChildrenLoaded.
      */
     boolean getHasDirectChildrenLoaded();
 
     /**
      * <code>optional int64 child_count = 26;</code>
+     * @return Whether the childCount field is set.
      */
     boolean hasChildCount();
     /**
      * <code>optional int64 child_count = 26;</code>
+     * @return The childCount.
      */
     long getChildCount();
 
     /**
      * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
+     * @return Whether the defaultAcl field is set.
      */
     boolean hasDefaultAcl();
     /**
      * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
+     * @return The defaultAcl.
      */
     alluxio.proto.shared.Acl.AccessControlList getDefaultAcl();
     /**
@@ -227,6 +270,7 @@ public final class InodeMeta {
      * </pre>
      *
      * <code>optional int64 block_size_bytes = 15;</code>
+     * @return Whether the blockSizeBytes field is set.
      */
     boolean hasBlockSizeBytes();
     /**
@@ -235,82 +279,101 @@ public final class InodeMeta {
      * </pre>
      *
      * <code>optional int64 block_size_bytes = 15;</code>
+     * @return The blockSizeBytes.
      */
     long getBlockSizeBytes();
 
     /**
      * <code>repeated int64 blocks = 16;</code>
+     * @return A list containing the blocks.
      */
     java.util.List<java.lang.Long> getBlocksList();
     /**
      * <code>repeated int64 blocks = 16;</code>
+     * @return The count of blocks.
      */
     int getBlocksCount();
     /**
      * <code>repeated int64 blocks = 16;</code>
+     * @param index The index of the element to return.
+     * @return The blocks at the given index.
      */
     long getBlocks(int index);
 
     /**
      * <code>optional bool is_cacheable = 17;</code>
+     * @return Whether the isCacheable field is set.
      */
     boolean hasIsCacheable();
     /**
      * <code>optional bool is_cacheable = 17;</code>
+     * @return The isCacheable.
      */
     boolean getIsCacheable();
 
     /**
      * <code>optional bool is_completed = 18;</code>
+     * @return Whether the isCompleted field is set.
      */
     boolean hasIsCompleted();
     /**
      * <code>optional bool is_completed = 18;</code>
+     * @return The isCompleted.
      */
     boolean getIsCompleted();
 
     /**
      * <code>optional int64 length = 19;</code>
+     * @return Whether the length field is set.
      */
     boolean hasLength();
     /**
      * <code>optional int64 length = 19;</code>
+     * @return The length.
      */
     long getLength();
 
     /**
      * <code>optional int32 replication_durable = 20;</code>
+     * @return Whether the replicationDurable field is set.
      */
     boolean hasReplicationDurable();
     /**
      * <code>optional int32 replication_durable = 20;</code>
+     * @return The replicationDurable.
      */
     int getReplicationDurable();
 
     /**
      * <code>optional int32 replication_max = 21;</code>
+     * @return Whether the replicationMax field is set.
      */
     boolean hasReplicationMax();
     /**
      * <code>optional int32 replication_max = 21;</code>
+     * @return The replicationMax.
      */
     int getReplicationMax();
 
     /**
      * <code>optional int32 replication_min = 22;</code>
+     * @return Whether the replicationMin field is set.
      */
     boolean hasReplicationMin();
     /**
      * <code>optional int32 replication_min = 22;</code>
+     * @return The replicationMin.
      */
     int getReplicationMin();
 
     /**
      * <code>optional int64 should_persist_time = 28;</code>
+     * @return Whether the shouldPersistTime field is set.
      */
     boolean hasShouldPersistTime();
     /**
      * <code>optional int64 should_persist_time = 28;</code>
+     * @return The shouldPersistTime.
      */
     long getShouldPersistTime();
 
@@ -320,6 +383,7 @@ public final class InodeMeta {
      * </pre>
      *
      * <code>optional int64 persist_job_id = 23;</code>
+     * @return Whether the persistJobId field is set.
      */
     boolean hasPersistJobId();
     /**
@@ -328,19 +392,23 @@ public final class InodeMeta {
      * </pre>
      *
      * <code>optional int64 persist_job_id = 23;</code>
+     * @return The persistJobId.
      */
     long getPersistJobId();
 
     /**
      * <code>optional string persist_job_temp_ufs_path = 24;</code>
+     * @return Whether the persistJobTempUfsPath field is set.
      */
     boolean hasPersistJobTempUfsPath();
     /**
      * <code>optional string persist_job_temp_ufs_path = 24;</code>
+     * @return The persistJobTempUfsPath.
      */
     java.lang.String getPersistJobTempUfsPath();
     /**
      * <code>optional string persist_job_temp_ufs_path = 24;</code>
+     * @return The bytes for persistJobTempUfsPath.
      */
     com.google.protobuf.ByteString
         getPersistJobTempUfsPathBytes();
@@ -424,33 +492,20 @@ public final class InodeMeta {
       super(builder);
     }
     private Inode() {
-      id_ = 0L;
-      creationTimeMs_ = 0L;
-      isDirectory_ = false;
-      ttl_ = 0L;
       ttlAction_ = 0;
-      lastModifiedMs_ = 0L;
       name_ = "";
-      parentId_ = 0L;
       persistenceState_ = "";
-      isPinned_ = false;
       ufsFingerprint_ = "";
       mediumType_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      lastAccessedMs_ = 0L;
-      isMountPoint_ = false;
-      hasDirectChildrenLoaded_ = false;
-      childCount_ = 0L;
-      blockSizeBytes_ = 0L;
-      blocks_ = java.util.Collections.emptyList();
-      isCacheable_ = false;
-      isCompleted_ = false;
-      length_ = 0L;
-      replicationDurable_ = 0;
-      replicationMax_ = 0;
-      replicationMin_ = 0;
-      shouldPersistTime_ = 0L;
-      persistJobId_ = 0L;
+      blocks_ = emptyLongList();
       persistJobTempUfsPath_ = "";
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new Inode();
     }
 
     @java.lang.Override
@@ -477,13 +532,6 @@ public final class InodeMeta {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               bitField0_ |= 0x00000001;
               id_ = input.readInt64();
@@ -506,6 +554,7 @@ public final class InodeMeta {
             }
             case 40: {
               int rawValue = input.readEnum();
+                @SuppressWarnings("deprecation")
               alluxio.grpc.TtlAction value = alluxio.grpc.TtlAction.valueOf(rawValue);
               if (value == null) {
                 unknownFields.mergeVarintField(5, rawValue);
@@ -539,7 +588,7 @@ public final class InodeMeta {
             }
             case 82: {
               alluxio.proto.shared.Acl.AccessControlList.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000400) == 0x00000400)) {
+              if (((bitField0_ & 0x00000400) != 0)) {
                 subBuilder = accessAcl_.toBuilder();
               }
               accessAcl_ = input.readMessage(alluxio.proto.shared.Acl.AccessControlList.PARSER, extensionRegistry);
@@ -568,7 +617,7 @@ public final class InodeMeta {
             }
             case 114: {
               alluxio.proto.shared.Acl.AccessControlList.Builder subBuilder = null;
-              if (((bitField0_ & 0x00010000) == 0x00010000)) {
+              if (((bitField0_ & 0x00010000) != 0)) {
                 subBuilder = defaultAcl_.toBuilder();
               }
               defaultAcl_ = input.readMessage(alluxio.proto.shared.Acl.AccessControlList.PARSER, extensionRegistry);
@@ -585,22 +634,22 @@ public final class InodeMeta {
               break;
             }
             case 128: {
-              if (!((mutable_bitField0_ & 0x00080000) == 0x00080000)) {
-                blocks_ = new java.util.ArrayList<java.lang.Long>();
+              if (!((mutable_bitField0_ & 0x00080000) != 0)) {
+                blocks_ = newLongList();
                 mutable_bitField0_ |= 0x00080000;
               }
-              blocks_.add(input.readInt64());
+              blocks_.addLong(input.readInt64());
               break;
             }
             case 130: {
               int length = input.readRawVarint32();
               int limit = input.pushLimit(length);
-              if (!((mutable_bitField0_ & 0x00080000) == 0x00080000) && input.getBytesUntilLimit() > 0) {
-                blocks_ = new java.util.ArrayList<java.lang.Long>();
+              if (!((mutable_bitField0_ & 0x00080000) != 0) && input.getBytesUntilLimit() > 0) {
+                blocks_ = newLongList();
                 mutable_bitField0_ |= 0x00080000;
               }
               while (input.getBytesUntilLimit() > 0) {
-                blocks_.add(input.readInt64());
+                blocks_.addLong(input.readInt64());
               }
               input.popLimit(limit);
               break;
@@ -658,7 +707,7 @@ public final class InodeMeta {
             }
             case 218: {
               com.google.protobuf.ByteString bs = input.readBytes();
-              if (!((mutable_bitField0_ & 0x00001000) == 0x00001000)) {
+              if (!((mutable_bitField0_ & 0x00001000) != 0)) {
                 mediumType_ = new com.google.protobuf.LazyStringArrayList();
                 mutable_bitField0_ |= 0x00001000;
               }
@@ -671,7 +720,7 @@ public final class InodeMeta {
               break;
             }
             case 234: {
-              if (!((mutable_bitField0_ & 0x20000000) == 0x20000000)) {
+              if (!((mutable_bitField0_ & 0x20000000) != 0)) {
                 xAttr_ = com.google.protobuf.MapField.newMapField(
                     XAttrDefaultEntryHolder.defaultEntry);
                 mutable_bitField0_ |= 0x20000000;
@@ -688,6 +737,13 @@ public final class InodeMeta {
               lastAccessedMs_ = input.readInt64();
               break;
             }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -696,10 +752,10 @@ public final class InodeMeta {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00080000) == 0x00080000)) {
-          blocks_ = java.util.Collections.unmodifiableList(blocks_);
+        if (((mutable_bitField0_ & 0x00080000) != 0)) {
+          blocks_.makeImmutable(); // C
         }
-        if (((mutable_bitField0_ & 0x00001000) == 0x00001000)) {
+        if (((mutable_bitField0_ & 0x00001000) != 0)) {
           mediumType_ = mediumType_.getUnmodifiableView();
         }
         this.unknownFields = unknownFields.build();
@@ -712,6 +768,7 @@ public final class InodeMeta {
     }
 
     @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
@@ -722,6 +779,7 @@ public final class InodeMeta {
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.meta.InodeMeta.internal_static_alluxio_proto_meta_Inode_fieldAccessorTable
@@ -734,12 +792,14 @@ public final class InodeMeta {
     private long id_;
     /**
      * <code>optional int64 id = 1;</code>
+     * @return Whether the id field is set.
      */
     public boolean hasId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional int64 id = 1;</code>
+     * @return The id.
      */
     public long getId() {
       return id_;
@@ -749,12 +809,14 @@ public final class InodeMeta {
     private long creationTimeMs_;
     /**
      * <code>optional int64 creation_time_ms = 2;</code>
+     * @return Whether the creationTimeMs field is set.
      */
     public boolean hasCreationTimeMs() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional int64 creation_time_ms = 2;</code>
+     * @return The creationTimeMs.
      */
     public long getCreationTimeMs() {
       return creationTimeMs_;
@@ -764,12 +826,14 @@ public final class InodeMeta {
     private boolean isDirectory_;
     /**
      * <code>optional bool is_directory = 3;</code>
+     * @return Whether the isDirectory field is set.
      */
     public boolean hasIsDirectory() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional bool is_directory = 3;</code>
+     * @return The isDirectory.
      */
     public boolean getIsDirectory() {
       return isDirectory_;
@@ -779,12 +843,14 @@ public final class InodeMeta {
     private long ttl_;
     /**
      * <code>optional int64 ttl = 4;</code>
+     * @return Whether the ttl field is set.
      */
     public boolean hasTtl() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional int64 ttl = 4;</code>
+     * @return The ttl.
      */
     public long getTtl() {
       return ttl_;
@@ -794,14 +860,17 @@ public final class InodeMeta {
     private int ttlAction_;
     /**
      * <code>optional .alluxio.grpc.TtlAction ttl_action = 5;</code>
+     * @return Whether the ttlAction field is set.
      */
     public boolean hasTtlAction() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000010) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.TtlAction ttl_action = 5;</code>
+     * @return The ttlAction.
      */
     public alluxio.grpc.TtlAction getTtlAction() {
+      @SuppressWarnings("deprecation")
       alluxio.grpc.TtlAction result = alluxio.grpc.TtlAction.valueOf(ttlAction_);
       return result == null ? alluxio.grpc.TtlAction.DELETE : result;
     }
@@ -810,12 +879,14 @@ public final class InodeMeta {
     private long lastModifiedMs_;
     /**
      * <code>optional int64 last_modified_ms = 25;</code>
+     * @return Whether the lastModifiedMs field is set.
      */
     public boolean hasLastModifiedMs() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000020) != 0);
     }
     /**
      * <code>optional int64 last_modified_ms = 25;</code>
+     * @return The lastModifiedMs.
      */
     public long getLastModifiedMs() {
       return lastModifiedMs_;
@@ -825,12 +896,14 @@ public final class InodeMeta {
     private volatile java.lang.Object name_;
     /**
      * <code>optional string name = 6;</code>
+     * @return Whether the name field is set.
      */
     public boolean hasName() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
+      return ((bitField0_ & 0x00000040) != 0);
     }
     /**
      * <code>optional string name = 6;</code>
+     * @return The name.
      */
     public java.lang.String getName() {
       java.lang.Object ref = name_;
@@ -848,6 +921,7 @@ public final class InodeMeta {
     }
     /**
      * <code>optional string name = 6;</code>
+     * @return The bytes for name.
      */
     public com.google.protobuf.ByteString
         getNameBytes() {
@@ -867,12 +941,14 @@ public final class InodeMeta {
     private long parentId_;
     /**
      * <code>optional int64 parent_id = 7;</code>
+     * @return Whether the parentId field is set.
      */
     public boolean hasParentId() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
+      return ((bitField0_ & 0x00000080) != 0);
     }
     /**
      * <code>optional int64 parent_id = 7;</code>
+     * @return The parentId.
      */
     public long getParentId() {
       return parentId_;
@@ -882,12 +958,14 @@ public final class InodeMeta {
     private volatile java.lang.Object persistenceState_;
     /**
      * <code>optional string persistence_state = 8;</code>
+     * @return Whether the persistenceState field is set.
      */
     public boolean hasPersistenceState() {
-      return ((bitField0_ & 0x00000100) == 0x00000100);
+      return ((bitField0_ & 0x00000100) != 0);
     }
     /**
      * <code>optional string persistence_state = 8;</code>
+     * @return The persistenceState.
      */
     public java.lang.String getPersistenceState() {
       java.lang.Object ref = persistenceState_;
@@ -905,6 +983,7 @@ public final class InodeMeta {
     }
     /**
      * <code>optional string persistence_state = 8;</code>
+     * @return The bytes for persistenceState.
      */
     public com.google.protobuf.ByteString
         getPersistenceStateBytes() {
@@ -924,12 +1003,14 @@ public final class InodeMeta {
     private boolean isPinned_;
     /**
      * <code>optional bool is_pinned = 9;</code>
+     * @return Whether the isPinned field is set.
      */
     public boolean hasIsPinned() {
-      return ((bitField0_ & 0x00000200) == 0x00000200);
+      return ((bitField0_ & 0x00000200) != 0);
     }
     /**
      * <code>optional bool is_pinned = 9;</code>
+     * @return The isPinned.
      */
     public boolean getIsPinned() {
       return isPinned_;
@@ -939,12 +1020,14 @@ public final class InodeMeta {
     private alluxio.proto.shared.Acl.AccessControlList accessAcl_;
     /**
      * <code>optional .alluxio.proto.shared.AccessControlList access_acl = 10;</code>
+     * @return Whether the accessAcl field is set.
      */
     public boolean hasAccessAcl() {
-      return ((bitField0_ & 0x00000400) == 0x00000400);
+      return ((bitField0_ & 0x00000400) != 0);
     }
     /**
      * <code>optional .alluxio.proto.shared.AccessControlList access_acl = 10;</code>
+     * @return The accessAcl.
      */
     public alluxio.proto.shared.Acl.AccessControlList getAccessAcl() {
       return accessAcl_ == null ? alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance() : accessAcl_;
@@ -960,12 +1043,14 @@ public final class InodeMeta {
     private volatile java.lang.Object ufsFingerprint_;
     /**
      * <code>optional string ufs_fingerprint = 11;</code>
+     * @return Whether the ufsFingerprint field is set.
      */
     public boolean hasUfsFingerprint() {
-      return ((bitField0_ & 0x00000800) == 0x00000800);
+      return ((bitField0_ & 0x00000800) != 0);
     }
     /**
      * <code>optional string ufs_fingerprint = 11;</code>
+     * @return The ufsFingerprint.
      */
     public java.lang.String getUfsFingerprint() {
       java.lang.Object ref = ufsFingerprint_;
@@ -983,6 +1068,7 @@ public final class InodeMeta {
     }
     /**
      * <code>optional string ufs_fingerprint = 11;</code>
+     * @return The bytes for ufsFingerprint.
      */
     public com.google.protobuf.ByteString
         getUfsFingerprintBytes() {
@@ -1002,6 +1088,7 @@ public final class InodeMeta {
     private com.google.protobuf.LazyStringList mediumType_;
     /**
      * <code>repeated string medium_type = 27;</code>
+     * @return A list containing the mediumType.
      */
     public com.google.protobuf.ProtocolStringList
         getMediumTypeList() {
@@ -1009,18 +1096,23 @@ public final class InodeMeta {
     }
     /**
      * <code>repeated string medium_type = 27;</code>
+     * @return The count of mediumType.
      */
     public int getMediumTypeCount() {
       return mediumType_.size();
     }
     /**
      * <code>repeated string medium_type = 27;</code>
+     * @param index The index of the element to return.
+     * @return The mediumType at the given index.
      */
     public java.lang.String getMediumType(int index) {
       return mediumType_.get(index);
     }
     /**
      * <code>repeated string medium_type = 27;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the mediumType at the given index.
      */
     public com.google.protobuf.ByteString
         getMediumTypeBytes(int index) {
@@ -1031,12 +1123,14 @@ public final class InodeMeta {
     private long lastAccessedMs_;
     /**
      * <code>optional int64 last_accessed_ms = 30;</code>
+     * @return Whether the lastAccessedMs field is set.
      */
     public boolean hasLastAccessedMs() {
-      return ((bitField0_ & 0x00001000) == 0x00001000);
+      return ((bitField0_ & 0x00001000) != 0);
     }
     /**
      * <code>optional int64 last_accessed_ms = 30;</code>
+     * @return The lastAccessedMs.
      */
     public long getLastAccessedMs() {
       return lastAccessedMs_;
@@ -1050,9 +1144,10 @@ public final class InodeMeta {
      * </pre>
      *
      * <code>optional bool is_mount_point = 12;</code>
+     * @return Whether the isMountPoint field is set.
      */
     public boolean hasIsMountPoint() {
-      return ((bitField0_ & 0x00002000) == 0x00002000);
+      return ((bitField0_ & 0x00002000) != 0);
     }
     /**
      * <pre>
@@ -1060,6 +1155,7 @@ public final class InodeMeta {
      * </pre>
      *
      * <code>optional bool is_mount_point = 12;</code>
+     * @return The isMountPoint.
      */
     public boolean getIsMountPoint() {
       return isMountPoint_;
@@ -1069,12 +1165,14 @@ public final class InodeMeta {
     private boolean hasDirectChildrenLoaded_;
     /**
      * <code>optional bool has_direct_children_loaded = 13;</code>
+     * @return Whether the hasDirectChildrenLoaded field is set.
      */
     public boolean hasHasDirectChildrenLoaded() {
-      return ((bitField0_ & 0x00004000) == 0x00004000);
+      return ((bitField0_ & 0x00004000) != 0);
     }
     /**
      * <code>optional bool has_direct_children_loaded = 13;</code>
+     * @return The hasDirectChildrenLoaded.
      */
     public boolean getHasDirectChildrenLoaded() {
       return hasDirectChildrenLoaded_;
@@ -1084,12 +1182,14 @@ public final class InodeMeta {
     private long childCount_;
     /**
      * <code>optional int64 child_count = 26;</code>
+     * @return Whether the childCount field is set.
      */
     public boolean hasChildCount() {
-      return ((bitField0_ & 0x00008000) == 0x00008000);
+      return ((bitField0_ & 0x00008000) != 0);
     }
     /**
      * <code>optional int64 child_count = 26;</code>
+     * @return The childCount.
      */
     public long getChildCount() {
       return childCount_;
@@ -1099,12 +1199,14 @@ public final class InodeMeta {
     private alluxio.proto.shared.Acl.AccessControlList defaultAcl_;
     /**
      * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
+     * @return Whether the defaultAcl field is set.
      */
     public boolean hasDefaultAcl() {
-      return ((bitField0_ & 0x00010000) == 0x00010000);
+      return ((bitField0_ & 0x00010000) != 0);
     }
     /**
      * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
+     * @return The defaultAcl.
      */
     public alluxio.proto.shared.Acl.AccessControlList getDefaultAcl() {
       return defaultAcl_ == null ? alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance() : defaultAcl_;
@@ -1124,9 +1226,10 @@ public final class InodeMeta {
      * </pre>
      *
      * <code>optional int64 block_size_bytes = 15;</code>
+     * @return Whether the blockSizeBytes field is set.
      */
     public boolean hasBlockSizeBytes() {
-      return ((bitField0_ & 0x00020000) == 0x00020000);
+      return ((bitField0_ & 0x00020000) != 0);
     }
     /**
      * <pre>
@@ -1134,15 +1237,17 @@ public final class InodeMeta {
      * </pre>
      *
      * <code>optional int64 block_size_bytes = 15;</code>
+     * @return The blockSizeBytes.
      */
     public long getBlockSizeBytes() {
       return blockSizeBytes_;
     }
 
     public static final int BLOCKS_FIELD_NUMBER = 16;
-    private java.util.List<java.lang.Long> blocks_;
+    private com.google.protobuf.Internal.LongList blocks_;
     /**
      * <code>repeated int64 blocks = 16;</code>
+     * @return A list containing the blocks.
      */
     public java.util.List<java.lang.Long>
         getBlocksList() {
@@ -1150,27 +1255,32 @@ public final class InodeMeta {
     }
     /**
      * <code>repeated int64 blocks = 16;</code>
+     * @return The count of blocks.
      */
     public int getBlocksCount() {
       return blocks_.size();
     }
     /**
      * <code>repeated int64 blocks = 16;</code>
+     * @param index The index of the element to return.
+     * @return The blocks at the given index.
      */
     public long getBlocks(int index) {
-      return blocks_.get(index);
+      return blocks_.getLong(index);
     }
 
     public static final int IS_CACHEABLE_FIELD_NUMBER = 17;
     private boolean isCacheable_;
     /**
      * <code>optional bool is_cacheable = 17;</code>
+     * @return Whether the isCacheable field is set.
      */
     public boolean hasIsCacheable() {
-      return ((bitField0_ & 0x00040000) == 0x00040000);
+      return ((bitField0_ & 0x00040000) != 0);
     }
     /**
      * <code>optional bool is_cacheable = 17;</code>
+     * @return The isCacheable.
      */
     public boolean getIsCacheable() {
       return isCacheable_;
@@ -1180,12 +1290,14 @@ public final class InodeMeta {
     private boolean isCompleted_;
     /**
      * <code>optional bool is_completed = 18;</code>
+     * @return Whether the isCompleted field is set.
      */
     public boolean hasIsCompleted() {
-      return ((bitField0_ & 0x00080000) == 0x00080000);
+      return ((bitField0_ & 0x00080000) != 0);
     }
     /**
      * <code>optional bool is_completed = 18;</code>
+     * @return The isCompleted.
      */
     public boolean getIsCompleted() {
       return isCompleted_;
@@ -1195,12 +1307,14 @@ public final class InodeMeta {
     private long length_;
     /**
      * <code>optional int64 length = 19;</code>
+     * @return Whether the length field is set.
      */
     public boolean hasLength() {
-      return ((bitField0_ & 0x00100000) == 0x00100000);
+      return ((bitField0_ & 0x00100000) != 0);
     }
     /**
      * <code>optional int64 length = 19;</code>
+     * @return The length.
      */
     public long getLength() {
       return length_;
@@ -1210,12 +1324,14 @@ public final class InodeMeta {
     private int replicationDurable_;
     /**
      * <code>optional int32 replication_durable = 20;</code>
+     * @return Whether the replicationDurable field is set.
      */
     public boolean hasReplicationDurable() {
-      return ((bitField0_ & 0x00200000) == 0x00200000);
+      return ((bitField0_ & 0x00200000) != 0);
     }
     /**
      * <code>optional int32 replication_durable = 20;</code>
+     * @return The replicationDurable.
      */
     public int getReplicationDurable() {
       return replicationDurable_;
@@ -1225,12 +1341,14 @@ public final class InodeMeta {
     private int replicationMax_;
     /**
      * <code>optional int32 replication_max = 21;</code>
+     * @return Whether the replicationMax field is set.
      */
     public boolean hasReplicationMax() {
-      return ((bitField0_ & 0x00400000) == 0x00400000);
+      return ((bitField0_ & 0x00400000) != 0);
     }
     /**
      * <code>optional int32 replication_max = 21;</code>
+     * @return The replicationMax.
      */
     public int getReplicationMax() {
       return replicationMax_;
@@ -1240,12 +1358,14 @@ public final class InodeMeta {
     private int replicationMin_;
     /**
      * <code>optional int32 replication_min = 22;</code>
+     * @return Whether the replicationMin field is set.
      */
     public boolean hasReplicationMin() {
-      return ((bitField0_ & 0x00800000) == 0x00800000);
+      return ((bitField0_ & 0x00800000) != 0);
     }
     /**
      * <code>optional int32 replication_min = 22;</code>
+     * @return The replicationMin.
      */
     public int getReplicationMin() {
       return replicationMin_;
@@ -1255,12 +1375,14 @@ public final class InodeMeta {
     private long shouldPersistTime_;
     /**
      * <code>optional int64 should_persist_time = 28;</code>
+     * @return Whether the shouldPersistTime field is set.
      */
     public boolean hasShouldPersistTime() {
-      return ((bitField0_ & 0x01000000) == 0x01000000);
+      return ((bitField0_ & 0x01000000) != 0);
     }
     /**
      * <code>optional int64 should_persist_time = 28;</code>
+     * @return The shouldPersistTime.
      */
     public long getShouldPersistTime() {
       return shouldPersistTime_;
@@ -1274,9 +1396,10 @@ public final class InodeMeta {
      * </pre>
      *
      * <code>optional int64 persist_job_id = 23;</code>
+     * @return Whether the persistJobId field is set.
      */
     public boolean hasPersistJobId() {
-      return ((bitField0_ & 0x02000000) == 0x02000000);
+      return ((bitField0_ & 0x02000000) != 0);
     }
     /**
      * <pre>
@@ -1284,6 +1407,7 @@ public final class InodeMeta {
      * </pre>
      *
      * <code>optional int64 persist_job_id = 23;</code>
+     * @return The persistJobId.
      */
     public long getPersistJobId() {
       return persistJobId_;
@@ -1293,12 +1417,14 @@ public final class InodeMeta {
     private volatile java.lang.Object persistJobTempUfsPath_;
     /**
      * <code>optional string persist_job_temp_ufs_path = 24;</code>
+     * @return Whether the persistJobTempUfsPath field is set.
      */
     public boolean hasPersistJobTempUfsPath() {
-      return ((bitField0_ & 0x04000000) == 0x04000000);
+      return ((bitField0_ & 0x04000000) != 0);
     }
     /**
      * <code>optional string persist_job_temp_ufs_path = 24;</code>
+     * @return The persistJobTempUfsPath.
      */
     public java.lang.String getPersistJobTempUfsPath() {
       java.lang.Object ref = persistJobTempUfsPath_;
@@ -1316,6 +1442,7 @@ public final class InodeMeta {
     }
     /**
      * <code>optional string persist_job_temp_ufs_path = 24;</code>
+     * @return The bytes for persistJobTempUfsPath.
      */
     public com.google.protobuf.ByteString
         getPersistJobTempUfsPathBytes() {
@@ -1428,6 +1555,7 @@ public final class InodeMeta {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -1437,90 +1565,91 @@ public final class InodeMeta {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         output.writeInt64(1, id_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         output.writeInt64(2, creationTimeMs_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         output.writeBool(3, isDirectory_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000008) != 0)) {
         output.writeInt64(4, ttl_);
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((bitField0_ & 0x00000010) != 0)) {
         output.writeEnum(5, ttlAction_);
       }
-      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((bitField0_ & 0x00000040) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 6, name_);
       }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      if (((bitField0_ & 0x00000080) != 0)) {
         output.writeInt64(7, parentId_);
       }
-      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+      if (((bitField0_ & 0x00000100) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 8, persistenceState_);
       }
-      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+      if (((bitField0_ & 0x00000200) != 0)) {
         output.writeBool(9, isPinned_);
       }
-      if (((bitField0_ & 0x00000400) == 0x00000400)) {
+      if (((bitField0_ & 0x00000400) != 0)) {
         output.writeMessage(10, getAccessAcl());
       }
-      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+      if (((bitField0_ & 0x00000800) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 11, ufsFingerprint_);
       }
-      if (((bitField0_ & 0x00002000) == 0x00002000)) {
+      if (((bitField0_ & 0x00002000) != 0)) {
         output.writeBool(12, isMountPoint_);
       }
-      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+      if (((bitField0_ & 0x00004000) != 0)) {
         output.writeBool(13, hasDirectChildrenLoaded_);
       }
-      if (((bitField0_ & 0x00010000) == 0x00010000)) {
+      if (((bitField0_ & 0x00010000) != 0)) {
         output.writeMessage(14, getDefaultAcl());
       }
-      if (((bitField0_ & 0x00020000) == 0x00020000)) {
+      if (((bitField0_ & 0x00020000) != 0)) {
         output.writeInt64(15, blockSizeBytes_);
       }
       for (int i = 0; i < blocks_.size(); i++) {
-        output.writeInt64(16, blocks_.get(i));
+        output.writeInt64(16, blocks_.getLong(i));
       }
-      if (((bitField0_ & 0x00040000) == 0x00040000)) {
+      if (((bitField0_ & 0x00040000) != 0)) {
         output.writeBool(17, isCacheable_);
       }
-      if (((bitField0_ & 0x00080000) == 0x00080000)) {
+      if (((bitField0_ & 0x00080000) != 0)) {
         output.writeBool(18, isCompleted_);
       }
-      if (((bitField0_ & 0x00100000) == 0x00100000)) {
+      if (((bitField0_ & 0x00100000) != 0)) {
         output.writeInt64(19, length_);
       }
-      if (((bitField0_ & 0x00200000) == 0x00200000)) {
+      if (((bitField0_ & 0x00200000) != 0)) {
         output.writeInt32(20, replicationDurable_);
       }
-      if (((bitField0_ & 0x00400000) == 0x00400000)) {
+      if (((bitField0_ & 0x00400000) != 0)) {
         output.writeInt32(21, replicationMax_);
       }
-      if (((bitField0_ & 0x00800000) == 0x00800000)) {
+      if (((bitField0_ & 0x00800000) != 0)) {
         output.writeInt32(22, replicationMin_);
       }
-      if (((bitField0_ & 0x02000000) == 0x02000000)) {
+      if (((bitField0_ & 0x02000000) != 0)) {
         output.writeInt64(23, persistJobId_);
       }
-      if (((bitField0_ & 0x04000000) == 0x04000000)) {
+      if (((bitField0_ & 0x04000000) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 24, persistJobTempUfsPath_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((bitField0_ & 0x00000020) != 0)) {
         output.writeInt64(25, lastModifiedMs_);
       }
-      if (((bitField0_ & 0x00008000) == 0x00008000)) {
+      if (((bitField0_ & 0x00008000) != 0)) {
         output.writeInt64(26, childCount_);
       }
       for (int i = 0; i < mediumType_.size(); i++) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 27, mediumType_.getRaw(i));
       }
-      if (((bitField0_ & 0x01000000) == 0x01000000)) {
+      if (((bitField0_ & 0x01000000) != 0)) {
         output.writeInt64(28, shouldPersistTime_);
       }
       com.google.protobuf.GeneratedMessageV3
@@ -1529,71 +1658,72 @@ public final class InodeMeta {
           internalGetXAttr(),
           XAttrDefaultEntryHolder.defaultEntry,
           29);
-      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+      if (((bitField0_ & 0x00001000) != 0)) {
         output.writeInt64(30, lastAccessedMs_);
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, id_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(2, creationTimeMs_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(3, isDirectory_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000008) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(4, ttl_);
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((bitField0_ & 0x00000010) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(5, ttlAction_);
       }
-      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((bitField0_ & 0x00000040) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(6, name_);
       }
-      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+      if (((bitField0_ & 0x00000080) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(7, parentId_);
       }
-      if (((bitField0_ & 0x00000100) == 0x00000100)) {
+      if (((bitField0_ & 0x00000100) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(8, persistenceState_);
       }
-      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+      if (((bitField0_ & 0x00000200) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(9, isPinned_);
       }
-      if (((bitField0_ & 0x00000400) == 0x00000400)) {
+      if (((bitField0_ & 0x00000400) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(10, getAccessAcl());
       }
-      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+      if (((bitField0_ & 0x00000800) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(11, ufsFingerprint_);
       }
-      if (((bitField0_ & 0x00002000) == 0x00002000)) {
+      if (((bitField0_ & 0x00002000) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(12, isMountPoint_);
       }
-      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+      if (((bitField0_ & 0x00004000) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(13, hasDirectChildrenLoaded_);
       }
-      if (((bitField0_ & 0x00010000) == 0x00010000)) {
+      if (((bitField0_ & 0x00010000) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(14, getDefaultAcl());
       }
-      if (((bitField0_ & 0x00020000) == 0x00020000)) {
+      if (((bitField0_ & 0x00020000) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(15, blockSizeBytes_);
       }
@@ -1601,47 +1731,47 @@ public final class InodeMeta {
         int dataSize = 0;
         for (int i = 0; i < blocks_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeInt64SizeNoTag(blocks_.get(i));
+            .computeInt64SizeNoTag(blocks_.getLong(i));
         }
         size += dataSize;
         size += 2 * getBlocksList().size();
       }
-      if (((bitField0_ & 0x00040000) == 0x00040000)) {
+      if (((bitField0_ & 0x00040000) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(17, isCacheable_);
       }
-      if (((bitField0_ & 0x00080000) == 0x00080000)) {
+      if (((bitField0_ & 0x00080000) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(18, isCompleted_);
       }
-      if (((bitField0_ & 0x00100000) == 0x00100000)) {
+      if (((bitField0_ & 0x00100000) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(19, length_);
       }
-      if (((bitField0_ & 0x00200000) == 0x00200000)) {
+      if (((bitField0_ & 0x00200000) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(20, replicationDurable_);
       }
-      if (((bitField0_ & 0x00400000) == 0x00400000)) {
+      if (((bitField0_ & 0x00400000) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(21, replicationMax_);
       }
-      if (((bitField0_ & 0x00800000) == 0x00800000)) {
+      if (((bitField0_ & 0x00800000) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(22, replicationMin_);
       }
-      if (((bitField0_ & 0x02000000) == 0x02000000)) {
+      if (((bitField0_ & 0x02000000) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(23, persistJobId_);
       }
-      if (((bitField0_ & 0x04000000) == 0x04000000)) {
+      if (((bitField0_ & 0x04000000) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(24, persistJobTempUfsPath_);
       }
-      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((bitField0_ & 0x00000020) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(25, lastModifiedMs_);
       }
-      if (((bitField0_ & 0x00008000) == 0x00008000)) {
+      if (((bitField0_ & 0x00008000) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(26, childCount_);
       }
@@ -1653,7 +1783,7 @@ public final class InodeMeta {
         size += dataSize;
         size += 2 * getMediumTypeList().size();
       }
-      if (((bitField0_ & 0x01000000) == 0x01000000)) {
+      if (((bitField0_ & 0x01000000) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(28, shouldPersistTime_);
       }
@@ -1667,7 +1797,7 @@ public final class InodeMeta {
         size += com.google.protobuf.CodedOutputStream
             .computeMessageSize(29, xAttr__);
       }
-      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+      if (((bitField0_ & 0x00001000) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(30, lastAccessedMs_);
       }
@@ -1686,149 +1816,148 @@ public final class InodeMeta {
       }
       alluxio.proto.meta.InodeMeta.Inode other = (alluxio.proto.meta.InodeMeta.Inode) obj;
 
-      boolean result = true;
-      result = result && (hasId() == other.hasId());
+      if (hasId() != other.hasId()) return false;
       if (hasId()) {
-        result = result && (getId()
-            == other.getId());
+        if (getId()
+            != other.getId()) return false;
       }
-      result = result && (hasCreationTimeMs() == other.hasCreationTimeMs());
+      if (hasCreationTimeMs() != other.hasCreationTimeMs()) return false;
       if (hasCreationTimeMs()) {
-        result = result && (getCreationTimeMs()
-            == other.getCreationTimeMs());
+        if (getCreationTimeMs()
+            != other.getCreationTimeMs()) return false;
       }
-      result = result && (hasIsDirectory() == other.hasIsDirectory());
+      if (hasIsDirectory() != other.hasIsDirectory()) return false;
       if (hasIsDirectory()) {
-        result = result && (getIsDirectory()
-            == other.getIsDirectory());
+        if (getIsDirectory()
+            != other.getIsDirectory()) return false;
       }
-      result = result && (hasTtl() == other.hasTtl());
+      if (hasTtl() != other.hasTtl()) return false;
       if (hasTtl()) {
-        result = result && (getTtl()
-            == other.getTtl());
+        if (getTtl()
+            != other.getTtl()) return false;
       }
-      result = result && (hasTtlAction() == other.hasTtlAction());
+      if (hasTtlAction() != other.hasTtlAction()) return false;
       if (hasTtlAction()) {
-        result = result && ttlAction_ == other.ttlAction_;
+        if (ttlAction_ != other.ttlAction_) return false;
       }
-      result = result && (hasLastModifiedMs() == other.hasLastModifiedMs());
+      if (hasLastModifiedMs() != other.hasLastModifiedMs()) return false;
       if (hasLastModifiedMs()) {
-        result = result && (getLastModifiedMs()
-            == other.getLastModifiedMs());
+        if (getLastModifiedMs()
+            != other.getLastModifiedMs()) return false;
       }
-      result = result && (hasName() == other.hasName());
+      if (hasName() != other.hasName()) return false;
       if (hasName()) {
-        result = result && getName()
-            .equals(other.getName());
+        if (!getName()
+            .equals(other.getName())) return false;
       }
-      result = result && (hasParentId() == other.hasParentId());
+      if (hasParentId() != other.hasParentId()) return false;
       if (hasParentId()) {
-        result = result && (getParentId()
-            == other.getParentId());
+        if (getParentId()
+            != other.getParentId()) return false;
       }
-      result = result && (hasPersistenceState() == other.hasPersistenceState());
+      if (hasPersistenceState() != other.hasPersistenceState()) return false;
       if (hasPersistenceState()) {
-        result = result && getPersistenceState()
-            .equals(other.getPersistenceState());
+        if (!getPersistenceState()
+            .equals(other.getPersistenceState())) return false;
       }
-      result = result && (hasIsPinned() == other.hasIsPinned());
+      if (hasIsPinned() != other.hasIsPinned()) return false;
       if (hasIsPinned()) {
-        result = result && (getIsPinned()
-            == other.getIsPinned());
+        if (getIsPinned()
+            != other.getIsPinned()) return false;
       }
-      result = result && (hasAccessAcl() == other.hasAccessAcl());
+      if (hasAccessAcl() != other.hasAccessAcl()) return false;
       if (hasAccessAcl()) {
-        result = result && getAccessAcl()
-            .equals(other.getAccessAcl());
+        if (!getAccessAcl()
+            .equals(other.getAccessAcl())) return false;
       }
-      result = result && (hasUfsFingerprint() == other.hasUfsFingerprint());
+      if (hasUfsFingerprint() != other.hasUfsFingerprint()) return false;
       if (hasUfsFingerprint()) {
-        result = result && getUfsFingerprint()
-            .equals(other.getUfsFingerprint());
+        if (!getUfsFingerprint()
+            .equals(other.getUfsFingerprint())) return false;
       }
-      result = result && getMediumTypeList()
-          .equals(other.getMediumTypeList());
-      result = result && (hasLastAccessedMs() == other.hasLastAccessedMs());
+      if (!getMediumTypeList()
+          .equals(other.getMediumTypeList())) return false;
+      if (hasLastAccessedMs() != other.hasLastAccessedMs()) return false;
       if (hasLastAccessedMs()) {
-        result = result && (getLastAccessedMs()
-            == other.getLastAccessedMs());
+        if (getLastAccessedMs()
+            != other.getLastAccessedMs()) return false;
       }
-      result = result && (hasIsMountPoint() == other.hasIsMountPoint());
+      if (hasIsMountPoint() != other.hasIsMountPoint()) return false;
       if (hasIsMountPoint()) {
-        result = result && (getIsMountPoint()
-            == other.getIsMountPoint());
+        if (getIsMountPoint()
+            != other.getIsMountPoint()) return false;
       }
-      result = result && (hasHasDirectChildrenLoaded() == other.hasHasDirectChildrenLoaded());
+      if (hasHasDirectChildrenLoaded() != other.hasHasDirectChildrenLoaded()) return false;
       if (hasHasDirectChildrenLoaded()) {
-        result = result && (getHasDirectChildrenLoaded()
-            == other.getHasDirectChildrenLoaded());
+        if (getHasDirectChildrenLoaded()
+            != other.getHasDirectChildrenLoaded()) return false;
       }
-      result = result && (hasChildCount() == other.hasChildCount());
+      if (hasChildCount() != other.hasChildCount()) return false;
       if (hasChildCount()) {
-        result = result && (getChildCount()
-            == other.getChildCount());
+        if (getChildCount()
+            != other.getChildCount()) return false;
       }
-      result = result && (hasDefaultAcl() == other.hasDefaultAcl());
+      if (hasDefaultAcl() != other.hasDefaultAcl()) return false;
       if (hasDefaultAcl()) {
-        result = result && getDefaultAcl()
-            .equals(other.getDefaultAcl());
+        if (!getDefaultAcl()
+            .equals(other.getDefaultAcl())) return false;
       }
-      result = result && (hasBlockSizeBytes() == other.hasBlockSizeBytes());
+      if (hasBlockSizeBytes() != other.hasBlockSizeBytes()) return false;
       if (hasBlockSizeBytes()) {
-        result = result && (getBlockSizeBytes()
-            == other.getBlockSizeBytes());
+        if (getBlockSizeBytes()
+            != other.getBlockSizeBytes()) return false;
       }
-      result = result && getBlocksList()
-          .equals(other.getBlocksList());
-      result = result && (hasIsCacheable() == other.hasIsCacheable());
+      if (!getBlocksList()
+          .equals(other.getBlocksList())) return false;
+      if (hasIsCacheable() != other.hasIsCacheable()) return false;
       if (hasIsCacheable()) {
-        result = result && (getIsCacheable()
-            == other.getIsCacheable());
+        if (getIsCacheable()
+            != other.getIsCacheable()) return false;
       }
-      result = result && (hasIsCompleted() == other.hasIsCompleted());
+      if (hasIsCompleted() != other.hasIsCompleted()) return false;
       if (hasIsCompleted()) {
-        result = result && (getIsCompleted()
-            == other.getIsCompleted());
+        if (getIsCompleted()
+            != other.getIsCompleted()) return false;
       }
-      result = result && (hasLength() == other.hasLength());
+      if (hasLength() != other.hasLength()) return false;
       if (hasLength()) {
-        result = result && (getLength()
-            == other.getLength());
+        if (getLength()
+            != other.getLength()) return false;
       }
-      result = result && (hasReplicationDurable() == other.hasReplicationDurable());
+      if (hasReplicationDurable() != other.hasReplicationDurable()) return false;
       if (hasReplicationDurable()) {
-        result = result && (getReplicationDurable()
-            == other.getReplicationDurable());
+        if (getReplicationDurable()
+            != other.getReplicationDurable()) return false;
       }
-      result = result && (hasReplicationMax() == other.hasReplicationMax());
+      if (hasReplicationMax() != other.hasReplicationMax()) return false;
       if (hasReplicationMax()) {
-        result = result && (getReplicationMax()
-            == other.getReplicationMax());
+        if (getReplicationMax()
+            != other.getReplicationMax()) return false;
       }
-      result = result && (hasReplicationMin() == other.hasReplicationMin());
+      if (hasReplicationMin() != other.hasReplicationMin()) return false;
       if (hasReplicationMin()) {
-        result = result && (getReplicationMin()
-            == other.getReplicationMin());
+        if (getReplicationMin()
+            != other.getReplicationMin()) return false;
       }
-      result = result && (hasShouldPersistTime() == other.hasShouldPersistTime());
+      if (hasShouldPersistTime() != other.hasShouldPersistTime()) return false;
       if (hasShouldPersistTime()) {
-        result = result && (getShouldPersistTime()
-            == other.getShouldPersistTime());
+        if (getShouldPersistTime()
+            != other.getShouldPersistTime()) return false;
       }
-      result = result && (hasPersistJobId() == other.hasPersistJobId());
+      if (hasPersistJobId() != other.hasPersistJobId()) return false;
       if (hasPersistJobId()) {
-        result = result && (getPersistJobId()
-            == other.getPersistJobId());
+        if (getPersistJobId()
+            != other.getPersistJobId()) return false;
       }
-      result = result && (hasPersistJobTempUfsPath() == other.hasPersistJobTempUfsPath());
+      if (hasPersistJobTempUfsPath() != other.hasPersistJobTempUfsPath()) return false;
       if (hasPersistJobTempUfsPath()) {
-        result = result && getPersistJobTempUfsPath()
-            .equals(other.getPersistJobTempUfsPath());
+        if (!getPersistJobTempUfsPath()
+            .equals(other.getPersistJobTempUfsPath())) return false;
       }
-      result = result && internalGetXAttr().equals(
-          other.internalGetXAttr());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!internalGetXAttr().equals(
+          other.internalGetXAttr())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -2050,6 +2179,7 @@ public final class InodeMeta {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -2057,6 +2187,7 @@ public final class InodeMeta {
     public static Builder newBuilder(alluxio.proto.meta.InodeMeta.Inode prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -2109,6 +2240,7 @@ public final class InodeMeta {
                 "Invalid map field number: " + number);
         }
       }
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.meta.InodeMeta.internal_static_alluxio_proto_meta_Inode_fieldAccessorTable
@@ -2133,6 +2265,7 @@ public final class InodeMeta {
           getDefaultAclFieldBuilder();
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         id_ = 0L;
@@ -2181,7 +2314,7 @@ public final class InodeMeta {
         bitField0_ = (bitField0_ & ~0x00020000);
         blockSizeBytes_ = 0L;
         bitField0_ = (bitField0_ & ~0x00040000);
-        blocks_ = java.util.Collections.emptyList();
+        blocks_ = emptyLongList();
         bitField0_ = (bitField0_ & ~0x00080000);
         isCacheable_ = false;
         bitField0_ = (bitField0_ & ~0x00100000);
@@ -2205,15 +2338,18 @@ public final class InodeMeta {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.meta.InodeMeta.internal_static_alluxio_proto_meta_Inode_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.meta.InodeMeta.Inode getDefaultInstanceForType() {
         return alluxio.proto.meta.InodeMeta.Inode.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.meta.InodeMeta.Inode build() {
         alluxio.proto.meta.InodeMeta.Inode result = buildPartial();
         if (!result.isInitialized()) {
@@ -2222,133 +2358,134 @@ public final class InodeMeta {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.meta.InodeMeta.Inode buildPartial() {
         alluxio.proto.meta.InodeMeta.Inode result = new alluxio.proto.meta.InodeMeta.Inode(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.id_ = id_;
           to_bitField0_ |= 0x00000001;
         }
-        result.id_ = id_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.creationTimeMs_ = creationTimeMs_;
           to_bitField0_ |= 0x00000002;
         }
-        result.creationTimeMs_ = creationTimeMs_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.isDirectory_ = isDirectory_;
           to_bitField0_ |= 0x00000004;
         }
-        result.isDirectory_ = isDirectory_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.ttl_ = ttl_;
           to_bitField0_ |= 0x00000008;
         }
-        result.ttl_ = ttl_;
-        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+        if (((from_bitField0_ & 0x00000010) != 0)) {
           to_bitField0_ |= 0x00000010;
         }
         result.ttlAction_ = ttlAction_;
-        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.lastModifiedMs_ = lastModifiedMs_;
           to_bitField0_ |= 0x00000020;
         }
-        result.lastModifiedMs_ = lastModifiedMs_;
-        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+        if (((from_bitField0_ & 0x00000040) != 0)) {
           to_bitField0_ |= 0x00000040;
         }
         result.name_ = name_;
-        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.parentId_ = parentId_;
           to_bitField0_ |= 0x00000080;
         }
-        result.parentId_ = parentId_;
-        if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
+        if (((from_bitField0_ & 0x00000100) != 0)) {
           to_bitField0_ |= 0x00000100;
         }
         result.persistenceState_ = persistenceState_;
-        if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
+        if (((from_bitField0_ & 0x00000200) != 0)) {
+          result.isPinned_ = isPinned_;
           to_bitField0_ |= 0x00000200;
         }
-        result.isPinned_ = isPinned_;
-        if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
+        if (((from_bitField0_ & 0x00000400) != 0)) {
+          if (accessAclBuilder_ == null) {
+            result.accessAcl_ = accessAcl_;
+          } else {
+            result.accessAcl_ = accessAclBuilder_.build();
+          }
           to_bitField0_ |= 0x00000400;
         }
-        if (accessAclBuilder_ == null) {
-          result.accessAcl_ = accessAcl_;
-        } else {
-          result.accessAcl_ = accessAclBuilder_.build();
-        }
-        if (((from_bitField0_ & 0x00000800) == 0x00000800)) {
+        if (((from_bitField0_ & 0x00000800) != 0)) {
           to_bitField0_ |= 0x00000800;
         }
         result.ufsFingerprint_ = ufsFingerprint_;
-        if (((bitField0_ & 0x00001000) == 0x00001000)) {
+        if (((bitField0_ & 0x00001000) != 0)) {
           mediumType_ = mediumType_.getUnmodifiableView();
           bitField0_ = (bitField0_ & ~0x00001000);
         }
         result.mediumType_ = mediumType_;
-        if (((from_bitField0_ & 0x00002000) == 0x00002000)) {
+        if (((from_bitField0_ & 0x00002000) != 0)) {
+          result.lastAccessedMs_ = lastAccessedMs_;
           to_bitField0_ |= 0x00001000;
         }
-        result.lastAccessedMs_ = lastAccessedMs_;
-        if (((from_bitField0_ & 0x00004000) == 0x00004000)) {
+        if (((from_bitField0_ & 0x00004000) != 0)) {
+          result.isMountPoint_ = isMountPoint_;
           to_bitField0_ |= 0x00002000;
         }
-        result.isMountPoint_ = isMountPoint_;
-        if (((from_bitField0_ & 0x00008000) == 0x00008000)) {
+        if (((from_bitField0_ & 0x00008000) != 0)) {
+          result.hasDirectChildrenLoaded_ = hasDirectChildrenLoaded_;
           to_bitField0_ |= 0x00004000;
         }
-        result.hasDirectChildrenLoaded_ = hasDirectChildrenLoaded_;
-        if (((from_bitField0_ & 0x00010000) == 0x00010000)) {
+        if (((from_bitField0_ & 0x00010000) != 0)) {
+          result.childCount_ = childCount_;
           to_bitField0_ |= 0x00008000;
         }
-        result.childCount_ = childCount_;
-        if (((from_bitField0_ & 0x00020000) == 0x00020000)) {
+        if (((from_bitField0_ & 0x00020000) != 0)) {
+          if (defaultAclBuilder_ == null) {
+            result.defaultAcl_ = defaultAcl_;
+          } else {
+            result.defaultAcl_ = defaultAclBuilder_.build();
+          }
           to_bitField0_ |= 0x00010000;
         }
-        if (defaultAclBuilder_ == null) {
-          result.defaultAcl_ = defaultAcl_;
-        } else {
-          result.defaultAcl_ = defaultAclBuilder_.build();
-        }
-        if (((from_bitField0_ & 0x00040000) == 0x00040000)) {
+        if (((from_bitField0_ & 0x00040000) != 0)) {
+          result.blockSizeBytes_ = blockSizeBytes_;
           to_bitField0_ |= 0x00020000;
         }
-        result.blockSizeBytes_ = blockSizeBytes_;
-        if (((bitField0_ & 0x00080000) == 0x00080000)) {
-          blocks_ = java.util.Collections.unmodifiableList(blocks_);
+        if (((bitField0_ & 0x00080000) != 0)) {
+          blocks_.makeImmutable();
           bitField0_ = (bitField0_ & ~0x00080000);
         }
         result.blocks_ = blocks_;
-        if (((from_bitField0_ & 0x00100000) == 0x00100000)) {
+        if (((from_bitField0_ & 0x00100000) != 0)) {
+          result.isCacheable_ = isCacheable_;
           to_bitField0_ |= 0x00040000;
         }
-        result.isCacheable_ = isCacheable_;
-        if (((from_bitField0_ & 0x00200000) == 0x00200000)) {
+        if (((from_bitField0_ & 0x00200000) != 0)) {
+          result.isCompleted_ = isCompleted_;
           to_bitField0_ |= 0x00080000;
         }
-        result.isCompleted_ = isCompleted_;
-        if (((from_bitField0_ & 0x00400000) == 0x00400000)) {
+        if (((from_bitField0_ & 0x00400000) != 0)) {
+          result.length_ = length_;
           to_bitField0_ |= 0x00100000;
         }
-        result.length_ = length_;
-        if (((from_bitField0_ & 0x00800000) == 0x00800000)) {
+        if (((from_bitField0_ & 0x00800000) != 0)) {
+          result.replicationDurable_ = replicationDurable_;
           to_bitField0_ |= 0x00200000;
         }
-        result.replicationDurable_ = replicationDurable_;
-        if (((from_bitField0_ & 0x01000000) == 0x01000000)) {
+        if (((from_bitField0_ & 0x01000000) != 0)) {
+          result.replicationMax_ = replicationMax_;
           to_bitField0_ |= 0x00400000;
         }
-        result.replicationMax_ = replicationMax_;
-        if (((from_bitField0_ & 0x02000000) == 0x02000000)) {
+        if (((from_bitField0_ & 0x02000000) != 0)) {
+          result.replicationMin_ = replicationMin_;
           to_bitField0_ |= 0x00800000;
         }
-        result.replicationMin_ = replicationMin_;
-        if (((from_bitField0_ & 0x04000000) == 0x04000000)) {
+        if (((from_bitField0_ & 0x04000000) != 0)) {
+          result.shouldPersistTime_ = shouldPersistTime_;
           to_bitField0_ |= 0x01000000;
         }
-        result.shouldPersistTime_ = shouldPersistTime_;
-        if (((from_bitField0_ & 0x08000000) == 0x08000000)) {
+        if (((from_bitField0_ & 0x08000000) != 0)) {
+          result.persistJobId_ = persistJobId_;
           to_bitField0_ |= 0x02000000;
         }
-        result.persistJobId_ = persistJobId_;
-        if (((from_bitField0_ & 0x10000000) == 0x10000000)) {
+        if (((from_bitField0_ & 0x10000000) != 0)) {
           to_bitField0_ |= 0x04000000;
         }
         result.persistJobTempUfsPath_ = persistJobTempUfsPath_;
@@ -2359,32 +2496,39 @@ public final class InodeMeta {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.meta.InodeMeta.Inode) {
           return mergeFrom((alluxio.proto.meta.InodeMeta.Inode)other);
@@ -2512,10 +2656,12 @@ public final class InodeMeta {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2538,18 +2684,22 @@ public final class InodeMeta {
       private long id_ ;
       /**
        * <code>optional int64 id = 1;</code>
+       * @return Whether the id field is set.
        */
       public boolean hasId() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional int64 id = 1;</code>
+       * @return The id.
        */
       public long getId() {
         return id_;
       }
       /**
        * <code>optional int64 id = 1;</code>
+       * @param value The id to set.
+       * @return This builder for chaining.
        */
       public Builder setId(long value) {
         bitField0_ |= 0x00000001;
@@ -2559,6 +2709,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional int64 id = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearId() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -2570,18 +2721,22 @@ public final class InodeMeta {
       private long creationTimeMs_ ;
       /**
        * <code>optional int64 creation_time_ms = 2;</code>
+       * @return Whether the creationTimeMs field is set.
        */
       public boolean hasCreationTimeMs() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <code>optional int64 creation_time_ms = 2;</code>
+       * @return The creationTimeMs.
        */
       public long getCreationTimeMs() {
         return creationTimeMs_;
       }
       /**
        * <code>optional int64 creation_time_ms = 2;</code>
+       * @param value The creationTimeMs to set.
+       * @return This builder for chaining.
        */
       public Builder setCreationTimeMs(long value) {
         bitField0_ |= 0x00000002;
@@ -2591,6 +2746,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional int64 creation_time_ms = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearCreationTimeMs() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -2602,18 +2758,22 @@ public final class InodeMeta {
       private boolean isDirectory_ ;
       /**
        * <code>optional bool is_directory = 3;</code>
+       * @return Whether the isDirectory field is set.
        */
       public boolean hasIsDirectory() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000004) != 0);
       }
       /**
        * <code>optional bool is_directory = 3;</code>
+       * @return The isDirectory.
        */
       public boolean getIsDirectory() {
         return isDirectory_;
       }
       /**
        * <code>optional bool is_directory = 3;</code>
+       * @param value The isDirectory to set.
+       * @return This builder for chaining.
        */
       public Builder setIsDirectory(boolean value) {
         bitField0_ |= 0x00000004;
@@ -2623,6 +2783,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional bool is_directory = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsDirectory() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -2634,18 +2795,22 @@ public final class InodeMeta {
       private long ttl_ ;
       /**
        * <code>optional int64 ttl = 4;</code>
+       * @return Whether the ttl field is set.
        */
       public boolean hasTtl() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
+        return ((bitField0_ & 0x00000008) != 0);
       }
       /**
        * <code>optional int64 ttl = 4;</code>
+       * @return The ttl.
        */
       public long getTtl() {
         return ttl_;
       }
       /**
        * <code>optional int64 ttl = 4;</code>
+       * @param value The ttl to set.
+       * @return This builder for chaining.
        */
       public Builder setTtl(long value) {
         bitField0_ |= 0x00000008;
@@ -2655,6 +2820,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional int64 ttl = 4;</code>
+       * @return This builder for chaining.
        */
       public Builder clearTtl() {
         bitField0_ = (bitField0_ & ~0x00000008);
@@ -2666,19 +2832,24 @@ public final class InodeMeta {
       private int ttlAction_ = 0;
       /**
        * <code>optional .alluxio.grpc.TtlAction ttl_action = 5;</code>
+       * @return Whether the ttlAction field is set.
        */
       public boolean hasTtlAction() {
-        return ((bitField0_ & 0x00000010) == 0x00000010);
+        return ((bitField0_ & 0x00000010) != 0);
       }
       /**
        * <code>optional .alluxio.grpc.TtlAction ttl_action = 5;</code>
+       * @return The ttlAction.
        */
       public alluxio.grpc.TtlAction getTtlAction() {
+        @SuppressWarnings("deprecation")
         alluxio.grpc.TtlAction result = alluxio.grpc.TtlAction.valueOf(ttlAction_);
         return result == null ? alluxio.grpc.TtlAction.DELETE : result;
       }
       /**
        * <code>optional .alluxio.grpc.TtlAction ttl_action = 5;</code>
+       * @param value The ttlAction to set.
+       * @return This builder for chaining.
        */
       public Builder setTtlAction(alluxio.grpc.TtlAction value) {
         if (value == null) {
@@ -2691,6 +2862,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional .alluxio.grpc.TtlAction ttl_action = 5;</code>
+       * @return This builder for chaining.
        */
       public Builder clearTtlAction() {
         bitField0_ = (bitField0_ & ~0x00000010);
@@ -2702,18 +2874,22 @@ public final class InodeMeta {
       private long lastModifiedMs_ ;
       /**
        * <code>optional int64 last_modified_ms = 25;</code>
+       * @return Whether the lastModifiedMs field is set.
        */
       public boolean hasLastModifiedMs() {
-        return ((bitField0_ & 0x00000020) == 0x00000020);
+        return ((bitField0_ & 0x00000020) != 0);
       }
       /**
        * <code>optional int64 last_modified_ms = 25;</code>
+       * @return The lastModifiedMs.
        */
       public long getLastModifiedMs() {
         return lastModifiedMs_;
       }
       /**
        * <code>optional int64 last_modified_ms = 25;</code>
+       * @param value The lastModifiedMs to set.
+       * @return This builder for chaining.
        */
       public Builder setLastModifiedMs(long value) {
         bitField0_ |= 0x00000020;
@@ -2723,6 +2899,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional int64 last_modified_ms = 25;</code>
+       * @return This builder for chaining.
        */
       public Builder clearLastModifiedMs() {
         bitField0_ = (bitField0_ & ~0x00000020);
@@ -2734,12 +2911,14 @@ public final class InodeMeta {
       private java.lang.Object name_ = "";
       /**
        * <code>optional string name = 6;</code>
+       * @return Whether the name field is set.
        */
       public boolean hasName() {
-        return ((bitField0_ & 0x00000040) == 0x00000040);
+        return ((bitField0_ & 0x00000040) != 0);
       }
       /**
        * <code>optional string name = 6;</code>
+       * @return The name.
        */
       public java.lang.String getName() {
         java.lang.Object ref = name_;
@@ -2757,6 +2936,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional string name = 6;</code>
+       * @return The bytes for name.
        */
       public com.google.protobuf.ByteString
           getNameBytes() {
@@ -2773,6 +2953,8 @@ public final class InodeMeta {
       }
       /**
        * <code>optional string name = 6;</code>
+       * @param value The name to set.
+       * @return This builder for chaining.
        */
       public Builder setName(
           java.lang.String value) {
@@ -2786,6 +2968,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional string name = 6;</code>
+       * @return This builder for chaining.
        */
       public Builder clearName() {
         bitField0_ = (bitField0_ & ~0x00000040);
@@ -2795,6 +2978,8 @@ public final class InodeMeta {
       }
       /**
        * <code>optional string name = 6;</code>
+       * @param value The bytes for name to set.
+       * @return This builder for chaining.
        */
       public Builder setNameBytes(
           com.google.protobuf.ByteString value) {
@@ -2810,18 +2995,22 @@ public final class InodeMeta {
       private long parentId_ ;
       /**
        * <code>optional int64 parent_id = 7;</code>
+       * @return Whether the parentId field is set.
        */
       public boolean hasParentId() {
-        return ((bitField0_ & 0x00000080) == 0x00000080);
+        return ((bitField0_ & 0x00000080) != 0);
       }
       /**
        * <code>optional int64 parent_id = 7;</code>
+       * @return The parentId.
        */
       public long getParentId() {
         return parentId_;
       }
       /**
        * <code>optional int64 parent_id = 7;</code>
+       * @param value The parentId to set.
+       * @return This builder for chaining.
        */
       public Builder setParentId(long value) {
         bitField0_ |= 0x00000080;
@@ -2831,6 +3020,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional int64 parent_id = 7;</code>
+       * @return This builder for chaining.
        */
       public Builder clearParentId() {
         bitField0_ = (bitField0_ & ~0x00000080);
@@ -2842,12 +3032,14 @@ public final class InodeMeta {
       private java.lang.Object persistenceState_ = "";
       /**
        * <code>optional string persistence_state = 8;</code>
+       * @return Whether the persistenceState field is set.
        */
       public boolean hasPersistenceState() {
-        return ((bitField0_ & 0x00000100) == 0x00000100);
+        return ((bitField0_ & 0x00000100) != 0);
       }
       /**
        * <code>optional string persistence_state = 8;</code>
+       * @return The persistenceState.
        */
       public java.lang.String getPersistenceState() {
         java.lang.Object ref = persistenceState_;
@@ -2865,6 +3057,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional string persistence_state = 8;</code>
+       * @return The bytes for persistenceState.
        */
       public com.google.protobuf.ByteString
           getPersistenceStateBytes() {
@@ -2881,6 +3074,8 @@ public final class InodeMeta {
       }
       /**
        * <code>optional string persistence_state = 8;</code>
+       * @param value The persistenceState to set.
+       * @return This builder for chaining.
        */
       public Builder setPersistenceState(
           java.lang.String value) {
@@ -2894,6 +3089,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional string persistence_state = 8;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPersistenceState() {
         bitField0_ = (bitField0_ & ~0x00000100);
@@ -2903,6 +3099,8 @@ public final class InodeMeta {
       }
       /**
        * <code>optional string persistence_state = 8;</code>
+       * @param value The bytes for persistenceState to set.
+       * @return This builder for chaining.
        */
       public Builder setPersistenceStateBytes(
           com.google.protobuf.ByteString value) {
@@ -2918,18 +3116,22 @@ public final class InodeMeta {
       private boolean isPinned_ ;
       /**
        * <code>optional bool is_pinned = 9;</code>
+       * @return Whether the isPinned field is set.
        */
       public boolean hasIsPinned() {
-        return ((bitField0_ & 0x00000200) == 0x00000200);
+        return ((bitField0_ & 0x00000200) != 0);
       }
       /**
        * <code>optional bool is_pinned = 9;</code>
+       * @return The isPinned.
        */
       public boolean getIsPinned() {
         return isPinned_;
       }
       /**
        * <code>optional bool is_pinned = 9;</code>
+       * @param value The isPinned to set.
+       * @return This builder for chaining.
        */
       public Builder setIsPinned(boolean value) {
         bitField0_ |= 0x00000200;
@@ -2939,6 +3141,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional bool is_pinned = 9;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsPinned() {
         bitField0_ = (bitField0_ & ~0x00000200);
@@ -2947,17 +3150,19 @@ public final class InodeMeta {
         return this;
       }
 
-      private alluxio.proto.shared.Acl.AccessControlList accessAcl_ = null;
+      private alluxio.proto.shared.Acl.AccessControlList accessAcl_;
       private com.google.protobuf.SingleFieldBuilderV3<
           alluxio.proto.shared.Acl.AccessControlList, alluxio.proto.shared.Acl.AccessControlList.Builder, alluxio.proto.shared.Acl.AccessControlListOrBuilder> accessAclBuilder_;
       /**
        * <code>optional .alluxio.proto.shared.AccessControlList access_acl = 10;</code>
+       * @return Whether the accessAcl field is set.
        */
       public boolean hasAccessAcl() {
-        return ((bitField0_ & 0x00000400) == 0x00000400);
+        return ((bitField0_ & 0x00000400) != 0);
       }
       /**
        * <code>optional .alluxio.proto.shared.AccessControlList access_acl = 10;</code>
+       * @return The accessAcl.
        */
       public alluxio.proto.shared.Acl.AccessControlList getAccessAcl() {
         if (accessAclBuilder_ == null) {
@@ -3001,7 +3206,7 @@ public final class InodeMeta {
        */
       public Builder mergeAccessAcl(alluxio.proto.shared.Acl.AccessControlList value) {
         if (accessAclBuilder_ == null) {
-          if (((bitField0_ & 0x00000400) == 0x00000400) &&
+          if (((bitField0_ & 0x00000400) != 0) &&
               accessAcl_ != null &&
               accessAcl_ != alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance()) {
             accessAcl_ =
@@ -3068,12 +3273,14 @@ public final class InodeMeta {
       private java.lang.Object ufsFingerprint_ = "";
       /**
        * <code>optional string ufs_fingerprint = 11;</code>
+       * @return Whether the ufsFingerprint field is set.
        */
       public boolean hasUfsFingerprint() {
-        return ((bitField0_ & 0x00000800) == 0x00000800);
+        return ((bitField0_ & 0x00000800) != 0);
       }
       /**
        * <code>optional string ufs_fingerprint = 11;</code>
+       * @return The ufsFingerprint.
        */
       public java.lang.String getUfsFingerprint() {
         java.lang.Object ref = ufsFingerprint_;
@@ -3091,6 +3298,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional string ufs_fingerprint = 11;</code>
+       * @return The bytes for ufsFingerprint.
        */
       public com.google.protobuf.ByteString
           getUfsFingerprintBytes() {
@@ -3107,6 +3315,8 @@ public final class InodeMeta {
       }
       /**
        * <code>optional string ufs_fingerprint = 11;</code>
+       * @param value The ufsFingerprint to set.
+       * @return This builder for chaining.
        */
       public Builder setUfsFingerprint(
           java.lang.String value) {
@@ -3120,6 +3330,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional string ufs_fingerprint = 11;</code>
+       * @return This builder for chaining.
        */
       public Builder clearUfsFingerprint() {
         bitField0_ = (bitField0_ & ~0x00000800);
@@ -3129,6 +3340,8 @@ public final class InodeMeta {
       }
       /**
        * <code>optional string ufs_fingerprint = 11;</code>
+       * @param value The bytes for ufsFingerprint to set.
+       * @return This builder for chaining.
        */
       public Builder setUfsFingerprintBytes(
           com.google.protobuf.ByteString value) {
@@ -3143,13 +3356,14 @@ public final class InodeMeta {
 
       private com.google.protobuf.LazyStringList mediumType_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureMediumTypeIsMutable() {
-        if (!((bitField0_ & 0x00001000) == 0x00001000)) {
+        if (!((bitField0_ & 0x00001000) != 0)) {
           mediumType_ = new com.google.protobuf.LazyStringArrayList(mediumType_);
           bitField0_ |= 0x00001000;
          }
       }
       /**
        * <code>repeated string medium_type = 27;</code>
+       * @return A list containing the mediumType.
        */
       public com.google.protobuf.ProtocolStringList
           getMediumTypeList() {
@@ -3157,18 +3371,23 @@ public final class InodeMeta {
       }
       /**
        * <code>repeated string medium_type = 27;</code>
+       * @return The count of mediumType.
        */
       public int getMediumTypeCount() {
         return mediumType_.size();
       }
       /**
        * <code>repeated string medium_type = 27;</code>
+       * @param index The index of the element to return.
+       * @return The mediumType at the given index.
        */
       public java.lang.String getMediumType(int index) {
         return mediumType_.get(index);
       }
       /**
        * <code>repeated string medium_type = 27;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the mediumType at the given index.
        */
       public com.google.protobuf.ByteString
           getMediumTypeBytes(int index) {
@@ -3176,6 +3395,9 @@ public final class InodeMeta {
       }
       /**
        * <code>repeated string medium_type = 27;</code>
+       * @param index The index to set the value at.
+       * @param value The mediumType to set.
+       * @return This builder for chaining.
        */
       public Builder setMediumType(
           int index, java.lang.String value) {
@@ -3189,6 +3411,8 @@ public final class InodeMeta {
       }
       /**
        * <code>repeated string medium_type = 27;</code>
+       * @param value The mediumType to add.
+       * @return This builder for chaining.
        */
       public Builder addMediumType(
           java.lang.String value) {
@@ -3202,6 +3426,8 @@ public final class InodeMeta {
       }
       /**
        * <code>repeated string medium_type = 27;</code>
+       * @param values The mediumType to add.
+       * @return This builder for chaining.
        */
       public Builder addAllMediumType(
           java.lang.Iterable<java.lang.String> values) {
@@ -3213,6 +3439,7 @@ public final class InodeMeta {
       }
       /**
        * <code>repeated string medium_type = 27;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMediumType() {
         mediumType_ = com.google.protobuf.LazyStringArrayList.EMPTY;
@@ -3222,6 +3449,8 @@ public final class InodeMeta {
       }
       /**
        * <code>repeated string medium_type = 27;</code>
+       * @param value The bytes of the mediumType to add.
+       * @return This builder for chaining.
        */
       public Builder addMediumTypeBytes(
           com.google.protobuf.ByteString value) {
@@ -3237,18 +3466,22 @@ public final class InodeMeta {
       private long lastAccessedMs_ ;
       /**
        * <code>optional int64 last_accessed_ms = 30;</code>
+       * @return Whether the lastAccessedMs field is set.
        */
       public boolean hasLastAccessedMs() {
-        return ((bitField0_ & 0x00002000) == 0x00002000);
+        return ((bitField0_ & 0x00002000) != 0);
       }
       /**
        * <code>optional int64 last_accessed_ms = 30;</code>
+       * @return The lastAccessedMs.
        */
       public long getLastAccessedMs() {
         return lastAccessedMs_;
       }
       /**
        * <code>optional int64 last_accessed_ms = 30;</code>
+       * @param value The lastAccessedMs to set.
+       * @return This builder for chaining.
        */
       public Builder setLastAccessedMs(long value) {
         bitField0_ |= 0x00002000;
@@ -3258,6 +3491,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional int64 last_accessed_ms = 30;</code>
+       * @return This builder for chaining.
        */
       public Builder clearLastAccessedMs() {
         bitField0_ = (bitField0_ & ~0x00002000);
@@ -3273,9 +3507,10 @@ public final class InodeMeta {
        * </pre>
        *
        * <code>optional bool is_mount_point = 12;</code>
+       * @return Whether the isMountPoint field is set.
        */
       public boolean hasIsMountPoint() {
-        return ((bitField0_ & 0x00004000) == 0x00004000);
+        return ((bitField0_ & 0x00004000) != 0);
       }
       /**
        * <pre>
@@ -3283,6 +3518,7 @@ public final class InodeMeta {
        * </pre>
        *
        * <code>optional bool is_mount_point = 12;</code>
+       * @return The isMountPoint.
        */
       public boolean getIsMountPoint() {
         return isMountPoint_;
@@ -3293,6 +3529,8 @@ public final class InodeMeta {
        * </pre>
        *
        * <code>optional bool is_mount_point = 12;</code>
+       * @param value The isMountPoint to set.
+       * @return This builder for chaining.
        */
       public Builder setIsMountPoint(boolean value) {
         bitField0_ |= 0x00004000;
@@ -3306,6 +3544,7 @@ public final class InodeMeta {
        * </pre>
        *
        * <code>optional bool is_mount_point = 12;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsMountPoint() {
         bitField0_ = (bitField0_ & ~0x00004000);
@@ -3317,18 +3556,22 @@ public final class InodeMeta {
       private boolean hasDirectChildrenLoaded_ ;
       /**
        * <code>optional bool has_direct_children_loaded = 13;</code>
+       * @return Whether the hasDirectChildrenLoaded field is set.
        */
       public boolean hasHasDirectChildrenLoaded() {
-        return ((bitField0_ & 0x00008000) == 0x00008000);
+        return ((bitField0_ & 0x00008000) != 0);
       }
       /**
        * <code>optional bool has_direct_children_loaded = 13;</code>
+       * @return The hasDirectChildrenLoaded.
        */
       public boolean getHasDirectChildrenLoaded() {
         return hasDirectChildrenLoaded_;
       }
       /**
        * <code>optional bool has_direct_children_loaded = 13;</code>
+       * @param value The hasDirectChildrenLoaded to set.
+       * @return This builder for chaining.
        */
       public Builder setHasDirectChildrenLoaded(boolean value) {
         bitField0_ |= 0x00008000;
@@ -3338,6 +3581,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional bool has_direct_children_loaded = 13;</code>
+       * @return This builder for chaining.
        */
       public Builder clearHasDirectChildrenLoaded() {
         bitField0_ = (bitField0_ & ~0x00008000);
@@ -3349,18 +3593,22 @@ public final class InodeMeta {
       private long childCount_ ;
       /**
        * <code>optional int64 child_count = 26;</code>
+       * @return Whether the childCount field is set.
        */
       public boolean hasChildCount() {
-        return ((bitField0_ & 0x00010000) == 0x00010000);
+        return ((bitField0_ & 0x00010000) != 0);
       }
       /**
        * <code>optional int64 child_count = 26;</code>
+       * @return The childCount.
        */
       public long getChildCount() {
         return childCount_;
       }
       /**
        * <code>optional int64 child_count = 26;</code>
+       * @param value The childCount to set.
+       * @return This builder for chaining.
        */
       public Builder setChildCount(long value) {
         bitField0_ |= 0x00010000;
@@ -3370,6 +3618,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional int64 child_count = 26;</code>
+       * @return This builder for chaining.
        */
       public Builder clearChildCount() {
         bitField0_ = (bitField0_ & ~0x00010000);
@@ -3378,17 +3627,19 @@ public final class InodeMeta {
         return this;
       }
 
-      private alluxio.proto.shared.Acl.AccessControlList defaultAcl_ = null;
+      private alluxio.proto.shared.Acl.AccessControlList defaultAcl_;
       private com.google.protobuf.SingleFieldBuilderV3<
           alluxio.proto.shared.Acl.AccessControlList, alluxio.proto.shared.Acl.AccessControlList.Builder, alluxio.proto.shared.Acl.AccessControlListOrBuilder> defaultAclBuilder_;
       /**
        * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
+       * @return Whether the defaultAcl field is set.
        */
       public boolean hasDefaultAcl() {
-        return ((bitField0_ & 0x00020000) == 0x00020000);
+        return ((bitField0_ & 0x00020000) != 0);
       }
       /**
        * <code>optional .alluxio.proto.shared.AccessControlList default_acl = 14;</code>
+       * @return The defaultAcl.
        */
       public alluxio.proto.shared.Acl.AccessControlList getDefaultAcl() {
         if (defaultAclBuilder_ == null) {
@@ -3432,7 +3683,7 @@ public final class InodeMeta {
        */
       public Builder mergeDefaultAcl(alluxio.proto.shared.Acl.AccessControlList value) {
         if (defaultAclBuilder_ == null) {
-          if (((bitField0_ & 0x00020000) == 0x00020000) &&
+          if (((bitField0_ & 0x00020000) != 0) &&
               defaultAcl_ != null &&
               defaultAcl_ != alluxio.proto.shared.Acl.AccessControlList.getDefaultInstance()) {
             defaultAcl_ =
@@ -3503,9 +3754,10 @@ public final class InodeMeta {
        * </pre>
        *
        * <code>optional int64 block_size_bytes = 15;</code>
+       * @return Whether the blockSizeBytes field is set.
        */
       public boolean hasBlockSizeBytes() {
-        return ((bitField0_ & 0x00040000) == 0x00040000);
+        return ((bitField0_ & 0x00040000) != 0);
       }
       /**
        * <pre>
@@ -3513,6 +3765,7 @@ public final class InodeMeta {
        * </pre>
        *
        * <code>optional int64 block_size_bytes = 15;</code>
+       * @return The blockSizeBytes.
        */
       public long getBlockSizeBytes() {
         return blockSizeBytes_;
@@ -3523,6 +3776,8 @@ public final class InodeMeta {
        * </pre>
        *
        * <code>optional int64 block_size_bytes = 15;</code>
+       * @param value The blockSizeBytes to set.
+       * @return This builder for chaining.
        */
       public Builder setBlockSizeBytes(long value) {
         bitField0_ |= 0x00040000;
@@ -3536,6 +3791,7 @@ public final class InodeMeta {
        * </pre>
        *
        * <code>optional int64 block_size_bytes = 15;</code>
+       * @return This builder for chaining.
        */
       public Builder clearBlockSizeBytes() {
         bitField0_ = (bitField0_ & ~0x00040000);
@@ -3544,53 +3800,65 @@ public final class InodeMeta {
         return this;
       }
 
-      private java.util.List<java.lang.Long> blocks_ = java.util.Collections.emptyList();
+      private com.google.protobuf.Internal.LongList blocks_ = emptyLongList();
       private void ensureBlocksIsMutable() {
-        if (!((bitField0_ & 0x00080000) == 0x00080000)) {
-          blocks_ = new java.util.ArrayList<java.lang.Long>(blocks_);
+        if (!((bitField0_ & 0x00080000) != 0)) {
+          blocks_ = mutableCopy(blocks_);
           bitField0_ |= 0x00080000;
          }
       }
       /**
        * <code>repeated int64 blocks = 16;</code>
+       * @return A list containing the blocks.
        */
       public java.util.List<java.lang.Long>
           getBlocksList() {
-        return java.util.Collections.unmodifiableList(blocks_);
+        return ((bitField0_ & 0x00080000) != 0) ?
+                 java.util.Collections.unmodifiableList(blocks_) : blocks_;
       }
       /**
        * <code>repeated int64 blocks = 16;</code>
+       * @return The count of blocks.
        */
       public int getBlocksCount() {
         return blocks_.size();
       }
       /**
        * <code>repeated int64 blocks = 16;</code>
+       * @param index The index of the element to return.
+       * @return The blocks at the given index.
        */
       public long getBlocks(int index) {
-        return blocks_.get(index);
+        return blocks_.getLong(index);
       }
       /**
        * <code>repeated int64 blocks = 16;</code>
+       * @param index The index to set the value at.
+       * @param value The blocks to set.
+       * @return This builder for chaining.
        */
       public Builder setBlocks(
           int index, long value) {
         ensureBlocksIsMutable();
-        blocks_.set(index, value);
+        blocks_.setLong(index, value);
         onChanged();
         return this;
       }
       /**
        * <code>repeated int64 blocks = 16;</code>
+       * @param value The blocks to add.
+       * @return This builder for chaining.
        */
       public Builder addBlocks(long value) {
         ensureBlocksIsMutable();
-        blocks_.add(value);
+        blocks_.addLong(value);
         onChanged();
         return this;
       }
       /**
        * <code>repeated int64 blocks = 16;</code>
+       * @param values The blocks to add.
+       * @return This builder for chaining.
        */
       public Builder addAllBlocks(
           java.lang.Iterable<? extends java.lang.Long> values) {
@@ -3602,9 +3870,10 @@ public final class InodeMeta {
       }
       /**
        * <code>repeated int64 blocks = 16;</code>
+       * @return This builder for chaining.
        */
       public Builder clearBlocks() {
-        blocks_ = java.util.Collections.emptyList();
+        blocks_ = emptyLongList();
         bitField0_ = (bitField0_ & ~0x00080000);
         onChanged();
         return this;
@@ -3613,18 +3882,22 @@ public final class InodeMeta {
       private boolean isCacheable_ ;
       /**
        * <code>optional bool is_cacheable = 17;</code>
+       * @return Whether the isCacheable field is set.
        */
       public boolean hasIsCacheable() {
-        return ((bitField0_ & 0x00100000) == 0x00100000);
+        return ((bitField0_ & 0x00100000) != 0);
       }
       /**
        * <code>optional bool is_cacheable = 17;</code>
+       * @return The isCacheable.
        */
       public boolean getIsCacheable() {
         return isCacheable_;
       }
       /**
        * <code>optional bool is_cacheable = 17;</code>
+       * @param value The isCacheable to set.
+       * @return This builder for chaining.
        */
       public Builder setIsCacheable(boolean value) {
         bitField0_ |= 0x00100000;
@@ -3634,6 +3907,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional bool is_cacheable = 17;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsCacheable() {
         bitField0_ = (bitField0_ & ~0x00100000);
@@ -3645,18 +3919,22 @@ public final class InodeMeta {
       private boolean isCompleted_ ;
       /**
        * <code>optional bool is_completed = 18;</code>
+       * @return Whether the isCompleted field is set.
        */
       public boolean hasIsCompleted() {
-        return ((bitField0_ & 0x00200000) == 0x00200000);
+        return ((bitField0_ & 0x00200000) != 0);
       }
       /**
        * <code>optional bool is_completed = 18;</code>
+       * @return The isCompleted.
        */
       public boolean getIsCompleted() {
         return isCompleted_;
       }
       /**
        * <code>optional bool is_completed = 18;</code>
+       * @param value The isCompleted to set.
+       * @return This builder for chaining.
        */
       public Builder setIsCompleted(boolean value) {
         bitField0_ |= 0x00200000;
@@ -3666,6 +3944,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional bool is_completed = 18;</code>
+       * @return This builder for chaining.
        */
       public Builder clearIsCompleted() {
         bitField0_ = (bitField0_ & ~0x00200000);
@@ -3677,18 +3956,22 @@ public final class InodeMeta {
       private long length_ ;
       /**
        * <code>optional int64 length = 19;</code>
+       * @return Whether the length field is set.
        */
       public boolean hasLength() {
-        return ((bitField0_ & 0x00400000) == 0x00400000);
+        return ((bitField0_ & 0x00400000) != 0);
       }
       /**
        * <code>optional int64 length = 19;</code>
+       * @return The length.
        */
       public long getLength() {
         return length_;
       }
       /**
        * <code>optional int64 length = 19;</code>
+       * @param value The length to set.
+       * @return This builder for chaining.
        */
       public Builder setLength(long value) {
         bitField0_ |= 0x00400000;
@@ -3698,6 +3981,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional int64 length = 19;</code>
+       * @return This builder for chaining.
        */
       public Builder clearLength() {
         bitField0_ = (bitField0_ & ~0x00400000);
@@ -3709,18 +3993,22 @@ public final class InodeMeta {
       private int replicationDurable_ ;
       /**
        * <code>optional int32 replication_durable = 20;</code>
+       * @return Whether the replicationDurable field is set.
        */
       public boolean hasReplicationDurable() {
-        return ((bitField0_ & 0x00800000) == 0x00800000);
+        return ((bitField0_ & 0x00800000) != 0);
       }
       /**
        * <code>optional int32 replication_durable = 20;</code>
+       * @return The replicationDurable.
        */
       public int getReplicationDurable() {
         return replicationDurable_;
       }
       /**
        * <code>optional int32 replication_durable = 20;</code>
+       * @param value The replicationDurable to set.
+       * @return This builder for chaining.
        */
       public Builder setReplicationDurable(int value) {
         bitField0_ |= 0x00800000;
@@ -3730,6 +4018,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional int32 replication_durable = 20;</code>
+       * @return This builder for chaining.
        */
       public Builder clearReplicationDurable() {
         bitField0_ = (bitField0_ & ~0x00800000);
@@ -3741,18 +4030,22 @@ public final class InodeMeta {
       private int replicationMax_ ;
       /**
        * <code>optional int32 replication_max = 21;</code>
+       * @return Whether the replicationMax field is set.
        */
       public boolean hasReplicationMax() {
-        return ((bitField0_ & 0x01000000) == 0x01000000);
+        return ((bitField0_ & 0x01000000) != 0);
       }
       /**
        * <code>optional int32 replication_max = 21;</code>
+       * @return The replicationMax.
        */
       public int getReplicationMax() {
         return replicationMax_;
       }
       /**
        * <code>optional int32 replication_max = 21;</code>
+       * @param value The replicationMax to set.
+       * @return This builder for chaining.
        */
       public Builder setReplicationMax(int value) {
         bitField0_ |= 0x01000000;
@@ -3762,6 +4055,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional int32 replication_max = 21;</code>
+       * @return This builder for chaining.
        */
       public Builder clearReplicationMax() {
         bitField0_ = (bitField0_ & ~0x01000000);
@@ -3773,18 +4067,22 @@ public final class InodeMeta {
       private int replicationMin_ ;
       /**
        * <code>optional int32 replication_min = 22;</code>
+       * @return Whether the replicationMin field is set.
        */
       public boolean hasReplicationMin() {
-        return ((bitField0_ & 0x02000000) == 0x02000000);
+        return ((bitField0_ & 0x02000000) != 0);
       }
       /**
        * <code>optional int32 replication_min = 22;</code>
+       * @return The replicationMin.
        */
       public int getReplicationMin() {
         return replicationMin_;
       }
       /**
        * <code>optional int32 replication_min = 22;</code>
+       * @param value The replicationMin to set.
+       * @return This builder for chaining.
        */
       public Builder setReplicationMin(int value) {
         bitField0_ |= 0x02000000;
@@ -3794,6 +4092,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional int32 replication_min = 22;</code>
+       * @return This builder for chaining.
        */
       public Builder clearReplicationMin() {
         bitField0_ = (bitField0_ & ~0x02000000);
@@ -3805,18 +4104,22 @@ public final class InodeMeta {
       private long shouldPersistTime_ ;
       /**
        * <code>optional int64 should_persist_time = 28;</code>
+       * @return Whether the shouldPersistTime field is set.
        */
       public boolean hasShouldPersistTime() {
-        return ((bitField0_ & 0x04000000) == 0x04000000);
+        return ((bitField0_ & 0x04000000) != 0);
       }
       /**
        * <code>optional int64 should_persist_time = 28;</code>
+       * @return The shouldPersistTime.
        */
       public long getShouldPersistTime() {
         return shouldPersistTime_;
       }
       /**
        * <code>optional int64 should_persist_time = 28;</code>
+       * @param value The shouldPersistTime to set.
+       * @return This builder for chaining.
        */
       public Builder setShouldPersistTime(long value) {
         bitField0_ |= 0x04000000;
@@ -3826,6 +4129,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional int64 should_persist_time = 28;</code>
+       * @return This builder for chaining.
        */
       public Builder clearShouldPersistTime() {
         bitField0_ = (bitField0_ & ~0x04000000);
@@ -3841,9 +4145,10 @@ public final class InodeMeta {
        * </pre>
        *
        * <code>optional int64 persist_job_id = 23;</code>
+       * @return Whether the persistJobId field is set.
        */
       public boolean hasPersistJobId() {
-        return ((bitField0_ & 0x08000000) == 0x08000000);
+        return ((bitField0_ & 0x08000000) != 0);
       }
       /**
        * <pre>
@@ -3851,6 +4156,7 @@ public final class InodeMeta {
        * </pre>
        *
        * <code>optional int64 persist_job_id = 23;</code>
+       * @return The persistJobId.
        */
       public long getPersistJobId() {
         return persistJobId_;
@@ -3861,6 +4167,8 @@ public final class InodeMeta {
        * </pre>
        *
        * <code>optional int64 persist_job_id = 23;</code>
+       * @param value The persistJobId to set.
+       * @return This builder for chaining.
        */
       public Builder setPersistJobId(long value) {
         bitField0_ |= 0x08000000;
@@ -3874,6 +4182,7 @@ public final class InodeMeta {
        * </pre>
        *
        * <code>optional int64 persist_job_id = 23;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPersistJobId() {
         bitField0_ = (bitField0_ & ~0x08000000);
@@ -3885,12 +4194,14 @@ public final class InodeMeta {
       private java.lang.Object persistJobTempUfsPath_ = "";
       /**
        * <code>optional string persist_job_temp_ufs_path = 24;</code>
+       * @return Whether the persistJobTempUfsPath field is set.
        */
       public boolean hasPersistJobTempUfsPath() {
-        return ((bitField0_ & 0x10000000) == 0x10000000);
+        return ((bitField0_ & 0x10000000) != 0);
       }
       /**
        * <code>optional string persist_job_temp_ufs_path = 24;</code>
+       * @return The persistJobTempUfsPath.
        */
       public java.lang.String getPersistJobTempUfsPath() {
         java.lang.Object ref = persistJobTempUfsPath_;
@@ -3908,6 +4219,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional string persist_job_temp_ufs_path = 24;</code>
+       * @return The bytes for persistJobTempUfsPath.
        */
       public com.google.protobuf.ByteString
           getPersistJobTempUfsPathBytes() {
@@ -3924,6 +4236,8 @@ public final class InodeMeta {
       }
       /**
        * <code>optional string persist_job_temp_ufs_path = 24;</code>
+       * @param value The persistJobTempUfsPath to set.
+       * @return This builder for chaining.
        */
       public Builder setPersistJobTempUfsPath(
           java.lang.String value) {
@@ -3937,6 +4251,7 @@ public final class InodeMeta {
       }
       /**
        * <code>optional string persist_job_temp_ufs_path = 24;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPersistJobTempUfsPath() {
         bitField0_ = (bitField0_ & ~0x10000000);
@@ -3946,6 +4261,8 @@ public final class InodeMeta {
       }
       /**
        * <code>optional string persist_job_temp_ufs_path = 24;</code>
+       * @param value The bytes for persistJobTempUfsPath to set.
+       * @return This builder for chaining.
        */
       public Builder setPersistJobTempUfsPathBytes(
           com.google.protobuf.ByteString value) {
@@ -4115,11 +4432,13 @@ public final class InodeMeta {
             .putAll(values);
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -4141,6 +4460,7 @@ public final class InodeMeta {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<Inode>
         PARSER = new com.google.protobuf.AbstractParser<Inode>() {
+      @java.lang.Override
       public Inode parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -4158,6 +4478,7 @@ public final class InodeMeta {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.meta.InodeMeta.Inode getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -4209,20 +4530,12 @@ public final class InodeMeta {
       "try\032,\n\nXAttrEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030" +
       "\002 \001(\014:\0028\001"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           alluxio.grpc.CommonProto.getDescriptor(),
           alluxio.proto.shared.Acl.getDescriptor(),
-        }, assigner);
+        });
     internal_static_alluxio_proto_meta_Inode_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_alluxio_proto_meta_Inode_fieldAccessorTable = new

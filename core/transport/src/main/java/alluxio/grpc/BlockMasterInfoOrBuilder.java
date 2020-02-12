@@ -9,10 +9,12 @@ public interface BlockMasterInfoOrBuilder extends
 
   /**
    * <code>optional int64 capacityBytes = 1;</code>
+   * @return Whether the capacityBytes field is set.
    */
   boolean hasCapacityBytes();
   /**
    * <code>optional int64 capacityBytes = 1;</code>
+   * @return The capacityBytes.
    */
   long getCapacityBytes();
 
@@ -52,37 +54,45 @@ public interface BlockMasterInfoOrBuilder extends
 
   /**
    * <code>optional int64 freeBytes = 3;</code>
+   * @return Whether the freeBytes field is set.
    */
   boolean hasFreeBytes();
   /**
    * <code>optional int64 freeBytes = 3;</code>
+   * @return The freeBytes.
    */
   long getFreeBytes();
 
   /**
    * <code>optional int32 liveWorkerNum = 4;</code>
+   * @return Whether the liveWorkerNum field is set.
    */
   boolean hasLiveWorkerNum();
   /**
    * <code>optional int32 liveWorkerNum = 4;</code>
+   * @return The liveWorkerNum.
    */
   int getLiveWorkerNum();
 
   /**
    * <code>optional int32 lostWorkerNum = 5;</code>
+   * @return Whether the lostWorkerNum field is set.
    */
   boolean hasLostWorkerNum();
   /**
    * <code>optional int32 lostWorkerNum = 5;</code>
+   * @return The lostWorkerNum.
    */
   int getLostWorkerNum();
 
   /**
    * <code>optional int64 usedBytes = 6;</code>
+   * @return Whether the usedBytes field is set.
    */
   boolean hasUsedBytes();
   /**
    * <code>optional int64 usedBytes = 6;</code>
+   * @return The usedBytes.
    */
   long getUsedBytes();
 

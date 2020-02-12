@@ -25,9 +25,13 @@ private static final long serialVersionUID = 0L;
     type_ = 0;
     owner_ = "";
     partitionCols_ = java.util.Collections.emptyList();
-    previousVersion_ = 0L;
-    version_ = 0L;
-    versionCreationTime_ = 0L;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new TableInfo();
   }
 
   @java.lang.Override
@@ -54,13 +58,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
@@ -75,6 +72,7 @@ private static final long serialVersionUID = 0L;
           }
           case 24: {
             int rawValue = input.readEnum();
+              @SuppressWarnings("deprecation")
             alluxio.grpc.table.TableInfo.TableType value = alluxio.grpc.table.TableInfo.TableType.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(3, rawValue);
@@ -92,7 +90,7 @@ private static final long serialVersionUID = 0L;
           }
           case 42: {
             alluxio.grpc.table.Schema.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000010) == 0x00000010)) {
+            if (((bitField0_ & 0x00000010) != 0)) {
               subBuilder = schema_.toBuilder();
             }
             schema_ = input.readMessage(alluxio.grpc.table.Schema.PARSER, extensionRegistry);
@@ -105,7 +103,7 @@ private static final long serialVersionUID = 0L;
           }
           case 50: {
             alluxio.grpc.table.Layout.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000020) == 0x00000020)) {
+            if (((bitField0_ & 0x00000020) != 0)) {
               subBuilder = layout_.toBuilder();
             }
             layout_ = input.readMessage(alluxio.grpc.table.Layout.PARSER, extensionRegistry);
@@ -117,7 +115,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 58: {
-            if (!((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+            if (!((mutable_bitField0_ & 0x00000040) != 0)) {
               parameters_ = com.google.protobuf.MapField.newMapField(
                   ParametersDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000040;
@@ -130,7 +128,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 66: {
-            if (!((mutable_bitField0_ & 0x00000080) == 0x00000080)) {
+            if (!((mutable_bitField0_ & 0x00000080) != 0)) {
               partitionCols_ = new java.util.ArrayList<alluxio.grpc.table.FieldSchema>();
               mutable_bitField0_ |= 0x00000080;
             }
@@ -153,6 +151,13 @@ private static final long serialVersionUID = 0L;
             versionCreationTime_ = input.readInt64();
             break;
           }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -161,7 +166,7 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000080) == 0x00000080)) {
+      if (((mutable_bitField0_ & 0x00000080) != 0)) {
         partitionCols_ = java.util.Collections.unmodifiableList(partitionCols_);
       }
       this.unknownFields = unknownFields.build();
@@ -174,6 +179,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @SuppressWarnings({"rawtypes"})
+  @java.lang.Override
   protected com.google.protobuf.MapField internalGetMapField(
       int number) {
     switch (number) {
@@ -184,6 +190,7 @@ private static final long serialVersionUID = 0L;
             "Invalid map field number: " + number);
     }
   }
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_TableInfo_fieldAccessorTable
@@ -221,6 +228,8 @@ private static final long serialVersionUID = 0L;
     }
 
     /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
     @java.lang.Deprecated
@@ -228,6 +237,10 @@ private static final long serialVersionUID = 0L;
       return forNumber(value);
     }
 
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
     public static TableType forNumber(int value) {
       switch (value) {
         case 0: return NATIVE;
@@ -286,12 +299,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object dbName_;
   /**
    * <code>optional string db_name = 1;</code>
+   * @return Whether the dbName field is set.
    */
   public boolean hasDbName() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional string db_name = 1;</code>
+   * @return The dbName.
    */
   public java.lang.String getDbName() {
     java.lang.Object ref = dbName_;
@@ -309,6 +324,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string db_name = 1;</code>
+   * @return The bytes for dbName.
    */
   public com.google.protobuf.ByteString
       getDbNameBytes() {
@@ -328,12 +344,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object tableName_;
   /**
    * <code>optional string table_name = 2;</code>
+   * @return Whether the tableName field is set.
    */
   public boolean hasTableName() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional string table_name = 2;</code>
+   * @return The tableName.
    */
   public java.lang.String getTableName() {
     java.lang.Object ref = tableName_;
@@ -351,6 +369,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string table_name = 2;</code>
+   * @return The bytes for tableName.
    */
   public com.google.protobuf.ByteString
       getTableNameBytes() {
@@ -370,14 +389,17 @@ private static final long serialVersionUID = 0L;
   private int type_;
   /**
    * <code>optional .alluxio.grpc.table.TableInfo.TableType type = 3;</code>
+   * @return Whether the type field is set.
    */
   public boolean hasType() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.table.TableInfo.TableType type = 3;</code>
+   * @return The type.
    */
   public alluxio.grpc.table.TableInfo.TableType getType() {
+    @SuppressWarnings("deprecation")
     alluxio.grpc.table.TableInfo.TableType result = alluxio.grpc.table.TableInfo.TableType.valueOf(type_);
     return result == null ? alluxio.grpc.table.TableInfo.TableType.NATIVE : result;
   }
@@ -386,12 +408,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object owner_;
   /**
    * <code>optional string owner = 4;</code>
+   * @return Whether the owner field is set.
    */
   public boolean hasOwner() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000008) != 0);
   }
   /**
    * <code>optional string owner = 4;</code>
+   * @return The owner.
    */
   public java.lang.String getOwner() {
     java.lang.Object ref = owner_;
@@ -409,6 +433,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string owner = 4;</code>
+   * @return The bytes for owner.
    */
   public com.google.protobuf.ByteString
       getOwnerBytes() {
@@ -428,12 +453,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.table.Schema schema_;
   /**
    * <code>optional .alluxio.grpc.table.Schema schema = 5;</code>
+   * @return Whether the schema field is set.
    */
   public boolean hasSchema() {
-    return ((bitField0_ & 0x00000010) == 0x00000010);
+    return ((bitField0_ & 0x00000010) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.table.Schema schema = 5;</code>
+   * @return The schema.
    */
   public alluxio.grpc.table.Schema getSchema() {
     return schema_ == null ? alluxio.grpc.table.Schema.getDefaultInstance() : schema_;
@@ -449,12 +476,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.table.Layout layout_;
   /**
    * <code>optional .alluxio.grpc.table.Layout layout = 6;</code>
+   * @return Whether the layout field is set.
    */
   public boolean hasLayout() {
-    return ((bitField0_ & 0x00000020) == 0x00000020);
+    return ((bitField0_ & 0x00000020) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.table.Layout layout = 6;</code>
+   * @return The layout.
    */
   public alluxio.grpc.table.Layout getLayout() {
     return layout_ == null ? alluxio.grpc.table.Layout.getDefaultInstance() : layout_;
@@ -601,12 +630,14 @@ private static final long serialVersionUID = 0L;
   private long previousVersion_;
   /**
    * <code>optional int64 previous_version = 9;</code>
+   * @return Whether the previousVersion field is set.
    */
   public boolean hasPreviousVersion() {
-    return ((bitField0_ & 0x00000040) == 0x00000040);
+    return ((bitField0_ & 0x00000040) != 0);
   }
   /**
    * <code>optional int64 previous_version = 9;</code>
+   * @return The previousVersion.
    */
   public long getPreviousVersion() {
     return previousVersion_;
@@ -616,12 +647,14 @@ private static final long serialVersionUID = 0L;
   private long version_;
   /**
    * <code>optional int64 version = 10;</code>
+   * @return Whether the version field is set.
    */
   public boolean hasVersion() {
-    return ((bitField0_ & 0x00000080) == 0x00000080);
+    return ((bitField0_ & 0x00000080) != 0);
   }
   /**
    * <code>optional int64 version = 10;</code>
+   * @return The version.
    */
   public long getVersion() {
     return version_;
@@ -631,18 +664,21 @@ private static final long serialVersionUID = 0L;
   private long versionCreationTime_;
   /**
    * <code>optional int64 version_creation_time = 11;</code>
+   * @return Whether the versionCreationTime field is set.
    */
   public boolean hasVersionCreationTime() {
-    return ((bitField0_ & 0x00000100) == 0x00000100);
+    return ((bitField0_ & 0x00000100) != 0);
   }
   /**
    * <code>optional int64 version_creation_time = 11;</code>
+   * @return The versionCreationTime.
    */
   public long getVersionCreationTime() {
     return versionCreationTime_;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -658,24 +694,25 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, dbName_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, tableName_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       output.writeEnum(3, type_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 4, owner_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       output.writeMessage(5, getSchema());
     }
-    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+    if (((bitField0_ & 0x00000020) != 0)) {
       output.writeMessage(6, getLayout());
     }
     com.google.protobuf.GeneratedMessageV3
@@ -687,41 +724,42 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < partitionCols_.size(); i++) {
       output.writeMessage(8, partitionCols_.get(i));
     }
-    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+    if (((bitField0_ & 0x00000040) != 0)) {
       output.writeInt64(9, previousVersion_);
     }
-    if (((bitField0_ & 0x00000080) == 0x00000080)) {
+    if (((bitField0_ & 0x00000080) != 0)) {
       output.writeInt64(10, version_);
     }
-    if (((bitField0_ & 0x00000100) == 0x00000100)) {
+    if (((bitField0_ & 0x00000100) != 0)) {
       output.writeInt64(11, versionCreationTime_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, dbName_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, tableName_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(3, type_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, owner_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(5, getSchema());
     }
-    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+    if (((bitField0_ & 0x00000020) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(6, getLayout());
     }
@@ -739,15 +777,15 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(8, partitionCols_.get(i));
     }
-    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+    if (((bitField0_ & 0x00000040) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(9, previousVersion_);
     }
-    if (((bitField0_ & 0x00000080) == 0x00000080)) {
+    if (((bitField0_ & 0x00000080) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(10, version_);
     }
-    if (((bitField0_ & 0x00000100) == 0x00000100)) {
+    if (((bitField0_ & 0x00000100) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(11, versionCreationTime_);
     }
@@ -766,57 +804,56 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.table.TableInfo other = (alluxio.grpc.table.TableInfo) obj;
 
-    boolean result = true;
-    result = result && (hasDbName() == other.hasDbName());
+    if (hasDbName() != other.hasDbName()) return false;
     if (hasDbName()) {
-      result = result && getDbName()
-          .equals(other.getDbName());
+      if (!getDbName()
+          .equals(other.getDbName())) return false;
     }
-    result = result && (hasTableName() == other.hasTableName());
+    if (hasTableName() != other.hasTableName()) return false;
     if (hasTableName()) {
-      result = result && getTableName()
-          .equals(other.getTableName());
+      if (!getTableName()
+          .equals(other.getTableName())) return false;
     }
-    result = result && (hasType() == other.hasType());
+    if (hasType() != other.hasType()) return false;
     if (hasType()) {
-      result = result && type_ == other.type_;
+      if (type_ != other.type_) return false;
     }
-    result = result && (hasOwner() == other.hasOwner());
+    if (hasOwner() != other.hasOwner()) return false;
     if (hasOwner()) {
-      result = result && getOwner()
-          .equals(other.getOwner());
+      if (!getOwner()
+          .equals(other.getOwner())) return false;
     }
-    result = result && (hasSchema() == other.hasSchema());
+    if (hasSchema() != other.hasSchema()) return false;
     if (hasSchema()) {
-      result = result && getSchema()
-          .equals(other.getSchema());
+      if (!getSchema()
+          .equals(other.getSchema())) return false;
     }
-    result = result && (hasLayout() == other.hasLayout());
+    if (hasLayout() != other.hasLayout()) return false;
     if (hasLayout()) {
-      result = result && getLayout()
-          .equals(other.getLayout());
+      if (!getLayout()
+          .equals(other.getLayout())) return false;
     }
-    result = result && internalGetParameters().equals(
-        other.internalGetParameters());
-    result = result && getPartitionColsList()
-        .equals(other.getPartitionColsList());
-    result = result && (hasPreviousVersion() == other.hasPreviousVersion());
+    if (!internalGetParameters().equals(
+        other.internalGetParameters())) return false;
+    if (!getPartitionColsList()
+        .equals(other.getPartitionColsList())) return false;
+    if (hasPreviousVersion() != other.hasPreviousVersion()) return false;
     if (hasPreviousVersion()) {
-      result = result && (getPreviousVersion()
-          == other.getPreviousVersion());
+      if (getPreviousVersion()
+          != other.getPreviousVersion()) return false;
     }
-    result = result && (hasVersion() == other.hasVersion());
+    if (hasVersion() != other.hasVersion()) return false;
     if (hasVersion()) {
-      result = result && (getVersion()
-          == other.getVersion());
+      if (getVersion()
+          != other.getVersion()) return false;
     }
-    result = result && (hasVersionCreationTime() == other.hasVersionCreationTime());
+    if (hasVersionCreationTime() != other.hasVersionCreationTime()) return false;
     if (hasVersionCreationTime()) {
-      result = result && (getVersionCreationTime()
-          == other.getVersionCreationTime());
+      if (getVersionCreationTime()
+          != other.getVersionCreationTime()) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -948,6 +985,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -955,6 +993,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.table.TableInfo prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -1004,6 +1043,7 @@ private static final long serialVersionUID = 0L;
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_TableInfo_fieldAccessorTable
@@ -1029,6 +1069,7 @@ private static final long serialVersionUID = 0L;
         getPartitionColsFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       dbName_ = "";
@@ -1067,15 +1108,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_TableInfo_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.TableInfo getDefaultInstanceForType() {
       return alluxio.grpc.table.TableInfo.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.TableInfo build() {
       alluxio.grpc.table.TableInfo result = buildPartial();
       if (!result.isInitialized()) {
@@ -1084,46 +1128,47 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.TableInfo buildPartial() {
       alluxio.grpc.table.TableInfo result = new alluxio.grpc.table.TableInfo(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
         to_bitField0_ |= 0x00000001;
       }
       result.dbName_ = dbName_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
         to_bitField0_ |= 0x00000002;
       }
       result.tableName_ = tableName_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
         to_bitField0_ |= 0x00000004;
       }
       result.type_ = type_;
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000008) != 0)) {
         to_bitField0_ |= 0x00000008;
       }
       result.owner_ = owner_;
-      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((from_bitField0_ & 0x00000010) != 0)) {
+        if (schemaBuilder_ == null) {
+          result.schema_ = schema_;
+        } else {
+          result.schema_ = schemaBuilder_.build();
+        }
         to_bitField0_ |= 0x00000010;
       }
-      if (schemaBuilder_ == null) {
-        result.schema_ = schema_;
-      } else {
-        result.schema_ = schemaBuilder_.build();
-      }
-      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((from_bitField0_ & 0x00000020) != 0)) {
+        if (layoutBuilder_ == null) {
+          result.layout_ = layout_;
+        } else {
+          result.layout_ = layoutBuilder_.build();
+        }
         to_bitField0_ |= 0x00000020;
-      }
-      if (layoutBuilder_ == null) {
-        result.layout_ = layout_;
-      } else {
-        result.layout_ = layoutBuilder_.build();
       }
       result.parameters_ = internalGetParameters();
       result.parameters_.makeImmutable();
       if (partitionColsBuilder_ == null) {
-        if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        if (((bitField0_ & 0x00000080) != 0)) {
           partitionCols_ = java.util.Collections.unmodifiableList(partitionCols_);
           bitField0_ = (bitField0_ & ~0x00000080);
         }
@@ -1131,49 +1176,56 @@ private static final long serialVersionUID = 0L;
       } else {
         result.partitionCols_ = partitionColsBuilder_.build();
       }
-      if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
+      if (((from_bitField0_ & 0x00000100) != 0)) {
+        result.previousVersion_ = previousVersion_;
         to_bitField0_ |= 0x00000040;
       }
-      result.previousVersion_ = previousVersion_;
-      if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
+      if (((from_bitField0_ & 0x00000200) != 0)) {
+        result.version_ = version_;
         to_bitField0_ |= 0x00000080;
       }
-      result.version_ = version_;
-      if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
+      if (((from_bitField0_ & 0x00000400) != 0)) {
+        result.versionCreationTime_ = versionCreationTime_;
         to_bitField0_ |= 0x00000100;
       }
-      result.versionCreationTime_ = versionCreationTime_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.table.TableInfo) {
         return mergeFrom((alluxio.grpc.table.TableInfo)other);
@@ -1251,6 +1303,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       if (hasLayout()) {
         if (!getLayout().isInitialized()) {
@@ -1260,6 +1313,7 @@ private static final long serialVersionUID = 0L;
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1282,12 +1336,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object dbName_ = "";
     /**
      * <code>optional string db_name = 1;</code>
+     * @return Whether the dbName field is set.
      */
     public boolean hasDbName() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The dbName.
      */
     public java.lang.String getDbName() {
       java.lang.Object ref = dbName_;
@@ -1305,6 +1361,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The bytes for dbName.
      */
     public com.google.protobuf.ByteString
         getDbNameBytes() {
@@ -1321,6 +1378,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string db_name = 1;</code>
+     * @param value The dbName to set.
+     * @return This builder for chaining.
      */
     public Builder setDbName(
         java.lang.String value) {
@@ -1334,6 +1393,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string db_name = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearDbName() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -1343,6 +1403,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string db_name = 1;</code>
+     * @param value The bytes for dbName to set.
+     * @return This builder for chaining.
      */
     public Builder setDbNameBytes(
         com.google.protobuf.ByteString value) {
@@ -1358,12 +1420,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object tableName_ = "";
     /**
      * <code>optional string table_name = 2;</code>
+     * @return Whether the tableName field is set.
      */
     public boolean hasTableName() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The tableName.
      */
     public java.lang.String getTableName() {
       java.lang.Object ref = tableName_;
@@ -1381,6 +1445,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The bytes for tableName.
      */
     public com.google.protobuf.ByteString
         getTableNameBytes() {
@@ -1397,6 +1462,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string table_name = 2;</code>
+     * @param value The tableName to set.
+     * @return This builder for chaining.
      */
     public Builder setTableName(
         java.lang.String value) {
@@ -1410,6 +1477,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string table_name = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearTableName() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -1419,6 +1487,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string table_name = 2;</code>
+     * @param value The bytes for tableName to set.
+     * @return This builder for chaining.
      */
     public Builder setTableNameBytes(
         com.google.protobuf.ByteString value) {
@@ -1434,19 +1504,24 @@ private static final long serialVersionUID = 0L;
     private int type_ = 0;
     /**
      * <code>optional .alluxio.grpc.table.TableInfo.TableType type = 3;</code>
+     * @return Whether the type field is set.
      */
     public boolean hasType() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.table.TableInfo.TableType type = 3;</code>
+     * @return The type.
      */
     public alluxio.grpc.table.TableInfo.TableType getType() {
+      @SuppressWarnings("deprecation")
       alluxio.grpc.table.TableInfo.TableType result = alluxio.grpc.table.TableInfo.TableType.valueOf(type_);
       return result == null ? alluxio.grpc.table.TableInfo.TableType.NATIVE : result;
     }
     /**
      * <code>optional .alluxio.grpc.table.TableInfo.TableType type = 3;</code>
+     * @param value The type to set.
+     * @return This builder for chaining.
      */
     public Builder setType(alluxio.grpc.table.TableInfo.TableType value) {
       if (value == null) {
@@ -1459,6 +1534,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional .alluxio.grpc.table.TableInfo.TableType type = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearType() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -1470,12 +1546,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object owner_ = "";
     /**
      * <code>optional string owner = 4;</code>
+     * @return Whether the owner field is set.
      */
     public boolean hasOwner() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional string owner = 4;</code>
+     * @return The owner.
      */
     public java.lang.String getOwner() {
       java.lang.Object ref = owner_;
@@ -1493,6 +1571,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string owner = 4;</code>
+     * @return The bytes for owner.
      */
     public com.google.protobuf.ByteString
         getOwnerBytes() {
@@ -1509,6 +1588,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string owner = 4;</code>
+     * @param value The owner to set.
+     * @return This builder for chaining.
      */
     public Builder setOwner(
         java.lang.String value) {
@@ -1522,6 +1603,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string owner = 4;</code>
+     * @return This builder for chaining.
      */
     public Builder clearOwner() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -1531,6 +1613,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string owner = 4;</code>
+     * @param value The bytes for owner to set.
+     * @return This builder for chaining.
      */
     public Builder setOwnerBytes(
         com.google.protobuf.ByteString value) {
@@ -1543,17 +1627,19 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private alluxio.grpc.table.Schema schema_ = null;
+    private alluxio.grpc.table.Schema schema_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.Schema, alluxio.grpc.table.Schema.Builder, alluxio.grpc.table.SchemaOrBuilder> schemaBuilder_;
     /**
      * <code>optional .alluxio.grpc.table.Schema schema = 5;</code>
+     * @return Whether the schema field is set.
      */
     public boolean hasSchema() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000010) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.table.Schema schema = 5;</code>
+     * @return The schema.
      */
     public alluxio.grpc.table.Schema getSchema() {
       if (schemaBuilder_ == null) {
@@ -1597,7 +1683,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeSchema(alluxio.grpc.table.Schema value) {
       if (schemaBuilder_ == null) {
-        if (((bitField0_ & 0x00000010) == 0x00000010) &&
+        if (((bitField0_ & 0x00000010) != 0) &&
             schema_ != null &&
             schema_ != alluxio.grpc.table.Schema.getDefaultInstance()) {
           schema_ =
@@ -1661,17 +1747,19 @@ private static final long serialVersionUID = 0L;
       return schemaBuilder_;
     }
 
-    private alluxio.grpc.table.Layout layout_ = null;
+    private alluxio.grpc.table.Layout layout_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.Layout, alluxio.grpc.table.Layout.Builder, alluxio.grpc.table.LayoutOrBuilder> layoutBuilder_;
     /**
      * <code>optional .alluxio.grpc.table.Layout layout = 6;</code>
+     * @return Whether the layout field is set.
      */
     public boolean hasLayout() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000020) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.table.Layout layout = 6;</code>
+     * @return The layout.
      */
     public alluxio.grpc.table.Layout getLayout() {
       if (layoutBuilder_ == null) {
@@ -1715,7 +1803,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeLayout(alluxio.grpc.table.Layout value) {
       if (layoutBuilder_ == null) {
-        if (((bitField0_ & 0x00000020) == 0x00000020) &&
+        if (((bitField0_ & 0x00000020) != 0) &&
             layout_ != null &&
             layout_ != alluxio.grpc.table.Layout.getDefaultInstance()) {
           layout_ =
@@ -1905,7 +1993,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<alluxio.grpc.table.FieldSchema> partitionCols_ =
       java.util.Collections.emptyList();
     private void ensurePartitionColsIsMutable() {
-      if (!((bitField0_ & 0x00000080) == 0x00000080)) {
+      if (!((bitField0_ & 0x00000080) != 0)) {
         partitionCols_ = new java.util.ArrayList<alluxio.grpc.table.FieldSchema>(partitionCols_);
         bitField0_ |= 0x00000080;
        }
@@ -2206,7 +2294,7 @@ private static final long serialVersionUID = 0L;
         partitionColsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.table.FieldSchema, alluxio.grpc.table.FieldSchema.Builder, alluxio.grpc.table.FieldSchemaOrBuilder>(
                 partitionCols_,
-                ((bitField0_ & 0x00000080) == 0x00000080),
+                ((bitField0_ & 0x00000080) != 0),
                 getParentForChildren(),
                 isClean());
         partitionCols_ = null;
@@ -2217,18 +2305,22 @@ private static final long serialVersionUID = 0L;
     private long previousVersion_ ;
     /**
      * <code>optional int64 previous_version = 9;</code>
+     * @return Whether the previousVersion field is set.
      */
     public boolean hasPreviousVersion() {
-      return ((bitField0_ & 0x00000100) == 0x00000100);
+      return ((bitField0_ & 0x00000100) != 0);
     }
     /**
      * <code>optional int64 previous_version = 9;</code>
+     * @return The previousVersion.
      */
     public long getPreviousVersion() {
       return previousVersion_;
     }
     /**
      * <code>optional int64 previous_version = 9;</code>
+     * @param value The previousVersion to set.
+     * @return This builder for chaining.
      */
     public Builder setPreviousVersion(long value) {
       bitField0_ |= 0x00000100;
@@ -2238,6 +2330,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 previous_version = 9;</code>
+     * @return This builder for chaining.
      */
     public Builder clearPreviousVersion() {
       bitField0_ = (bitField0_ & ~0x00000100);
@@ -2249,18 +2342,22 @@ private static final long serialVersionUID = 0L;
     private long version_ ;
     /**
      * <code>optional int64 version = 10;</code>
+     * @return Whether the version field is set.
      */
     public boolean hasVersion() {
-      return ((bitField0_ & 0x00000200) == 0x00000200);
+      return ((bitField0_ & 0x00000200) != 0);
     }
     /**
      * <code>optional int64 version = 10;</code>
+     * @return The version.
      */
     public long getVersion() {
       return version_;
     }
     /**
      * <code>optional int64 version = 10;</code>
+     * @param value The version to set.
+     * @return This builder for chaining.
      */
     public Builder setVersion(long value) {
       bitField0_ |= 0x00000200;
@@ -2270,6 +2367,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 version = 10;</code>
+     * @return This builder for chaining.
      */
     public Builder clearVersion() {
       bitField0_ = (bitField0_ & ~0x00000200);
@@ -2281,18 +2379,22 @@ private static final long serialVersionUID = 0L;
     private long versionCreationTime_ ;
     /**
      * <code>optional int64 version_creation_time = 11;</code>
+     * @return Whether the versionCreationTime field is set.
      */
     public boolean hasVersionCreationTime() {
-      return ((bitField0_ & 0x00000400) == 0x00000400);
+      return ((bitField0_ & 0x00000400) != 0);
     }
     /**
      * <code>optional int64 version_creation_time = 11;</code>
+     * @return The versionCreationTime.
      */
     public long getVersionCreationTime() {
       return versionCreationTime_;
     }
     /**
      * <code>optional int64 version_creation_time = 11;</code>
+     * @param value The versionCreationTime to set.
+     * @return This builder for chaining.
      */
     public Builder setVersionCreationTime(long value) {
       bitField0_ |= 0x00000400;
@@ -2302,6 +2404,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 version_creation_time = 11;</code>
+     * @return This builder for chaining.
      */
     public Builder clearVersionCreationTime() {
       bitField0_ = (bitField0_ & ~0x00000400);
@@ -2309,11 +2412,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -2335,6 +2440,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<TableInfo>
       PARSER = new com.google.protobuf.AbstractParser<TableInfo>() {
+    @java.lang.Override
     public TableInfo parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2352,6 +2458,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.table.TableInfo getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

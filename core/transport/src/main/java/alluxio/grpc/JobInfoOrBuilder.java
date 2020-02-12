@@ -9,60 +9,73 @@ public interface JobInfoOrBuilder extends
 
   /**
    * <code>optional int64 id = 1;</code>
+   * @return Whether the id field is set.
    */
   boolean hasId();
   /**
    * <code>optional int64 id = 1;</code>
+   * @return The id.
    */
   long getId();
 
   /**
    * <code>optional string errorMessage = 2;</code>
+   * @return Whether the errorMessage field is set.
    */
   boolean hasErrorMessage();
   /**
    * <code>optional string errorMessage = 2;</code>
+   * @return The errorMessage.
    */
   java.lang.String getErrorMessage();
   /**
    * <code>optional string errorMessage = 2;</code>
+   * @return The bytes for errorMessage.
    */
   com.google.protobuf.ByteString
       getErrorMessageBytes();
 
   /**
    * <code>optional .alluxio.grpc.job.Status status = 4;</code>
+   * @return Whether the status field is set.
    */
   boolean hasStatus();
   /**
    * <code>optional .alluxio.grpc.job.Status status = 4;</code>
+   * @return The status.
    */
   alluxio.grpc.Status getStatus();
 
   /**
    * <code>optional int64 lastUpdated = 6;</code>
+   * @return Whether the lastUpdated field is set.
    */
   boolean hasLastUpdated();
   /**
    * <code>optional int64 lastUpdated = 6;</code>
+   * @return The lastUpdated.
    */
   long getLastUpdated();
 
   /**
    * <code>optional .alluxio.grpc.job.JobType type = 8;</code>
+   * @return Whether the type field is set.
    */
   boolean hasType();
   /**
    * <code>optional .alluxio.grpc.job.JobType type = 8;</code>
+   * @return The type.
    */
   alluxio.grpc.JobType getType();
 
   /**
    * <code>optional bytes result = 9;</code>
+   * @return Whether the result field is set.
    */
   boolean hasResult();
   /**
    * <code>optional bytes result = 9;</code>
+   * @return The result.
    */
   com.google.protobuf.ByteString getResult();
 
@@ -72,6 +85,7 @@ public interface JobInfoOrBuilder extends
    * </pre>
    *
    * <code>optional string name = 7;</code>
+   * @return Whether the name field is set.
    */
   boolean hasName();
   /**
@@ -80,6 +94,7 @@ public interface JobInfoOrBuilder extends
    * </pre>
    *
    * <code>optional string name = 7;</code>
+   * @return The name.
    */
   java.lang.String getName();
   /**
@@ -88,16 +103,19 @@ public interface JobInfoOrBuilder extends
    * </pre>
    *
    * <code>optional string name = 7;</code>
+   * @return The bytes for name.
    */
   com.google.protobuf.ByteString
       getNameBytes();
 
   /**
    * <code>optional int64 parentId = 10;</code>
+   * @return Whether the parentId field is set.
    */
   boolean hasParentId();
   /**
    * <code>optional int64 parentId = 10;</code>
+   * @return The parentId.
    */
   long getParentId();
 
@@ -127,28 +145,34 @@ public interface JobInfoOrBuilder extends
 
   /**
    * <code>optional string workerHost = 12;</code>
+   * @return Whether the workerHost field is set.
    */
   boolean hasWorkerHost();
   /**
    * <code>optional string workerHost = 12;</code>
+   * @return The workerHost.
    */
   java.lang.String getWorkerHost();
   /**
    * <code>optional string workerHost = 12;</code>
+   * @return The bytes for workerHost.
    */
   com.google.protobuf.ByteString
       getWorkerHostBytes();
 
   /**
    * <code>optional string description = 13;</code>
+   * @return Whether the description field is set.
    */
   boolean hasDescription();
   /**
    * <code>optional string description = 13;</code>
+   * @return The description.
    */
   java.lang.String getDescription();
   /**
    * <code>optional string description = 13;</code>
+   * @return The bytes for description.
    */
   com.google.protobuf.ByteString
       getDescriptionBytes();
@@ -203,6 +227,7 @@ public interface JobInfoOrBuilder extends
    * </pre>
    *
    * <code>optional string unused1 = 5;</code>
+   * @return Whether the unused1 field is set.
    */
   boolean hasUnused1();
   /**
@@ -211,6 +236,7 @@ public interface JobInfoOrBuilder extends
    * </pre>
    *
    * <code>optional string unused1 = 5;</code>
+   * @return The unused1.
    */
   java.lang.String getUnused1();
   /**
@@ -219,6 +245,7 @@ public interface JobInfoOrBuilder extends
    * </pre>
    *
    * <code>optional string unused1 = 5;</code>
+   * @return The bytes for unused1.
    */
   com.google.protobuf.ByteString
       getUnused1Bytes();

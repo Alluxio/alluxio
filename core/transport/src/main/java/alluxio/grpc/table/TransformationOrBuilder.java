@@ -9,10 +9,12 @@ public interface TransformationOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.Layout layout = 1;</code>
+   * @return Whether the layout field is set.
    */
   boolean hasLayout();
   /**
    * <code>optional .alluxio.grpc.table.Layout layout = 1;</code>
+   * @return The layout.
    */
   alluxio.grpc.table.Layout getLayout();
   /**
@@ -22,14 +24,17 @@ public interface TransformationOrBuilder extends
 
   /**
    * <code>optional string definition = 2;</code>
+   * @return Whether the definition field is set.
    */
   boolean hasDefinition();
   /**
    * <code>optional string definition = 2;</code>
+   * @return The definition.
    */
   java.lang.String getDefinition();
   /**
    * <code>optional string definition = 2;</code>
+   * @return The bytes for definition.
    */
   com.google.protobuf.ByteString
       getDefinitionBytes();

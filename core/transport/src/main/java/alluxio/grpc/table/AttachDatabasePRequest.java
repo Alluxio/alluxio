@@ -23,6 +23,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new AttachDatabasePRequest();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -46,13 +53,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
@@ -78,7 +78,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 42: {
-            if (!((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
+            if (!((mutable_bitField0_ & 0x00000010) != 0)) {
               options_ = com.google.protobuf.MapField.newMapField(
                   OptionsDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000010;
@@ -88,6 +88,13 @@ private static final long serialVersionUID = 0L;
                 OptionsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
             options_.getMutableMap().put(
                 options__.getKey(), options__.getValue());
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -108,6 +115,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @SuppressWarnings({"rawtypes"})
+  @java.lang.Override
   protected com.google.protobuf.MapField internalGetMapField(
       int number) {
     switch (number) {
@@ -118,6 +126,7 @@ private static final long serialVersionUID = 0L;
             "Invalid map field number: " + number);
     }
   }
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_AttachDatabasePRequest_fieldAccessorTable
@@ -130,12 +139,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object udbType_;
   /**
    * <code>optional string udb_type = 1;</code>
+   * @return Whether the udbType field is set.
    */
   public boolean hasUdbType() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional string udb_type = 1;</code>
+   * @return The udbType.
    */
   public java.lang.String getUdbType() {
     java.lang.Object ref = udbType_;
@@ -153,6 +164,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string udb_type = 1;</code>
+   * @return The bytes for udbType.
    */
   public com.google.protobuf.ByteString
       getUdbTypeBytes() {
@@ -172,12 +184,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object udbConnectionUri_;
   /**
    * <code>optional string udb_connection_uri = 2;</code>
+   * @return Whether the udbConnectionUri field is set.
    */
   public boolean hasUdbConnectionUri() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional string udb_connection_uri = 2;</code>
+   * @return The udbConnectionUri.
    */
   public java.lang.String getUdbConnectionUri() {
     java.lang.Object ref = udbConnectionUri_;
@@ -195,6 +209,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string udb_connection_uri = 2;</code>
+   * @return The bytes for udbConnectionUri.
    */
   public com.google.protobuf.ByteString
       getUdbConnectionUriBytes() {
@@ -214,12 +229,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object udbDbName_;
   /**
    * <code>optional string udb_db_name = 3;</code>
+   * @return Whether the udbDbName field is set.
    */
   public boolean hasUdbDbName() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional string udb_db_name = 3;</code>
+   * @return The udbDbName.
    */
   public java.lang.String getUdbDbName() {
     java.lang.Object ref = udbDbName_;
@@ -237,6 +254,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string udb_db_name = 3;</code>
+   * @return The bytes for udbDbName.
    */
   public com.google.protobuf.ByteString
       getUdbDbNameBytes() {
@@ -256,12 +274,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object dbName_;
   /**
    * <code>optional string db_name = 4;</code>
+   * @return Whether the dbName field is set.
    */
   public boolean hasDbName() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000008) != 0);
   }
   /**
    * <code>optional string db_name = 4;</code>
+   * @return The dbName.
    */
   public java.lang.String getDbName() {
     java.lang.Object ref = dbName_;
@@ -279,6 +299,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string db_name = 4;</code>
+   * @return The bytes for dbName.
    */
   public com.google.protobuf.ByteString
       getDbNameBytes() {
@@ -371,6 +392,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -380,18 +402,19 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, udbType_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, udbConnectionUri_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 3, udbDbName_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 4, dbName_);
     }
     com.google.protobuf.GeneratedMessageV3
@@ -403,21 +426,22 @@ private static final long serialVersionUID = 0L;
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, udbType_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, udbConnectionUri_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, udbDbName_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, dbName_);
     }
     for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
@@ -445,31 +469,30 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.table.AttachDatabasePRequest other = (alluxio.grpc.table.AttachDatabasePRequest) obj;
 
-    boolean result = true;
-    result = result && (hasUdbType() == other.hasUdbType());
+    if (hasUdbType() != other.hasUdbType()) return false;
     if (hasUdbType()) {
-      result = result && getUdbType()
-          .equals(other.getUdbType());
+      if (!getUdbType()
+          .equals(other.getUdbType())) return false;
     }
-    result = result && (hasUdbConnectionUri() == other.hasUdbConnectionUri());
+    if (hasUdbConnectionUri() != other.hasUdbConnectionUri()) return false;
     if (hasUdbConnectionUri()) {
-      result = result && getUdbConnectionUri()
-          .equals(other.getUdbConnectionUri());
+      if (!getUdbConnectionUri()
+          .equals(other.getUdbConnectionUri())) return false;
     }
-    result = result && (hasUdbDbName() == other.hasUdbDbName());
+    if (hasUdbDbName() != other.hasUdbDbName()) return false;
     if (hasUdbDbName()) {
-      result = result && getUdbDbName()
-          .equals(other.getUdbDbName());
+      if (!getUdbDbName()
+          .equals(other.getUdbDbName())) return false;
     }
-    result = result && (hasDbName() == other.hasDbName());
+    if (hasDbName() != other.hasDbName()) return false;
     if (hasDbName()) {
-      result = result && getDbName()
-          .equals(other.getDbName());
+      if (!getDbName()
+          .equals(other.getDbName())) return false;
     }
-    result = result && internalGetOptions().equals(
-        other.internalGetOptions());
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!internalGetOptions().equals(
+        other.internalGetOptions())) return false;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -574,6 +597,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -581,6 +605,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.table.AttachDatabasePRequest prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -626,6 +651,7 @@ private static final long serialVersionUID = 0L;
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_AttachDatabasePRequest_fieldAccessorTable
@@ -648,6 +674,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       udbType_ = "";
@@ -662,15 +689,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_AttachDatabasePRequest_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.AttachDatabasePRequest getDefaultInstanceForType() {
       return alluxio.grpc.table.AttachDatabasePRequest.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.AttachDatabasePRequest build() {
       alluxio.grpc.table.AttachDatabasePRequest result = buildPartial();
       if (!result.isInitialized()) {
@@ -679,23 +709,24 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.AttachDatabasePRequest buildPartial() {
       alluxio.grpc.table.AttachDatabasePRequest result = new alluxio.grpc.table.AttachDatabasePRequest(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
         to_bitField0_ |= 0x00000001;
       }
       result.udbType_ = udbType_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
         to_bitField0_ |= 0x00000002;
       }
       result.udbConnectionUri_ = udbConnectionUri_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
         to_bitField0_ |= 0x00000004;
       }
       result.udbDbName_ = udbDbName_;
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000008) != 0)) {
         to_bitField0_ |= 0x00000008;
       }
       result.dbName_ = dbName_;
@@ -706,32 +737,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.table.AttachDatabasePRequest) {
         return mergeFrom((alluxio.grpc.table.AttachDatabasePRequest)other);
@@ -770,10 +808,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -796,12 +836,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object udbType_ = "";
     /**
      * <code>optional string udb_type = 1;</code>
+     * @return Whether the udbType field is set.
      */
     public boolean hasUdbType() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string udb_type = 1;</code>
+     * @return The udbType.
      */
     public java.lang.String getUdbType() {
       java.lang.Object ref = udbType_;
@@ -819,6 +861,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string udb_type = 1;</code>
+     * @return The bytes for udbType.
      */
     public com.google.protobuf.ByteString
         getUdbTypeBytes() {
@@ -835,6 +878,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string udb_type = 1;</code>
+     * @param value The udbType to set.
+     * @return This builder for chaining.
      */
     public Builder setUdbType(
         java.lang.String value) {
@@ -848,6 +893,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string udb_type = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearUdbType() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -857,6 +903,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string udb_type = 1;</code>
+     * @param value The bytes for udbType to set.
+     * @return This builder for chaining.
      */
     public Builder setUdbTypeBytes(
         com.google.protobuf.ByteString value) {
@@ -872,12 +920,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object udbConnectionUri_ = "";
     /**
      * <code>optional string udb_connection_uri = 2;</code>
+     * @return Whether the udbConnectionUri field is set.
      */
     public boolean hasUdbConnectionUri() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string udb_connection_uri = 2;</code>
+     * @return The udbConnectionUri.
      */
     public java.lang.String getUdbConnectionUri() {
       java.lang.Object ref = udbConnectionUri_;
@@ -895,6 +945,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string udb_connection_uri = 2;</code>
+     * @return The bytes for udbConnectionUri.
      */
     public com.google.protobuf.ByteString
         getUdbConnectionUriBytes() {
@@ -911,6 +962,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string udb_connection_uri = 2;</code>
+     * @param value The udbConnectionUri to set.
+     * @return This builder for chaining.
      */
     public Builder setUdbConnectionUri(
         java.lang.String value) {
@@ -924,6 +977,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string udb_connection_uri = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearUdbConnectionUri() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -933,6 +987,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string udb_connection_uri = 2;</code>
+     * @param value The bytes for udbConnectionUri to set.
+     * @return This builder for chaining.
      */
     public Builder setUdbConnectionUriBytes(
         com.google.protobuf.ByteString value) {
@@ -948,12 +1004,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object udbDbName_ = "";
     /**
      * <code>optional string udb_db_name = 3;</code>
+     * @return Whether the udbDbName field is set.
      */
     public boolean hasUdbDbName() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional string udb_db_name = 3;</code>
+     * @return The udbDbName.
      */
     public java.lang.String getUdbDbName() {
       java.lang.Object ref = udbDbName_;
@@ -971,6 +1029,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string udb_db_name = 3;</code>
+     * @return The bytes for udbDbName.
      */
     public com.google.protobuf.ByteString
         getUdbDbNameBytes() {
@@ -987,6 +1046,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string udb_db_name = 3;</code>
+     * @param value The udbDbName to set.
+     * @return This builder for chaining.
      */
     public Builder setUdbDbName(
         java.lang.String value) {
@@ -1000,6 +1061,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string udb_db_name = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearUdbDbName() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -1009,6 +1071,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string udb_db_name = 3;</code>
+     * @param value The bytes for udbDbName to set.
+     * @return This builder for chaining.
      */
     public Builder setUdbDbNameBytes(
         com.google.protobuf.ByteString value) {
@@ -1024,12 +1088,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object dbName_ = "";
     /**
      * <code>optional string db_name = 4;</code>
+     * @return Whether the dbName field is set.
      */
     public boolean hasDbName() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional string db_name = 4;</code>
+     * @return The dbName.
      */
     public java.lang.String getDbName() {
       java.lang.Object ref = dbName_;
@@ -1047,6 +1113,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string db_name = 4;</code>
+     * @return The bytes for dbName.
      */
     public com.google.protobuf.ByteString
         getDbNameBytes() {
@@ -1063,6 +1130,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string db_name = 4;</code>
+     * @param value The dbName to set.
+     * @return This builder for chaining.
      */
     public Builder setDbName(
         java.lang.String value) {
@@ -1076,6 +1145,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string db_name = 4;</code>
+     * @return This builder for chaining.
      */
     public Builder clearDbName() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -1085,6 +1155,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string db_name = 4;</code>
+     * @param value The bytes for dbName to set.
+     * @return This builder for chaining.
      */
     public Builder setDbNameBytes(
         com.google.protobuf.ByteString value) {
@@ -1219,11 +1291,13 @@ private static final long serialVersionUID = 0L;
           .putAll(values);
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1245,6 +1319,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<AttachDatabasePRequest>
       PARSER = new com.google.protobuf.AbstractParser<AttachDatabasePRequest>() {
+    @java.lang.Override
     public AttachDatabasePRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1262,6 +1337,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.table.AttachDatabasePRequest getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

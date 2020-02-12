@@ -17,7 +17,13 @@ private static final long serialVersionUID = 0L;
   }
   private EquatableValueSet() {
     candidates_ = java.util.Collections.emptyList();
-    whiteList_ = false;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new EquatableValueSet();
   }
 
   @java.lang.Override
@@ -44,15 +50,8 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
-            if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
               candidates_ = new java.util.ArrayList<alluxio.grpc.table.Value>();
               mutable_bitField0_ |= 0x00000001;
             }
@@ -65,6 +64,13 @@ private static final long serialVersionUID = 0L;
             whiteList_ = input.readBool();
             break;
           }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -73,7 +79,7 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((mutable_bitField0_ & 0x00000001) != 0)) {
         candidates_ = java.util.Collections.unmodifiableList(candidates_);
       }
       this.unknownFields = unknownFields.build();
@@ -85,6 +91,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_EquatableValueSet_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_EquatableValueSet_fieldAccessorTable
@@ -132,18 +139,21 @@ private static final long serialVersionUID = 0L;
   private boolean whiteList_;
   /**
    * <code>optional bool white_list = 2;</code>
+   * @return Whether the whiteList field is set.
    */
   public boolean hasWhiteList() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional bool white_list = 2;</code>
+   * @return The whiteList.
    */
   public boolean getWhiteList() {
     return whiteList_;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -153,17 +163,19 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     for (int i = 0; i < candidates_.size(); i++) {
       output.writeMessage(1, candidates_.get(i));
     }
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeBool(2, whiteList_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -173,7 +185,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(1, candidates_.get(i));
     }
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(2, whiteList_);
     }
@@ -192,16 +204,15 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.table.EquatableValueSet other = (alluxio.grpc.table.EquatableValueSet) obj;
 
-    boolean result = true;
-    result = result && getCandidatesList()
-        .equals(other.getCandidatesList());
-    result = result && (hasWhiteList() == other.hasWhiteList());
+    if (!getCandidatesList()
+        .equals(other.getCandidatesList())) return false;
+    if (hasWhiteList() != other.hasWhiteList()) return false;
     if (hasWhiteList()) {
-      result = result && (getWhiteList()
-          == other.getWhiteList());
+      if (getWhiteList()
+          != other.getWhiteList()) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -295,6 +306,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -302,6 +314,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.table.EquatableValueSet prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -325,6 +338,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_EquatableValueSet_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_EquatableValueSet_fieldAccessorTable
@@ -348,6 +362,7 @@ private static final long serialVersionUID = 0L;
         getCandidatesFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       if (candidatesBuilder_ == null) {
@@ -361,15 +376,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_EquatableValueSet_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.EquatableValueSet getDefaultInstanceForType() {
       return alluxio.grpc.table.EquatableValueSet.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.EquatableValueSet build() {
       alluxio.grpc.table.EquatableValueSet result = buildPartial();
       if (!result.isInitialized()) {
@@ -378,12 +396,13 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.EquatableValueSet buildPartial() {
       alluxio.grpc.table.EquatableValueSet result = new alluxio.grpc.table.EquatableValueSet(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
       if (candidatesBuilder_ == null) {
-        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((bitField0_ & 0x00000001) != 0)) {
           candidates_ = java.util.Collections.unmodifiableList(candidates_);
           bitField0_ = (bitField0_ & ~0x00000001);
         }
@@ -391,41 +410,48 @@ private static final long serialVersionUID = 0L;
       } else {
         result.candidates_ = candidatesBuilder_.build();
       }
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
+        result.whiteList_ = whiteList_;
         to_bitField0_ |= 0x00000001;
       }
-      result.whiteList_ = whiteList_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.table.EquatableValueSet) {
         return mergeFrom((alluxio.grpc.table.EquatableValueSet)other);
@@ -471,10 +497,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -497,7 +525,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<alluxio.grpc.table.Value> candidates_ =
       java.util.Collections.emptyList();
     private void ensureCandidatesIsMutable() {
-      if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (!((bitField0_ & 0x00000001) != 0)) {
         candidates_ = new java.util.ArrayList<alluxio.grpc.table.Value>(candidates_);
         bitField0_ |= 0x00000001;
        }
@@ -726,7 +754,7 @@ private static final long serialVersionUID = 0L;
         candidatesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.table.Value, alluxio.grpc.table.Value.Builder, alluxio.grpc.table.ValueOrBuilder>(
                 candidates_,
-                ((bitField0_ & 0x00000001) == 0x00000001),
+                ((bitField0_ & 0x00000001) != 0),
                 getParentForChildren(),
                 isClean());
         candidates_ = null;
@@ -737,18 +765,22 @@ private static final long serialVersionUID = 0L;
     private boolean whiteList_ ;
     /**
      * <code>optional bool white_list = 2;</code>
+     * @return Whether the whiteList field is set.
      */
     public boolean hasWhiteList() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional bool white_list = 2;</code>
+     * @return The whiteList.
      */
     public boolean getWhiteList() {
       return whiteList_;
     }
     /**
      * <code>optional bool white_list = 2;</code>
+     * @param value The whiteList to set.
+     * @return This builder for chaining.
      */
     public Builder setWhiteList(boolean value) {
       bitField0_ |= 0x00000002;
@@ -758,6 +790,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool white_list = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearWhiteList() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -765,11 +798,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -791,6 +826,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<EquatableValueSet>
       PARSER = new com.google.protobuf.AbstractParser<EquatableValueSet>() {
+    @java.lang.Override
     public EquatableValueSet parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -808,6 +844,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.table.EquatableValueSet getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

@@ -13,6 +13,7 @@ public interface LoadMetadataPOptionsOrBuilder extends
    * </pre>
    *
    * <code>optional bool recursive = 1;</code>
+   * @return Whether the recursive field is set.
    */
   boolean hasRecursive();
   /**
@@ -21,33 +22,40 @@ public interface LoadMetadataPOptionsOrBuilder extends
    * </pre>
    *
    * <code>optional bool recursive = 1;</code>
+   * @return The recursive.
    */
   boolean getRecursive();
 
   /**
    * <code>optional bool createAncestors = 2;</code>
+   * @return Whether the createAncestors field is set.
    */
   boolean hasCreateAncestors();
   /**
    * <code>optional bool createAncestors = 2;</code>
+   * @return The createAncestors.
    */
   boolean getCreateAncestors();
 
   /**
    * <code>optional .alluxio.grpc.fscommon.LoadDescendantPType loadDescendantType = 3;</code>
+   * @return Whether the loadDescendantType field is set.
    */
   boolean hasLoadDescendantType();
   /**
    * <code>optional .alluxio.grpc.fscommon.LoadDescendantPType loadDescendantType = 3;</code>
+   * @return The loadDescendantType.
    */
   alluxio.grpc.LoadDescendantPType getLoadDescendantType();
 
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 4;</code>
+   * @return Whether the commonOptions field is set.
    */
   boolean hasCommonOptions();
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 4;</code>
+   * @return The commonOptions.
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**

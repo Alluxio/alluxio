@@ -19,6 +19,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new GetBlockInfoPResponse();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -42,16 +49,9 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             alluxio.grpc.BlockInfo.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000001) == 0x00000001)) {
+            if (((bitField0_ & 0x00000001) != 0)) {
               subBuilder = blockInfo_.toBuilder();
             }
             blockInfo_ = input.readMessage(alluxio.grpc.BlockInfo.PARSER, extensionRegistry);
@@ -60,6 +60,13 @@ private static final long serialVersionUID = 0L;
               blockInfo_ = subBuilder.buildPartial();
             }
             bitField0_ |= 0x00000001;
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -79,6 +86,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_GetBlockInfoPResponse_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_GetBlockInfoPResponse_fieldAccessorTable
@@ -91,12 +99,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.BlockInfo blockInfo_;
   /**
    * <code>optional .alluxio.grpc.BlockInfo blockInfo = 1;</code>
+   * @return Whether the blockInfo field is set.
    */
   public boolean hasBlockInfo() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.BlockInfo blockInfo = 1;</code>
+   * @return The blockInfo.
    */
   public alluxio.grpc.BlockInfo getBlockInfo() {
     return blockInfo_ == null ? alluxio.grpc.BlockInfo.getDefaultInstance() : blockInfo_;
@@ -109,6 +119,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -118,20 +129,22 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeMessage(1, getBlockInfo());
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(1, getBlockInfo());
     }
@@ -150,14 +163,13 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.GetBlockInfoPResponse other = (alluxio.grpc.GetBlockInfoPResponse) obj;
 
-    boolean result = true;
-    result = result && (hasBlockInfo() == other.hasBlockInfo());
+    if (hasBlockInfo() != other.hasBlockInfo()) return false;
     if (hasBlockInfo()) {
-      result = result && getBlockInfo()
-          .equals(other.getBlockInfo());
+      if (!getBlockInfo()
+          .equals(other.getBlockInfo())) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -246,6 +258,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -253,6 +266,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.GetBlockInfoPResponse prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -276,6 +290,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_GetBlockInfoPResponse_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_GetBlockInfoPResponse_fieldAccessorTable
@@ -299,6 +314,7 @@ private static final long serialVersionUID = 0L;
         getBlockInfoFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       if (blockInfoBuilder_ == null) {
@@ -310,15 +326,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_GetBlockInfoPResponse_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.GetBlockInfoPResponse getDefaultInstanceForType() {
       return alluxio.grpc.GetBlockInfoPResponse.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.GetBlockInfoPResponse build() {
       alluxio.grpc.GetBlockInfoPResponse result = buildPartial();
       if (!result.isInitialized()) {
@@ -327,49 +346,57 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.GetBlockInfoPResponse buildPartial() {
       alluxio.grpc.GetBlockInfoPResponse result = new alluxio.grpc.GetBlockInfoPResponse(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        if (blockInfoBuilder_ == null) {
+          result.blockInfo_ = blockInfo_;
+        } else {
+          result.blockInfo_ = blockInfoBuilder_.build();
+        }
         to_bitField0_ |= 0x00000001;
-      }
-      if (blockInfoBuilder_ == null) {
-        result.blockInfo_ = blockInfo_;
-      } else {
-        result.blockInfo_ = blockInfoBuilder_.build();
       }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.GetBlockInfoPResponse) {
         return mergeFrom((alluxio.grpc.GetBlockInfoPResponse)other);
@@ -389,10 +416,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -412,17 +441,19 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private alluxio.grpc.BlockInfo blockInfo_ = null;
+    private alluxio.grpc.BlockInfo blockInfo_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.BlockInfo, alluxio.grpc.BlockInfo.Builder, alluxio.grpc.BlockInfoOrBuilder> blockInfoBuilder_;
     /**
      * <code>optional .alluxio.grpc.BlockInfo blockInfo = 1;</code>
+     * @return Whether the blockInfo field is set.
      */
     public boolean hasBlockInfo() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.BlockInfo blockInfo = 1;</code>
+     * @return The blockInfo.
      */
     public alluxio.grpc.BlockInfo getBlockInfo() {
       if (blockInfoBuilder_ == null) {
@@ -466,7 +497,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeBlockInfo(alluxio.grpc.BlockInfo value) {
       if (blockInfoBuilder_ == null) {
-        if (((bitField0_ & 0x00000001) == 0x00000001) &&
+        if (((bitField0_ & 0x00000001) != 0) &&
             blockInfo_ != null &&
             blockInfo_ != alluxio.grpc.BlockInfo.getDefaultInstance()) {
           blockInfo_ =
@@ -529,11 +560,13 @@ private static final long serialVersionUID = 0L;
       }
       return blockInfoBuilder_;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -555,6 +588,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<GetBlockInfoPResponse>
       PARSER = new com.google.protobuf.AbstractParser<GetBlockInfoPResponse>() {
+    @java.lang.Override
     public GetBlockInfoPResponse parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -572,6 +606,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.GetBlockInfoPResponse getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

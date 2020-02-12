@@ -9,19 +9,23 @@ public interface StatusSummaryOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.job.Status status = 1;</code>
+   * @return Whether the status field is set.
    */
   boolean hasStatus();
   /**
    * <code>optional .alluxio.grpc.job.Status status = 1;</code>
+   * @return The status.
    */
   alluxio.grpc.Status getStatus();
 
   /**
    * <code>optional int64 count = 2;</code>
+   * @return Whether the count field is set.
    */
   boolean hasCount();
   /**
    * <code>optional int64 count = 2;</code>
+   * @return The count.
    */
   long getCount();
 }

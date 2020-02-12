@@ -13,6 +13,7 @@ public interface WriteResponseOrBuilder extends
    * </pre>
    *
    * <code>optional int64 offset = 1;</code>
+   * @return Whether the offset field is set.
    */
   boolean hasOffset();
   /**
@@ -21,6 +22,7 @@ public interface WriteResponseOrBuilder extends
    * </pre>
    *
    * <code>optional int64 offset = 1;</code>
+   * @return The offset.
    */
   long getOffset();
 }

@@ -9,10 +9,12 @@ public interface SetAclPOptionsOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 1;</code>
+   * @return Whether the commonOptions field is set.
    */
   boolean hasCommonOptions();
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 1;</code>
+   * @return The commonOptions.
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
@@ -22,10 +24,12 @@ public interface SetAclPOptionsOrBuilder extends
 
   /**
    * <code>optional bool recursive = 2;</code>
+   * @return Whether the recursive field is set.
    */
   boolean hasRecursive();
   /**
    * <code>optional bool recursive = 2;</code>
+   * @return The recursive.
    */
   boolean getRecursive();
 }

@@ -13,6 +13,7 @@ public interface CommitBlockInUfsPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 blockId = 1;</code>
+   * @return Whether the blockId field is set.
    */
   boolean hasBlockId();
   /**
@@ -21,6 +22,7 @@ public interface CommitBlockInUfsPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 blockId = 1;</code>
+   * @return The blockId.
    */
   long getBlockId();
 
@@ -30,6 +32,7 @@ public interface CommitBlockInUfsPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 length = 2;</code>
+   * @return Whether the length field is set.
    */
   boolean hasLength();
   /**
@@ -38,15 +41,18 @@ public interface CommitBlockInUfsPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 length = 2;</code>
+   * @return The length.
    */
   long getLength();
 
   /**
    * <code>optional .alluxio.grpc.block.CommitBlockInUfsPOptions options = 3;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.block.CommitBlockInUfsPOptions options = 3;</code>
+   * @return The options.
    */
   alluxio.grpc.CommitBlockInUfsPOptions getOptions();
   /**

@@ -20,8 +20,13 @@ private static final long serialVersionUID = 0L;
     ufsType_ = "";
     ufsCapacityBytes_ = -1L;
     ufsUsedBytes_ = -1L;
-    readOnly_ = false;
-    shared_ = false;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new MountPointInfo();
   }
 
   @java.lang.Override
@@ -48,13 +53,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
@@ -83,7 +81,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 50: {
-            if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+            if (!((mutable_bitField0_ & 0x00000020) != 0)) {
               properties_ = com.google.protobuf.MapField.newMapField(
                   PropertiesDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000020;
@@ -98,6 +96,13 @@ private static final long serialVersionUID = 0L;
           case 56: {
             bitField0_ |= 0x00000020;
             shared_ = input.readBool();
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -118,6 +123,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @SuppressWarnings({"rawtypes"})
+  @java.lang.Override
   protected com.google.protobuf.MapField internalGetMapField(
       int number) {
     switch (number) {
@@ -128,6 +134,7 @@ private static final long serialVersionUID = 0L;
             "Invalid map field number: " + number);
     }
   }
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_MountPointInfo_fieldAccessorTable
@@ -140,12 +147,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object ufsUri_;
   /**
    * <code>optional string ufsUri = 1;</code>
+   * @return Whether the ufsUri field is set.
    */
   public boolean hasUfsUri() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional string ufsUri = 1;</code>
+   * @return The ufsUri.
    */
   public java.lang.String getUfsUri() {
     java.lang.Object ref = ufsUri_;
@@ -163,6 +172,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string ufsUri = 1;</code>
+   * @return The bytes for ufsUri.
    */
   public com.google.protobuf.ByteString
       getUfsUriBytes() {
@@ -182,12 +192,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object ufsType_;
   /**
    * <code>optional string ufsType = 2;</code>
+   * @return Whether the ufsType field is set.
    */
   public boolean hasUfsType() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional string ufsType = 2;</code>
+   * @return The ufsType.
    */
   public java.lang.String getUfsType() {
     java.lang.Object ref = ufsType_;
@@ -205,6 +217,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string ufsType = 2;</code>
+   * @return The bytes for ufsType.
    */
   public com.google.protobuf.ByteString
       getUfsTypeBytes() {
@@ -224,12 +237,14 @@ private static final long serialVersionUID = 0L;
   private long ufsCapacityBytes_;
   /**
    * <code>optional int64 ufsCapacityBytes = 3 [default = -1];</code>
+   * @return Whether the ufsCapacityBytes field is set.
    */
   public boolean hasUfsCapacityBytes() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional int64 ufsCapacityBytes = 3 [default = -1];</code>
+   * @return The ufsCapacityBytes.
    */
   public long getUfsCapacityBytes() {
     return ufsCapacityBytes_;
@@ -239,12 +254,14 @@ private static final long serialVersionUID = 0L;
   private long ufsUsedBytes_;
   /**
    * <code>optional int64 ufsUsedBytes = 4 [default = -1];</code>
+   * @return Whether the ufsUsedBytes field is set.
    */
   public boolean hasUfsUsedBytes() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000008) != 0);
   }
   /**
    * <code>optional int64 ufsUsedBytes = 4 [default = -1];</code>
+   * @return The ufsUsedBytes.
    */
   public long getUfsUsedBytes() {
     return ufsUsedBytes_;
@@ -254,12 +271,14 @@ private static final long serialVersionUID = 0L;
   private boolean readOnly_;
   /**
    * <code>optional bool readOnly = 5;</code>
+   * @return Whether the readOnly field is set.
    */
   public boolean hasReadOnly() {
-    return ((bitField0_ & 0x00000010) == 0x00000010);
+    return ((bitField0_ & 0x00000010) != 0);
   }
   /**
    * <code>optional bool readOnly = 5;</code>
+   * @return The readOnly.
    */
   public boolean getReadOnly() {
     return readOnly_;
@@ -345,18 +364,21 @@ private static final long serialVersionUID = 0L;
   private boolean shared_;
   /**
    * <code>optional bool shared = 7;</code>
+   * @return Whether the shared field is set.
    */
   public boolean hasShared() {
-    return ((bitField0_ & 0x00000020) == 0x00000020);
+    return ((bitField0_ & 0x00000020) != 0);
   }
   /**
    * <code>optional bool shared = 7;</code>
+   * @return The shared.
    */
   public boolean getShared() {
     return shared_;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -366,21 +388,22 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, ufsUri_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, ufsType_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       output.writeInt64(3, ufsCapacityBytes_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       output.writeInt64(4, ufsUsedBytes_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       output.writeBool(5, readOnly_);
     }
     com.google.protobuf.GeneratedMessageV3
@@ -389,32 +412,33 @@ private static final long serialVersionUID = 0L;
         internalGetProperties(),
         PropertiesDefaultEntryHolder.defaultEntry,
         6);
-    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+    if (((bitField0_ & 0x00000020) != 0)) {
       output.writeBool(7, shared_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, ufsUri_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, ufsType_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(3, ufsCapacityBytes_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(4, ufsUsedBytes_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(5, readOnly_);
     }
@@ -428,7 +452,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(6, properties__);
     }
-    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+    if (((bitField0_ & 0x00000020) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(7, shared_);
     }
@@ -447,41 +471,40 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.MountPointInfo other = (alluxio.grpc.MountPointInfo) obj;
 
-    boolean result = true;
-    result = result && (hasUfsUri() == other.hasUfsUri());
+    if (hasUfsUri() != other.hasUfsUri()) return false;
     if (hasUfsUri()) {
-      result = result && getUfsUri()
-          .equals(other.getUfsUri());
+      if (!getUfsUri()
+          .equals(other.getUfsUri())) return false;
     }
-    result = result && (hasUfsType() == other.hasUfsType());
+    if (hasUfsType() != other.hasUfsType()) return false;
     if (hasUfsType()) {
-      result = result && getUfsType()
-          .equals(other.getUfsType());
+      if (!getUfsType()
+          .equals(other.getUfsType())) return false;
     }
-    result = result && (hasUfsCapacityBytes() == other.hasUfsCapacityBytes());
+    if (hasUfsCapacityBytes() != other.hasUfsCapacityBytes()) return false;
     if (hasUfsCapacityBytes()) {
-      result = result && (getUfsCapacityBytes()
-          == other.getUfsCapacityBytes());
+      if (getUfsCapacityBytes()
+          != other.getUfsCapacityBytes()) return false;
     }
-    result = result && (hasUfsUsedBytes() == other.hasUfsUsedBytes());
+    if (hasUfsUsedBytes() != other.hasUfsUsedBytes()) return false;
     if (hasUfsUsedBytes()) {
-      result = result && (getUfsUsedBytes()
-          == other.getUfsUsedBytes());
+      if (getUfsUsedBytes()
+          != other.getUfsUsedBytes()) return false;
     }
-    result = result && (hasReadOnly() == other.hasReadOnly());
+    if (hasReadOnly() != other.hasReadOnly()) return false;
     if (hasReadOnly()) {
-      result = result && (getReadOnly()
-          == other.getReadOnly());
+      if (getReadOnly()
+          != other.getReadOnly()) return false;
     }
-    result = result && internalGetProperties().equals(
-        other.internalGetProperties());
-    result = result && (hasShared() == other.hasShared());
+    if (!internalGetProperties().equals(
+        other.internalGetProperties())) return false;
+    if (hasShared() != other.hasShared()) return false;
     if (hasShared()) {
-      result = result && (getShared()
-          == other.getShared());
+      if (getShared()
+          != other.getShared()) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -598,6 +621,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -605,6 +629,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.MountPointInfo prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -650,6 +675,7 @@ private static final long serialVersionUID = 0L;
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_MountPointInfo_fieldAccessorTable
@@ -672,6 +698,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       ufsUri_ = "";
@@ -690,15 +717,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_MountPointInfo_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.MountPointInfo getDefaultInstanceForType() {
       return alluxio.grpc.MountPointInfo.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.MountPointInfo build() {
       alluxio.grpc.MountPointInfo result = buildPartial();
       if (!result.isInitialized()) {
@@ -707,67 +737,75 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.MountPointInfo buildPartial() {
       alluxio.grpc.MountPointInfo result = new alluxio.grpc.MountPointInfo(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
         to_bitField0_ |= 0x00000001;
       }
       result.ufsUri_ = ufsUri_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
         to_bitField0_ |= 0x00000002;
       }
       result.ufsType_ = ufsType_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
         to_bitField0_ |= 0x00000004;
       }
       result.ufsCapacityBytes_ = ufsCapacityBytes_;
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000008) != 0)) {
         to_bitField0_ |= 0x00000008;
       }
       result.ufsUsedBytes_ = ufsUsedBytes_;
-      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((from_bitField0_ & 0x00000010) != 0)) {
+        result.readOnly_ = readOnly_;
         to_bitField0_ |= 0x00000010;
       }
-      result.readOnly_ = readOnly_;
       result.properties_ = internalGetProperties();
       result.properties_.makeImmutable();
-      if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((from_bitField0_ & 0x00000040) != 0)) {
+        result.shared_ = shared_;
         to_bitField0_ |= 0x00000020;
       }
-      result.shared_ = shared_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.MountPointInfo) {
         return mergeFrom((alluxio.grpc.MountPointInfo)other);
@@ -808,10 +846,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -834,12 +874,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object ufsUri_ = "";
     /**
      * <code>optional string ufsUri = 1;</code>
+     * @return Whether the ufsUri field is set.
      */
     public boolean hasUfsUri() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string ufsUri = 1;</code>
+     * @return The ufsUri.
      */
     public java.lang.String getUfsUri() {
       java.lang.Object ref = ufsUri_;
@@ -857,6 +899,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string ufsUri = 1;</code>
+     * @return The bytes for ufsUri.
      */
     public com.google.protobuf.ByteString
         getUfsUriBytes() {
@@ -873,6 +916,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string ufsUri = 1;</code>
+     * @param value The ufsUri to set.
+     * @return This builder for chaining.
      */
     public Builder setUfsUri(
         java.lang.String value) {
@@ -886,6 +931,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string ufsUri = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearUfsUri() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -895,6 +941,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string ufsUri = 1;</code>
+     * @param value The bytes for ufsUri to set.
+     * @return This builder for chaining.
      */
     public Builder setUfsUriBytes(
         com.google.protobuf.ByteString value) {
@@ -910,12 +958,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object ufsType_ = "";
     /**
      * <code>optional string ufsType = 2;</code>
+     * @return Whether the ufsType field is set.
      */
     public boolean hasUfsType() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string ufsType = 2;</code>
+     * @return The ufsType.
      */
     public java.lang.String getUfsType() {
       java.lang.Object ref = ufsType_;
@@ -933,6 +983,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string ufsType = 2;</code>
+     * @return The bytes for ufsType.
      */
     public com.google.protobuf.ByteString
         getUfsTypeBytes() {
@@ -949,6 +1000,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string ufsType = 2;</code>
+     * @param value The ufsType to set.
+     * @return This builder for chaining.
      */
     public Builder setUfsType(
         java.lang.String value) {
@@ -962,6 +1015,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string ufsType = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearUfsType() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -971,6 +1025,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string ufsType = 2;</code>
+     * @param value The bytes for ufsType to set.
+     * @return This builder for chaining.
      */
     public Builder setUfsTypeBytes(
         com.google.protobuf.ByteString value) {
@@ -986,18 +1042,22 @@ private static final long serialVersionUID = 0L;
     private long ufsCapacityBytes_ = -1L;
     /**
      * <code>optional int64 ufsCapacityBytes = 3 [default = -1];</code>
+     * @return Whether the ufsCapacityBytes field is set.
      */
     public boolean hasUfsCapacityBytes() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional int64 ufsCapacityBytes = 3 [default = -1];</code>
+     * @return The ufsCapacityBytes.
      */
     public long getUfsCapacityBytes() {
       return ufsCapacityBytes_;
     }
     /**
      * <code>optional int64 ufsCapacityBytes = 3 [default = -1];</code>
+     * @param value The ufsCapacityBytes to set.
+     * @return This builder for chaining.
      */
     public Builder setUfsCapacityBytes(long value) {
       bitField0_ |= 0x00000004;
@@ -1007,6 +1067,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 ufsCapacityBytes = 3 [default = -1];</code>
+     * @return This builder for chaining.
      */
     public Builder clearUfsCapacityBytes() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -1018,18 +1079,22 @@ private static final long serialVersionUID = 0L;
     private long ufsUsedBytes_ = -1L;
     /**
      * <code>optional int64 ufsUsedBytes = 4 [default = -1];</code>
+     * @return Whether the ufsUsedBytes field is set.
      */
     public boolean hasUfsUsedBytes() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional int64 ufsUsedBytes = 4 [default = -1];</code>
+     * @return The ufsUsedBytes.
      */
     public long getUfsUsedBytes() {
       return ufsUsedBytes_;
     }
     /**
      * <code>optional int64 ufsUsedBytes = 4 [default = -1];</code>
+     * @param value The ufsUsedBytes to set.
+     * @return This builder for chaining.
      */
     public Builder setUfsUsedBytes(long value) {
       bitField0_ |= 0x00000008;
@@ -1039,6 +1104,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 ufsUsedBytes = 4 [default = -1];</code>
+     * @return This builder for chaining.
      */
     public Builder clearUfsUsedBytes() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -1050,18 +1116,22 @@ private static final long serialVersionUID = 0L;
     private boolean readOnly_ ;
     /**
      * <code>optional bool readOnly = 5;</code>
+     * @return Whether the readOnly field is set.
      */
     public boolean hasReadOnly() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000010) != 0);
     }
     /**
      * <code>optional bool readOnly = 5;</code>
+     * @return The readOnly.
      */
     public boolean getReadOnly() {
       return readOnly_;
     }
     /**
      * <code>optional bool readOnly = 5;</code>
+     * @param value The readOnly to set.
+     * @return This builder for chaining.
      */
     public Builder setReadOnly(boolean value) {
       bitField0_ |= 0x00000010;
@@ -1071,6 +1141,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool readOnly = 5;</code>
+     * @return This builder for chaining.
      */
     public Builder clearReadOnly() {
       bitField0_ = (bitField0_ & ~0x00000010);
@@ -1205,18 +1276,22 @@ private static final long serialVersionUID = 0L;
     private boolean shared_ ;
     /**
      * <code>optional bool shared = 7;</code>
+     * @return Whether the shared field is set.
      */
     public boolean hasShared() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
+      return ((bitField0_ & 0x00000040) != 0);
     }
     /**
      * <code>optional bool shared = 7;</code>
+     * @return The shared.
      */
     public boolean getShared() {
       return shared_;
     }
     /**
      * <code>optional bool shared = 7;</code>
+     * @param value The shared to set.
+     * @return This builder for chaining.
      */
     public Builder setShared(boolean value) {
       bitField0_ |= 0x00000040;
@@ -1226,6 +1301,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool shared = 7;</code>
+     * @return This builder for chaining.
      */
     public Builder clearShared() {
       bitField0_ = (bitField0_ & ~0x00000040);
@@ -1233,11 +1309,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1259,6 +1337,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<MountPointInfo>
       PARSER = new com.google.protobuf.AbstractParser<MountPointInfo>() {
+    @java.lang.Override
     public MountPointInfo parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1276,6 +1355,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.MountPointInfo getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

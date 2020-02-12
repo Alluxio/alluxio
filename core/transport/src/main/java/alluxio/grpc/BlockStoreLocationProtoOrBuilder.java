@@ -9,28 +9,34 @@ public interface BlockStoreLocationProtoOrBuilder extends
 
   /**
    * <code>optional string tierAlias = 1;</code>
+   * @return Whether the tierAlias field is set.
    */
   boolean hasTierAlias();
   /**
    * <code>optional string tierAlias = 1;</code>
+   * @return The tierAlias.
    */
   java.lang.String getTierAlias();
   /**
    * <code>optional string tierAlias = 1;</code>
+   * @return The bytes for tierAlias.
    */
   com.google.protobuf.ByteString
       getTierAliasBytes();
 
   /**
    * <code>optional string mediumType = 2;</code>
+   * @return Whether the mediumType field is set.
    */
   boolean hasMediumType();
   /**
    * <code>optional string mediumType = 2;</code>
+   * @return The mediumType.
    */
   java.lang.String getMediumType();
   /**
    * <code>optional string mediumType = 2;</code>
+   * @return The bytes for mediumType.
    */
   com.google.protobuf.ByteString
       getMediumTypeBytes();

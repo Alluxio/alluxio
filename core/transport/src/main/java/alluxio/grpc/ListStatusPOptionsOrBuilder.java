@@ -13,6 +13,7 @@ public interface ListStatusPOptionsOrBuilder extends
    * </pre>
    *
    * <code>optional bool loadDirectChildren = 1;</code>
+   * @return Whether the loadDirectChildren field is set.
    */
   boolean hasLoadDirectChildren();
   /**
@@ -21,24 +22,29 @@ public interface ListStatusPOptionsOrBuilder extends
    * </pre>
    *
    * <code>optional bool loadDirectChildren = 1;</code>
+   * @return The loadDirectChildren.
    */
   boolean getLoadDirectChildren();
 
   /**
    * <code>optional .alluxio.grpc.file.LoadMetadataPType loadMetadataType = 2;</code>
+   * @return Whether the loadMetadataType field is set.
    */
   boolean hasLoadMetadataType();
   /**
    * <code>optional .alluxio.grpc.file.LoadMetadataPType loadMetadataType = 2;</code>
+   * @return The loadMetadataType.
    */
   alluxio.grpc.LoadMetadataPType getLoadMetadataType();
 
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+   * @return Whether the commonOptions field is set.
    */
   boolean hasCommonOptions();
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 3;</code>
+   * @return The commonOptions.
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
@@ -48,10 +54,12 @@ public interface ListStatusPOptionsOrBuilder extends
 
   /**
    * <code>optional bool recursive = 4;</code>
+   * @return Whether the recursive field is set.
    */
   boolean hasRecursive();
   /**
    * <code>optional bool recursive = 4;</code>
+   * @return The recursive.
    */
   boolean getRecursive();
 }

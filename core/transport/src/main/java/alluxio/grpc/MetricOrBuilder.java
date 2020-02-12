@@ -9,75 +9,91 @@ public interface MetricOrBuilder extends
 
   /**
    * <code>optional string instance = 1;</code>
+   * @return Whether the instance field is set.
    */
   boolean hasInstance();
   /**
    * <code>optional string instance = 1;</code>
+   * @return The instance.
    */
   java.lang.String getInstance();
   /**
    * <code>optional string instance = 1;</code>
+   * @return The bytes for instance.
    */
   com.google.protobuf.ByteString
       getInstanceBytes();
 
   /**
    * <code>optional string hostname = 2;</code>
+   * @return Whether the hostname field is set.
    */
   boolean hasHostname();
   /**
    * <code>optional string hostname = 2;</code>
+   * @return The hostname.
    */
   java.lang.String getHostname();
   /**
    * <code>optional string hostname = 2;</code>
+   * @return The bytes for hostname.
    */
   com.google.protobuf.ByteString
       getHostnameBytes();
 
   /**
    * <code>optional string instanceId = 3;</code>
+   * @return Whether the instanceId field is set.
    */
   boolean hasInstanceId();
   /**
    * <code>optional string instanceId = 3;</code>
+   * @return The instanceId.
    */
   java.lang.String getInstanceId();
   /**
    * <code>optional string instanceId = 3;</code>
+   * @return The bytes for instanceId.
    */
   com.google.protobuf.ByteString
       getInstanceIdBytes();
 
   /**
    * <code>optional string name = 4;</code>
+   * @return Whether the name field is set.
    */
   boolean hasName();
   /**
    * <code>optional string name = 4;</code>
+   * @return The name.
    */
   java.lang.String getName();
   /**
    * <code>optional string name = 4;</code>
+   * @return The bytes for name.
    */
   com.google.protobuf.ByteString
       getNameBytes();
 
   /**
    * <code>optional double value = 5;</code>
+   * @return Whether the value field is set.
    */
   boolean hasValue();
   /**
    * <code>optional double value = 5;</code>
+   * @return The value.
    */
   double getValue();
 
   /**
    * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+   * @return Whether the metricType field is set.
    */
   boolean hasMetricType();
   /**
    * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+   * @return The metricType.
    */
   alluxio.grpc.MetricType getMetricType();
 

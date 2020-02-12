@@ -9,10 +9,12 @@ public interface GetTablePResponseOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.TableInfo table_info = 1;</code>
+   * @return Whether the tableInfo field is set.
    */
   boolean hasTableInfo();
   /**
    * <code>optional .alluxio.grpc.table.TableInfo table_info = 1;</code>
+   * @return The tableInfo.
    */
   alluxio.grpc.table.TableInfo getTableInfo();
   /**

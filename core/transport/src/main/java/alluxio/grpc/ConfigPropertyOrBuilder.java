@@ -9,42 +9,51 @@ public interface ConfigPropertyOrBuilder extends
 
   /**
    * <code>optional string name = 1;</code>
+   * @return Whether the name field is set.
    */
   boolean hasName();
   /**
    * <code>optional string name = 1;</code>
+   * @return The name.
    */
   java.lang.String getName();
   /**
    * <code>optional string name = 1;</code>
+   * @return The bytes for name.
    */
   com.google.protobuf.ByteString
       getNameBytes();
 
   /**
    * <code>optional string source = 2;</code>
+   * @return Whether the source field is set.
    */
   boolean hasSource();
   /**
    * <code>optional string source = 2;</code>
+   * @return The source.
    */
   java.lang.String getSource();
   /**
    * <code>optional string source = 2;</code>
+   * @return The bytes for source.
    */
   com.google.protobuf.ByteString
       getSourceBytes();
 
   /**
    * <code>optional string value = 3;</code>
+   * @return Whether the value field is set.
    */
   boolean hasValue();
   /**
    * <code>optional string value = 3;</code>
+   * @return The value.
    */
   java.lang.String getValue();
   /**
    * <code>optional string value = 3;</code>
+   * @return The bytes for value.
    */
   com.google.protobuf.ByteString
       getValueBytes();

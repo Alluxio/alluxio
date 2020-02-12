@@ -9,28 +9,34 @@ public interface ClientMetricsOrBuilder extends
 
   /**
    * <code>optional string clientId = 1;</code>
+   * @return Whether the clientId field is set.
    */
   boolean hasClientId();
   /**
    * <code>optional string clientId = 1;</code>
+   * @return The clientId.
    */
   java.lang.String getClientId();
   /**
    * <code>optional string clientId = 1;</code>
+   * @return The bytes for clientId.
    */
   com.google.protobuf.ByteString
       getClientIdBytes();
 
   /**
    * <code>optional string hostname = 2;</code>
+   * @return Whether the hostname field is set.
    */
   boolean hasHostname();
   /**
    * <code>optional string hostname = 2;</code>
+   * @return The hostname.
    */
   java.lang.String getHostname();
   /**
    * <code>optional string hostname = 2;</code>
+   * @return The bytes for hostname.
    */
   com.google.protobuf.ByteString
       getHostnameBytes();

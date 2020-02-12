@@ -9,10 +9,12 @@ public interface FileSystemCommandOptionsOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.file.PersistCommandOptions persistOptions = 1;</code>
+   * @return Whether the persistOptions field is set.
    */
   boolean hasPersistOptions();
   /**
    * <code>optional .alluxio.grpc.file.PersistCommandOptions persistOptions = 1;</code>
+   * @return The persistOptions.
    */
   alluxio.grpc.PersistCommandOptions getPersistOptions();
   /**

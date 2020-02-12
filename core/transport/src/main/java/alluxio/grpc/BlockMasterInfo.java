@@ -16,11 +16,13 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private BlockMasterInfo() {
-    capacityBytes_ = 0L;
-    freeBytes_ = 0L;
-    liveWorkerNum_ = 0;
-    lostWorkerNum_ = 0;
-    usedBytes_ = 0L;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new BlockMasterInfo();
   }
 
   @java.lang.Override
@@ -47,20 +49,13 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             bitField0_ |= 0x00000001;
             capacityBytes_ = input.readInt64();
             break;
           }
           case 18: {
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
               capacityBytesOnTiers_ = com.google.protobuf.MapField.newMapField(
                   CapacityBytesOnTiersDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000002;
@@ -93,7 +88,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 58: {
-            if (!((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+            if (!((mutable_bitField0_ & 0x00000040) != 0)) {
               usedBytesOnTiers_ = com.google.protobuf.MapField.newMapField(
                   UsedBytesOnTiersDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000040;
@@ -103,6 +98,13 @@ private static final long serialVersionUID = 0L;
                 UsedBytesOnTiersDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
             usedBytesOnTiers_.getMutableMap().put(
                 usedBytesOnTiers__.getKey(), usedBytesOnTiers__.getValue());
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -123,6 +125,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @SuppressWarnings({"rawtypes"})
+  @java.lang.Override
   protected com.google.protobuf.MapField internalGetMapField(
       int number) {
     switch (number) {
@@ -135,6 +138,7 @@ private static final long serialVersionUID = 0L;
             "Invalid map field number: " + number);
     }
   }
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_BlockMasterInfo_fieldAccessorTable
@@ -147,12 +151,14 @@ private static final long serialVersionUID = 0L;
   private long capacityBytes_;
   /**
    * <code>optional int64 capacityBytes = 1;</code>
+   * @return Whether the capacityBytes field is set.
    */
   public boolean hasCapacityBytes() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional int64 capacityBytes = 1;</code>
+   * @return The capacityBytes.
    */
   public long getCapacityBytes() {
     return capacityBytes_;
@@ -238,12 +244,14 @@ private static final long serialVersionUID = 0L;
   private long freeBytes_;
   /**
    * <code>optional int64 freeBytes = 3;</code>
+   * @return Whether the freeBytes field is set.
    */
   public boolean hasFreeBytes() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional int64 freeBytes = 3;</code>
+   * @return The freeBytes.
    */
   public long getFreeBytes() {
     return freeBytes_;
@@ -253,12 +261,14 @@ private static final long serialVersionUID = 0L;
   private int liveWorkerNum_;
   /**
    * <code>optional int32 liveWorkerNum = 4;</code>
+   * @return Whether the liveWorkerNum field is set.
    */
   public boolean hasLiveWorkerNum() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional int32 liveWorkerNum = 4;</code>
+   * @return The liveWorkerNum.
    */
   public int getLiveWorkerNum() {
     return liveWorkerNum_;
@@ -268,12 +278,14 @@ private static final long serialVersionUID = 0L;
   private int lostWorkerNum_;
   /**
    * <code>optional int32 lostWorkerNum = 5;</code>
+   * @return Whether the lostWorkerNum field is set.
    */
   public boolean hasLostWorkerNum() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000008) != 0);
   }
   /**
    * <code>optional int32 lostWorkerNum = 5;</code>
+   * @return The lostWorkerNum.
    */
   public int getLostWorkerNum() {
     return lostWorkerNum_;
@@ -283,12 +295,14 @@ private static final long serialVersionUID = 0L;
   private long usedBytes_;
   /**
    * <code>optional int64 usedBytes = 6;</code>
+   * @return Whether the usedBytes field is set.
    */
   public boolean hasUsedBytes() {
-    return ((bitField0_ & 0x00000010) == 0x00000010);
+    return ((bitField0_ & 0x00000010) != 0);
   }
   /**
    * <code>optional int64 usedBytes = 6;</code>
+   * @return The usedBytes.
    */
   public long getUsedBytes() {
     return usedBytes_;
@@ -371,6 +385,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -380,9 +395,10 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeInt64(1, capacityBytes_);
     }
     com.google.protobuf.GeneratedMessageV3
@@ -391,16 +407,16 @@ private static final long serialVersionUID = 0L;
         internalGetCapacityBytesOnTiers(),
         CapacityBytesOnTiersDefaultEntryHolder.defaultEntry,
         2);
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeInt64(3, freeBytes_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       output.writeInt32(4, liveWorkerNum_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       output.writeInt32(5, lostWorkerNum_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       output.writeInt64(6, usedBytes_);
     }
     com.google.protobuf.GeneratedMessageV3
@@ -412,12 +428,13 @@ private static final long serialVersionUID = 0L;
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(1, capacityBytes_);
     }
@@ -431,19 +448,19 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(2, capacityBytesOnTiers__);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(3, freeBytes_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(4, liveWorkerNum_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(5, lostWorkerNum_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(6, usedBytes_);
     }
@@ -472,38 +489,37 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.BlockMasterInfo other = (alluxio.grpc.BlockMasterInfo) obj;
 
-    boolean result = true;
-    result = result && (hasCapacityBytes() == other.hasCapacityBytes());
+    if (hasCapacityBytes() != other.hasCapacityBytes()) return false;
     if (hasCapacityBytes()) {
-      result = result && (getCapacityBytes()
-          == other.getCapacityBytes());
+      if (getCapacityBytes()
+          != other.getCapacityBytes()) return false;
     }
-    result = result && internalGetCapacityBytesOnTiers().equals(
-        other.internalGetCapacityBytesOnTiers());
-    result = result && (hasFreeBytes() == other.hasFreeBytes());
+    if (!internalGetCapacityBytesOnTiers().equals(
+        other.internalGetCapacityBytesOnTiers())) return false;
+    if (hasFreeBytes() != other.hasFreeBytes()) return false;
     if (hasFreeBytes()) {
-      result = result && (getFreeBytes()
-          == other.getFreeBytes());
+      if (getFreeBytes()
+          != other.getFreeBytes()) return false;
     }
-    result = result && (hasLiveWorkerNum() == other.hasLiveWorkerNum());
+    if (hasLiveWorkerNum() != other.hasLiveWorkerNum()) return false;
     if (hasLiveWorkerNum()) {
-      result = result && (getLiveWorkerNum()
-          == other.getLiveWorkerNum());
+      if (getLiveWorkerNum()
+          != other.getLiveWorkerNum()) return false;
     }
-    result = result && (hasLostWorkerNum() == other.hasLostWorkerNum());
+    if (hasLostWorkerNum() != other.hasLostWorkerNum()) return false;
     if (hasLostWorkerNum()) {
-      result = result && (getLostWorkerNum()
-          == other.getLostWorkerNum());
+      if (getLostWorkerNum()
+          != other.getLostWorkerNum()) return false;
     }
-    result = result && (hasUsedBytes() == other.hasUsedBytes());
+    if (hasUsedBytes() != other.hasUsedBytes()) return false;
     if (hasUsedBytes()) {
-      result = result && (getUsedBytes()
-          == other.getUsedBytes());
+      if (getUsedBytes()
+          != other.getUsedBytes()) return false;
     }
-    result = result && internalGetUsedBytesOnTiers().equals(
-        other.internalGetUsedBytesOnTiers());
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!internalGetUsedBytesOnTiers().equals(
+        other.internalGetUsedBytesOnTiers())) return false;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -619,6 +635,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -626,6 +643,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.BlockMasterInfo prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -675,6 +693,7 @@ private static final long serialVersionUID = 0L;
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_BlockMasterInfo_fieldAccessorTable
@@ -697,6 +716,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       capacityBytes_ = 0L;
@@ -714,15 +734,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_BlockMasterInfo_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.BlockMasterInfo getDefaultInstanceForType() {
       return alluxio.grpc.BlockMasterInfo.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.BlockMasterInfo build() {
       alluxio.grpc.BlockMasterInfo result = buildPartial();
       if (!result.isInitialized()) {
@@ -731,32 +754,33 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.BlockMasterInfo buildPartial() {
       alluxio.grpc.BlockMasterInfo result = new alluxio.grpc.BlockMasterInfo(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        result.capacityBytes_ = capacityBytes_;
         to_bitField0_ |= 0x00000001;
       }
-      result.capacityBytes_ = capacityBytes_;
       result.capacityBytesOnTiers_ = internalGetCapacityBytesOnTiers();
       result.capacityBytesOnTiers_.makeImmutable();
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
+        result.freeBytes_ = freeBytes_;
         to_bitField0_ |= 0x00000002;
       }
-      result.freeBytes_ = freeBytes_;
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000008) != 0)) {
+        result.liveWorkerNum_ = liveWorkerNum_;
         to_bitField0_ |= 0x00000004;
       }
-      result.liveWorkerNum_ = liveWorkerNum_;
-      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((from_bitField0_ & 0x00000010) != 0)) {
+        result.lostWorkerNum_ = lostWorkerNum_;
         to_bitField0_ |= 0x00000008;
       }
-      result.lostWorkerNum_ = lostWorkerNum_;
-      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((from_bitField0_ & 0x00000020) != 0)) {
+        result.usedBytes_ = usedBytes_;
         to_bitField0_ |= 0x00000010;
       }
-      result.usedBytes_ = usedBytes_;
       result.usedBytesOnTiers_ = internalGetUsedBytesOnTiers();
       result.usedBytesOnTiers_.makeImmutable();
       result.bitField0_ = to_bitField0_;
@@ -764,32 +788,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.BlockMasterInfo) {
         return mergeFrom((alluxio.grpc.BlockMasterInfo)other);
@@ -825,10 +856,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -851,18 +884,22 @@ private static final long serialVersionUID = 0L;
     private long capacityBytes_ ;
     /**
      * <code>optional int64 capacityBytes = 1;</code>
+     * @return Whether the capacityBytes field is set.
      */
     public boolean hasCapacityBytes() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional int64 capacityBytes = 1;</code>
+     * @return The capacityBytes.
      */
     public long getCapacityBytes() {
       return capacityBytes_;
     }
     /**
      * <code>optional int64 capacityBytes = 1;</code>
+     * @param value The capacityBytes to set.
+     * @return This builder for chaining.
      */
     public Builder setCapacityBytes(long value) {
       bitField0_ |= 0x00000001;
@@ -872,6 +909,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 capacityBytes = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearCapacityBytes() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -1006,18 +1044,22 @@ private static final long serialVersionUID = 0L;
     private long freeBytes_ ;
     /**
      * <code>optional int64 freeBytes = 3;</code>
+     * @return Whether the freeBytes field is set.
      */
     public boolean hasFreeBytes() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional int64 freeBytes = 3;</code>
+     * @return The freeBytes.
      */
     public long getFreeBytes() {
       return freeBytes_;
     }
     /**
      * <code>optional int64 freeBytes = 3;</code>
+     * @param value The freeBytes to set.
+     * @return This builder for chaining.
      */
     public Builder setFreeBytes(long value) {
       bitField0_ |= 0x00000004;
@@ -1027,6 +1069,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 freeBytes = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearFreeBytes() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -1038,18 +1081,22 @@ private static final long serialVersionUID = 0L;
     private int liveWorkerNum_ ;
     /**
      * <code>optional int32 liveWorkerNum = 4;</code>
+     * @return Whether the liveWorkerNum field is set.
      */
     public boolean hasLiveWorkerNum() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional int32 liveWorkerNum = 4;</code>
+     * @return The liveWorkerNum.
      */
     public int getLiveWorkerNum() {
       return liveWorkerNum_;
     }
     /**
      * <code>optional int32 liveWorkerNum = 4;</code>
+     * @param value The liveWorkerNum to set.
+     * @return This builder for chaining.
      */
     public Builder setLiveWorkerNum(int value) {
       bitField0_ |= 0x00000008;
@@ -1059,6 +1106,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int32 liveWorkerNum = 4;</code>
+     * @return This builder for chaining.
      */
     public Builder clearLiveWorkerNum() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -1070,18 +1118,22 @@ private static final long serialVersionUID = 0L;
     private int lostWorkerNum_ ;
     /**
      * <code>optional int32 lostWorkerNum = 5;</code>
+     * @return Whether the lostWorkerNum field is set.
      */
     public boolean hasLostWorkerNum() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000010) != 0);
     }
     /**
      * <code>optional int32 lostWorkerNum = 5;</code>
+     * @return The lostWorkerNum.
      */
     public int getLostWorkerNum() {
       return lostWorkerNum_;
     }
     /**
      * <code>optional int32 lostWorkerNum = 5;</code>
+     * @param value The lostWorkerNum to set.
+     * @return This builder for chaining.
      */
     public Builder setLostWorkerNum(int value) {
       bitField0_ |= 0x00000010;
@@ -1091,6 +1143,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int32 lostWorkerNum = 5;</code>
+     * @return This builder for chaining.
      */
     public Builder clearLostWorkerNum() {
       bitField0_ = (bitField0_ & ~0x00000010);
@@ -1102,18 +1155,22 @@ private static final long serialVersionUID = 0L;
     private long usedBytes_ ;
     /**
      * <code>optional int64 usedBytes = 6;</code>
+     * @return Whether the usedBytes field is set.
      */
     public boolean hasUsedBytes() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000020) != 0);
     }
     /**
      * <code>optional int64 usedBytes = 6;</code>
+     * @return The usedBytes.
      */
     public long getUsedBytes() {
       return usedBytes_;
     }
     /**
      * <code>optional int64 usedBytes = 6;</code>
+     * @param value The usedBytes to set.
+     * @return This builder for chaining.
      */
     public Builder setUsedBytes(long value) {
       bitField0_ |= 0x00000020;
@@ -1123,6 +1180,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 usedBytes = 6;</code>
+     * @return This builder for chaining.
      */
     public Builder clearUsedBytes() {
       bitField0_ = (bitField0_ & ~0x00000020);
@@ -1253,11 +1311,13 @@ private static final long serialVersionUID = 0L;
           .putAll(values);
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1279,6 +1339,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<BlockMasterInfo>
       PARSER = new com.google.protobuf.AbstractParser<BlockMasterInfo>() {
+    @java.lang.Override
     public BlockMasterInfo parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1296,6 +1357,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.BlockMasterInfo getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

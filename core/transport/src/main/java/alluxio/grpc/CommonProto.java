@@ -121,18 +121,10 @@ public final class CommonProto {
       "t\020\005*!\n\tTtlAction\022\n\n\006DELETE\020\000\022\010\n\004FREE\020\001B\035" +
       "\n\014alluxio.grpcB\013CommonProtoP\001"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-        }, assigner);
+        });
     internal_static_alluxio_grpc_PMode_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_alluxio_grpc_PMode_fieldAccessorTable = new

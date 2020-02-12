@@ -22,7 +22,7 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.17.1)",
+    value = "by gRPC proto compiler (version 1.27.0)",
     comments = "Source: grpc/file_system_master.proto")
 public final class FileSystemMasterJobServiceGrpc {
 
@@ -45,22 +45,21 @@ public final class FileSystemMasterJobServiceGrpc {
     if ((getGetFileInfoMethod = FileSystemMasterJobServiceGrpc.getGetFileInfoMethod) == null) {
       synchronized (FileSystemMasterJobServiceGrpc.class) {
         if ((getGetFileInfoMethod = FileSystemMasterJobServiceGrpc.getGetFileInfoMethod) == null) {
-          FileSystemMasterJobServiceGrpc.getGetFileInfoMethod = getGetFileInfoMethod = 
+          FileSystemMasterJobServiceGrpc.getGetFileInfoMethod = getGetFileInfoMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetFileInfoPRequest, alluxio.grpc.GetFileInfoPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterJobService", "GetFileInfo"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetFileInfo"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetFileInfoPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetFileInfoPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterJobServiceMethodDescriptorSupplier("GetFileInfo"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterJobServiceMethodDescriptorSupplier("GetFileInfo"))
+              .build();
         }
-     }
-     return getGetFileInfoMethod;
+      }
+    }
+    return getGetFileInfoMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetUfsInfoPRequest,
@@ -77,29 +76,35 @@ public final class FileSystemMasterJobServiceGrpc {
     if ((getGetUfsInfoMethod = FileSystemMasterJobServiceGrpc.getGetUfsInfoMethod) == null) {
       synchronized (FileSystemMasterJobServiceGrpc.class) {
         if ((getGetUfsInfoMethod = FileSystemMasterJobServiceGrpc.getGetUfsInfoMethod) == null) {
-          FileSystemMasterJobServiceGrpc.getGetUfsInfoMethod = getGetUfsInfoMethod = 
+          FileSystemMasterJobServiceGrpc.getGetUfsInfoMethod = getGetUfsInfoMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetUfsInfoPRequest, alluxio.grpc.GetUfsInfoPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterJobService", "GetUfsInfo"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetUfsInfo"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetUfsInfoPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetUfsInfoPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterJobServiceMethodDescriptorSupplier("GetUfsInfo"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterJobServiceMethodDescriptorSupplier("GetUfsInfo"))
+              .build();
         }
-     }
-     return getGetUfsInfoMethod;
+      }
+    }
+    return getGetUfsInfoMethod;
   }
 
   /**
    * Creates a new async stub that supports all call types for the service
    */
   public static FileSystemMasterJobServiceStub newStub(io.grpc.Channel channel) {
-    return new FileSystemMasterJobServiceStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterJobServiceStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterJobServiceStub>() {
+        @java.lang.Override
+        public FileSystemMasterJobServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new FileSystemMasterJobServiceStub(channel, callOptions);
+        }
+      };
+    return FileSystemMasterJobServiceStub.newStub(factory, channel);
   }
 
   /**
@@ -107,7 +112,14 @@ public final class FileSystemMasterJobServiceGrpc {
    */
   public static FileSystemMasterJobServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new FileSystemMasterJobServiceBlockingStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterJobServiceBlockingStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterJobServiceBlockingStub>() {
+        @java.lang.Override
+        public FileSystemMasterJobServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new FileSystemMasterJobServiceBlockingStub(channel, callOptions);
+        }
+      };
+    return FileSystemMasterJobServiceBlockingStub.newStub(factory, channel);
   }
 
   /**
@@ -115,7 +127,14 @@ public final class FileSystemMasterJobServiceGrpc {
    */
   public static FileSystemMasterJobServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new FileSystemMasterJobServiceFutureStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterJobServiceFutureStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterJobServiceFutureStub>() {
+        @java.lang.Override
+        public FileSystemMasterJobServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new FileSystemMasterJobServiceFutureStub(channel, callOptions);
+        }
+      };
+    return FileSystemMasterJobServiceFutureStub.newStub(factory, channel);
   }
 
   /**
@@ -173,19 +192,15 @@ public final class FileSystemMasterJobServiceGrpc {
    * This interface contains file system master service endpoints for Alluxio workers.
    * </pre>
    */
-  public static final class FileSystemMasterJobServiceStub extends io.grpc.stub.AbstractStub<FileSystemMasterJobServiceStub> {
-    private FileSystemMasterJobServiceStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private FileSystemMasterJobServiceStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class FileSystemMasterJobServiceStub extends io.grpc.stub.AbstractAsyncStub<FileSystemMasterJobServiceStub> {
+    private FileSystemMasterJobServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected FileSystemMasterJobServiceStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected FileSystemMasterJobServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new FileSystemMasterJobServiceStub(channel, callOptions);
     }
 
@@ -219,19 +234,15 @@ public final class FileSystemMasterJobServiceGrpc {
    * This interface contains file system master service endpoints for Alluxio workers.
    * </pre>
    */
-  public static final class FileSystemMasterJobServiceBlockingStub extends io.grpc.stub.AbstractStub<FileSystemMasterJobServiceBlockingStub> {
-    private FileSystemMasterJobServiceBlockingStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private FileSystemMasterJobServiceBlockingStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class FileSystemMasterJobServiceBlockingStub extends io.grpc.stub.AbstractBlockingStub<FileSystemMasterJobServiceBlockingStub> {
+    private FileSystemMasterJobServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected FileSystemMasterJobServiceBlockingStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected FileSystemMasterJobServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new FileSystemMasterJobServiceBlockingStub(channel, callOptions);
     }
 
@@ -263,19 +274,15 @@ public final class FileSystemMasterJobServiceGrpc {
    * This interface contains file system master service endpoints for Alluxio workers.
    * </pre>
    */
-  public static final class FileSystemMasterJobServiceFutureStub extends io.grpc.stub.AbstractStub<FileSystemMasterJobServiceFutureStub> {
-    private FileSystemMasterJobServiceFutureStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private FileSystemMasterJobServiceFutureStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class FileSystemMasterJobServiceFutureStub extends io.grpc.stub.AbstractFutureStub<FileSystemMasterJobServiceFutureStub> {
+    private FileSystemMasterJobServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected FileSystemMasterJobServiceFutureStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected FileSystemMasterJobServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new FileSystemMasterJobServiceFutureStub(channel, callOptions);
     }
 

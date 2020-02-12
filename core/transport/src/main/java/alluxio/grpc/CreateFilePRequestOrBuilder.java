@@ -13,6 +13,7 @@ public interface CreateFilePRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string path = 1;</code>
+   * @return Whether the path field is set.
    */
   boolean hasPath();
   /**
@@ -21,6 +22,7 @@ public interface CreateFilePRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string path = 1;</code>
+   * @return The path.
    */
   java.lang.String getPath();
   /**
@@ -29,16 +31,19 @@ public interface CreateFilePRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string path = 1;</code>
+   * @return The bytes for path.
    */
   com.google.protobuf.ByteString
       getPathBytes();
 
   /**
    * <code>optional .alluxio.grpc.file.CreateFilePOptions options = 2;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.file.CreateFilePOptions options = 2;</code>
+   * @return The options.
    */
   alluxio.grpc.CreateFilePOptions getOptions();
   /**

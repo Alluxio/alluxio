@@ -9,10 +9,12 @@ public interface DateOrBuilder extends
 
   /**
    * <code>required int64 days_since_epoch = 1;</code>
+   * @return Whether the daysSinceEpoch field is set.
    */
   boolean hasDaysSinceEpoch();
   /**
    * <code>required int64 days_since_epoch = 1;</code>
+   * @return The daysSinceEpoch.
    */
   long getDaysSinceEpoch();
 }

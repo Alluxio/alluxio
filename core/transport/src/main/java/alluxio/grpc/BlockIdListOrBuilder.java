@@ -9,14 +9,18 @@ public interface BlockIdListOrBuilder extends
 
   /**
    * <code>repeated int64 blockId = 1;</code>
+   * @return A list containing the blockId.
    */
   java.util.List<java.lang.Long> getBlockIdList();
   /**
    * <code>repeated int64 blockId = 1;</code>
+   * @return The count of blockId.
    */
   int getBlockIdCount();
   /**
    * <code>repeated int64 blockId = 1;</code>
+   * @param index The index of the element to return.
+   * @return The blockId at the given index.
    */
   long getBlockId(int index);
 }

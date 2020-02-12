@@ -9,19 +9,23 @@ public interface BlockInfoOrBuilder extends
 
   /**
    * <code>optional int64 blockId = 1;</code>
+   * @return Whether the blockId field is set.
    */
   boolean hasBlockId();
   /**
    * <code>optional int64 blockId = 1;</code>
+   * @return The blockId.
    */
   long getBlockId();
 
   /**
    * <code>optional int64 length = 2;</code>
+   * @return Whether the length field is set.
    */
   boolean hasLength();
   /**
    * <code>optional int64 length = 2;</code>
+   * @return The length.
    */
   long getLength();
 
