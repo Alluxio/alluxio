@@ -58,17 +58,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 18: {
-<<<<<<< HEAD
             if (!((mutable_bitField0_ & 0x00000002) != 0)) {
-=======
-            com.google.protobuf.ByteString bs = input.readBytes();
-            bitField0_ |= 0x00000002;
-            hostname_ = bs;
-            break;
-          }
-          case 26: {
-            if (!((mutable_bitField0_ & 0x00000004) != 0)) {
->>>>>>> upstream/master
               metrics_ = new java.util.ArrayList<alluxio.grpc.Metric>();
               mutable_bitField0_ |= 0x00000002;
             }
@@ -91,11 +81,7 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-<<<<<<< HEAD
       if (((mutable_bitField0_ & 0x00000002) != 0)) {
-=======
-      if (((mutable_bitField0_ & 0x00000004) != 0)) {
->>>>>>> upstream/master
         metrics_ = java.util.Collections.unmodifiableList(metrics_);
       }
       this.unknownFields = unknownFields.build();
@@ -119,7 +105,6 @@ private static final long serialVersionUID = 0L;
   public static final int SOURCE_FIELD_NUMBER = 1;
   private volatile java.lang.Object source_;
   /**
-<<<<<<< HEAD
    * <code>optional string source = 1;</code>
    * @return Whether the source field is set.
    */
@@ -129,17 +114,6 @@ private static final long serialVersionUID = 0L;
   /**
    * <code>optional string source = 1;</code>
    * @return The source.
-=======
-   * <code>optional string clientId = 1;</code>
-   * @return Whether the clientId field is set.
-   */
-  public boolean hasClientId() {
-    return ((bitField0_ & 0x00000001) != 0);
-  }
-  /**
-   * <code>optional string clientId = 1;</code>
-   * @return The clientId.
->>>>>>> upstream/master
    */
   public java.lang.String getSource() {
     java.lang.Object ref = source_;
@@ -156,13 +130,8 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-<<<<<<< HEAD
    * <code>optional string source = 1;</code>
    * @return The bytes for source.
-=======
-   * <code>optional string clientId = 1;</code>
-   * @return The bytes for clientId.
->>>>>>> upstream/master
    */
   public com.google.protobuf.ByteString
       getSourceBytes() {
@@ -178,56 +147,7 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-<<<<<<< HEAD
   public static final int METRICS_FIELD_NUMBER = 2;
-=======
-  public static final int HOSTNAME_FIELD_NUMBER = 2;
-  private volatile java.lang.Object hostname_;
-  /**
-   * <code>optional string hostname = 2;</code>
-   * @return Whether the hostname field is set.
-   */
-  public boolean hasHostname() {
-    return ((bitField0_ & 0x00000002) != 0);
-  }
-  /**
-   * <code>optional string hostname = 2;</code>
-   * @return The hostname.
-   */
-  public java.lang.String getHostname() {
-    java.lang.Object ref = hostname_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      if (bs.isValidUtf8()) {
-        hostname_ = s;
-      }
-      return s;
-    }
-  }
-  /**
-   * <code>optional string hostname = 2;</code>
-   * @return The bytes for hostname.
-   */
-  public com.google.protobuf.ByteString
-      getHostnameBytes() {
-    java.lang.Object ref = hostname_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      hostname_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
-  }
-
-  public static final int METRICS_FIELD_NUMBER = 3;
->>>>>>> upstream/master
   private java.util.List<alluxio.grpc.Metric> metrics_;
   /**
    * <code>repeated .alluxio.grpc.Metric metrics = 2;</code>
@@ -283,14 +203,7 @@ private static final long serialVersionUID = 0L;
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (((bitField0_ & 0x00000001) != 0)) {
-<<<<<<< HEAD
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, source_);
-=======
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, clientId_);
-    }
-    if (((bitField0_ & 0x00000002) != 0)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, hostname_);
->>>>>>> upstream/master
     }
     for (int i = 0; i < metrics_.size(); i++) {
       output.writeMessage(2, metrics_.get(i));
@@ -305,14 +218,7 @@ private static final long serialVersionUID = 0L;
 
     size = 0;
     if (((bitField0_ & 0x00000001) != 0)) {
-<<<<<<< HEAD
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, source_);
-=======
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, clientId_);
-    }
-    if (((bitField0_ & 0x00000002) != 0)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, hostname_);
->>>>>>> upstream/master
     }
     for (int i = 0; i < metrics_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
@@ -333,22 +239,10 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.ClientMetrics other = (alluxio.grpc.ClientMetrics) obj;
 
-<<<<<<< HEAD
     if (hasSource() != other.hasSource()) return false;
     if (hasSource()) {
       if (!getSource()
           .equals(other.getSource())) return false;
-=======
-    if (hasClientId() != other.hasClientId()) return false;
-    if (hasClientId()) {
-      if (!getClientId()
-          .equals(other.getClientId())) return false;
-    }
-    if (hasHostname() != other.hasHostname()) return false;
-    if (hasHostname()) {
-      if (!getHostname()
-          .equals(other.getHostname())) return false;
->>>>>>> upstream/master
     }
     if (!getMetricsList()
         .equals(other.getMetricsList())) return false;
@@ -544,19 +438,9 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000001) != 0)) {
         to_bitField0_ |= 0x00000001;
       }
-<<<<<<< HEAD
       result.source_ = source_;
       if (metricsBuilder_ == null) {
         if (((bitField0_ & 0x00000002) != 0)) {
-=======
-      result.clientId_ = clientId_;
-      if (((from_bitField0_ & 0x00000002) != 0)) {
-        to_bitField0_ |= 0x00000002;
-      }
-      result.hostname_ = hostname_;
-      if (metricsBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) != 0)) {
->>>>>>> upstream/master
           metrics_ = java.util.Collections.unmodifiableList(metrics_);
           bitField0_ = (bitField0_ & ~0x00000002);
         }
@@ -681,7 +565,6 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object source_ = "";
     /**
-<<<<<<< HEAD
      * <code>optional string source = 1;</code>
      * @return Whether the source field is set.
      */
@@ -691,17 +574,6 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>optional string source = 1;</code>
      * @return The source.
-=======
-     * <code>optional string clientId = 1;</code>
-     * @return Whether the clientId field is set.
-     */
-    public boolean hasClientId() {
-      return ((bitField0_ & 0x00000001) != 0);
-    }
-    /**
-     * <code>optional string clientId = 1;</code>
-     * @return The clientId.
->>>>>>> upstream/master
      */
     public java.lang.String getSource() {
       java.lang.Object ref = source_;
@@ -718,13 +590,8 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-<<<<<<< HEAD
      * <code>optional string source = 1;</code>
      * @return The bytes for source.
-=======
-     * <code>optional string clientId = 1;</code>
-     * @return The bytes for clientId.
->>>>>>> upstream/master
      */
     public com.google.protobuf.ByteString
         getSourceBytes() {
@@ -740,13 +607,8 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-<<<<<<< HEAD
      * <code>optional string source = 1;</code>
      * @param value The source to set.
-=======
-     * <code>optional string clientId = 1;</code>
-     * @param value The clientId to set.
->>>>>>> upstream/master
      * @return This builder for chaining.
      */
     public Builder setSource(
@@ -760,11 +622,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-<<<<<<< HEAD
      * <code>optional string source = 1;</code>
-=======
-     * <code>optional string clientId = 1;</code>
->>>>>>> upstream/master
      * @return This builder for chaining.
      */
     public Builder clearSource() {
@@ -774,13 +632,8 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-<<<<<<< HEAD
      * <code>optional string source = 1;</code>
      * @param value The bytes for source to set.
-=======
-     * <code>optional string clientId = 1;</code>
-     * @param value The bytes for clientId to set.
->>>>>>> upstream/master
      * @return This builder for chaining.
      */
     public Builder setSourceBytes(
@@ -789,95 +642,7 @@ private static final long serialVersionUID = 0L;
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000001;
-<<<<<<< HEAD
       source_ = value;
-=======
-      clientId_ = value;
-      onChanged();
-      return this;
-    }
-
-    private java.lang.Object hostname_ = "";
-    /**
-     * <code>optional string hostname = 2;</code>
-     * @return Whether the hostname field is set.
-     */
-    public boolean hasHostname() {
-      return ((bitField0_ & 0x00000002) != 0);
-    }
-    /**
-     * <code>optional string hostname = 2;</code>
-     * @return The hostname.
-     */
-    public java.lang.String getHostname() {
-      java.lang.Object ref = hostname_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          hostname_ = s;
-        }
-        return s;
-      } else {
-        return (java.lang.String) ref;
-      }
-    }
-    /**
-     * <code>optional string hostname = 2;</code>
-     * @return The bytes for hostname.
-     */
-    public com.google.protobuf.ByteString
-        getHostnameBytes() {
-      java.lang.Object ref = hostname_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        hostname_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    /**
-     * <code>optional string hostname = 2;</code>
-     * @param value The hostname to set.
-     * @return This builder for chaining.
-     */
-    public Builder setHostname(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-      hostname_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string hostname = 2;</code>
-     * @return This builder for chaining.
-     */
-    public Builder clearHostname() {
-      bitField0_ = (bitField0_ & ~0x00000002);
-      hostname_ = getDefaultInstance().getHostname();
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string hostname = 2;</code>
-     * @param value The bytes for hostname to set.
-     * @return This builder for chaining.
-     */
-    public Builder setHostnameBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-      hostname_ = value;
->>>>>>> upstream/master
       onChanged();
       return this;
     }
@@ -885,11 +650,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<alluxio.grpc.Metric> metrics_ =
       java.util.Collections.emptyList();
     private void ensureMetricsIsMutable() {
-<<<<<<< HEAD
       if (!((bitField0_ & 0x00000002) != 0)) {
-=======
-      if (!((bitField0_ & 0x00000004) != 0)) {
->>>>>>> upstream/master
         metrics_ = new java.util.ArrayList<alluxio.grpc.Metric>(metrics_);
         bitField0_ |= 0x00000002;
        }
@@ -1118,11 +879,7 @@ private static final long serialVersionUID = 0L;
         metricsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.Metric, alluxio.grpc.Metric.Builder, alluxio.grpc.MetricOrBuilder>(
                 metrics_,
-<<<<<<< HEAD
                 ((bitField0_ & 0x00000002) != 0),
-=======
-                ((bitField0_ & 0x00000004) != 0),
->>>>>>> upstream/master
                 getParentForChildren(),
                 isClean());
         metrics_ = null;

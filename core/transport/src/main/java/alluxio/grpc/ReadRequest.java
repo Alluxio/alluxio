@@ -97,14 +97,11 @@ private static final long serialVersionUID = 0L;
             offsetReceived_ = input.readInt64();
             break;
           }
-<<<<<<< HEAD
-=======
           case 64: {
             bitField0_ |= 0x00000080;
             positionShort_ = input.readBool();
             break;
           }
->>>>>>> upstream/master
           default: {
             if (!parseUnknownField(
                 input, unknownFields, extensionRegistry, tag)) {
@@ -445,14 +442,11 @@ private static final long serialVersionUID = 0L;
       if (getOffsetReceived()
           != other.getOffsetReceived()) return false;
     }
-<<<<<<< HEAD
-=======
     if (hasPositionShort() != other.hasPositionShort()) return false;
     if (hasPositionShort()) {
       if (getPositionShort()
           != other.getPositionShort()) return false;
     }
->>>>>>> upstream/master
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -722,13 +716,10 @@ private static final long serialVersionUID = 0L;
         result.offsetReceived_ = offsetReceived_;
         to_bitField0_ |= 0x00000040;
       }
-<<<<<<< HEAD
-=======
       if (((from_bitField0_ & 0x00000080) != 0)) {
         result.positionShort_ = positionShort_;
         to_bitField0_ |= 0x00000080;
       }
->>>>>>> upstream/master
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -1241,8 +1232,6 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
-<<<<<<< HEAD
-=======
 
     private boolean positionShort_ ;
     /**
@@ -1296,7 +1285,6 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
->>>>>>> upstream/master
     @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
