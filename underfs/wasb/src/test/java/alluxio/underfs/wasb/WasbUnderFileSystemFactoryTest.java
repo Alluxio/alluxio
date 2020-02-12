@@ -39,7 +39,7 @@ public class WasbUnderFileSystemFactoryTest {
 
     factory = UnderFileSystemFactoryRegistry.find("wasbs://localhost/test/path", conf);
     Assert.assertNotNull(
-            "A UnderFileSystemFactory should exist for wasb paths when using this module",
+            "A UnderFileSystemFactory should exist for wasbs paths when using this module",
             factory);
 
     factory = UnderFileSystemFactoryRegistry.find("alluxio://localhost/test/path", conf);
