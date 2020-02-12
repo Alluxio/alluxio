@@ -347,31 +347,33 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
-    switch (instance) {
-      case CLIENT:
-        if (CONF.isSet(PropertyKey.USER_APP_ID)) {
-          sSourceName = CONF.get(PropertyKey.USER_APP_ID);
-        } else {
+    if (sSourceName == null) {
+      switch (instance) {
+        case CLIENT:
+          if (CONF.isSet(PropertyKey.USER_APP_ID)) {
+            sSourceName = CONF.get(PropertyKey.USER_APP_ID);
+          } else {
+            sSourceName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
+          }
+          break;
+        case WORKER:
+          if (CONF.isSet(PropertyKey.WORKER_HOSTNAME)) {
+            sSourceName = CONF.get(PropertyKey.WORKER_HOSTNAME);
+          } else {
+            sSourceName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
+          }
+          break;
+        case JOB_WORKER:
+          if (CONF.isSet(PropertyKey.JOB_WORKER_HOSTNAME)) {
+            sSourceName = CONF.get(PropertyKey.JOB_WORKER_HOSTNAME);
+          } else {
+            sSourceName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
+          }
+          break;
+        default:
           sSourceName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
-        }
-        break;
-      case WORKER:
-        if (CONF.isSet(PropertyKey.WORKER_HOSTNAME)) {
-          sSourceName =  CONF.get(PropertyKey.WORKER_HOSTNAME);
-        } else {
-          sSourceName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
-        }
-        break;
-      case JOB_WORKER:
-        if (CONF.isSet(PropertyKey.JOB_WORKER_HOSTNAME)) {
-          sSourceName =  CONF.get(PropertyKey.JOB_WORKER_HOSTNAME);
-        } else {
-          sSourceName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
-        }
-        break;
-      default:
-        sSourceName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
-        break;
+          break;
+      }
     }
     if (name.startsWith(instance.toString())) {
       return Joiner.on(".").join(name, sSourceName);
