@@ -11,10 +11,6 @@
 
 package alluxio.master.metrics;
 
-import alluxio.collections.IndexDefinition;
-import alluxio.collections.IndexedSet;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.MetricType;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
@@ -28,10 +24,7 @@ import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -48,64 +41,15 @@ public class MetricsStore {
   // for MetricKey.WORKER_BYTES_READ_UFS and MetricKey.WORKER_BYTES_WRITTEN_UFS
   private static final String BYTES_READ_UFS = "BytesReadPerUfs";
   private static final String BYTES_WRITTEN_UFS = "BytesWrittenPerUfs";
-  private static final IndexDefinition<Metric, String> FULL_NAME_INDEX =
-      new IndexDefinition<Metric, String>(true) {
-        @Override
-        public String getFieldValue(Metric o) {
-          return o.getFullMetricName();
-        }
-      };
-
-  private static final IndexDefinition<Metric, String> NAME_INDEX =
-      new IndexDefinition<Metric, String>(false) {
-        @Override
-        public String getFieldValue(Metric o) {
-          return o.getName();
-        }
-      };
-
-  private static final IndexDefinition<Metric, String> ID_INDEX =
-      new IndexDefinition<Metric, String>(false) {
-        @Override
-        public String getFieldValue(Metric o) {
-          return getFullInstanceId(o.getHostname(), o.getInstanceId());
-        }
-      };
-
-  /**
-   * Gets the full instance id of the concatenation of hostname and the id. The dots in the hostname
-   * replaced by underscores.
-   *
-   * @param hostname the hostname
-   * @param id the instance id
-   * @return the full instance id of hostname[:id]
-   */
-  private static String getFullInstanceId(String hostname, String id) {
-    hostname = hostname.replace('.', '_');
-    if (id != null) {
-      hostname += Metric.ID_SEPARATOR + id;
-    }
-    return hostname;
-  }
 
   // The lock to guarantee that only one thread is clearing the metrics
   // and no other interaction with worker/client metrics set is allowed during metrics clearing
   private final ReentrantReadWriteLock mLock = new ReentrantReadWriteLock();
 
-  // Although IndexedSet is threadsafe, it lacks an update operation, so we need locking to
-  // implement atomic update using remove + add.
+  // The time of the most recent metrics store clearance.
+  // This tracks when the cluster counters start aggregating from the reported metrics.
   @GuardedBy("mLock")
-  private final IndexedSet<Metric> mWorkerMetrics =
-      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
-  @GuardedBy("mLock")
-  private final IndexedSet<Metric> mClientMetrics =
-      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
-  // A map from the full instance id (hostname + client id if exists)
-  // to its last reported time
-  @GuardedBy("mLock")
-  private final ConcurrentHashMap<String, Long> mLastReportedTimeMap = new ConcurrentHashMap<>();
-  private final long mCleanupAge
-      = ServerConfiguration.getMs(PropertyKey.MASTER_REPORTED_METRICS_CLEANUP_AGE);
+  private long mLastClearTime = System.currentTimeMillis();
 
   /**
    * A map from the cluster counter key representing the metrics to be aggregated
@@ -132,45 +76,34 @@ public class MetricsStore {
       return;
     }
     try (LockResource r = new LockResource(mLock.readLock())) {
-      mLastReportedTimeMap.put(getFullInstanceId(hostname, null), System.currentTimeMillis());
       putReportedMetrics(InstanceType.WORKER, metrics);
     }
   }
 
   /**
-   * Put the metrics from a client with a hostname and a client id. If all the old metrics
-   * associated with this instance will be removed and then replaced by the latest.
+   * Put the metrics from a client with a hostname.
    *
    * @param hostname the hostname of the client
-   * @param clientId the id of the client
    * @param metrics the new metrics
    */
-  public void putClientMetrics(String hostname, String clientId, List<Metric> metrics) {
+  public void putClientMetrics(String hostname, List<Metric> metrics) {
     if (metrics.isEmpty() || hostname == null) {
       return;
     }
     try (LockResource r = new LockResource(mLock.readLock())) {
-      mLastReportedTimeMap.put(getFullInstanceId(hostname, clientId), System.currentTimeMillis());
       putReportedMetrics(InstanceType.CLIENT, metrics);
     }
   }
 
   /**
-   * Update the reported metrics received from a
-   * worker or client.
+   * Update the reported metrics received from a worker or client.
    *
    * Cluster metrics of {@link MetricType} COUNTER are directly incremented by the reported values.
-   * All other metrics are recorded in the metrics map individually, calculated periodically,
-   * and deleted when the report instance doesn't report for a period of time.
    *
    * @param instanceType the instance type that reports the metrics
    * @param reportedMetrics the metrics received by the RPC handler
    */
   private void putReportedMetrics(InstanceType instanceType, List<Metric> reportedMetrics) {
-    IndexedSet<Metric> metricSet = mWorkerMetrics;
-    if (instanceType.equals(InstanceType.CLIENT)) {
-      metricSet = mClientMetrics;
-    }
     for (Metric metric : reportedMetrics) {
       if (metric.getHostname() == null) {
         continue; // ignore metrics whose hostname is null
@@ -198,9 +131,6 @@ public class MetricsStore {
           incrementUfsRelatedCounters(metric, MetricKey.CLUSTER_BYTES_WRITTEN_UFS.getName(),
               MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName());
         }
-      } else if (!metricSet.add(metric)) {
-        metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName())
-            .setValue(metric.getValue());
       }
     }
   }
@@ -223,34 +153,6 @@ public class MetricsStore {
     perUfsCounter.inc(counterValue);
     mClusterCounters.get(new ClusterCounterKey(InstanceType.CLUSTER, allUfsMetricName))
         .inc(counterValue);
-  }
-
-  /**
-   * Gets all the metrics by instance type and the metric name. The supported instance types are
-   * worker and client.
-   *
-   * @param instanceType the instance type
-   * @param name the metric name
-   * @return the set of matched metrics
-   */
-  public Set<Metric> getMetricsByInstanceTypeAndName(
-      MetricsSystem.InstanceType instanceType, String name) {
-    try (LockResource r = new LockResource(mLock.readLock())) {
-      if (instanceType == InstanceType.MASTER) {
-        return getMasterMetrics(name);
-      }
-      if (instanceType == InstanceType.WORKER) {
-        return mWorkerMetrics.getByField(NAME_INDEX, name);
-      } else if (instanceType == InstanceType.CLIENT) {
-        return mClientMetrics.getByField(NAME_INDEX, name);
-      } else {
-        throw new IllegalArgumentException("Unsupported instance type " + instanceType);
-      }
-    }
-  }
-
-  private Set<Metric> getMasterMetrics(String name) {
-    return MetricsSystem.getMasterMetric(name);
   }
 
   /**
@@ -302,34 +204,20 @@ public class MetricsStore {
    */
   public void clear() {
     try (LockResource r = new LockResource(mLock.writeLock())) {
-      mWorkerMetrics.clear();
-      mClientMetrics.clear();
       for (Counter counter : mClusterCounters.values()) {
         counter.dec(counter.getCount());
       }
+      mLastClearTime = System.currentTimeMillis();
       MetricsSystem.resetAllMetrics();
     }
   }
 
   /**
-   * Clears all the orphaned metrics belonging to worker/client
-   * which hasn't reported for a period of time.
+   * @return the last metrics store clear time in milliseconds
    */
-  public void cleanUpOrphanedMetrics() {
-    try (LockResource r = new LockResource(mLock.writeLock())) {
-      long current = System.currentTimeMillis();
-      Iterator<Map.Entry<String, Long>> iterator = mLastReportedTimeMap.entrySet().iterator();
-      while (iterator.hasNext()) {
-        Map.Entry<String, Long> entry = iterator.next();
-        if (current - entry.getValue() > mCleanupAge) {
-          if (entry.getKey().contains(Metric.ID_SEPARATOR)) {
-            mClientMetrics.removeByField(ID_INDEX, entry.getKey());
-          } else {
-            mWorkerMetrics.removeByField(ID_INDEX, entry.getKey());
-          }
-          iterator.remove();
-        }
-      }
+  public long getLastClearTime() {
+    try (LockResource r = new LockResource(mLock.readLock())) {
+      return mLastClearTime;
     }
   }
 
