@@ -46,7 +46,6 @@ public abstract class ExecuteShellCollectInfoCommand extends AbstractCollectInfo
     super(fsContext);
     mCommands = new HashMap<>();
     mCommandsAlt = new HashMap<>();
-    registerCommands();
   }
 
   protected abstract void registerCommands();
@@ -89,10 +88,11 @@ public abstract class ExecuteShellCollectInfoCommand extends AbstractCollectInfo
     // Output buffer stream
     StringWriter outputBuffer = new StringWriter();
 
-    for (String cmdName : mCommands.keySet()) {
-      int cmdExitCode = 0;
+    for (Map.Entry<String, ShellCommand> entry : mCommands.entrySet()) {
+      String cmdName = entry.getKey();
+      ShellCommand cmd = entry.getValue();
 
-      ShellCommand cmd = mCommands.get(cmdName);
+      int cmdExitCode = 0;
       Pair<Integer, String> cmdOutput = runAndFormatOutput(cmd);
       outputBuffer.write(cmdOutput.getSecond());
 

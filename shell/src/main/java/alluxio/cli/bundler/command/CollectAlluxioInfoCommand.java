@@ -46,8 +46,6 @@ public class CollectAlluxioInfoCommand extends ExecuteShellCollectInfoCommand {
    * A special shell command that runs an Alluxio cmdline operation.
    * */
   public static class AlluxioCommand extends ShellCommand {
-    String mAlluxioPath;
-
     /**
      * Creates an instance of {@link AlluxioCommand}.
      *
@@ -56,7 +54,6 @@ public class CollectAlluxioInfoCommand extends ExecuteShellCollectInfoCommand {
      */
     public AlluxioCommand(String alluxioPath, String cmd) {
       super((alluxioPath + " " + cmd).split(" "));
-      mAlluxioPath = alluxioPath;
     }
   }
 

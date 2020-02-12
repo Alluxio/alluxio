@@ -125,12 +125,14 @@ public class CollectJvmInfoCommand extends AbstractCollectInfoCommand {
     LOG.info(timeMsg);
     outputBuffer.write(timeMsg);
 
-    for (String k : procs.keySet()) {
-      String jstackMsg = String.format("Jstack PID:%s Name:%s", k, procs.get(k));
+    for (Map.Entry<String, String> entry : procs.entrySet()) {
+      String pid = entry.getKey();
+      String pname = entry.getValue();
+      String jstackMsg = String.format("Jstack PID:%s Name:%s", pid, pname);
       LOG.info(jstackMsg);
       outputBuffer.write(jstackMsg);
 
-      String[] jstackCmd = new String[]{"jstack", k};
+      String[] jstackCmd = new String[]{"jstack", pid};
       CommandReturn cr = ShellUtils.execCommandWithOutput(jstackCmd);
       LOG.info("{} finished", Arrays.toString(jstackCmd));
       outputBuffer.write(cr.getFormattedOutput());

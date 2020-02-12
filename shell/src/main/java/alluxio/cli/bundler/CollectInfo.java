@@ -127,7 +127,7 @@ public class CollectInfo extends AbstractShell {
 
     if (cmd == null) {
       // Unknown command (we did not find the cmd in our dict)
-      System.err.format("%s is an unknown command.%n", cmd);
+      System.err.format("%s is an unknown command.%n", subCommand);
       printUsage();
       return 1;
     }
