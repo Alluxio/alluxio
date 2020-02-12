@@ -456,14 +456,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
   private static MountInfo getRootMountInfo(MasterUfsManager ufsManager) {
     try (CloseableResource<UnderFileSystem> resource = ufsManager.getRoot().acquireUfsResource()) {
-      boolean shared;
-      if (resource.get().isObjectStorage()) {
-        shared = ServerConfiguration.getBoolean(
-                PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY);
-      } else {
-        shared = ServerConfiguration.getBoolean(
-                PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
-      }
+      boolean shared = resource.get().isObjectStorage()
+              && ServerConfiguration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY);
       boolean readonly = ServerConfiguration.getBoolean(
               PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
       String rootUfsUri = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
