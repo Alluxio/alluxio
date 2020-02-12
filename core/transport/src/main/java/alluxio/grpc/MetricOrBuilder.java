@@ -25,57 +25,117 @@ public interface MetricOrBuilder extends
       getInstanceBytes();
 
   /**
+<<<<<<< HEAD
    * <code>optional string source = 2;</code>
    * @return Whether the source field is set.
+=======
+   * <code>optional string hostname = 2;</code>
+   * @return Whether the hostname field is set.
+>>>>>>> upstream/master
    */
   boolean hasSource();
   /**
+<<<<<<< HEAD
    * <code>optional string source = 2;</code>
    * @return The source.
+=======
+   * <code>optional string hostname = 2;</code>
+   * @return The hostname.
+>>>>>>> upstream/master
    */
   java.lang.String getSource();
   /**
+<<<<<<< HEAD
    * <code>optional string source = 2;</code>
    * @return The bytes for source.
+=======
+   * <code>optional string hostname = 2;</code>
+   * @return The bytes for hostname.
+>>>>>>> upstream/master
    */
   com.google.protobuf.ByteString
       getSourceBytes();
 
   /**
+<<<<<<< HEAD
    * <code>optional string name = 3;</code>
+=======
+   * <code>optional string instanceId = 3;</code>
+   * @return Whether the instanceId field is set.
+   */
+  boolean hasInstanceId();
+  /**
+   * <code>optional string instanceId = 3;</code>
+   * @return The instanceId.
+   */
+  java.lang.String getInstanceId();
+  /**
+   * <code>optional string instanceId = 3;</code>
+   * @return The bytes for instanceId.
+   */
+  com.google.protobuf.ByteString
+      getInstanceIdBytes();
+
+  /**
+   * <code>optional string name = 4;</code>
+>>>>>>> upstream/master
    * @return Whether the name field is set.
    */
   boolean hasName();
   /**
+<<<<<<< HEAD
    * <code>optional string name = 3;</code>
+=======
+   * <code>optional string name = 4;</code>
+>>>>>>> upstream/master
    * @return The name.
    */
   java.lang.String getName();
   /**
+<<<<<<< HEAD
    * <code>optional string name = 3;</code>
+=======
+   * <code>optional string name = 4;</code>
+>>>>>>> upstream/master
    * @return The bytes for name.
    */
   com.google.protobuf.ByteString
       getNameBytes();
 
   /**
+<<<<<<< HEAD
    * <code>optional double value = 4;</code>
+=======
+   * <code>optional double value = 5;</code>
+>>>>>>> upstream/master
    * @return Whether the value field is set.
    */
   boolean hasValue();
   /**
+<<<<<<< HEAD
    * <code>optional double value = 4;</code>
+=======
+   * <code>optional double value = 5;</code>
+>>>>>>> upstream/master
    * @return The value.
    */
   double getValue();
 
   /**
+<<<<<<< HEAD
    * <code>required .alluxio.grpc.MetricType metricType = 5;</code>
+=======
+   * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+>>>>>>> upstream/master
    * @return Whether the metricType field is set.
    */
   boolean hasMetricType();
   /**
+<<<<<<< HEAD
    * <code>required .alluxio.grpc.MetricType metricType = 5;</code>
+=======
+   * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+>>>>>>> upstream/master
    * @return The metricType.
    */
   alluxio.grpc.MetricType getMetricType();

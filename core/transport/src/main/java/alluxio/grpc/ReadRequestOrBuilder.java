@@ -115,4 +115,23 @@ public interface ReadRequestOrBuilder extends
    * @return The offsetReceived.
    */
   long getOffsetReceived();
+
+  /**
+   * <pre>
+   * Is position read to a small buffer
+   * </pre>
+   *
+   * <code>optional bool position_short = 8;</code>
+   * @return Whether the positionShort field is set.
+   */
+  boolean hasPositionShort();
+  /**
+   * <pre>
+   * Is position read to a small buffer
+   * </pre>
+   *
+   * <code>optional bool position_short = 8;</code>
+   * @return The positionShort.
+   */
+  boolean getPositionShort();
 }

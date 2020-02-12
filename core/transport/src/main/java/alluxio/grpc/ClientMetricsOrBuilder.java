@@ -8,24 +8,60 @@ public interface ClientMetricsOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
+<<<<<<< HEAD
    * <code>optional string source = 1;</code>
    * @return Whether the source field is set.
+=======
+   * <code>optional string clientId = 1;</code>
+   * @return Whether the clientId field is set.
+>>>>>>> upstream/master
    */
   boolean hasSource();
   /**
+<<<<<<< HEAD
    * <code>optional string source = 1;</code>
    * @return The source.
+=======
+   * <code>optional string clientId = 1;</code>
+   * @return The clientId.
+>>>>>>> upstream/master
    */
   java.lang.String getSource();
   /**
+<<<<<<< HEAD
    * <code>optional string source = 1;</code>
    * @return The bytes for source.
+=======
+   * <code>optional string clientId = 1;</code>
+   * @return The bytes for clientId.
+>>>>>>> upstream/master
    */
   com.google.protobuf.ByteString
       getSourceBytes();
 
   /**
+<<<<<<< HEAD
    * <code>repeated .alluxio.grpc.Metric metrics = 2;</code>
+=======
+   * <code>optional string hostname = 2;</code>
+   * @return Whether the hostname field is set.
+   */
+  boolean hasHostname();
+  /**
+   * <code>optional string hostname = 2;</code>
+   * @return The hostname.
+   */
+  java.lang.String getHostname();
+  /**
+   * <code>optional string hostname = 2;</code>
+   * @return The bytes for hostname.
+   */
+  com.google.protobuf.ByteString
+      getHostnameBytes();
+
+  /**
+   * <code>repeated .alluxio.grpc.Metric metrics = 3;</code>
+>>>>>>> upstream/master
    */
   java.util.List<alluxio.grpc.Metric> 
       getMetricsList();

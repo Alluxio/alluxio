@@ -6,7 +6,7 @@ package alluxio.grpc;
 /**
  * <pre>
  * The read request.
- * next available id: 6
+ * next available id: 9
  * </pre>
  *
  * Protobuf type {@code alluxio.grpc.block.ReadRequest}
@@ -97,6 +97,14 @@ private static final long serialVersionUID = 0L;
             offsetReceived_ = input.readInt64();
             break;
           }
+<<<<<<< HEAD
+=======
+          case 64: {
+            bitField0_ |= 0x00000080;
+            positionShort_ = input.readBool();
+            break;
+          }
+>>>>>>> upstream/master
           default: {
             if (!parseUnknownField(
                 input, unknownFields, extensionRegistry, tag)) {
@@ -283,6 +291,31 @@ private static final long serialVersionUID = 0L;
     return offsetReceived_;
   }
 
+  public static final int POSITION_SHORT_FIELD_NUMBER = 8;
+  private boolean positionShort_;
+  /**
+   * <pre>
+   * Is position read to a small buffer
+   * </pre>
+   *
+   * <code>optional bool position_short = 8;</code>
+   * @return Whether the positionShort field is set.
+   */
+  public boolean hasPositionShort() {
+    return ((bitField0_ & 0x00000080) != 0);
+  }
+  /**
+   * <pre>
+   * Is position read to a small buffer
+   * </pre>
+   *
+   * <code>optional bool position_short = 8;</code>
+   * @return The positionShort.
+   */
+  public boolean getPositionShort() {
+    return positionShort_;
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -317,6 +350,9 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000040) != 0)) {
       output.writeInt64(7, offsetReceived_);
+    }
+    if (((bitField0_ & 0x00000080) != 0)) {
+      output.writeBool(8, positionShort_);
     }
     unknownFields.writeTo(output);
   }
@@ -354,6 +390,10 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000040) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(7, offsetReceived_);
+    }
+    if (((bitField0_ & 0x00000080) != 0)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(8, positionShort_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -405,6 +445,14 @@ private static final long serialVersionUID = 0L;
       if (getOffsetReceived()
           != other.getOffsetReceived()) return false;
     }
+<<<<<<< HEAD
+=======
+    if (hasPositionShort() != other.hasPositionShort()) return false;
+    if (hasPositionShort()) {
+      if (getPositionShort()
+          != other.getPositionShort()) return false;
+    }
+>>>>>>> upstream/master
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -449,6 +497,11 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + OFFSET_RECEIVED_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getOffsetReceived());
+    }
+    if (hasPositionShort()) {
+      hash = (37 * hash) + POSITION_SHORT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getPositionShort());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -548,7 +601,7 @@ private static final long serialVersionUID = 0L;
   /**
    * <pre>
    * The read request.
-   * next available id: 6
+   * next available id: 9
    * </pre>
    *
    * Protobuf type {@code alluxio.grpc.block.ReadRequest}
@@ -607,6 +660,8 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000020);
       offsetReceived_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000040);
+      positionShort_ = false;
+      bitField0_ = (bitField0_ & ~0x00000080);
       return this;
     }
 
@@ -667,6 +722,13 @@ private static final long serialVersionUID = 0L;
         result.offsetReceived_ = offsetReceived_;
         to_bitField0_ |= 0x00000040;
       }
+<<<<<<< HEAD
+=======
+      if (((from_bitField0_ & 0x00000080) != 0)) {
+        result.positionShort_ = positionShort_;
+        to_bitField0_ |= 0x00000080;
+      }
+>>>>>>> upstream/master
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -736,6 +798,9 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasOffsetReceived()) {
         setOffsetReceived(other.getOffsetReceived());
+      }
+      if (other.hasPositionShort()) {
+        setPositionShort(other.getPositionShort());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -1176,6 +1241,62 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+<<<<<<< HEAD
+=======
+
+    private boolean positionShort_ ;
+    /**
+     * <pre>
+     * Is position read to a small buffer
+     * </pre>
+     *
+     * <code>optional bool position_short = 8;</code>
+     * @return Whether the positionShort field is set.
+     */
+    public boolean hasPositionShort() {
+      return ((bitField0_ & 0x00000080) != 0);
+    }
+    /**
+     * <pre>
+     * Is position read to a small buffer
+     * </pre>
+     *
+     * <code>optional bool position_short = 8;</code>
+     * @return The positionShort.
+     */
+    public boolean getPositionShort() {
+      return positionShort_;
+    }
+    /**
+     * <pre>
+     * Is position read to a small buffer
+     * </pre>
+     *
+     * <code>optional bool position_short = 8;</code>
+     * @param value The positionShort to set.
+     * @return This builder for chaining.
+     */
+    public Builder setPositionShort(boolean value) {
+      bitField0_ |= 0x00000080;
+      positionShort_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * Is position read to a small buffer
+     * </pre>
+     *
+     * <code>optional bool position_short = 8;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearPositionShort() {
+      bitField0_ = (bitField0_ & ~0x00000080);
+      positionShort_ = false;
+      onChanged();
+      return this;
+    }
+>>>>>>> upstream/master
     @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {

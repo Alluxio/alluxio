@@ -93,8 +93,13 @@ private static final long serialVersionUID = 0L;
             }
             break;
           }
+<<<<<<< HEAD
           case 50: {
             if (!((mutable_bitField0_ & 0x00000020) != 0)) {
+=======
+          case 58: {
+            if (!((mutable_bitField0_ & 0x00000040) != 0)) {
+>>>>>>> upstream/master
               tags_ = com.google.protobuf.MapField.newMapField(
                   TagsDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000020;
@@ -199,6 +204,7 @@ private static final long serialVersionUID = 0L;
   public static final int SOURCE_FIELD_NUMBER = 2;
   private volatile java.lang.Object source_;
   /**
+<<<<<<< HEAD
    * <code>optional string source = 2;</code>
    * @return Whether the source field is set.
    */
@@ -208,6 +214,17 @@ private static final long serialVersionUID = 0L;
   /**
    * <code>optional string source = 2;</code>
    * @return The source.
+=======
+   * <code>optional string hostname = 2;</code>
+   * @return Whether the hostname field is set.
+   */
+  public boolean hasHostname() {
+    return ((bitField0_ & 0x00000002) != 0);
+  }
+  /**
+   * <code>optional string hostname = 2;</code>
+   * @return The hostname.
+>>>>>>> upstream/master
    */
   public java.lang.String getSource() {
     java.lang.Object ref = source_;
@@ -224,8 +241,13 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
+<<<<<<< HEAD
    * <code>optional string source = 2;</code>
    * @return The bytes for source.
+=======
+   * <code>optional string hostname = 2;</code>
+   * @return The bytes for hostname.
+>>>>>>> upstream/master
    */
   public com.google.protobuf.ByteString
       getSourceBytes() {
@@ -241,6 +263,7 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+<<<<<<< HEAD
   public static final int NAME_FIELD_NUMBER = 3;
   private volatile java.lang.Object name_;
   /**
@@ -252,6 +275,64 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string name = 3;</code>
+=======
+  public static final int INSTANCEID_FIELD_NUMBER = 3;
+  private volatile java.lang.Object instanceId_;
+  /**
+   * <code>optional string instanceId = 3;</code>
+   * @return Whether the instanceId field is set.
+   */
+  public boolean hasInstanceId() {
+    return ((bitField0_ & 0x00000004) != 0);
+  }
+  /**
+   * <code>optional string instanceId = 3;</code>
+   * @return The instanceId.
+   */
+  public java.lang.String getInstanceId() {
+    java.lang.Object ref = instanceId_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        instanceId_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string instanceId = 3;</code>
+   * @return The bytes for instanceId.
+   */
+  public com.google.protobuf.ByteString
+      getInstanceIdBytes() {
+    java.lang.Object ref = instanceId_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      instanceId_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int NAME_FIELD_NUMBER = 4;
+  private volatile java.lang.Object name_;
+  /**
+   * <code>optional string name = 4;</code>
+   * @return Whether the name field is set.
+   */
+  public boolean hasName() {
+    return ((bitField0_ & 0x00000008) != 0);
+  }
+  /**
+   * <code>optional string name = 4;</code>
+>>>>>>> upstream/master
    * @return The name.
    */
   public java.lang.String getName() {
@@ -269,7 +350,11 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
+<<<<<<< HEAD
    * <code>optional string name = 3;</code>
+=======
+   * <code>optional string name = 4;</code>
+>>>>>>> upstream/master
    * @return The bytes for name.
    */
   public com.google.protobuf.ByteString
@@ -289,6 +374,7 @@ private static final long serialVersionUID = 0L;
   public static final int VALUE_FIELD_NUMBER = 4;
   private double value_;
   /**
+<<<<<<< HEAD
    * <code>optional double value = 4;</code>
    * @return Whether the value field is set.
    */
@@ -297,6 +383,16 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional double value = 4;</code>
+=======
+   * <code>optional double value = 5;</code>
+   * @return Whether the value field is set.
+   */
+  public boolean hasValue() {
+    return ((bitField0_ & 0x00000010) != 0);
+  }
+  /**
+   * <code>optional double value = 5;</code>
+>>>>>>> upstream/master
    * @return The value.
    */
   public double getValue() {
@@ -306,6 +402,7 @@ private static final long serialVersionUID = 0L;
   public static final int METRICTYPE_FIELD_NUMBER = 5;
   private int metricType_;
   /**
+<<<<<<< HEAD
    * <code>required .alluxio.grpc.MetricType metricType = 5;</code>
    * @return Whether the metricType field is set.
    */
@@ -314,6 +411,16 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>required .alluxio.grpc.MetricType metricType = 5;</code>
+=======
+   * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+   * @return Whether the metricType field is set.
+   */
+  public boolean hasMetricType() {
+    return ((bitField0_ & 0x00000020) != 0);
+  }
+  /**
+   * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+>>>>>>> upstream/master
    * @return The metricType.
    */
   public alluxio.grpc.MetricType getMetricType() {
@@ -420,6 +527,7 @@ private static final long serialVersionUID = 0L;
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, instance_);
     }
     if (((bitField0_ & 0x00000002) != 0)) {
+<<<<<<< HEAD
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, source_);
     }
     if (((bitField0_ & 0x00000004) != 0)) {
@@ -430,6 +538,21 @@ private static final long serialVersionUID = 0L;
     }
     if (((bitField0_ & 0x00000010) != 0)) {
       output.writeEnum(5, metricType_);
+=======
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, hostname_);
+    }
+    if (((bitField0_ & 0x00000004) != 0)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, instanceId_);
+    }
+    if (((bitField0_ & 0x00000008) != 0)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, name_);
+    }
+    if (((bitField0_ & 0x00000010) != 0)) {
+      output.writeDouble(5, value_);
+    }
+    if (((bitField0_ & 0x00000020) != 0)) {
+      output.writeEnum(6, metricType_);
+>>>>>>> upstream/master
     }
     com.google.protobuf.GeneratedMessageV3
       .serializeStringMapTo(
@@ -450,16 +573,32 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, instance_);
     }
     if (((bitField0_ & 0x00000002) != 0)) {
+<<<<<<< HEAD
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, source_);
     }
     if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, name_);
     }
     if (((bitField0_ & 0x00000008) != 0)) {
+=======
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, hostname_);
+    }
+    if (((bitField0_ & 0x00000004) != 0)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, instanceId_);
+    }
+    if (((bitField0_ & 0x00000008) != 0)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, name_);
+    }
+    if (((bitField0_ & 0x00000010) != 0)) {
+>>>>>>> upstream/master
       size += com.google.protobuf.CodedOutputStream
         .computeDoubleSize(4, value_);
     }
+<<<<<<< HEAD
     if (((bitField0_ & 0x00000010) != 0)) {
+=======
+    if (((bitField0_ & 0x00000020) != 0)) {
+>>>>>>> upstream/master
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(5, metricType_);
     }
@@ -492,11 +631,24 @@ private static final long serialVersionUID = 0L;
     if (hasInstance()) {
       if (!getInstance()
           .equals(other.getInstance())) return false;
+<<<<<<< HEAD
     }
     if (hasSource() != other.hasSource()) return false;
     if (hasSource()) {
       if (!getSource()
           .equals(other.getSource())) return false;
+=======
+    }
+    if (hasHostname() != other.hasHostname()) return false;
+    if (hasHostname()) {
+      if (!getHostname()
+          .equals(other.getHostname())) return false;
+    }
+    if (hasInstanceId() != other.hasInstanceId()) return false;
+    if (hasInstanceId()) {
+      if (!getInstanceId()
+          .equals(other.getInstanceId())) return false;
+>>>>>>> upstream/master
     }
     if (hasName() != other.hasName()) return false;
     if (hasName()) {
@@ -757,6 +909,7 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000002) != 0)) {
         to_bitField0_ |= 0x00000002;
       }
+<<<<<<< HEAD
       result.source_ = source_;
       if (((from_bitField0_ & 0x00000004) != 0)) {
         to_bitField0_ |= 0x00000004;
@@ -769,6 +922,24 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000010) != 0)) {
         to_bitField0_ |= 0x00000010;
       }
+=======
+      result.hostname_ = hostname_;
+      if (((from_bitField0_ & 0x00000004) != 0)) {
+        to_bitField0_ |= 0x00000004;
+      }
+      result.instanceId_ = instanceId_;
+      if (((from_bitField0_ & 0x00000008) != 0)) {
+        to_bitField0_ |= 0x00000008;
+      }
+      result.name_ = name_;
+      if (((from_bitField0_ & 0x00000010) != 0)) {
+        result.value_ = value_;
+        to_bitField0_ |= 0x00000010;
+      }
+      if (((from_bitField0_ & 0x00000020) != 0)) {
+        to_bitField0_ |= 0x00000020;
+      }
+>>>>>>> upstream/master
       result.metricType_ = metricType_;
       result.tags_ = internalGetTags();
       result.tags_.makeImmutable();
@@ -963,6 +1134,7 @@ private static final long serialVersionUID = 0L;
 
     private java.lang.Object source_ = "";
     /**
+<<<<<<< HEAD
      * <code>optional string source = 2;</code>
      * @return Whether the source field is set.
      */
@@ -972,6 +1144,17 @@ private static final long serialVersionUID = 0L;
     /**
      * <code>optional string source = 2;</code>
      * @return The source.
+=======
+     * <code>optional string hostname = 2;</code>
+     * @return Whether the hostname field is set.
+     */
+    public boolean hasHostname() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>optional string hostname = 2;</code>
+     * @return The hostname.
+>>>>>>> upstream/master
      */
     public java.lang.String getSource() {
       java.lang.Object ref = source_;
@@ -988,8 +1171,13 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+<<<<<<< HEAD
      * <code>optional string source = 2;</code>
      * @return The bytes for source.
+=======
+     * <code>optional string hostname = 2;</code>
+     * @return The bytes for hostname.
+>>>>>>> upstream/master
      */
     public com.google.protobuf.ByteString
         getSourceBytes() {
@@ -1005,8 +1193,13 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+<<<<<<< HEAD
      * <code>optional string source = 2;</code>
      * @param value The source to set.
+=======
+     * <code>optional string hostname = 2;</code>
+     * @param value The hostname to set.
+>>>>>>> upstream/master
      * @return This builder for chaining.
      */
     public Builder setSource(
@@ -1020,7 +1213,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+<<<<<<< HEAD
      * <code>optional string source = 2;</code>
+=======
+     * <code>optional string hostname = 2;</code>
+>>>>>>> upstream/master
      * @return This builder for chaining.
      */
     public Builder clearSource() {
@@ -1030,8 +1227,13 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+<<<<<<< HEAD
      * <code>optional string source = 2;</code>
      * @param value The bytes for source to set.
+=======
+     * <code>optional string hostname = 2;</code>
+     * @param value The bytes for hostname to set.
+>>>>>>> upstream/master
      * @return This builder for chaining.
      */
     public Builder setSourceBytes(
@@ -1040,13 +1242,102 @@ private static final long serialVersionUID = 0L;
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000002;
+<<<<<<< HEAD
       source_ = value;
+=======
+      hostname_ = value;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object instanceId_ = "";
+    /**
+     * <code>optional string instanceId = 3;</code>
+     * @return Whether the instanceId field is set.
+     */
+    public boolean hasInstanceId() {
+      return ((bitField0_ & 0x00000004) != 0);
+    }
+    /**
+     * <code>optional string instanceId = 3;</code>
+     * @return The instanceId.
+     */
+    public java.lang.String getInstanceId() {
+      java.lang.Object ref = instanceId_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          instanceId_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string instanceId = 3;</code>
+     * @return The bytes for instanceId.
+     */
+    public com.google.protobuf.ByteString
+        getInstanceIdBytes() {
+      java.lang.Object ref = instanceId_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        instanceId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string instanceId = 3;</code>
+     * @param value The instanceId to set.
+     * @return This builder for chaining.
+     */
+    public Builder setInstanceId(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+      instanceId_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string instanceId = 3;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearInstanceId() {
+      bitField0_ = (bitField0_ & ~0x00000004);
+      instanceId_ = getDefaultInstance().getInstanceId();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string instanceId = 3;</code>
+     * @param value The bytes for instanceId to set.
+     * @return This builder for chaining.
+     */
+    public Builder setInstanceIdBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+      instanceId_ = value;
+>>>>>>> upstream/master
       onChanged();
       return this;
     }
 
     private java.lang.Object name_ = "";
     /**
+<<<<<<< HEAD
      * <code>optional string name = 3;</code>
      * @return Whether the name field is set.
      */
@@ -1055,6 +1346,16 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string name = 3;</code>
+=======
+     * <code>optional string name = 4;</code>
+     * @return Whether the name field is set.
+     */
+    public boolean hasName() {
+      return ((bitField0_ & 0x00000008) != 0);
+    }
+    /**
+     * <code>optional string name = 4;</code>
+>>>>>>> upstream/master
      * @return The name.
      */
     public java.lang.String getName() {
@@ -1072,7 +1373,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+<<<<<<< HEAD
      * <code>optional string name = 3;</code>
+=======
+     * <code>optional string name = 4;</code>
+>>>>>>> upstream/master
      * @return The bytes for name.
      */
     public com.google.protobuf.ByteString
@@ -1089,7 +1394,11 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
+<<<<<<< HEAD
      * <code>optional string name = 3;</code>
+=======
+     * <code>optional string name = 4;</code>
+>>>>>>> upstream/master
      * @param value The name to set.
      * @return This builder for chaining.
      */
@@ -1104,7 +1413,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+<<<<<<< HEAD
      * <code>optional string name = 3;</code>
+=======
+     * <code>optional string name = 4;</code>
+>>>>>>> upstream/master
      * @return This builder for chaining.
      */
     public Builder clearName() {
@@ -1114,7 +1427,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+<<<<<<< HEAD
      * <code>optional string name = 3;</code>
+=======
+     * <code>optional string name = 4;</code>
+>>>>>>> upstream/master
      * @param value The bytes for name to set.
      * @return This builder for chaining.
      */
@@ -1131,6 +1448,7 @@ private static final long serialVersionUID = 0L;
 
     private double value_ ;
     /**
+<<<<<<< HEAD
      * <code>optional double value = 4;</code>
      * @return Whether the value field is set.
      */
@@ -1139,13 +1457,27 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional double value = 4;</code>
+=======
+     * <code>optional double value = 5;</code>
+     * @return Whether the value field is set.
+     */
+    public boolean hasValue() {
+      return ((bitField0_ & 0x00000010) != 0);
+    }
+    /**
+     * <code>optional double value = 5;</code>
+>>>>>>> upstream/master
      * @return The value.
      */
     public double getValue() {
       return value_;
     }
     /**
+<<<<<<< HEAD
      * <code>optional double value = 4;</code>
+=======
+     * <code>optional double value = 5;</code>
+>>>>>>> upstream/master
      * @param value The value to set.
      * @return This builder for chaining.
      */
@@ -1156,7 +1488,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+<<<<<<< HEAD
      * <code>optional double value = 4;</code>
+=======
+     * <code>optional double value = 5;</code>
+>>>>>>> upstream/master
      * @return This builder for chaining.
      */
     public Builder clearValue() {
@@ -1168,6 +1504,7 @@ private static final long serialVersionUID = 0L;
 
     private int metricType_ = 0;
     /**
+<<<<<<< HEAD
      * <code>required .alluxio.grpc.MetricType metricType = 5;</code>
      * @return Whether the metricType field is set.
      */
@@ -1176,6 +1513,16 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>required .alluxio.grpc.MetricType metricType = 5;</code>
+=======
+     * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+     * @return Whether the metricType field is set.
+     */
+    public boolean hasMetricType() {
+      return ((bitField0_ & 0x00000020) != 0);
+    }
+    /**
+     * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+>>>>>>> upstream/master
      * @return The metricType.
      */
     public alluxio.grpc.MetricType getMetricType() {
@@ -1184,7 +1531,11 @@ private static final long serialVersionUID = 0L;
       return result == null ? alluxio.grpc.MetricType.GAUGE : result;
     }
     /**
+<<<<<<< HEAD
      * <code>required .alluxio.grpc.MetricType metricType = 5;</code>
+=======
+     * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+>>>>>>> upstream/master
      * @param value The metricType to set.
      * @return This builder for chaining.
      */
@@ -1198,7 +1549,11 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+<<<<<<< HEAD
      * <code>required .alluxio.grpc.MetricType metricType = 5;</code>
+=======
+     * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+>>>>>>> upstream/master
      * @return This builder for chaining.
      */
     public Builder clearMetricType() {
