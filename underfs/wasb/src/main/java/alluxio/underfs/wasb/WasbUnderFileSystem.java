@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -36,7 +38,7 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(WasbUnderFileSystem.class);
 
   /** Constant for the wasb URI scheme. */
-  public static final String SCHEME = "wasb://";
+  public static final List<String> SCHEMES = Stream.of("wasb://", "wasbs://").collect(Collectors.toList());
 
   /**
    * Prepares the configuration for this Wasb as an HDFS configuration.

@@ -20,6 +20,8 @@ import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import java.util.stream.Stream;
+
 /**
  * Factory for creating {@link WasbUnderFileSystem}.
  */
@@ -39,6 +41,6 @@ public class WasbUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
   public boolean supportsPath(String path) {
-    return path != null && path.startsWith(WasbUnderFileSystem.SCHEME);
+    return path != null && WasbUnderFileSystem.SCHEMES.stream().anyMatch(path::startsWith);
   }
 }
