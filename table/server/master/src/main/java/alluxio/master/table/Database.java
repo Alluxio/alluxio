@@ -26,7 +26,9 @@ import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.util.CommonUtils;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,20 +60,23 @@ public class Database implements Journaled {
   private final String mName;
   private final Map<String, Table> mTables;
   private final UnderDatabase mUdb;
-  private final Map<String, String> mConfig;
+  private final CatalogConfiguration mConfig;
+  private final Set<String> mIgnoreTables;
   private final long mUdbSyncTimeoutMs =
       ServerConfiguration.getMs(PropertyKey.TABLE_CATALOG_UDB_SYNC_TIMEOUT);
 
   private DatabaseInfo mDatabaseInfo;
 
   private Database(CatalogContext context, String type, String name, UnderDatabase udb,
-      Map<String, String> configMap) {
+      CatalogConfiguration config) {
     mContext = context;
     mType = type;
     mName = name;
     mTables = new ConcurrentHashMap<>();
     mUdb = udb;
-    mConfig = configMap;
+    mConfig = config;
+    mIgnoreTables = Sets.newHashSet(Splitter.on(",").trimResults().omitEmptyStrings()
+        .split(mConfig.get(CatalogProperty.DB_IGNORE_TABLES)));
   }
 
   /**
@@ -90,7 +95,7 @@ public class Database implements Journaled {
     try {
       UnderDatabase udb = udbContext.getUdbRegistry()
           .create(udbContext, type, configuration.getUdbConfiguration(type));
-      return new Database(catalogContext, type, name, udb, configMap);
+      return new Database(catalogContext, type, name, udb, configuration);
     } catch (Exception e) {
       throw new IllegalArgumentException("Creating udb failed for database name: " + name, e);
     }
@@ -177,7 +182,7 @@ public class Database implements Journaled {
    * @return the configuration for the database
    */
   public Map<String, String> getConfig() {
-    return mConfig;
+    return mConfig.getMap();
   }
 
   /**
@@ -202,6 +207,10 @@ public class Database implements Journaled {
     List<Callable<Void>> tasks = new ArrayList<>(udbTableNames.size());
     final Database thisDb = this;
     for (String tableName : udbTableNames) {
+      if (mIgnoreTables.contains(tableName)) {
+        // this table should be ignored.
+        continue;
+      }
       tasks.add(() -> {
         Table previousTable = mTables.get(tableName);
         UdbTable udbTable = mUdb.getTable(tableName);

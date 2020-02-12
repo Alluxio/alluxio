@@ -26,6 +26,7 @@ public class CatalogProperty extends BaseProperty {
     super(name, description, defaultValue);
   }
 
-  public static final CatalogProperty DB_TYPE =
-      new CatalogProperty("db.type", "The type of database. Possible values are: hive", "");
+  public static final CatalogProperty DB_IGNORE_TABLES =
+      new CatalogProperty("catalog.db.ignore.tables",
+          "The comma-separated list of table names to ignore from the UDB.", "");
 }

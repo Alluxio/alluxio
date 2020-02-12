@@ -37,7 +37,7 @@ public class AttachDatabaseCommand extends AbstractTableCommand {
       .numberOfArgs(2)
       .argName("key=value")
       .valueSeparator('=')
-      .desc("options associated with this UDB")
+      .desc("options associated with this database or UDB")
       .build();
   private static final Option DB_OPTION = Option.builder()
       .longOpt("db")
