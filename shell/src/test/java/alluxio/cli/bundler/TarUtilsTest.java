@@ -24,7 +24,7 @@ public class TarUtilsTest {
   @Test
   public void compressAndDecompressFiles() throws IOException {
     // create temp dir
-    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory("logTarget");
+    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
 
     int fileCount = 10;
     // create a list of files in the folder
@@ -53,9 +53,9 @@ public class TarUtilsTest {
   @Test
   public void compressAndDecompressFilesAndFolder() throws IOException {
     // create temp dir
-    File source1 = InfoCollectorTestUtils.createTemporaryDirectory("source1");
-    File source2 = InfoCollectorTestUtils.createTemporaryDirectory("source2");
-    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory("output");
+    File source1 = InfoCollectorTestUtils.createTemporaryDirectory();
+    File source2 = InfoCollectorTestUtils.createTemporaryDirectory();
+    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
 
     createFilesInDir(source1, 10);
     createFilesInDir(source2, 10);

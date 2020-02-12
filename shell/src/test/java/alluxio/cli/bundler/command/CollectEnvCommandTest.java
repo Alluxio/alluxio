@@ -50,7 +50,7 @@ public class CollectEnvCommandTest {
     CollectEnvCommand cmd = new CollectEnvCommand(FileSystemContext.create(sConf));
 
     // Write to temp dir
-    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory("testDir");
+    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
@@ -86,7 +86,7 @@ public class CollectEnvCommandTest {
     CollectEnvCommand cmd = new CollectEnvCommand(FileSystemContext.create(sConf));
 
     // Write to temp dir
-    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory("testDir");
+    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);

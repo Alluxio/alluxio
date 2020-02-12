@@ -11,6 +11,7 @@
 
 package alluxio.cli.bundler;
 
+import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,17 +19,12 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.UUID;
 
 public class InfoCollectorTestUtils {
   private static final Logger LOG = LoggerFactory.getLogger(InfoCollectorTestUtils.class);
 
-  public static File createTemporaryDirectory(String prefix) {
-    final File file = new File(System.getProperty("java.io.tmpdir"),
-            prefix + "-" + UUID.randomUUID());
-    if (!file.mkdir()) {
-      throw new RuntimeException("Failed to create directory " + file.getAbsolutePath());
-    }
+  public static File createTemporaryDirectory() {
+    final File file = Files.createTempDir();
 
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
       try {
@@ -44,5 +40,9 @@ public class InfoCollectorTestUtils {
     File newFile = new File(Paths.get(dir.getAbsolutePath(), fileName).toString());
     newFile.createNewFile();
     return newFile;
+  }
+
+  public static void create() {
+    Files.createTempDir();
   }
 }

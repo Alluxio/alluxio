@@ -71,10 +71,14 @@ public class CollectInfoAll extends AbstractShell {
     super(CMD_ALIAS, UNSTABLE_ALIAS, alluxioConf);
   }
 
-  // TODO(jiacheng): phase 2 specify hosts from cmdline
   /**
    * Finds all hosts in the Alluxio cluster.
    * We assume the masters and workers cover all the nodes in the cluster.
+   * This command now relies on conf/masters and conf/workers to contain
+   * the nodes in the cluster.
+   * This is the same requirement as bin/alluxio-start.sh.
+   * TODO(jiacheng): phase 2 specify hosts from cmdline
+   * TODO(jiacheng): phase 2 cross-check with the master for which nodes are in the cluster
    *
    * @return a set of hostnames in the cluster
    * */

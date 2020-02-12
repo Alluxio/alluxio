@@ -36,15 +36,15 @@ public class CollectConfCommandTest {
 
   @BeforeClass
   public static void initConf() throws IOException {
-    sTestDir = prepareConfDir("testConf");
+    sTestDir = prepareConfDir();
     sConf = InstancedConfiguration.defaults();
     sConf.set(PropertyKey.CONF_DIR, sTestDir.getAbsolutePath());
   }
 
   // Prepare a temp dir with some log files
-  private static File prepareConfDir(String prefix) throws IOException {
+  private static File prepareConfDir() throws IOException {
     // The dir path will contain randomness so will be different every time
-    File testConfDir = InfoCollectorTestUtils.createTemporaryDirectory(prefix);
+    File testConfDir = InfoCollectorTestUtils.createTemporaryDirectory();
     InfoCollectorTestUtils.createFileInDir(testConfDir, "alluxio-site.properties");
     InfoCollectorTestUtils.createFileInDir(testConfDir, "alluxio-env.sh");
     return testConfDir;
@@ -54,7 +54,7 @@ public class CollectConfCommandTest {
   public void confDirCopied() throws IOException, AlluxioException {
     CollectConfigCommand cmd = new CollectConfigCommand(FileSystemContext.create(sConf));
 
-    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory("confTarget");
+    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);

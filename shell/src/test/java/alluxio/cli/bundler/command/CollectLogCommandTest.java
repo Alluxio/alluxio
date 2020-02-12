@@ -44,7 +44,7 @@ public class CollectLogCommandTest {
   // Prepare a temp dir with some log files
   private static File prepareLogDir(String prefix) throws IOException {
     // The dir path will contain randomness so will be different every time
-    File testConfDir = InfoCollectorTestUtils.createTemporaryDirectory(prefix);
+    File testConfDir = InfoCollectorTestUtils.createTemporaryDirectory();
     InfoCollectorTestUtils.createFileInDir(testConfDir, "master.log");
     InfoCollectorTestUtils.createFileInDir(testConfDir, "worker.log");
     return testConfDir;
@@ -54,7 +54,7 @@ public class CollectLogCommandTest {
   public void logDirCopied() throws IOException, AlluxioException {
     CollectLogCommand cmd = new CollectLogCommand(FileSystemContext.create(sConf));
 
-    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory("logTarget");
+    File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
