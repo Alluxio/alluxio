@@ -83,7 +83,6 @@ public class CollectInfo extends AbstractShell {
 
   private ExecutorService mExecutor;
 
-
   /**
    * Creates a new instance of {@link CollectInfo}.
    *
@@ -201,7 +200,8 @@ public class CollectInfo extends AbstractShell {
 
         try {
           String[] collectInfoArgs =
-                  (String[]) ArrayUtils.addAll(new String[]{alluxioBinPath, "collectInfo", "--local"}, args);
+                  (String[]) ArrayUtils.addAll(
+                          new String[]{alluxioBinPath, "collectInfo", "--local"}, args);
           CommandReturn cr = ShellUtils.sshExecCommandWithOutput(host, collectInfoArgs);
           return cr;
         } catch (Exception e) {
@@ -374,7 +374,6 @@ public class CollectInfo extends AbstractShell {
     }
     return null;
   }
-
 
   /**
    * Collects the results of ALL futures from the hosts.

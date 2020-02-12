@@ -21,7 +21,6 @@ import alluxio.util.ConfigurationUtils;
 import org.junit.Test;
 import org.reflections.Reflections;
 
-import java.io.File;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 
