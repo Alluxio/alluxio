@@ -22,8 +22,7 @@ private static final long serialVersionUID = 0L;
   }
   private Metric() {
     instance_ = "";
-    hostname_ = "";
-    instanceId_ = "";
+    source_ = "";
     name_ = "";
     metricType_ = 0;
   }
@@ -68,43 +67,37 @@ private static final long serialVersionUID = 0L;
           case 18: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000002;
-            hostname_ = bs;
+            source_ = bs;
             break;
           }
           case 26: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000004;
-            instanceId_ = bs;
-            break;
-          }
-          case 34: {
-            com.google.protobuf.ByteString bs = input.readBytes();
-            bitField0_ |= 0x00000008;
             name_ = bs;
             break;
           }
-          case 41: {
-            bitField0_ |= 0x00000010;
+          case 33: {
+            bitField0_ |= 0x00000008;
             value_ = input.readDouble();
             break;
           }
-          case 48: {
+          case 40: {
             int rawValue = input.readEnum();
               @SuppressWarnings("deprecation")
             alluxio.grpc.MetricType value = alluxio.grpc.MetricType.valueOf(rawValue);
             if (value == null) {
-              unknownFields.mergeVarintField(6, rawValue);
+              unknownFields.mergeVarintField(5, rawValue);
             } else {
-              bitField0_ |= 0x00000020;
+              bitField0_ |= 0x00000010;
               metricType_ = rawValue;
             }
             break;
           }
-          case 58: {
-            if (!((mutable_bitField0_ & 0x00000040) != 0)) {
+          case 50: {
+            if (!((mutable_bitField0_ & 0x00000020) != 0)) {
               tags_ = com.google.protobuf.MapField.newMapField(
                   TagsDefaultEntryHolder.defaultEntry);
-              mutable_bitField0_ |= 0x00000040;
+              mutable_bitField0_ |= 0x00000020;
             }
             com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
             tags__ = input.readMessage(
@@ -142,7 +135,7 @@ private static final long serialVersionUID = 0L;
   protected com.google.protobuf.MapField internalGetMapField(
       int number) {
     switch (number) {
-      case 7:
+      case 6:
         return internalGetTags();
       default:
         throw new RuntimeException(
@@ -203,21 +196,21 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int HOSTNAME_FIELD_NUMBER = 2;
-  private volatile java.lang.Object hostname_;
+  public static final int SOURCE_FIELD_NUMBER = 2;
+  private volatile java.lang.Object source_;
   /**
-   * <code>optional string hostname = 2;</code>
-   * @return Whether the hostname field is set.
+   * <code>optional string source = 2;</code>
+   * @return Whether the source field is set.
    */
-  public boolean hasHostname() {
+  public boolean hasSource() {
     return ((bitField0_ & 0x00000002) != 0);
   }
   /**
-   * <code>optional string hostname = 2;</code>
-   * @return The hostname.
+   * <code>optional string source = 2;</code>
+   * @return The source.
    */
-  public java.lang.String getHostname() {
-    java.lang.Object ref = hostname_;
+  public java.lang.String getSource() {
+    java.lang.Object ref = source_;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
@@ -225,85 +218,40 @@ private static final long serialVersionUID = 0L;
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
       if (bs.isValidUtf8()) {
-        hostname_ = s;
+        source_ = s;
       }
       return s;
     }
   }
   /**
-   * <code>optional string hostname = 2;</code>
-   * @return The bytes for hostname.
+   * <code>optional string source = 2;</code>
+   * @return The bytes for source.
    */
   public com.google.protobuf.ByteString
-      getHostnameBytes() {
-    java.lang.Object ref = hostname_;
+      getSourceBytes() {
+    java.lang.Object ref = source_;
     if (ref instanceof java.lang.String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
-      hostname_ = b;
+      source_ = b;
       return b;
     } else {
       return (com.google.protobuf.ByteString) ref;
     }
   }
 
-  public static final int INSTANCEID_FIELD_NUMBER = 3;
-  private volatile java.lang.Object instanceId_;
-  /**
-   * <code>optional string instanceId = 3;</code>
-   * @return Whether the instanceId field is set.
-   */
-  public boolean hasInstanceId() {
-    return ((bitField0_ & 0x00000004) != 0);
-  }
-  /**
-   * <code>optional string instanceId = 3;</code>
-   * @return The instanceId.
-   */
-  public java.lang.String getInstanceId() {
-    java.lang.Object ref = instanceId_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      if (bs.isValidUtf8()) {
-        instanceId_ = s;
-      }
-      return s;
-    }
-  }
-  /**
-   * <code>optional string instanceId = 3;</code>
-   * @return The bytes for instanceId.
-   */
-  public com.google.protobuf.ByteString
-      getInstanceIdBytes() {
-    java.lang.Object ref = instanceId_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      instanceId_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
-  }
-
-  public static final int NAME_FIELD_NUMBER = 4;
+  public static final int NAME_FIELD_NUMBER = 3;
   private volatile java.lang.Object name_;
   /**
-   * <code>optional string name = 4;</code>
+   * <code>optional string name = 3;</code>
    * @return Whether the name field is set.
    */
   public boolean hasName() {
-    return ((bitField0_ & 0x00000008) != 0);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
-   * <code>optional string name = 4;</code>
+   * <code>optional string name = 3;</code>
    * @return The name.
    */
   public java.lang.String getName() {
@@ -321,7 +269,7 @@ private static final long serialVersionUID = 0L;
     }
   }
   /**
-   * <code>optional string name = 4;</code>
+   * <code>optional string name = 3;</code>
    * @return The bytes for name.
    */
   public com.google.protobuf.ByteString
@@ -338,34 +286,34 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int VALUE_FIELD_NUMBER = 5;
+  public static final int VALUE_FIELD_NUMBER = 4;
   private double value_;
   /**
-   * <code>optional double value = 5;</code>
+   * <code>optional double value = 4;</code>
    * @return Whether the value field is set.
    */
   public boolean hasValue() {
-    return ((bitField0_ & 0x00000010) != 0);
+    return ((bitField0_ & 0x00000008) != 0);
   }
   /**
-   * <code>optional double value = 5;</code>
+   * <code>optional double value = 4;</code>
    * @return The value.
    */
   public double getValue() {
     return value_;
   }
 
-  public static final int METRICTYPE_FIELD_NUMBER = 6;
+  public static final int METRICTYPE_FIELD_NUMBER = 5;
   private int metricType_;
   /**
-   * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+   * <code>required .alluxio.grpc.MetricType metricType = 5;</code>
    * @return Whether the metricType field is set.
    */
   public boolean hasMetricType() {
-    return ((bitField0_ & 0x00000020) != 0);
+    return ((bitField0_ & 0x00000010) != 0);
   }
   /**
-   * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+   * <code>required .alluxio.grpc.MetricType metricType = 5;</code>
    * @return The metricType.
    */
   public alluxio.grpc.MetricType getMetricType() {
@@ -374,7 +322,7 @@ private static final long serialVersionUID = 0L;
     return result == null ? alluxio.grpc.MetricType.GAUGE : result;
   }
 
-  public static final int TAGS_FIELD_NUMBER = 7;
+  public static final int TAGS_FIELD_NUMBER = 6;
   private static final class TagsDefaultEntryHolder {
     static final com.google.protobuf.MapEntry<
         java.lang.String, java.lang.String> defaultEntry =
@@ -401,7 +349,7 @@ private static final long serialVersionUID = 0L;
     return internalGetTags().getMap().size();
   }
   /**
-   * <code>map&lt;string, string&gt; tags = 7;</code>
+   * <code>map&lt;string, string&gt; tags = 6;</code>
    */
 
   public boolean containsTags(
@@ -417,14 +365,14 @@ private static final long serialVersionUID = 0L;
     return getTagsMap();
   }
   /**
-   * <code>map&lt;string, string&gt; tags = 7;</code>
+   * <code>map&lt;string, string&gt; tags = 6;</code>
    */
 
   public java.util.Map<java.lang.String, java.lang.String> getTagsMap() {
     return internalGetTags().getMap();
   }
   /**
-   * <code>map&lt;string, string&gt; tags = 7;</code>
+   * <code>map&lt;string, string&gt; tags = 6;</code>
    */
 
   public java.lang.String getTagsOrDefault(
@@ -436,7 +384,7 @@ private static final long serialVersionUID = 0L;
     return map.containsKey(key) ? map.get(key) : defaultValue;
   }
   /**
-   * <code>map&lt;string, string&gt; tags = 7;</code>
+   * <code>map&lt;string, string&gt; tags = 6;</code>
    */
 
   public java.lang.String getTagsOrThrow(
@@ -472,26 +420,23 @@ private static final long serialVersionUID = 0L;
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, instance_);
     }
     if (((bitField0_ & 0x00000002) != 0)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, hostname_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, source_);
     }
     if (((bitField0_ & 0x00000004) != 0)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, instanceId_);
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, name_);
     }
     if (((bitField0_ & 0x00000008) != 0)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, name_);
+      output.writeDouble(4, value_);
     }
     if (((bitField0_ & 0x00000010) != 0)) {
-      output.writeDouble(5, value_);
-    }
-    if (((bitField0_ & 0x00000020) != 0)) {
-      output.writeEnum(6, metricType_);
+      output.writeEnum(5, metricType_);
     }
     com.google.protobuf.GeneratedMessageV3
       .serializeStringMapTo(
         output,
         internalGetTags(),
         TagsDefaultEntryHolder.defaultEntry,
-        7);
+        6);
     unknownFields.writeTo(output);
   }
 
@@ -505,21 +450,18 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, instance_);
     }
     if (((bitField0_ & 0x00000002) != 0)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, hostname_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, source_);
     }
     if (((bitField0_ & 0x00000004) != 0)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, instanceId_);
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, name_);
     }
     if (((bitField0_ & 0x00000008) != 0)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, name_);
+      size += com.google.protobuf.CodedOutputStream
+        .computeDoubleSize(4, value_);
     }
     if (((bitField0_ & 0x00000010) != 0)) {
       size += com.google.protobuf.CodedOutputStream
-        .computeDoubleSize(5, value_);
-    }
-    if (((bitField0_ & 0x00000020) != 0)) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeEnumSize(6, metricType_);
+        .computeEnumSize(5, metricType_);
     }
     for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
          : internalGetTags().getMap().entrySet()) {
@@ -529,7 +471,7 @@ private static final long serialVersionUID = 0L;
           .setValue(entry.getValue())
           .build();
       size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(7, tags__);
+          .computeMessageSize(6, tags__);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -551,15 +493,10 @@ private static final long serialVersionUID = 0L;
       if (!getInstance()
           .equals(other.getInstance())) return false;
     }
-    if (hasHostname() != other.hasHostname()) return false;
-    if (hasHostname()) {
-      if (!getHostname()
-          .equals(other.getHostname())) return false;
-    }
-    if (hasInstanceId() != other.hasInstanceId()) return false;
-    if (hasInstanceId()) {
-      if (!getInstanceId()
-          .equals(other.getInstanceId())) return false;
+    if (hasSource() != other.hasSource()) return false;
+    if (hasSource()) {
+      if (!getSource()
+          .equals(other.getSource())) return false;
     }
     if (hasName() != other.hasName()) return false;
     if (hasName()) {
@@ -593,13 +530,9 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + INSTANCE_FIELD_NUMBER;
       hash = (53 * hash) + getInstance().hashCode();
     }
-    if (hasHostname()) {
-      hash = (37 * hash) + HOSTNAME_FIELD_NUMBER;
-      hash = (53 * hash) + getHostname().hashCode();
-    }
-    if (hasInstanceId()) {
-      hash = (37 * hash) + INSTANCEID_FIELD_NUMBER;
-      hash = (53 * hash) + getInstanceId().hashCode();
+    if (hasSource()) {
+      hash = (37 * hash) + SOURCE_FIELD_NUMBER;
+      hash = (53 * hash) + getSource().hashCode();
     }
     if (hasName()) {
       hash = (37 * hash) + NAME_FIELD_NUMBER;
@@ -734,7 +667,7 @@ private static final long serialVersionUID = 0L;
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
-        case 7:
+        case 6:
           return internalGetTags();
         default:
           throw new RuntimeException(
@@ -745,7 +678,7 @@ private static final long serialVersionUID = 0L;
     protected com.google.protobuf.MapField internalGetMutableMapField(
         int number) {
       switch (number) {
-        case 7:
+        case 6:
           return internalGetMutableTags();
         default:
           throw new RuntimeException(
@@ -780,16 +713,14 @@ private static final long serialVersionUID = 0L;
       super.clear();
       instance_ = "";
       bitField0_ = (bitField0_ & ~0x00000001);
-      hostname_ = "";
+      source_ = "";
       bitField0_ = (bitField0_ & ~0x00000002);
-      instanceId_ = "";
-      bitField0_ = (bitField0_ & ~0x00000004);
       name_ = "";
-      bitField0_ = (bitField0_ & ~0x00000008);
+      bitField0_ = (bitField0_ & ~0x00000004);
       value_ = 0D;
-      bitField0_ = (bitField0_ & ~0x00000010);
+      bitField0_ = (bitField0_ & ~0x00000008);
       metricType_ = 0;
-      bitField0_ = (bitField0_ & ~0x00000020);
+      bitField0_ = (bitField0_ & ~0x00000010);
       internalGetMutableTags().clear();
       return this;
     }
@@ -826,21 +757,17 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000002) != 0)) {
         to_bitField0_ |= 0x00000002;
       }
-      result.hostname_ = hostname_;
+      result.source_ = source_;
       if (((from_bitField0_ & 0x00000004) != 0)) {
         to_bitField0_ |= 0x00000004;
       }
-      result.instanceId_ = instanceId_;
+      result.name_ = name_;
       if (((from_bitField0_ & 0x00000008) != 0)) {
+        result.value_ = value_;
         to_bitField0_ |= 0x00000008;
       }
-      result.name_ = name_;
       if (((from_bitField0_ & 0x00000010) != 0)) {
-        result.value_ = value_;
         to_bitField0_ |= 0x00000010;
-      }
-      if (((from_bitField0_ & 0x00000020) != 0)) {
-        to_bitField0_ |= 0x00000020;
       }
       result.metricType_ = metricType_;
       result.tags_ = internalGetTags();
@@ -899,18 +826,13 @@ private static final long serialVersionUID = 0L;
         instance_ = other.instance_;
         onChanged();
       }
-      if (other.hasHostname()) {
+      if (other.hasSource()) {
         bitField0_ |= 0x00000002;
-        hostname_ = other.hostname_;
-        onChanged();
-      }
-      if (other.hasInstanceId()) {
-        bitField0_ |= 0x00000004;
-        instanceId_ = other.instanceId_;
+        source_ = other.source_;
         onChanged();
       }
       if (other.hasName()) {
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         name_ = other.name_;
         onChanged();
       }
@@ -1039,26 +961,26 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.lang.Object hostname_ = "";
+    private java.lang.Object source_ = "";
     /**
-     * <code>optional string hostname = 2;</code>
-     * @return Whether the hostname field is set.
+     * <code>optional string source = 2;</code>
+     * @return Whether the source field is set.
      */
-    public boolean hasHostname() {
+    public boolean hasSource() {
       return ((bitField0_ & 0x00000002) != 0);
     }
     /**
-     * <code>optional string hostname = 2;</code>
-     * @return The hostname.
+     * <code>optional string source = 2;</code>
+     * @return The source.
      */
-    public java.lang.String getHostname() {
-      java.lang.Object ref = hostname_;
+    public java.lang.String getSource() {
+      java.lang.Object ref = source_;
       if (!(ref instanceof java.lang.String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          hostname_ = s;
+          source_ = s;
         }
         return s;
       } else {
@@ -1066,157 +988,73 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string hostname = 2;</code>
-     * @return The bytes for hostname.
+     * <code>optional string source = 2;</code>
+     * @return The bytes for source.
      */
     public com.google.protobuf.ByteString
-        getHostnameBytes() {
-      java.lang.Object ref = hostname_;
+        getSourceBytes() {
+      java.lang.Object ref = source_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        hostname_ = b;
+        source_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     /**
-     * <code>optional string hostname = 2;</code>
-     * @param value The hostname to set.
+     * <code>optional string source = 2;</code>
+     * @param value The source to set.
      * @return This builder for chaining.
      */
-    public Builder setHostname(
+    public Builder setSource(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000002;
-      hostname_ = value;
+      source_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string hostname = 2;</code>
+     * <code>optional string source = 2;</code>
      * @return This builder for chaining.
      */
-    public Builder clearHostname() {
+    public Builder clearSource() {
       bitField0_ = (bitField0_ & ~0x00000002);
-      hostname_ = getDefaultInstance().getHostname();
+      source_ = getDefaultInstance().getSource();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string hostname = 2;</code>
-     * @param value The bytes for hostname to set.
+     * <code>optional string source = 2;</code>
+     * @param value The bytes for source to set.
      * @return This builder for chaining.
      */
-    public Builder setHostnameBytes(
+    public Builder setSourceBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000002;
-      hostname_ = value;
-      onChanged();
-      return this;
-    }
-
-    private java.lang.Object instanceId_ = "";
-    /**
-     * <code>optional string instanceId = 3;</code>
-     * @return Whether the instanceId field is set.
-     */
-    public boolean hasInstanceId() {
-      return ((bitField0_ & 0x00000004) != 0);
-    }
-    /**
-     * <code>optional string instanceId = 3;</code>
-     * @return The instanceId.
-     */
-    public java.lang.String getInstanceId() {
-      java.lang.Object ref = instanceId_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          instanceId_ = s;
-        }
-        return s;
-      } else {
-        return (java.lang.String) ref;
-      }
-    }
-    /**
-     * <code>optional string instanceId = 3;</code>
-     * @return The bytes for instanceId.
-     */
-    public com.google.protobuf.ByteString
-        getInstanceIdBytes() {
-      java.lang.Object ref = instanceId_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        instanceId_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    /**
-     * <code>optional string instanceId = 3;</code>
-     * @param value The instanceId to set.
-     * @return This builder for chaining.
-     */
-    public Builder setInstanceId(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000004;
-      instanceId_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string instanceId = 3;</code>
-     * @return This builder for chaining.
-     */
-    public Builder clearInstanceId() {
-      bitField0_ = (bitField0_ & ~0x00000004);
-      instanceId_ = getDefaultInstance().getInstanceId();
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>optional string instanceId = 3;</code>
-     * @param value The bytes for instanceId to set.
-     * @return This builder for chaining.
-     */
-    public Builder setInstanceIdBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000004;
-      instanceId_ = value;
+      source_ = value;
       onChanged();
       return this;
     }
 
     private java.lang.Object name_ = "";
     /**
-     * <code>optional string name = 4;</code>
+     * <code>optional string name = 3;</code>
      * @return Whether the name field is set.
      */
     public boolean hasName() {
-      return ((bitField0_ & 0x00000008) != 0);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
-     * <code>optional string name = 4;</code>
+     * <code>optional string name = 3;</code>
      * @return The name.
      */
     public java.lang.String getName() {
@@ -1234,7 +1072,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string name = 4;</code>
+     * <code>optional string name = 3;</code>
      * @return The bytes for name.
      */
     public com.google.protobuf.ByteString
@@ -1251,7 +1089,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>optional string name = 4;</code>
+     * <code>optional string name = 3;</code>
      * @param value The name to set.
      * @return This builder for chaining.
      */
@@ -1260,23 +1098,23 @@ private static final long serialVersionUID = 0L;
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000008;
+  bitField0_ |= 0x00000004;
       name_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional string name = 4;</code>
+     * <code>optional string name = 3;</code>
      * @return This builder for chaining.
      */
     public Builder clearName() {
-      bitField0_ = (bitField0_ & ~0x00000008);
+      bitField0_ = (bitField0_ & ~0x00000004);
       name_ = getDefaultInstance().getName();
       onChanged();
       return this;
     }
     /**
-     * <code>optional string name = 4;</code>
+     * <code>optional string name = 3;</code>
      * @param value The bytes for name to set.
      * @return This builder for chaining.
      */
@@ -1285,7 +1123,7 @@ private static final long serialVersionUID = 0L;
       if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000008;
+  bitField0_ |= 0x00000004;
       name_ = value;
       onChanged();
       return this;
@@ -1293,36 +1131,36 @@ private static final long serialVersionUID = 0L;
 
     private double value_ ;
     /**
-     * <code>optional double value = 5;</code>
+     * <code>optional double value = 4;</code>
      * @return Whether the value field is set.
      */
     public boolean hasValue() {
-      return ((bitField0_ & 0x00000010) != 0);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
-     * <code>optional double value = 5;</code>
+     * <code>optional double value = 4;</code>
      * @return The value.
      */
     public double getValue() {
       return value_;
     }
     /**
-     * <code>optional double value = 5;</code>
+     * <code>optional double value = 4;</code>
      * @param value The value to set.
      * @return This builder for chaining.
      */
     public Builder setValue(double value) {
-      bitField0_ |= 0x00000010;
+      bitField0_ |= 0x00000008;
       value_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>optional double value = 5;</code>
+     * <code>optional double value = 4;</code>
      * @return This builder for chaining.
      */
     public Builder clearValue() {
-      bitField0_ = (bitField0_ & ~0x00000010);
+      bitField0_ = (bitField0_ & ~0x00000008);
       value_ = 0D;
       onChanged();
       return this;
@@ -1330,14 +1168,14 @@ private static final long serialVersionUID = 0L;
 
     private int metricType_ = 0;
     /**
-     * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+     * <code>required .alluxio.grpc.MetricType metricType = 5;</code>
      * @return Whether the metricType field is set.
      */
     public boolean hasMetricType() {
-      return ((bitField0_ & 0x00000020) != 0);
+      return ((bitField0_ & 0x00000010) != 0);
     }
     /**
-     * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+     * <code>required .alluxio.grpc.MetricType metricType = 5;</code>
      * @return The metricType.
      */
     public alluxio.grpc.MetricType getMetricType() {
@@ -1346,7 +1184,7 @@ private static final long serialVersionUID = 0L;
       return result == null ? alluxio.grpc.MetricType.GAUGE : result;
     }
     /**
-     * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+     * <code>required .alluxio.grpc.MetricType metricType = 5;</code>
      * @param value The metricType to set.
      * @return This builder for chaining.
      */
@@ -1354,17 +1192,17 @@ private static final long serialVersionUID = 0L;
       if (value == null) {
         throw new NullPointerException();
       }
-      bitField0_ |= 0x00000020;
+      bitField0_ |= 0x00000010;
       metricType_ = value.getNumber();
       onChanged();
       return this;
     }
     /**
-     * <code>required .alluxio.grpc.MetricType metricType = 6;</code>
+     * <code>required .alluxio.grpc.MetricType metricType = 5;</code>
      * @return This builder for chaining.
      */
     public Builder clearMetricType() {
-      bitField0_ = (bitField0_ & ~0x00000020);
+      bitField0_ = (bitField0_ & ~0x00000010);
       metricType_ = 0;
       onChanged();
       return this;
@@ -1397,7 +1235,7 @@ private static final long serialVersionUID = 0L;
       return internalGetTags().getMap().size();
     }
     /**
-     * <code>map&lt;string, string&gt; tags = 7;</code>
+     * <code>map&lt;string, string&gt; tags = 6;</code>
      */
 
     public boolean containsTags(
@@ -1413,14 +1251,14 @@ private static final long serialVersionUID = 0L;
       return getTagsMap();
     }
     /**
-     * <code>map&lt;string, string&gt; tags = 7;</code>
+     * <code>map&lt;string, string&gt; tags = 6;</code>
      */
 
     public java.util.Map<java.lang.String, java.lang.String> getTagsMap() {
       return internalGetTags().getMap();
     }
     /**
-     * <code>map&lt;string, string&gt; tags = 7;</code>
+     * <code>map&lt;string, string&gt; tags = 6;</code>
      */
 
     public java.lang.String getTagsOrDefault(
@@ -1432,7 +1270,7 @@ private static final long serialVersionUID = 0L;
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, string&gt; tags = 7;</code>
+     * <code>map&lt;string, string&gt; tags = 6;</code>
      */
 
     public java.lang.String getTagsOrThrow(
@@ -1452,7 +1290,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>map&lt;string, string&gt; tags = 7;</code>
+     * <code>map&lt;string, string&gt; tags = 6;</code>
      */
 
     public Builder removeTags(
@@ -1471,7 +1309,7 @@ private static final long serialVersionUID = 0L;
       return internalGetMutableTags().getMutableMap();
     }
     /**
-     * <code>map&lt;string, string&gt; tags = 7;</code>
+     * <code>map&lt;string, string&gt; tags = 6;</code>
      */
     public Builder putTags(
         java.lang.String key,
@@ -1483,7 +1321,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>map&lt;string, string&gt; tags = 7;</code>
+     * <code>map&lt;string, string&gt; tags = 6;</code>
      */
 
     public Builder putAllTags(

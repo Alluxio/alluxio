@@ -31,11 +31,10 @@ public interface MetricsMaster extends Master {
   /**
    * Handles the client's heartbeat request for metrics collection.
    *
-   * @param clientId the client id
-   * @param hostname the client hostname
+   * @param source the metrics source
    * @param metrics client-side metrics
    */
-  void clientHeartbeat(String clientId, String hostname, List<Metric> metrics);
+  void clientHeartbeat(String source, List<Metric> metrics);
 
   /**
    * @return the master service handler
@@ -49,11 +48,10 @@ public interface MetricsMaster extends Master {
   Map<String, MetricValue> getMetrics();
 
   /**
-   * Handles the worker heartbeat and puts the metrics from an instance with a hostname. If all the
-   * old metrics associated with this instance will be removed and then replaced by the latest.
+   * Handles the worker heartbeat and puts the metrics from an instance with a source name.
    *
-   * @param hostname the hostname of the instance
+   * @param source the source of the metrics
    * @param metrics the new worker metrics
    */
-  void workerHeartbeat(String hostname, List<Metric> metrics);
+  void workerHeartbeat(String source, List<Metric> metrics);
 }
