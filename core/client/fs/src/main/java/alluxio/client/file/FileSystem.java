@@ -130,15 +130,7 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context) {
-      return create(context, context.getClusterConf());
-    }
-
-    /**
-     * @param context the FileSystemContext to use with the FileSystem
-     * @param conf the Alluxio configuration
-     * @return a new FileSystem instance
-     */
-    public static FileSystem create(FileSystemContext context, AlluxioConfiguration conf) {
+      AlluxioConfiguration conf = context.getClusterConf();
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
         // Sort properties by name to keep output ordered.
         List<PropertyKey> keys = new ArrayList<>(conf.keySet());
