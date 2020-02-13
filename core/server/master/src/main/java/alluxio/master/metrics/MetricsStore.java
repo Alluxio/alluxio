@@ -213,7 +213,7 @@ public class MetricsStore {
       mLastClearTime = System.currentTimeMillis();
       MetricsSystem.resetAllMetrics();
     }
-    LOG.info("Clearing the metrics store and metrics system in {} ms",
+    LOG.info("Cleared the metrics store and metrics system in {} ms",
         System.currentTimeMillis() - start);
   }
 

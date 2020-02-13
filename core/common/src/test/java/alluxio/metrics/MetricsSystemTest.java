@@ -12,7 +12,11 @@
 package alluxio.metrics;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.grpc.MetricType;
 
@@ -20,40 +24,71 @@ import com.codahale.metrics.Counter;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Unit tests for {@link MetricsSystem}.
  */
 public final class MetricsSystemTest {
-  private MetricsConfig mMetricsConfig;
 
   /**
    * Sets up the properties for the configuration of the metrics before a test runs.
    */
   @Before
   public final void before() {
+    MetricsSystem.resetAllMetrics();
+  }
+
+  @Test
+  public void multipleSinksTest() {
     Properties metricsProps = new Properties();
     metricsProps.setProperty("sink.console.class", "alluxio.metrics.sink.ConsoleSink");
     metricsProps.setProperty("sink.console.period", "20");
     metricsProps.setProperty("sink.console.period", "20");
     metricsProps.setProperty("sink.console.unit", "minutes");
     metricsProps.setProperty("sink.jmx.class", "alluxio.metrics.sink.JmxSink");
-    mMetricsConfig = new MetricsConfig(metricsProps);
-    // Clear the counter
-    MetricsSystem.resetAllMetrics();
-  }
-
-  /**
-   * Tests the metrics for a master and a worker.
-   */
-  @Test
-  public void metricsSystem() {
-    MetricsSystem.startSinksFromConfig(mMetricsConfig);
+    MetricsConfig metricsConfig = new MetricsConfig(metricsProps);
+    MetricsSystem.startSinksFromConfig(metricsConfig);
 
     assertEquals(2, MetricsSystem.getNumSinks());
 
     MetricsSystem.stopSinks();
+  }
+
+  @Test
+  public void startStopSinkTest() throws Exception {
+    File workerDirectory =
+        AlluxioTestDirectory.createTemporaryDirectory("sinks");
+    Properties properties = new Properties();
+    properties.put("sink.csv.class", "alluxio.metrics.sink.CsvSink");
+    properties.put("sink.csv.period", "1");
+    properties.put("sink.csv.unit", "seconds");
+    properties.put("sink.csv.directory", workerDirectory.getAbsolutePath());
+    MetricsConfig config = new MetricsConfig(properties);
+    MetricsSystem.startSinksFromConfig(config);
+
+    String counterName = "Master.CounterForSinkTest";
+    MetricsSystem.counter(counterName).inc(100);
+    // Sleep 2 seconds to make sure sinks do happen and include the new metrics changes
+    Thread.sleep(2000);
+    String[] pathNames = workerDirectory.list();
+    assertNotNull(pathNames);
+    Set<String> filesSet = new HashSet<>(Arrays.asList(pathNames));
+    assertNotEquals(0, filesSet.size());
+    assertTrue(filesSet.contains(counterName + ".csv"));
+
+    MetricsSystem.stopSinks();
+
+    String meterName = "Master.MeterForSinkTest";
+    MetricsSystem.meter(meterName).mark(1000);
+    pathNames = workerDirectory.list();
+    assertNotNull(pathNames);
+    filesSet = new HashSet<>(Arrays.asList(pathNames));
+    assertTrue(!filesSet.contains(meterName + ".csv"));
   }
 
   /**
@@ -159,5 +194,26 @@ public final class MetricsSystemTest {
     assertEquals(0, MetricsSystem.meter(meterName).getCount());
     assertEquals(0, MetricsSystem.reportWorkerMetrics().size());
     assertEquals(0, MetricsSystem.timer(timerName).getCount());
+  }
+
+  @Test
+  public void getMetricNameTest() {
+    assertEquals("Cluster.counter", MetricsSystem.getMetricName("Cluster.counter"));
+    assertEquals("Master.timer", MetricsSystem.getMetricName("Master.timer"));
+    String workerGaugeName = "Worker.gauge";
+    assertNotEquals(workerGaugeName, MetricsSystem.getMetricName(workerGaugeName));
+    assertTrue(MetricsSystem.getMetricName(workerGaugeName).startsWith(workerGaugeName));
+    String clientCounterName = "Client.counter";
+    assertNotEquals(clientCounterName, MetricsSystem.getMetricName(clientCounterName));
+    assertTrue(MetricsSystem.getMetricName(clientCounterName).startsWith(clientCounterName));
+  }
+
+  @Test
+  public void stripInstanceAndHostTest() {
+    assertEquals("name", MetricsSystem.stripInstanceAndHost("Master.name"));
+    assertEquals("name", MetricsSystem.stripInstanceAndHost("Worker.name.10_0_0_136"));
+    assertEquals("name.UFS:ufs", MetricsSystem.stripInstanceAndHost("Client.name.UFS:ufs.0_0_0_0"));
+    assertEquals("name.UFS:ufs.UFS_TYPE:local",
+        MetricsSystem.stripInstanceAndHost("Worker.name.UFS:ufs.UFS_TYPE:local.0_0_0_0"));
   }
 }

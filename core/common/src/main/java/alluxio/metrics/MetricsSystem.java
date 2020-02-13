@@ -373,14 +373,15 @@ public final class MetricsSystem {
    */
   public static String stripInstanceAndHost(String metricsName) {
     String[] pieces = metricsName.split("\\.");
-    if (pieces.length <= 1) {
+    int len = pieces.length;
+    if (len <= 1) {
       return metricsName;
     }
     // Master metrics doesn't have hostname included.
     if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())
         && !pieces[0].equals(InstanceType.CLUSTER.toString())
         && pieces.length > 2) {
-      pieces[2] = null;
+      pieces[len - 1] = null;
     }
     pieces[0] = null;
     return Joiner.on(".").skipNulls().join(pieces);
