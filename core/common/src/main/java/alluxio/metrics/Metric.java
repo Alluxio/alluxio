@@ -127,7 +127,7 @@ public final class Metric implements Serializable {
   }
 
   /**
-   * @return the hostname
+   * @return the metric type
    */
   public MetricType getMetricType() {
     return mMetricType;
@@ -167,7 +167,7 @@ public final class Metric implements Serializable {
 
   /**
    * @return the fully qualified metric name, which is of pattern
-   *         instance.name[.tagName:tagValue]*[.hostname-id:instanceId], where the tags are appended
+   *         instance.name[.tagName:tagValue]*[.source], where the tags are appended
    *         at the end
    */
   public String getFullMetricName() {
@@ -276,16 +276,17 @@ public final class Metric implements Serializable {
     String[] pieces = fullName.split("\\.");
     Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", fullName);
     int len = pieces.length;
-    String hostname = null;
+    String source = null;
     int tagEndIndex = len;
-    // Master or cluster metrics don't have hostname included.
+    // Master or cluster metrics don't have source included.
     if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())
         && !pieces[0].equals(MetricsSystem.CLUSTER)) {
-      hostname = pieces[len - 1];
+      source = pieces[len - 1];
       tagEndIndex = len - 1;
     }
     MetricsSystem.InstanceType instance = MetricsSystem.InstanceType.fromString(pieces[0]);
-    Metric metric = new Metric(instance, hostname, metricType, pieces[1], value);
+    // pieces[1] refer to metric name
+    Metric metric = new Metric(instance, source, metricType, pieces[1], value);
 
     // parse tags
     for (int i = 2; i < tagEndIndex; i++) {
