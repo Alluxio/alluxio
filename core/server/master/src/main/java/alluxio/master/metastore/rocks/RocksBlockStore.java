@@ -71,7 +71,7 @@ public class RocksBlockStore implements BlockStore {
     RocksDB.loadLibrary();
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mIteratorOption = new ReadOptions().setReadaheadSize(
-        ServerConfiguration.getInt(PropertyKey.MASTER_METASTORE_BLOCK_ITERATOR_READAHEAD_SIZE));
+        ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_BLOCK_ITERATOR_READAHEAD_SIZE));
     ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
         .setMemTableConfig(new HashLinkedListMemTableConfig())
         .setCompressionType(CompressionType.NO_COMPRESSION);
@@ -184,53 +184,11 @@ public class RocksBlockStore implements BlockStore {
 
   @Override
   public Iterator<Block> iterator() {
-    return new RocksBlockIterator(db().newIterator(mBlockMetaColumn.get(), mIteratorOption));
+    return RocksUtils.createIterator(db().newIterator(mBlockMetaColumn.get(), mIteratorOption),
+        (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())));
   }
 
   private RocksDB db() {
     return mRocksStore.getDb();
-  }
-
-  /**
-   * Used to iterate over inodes stored in this store.
-   */
-  protected class RocksBlockIterator implements Iterator<Block> {
-    /** The underlying RockIterator. */
-    private RocksIterator mRocksIterator;
-    /** Whether the underlying iterator is closed. */
-    private boolean mClosed = false;
-
-    /**
-     * @param rocksIterator rocks iterator
-     */
-    public RocksBlockIterator(RocksIterator rocksIterator) {
-      mRocksIterator = rocksIterator;
-      //mRocksIterator.seek(Longs.toByteArray(1));
-      mRocksIterator.seekToFirst();
-    }
-
-    @Override
-    public boolean hasNext() {
-      // Can't call isValid on closed RocksIterator.
-      return !mClosed && mRocksIterator.isValid();
-    }
-
-    @Override
-    public Block next() {
-      try {
-        return new Block(Longs.fromByteArray(mRocksIterator.key()),
-            BlockMeta.parseFrom(mRocksIterator.value()));
-      } catch (Exception exc) {
-        mRocksIterator.close();
-        mClosed = true;
-        throw new RuntimeException(exc);
-      } finally {
-        mRocksIterator.next();
-        if (!mRocksIterator.isValid()) {
-          mRocksIterator.close();
-          mClosed = true;
-        }
-      }
-    }
   }
 }
