@@ -450,7 +450,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Version of Alluxio. User should never modify this property.")
           .setIgnoredSiteProperty(true)
           .setIsHidden(true)
-          .setScope(Scope.ALL)
+          // Set Scope to NONE to avoid propagate to clients/workers
+          .setScope(Scope.NONE)
           .build();
   public static final PropertyKey WEB_FILE_INFO_ENABLED =
       new Builder(Name.WEB_FILE_INFO_ENABLED)

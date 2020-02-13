@@ -534,8 +534,7 @@ public final class ConfigurationUtils {
 
   /**
    * Loads the cluster level configuration from the get configuration response,
-   * filters out the configuration for certain scope,
-   * and merges it with the existing configuration.
+   * filters out the configuration for certain scope, and merges it with the existing configuration.
    *
    * @param response the get configuration RPC response
    * @param conf the existing configuration
