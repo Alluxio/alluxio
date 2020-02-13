@@ -31,6 +31,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -75,6 +76,9 @@ public class MetricsMasterTest {
 
   @Test
   public void testThroughputGauge() throws Exception {
+    // Sleep the first second because gauge throughput will always return 0 in the first second
+    // after initializing or clearing the {@link MetricsStore}
+    Thread.sleep(1000);
     String counterName = "Master.counter";
     String throughputName = "Cluster.counterThroughput";
     mMetricsMaster.registerThroughputGauge("Master.counter", "Cluster.counterThroughput");
@@ -83,11 +87,10 @@ public class MetricsMasterTest {
     assertEquals(0, (long) metric.getValue());
 
     Counter masterCounter = MetricsSystem.counter(counterName);
-    masterCounter.inc(100);
-
-    Metric metric2 = MetricsSystem.getMetricValue(throughputName);
-    assertNotNull(metric2);
-    assertNotEquals(0, (long) metric2.getValue());
+    masterCounter.inc(10000);
+    Gauge gauge = MetricsSystem.METRIC_REGISTRY.getGauges().get(throughputName);
+    assertNotNull(gauge);
+    assertNotEquals(0, (long) gauge.getValue());
   }
 
   @Test
