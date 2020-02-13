@@ -77,7 +77,7 @@ public class MetricsStore {
     try (LockResource r = new LockResource(mLock.readLock())) {
       putReportedMetrics(InstanceType.WORKER, metrics);
     }
-    LOG.debug("Put {} metrics of worker {}", metrics.size(), hostname);
+    LOG.debug("Put {} metrics of worker {}", metrics.size(), source);
   }
 
   /**
@@ -93,7 +93,7 @@ public class MetricsStore {
     try (LockResource r = new LockResource(mLock.readLock())) {
       putReportedMetrics(InstanceType.CLIENT, metrics);
     }
-    LOG.debug("Put {} metrics of client {}", metrics.size(), hostname);
+    LOG.debug("Put {} metrics of client {}", metrics.size(), source);
   }
 
   /**
@@ -107,7 +107,7 @@ public class MetricsStore {
   private void putReportedMetrics(InstanceType instanceType, List<Metric> reportedMetrics) {
     for (Metric metric : reportedMetrics) {
       if (metric.getSource() == null) {
-        continue; // ignore metrics whose hostname is null
+        continue; // ignore metrics whose source is null
       }
 
       // If a metric is COUNTER, the value sent via RPC should be the incremental value; i.e.
