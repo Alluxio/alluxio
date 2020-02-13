@@ -299,6 +299,16 @@ public class URIStatus {
     return mInfo.getXAttr();
   }
 
+  /**
+   * This is an experimental API. The returned {@link FileInfo} object does not have a stable API.
+   * Make modifications to the returned file info object at your own risk.
+   *
+   * @return the underlying file info object
+   */
+  public FileInfo getFileInfo() {
+    return mInfo;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
