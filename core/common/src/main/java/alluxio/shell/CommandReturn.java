@@ -35,6 +35,7 @@ public class CommandReturn {
 
   /**
    * Creates object from the contents.
+   * Copy the command array.
    *
    * @param code exit code
    * @param cmd the command executed
@@ -42,7 +43,7 @@ public class CommandReturn {
    */
   public CommandReturn(int code, String[] cmd, String output) {
     mExitCode = code;
-    mCmd = cmd;
+    mCmd = Arrays.copyOfRange(cmd, 0, cmd.length);
     mOutput = output;
   }
 
