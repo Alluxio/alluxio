@@ -93,13 +93,13 @@ public class ShellCommandTest {
   public void execCommandTolerateFailureInvalidCommand() throws Exception {
     // create temp file
     File testDir = AlluxioTestDirectory.createTemporaryDirectory("command");
-
-    // if there's no such command there will be IOException
-    mExceptionRule.expect(IOException.class);
-    mExceptionRule.expectMessage("No such file or directory");
+    // For a non-existent command the command return contains the err msg
     String[] testCommandExcept = new String[]{"lsa",
             String.format("%s", testDir.getAbsolutePath())};
     // lsa is not a valid executable
-    new ShellCommand(testCommandExcept).runWithOutput();
+    CommandReturn crf = new ShellCommand(testCommandExcept).runWithOutput();
+    System.out.println(crf.getFormattedOutput());
+    assertNotEquals(0, crf.getExitCode());
+    assertTrue(crf.getOutput().contains("No such file or directory"));
   }
 }
