@@ -27,6 +27,6 @@ public class CatalogProperty extends BaseProperty {
   }
 
   public static final CatalogProperty DB_IGNORE_TABLES =
-      new CatalogProperty("catalog.db.ignore.tables",
+      new CatalogProperty("catalog.db.ignore.udb.tables",
           "The comma-separated list of table names to ignore from the UDB.", "");
 }
