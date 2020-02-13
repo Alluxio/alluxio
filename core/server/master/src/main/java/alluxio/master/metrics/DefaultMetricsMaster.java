@@ -26,7 +26,6 @@ import alluxio.master.CoreMasterContext;
 import alluxio.master.journal.NoopJournaled;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsFilter;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MultiValueMetricsAggregator;
 import alluxio.metrics.MetricInfo;
@@ -42,7 +41,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.Clock;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -53,8 +51,10 @@ import java.util.Set;
  */
 public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, NoopJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultMetricsMaster.class);
-  private final Set<MultiValueMetricsAggregator> mMultiValueMetricsAggregatorRegistry =
-      new HashSet<>();
+  // A map from the to be aggregated metric name to aggregator itself
+  // This registry only holds aggregator for master metrics
+  private final Map<String, MultiValueMetricsAggregator>
+      mAggregatorRegistry = new HashMap<>();
   private final MetricsStore mMetricsStore;
 
   /**
@@ -84,20 +84,19 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
 
   @VisibleForTesting
   protected void addAggregator(MultiValueMetricsAggregator aggregator) {
-    mMultiValueMetricsAggregatorRegistry.add(aggregator);
+    mAggregatorRegistry.put(aggregator.getFilterMetricName(), aggregator);
   }
 
   private void updateMultiValueMasterMetrics() {
-    for (MultiValueMetricsAggregator aggregator : mMultiValueMetricsAggregatorRegistry) {
-      Map<MetricsFilter, Set<Metric>> metrics = new HashMap<>();
-      for (MetricsFilter filter : aggregator.getFilters()) {
-        metrics.put(filter, MetricsSystem.getMasterMetric(filter.getName()));
-      }
-      for (Entry<String, Long> entry : aggregator.updateValues(metrics).entrySet()) {
-        MetricsSystem.registerGaugeIfAbsent(entry.getKey(), new Gauge<Object>() {
+    Map<String, Set<Metric>> masterMetricsMap
+        = MetricsSystem.getMasterMetrics(mAggregatorRegistry.keySet());
+    for (Map.Entry<String, Set<Metric>> entry : masterMetricsMap.entrySet()) {
+      MultiValueMetricsAggregator aggregator = mAggregatorRegistry.get(entry.getKey());
+      for (Entry<String, Long> updated : aggregator.updateValues(entry.getValue()).entrySet()) {
+        MetricsSystem.registerGaugeIfAbsent(updated.getKey(), new Gauge<Object>() {
           @Override
           public Object getValue() {
-            return aggregator.getValue(entry.getKey());
+            return aggregator.getValue(updated.getKey());
           }
         });
       }
@@ -127,8 +126,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     // TODO(lu) Create a template for dynamically construct MetricKey
     for (MetricInfo.UfsOps ufsOp : MetricInfo.UfsOps.values()) {
       addAggregator(new SingleTagValueAggregator(MetricInfo.UFS_OP_PREFIX + ufsOp,
-          MetricsSystem.InstanceType.MASTER, ufsOp.toString(),
-          MetricInfo.TAG_UFS));
+          ufsOp.toString(), MetricInfo.TAG_UFS));
     }
   }
 
