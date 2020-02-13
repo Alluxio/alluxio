@@ -264,6 +264,19 @@ private static final long serialVersionUID = 0L;
             lastAccessTimeMs_ = input.readInt64();
             break;
           }
+          case 258: {
+            if (!((mutable_bitField0_ & 0x80000000) != 0)) {
+              xattr_ = com.google.protobuf.MapField.newMapField(
+                  XattrDefaultEntryHolder.defaultEntry);
+              mutable_bitField0_ |= 0x80000000;
+            }
+            com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
+            xattr__ = input.readMessage(
+                XattrDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+            xattr_.getMutableMap().put(
+                xattr__.getKey(), xattr__.getValue());
+            break;
+          }
           default: {
             if (!parseUnknownField(
                 input, unknownFields, extensionRegistry, tag)) {
@@ -294,6 +307,18 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileInfo_descriptor;
   }
 
+  @SuppressWarnings({"rawtypes"})
+  @java.lang.Override
+  protected com.google.protobuf.MapField internalGetMapField(
+      int number) {
+    switch (number) {
+      case 32:
+        return internalGetXattr();
+      default:
+        throw new RuntimeException(
+            "Invalid map field number: " + number);
+    }
+  }
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
@@ -1067,6 +1092,82 @@ private static final long serialVersionUID = 0L;
     return lastAccessTimeMs_;
   }
 
+  public static final int XATTR_FIELD_NUMBER = 32;
+  private static final class XattrDefaultEntryHolder {
+    static final com.google.protobuf.MapEntry<
+        java.lang.String, com.google.protobuf.ByteString> defaultEntry =
+            com.google.protobuf.MapEntry
+            .<java.lang.String, com.google.protobuf.ByteString>newDefaultInstance(
+                alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileInfo_XattrEntry_descriptor, 
+                com.google.protobuf.WireFormat.FieldType.STRING,
+                "",
+                com.google.protobuf.WireFormat.FieldType.BYTES,
+                com.google.protobuf.ByteString.EMPTY);
+  }
+  private com.google.protobuf.MapField<
+      java.lang.String, com.google.protobuf.ByteString> xattr_;
+  private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
+  internalGetXattr() {
+    if (xattr_ == null) {
+      return com.google.protobuf.MapField.emptyMapField(
+          XattrDefaultEntryHolder.defaultEntry);
+    }
+    return xattr_;
+  }
+
+  public int getXattrCount() {
+    return internalGetXattr().getMap().size();
+  }
+  /**
+   * <code>map&lt;string, bytes&gt; xattr = 32;</code>
+   */
+
+  public boolean containsXattr(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    return internalGetXattr().getMap().containsKey(key);
+  }
+  /**
+   * Use {@link #getXattrMap()} instead.
+   */
+  @java.lang.Deprecated
+  public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXattr() {
+    return getXattrMap();
+  }
+  /**
+   * <code>map&lt;string, bytes&gt; xattr = 32;</code>
+   */
+
+  public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXattrMap() {
+    return internalGetXattr().getMap();
+  }
+  /**
+   * <code>map&lt;string, bytes&gt; xattr = 32;</code>
+   */
+
+  public com.google.protobuf.ByteString getXattrOrDefault(
+      java.lang.String key,
+      com.google.protobuf.ByteString defaultValue) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
+        internalGetXattr().getMap();
+    return map.containsKey(key) ? map.get(key) : defaultValue;
+  }
+  /**
+   * <code>map&lt;string, bytes&gt; xattr = 32;</code>
+   */
+
+  public com.google.protobuf.ByteString getXattrOrThrow(
+      java.lang.String key) {
+    if (key == null) { throw new java.lang.NullPointerException(); }
+    java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
+        internalGetXattr().getMap();
+    if (!map.containsKey(key)) {
+      throw new java.lang.IllegalArgumentException();
+    }
+    return map.get(key);
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -1174,6 +1275,12 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x10000000) != 0)) {
       output.writeInt64(31, lastAccessTimeMs_);
     }
+    com.google.protobuf.GeneratedMessageV3
+      .serializeStringMapTo(
+        output,
+        internalGetXattr(),
+        XattrDefaultEntryHolder.defaultEntry,
+        32);
     unknownFields.writeTo(output);
   }
 
@@ -1304,6 +1411,16 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x10000000) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(31, lastAccessTimeMs_);
+    }
+    for (java.util.Map.Entry<java.lang.String, com.google.protobuf.ByteString> entry
+         : internalGetXattr().getMap().entrySet()) {
+      com.google.protobuf.MapEntry<java.lang.String, com.google.protobuf.ByteString>
+      xattr__ = XattrDefaultEntryHolder.defaultEntry.newBuilderForType()
+          .setKey(entry.getKey())
+          .setValue(entry.getValue())
+          .build();
+      size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(32, xattr__);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -1468,6 +1585,8 @@ private static final long serialVersionUID = 0L;
       if (getLastAccessTimeMs()
           != other.getLastAccessTimeMs()) return false;
     }
+    if (!internalGetXattr().equals(
+        other.internalGetXattr())) return false;
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -1617,6 +1736,10 @@ private static final long serialVersionUID = 0L;
       hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
           getLastAccessTimeMs());
     }
+    if (!internalGetXattr().getMap().isEmpty()) {
+      hash = (37 * hash) + XATTR_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetXattr().hashCode();
+    }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -1724,6 +1847,28 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileInfo_descriptor;
     }
 
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 32:
+          return internalGetXattr();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    @SuppressWarnings({"rawtypes"})
+    protected com.google.protobuf.MapField internalGetMutableMapField(
+        int number) {
+      switch (number) {
+        case 32:
+          return internalGetMutableXattr();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
@@ -1827,6 +1972,7 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x20000000);
       lastAccessTimeMs_ = 0L;
       bitField0_ = (bitField0_ & ~0x40000000);
+      internalGetMutableXattr().clear();
       return this;
     }
 
@@ -1993,6 +2139,8 @@ private static final long serialVersionUID = 0L;
         result.lastAccessTimeMs_ = lastAccessTimeMs_;
         to_bitField0_ |= 0x10000000;
       }
+      result.xattr_ = internalGetXattr();
+      result.xattr_.makeImmutable();
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -2179,6 +2327,8 @@ private static final long serialVersionUID = 0L;
       if (other.hasLastAccessTimeMs()) {
         setLastAccessTimeMs(other.getLastAccessTimeMs());
       }
+      internalGetMutableXattr().mergeFrom(
+          other.internalGetXattr());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -4098,6 +4248,129 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x40000000);
       lastAccessTimeMs_ = 0L;
       onChanged();
+      return this;
+    }
+
+    private com.google.protobuf.MapField<
+        java.lang.String, com.google.protobuf.ByteString> xattr_;
+    private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
+    internalGetXattr() {
+      if (xattr_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            XattrDefaultEntryHolder.defaultEntry);
+      }
+      return xattr_;
+    }
+    private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
+    internalGetMutableXattr() {
+      onChanged();;
+      if (xattr_ == null) {
+        xattr_ = com.google.protobuf.MapField.newMapField(
+            XattrDefaultEntryHolder.defaultEntry);
+      }
+      if (!xattr_.isMutable()) {
+        xattr_ = xattr_.copy();
+      }
+      return xattr_;
+    }
+
+    public int getXattrCount() {
+      return internalGetXattr().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, bytes&gt; xattr = 32;</code>
+     */
+
+    public boolean containsXattr(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetXattr().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getXattrMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXattr() {
+      return getXattrMap();
+    }
+    /**
+     * <code>map&lt;string, bytes&gt; xattr = 32;</code>
+     */
+
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString> getXattrMap() {
+      return internalGetXattr().getMap();
+    }
+    /**
+     * <code>map&lt;string, bytes&gt; xattr = 32;</code>
+     */
+
+    public com.google.protobuf.ByteString getXattrOrDefault(
+        java.lang.String key,
+        com.google.protobuf.ByteString defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
+          internalGetXattr().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, bytes&gt; xattr = 32;</code>
+     */
+
+    public com.google.protobuf.ByteString getXattrOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, com.google.protobuf.ByteString> map =
+          internalGetXattr().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public Builder clearXattr() {
+      internalGetMutableXattr().getMutableMap()
+          .clear();
+      return this;
+    }
+    /**
+     * <code>map&lt;string, bytes&gt; xattr = 32;</code>
+     */
+
+    public Builder removeXattr(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutableXattr().getMutableMap()
+          .remove(key);
+      return this;
+    }
+    /**
+     * Use alternate mutation accessors instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, com.google.protobuf.ByteString>
+    getMutableXattr() {
+      return internalGetMutableXattr().getMutableMap();
+    }
+    /**
+     * <code>map&lt;string, bytes&gt; xattr = 32;</code>
+     */
+    public Builder putXattr(
+        java.lang.String key,
+        com.google.protobuf.ByteString value) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      if (value == null) { throw new java.lang.NullPointerException(); }
+      internalGetMutableXattr().getMutableMap()
+          .put(key, value);
+      return this;
+    }
+    /**
+     * <code>map&lt;string, bytes&gt; xattr = 32;</code>
+     */
+
+    public Builder putAllXattr(
+        java.util.Map<java.lang.String, com.google.protobuf.ByteString> values) {
+      internalGetMutableXattr().getMutableMap()
+          .putAll(values);
       return this;
     }
     @java.lang.Override
