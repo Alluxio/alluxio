@@ -19,6 +19,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.grpc.table.SyncStatus;
 import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.table.transform.TransformJobInfo;
@@ -49,6 +50,7 @@ import java.util.stream.Collectors;
 @Ignore("Enable after docker can be used from within tests")
 public final class TableIntegrationTest extends BaseIntegrationTest {
   private static final String DB_NAME = "test";
+  private static final String DB_NAME_ERRORS = "test_ERRORS";
   private static final File WAREHOUSE_DIR = AlluxioTestDirectory
       .createTemporaryDirectory(new File("/tmp/alluxio-tests"), "TableIntegrationTest");
   /** The docker image name and tag. */
@@ -56,6 +58,7 @@ public final class TableIntegrationTest extends BaseIntegrationTest {
   private static final String TEST_TABLE = "test_table";
   private static final String TEST_TABLE_RENAME = "test_table_rename";
   private static final String TEST_TABLE_PART = "test_table_part";
+  private static final String TEST_TABLE_ERROR = "table_bad_location";
 
   private static String sHmsAddress;
   private static int sHmsPort;
@@ -131,7 +134,16 @@ public final class TableIntegrationTest extends BaseIntegrationTest {
             "CREATE EXTERNAL TABLE %s(`int1` int, `long2` bigint, `string3` string, "
                 + "`float4` float, " + "`long5` bigint, `partitionint6` int) LOCATION 'file://%s';",
             TEST_TABLE_RENAME, dbDir.getAbsolutePath() + "/" + TEST_TABLE_RENAME),
-        String.format("MSCK REPAIR TABLE %s;", TEST_TABLE_RENAME),
+
+        // this database has a table which cannot be mounted.
+        String.format("CREATE DATABASE %s; USE %s;", DB_NAME_ERRORS, DB_NAME_ERRORS),
+        String.format(
+            "CREATE EXTERNAL TABLE %s(`int1` int, `long2` bigint, `string3` string, "
+                + "`float4` float, " + "`long5` bigint, `partitionint6` int) LOCATION 'file://%s';",
+            TEST_TABLE, dbDir.getAbsolutePath() + "/" + TEST_TABLE),
+        String.format("MSCK REPAIR TABLE %s;", TEST_TABLE),
+        String.format("CREATE EXTERNAL TABLE %s(`int1` int) LOCATION 'file:///does/not/exist';",
+            TEST_TABLE_ERROR),
     };
 
     execBeeline(Arrays.asList(lines));
@@ -144,7 +156,7 @@ public final class TableIntegrationTest extends BaseIntegrationTest {
 
     sTableMaster
         .attachDatabase("hive", "thrift://" + sHmsAddress + ":" + sHmsPort, DB_NAME, DB_NAME,
-            Collections.emptyMap());
+            Collections.emptyMap(), false);
   }
 
   @AfterClass
@@ -156,11 +168,32 @@ public final class TableIntegrationTest extends BaseIntegrationTest {
   public void attachWrongDb() throws Exception {
     try {
       sTableMaster.attachDatabase("hive", "thrift://" + sHmsAddress + ":" + sHmsPort, "wrong_db",
-          "wrong_db", Collections.emptyMap());
+          "wrong_db", Collections.emptyMap(), false);
       fail("Attaching wrong db name is expected to fail.");
     } catch (Exception e) {
       // this is expected
     }
+  }
+
+  @Test
+  public void attachMountFail() throws Exception {
+    SyncStatus status = sTableMaster
+        .attachDatabase("hive", "thrift://" + sHmsAddress + ":" + sHmsPort, DB_NAME_ERRORS,
+            DB_NAME_ERRORS, Collections.emptyMap(), false);
+    assertEquals(1, status.getTablesErrorsCount());
+    assertTrue(status.containsTablesErrors(TEST_TABLE_ERROR));
+    try {
+      sTableMaster.getDatabase(DB_NAME_ERRORS);
+      fail("DB with a bad table should be not be attached.");
+    } catch (Exception e) {
+      // this is expected
+    }
+    status = sTableMaster
+        .attachDatabase("hive", "thrift://" + sHmsAddress + ":" + sHmsPort, DB_NAME_ERRORS,
+            DB_NAME_ERRORS, Collections.emptyMap(), true);
+    assertEquals(1, status.getTablesErrorsCount());
+    assertTrue(status.containsTablesErrors(TEST_TABLE_ERROR));
+    assertNotNull(sTableMaster.getDatabase(DB_NAME_ERRORS));
   }
 
   @Test

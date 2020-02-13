@@ -90,6 +90,11 @@ private static final long serialVersionUID = 0L;
                 options__.getKey(), options__.getValue());
             break;
           }
+          case 48: {
+            bitField0_ |= 0x00000010;
+            ignoreSyncErrors_ = input.readBool();
+            break;
+          }
           default: {
             if (!parseUnknownField(
                 input, unknownFields, extensionRegistry, tag)) {
@@ -391,6 +396,23 @@ private static final long serialVersionUID = 0L;
     return map.get(key);
   }
 
+  public static final int IGNORE_SYNC_ERRORS_FIELD_NUMBER = 6;
+  private boolean ignoreSyncErrors_;
+  /**
+   * <code>optional bool ignore_sync_errors = 6;</code>
+   * @return Whether the ignoreSyncErrors field is set.
+   */
+  public boolean hasIgnoreSyncErrors() {
+    return ((bitField0_ & 0x00000010) != 0);
+  }
+  /**
+   * <code>optional bool ignore_sync_errors = 6;</code>
+   * @return The ignoreSyncErrors.
+   */
+  public boolean getIgnoreSyncErrors() {
+    return ignoreSyncErrors_;
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -423,6 +445,9 @@ private static final long serialVersionUID = 0L;
         internalGetOptions(),
         OptionsDefaultEntryHolder.defaultEntry,
         5);
+    if (((bitField0_ & 0x00000010) != 0)) {
+      output.writeBool(6, ignoreSyncErrors_);
+    }
     unknownFields.writeTo(output);
   }
 
@@ -453,6 +478,10 @@ private static final long serialVersionUID = 0L;
           .build();
       size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(5, options__);
+    }
+    if (((bitField0_ & 0x00000010) != 0)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBoolSize(6, ignoreSyncErrors_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -491,6 +520,11 @@ private static final long serialVersionUID = 0L;
     }
     if (!internalGetOptions().equals(
         other.internalGetOptions())) return false;
+    if (hasIgnoreSyncErrors() != other.hasIgnoreSyncErrors()) return false;
+    if (hasIgnoreSyncErrors()) {
+      if (getIgnoreSyncErrors()
+          != other.getIgnoreSyncErrors()) return false;
+    }
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -521,6 +555,11 @@ private static final long serialVersionUID = 0L;
     if (!internalGetOptions().getMap().isEmpty()) {
       hash = (37 * hash) + OPTIONS_FIELD_NUMBER;
       hash = (53 * hash) + internalGetOptions().hashCode();
+    }
+    if (hasIgnoreSyncErrors()) {
+      hash = (37 * hash) + IGNORE_SYNC_ERRORS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getIgnoreSyncErrors());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -686,6 +725,8 @@ private static final long serialVersionUID = 0L;
       dbName_ = "";
       bitField0_ = (bitField0_ & ~0x00000008);
       internalGetMutableOptions().clear();
+      ignoreSyncErrors_ = false;
+      bitField0_ = (bitField0_ & ~0x00000020);
       return this;
     }
 
@@ -732,6 +773,10 @@ private static final long serialVersionUID = 0L;
       result.dbName_ = dbName_;
       result.options_ = internalGetOptions();
       result.options_.makeImmutable();
+      if (((from_bitField0_ & 0x00000020) != 0)) {
+        result.ignoreSyncErrors_ = ignoreSyncErrors_;
+        to_bitField0_ |= 0x00000010;
+      }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
@@ -803,6 +848,9 @@ private static final long serialVersionUID = 0L;
       }
       internalGetMutableOptions().mergeFrom(
           other.internalGetOptions());
+      if (other.hasIgnoreSyncErrors()) {
+        setIgnoreSyncErrors(other.getIgnoreSyncErrors());
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -1289,6 +1337,43 @@ private static final long serialVersionUID = 0L;
         java.util.Map<java.lang.String, java.lang.String> values) {
       internalGetMutableOptions().getMutableMap()
           .putAll(values);
+      return this;
+    }
+
+    private boolean ignoreSyncErrors_ ;
+    /**
+     * <code>optional bool ignore_sync_errors = 6;</code>
+     * @return Whether the ignoreSyncErrors field is set.
+     */
+    public boolean hasIgnoreSyncErrors() {
+      return ((bitField0_ & 0x00000020) != 0);
+    }
+    /**
+     * <code>optional bool ignore_sync_errors = 6;</code>
+     * @return The ignoreSyncErrors.
+     */
+    public boolean getIgnoreSyncErrors() {
+      return ignoreSyncErrors_;
+    }
+    /**
+     * <code>optional bool ignore_sync_errors = 6;</code>
+     * @param value The ignoreSyncErrors to set.
+     * @return This builder for chaining.
+     */
+    public Builder setIgnoreSyncErrors(boolean value) {
+      bitField0_ |= 0x00000020;
+      ignoreSyncErrors_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional bool ignore_sync_errors = 6;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearIgnoreSyncErrors() {
+      bitField0_ = (bitField0_ & ~0x00000020);
+      ignoreSyncErrors_ = false;
+      onChanged();
       return this;
     }
     @java.lang.Override

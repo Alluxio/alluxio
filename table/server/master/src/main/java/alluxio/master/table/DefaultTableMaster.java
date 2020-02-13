@@ -23,6 +23,7 @@ import alluxio.grpc.table.ColumnStatisticsList;
 import alluxio.grpc.table.Constraint;
 import alluxio.grpc.table.Database;
 import alluxio.grpc.table.Partition;
+import alluxio.grpc.table.SyncStatus;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.file.FileSystemMaster;
@@ -77,11 +78,12 @@ public class DefaultTableMaster extends CoreMaster
   }
 
   @Override
-  public boolean attachDatabase(String udbType, String udbConnectionUri, String udbDbName,
-      String dbName, Map<String, String> configuration) throws IOException {
+  public SyncStatus attachDatabase(String udbType, String udbConnectionUri,
+      String udbDbName, String dbName, Map<String, String> configuration, boolean ignoreSyncErrors)
+      throws IOException {
     try (JournalContext journalContext = createJournalContext()) {
       return mCatalog.attachDatabase(journalContext, udbType, udbConnectionUri, udbDbName, dbName,
-          configuration);
+          configuration, ignoreSyncErrors);
     }
   }
 
@@ -151,7 +153,7 @@ public class DefaultTableMaster extends CoreMaster
   }
 
   @Override
-  public boolean syncDatabase(String dbName) throws IOException {
+  public SyncStatus syncDatabase(String dbName) throws IOException {
     try (JournalContext journalContext = createJournalContext()) {
       return mCatalog.syncDatabase(journalContext, dbName);
     }
