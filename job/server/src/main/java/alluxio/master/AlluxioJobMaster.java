@@ -41,7 +41,6 @@ public final class AlluxioJobMaster {
     }
 
     CommonUtils.PROCESS_TYPE.set(alluxio.util.CommonUtils.ProcessType.JOB_MASTER);
-    MetricsSystem.init();
     AlluxioJobMasterProcess process;
     try {
       process = AlluxioJobMasterProcess.Factory.create();

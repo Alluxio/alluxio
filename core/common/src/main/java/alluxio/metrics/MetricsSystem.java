@@ -41,7 +41,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -77,7 +76,7 @@ public final class MetricsSystem {
   // The source of the metrics in this metrics system.
   // It can be set through property keys based on process types.
   // Local hostname will be used if no related property key founds.
-  private static String sSourceName;
+  private static String sSourceNameSuppier = CommonUtils.memoize(this::constructSourceName);
 
   /**
    * An enum of supported instance type.
@@ -165,15 +164,9 @@ public final class MetricsSystem {
   }
 
   /**
-   * Initialize the {@link MetricsSystem}.
-   * This should be called after setting the {@link CommonUtils#PROCESS_TYPE}
-   * and before creating any metric in the current process.
+   * Constructs the source name of metrics in this {@link MetricsSystem}.
    */
-  public static synchronized void init() {
-    if (sSourceName != null) {
-      // This metrics system is already initialized
-      return;
-    }
+  private static String constructSourceName() {
     PropertyKey sourceKey = null;
     switch (CommonUtils.PROCESS_TYPE.get()) {
       case MASTER:
@@ -195,7 +188,7 @@ public final class MetricsSystem {
         break;
     }
     AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-    sSourceName = sourceKey != null && conf.isSet(sourceKey)
+    return sourceKey != null && conf.isSet(sourceKey)
         ? conf.get(sourceKey) : NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
   }
 
@@ -382,9 +375,9 @@ public final class MetricsSystem {
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
     if (name.startsWith(instance.toString())) {
-      return Joiner.on(".").join(name, sSourceName);
+      return Joiner.on(".").join(name, sSourceNameSuppier);
     }
-    return Joiner.on(".").join(instance, name, sSourceName);
+    return Joiner.on(".").join(instance, name, sSourceNameSuppier);
   }
 
   /**

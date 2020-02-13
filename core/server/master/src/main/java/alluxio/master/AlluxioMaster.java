@@ -41,7 +41,6 @@ public final class AlluxioMaster {
     }
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.MASTER);
-    MetricsSystem.init();
     MasterProcess process;
     try {
       process = AlluxioMasterProcess.Factory.create();

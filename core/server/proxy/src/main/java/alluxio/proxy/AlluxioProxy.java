@@ -48,7 +48,6 @@ public final class AlluxioProxy {
     }
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.PROXY);
-    MetricsSystem.init();
     ProxyProcess process;
     try {
       process = ProxyProcess.Factory.create();

@@ -62,7 +62,6 @@ public final class AlluxioJobWorker {
     }
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.JOB_WORKER);
-    MetricsSystem.init();
     MasterInquireClient masterInquireClient =
         MasterInquireClient.Factory.create(ServerConfiguration.global(), ServerUserState.global());
     try {

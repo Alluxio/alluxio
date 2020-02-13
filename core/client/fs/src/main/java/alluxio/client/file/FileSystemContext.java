@@ -240,7 +240,6 @@ public final class FileSystemContext implements Closeable {
         LOG.error("Failed to load configuration from "
             + "meta master during initialization", ae);
       }
-      MetricsSystem.init();
       MetricsSystem.startSinks(getClusterConf().get(PropertyKey.METRICS_CONF_FILE));
       MetricsHeartbeatContext.addHeartbeat(getClientContext(), masterInquireClient);
     }
