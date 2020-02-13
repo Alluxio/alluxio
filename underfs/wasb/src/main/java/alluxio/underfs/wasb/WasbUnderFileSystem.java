@@ -25,8 +25,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -38,8 +36,10 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(WasbUnderFileSystem.class);
 
   /** Constant for the wasb URI scheme. */
-  public static final List<String> SCHEMES = Stream.of("wasb://", "wasbs://")
-          .collect(Collectors.toList());
+  public static final String SCHEME_INSECURE = "wasb://";
+
+  /** Constant for the wasbs URI scheme. */
+  public static final String SCHEME_SECURE = "wasbs://";
 
   /**
    * Prepares the configuration for this Wasb as an HDFS configuration.
@@ -59,7 +59,7 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
       }
     }
     if (isSecure) {
-      wasbConf.set("fs.AbstractFileSystem.wasb.impl", "org.apache.hadoop.fs.azure.Wasbs");
+      wasbConf.set("fs.AbstractFileSystem.wasbs.impl", "org.apache.hadoop.fs.azure.Wasbs");
       wasbConf.set("fs.wasbs.impl", "org.apache.hadoop.fs.azure.NativeAzureFileSystem");
     } else {
       wasbConf.set("fs.AbstractFileSystem.wasb.impl", "org.apache.hadoop.fs.azure.Wasb");
@@ -77,7 +77,7 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
    */
   public static WasbUnderFileSystem createInstance(AlluxioURI uri,
       UnderFileSystemConfiguration conf) {
-    Configuration wasbConf = createConfiguration(conf, uri.getScheme().startsWith("wasb://"));
+    Configuration wasbConf = createConfiguration(conf, uri.getScheme().startsWith(SCHEME_SECURE));
     return new WasbUnderFileSystem(uri, conf, wasbConf);
   }
 
