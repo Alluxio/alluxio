@@ -273,6 +273,7 @@ message FileInfo {
   optional int32 replicationMax = 29;
   optional int32 replicationMin = 30;
   optional int64 lastAccessTimeMs = 31;
+  map<string, bytes> xattr = 32;
 }
 
 message GetFilePathPResponse {
