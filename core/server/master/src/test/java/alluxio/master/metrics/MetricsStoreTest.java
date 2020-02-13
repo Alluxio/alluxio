@@ -32,6 +32,7 @@ public class MetricsStoreTest {
 
   @Before
   public void before() {
+    MetricsSystem.resetAllMetrics();
     mMetricStore = new MetricsStore();
     mMetricStore.init();
   }
@@ -128,7 +129,7 @@ public class MetricsStoreTest {
   }
 
   @Test
-  public void clearAndGetClearTime() {
+  public void clearAndGetClearTime() throws Exception {
     long clearTime = mMetricStore.getLastClearTime();
     String workerHost1 = "192_1_1_1";
     List<Metric> metrics1 = Lists.newArrayList(
@@ -147,11 +148,14 @@ public class MetricsStoreTest {
         MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName()).getCount());
     assertEquals(1,
         MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount());
+
     mMetricStore.clear();
     assertEquals(0,
         MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName()).getCount());
     assertEquals(0,
         MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount());
+    // Sleep 1 second to make sure the clear time is updated
+    Thread.sleep(1000);
     long newClearTime = mMetricStore.getLastClearTime();
     assertTrue(newClearTime > clearTime);
   }
