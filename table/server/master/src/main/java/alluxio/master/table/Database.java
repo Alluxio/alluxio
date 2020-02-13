@@ -26,9 +26,7 @@ import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
-import alluxio.wire.Configuration;
 
-import com.google.common.base.Splitter;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
