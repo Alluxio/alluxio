@@ -12,6 +12,7 @@
 package alluxio.master.metastore.rocks;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.master.metastore.BlockStore;
@@ -56,5 +57,6 @@ public class RocksBlockStoreTest {
       assertEquals(i, block.getId());
       assertEquals(i, block.getMeta().getLength());
     }
+    assertFalse(iter.hasNext());
   }
 }
