@@ -71,7 +71,7 @@ public class RocksBlockStore implements BlockStore {
     RocksDB.loadLibrary();
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mIteratorOption = new ReadOptions().setReadaheadSize(
-        ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_BLOCK_ITERATOR_READAHEAD_SIZE));
+        ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
     ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
         .setMemTableConfig(new HashLinkedListMemTableConfig())
         .setCompressionType(CompressionType.NO_COMPRESSION);
