@@ -24,6 +24,7 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.wire.MountPointInfo;
 
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -34,8 +35,8 @@ import java.util.Map;
  * Test behavior of {@link FileSystemMaster}, when the paths are readonly.
  */
 public class FileSystemReadonlyTest {
-  @Rule
-  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+  @ClassRule
+  public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
           new LocalAlluxioClusterResource.Builder()
                   .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY, true)
                   .build();
@@ -48,7 +49,7 @@ public class FileSystemReadonlyTest {
   public void before() throws Exception {
     FileSystemContext fsCtx = FileSystemContext.create(ServerConfiguration.global());
     fsCtx.getClientContext().loadConf(fsCtx.getMasterAddress(), true, true);
-    mFileSystem = mLocalAlluxioClusterResource.get().getClient(fsCtx);
+    mFileSystem = sLocalAlluxioClusterResource.get().getClient(fsCtx);
   }
 
   @Test
