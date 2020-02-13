@@ -27,8 +27,6 @@ import java.util.Properties;
  */
 public final class MetricsSystemTest {
   private MetricsConfig mMetricsConfig;
-  private static final String METRIC_NAME = "Worker.TestMetric";
-  private static Counter sCounter = MetricsSystem.counter(METRIC_NAME);
 
   /**
    * Sets up the properties for the configuration of the metrics before a test runs.
@@ -44,11 +42,6 @@ public final class MetricsSystemTest {
     mMetricsConfig = new MetricsConfig(metricsProps);
     // Clear the counter
     MetricsSystem.resetAllMetrics();
-    if (!MetricKey.isValid(METRIC_NAME)) {
-      MetricKey.register(new MetricKey.Builder(METRIC_NAME)
-          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(true).build());
-      MetricsSystem.initShouldReportMetrics(MetricsSystem.InstanceType.WORKER);
-    }
   }
 
   /**
@@ -60,8 +53,6 @@ public final class MetricsSystemTest {
 
     assertEquals(2, MetricsSystem.getNumSinks());
 
-    // Make sure it doesn't crash.
-    sCounter.inc();
     MetricsSystem.stopSinks();
   }
 
@@ -118,21 +109,55 @@ public final class MetricsSystemTest {
   }
 
   @Test
-  public void testReportMetrics() {
-    sCounter.inc();
+  public void testReportWorkerMetrics() {
+    String metricName = "Worker.TestMetric";
+    Counter counter = MetricsSystem.counter(metricName);
+    if (!MetricKey.isValid(metricName)) {
+      MetricKey.register(new MetricKey.Builder(metricName)
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(true).build());
+      MetricsSystem.initShouldReportMetrics(MetricsSystem.InstanceType.WORKER);
+    }
+    counter.inc();
     assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
     assertEquals(0, MetricsSystem.reportWorkerMetrics().size());
-    sCounter.inc();
+    counter.inc();
     assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
   }
 
   @Test
+  public void testReportClientMetrics() {
+    String metricName = "Client.TestMetric";
+    Counter counter = MetricsSystem.counter(metricName);
+    if (!MetricKey.isValid(metricName)) {
+      MetricKey.register(new MetricKey.Builder(metricName)
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(true).build());
+    }
+    counter.inc(5);
+    assertEquals(5.0, MetricsSystem.reportClientMetrics().get(0).getValue(), 0);
+    assertEquals(0, MetricsSystem.reportClientMetrics().size());
+    counter.inc(2);
+    assertEquals(2.0, MetricsSystem.reportClientMetrics().get(0).getValue(), 0);
+    assertEquals(0, MetricsSystem.reportClientMetrics().size());
+  }
+
+  @Test
   public void testResetAllMetrics() {
-    sCounter.inc();
-    assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
+    String counterName = "Worker.Counter";
+    MetricsSystem.counter(counterName).inc();
+    assertEquals(1, MetricsSystem.counter(counterName).getCount());
+
+    String meterName = "Worker.Meter";
+    MetricsSystem.meter(meterName).mark(1000);
+    assertEquals(1000, MetricsSystem.meter(meterName).getCount());
+
+    String timerName = "Worker.Timer";
+    MetricsSystem.timer(timerName).time().close();
+    assertEquals(1, MetricsSystem.timer(timerName).getCount());
+
     MetricsSystem.resetAllMetrics();
+    assertEquals(0, MetricsSystem.counter(counterName).getCount());
+    assertEquals(0, MetricsSystem.meter(meterName).getCount());
     assertEquals(0, MetricsSystem.reportWorkerMetrics().size());
-    sCounter.inc();
-    assertEquals(1.0, MetricsSystem.reportWorkerMetrics().get(0).getValue(), 0);
+    assertEquals(0, MetricsSystem.timer(timerName).getCount());
   }
 }

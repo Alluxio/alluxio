@@ -78,6 +78,7 @@ public class MetricsStore {
     try (LockResource r = new LockResource(mLock.readLock())) {
       putReportedMetrics(InstanceType.WORKER, metrics);
     }
+    LOG.debug("Put {} metrics of worker {}", metrics.size(), hostname);
   }
 
   /**
@@ -93,6 +94,7 @@ public class MetricsStore {
     try (LockResource r = new LockResource(mLock.readLock())) {
       putReportedMetrics(InstanceType.CLIENT, metrics);
     }
+    LOG.debug("Put {} metrics of client {}", metrics.size(), hostname);
   }
 
   /**
@@ -203,6 +205,7 @@ public class MetricsStore {
    * the metrics inside metrics sets.
    */
   public void clear() {
+    long start = System.currentTimeMillis();
     try (LockResource r = new LockResource(mLock.writeLock())) {
       for (Counter counter : mClusterCounters.values()) {
         counter.dec(counter.getCount());
@@ -210,6 +213,8 @@ public class MetricsStore {
       mLastClearTime = System.currentTimeMillis();
       MetricsSystem.resetAllMetrics();
     }
+    LOG.info("Clearing the metrics store and metrics system in {} ms",
+        System.currentTimeMillis() - start);
   }
 
   /**

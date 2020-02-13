@@ -173,6 +173,7 @@ import alluxio.wire.WorkerInfo;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -4354,21 +4355,22 @@ public final class DefaultFileSystemMaster extends CoreMaster
     public void heartbeat() throws InterruptedException {
       // TODO(calvin): Provide a better way to keep track of metrics collected as time series
       MetricRegistry registry = MetricsSystem.METRIC_REGISTRY;
+      SortedMap<String, Gauge> gauges = registry.getGauges();
 
       // % Alluxio space used
-      Long masterCapacityTotal = (Long) registry.getGauges()
+      Long masterCapacityTotal = (Long) gauges
           .get(MetricKey.CLUSTER_CAPACITY_TOTAL.getName()).getValue();
-      Long masterCapacityUsed = (Long) registry.getGauges()
+      Long masterCapacityUsed = (Long) gauges
           .get(MetricKey.CLUSTER_CAPACITY_USED.getName()).getValue();
       int percentAlluxioSpaceUsed =
           (masterCapacityTotal > 0) ? (int) (100L * masterCapacityUsed / masterCapacityTotal) : 0;
       mTimeSeriesStore.record("% Alluxio Space Used", percentAlluxioSpaceUsed);
 
       // % UFS space used
-      Long masterUnderfsCapacityTotal = (Long) registry.getGauges()
+      Long masterUnderfsCapacityTotal = (Long) gauges
           .get(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName()).getValue();
       Long masterUnderfsCapacityUsed =
-          (Long) registry.getGauges()
+          (Long) gauges
               .get(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName()).getValue();
       int percentUfsSpaceUsed =
           (masterUnderfsCapacityTotal > 0) ? (int) (100L * masterUnderfsCapacityUsed

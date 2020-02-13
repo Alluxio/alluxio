@@ -29,6 +29,7 @@ import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
@@ -41,6 +42,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 /**
@@ -57,6 +59,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   private final UnderFileSystem mUnderFileSystem;
   private final UnderFileSystemConfiguration mConf;
   private final String mPath;
+  private final Supplier<String> mEscapedPath =
+      CommonUtils.memoize(this::escapePath);
 
   /**
    * Creates a new {@link UnderFileSystemWithLogging} which forwards all calls to the provided
@@ -974,8 +978,12 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       // fall through
     }
     return Metric.getMetricNameWithTags(metricName, MetricInfo.TAG_UFS,
-        MetricsSystem.escape(new AlluxioURI(mPath)), MetricInfo.TAG_UFS_TYPE,
+        mEscapedPath.get(), MetricInfo.TAG_UFS_TYPE,
         mUnderFileSystem.getUnderFSType());
+  }
+
+  private String escapePath() {
+    return MetricsSystem.escape(new AlluxioURI(mPath));
   }
 
   // TODO(calvin): This should not be in this class
