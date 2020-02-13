@@ -16,6 +16,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private SyncStatus() {
+    tablesIgnored_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     tablesUnchanged_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     tablesUpdated_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     tablesRemoved_ = com.google.protobuf.LazyStringArrayList.EMPTY;
@@ -53,43 +54,52 @@ private static final long serialVersionUID = 0L;
             done = true;
             break;
           case 10: {
-            com.google.protobuf.ByteString bs = input.readBytes();
             if (!((mutable_bitField0_ & 0x00000001) != 0)) {
-              tablesUnchanged_ = new com.google.protobuf.LazyStringArrayList();
-              mutable_bitField0_ |= 0x00000001;
-            }
-            tablesUnchanged_.add(bs);
-            break;
-          }
-          case 18: {
-            com.google.protobuf.ByteString bs = input.readBytes();
-            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
-              tablesUpdated_ = new com.google.protobuf.LazyStringArrayList();
-              mutable_bitField0_ |= 0x00000002;
-            }
-            tablesUpdated_.add(bs);
-            break;
-          }
-          case 26: {
-            com.google.protobuf.ByteString bs = input.readBytes();
-            if (!((mutable_bitField0_ & 0x00000004) != 0)) {
-              tablesRemoved_ = new com.google.protobuf.LazyStringArrayList();
-              mutable_bitField0_ |= 0x00000004;
-            }
-            tablesRemoved_.add(bs);
-            break;
-          }
-          case 34: {
-            if (!((mutable_bitField0_ & 0x00000008) != 0)) {
               tablesErrors_ = com.google.protobuf.MapField.newMapField(
                   TablesErrorsDefaultEntryHolder.defaultEntry);
-              mutable_bitField0_ |= 0x00000008;
+              mutable_bitField0_ |= 0x00000001;
             }
             com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
             tablesErrors__ = input.readMessage(
                 TablesErrorsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
             tablesErrors_.getMutableMap().put(
                 tablesErrors__.getKey(), tablesErrors__.getValue());
+            break;
+          }
+          case 18: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
+              tablesIgnored_ = new com.google.protobuf.LazyStringArrayList();
+              mutable_bitField0_ |= 0x00000002;
+            }
+            tablesIgnored_.add(bs);
+            break;
+          }
+          case 26: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            if (!((mutable_bitField0_ & 0x00000004) != 0)) {
+              tablesUnchanged_ = new com.google.protobuf.LazyStringArrayList();
+              mutable_bitField0_ |= 0x00000004;
+            }
+            tablesUnchanged_.add(bs);
+            break;
+          }
+          case 34: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            if (!((mutable_bitField0_ & 0x00000008) != 0)) {
+              tablesUpdated_ = new com.google.protobuf.LazyStringArrayList();
+              mutable_bitField0_ |= 0x00000008;
+            }
+            tablesUpdated_.add(bs);
+            break;
+          }
+          case 42: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            if (!((mutable_bitField0_ & 0x00000010) != 0)) {
+              tablesRemoved_ = new com.google.protobuf.LazyStringArrayList();
+              mutable_bitField0_ |= 0x00000010;
+            }
+            tablesRemoved_.add(bs);
             break;
           }
           default: {
@@ -107,13 +117,16 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000001) != 0)) {
-        tablesUnchanged_ = tablesUnchanged_.getUnmodifiableView();
-      }
       if (((mutable_bitField0_ & 0x00000002) != 0)) {
-        tablesUpdated_ = tablesUpdated_.getUnmodifiableView();
+        tablesIgnored_ = tablesIgnored_.getUnmodifiableView();
       }
       if (((mutable_bitField0_ & 0x00000004) != 0)) {
+        tablesUnchanged_ = tablesUnchanged_.getUnmodifiableView();
+      }
+      if (((mutable_bitField0_ & 0x00000008) != 0)) {
+        tablesUpdated_ = tablesUpdated_.getUnmodifiableView();
+      }
+      if (((mutable_bitField0_ & 0x00000010) != 0)) {
         tablesRemoved_ = tablesRemoved_.getUnmodifiableView();
       }
       this.unknownFields = unknownFields.build();
@@ -130,7 +143,7 @@ private static final long serialVersionUID = 0L;
   protected com.google.protobuf.MapField internalGetMapField(
       int number) {
     switch (number) {
-      case 4:
+      case 1:
         return internalGetTablesErrors();
       default:
         throw new RuntimeException(
@@ -145,112 +158,7 @@ private static final long serialVersionUID = 0L;
             alluxio.grpc.table.SyncStatus.class, alluxio.grpc.table.SyncStatus.Builder.class);
   }
 
-  public static final int TABLES_UNCHANGED_FIELD_NUMBER = 1;
-  private com.google.protobuf.LazyStringList tablesUnchanged_;
-  /**
-   * <code>repeated string tables_unchanged = 1;</code>
-   * @return A list containing the tablesUnchanged.
-   */
-  public com.google.protobuf.ProtocolStringList
-      getTablesUnchangedList() {
-    return tablesUnchanged_;
-  }
-  /**
-   * <code>repeated string tables_unchanged = 1;</code>
-   * @return The count of tablesUnchanged.
-   */
-  public int getTablesUnchangedCount() {
-    return tablesUnchanged_.size();
-  }
-  /**
-   * <code>repeated string tables_unchanged = 1;</code>
-   * @param index The index of the element to return.
-   * @return The tablesUnchanged at the given index.
-   */
-  public java.lang.String getTablesUnchanged(int index) {
-    return tablesUnchanged_.get(index);
-  }
-  /**
-   * <code>repeated string tables_unchanged = 1;</code>
-   * @param index The index of the value to return.
-   * @return The bytes of the tablesUnchanged at the given index.
-   */
-  public com.google.protobuf.ByteString
-      getTablesUnchangedBytes(int index) {
-    return tablesUnchanged_.getByteString(index);
-  }
-
-  public static final int TABLES_UPDATED_FIELD_NUMBER = 2;
-  private com.google.protobuf.LazyStringList tablesUpdated_;
-  /**
-   * <code>repeated string tables_updated = 2;</code>
-   * @return A list containing the tablesUpdated.
-   */
-  public com.google.protobuf.ProtocolStringList
-      getTablesUpdatedList() {
-    return tablesUpdated_;
-  }
-  /**
-   * <code>repeated string tables_updated = 2;</code>
-   * @return The count of tablesUpdated.
-   */
-  public int getTablesUpdatedCount() {
-    return tablesUpdated_.size();
-  }
-  /**
-   * <code>repeated string tables_updated = 2;</code>
-   * @param index The index of the element to return.
-   * @return The tablesUpdated at the given index.
-   */
-  public java.lang.String getTablesUpdated(int index) {
-    return tablesUpdated_.get(index);
-  }
-  /**
-   * <code>repeated string tables_updated = 2;</code>
-   * @param index The index of the value to return.
-   * @return The bytes of the tablesUpdated at the given index.
-   */
-  public com.google.protobuf.ByteString
-      getTablesUpdatedBytes(int index) {
-    return tablesUpdated_.getByteString(index);
-  }
-
-  public static final int TABLES_REMOVED_FIELD_NUMBER = 3;
-  private com.google.protobuf.LazyStringList tablesRemoved_;
-  /**
-   * <code>repeated string tables_removed = 3;</code>
-   * @return A list containing the tablesRemoved.
-   */
-  public com.google.protobuf.ProtocolStringList
-      getTablesRemovedList() {
-    return tablesRemoved_;
-  }
-  /**
-   * <code>repeated string tables_removed = 3;</code>
-   * @return The count of tablesRemoved.
-   */
-  public int getTablesRemovedCount() {
-    return tablesRemoved_.size();
-  }
-  /**
-   * <code>repeated string tables_removed = 3;</code>
-   * @param index The index of the element to return.
-   * @return The tablesRemoved at the given index.
-   */
-  public java.lang.String getTablesRemoved(int index) {
-    return tablesRemoved_.get(index);
-  }
-  /**
-   * <code>repeated string tables_removed = 3;</code>
-   * @param index The index of the value to return.
-   * @return The bytes of the tablesRemoved at the given index.
-   */
-  public com.google.protobuf.ByteString
-      getTablesRemovedBytes(int index) {
-    return tablesRemoved_.getByteString(index);
-  }
-
-  public static final int TABLES_ERRORS_FIELD_NUMBER = 4;
+  public static final int TABLES_ERRORS_FIELD_NUMBER = 1;
   private static final class TablesErrorsDefaultEntryHolder {
     static final com.google.protobuf.MapEntry<
         java.lang.String, java.lang.String> defaultEntry =
@@ -277,7 +185,7 @@ private static final long serialVersionUID = 0L;
     return internalGetTablesErrors().getMap().size();
   }
   /**
-   * <code>map&lt;string, string&gt; tables_errors = 4;</code>
+   * <code>map&lt;string, string&gt; tables_errors = 1;</code>
    */
 
   public boolean containsTablesErrors(
@@ -293,14 +201,14 @@ private static final long serialVersionUID = 0L;
     return getTablesErrorsMap();
   }
   /**
-   * <code>map&lt;string, string&gt; tables_errors = 4;</code>
+   * <code>map&lt;string, string&gt; tables_errors = 1;</code>
    */
 
   public java.util.Map<java.lang.String, java.lang.String> getTablesErrorsMap() {
     return internalGetTablesErrors().getMap();
   }
   /**
-   * <code>map&lt;string, string&gt; tables_errors = 4;</code>
+   * <code>map&lt;string, string&gt; tables_errors = 1;</code>
    */
 
   public java.lang.String getTablesErrorsOrDefault(
@@ -312,7 +220,7 @@ private static final long serialVersionUID = 0L;
     return map.containsKey(key) ? map.get(key) : defaultValue;
   }
   /**
-   * <code>map&lt;string, string&gt; tables_errors = 4;</code>
+   * <code>map&lt;string, string&gt; tables_errors = 1;</code>
    */
 
   public java.lang.String getTablesErrorsOrThrow(
@@ -324,6 +232,146 @@ private static final long serialVersionUID = 0L;
       throw new java.lang.IllegalArgumentException();
     }
     return map.get(key);
+  }
+
+  public static final int TABLES_IGNORED_FIELD_NUMBER = 2;
+  private com.google.protobuf.LazyStringList tablesIgnored_;
+  /**
+   * <code>repeated string tables_ignored = 2;</code>
+   * @return A list containing the tablesIgnored.
+   */
+  public com.google.protobuf.ProtocolStringList
+      getTablesIgnoredList() {
+    return tablesIgnored_;
+  }
+  /**
+   * <code>repeated string tables_ignored = 2;</code>
+   * @return The count of tablesIgnored.
+   */
+  public int getTablesIgnoredCount() {
+    return tablesIgnored_.size();
+  }
+  /**
+   * <code>repeated string tables_ignored = 2;</code>
+   * @param index The index of the element to return.
+   * @return The tablesIgnored at the given index.
+   */
+  public java.lang.String getTablesIgnored(int index) {
+    return tablesIgnored_.get(index);
+  }
+  /**
+   * <code>repeated string tables_ignored = 2;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the tablesIgnored at the given index.
+   */
+  public com.google.protobuf.ByteString
+      getTablesIgnoredBytes(int index) {
+    return tablesIgnored_.getByteString(index);
+  }
+
+  public static final int TABLES_UNCHANGED_FIELD_NUMBER = 3;
+  private com.google.protobuf.LazyStringList tablesUnchanged_;
+  /**
+   * <code>repeated string tables_unchanged = 3;</code>
+   * @return A list containing the tablesUnchanged.
+   */
+  public com.google.protobuf.ProtocolStringList
+      getTablesUnchangedList() {
+    return tablesUnchanged_;
+  }
+  /**
+   * <code>repeated string tables_unchanged = 3;</code>
+   * @return The count of tablesUnchanged.
+   */
+  public int getTablesUnchangedCount() {
+    return tablesUnchanged_.size();
+  }
+  /**
+   * <code>repeated string tables_unchanged = 3;</code>
+   * @param index The index of the element to return.
+   * @return The tablesUnchanged at the given index.
+   */
+  public java.lang.String getTablesUnchanged(int index) {
+    return tablesUnchanged_.get(index);
+  }
+  /**
+   * <code>repeated string tables_unchanged = 3;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the tablesUnchanged at the given index.
+   */
+  public com.google.protobuf.ByteString
+      getTablesUnchangedBytes(int index) {
+    return tablesUnchanged_.getByteString(index);
+  }
+
+  public static final int TABLES_UPDATED_FIELD_NUMBER = 4;
+  private com.google.protobuf.LazyStringList tablesUpdated_;
+  /**
+   * <code>repeated string tables_updated = 4;</code>
+   * @return A list containing the tablesUpdated.
+   */
+  public com.google.protobuf.ProtocolStringList
+      getTablesUpdatedList() {
+    return tablesUpdated_;
+  }
+  /**
+   * <code>repeated string tables_updated = 4;</code>
+   * @return The count of tablesUpdated.
+   */
+  public int getTablesUpdatedCount() {
+    return tablesUpdated_.size();
+  }
+  /**
+   * <code>repeated string tables_updated = 4;</code>
+   * @param index The index of the element to return.
+   * @return The tablesUpdated at the given index.
+   */
+  public java.lang.String getTablesUpdated(int index) {
+    return tablesUpdated_.get(index);
+  }
+  /**
+   * <code>repeated string tables_updated = 4;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the tablesUpdated at the given index.
+   */
+  public com.google.protobuf.ByteString
+      getTablesUpdatedBytes(int index) {
+    return tablesUpdated_.getByteString(index);
+  }
+
+  public static final int TABLES_REMOVED_FIELD_NUMBER = 5;
+  private com.google.protobuf.LazyStringList tablesRemoved_;
+  /**
+   * <code>repeated string tables_removed = 5;</code>
+   * @return A list containing the tablesRemoved.
+   */
+  public com.google.protobuf.ProtocolStringList
+      getTablesRemovedList() {
+    return tablesRemoved_;
+  }
+  /**
+   * <code>repeated string tables_removed = 5;</code>
+   * @return The count of tablesRemoved.
+   */
+  public int getTablesRemovedCount() {
+    return tablesRemoved_.size();
+  }
+  /**
+   * <code>repeated string tables_removed = 5;</code>
+   * @param index The index of the element to return.
+   * @return The tablesRemoved at the given index.
+   */
+  public java.lang.String getTablesRemoved(int index) {
+    return tablesRemoved_.get(index);
+  }
+  /**
+   * <code>repeated string tables_removed = 5;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the tablesRemoved at the given index.
+   */
+  public com.google.protobuf.ByteString
+      getTablesRemovedBytes(int index) {
+    return tablesRemoved_.getByteString(index);
   }
 
   private byte memoizedIsInitialized = -1;
@@ -340,21 +388,24 @@ private static final long serialVersionUID = 0L;
   @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    for (int i = 0; i < tablesUnchanged_.size(); i++) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 1, tablesUnchanged_.getRaw(i));
-    }
-    for (int i = 0; i < tablesUpdated_.size(); i++) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, tablesUpdated_.getRaw(i));
-    }
-    for (int i = 0; i < tablesRemoved_.size(); i++) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, tablesRemoved_.getRaw(i));
-    }
     com.google.protobuf.GeneratedMessageV3
       .serializeStringMapTo(
         output,
         internalGetTablesErrors(),
         TablesErrorsDefaultEntryHolder.defaultEntry,
-        4);
+        1);
+    for (int i = 0; i < tablesIgnored_.size(); i++) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, tablesIgnored_.getRaw(i));
+    }
+    for (int i = 0; i < tablesUnchanged_.size(); i++) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, tablesUnchanged_.getRaw(i));
+    }
+    for (int i = 0; i < tablesUpdated_.size(); i++) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, tablesUpdated_.getRaw(i));
+    }
+    for (int i = 0; i < tablesRemoved_.size(); i++) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 5, tablesRemoved_.getRaw(i));
+    }
     unknownFields.writeTo(output);
   }
 
@@ -364,6 +415,24 @@ private static final long serialVersionUID = 0L;
     if (size != -1) return size;
 
     size = 0;
+    for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+         : internalGetTablesErrors().getMap().entrySet()) {
+      com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+      tablesErrors__ = TablesErrorsDefaultEntryHolder.defaultEntry.newBuilderForType()
+          .setKey(entry.getKey())
+          .setValue(entry.getValue())
+          .build();
+      size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, tablesErrors__);
+    }
+    {
+      int dataSize = 0;
+      for (int i = 0; i < tablesIgnored_.size(); i++) {
+        dataSize += computeStringSizeNoTag(tablesIgnored_.getRaw(i));
+      }
+      size += dataSize;
+      size += 1 * getTablesIgnoredList().size();
+    }
     {
       int dataSize = 0;
       for (int i = 0; i < tablesUnchanged_.size(); i++) {
@@ -388,16 +457,6 @@ private static final long serialVersionUID = 0L;
       size += dataSize;
       size += 1 * getTablesRemovedList().size();
     }
-    for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
-         : internalGetTablesErrors().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-      tablesErrors__ = TablesErrorsDefaultEntryHolder.defaultEntry.newBuilderForType()
-          .setKey(entry.getKey())
-          .setValue(entry.getValue())
-          .build();
-      size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, tablesErrors__);
-    }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
     return size;
@@ -413,14 +472,16 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.table.SyncStatus other = (alluxio.grpc.table.SyncStatus) obj;
 
+    if (!internalGetTablesErrors().equals(
+        other.internalGetTablesErrors())) return false;
+    if (!getTablesIgnoredList()
+        .equals(other.getTablesIgnoredList())) return false;
     if (!getTablesUnchangedList()
         .equals(other.getTablesUnchangedList())) return false;
     if (!getTablesUpdatedList()
         .equals(other.getTablesUpdatedList())) return false;
     if (!getTablesRemovedList()
         .equals(other.getTablesRemovedList())) return false;
-    if (!internalGetTablesErrors().equals(
-        other.internalGetTablesErrors())) return false;
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -432,6 +493,14 @@ private static final long serialVersionUID = 0L;
     }
     int hash = 41;
     hash = (19 * hash) + getDescriptor().hashCode();
+    if (!internalGetTablesErrors().getMap().isEmpty()) {
+      hash = (37 * hash) + TABLES_ERRORS_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetTablesErrors().hashCode();
+    }
+    if (getTablesIgnoredCount() > 0) {
+      hash = (37 * hash) + TABLES_IGNORED_FIELD_NUMBER;
+      hash = (53 * hash) + getTablesIgnoredList().hashCode();
+    }
     if (getTablesUnchangedCount() > 0) {
       hash = (37 * hash) + TABLES_UNCHANGED_FIELD_NUMBER;
       hash = (53 * hash) + getTablesUnchangedList().hashCode();
@@ -443,10 +512,6 @@ private static final long serialVersionUID = 0L;
     if (getTablesRemovedCount() > 0) {
       hash = (37 * hash) + TABLES_REMOVED_FIELD_NUMBER;
       hash = (53 * hash) + getTablesRemovedList().hashCode();
-    }
-    if (!internalGetTablesErrors().getMap().isEmpty()) {
-      hash = (37 * hash) + TABLES_ERRORS_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetTablesErrors().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -559,7 +624,7 @@ private static final long serialVersionUID = 0L;
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
-        case 4:
+        case 1:
           return internalGetTablesErrors();
         default:
           throw new RuntimeException(
@@ -570,7 +635,7 @@ private static final long serialVersionUID = 0L;
     protected com.google.protobuf.MapField internalGetMutableMapField(
         int number) {
       switch (number) {
-        case 4:
+        case 1:
           return internalGetMutableTablesErrors();
         default:
           throw new RuntimeException(
@@ -603,13 +668,15 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public Builder clear() {
       super.clear();
-      tablesUnchanged_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      bitField0_ = (bitField0_ & ~0x00000001);
-      tablesUpdated_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      bitField0_ = (bitField0_ & ~0x00000002);
-      tablesRemoved_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      bitField0_ = (bitField0_ & ~0x00000004);
       internalGetMutableTablesErrors().clear();
+      tablesIgnored_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000002);
+      tablesUnchanged_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000004);
+      tablesUpdated_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000008);
+      tablesRemoved_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000010);
       return this;
     }
 
@@ -637,23 +704,28 @@ private static final long serialVersionUID = 0L;
     public alluxio.grpc.table.SyncStatus buildPartial() {
       alluxio.grpc.table.SyncStatus result = new alluxio.grpc.table.SyncStatus(this);
       int from_bitField0_ = bitField0_;
-      if (((bitField0_ & 0x00000001) != 0)) {
-        tablesUnchanged_ = tablesUnchanged_.getUnmodifiableView();
-        bitField0_ = (bitField0_ & ~0x00000001);
-      }
-      result.tablesUnchanged_ = tablesUnchanged_;
-      if (((bitField0_ & 0x00000002) != 0)) {
-        tablesUpdated_ = tablesUpdated_.getUnmodifiableView();
-        bitField0_ = (bitField0_ & ~0x00000002);
-      }
-      result.tablesUpdated_ = tablesUpdated_;
-      if (((bitField0_ & 0x00000004) != 0)) {
-        tablesRemoved_ = tablesRemoved_.getUnmodifiableView();
-        bitField0_ = (bitField0_ & ~0x00000004);
-      }
-      result.tablesRemoved_ = tablesRemoved_;
       result.tablesErrors_ = internalGetTablesErrors();
       result.tablesErrors_.makeImmutable();
+      if (((bitField0_ & 0x00000002) != 0)) {
+        tablesIgnored_ = tablesIgnored_.getUnmodifiableView();
+        bitField0_ = (bitField0_ & ~0x00000002);
+      }
+      result.tablesIgnored_ = tablesIgnored_;
+      if (((bitField0_ & 0x00000004) != 0)) {
+        tablesUnchanged_ = tablesUnchanged_.getUnmodifiableView();
+        bitField0_ = (bitField0_ & ~0x00000004);
+      }
+      result.tablesUnchanged_ = tablesUnchanged_;
+      if (((bitField0_ & 0x00000008) != 0)) {
+        tablesUpdated_ = tablesUpdated_.getUnmodifiableView();
+        bitField0_ = (bitField0_ & ~0x00000008);
+      }
+      result.tablesUpdated_ = tablesUpdated_;
+      if (((bitField0_ & 0x00000010) != 0)) {
+        tablesRemoved_ = tablesRemoved_.getUnmodifiableView();
+        bitField0_ = (bitField0_ & ~0x00000010);
+      }
+      result.tablesRemoved_ = tablesRemoved_;
       onBuilt();
       return result;
     }
@@ -702,10 +774,22 @@ private static final long serialVersionUID = 0L;
 
     public Builder mergeFrom(alluxio.grpc.table.SyncStatus other) {
       if (other == alluxio.grpc.table.SyncStatus.getDefaultInstance()) return this;
+      internalGetMutableTablesErrors().mergeFrom(
+          other.internalGetTablesErrors());
+      if (!other.tablesIgnored_.isEmpty()) {
+        if (tablesIgnored_.isEmpty()) {
+          tablesIgnored_ = other.tablesIgnored_;
+          bitField0_ = (bitField0_ & ~0x00000002);
+        } else {
+          ensureTablesIgnoredIsMutable();
+          tablesIgnored_.addAll(other.tablesIgnored_);
+        }
+        onChanged();
+      }
       if (!other.tablesUnchanged_.isEmpty()) {
         if (tablesUnchanged_.isEmpty()) {
           tablesUnchanged_ = other.tablesUnchanged_;
-          bitField0_ = (bitField0_ & ~0x00000001);
+          bitField0_ = (bitField0_ & ~0x00000004);
         } else {
           ensureTablesUnchangedIsMutable();
           tablesUnchanged_.addAll(other.tablesUnchanged_);
@@ -715,7 +799,7 @@ private static final long serialVersionUID = 0L;
       if (!other.tablesUpdated_.isEmpty()) {
         if (tablesUpdated_.isEmpty()) {
           tablesUpdated_ = other.tablesUpdated_;
-          bitField0_ = (bitField0_ & ~0x00000002);
+          bitField0_ = (bitField0_ & ~0x00000008);
         } else {
           ensureTablesUpdatedIsMutable();
           tablesUpdated_.addAll(other.tablesUpdated_);
@@ -725,15 +809,13 @@ private static final long serialVersionUID = 0L;
       if (!other.tablesRemoved_.isEmpty()) {
         if (tablesRemoved_.isEmpty()) {
           tablesRemoved_ = other.tablesRemoved_;
-          bitField0_ = (bitField0_ & ~0x00000004);
+          bitField0_ = (bitField0_ & ~0x00000010);
         } else {
           ensureTablesRemovedIsMutable();
           tablesRemoved_.addAll(other.tablesRemoved_);
         }
         onChanged();
       }
-      internalGetMutableTablesErrors().mergeFrom(
-          other.internalGetTablesErrors());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -764,333 +846,6 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private com.google.protobuf.LazyStringList tablesUnchanged_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-    private void ensureTablesUnchangedIsMutable() {
-      if (!((bitField0_ & 0x00000001) != 0)) {
-        tablesUnchanged_ = new com.google.protobuf.LazyStringArrayList(tablesUnchanged_);
-        bitField0_ |= 0x00000001;
-       }
-    }
-    /**
-     * <code>repeated string tables_unchanged = 1;</code>
-     * @return A list containing the tablesUnchanged.
-     */
-    public com.google.protobuf.ProtocolStringList
-        getTablesUnchangedList() {
-      return tablesUnchanged_.getUnmodifiableView();
-    }
-    /**
-     * <code>repeated string tables_unchanged = 1;</code>
-     * @return The count of tablesUnchanged.
-     */
-    public int getTablesUnchangedCount() {
-      return tablesUnchanged_.size();
-    }
-    /**
-     * <code>repeated string tables_unchanged = 1;</code>
-     * @param index The index of the element to return.
-     * @return The tablesUnchanged at the given index.
-     */
-    public java.lang.String getTablesUnchanged(int index) {
-      return tablesUnchanged_.get(index);
-    }
-    /**
-     * <code>repeated string tables_unchanged = 1;</code>
-     * @param index The index of the value to return.
-     * @return The bytes of the tablesUnchanged at the given index.
-     */
-    public com.google.protobuf.ByteString
-        getTablesUnchangedBytes(int index) {
-      return tablesUnchanged_.getByteString(index);
-    }
-    /**
-     * <code>repeated string tables_unchanged = 1;</code>
-     * @param index The index to set the value at.
-     * @param value The tablesUnchanged to set.
-     * @return This builder for chaining.
-     */
-    public Builder setTablesUnchanged(
-        int index, java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureTablesUnchangedIsMutable();
-      tablesUnchanged_.set(index, value);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string tables_unchanged = 1;</code>
-     * @param value The tablesUnchanged to add.
-     * @return This builder for chaining.
-     */
-    public Builder addTablesUnchanged(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureTablesUnchangedIsMutable();
-      tablesUnchanged_.add(value);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string tables_unchanged = 1;</code>
-     * @param values The tablesUnchanged to add.
-     * @return This builder for chaining.
-     */
-    public Builder addAllTablesUnchanged(
-        java.lang.Iterable<java.lang.String> values) {
-      ensureTablesUnchangedIsMutable();
-      com.google.protobuf.AbstractMessageLite.Builder.addAll(
-          values, tablesUnchanged_);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string tables_unchanged = 1;</code>
-     * @return This builder for chaining.
-     */
-    public Builder clearTablesUnchanged() {
-      tablesUnchanged_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      bitField0_ = (bitField0_ & ~0x00000001);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string tables_unchanged = 1;</code>
-     * @param value The bytes of the tablesUnchanged to add.
-     * @return This builder for chaining.
-     */
-    public Builder addTablesUnchangedBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureTablesUnchangedIsMutable();
-      tablesUnchanged_.add(value);
-      onChanged();
-      return this;
-    }
-
-    private com.google.protobuf.LazyStringList tablesUpdated_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-    private void ensureTablesUpdatedIsMutable() {
-      if (!((bitField0_ & 0x00000002) != 0)) {
-        tablesUpdated_ = new com.google.protobuf.LazyStringArrayList(tablesUpdated_);
-        bitField0_ |= 0x00000002;
-       }
-    }
-    /**
-     * <code>repeated string tables_updated = 2;</code>
-     * @return A list containing the tablesUpdated.
-     */
-    public com.google.protobuf.ProtocolStringList
-        getTablesUpdatedList() {
-      return tablesUpdated_.getUnmodifiableView();
-    }
-    /**
-     * <code>repeated string tables_updated = 2;</code>
-     * @return The count of tablesUpdated.
-     */
-    public int getTablesUpdatedCount() {
-      return tablesUpdated_.size();
-    }
-    /**
-     * <code>repeated string tables_updated = 2;</code>
-     * @param index The index of the element to return.
-     * @return The tablesUpdated at the given index.
-     */
-    public java.lang.String getTablesUpdated(int index) {
-      return tablesUpdated_.get(index);
-    }
-    /**
-     * <code>repeated string tables_updated = 2;</code>
-     * @param index The index of the value to return.
-     * @return The bytes of the tablesUpdated at the given index.
-     */
-    public com.google.protobuf.ByteString
-        getTablesUpdatedBytes(int index) {
-      return tablesUpdated_.getByteString(index);
-    }
-    /**
-     * <code>repeated string tables_updated = 2;</code>
-     * @param index The index to set the value at.
-     * @param value The tablesUpdated to set.
-     * @return This builder for chaining.
-     */
-    public Builder setTablesUpdated(
-        int index, java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureTablesUpdatedIsMutable();
-      tablesUpdated_.set(index, value);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string tables_updated = 2;</code>
-     * @param value The tablesUpdated to add.
-     * @return This builder for chaining.
-     */
-    public Builder addTablesUpdated(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureTablesUpdatedIsMutable();
-      tablesUpdated_.add(value);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string tables_updated = 2;</code>
-     * @param values The tablesUpdated to add.
-     * @return This builder for chaining.
-     */
-    public Builder addAllTablesUpdated(
-        java.lang.Iterable<java.lang.String> values) {
-      ensureTablesUpdatedIsMutable();
-      com.google.protobuf.AbstractMessageLite.Builder.addAll(
-          values, tablesUpdated_);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string tables_updated = 2;</code>
-     * @return This builder for chaining.
-     */
-    public Builder clearTablesUpdated() {
-      tablesUpdated_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      bitField0_ = (bitField0_ & ~0x00000002);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string tables_updated = 2;</code>
-     * @param value The bytes of the tablesUpdated to add.
-     * @return This builder for chaining.
-     */
-    public Builder addTablesUpdatedBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureTablesUpdatedIsMutable();
-      tablesUpdated_.add(value);
-      onChanged();
-      return this;
-    }
-
-    private com.google.protobuf.LazyStringList tablesRemoved_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-    private void ensureTablesRemovedIsMutable() {
-      if (!((bitField0_ & 0x00000004) != 0)) {
-        tablesRemoved_ = new com.google.protobuf.LazyStringArrayList(tablesRemoved_);
-        bitField0_ |= 0x00000004;
-       }
-    }
-    /**
-     * <code>repeated string tables_removed = 3;</code>
-     * @return A list containing the tablesRemoved.
-     */
-    public com.google.protobuf.ProtocolStringList
-        getTablesRemovedList() {
-      return tablesRemoved_.getUnmodifiableView();
-    }
-    /**
-     * <code>repeated string tables_removed = 3;</code>
-     * @return The count of tablesRemoved.
-     */
-    public int getTablesRemovedCount() {
-      return tablesRemoved_.size();
-    }
-    /**
-     * <code>repeated string tables_removed = 3;</code>
-     * @param index The index of the element to return.
-     * @return The tablesRemoved at the given index.
-     */
-    public java.lang.String getTablesRemoved(int index) {
-      return tablesRemoved_.get(index);
-    }
-    /**
-     * <code>repeated string tables_removed = 3;</code>
-     * @param index The index of the value to return.
-     * @return The bytes of the tablesRemoved at the given index.
-     */
-    public com.google.protobuf.ByteString
-        getTablesRemovedBytes(int index) {
-      return tablesRemoved_.getByteString(index);
-    }
-    /**
-     * <code>repeated string tables_removed = 3;</code>
-     * @param index The index to set the value at.
-     * @param value The tablesRemoved to set.
-     * @return This builder for chaining.
-     */
-    public Builder setTablesRemoved(
-        int index, java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureTablesRemovedIsMutable();
-      tablesRemoved_.set(index, value);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string tables_removed = 3;</code>
-     * @param value The tablesRemoved to add.
-     * @return This builder for chaining.
-     */
-    public Builder addTablesRemoved(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureTablesRemovedIsMutable();
-      tablesRemoved_.add(value);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string tables_removed = 3;</code>
-     * @param values The tablesRemoved to add.
-     * @return This builder for chaining.
-     */
-    public Builder addAllTablesRemoved(
-        java.lang.Iterable<java.lang.String> values) {
-      ensureTablesRemovedIsMutable();
-      com.google.protobuf.AbstractMessageLite.Builder.addAll(
-          values, tablesRemoved_);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string tables_removed = 3;</code>
-     * @return This builder for chaining.
-     */
-    public Builder clearTablesRemoved() {
-      tablesRemoved_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      bitField0_ = (bitField0_ & ~0x00000004);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string tables_removed = 3;</code>
-     * @param value The bytes of the tablesRemoved to add.
-     * @return This builder for chaining.
-     */
-    public Builder addTablesRemovedBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureTablesRemovedIsMutable();
-      tablesRemoved_.add(value);
-      onChanged();
-      return this;
-    }
-
     private com.google.protobuf.MapField<
         java.lang.String, java.lang.String> tablesErrors_;
     private com.google.protobuf.MapField<java.lang.String, java.lang.String>
@@ -1118,7 +873,7 @@ private static final long serialVersionUID = 0L;
       return internalGetTablesErrors().getMap().size();
     }
     /**
-     * <code>map&lt;string, string&gt; tables_errors = 4;</code>
+     * <code>map&lt;string, string&gt; tables_errors = 1;</code>
      */
 
     public boolean containsTablesErrors(
@@ -1134,14 +889,14 @@ private static final long serialVersionUID = 0L;
       return getTablesErrorsMap();
     }
     /**
-     * <code>map&lt;string, string&gt; tables_errors = 4;</code>
+     * <code>map&lt;string, string&gt; tables_errors = 1;</code>
      */
 
     public java.util.Map<java.lang.String, java.lang.String> getTablesErrorsMap() {
       return internalGetTablesErrors().getMap();
     }
     /**
-     * <code>map&lt;string, string&gt; tables_errors = 4;</code>
+     * <code>map&lt;string, string&gt; tables_errors = 1;</code>
      */
 
     public java.lang.String getTablesErrorsOrDefault(
@@ -1153,7 +908,7 @@ private static final long serialVersionUID = 0L;
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, string&gt; tables_errors = 4;</code>
+     * <code>map&lt;string, string&gt; tables_errors = 1;</code>
      */
 
     public java.lang.String getTablesErrorsOrThrow(
@@ -1173,7 +928,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>map&lt;string, string&gt; tables_errors = 4;</code>
+     * <code>map&lt;string, string&gt; tables_errors = 1;</code>
      */
 
     public Builder removeTablesErrors(
@@ -1192,7 +947,7 @@ private static final long serialVersionUID = 0L;
       return internalGetMutableTablesErrors().getMutableMap();
     }
     /**
-     * <code>map&lt;string, string&gt; tables_errors = 4;</code>
+     * <code>map&lt;string, string&gt; tables_errors = 1;</code>
      */
     public Builder putTablesErrors(
         java.lang.String key,
@@ -1204,13 +959,449 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>map&lt;string, string&gt; tables_errors = 4;</code>
+     * <code>map&lt;string, string&gt; tables_errors = 1;</code>
      */
 
     public Builder putAllTablesErrors(
         java.util.Map<java.lang.String, java.lang.String> values) {
       internalGetMutableTablesErrors().getMutableMap()
           .putAll(values);
+      return this;
+    }
+
+    private com.google.protobuf.LazyStringList tablesIgnored_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    private void ensureTablesIgnoredIsMutable() {
+      if (!((bitField0_ & 0x00000002) != 0)) {
+        tablesIgnored_ = new com.google.protobuf.LazyStringArrayList(tablesIgnored_);
+        bitField0_ |= 0x00000002;
+       }
+    }
+    /**
+     * <code>repeated string tables_ignored = 2;</code>
+     * @return A list containing the tablesIgnored.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getTablesIgnoredList() {
+      return tablesIgnored_.getUnmodifiableView();
+    }
+    /**
+     * <code>repeated string tables_ignored = 2;</code>
+     * @return The count of tablesIgnored.
+     */
+    public int getTablesIgnoredCount() {
+      return tablesIgnored_.size();
+    }
+    /**
+     * <code>repeated string tables_ignored = 2;</code>
+     * @param index The index of the element to return.
+     * @return The tablesIgnored at the given index.
+     */
+    public java.lang.String getTablesIgnored(int index) {
+      return tablesIgnored_.get(index);
+    }
+    /**
+     * <code>repeated string tables_ignored = 2;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the tablesIgnored at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getTablesIgnoredBytes(int index) {
+      return tablesIgnored_.getByteString(index);
+    }
+    /**
+     * <code>repeated string tables_ignored = 2;</code>
+     * @param index The index to set the value at.
+     * @param value The tablesIgnored to set.
+     * @return This builder for chaining.
+     */
+    public Builder setTablesIgnored(
+        int index, java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureTablesIgnoredIsMutable();
+      tablesIgnored_.set(index, value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string tables_ignored = 2;</code>
+     * @param value The tablesIgnored to add.
+     * @return This builder for chaining.
+     */
+    public Builder addTablesIgnored(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureTablesIgnoredIsMutable();
+      tablesIgnored_.add(value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string tables_ignored = 2;</code>
+     * @param values The tablesIgnored to add.
+     * @return This builder for chaining.
+     */
+    public Builder addAllTablesIgnored(
+        java.lang.Iterable<java.lang.String> values) {
+      ensureTablesIgnoredIsMutable();
+      com.google.protobuf.AbstractMessageLite.Builder.addAll(
+          values, tablesIgnored_);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string tables_ignored = 2;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearTablesIgnored() {
+      tablesIgnored_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000002);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string tables_ignored = 2;</code>
+     * @param value The bytes of the tablesIgnored to add.
+     * @return This builder for chaining.
+     */
+    public Builder addTablesIgnoredBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureTablesIgnoredIsMutable();
+      tablesIgnored_.add(value);
+      onChanged();
+      return this;
+    }
+
+    private com.google.protobuf.LazyStringList tablesUnchanged_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    private void ensureTablesUnchangedIsMutable() {
+      if (!((bitField0_ & 0x00000004) != 0)) {
+        tablesUnchanged_ = new com.google.protobuf.LazyStringArrayList(tablesUnchanged_);
+        bitField0_ |= 0x00000004;
+       }
+    }
+    /**
+     * <code>repeated string tables_unchanged = 3;</code>
+     * @return A list containing the tablesUnchanged.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getTablesUnchangedList() {
+      return tablesUnchanged_.getUnmodifiableView();
+    }
+    /**
+     * <code>repeated string tables_unchanged = 3;</code>
+     * @return The count of tablesUnchanged.
+     */
+    public int getTablesUnchangedCount() {
+      return tablesUnchanged_.size();
+    }
+    /**
+     * <code>repeated string tables_unchanged = 3;</code>
+     * @param index The index of the element to return.
+     * @return The tablesUnchanged at the given index.
+     */
+    public java.lang.String getTablesUnchanged(int index) {
+      return tablesUnchanged_.get(index);
+    }
+    /**
+     * <code>repeated string tables_unchanged = 3;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the tablesUnchanged at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getTablesUnchangedBytes(int index) {
+      return tablesUnchanged_.getByteString(index);
+    }
+    /**
+     * <code>repeated string tables_unchanged = 3;</code>
+     * @param index The index to set the value at.
+     * @param value The tablesUnchanged to set.
+     * @return This builder for chaining.
+     */
+    public Builder setTablesUnchanged(
+        int index, java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureTablesUnchangedIsMutable();
+      tablesUnchanged_.set(index, value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string tables_unchanged = 3;</code>
+     * @param value The tablesUnchanged to add.
+     * @return This builder for chaining.
+     */
+    public Builder addTablesUnchanged(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureTablesUnchangedIsMutable();
+      tablesUnchanged_.add(value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string tables_unchanged = 3;</code>
+     * @param values The tablesUnchanged to add.
+     * @return This builder for chaining.
+     */
+    public Builder addAllTablesUnchanged(
+        java.lang.Iterable<java.lang.String> values) {
+      ensureTablesUnchangedIsMutable();
+      com.google.protobuf.AbstractMessageLite.Builder.addAll(
+          values, tablesUnchanged_);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string tables_unchanged = 3;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearTablesUnchanged() {
+      tablesUnchanged_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000004);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string tables_unchanged = 3;</code>
+     * @param value The bytes of the tablesUnchanged to add.
+     * @return This builder for chaining.
+     */
+    public Builder addTablesUnchangedBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureTablesUnchangedIsMutable();
+      tablesUnchanged_.add(value);
+      onChanged();
+      return this;
+    }
+
+    private com.google.protobuf.LazyStringList tablesUpdated_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    private void ensureTablesUpdatedIsMutable() {
+      if (!((bitField0_ & 0x00000008) != 0)) {
+        tablesUpdated_ = new com.google.protobuf.LazyStringArrayList(tablesUpdated_);
+        bitField0_ |= 0x00000008;
+       }
+    }
+    /**
+     * <code>repeated string tables_updated = 4;</code>
+     * @return A list containing the tablesUpdated.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getTablesUpdatedList() {
+      return tablesUpdated_.getUnmodifiableView();
+    }
+    /**
+     * <code>repeated string tables_updated = 4;</code>
+     * @return The count of tablesUpdated.
+     */
+    public int getTablesUpdatedCount() {
+      return tablesUpdated_.size();
+    }
+    /**
+     * <code>repeated string tables_updated = 4;</code>
+     * @param index The index of the element to return.
+     * @return The tablesUpdated at the given index.
+     */
+    public java.lang.String getTablesUpdated(int index) {
+      return tablesUpdated_.get(index);
+    }
+    /**
+     * <code>repeated string tables_updated = 4;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the tablesUpdated at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getTablesUpdatedBytes(int index) {
+      return tablesUpdated_.getByteString(index);
+    }
+    /**
+     * <code>repeated string tables_updated = 4;</code>
+     * @param index The index to set the value at.
+     * @param value The tablesUpdated to set.
+     * @return This builder for chaining.
+     */
+    public Builder setTablesUpdated(
+        int index, java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureTablesUpdatedIsMutable();
+      tablesUpdated_.set(index, value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string tables_updated = 4;</code>
+     * @param value The tablesUpdated to add.
+     * @return This builder for chaining.
+     */
+    public Builder addTablesUpdated(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureTablesUpdatedIsMutable();
+      tablesUpdated_.add(value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string tables_updated = 4;</code>
+     * @param values The tablesUpdated to add.
+     * @return This builder for chaining.
+     */
+    public Builder addAllTablesUpdated(
+        java.lang.Iterable<java.lang.String> values) {
+      ensureTablesUpdatedIsMutable();
+      com.google.protobuf.AbstractMessageLite.Builder.addAll(
+          values, tablesUpdated_);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string tables_updated = 4;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearTablesUpdated() {
+      tablesUpdated_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000008);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string tables_updated = 4;</code>
+     * @param value The bytes of the tablesUpdated to add.
+     * @return This builder for chaining.
+     */
+    public Builder addTablesUpdatedBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureTablesUpdatedIsMutable();
+      tablesUpdated_.add(value);
+      onChanged();
+      return this;
+    }
+
+    private com.google.protobuf.LazyStringList tablesRemoved_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    private void ensureTablesRemovedIsMutable() {
+      if (!((bitField0_ & 0x00000010) != 0)) {
+        tablesRemoved_ = new com.google.protobuf.LazyStringArrayList(tablesRemoved_);
+        bitField0_ |= 0x00000010;
+       }
+    }
+    /**
+     * <code>repeated string tables_removed = 5;</code>
+     * @return A list containing the tablesRemoved.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getTablesRemovedList() {
+      return tablesRemoved_.getUnmodifiableView();
+    }
+    /**
+     * <code>repeated string tables_removed = 5;</code>
+     * @return The count of tablesRemoved.
+     */
+    public int getTablesRemovedCount() {
+      return tablesRemoved_.size();
+    }
+    /**
+     * <code>repeated string tables_removed = 5;</code>
+     * @param index The index of the element to return.
+     * @return The tablesRemoved at the given index.
+     */
+    public java.lang.String getTablesRemoved(int index) {
+      return tablesRemoved_.get(index);
+    }
+    /**
+     * <code>repeated string tables_removed = 5;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the tablesRemoved at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getTablesRemovedBytes(int index) {
+      return tablesRemoved_.getByteString(index);
+    }
+    /**
+     * <code>repeated string tables_removed = 5;</code>
+     * @param index The index to set the value at.
+     * @param value The tablesRemoved to set.
+     * @return This builder for chaining.
+     */
+    public Builder setTablesRemoved(
+        int index, java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureTablesRemovedIsMutable();
+      tablesRemoved_.set(index, value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string tables_removed = 5;</code>
+     * @param value The tablesRemoved to add.
+     * @return This builder for chaining.
+     */
+    public Builder addTablesRemoved(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureTablesRemovedIsMutable();
+      tablesRemoved_.add(value);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string tables_removed = 5;</code>
+     * @param values The tablesRemoved to add.
+     * @return This builder for chaining.
+     */
+    public Builder addAllTablesRemoved(
+        java.lang.Iterable<java.lang.String> values) {
+      ensureTablesRemovedIsMutable();
+      com.google.protobuf.AbstractMessageLite.Builder.addAll(
+          values, tablesRemoved_);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string tables_removed = 5;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearTablesRemoved() {
+      tablesRemoved_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      bitField0_ = (bitField0_ & ~0x00000010);
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>repeated string tables_removed = 5;</code>
+     * @param value The bytes of the tablesRemoved to add.
+     * @return This builder for chaining.
+     */
+    public Builder addTablesRemovedBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureTablesRemovedIsMutable();
+      tablesRemoved_.add(value);
+      onChanged();
       return this;
     }
     @java.lang.Override

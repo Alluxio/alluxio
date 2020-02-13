@@ -28,6 +28,8 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
+import com.google.common.collect.Sets;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -43,7 +45,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -164,6 +168,13 @@ public final class TableIntegrationTest extends BaseIntegrationTest {
     sLocalAlluxioJobCluster.stop();
   }
 
+  @After
+  public void after() throws Exception {
+    if (Sets.newHashSet(sTableMaster.getAllDatabases()).contains(DB_NAME_ERRORS)) {
+      sTableMaster.detachDatabase(DB_NAME_ERRORS);
+    }
+  }
+
   @Test
   public void attachWrongDb() throws Exception {
     try {
@@ -194,6 +205,24 @@ public final class TableIntegrationTest extends BaseIntegrationTest {
     assertEquals(1, status.getTablesErrorsCount());
     assertTrue(status.containsTablesErrors(TEST_TABLE_ERROR));
     assertNotNull(sTableMaster.getDatabase(DB_NAME_ERRORS));
+  }
+
+  @Test
+  public void attachIgnore() throws Exception {
+    Map<String, String> options = new HashMap<>();
+    options.put(CatalogProperty.DB_IGNORE_TABLES.getName(), TEST_TABLE_ERROR + ",other,");
+
+    // expect no errors if the bad table is ignored
+    SyncStatus status = sTableMaster
+        .attachDatabase("hive", "thrift://" + sHmsAddress + ":" + sHmsPort, DB_NAME_ERRORS,
+            DB_NAME_ERRORS, options, false);
+    assertEquals(0, status.getTablesErrorsCount());
+    assertEquals(1, status.getTablesIgnoredCount());
+
+    // expect no errors on a sync, if the bad table is ignored
+    status = sTableMaster.syncDatabase(DB_NAME_ERRORS);
+    assertEquals(0, status.getTablesErrorsCount());
+    assertEquals(1, status.getTablesIgnoredCount());
   }
 
   @Test

@@ -40,6 +40,8 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -610,5 +612,17 @@ public final class ConfigurationUtils {
 
     return Constants.HEADER + conf.get(PropertyKey.MASTER_HOSTNAME) + ":" + conf
         .get(PropertyKey.MASTER_RPC_PORT);
+  }
+
+  /**
+   * Returns the input string as a list, splitting on a specified delimiter.
+   *
+   * @param value the value to split
+   * @param delimiter the delimiter to split the values
+   * @return the list of values for input string
+   */
+  public static List<String> parseAsList(String value, String delimiter) {
+    return Lists.newArrayList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
+        .split(value));
   }
 }
