@@ -1516,6 +1516,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE_BLOCK_ITERATOR_READAHEAD_SIZE =
+      new Builder(Name.MASTER_METASTORE_BLOCK_ITERATOR_READAHEAD_SIZE)
+          .setDefaultValue("10000")
+          .setDescription("The read-ahead size for block iterator.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
       new Builder(Name.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP)
           .setDefaultValue("true")
@@ -4234,6 +4241,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.iteration.crawler.count";
     public static final String MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT =
         "alluxio.master.metastore.inode.enumerator.buffer.count";
+    public static final String MASTER_METASTORE_BLOCK_ITERATOR_READAHEAD_SIZE =
+        "alluxio.master.metastore.block.iterator.readahead.size";
     public static final String MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP =
         "alluxio.master.metastore.inode.inherit.owner.and.group";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
