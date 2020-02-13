@@ -150,6 +150,7 @@ public final class ConfigurationUtilsTest {
     assertEquals(Lists.newArrayList("a", "b", "c"),
         ConfigurationUtils.parseAsList(" a , b , c ", ","));
     assertEquals(Lists.newArrayList("a,b,c"), ConfigurationUtils.parseAsList("a,b,c", ";"));
+    assertEquals(Lists.newArrayList("a", "c"), ConfigurationUtils.parseAsList(",,a,,c,,", ","));
   }
 
   private AlluxioConfiguration createConf(Map<PropertyKey, String> properties) {
