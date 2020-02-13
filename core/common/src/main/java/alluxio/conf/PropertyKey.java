@@ -1518,7 +1518,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE_BLOCK_ITERATOR_READAHEAD_SIZE =
       new Builder(Name.MASTER_METASTORE_BLOCK_ITERATOR_READAHEAD_SIZE)
-          .setDefaultValue("10000")
+          .setDefaultValue("4MB")
           .setDescription("The read-ahead size for block iterator.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
