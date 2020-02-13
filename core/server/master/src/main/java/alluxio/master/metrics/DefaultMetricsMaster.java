@@ -176,8 +176,8 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   }
 
   @Override
-  public void clientHeartbeat(String clientId, String hostname, List<Metric> metrics) {
-    mMetricsStore.putClientMetrics(hostname, metrics);
+  public void clientHeartbeat(String source, List<Metric> metrics) {
+    mMetricsStore.putClientMetrics(source, metrics);
   }
 
   @Override
@@ -186,8 +186,8 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   }
 
   @Override
-  public void workerHeartbeat(String hostname, List<Metric> metrics) {
-    mMetricsStore.putWorkerMetrics(hostname, metrics);
+  public void workerHeartbeat(String source, List<Metric> metrics) {
+    mMetricsStore.putWorkerMetrics(source, metrics);
   }
 
   @Override

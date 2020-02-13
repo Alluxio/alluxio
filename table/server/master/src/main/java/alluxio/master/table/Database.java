@@ -17,6 +17,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.FileStatistics;
 import alluxio.grpc.table.Schema;
+import alluxio.grpc.table.SyncStatus;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
@@ -25,8 +26,10 @@ import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +45,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
@@ -58,20 +60,23 @@ public class Database implements Journaled {
   private final String mName;
   private final Map<String, Table> mTables;
   private final UnderDatabase mUdb;
-  private final Map<String, String> mConfig;
+  private final CatalogConfiguration mConfig;
+  private final Set<String> mIgnoreTables;
   private final long mUdbSyncTimeoutMs =
       ServerConfiguration.getMs(PropertyKey.TABLE_CATALOG_UDB_SYNC_TIMEOUT);
 
   private DatabaseInfo mDatabaseInfo;
 
   private Database(CatalogContext context, String type, String name, UnderDatabase udb,
-      Map<String, String> configMap) {
+      CatalogConfiguration config) {
     mContext = context;
     mType = type;
     mName = name;
     mTables = new ConcurrentHashMap<>();
     mUdb = udb;
-    mConfig = configMap;
+    mConfig = config;
+    mIgnoreTables = Sets.newHashSet(
+        ConfigurationUtils.parseAsList(mConfig.get(CatalogProperty.DB_IGNORE_TABLES), ","));
   }
 
   /**
@@ -90,7 +95,7 @@ public class Database implements Journaled {
     try {
       UnderDatabase udb = udbContext.getUdbRegistry()
           .create(udbContext, type, configuration.getUdbConfiguration(type));
-      return new Database(catalogContext, type, name, udb, configMap);
+      return new Database(catalogContext, type, name, udb, configuration);
     } catch (Exception e) {
       throw new IllegalArgumentException("Creating udb failed for database name: " + name, e);
     }
@@ -177,7 +182,7 @@ public class Database implements Journaled {
    * @return the configuration for the database
    */
   public Map<String, String> getConfig() {
-    return mConfig;
+    return mConfig.getMap();
   }
 
   /**
@@ -186,34 +191,48 @@ public class Database implements Journaled {
    *
    * @param context journal context
    * @param service executor service for parallezing the sync
-   * @return true if the database changed as a result of syncing with UDB
+   * @return the resulting sync status
    */
-  public boolean sync(JournalContext context, ExecutorService service) throws IOException {
-    AtomicBoolean updated = new AtomicBoolean(false);
+  public SyncStatus sync(JournalContext context, ExecutorService service) throws IOException {
+    // Keep track of the status of each syncing table
+    SyncStatus.Builder builder = SyncStatus.newBuilder();
+
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
     if (!newDbInfo.equals(mDatabaseInfo)) {
       applyAndJournal(context, Journal.JournalEntry.newBuilder()
           .setUpdateDatabaseInfo(toJournalProto(newDbInfo, mName)).build());
-      updated.set(true);
     }
+
     Set<String> udbTableNames = new HashSet<>(mUdb.getTableNames());
 
     // sync each table in parallel, with the executor service
     List<Callable<Void>> tasks = new ArrayList<>(udbTableNames.size());
     final Database thisDb = this;
     for (String tableName : udbTableNames) {
+      if (mIgnoreTables.contains(tableName)) {
+        // this table should be ignored.
+        builder.addTablesIgnored(tableName);
+        continue;
+      }
       tasks.add(() -> {
-        Table previousTable = mTables.get(tableName);
-        UdbTable udbTable = mUdb.getTable(tableName);
-        Table newTable = Table.create(thisDb, udbTable, previousTable);
+        // Save all exceptions
+        try {
+          Table previousTable = mTables.get(tableName);
+          UdbTable udbTable = mUdb.getTable(tableName);
+          Table newTable = Table.create(thisDb, udbTable, previousTable);
 
-        if (newTable != null) {
-          // table was created or was updated
-          alluxio.proto.journal.Table.AddTableEntry addTableEntry = newTable.toJournalProto();
-          Journal.JournalEntry entry =
-              Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
-          applyAndJournal(context, entry);
-          updated.set(true);
+          if (newTable != null) {
+            // table was created or was updated
+            alluxio.proto.journal.Table.AddTableEntry addTableEntry = newTable.toJournalProto();
+            Journal.JournalEntry entry =
+                Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
+            applyAndJournal(context, entry);
+            builder.addTablesUpdated(tableName);
+          } else {
+            builder.addTablesUnchanged(tableName);
+          }
+        } catch (Exception e) {
+          builder.putTablesErrors(tableName, e.getMessage());
         }
         return null;
       });
@@ -238,10 +257,10 @@ public class Database implements Journaled {
             .setRemoveTable(removeTableEntry)
             .build();
         applyAndJournal(context, entry);
-        updated.set(true);
+        builder.addTablesRemoved(existingTable.getName());
       }
     }
-    return updated.get();
+    return builder.build();
   }
 
   @Override

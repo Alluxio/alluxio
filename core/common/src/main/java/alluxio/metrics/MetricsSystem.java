@@ -12,6 +12,7 @@
 package alluxio.metrics;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.MetricType;
@@ -40,13 +41,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+<<<<<<< HEAD
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+=======
+import java.util.function.Supplier;
+>>>>>>> upstream/master
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -77,6 +81,11 @@ public final class MetricsSystem {
   // A flag telling whether metrics have been reported yet.
   // Using this prevents us from initializing {@link #SHOULD_REPORT_METRICS} more than once
   private static boolean sReported = false;
+  // The source of the metrics in this metrics system.
+  // It can be set through property keys based on process types.
+  // Local hostname will be used if no related property key founds.
+  private static Supplier<String> sSourceNameSupplier =
+      CommonUtils.memoize(() -> constructSourceName());
 
   /**
    * An enum of supported instance type.
@@ -142,8 +151,9 @@ public final class MetricsSystem {
   private static final int MINIMAL_POLL_PERIOD = 1;
 
   /**
-   * Starts sinks specified in the configuration. This is an no-op if the sinks have already been
-   * started. Note: This has to be called after Alluxio configuration is initialized.
+   * Starts sinks specified in the configuration.
+   * This is an no-op if the sinks have already been started.
+   * Note: This has to be called after Alluxio configuration is initialized.
    *
    * @param metricsConfFile the location of the metrics configuration file
    */
@@ -160,6 +170,35 @@ public final class MetricsSystem {
     }
     MetricsConfig config = new MetricsConfig(metricsConfFile);
     startSinksFromConfig(config);
+  }
+
+  /**
+   * Constructs the source name of metrics in this {@link MetricsSystem}.
+   */
+  private static String constructSourceName() {
+    PropertyKey sourceKey = null;
+    switch (CommonUtils.PROCESS_TYPE.get()) {
+      case MASTER:
+        sourceKey = PropertyKey.MASTER_HOSTNAME;
+        break;
+      case WORKER:
+        sourceKey = PropertyKey.WORKER_HOSTNAME;
+        break;
+      case CLIENT:
+        sourceKey = PropertyKey.USER_APP_ID;
+        break;
+      case JOB_MASTER:
+        sourceKey = PropertyKey.JOB_MASTER_HOSTNAME;
+        break;
+      case JOB_WORKER:
+        sourceKey = PropertyKey.JOB_WORKER_HOSTNAME;
+        break;
+      default:
+        break;
+    }
+    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    return sourceKey != null && conf.isSet(sourceKey)
+        ? conf.get(sourceKey) : NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
   }
 
   /**
@@ -294,8 +333,7 @@ public final class MetricsSystem {
       return CACHED_METRICS.computeIfAbsent(name, n -> name);
     }
     if (name.startsWith(InstanceType.WORKER.toString())) {
-      return CACHED_METRICS.computeIfAbsent(name,
-          n -> getMetricNameWithUniqueId(InstanceType.WORKER, name));
+      return getWorkerMetricName(name);
     }
 
     return CACHED_METRICS.computeIfAbsent(name,
@@ -346,11 +384,9 @@ public final class MetricsSystem {
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
     if (name.startsWith(instance.toString())) {
-      return Joiner.on(".").join(name,
-          NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
+      return Joiner.on(".").join(name, sSourceNameSupplier);
     }
-    return Joiner.on(".").join(instance, name,
-        NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
+    return Joiner.on(".").join(instance, name, sSourceNameSupplier);
   }
 
   /**

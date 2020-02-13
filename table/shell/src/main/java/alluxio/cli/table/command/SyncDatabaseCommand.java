@@ -12,17 +12,23 @@
 package alluxio.cli.table.command;
 
 import alluxio.cli.CommandUtils;
+import alluxio.cli.table.TableShellUtils;
 import alluxio.client.table.TableMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.table.SyncStatus;
 
 import org.apache.commons.cli.CommandLine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A command which can be used to sync a database with the underlying udb.
  */
 public class SyncDatabaseCommand extends AbstractTableCommand{
+  private static final Logger LOG = LoggerFactory.getLogger(SyncDatabaseCommand.class);
+  private static final int PRINT_MAX_ERRORS = 10;
 
   /**
    * Creates a new instance of {@link SyncDatabaseCommand}.
@@ -56,7 +62,8 @@ public class SyncDatabaseCommand extends AbstractTableCommand{
 
   @Override
   public int run(CommandLine cli) throws AlluxioStatusException {
-    mClient.syncDatabase(cli.getArgs()[0]);
+    SyncStatus status = mClient.syncDatabase(cli.getArgs()[0]);
+    TableShellUtils.printSyncStatus(status, LOG, PRINT_MAX_ERRORS);
     return 0;
   }
 }
