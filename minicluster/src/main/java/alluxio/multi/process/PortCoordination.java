@@ -62,6 +62,8 @@ public class PortCoordination {
   public static final List<ReservedPort> BACKUP_DELEGATION_FAILOVER_PROTOCOL = allocate(2, 1);
   public static final List<ReservedPort> BACKUP_DELEGATION_ZK = allocate(2, 1);
   public static final List<ReservedPort> BACKUP_DELEGATION_EMBEDDED = allocate(2, 1);
+  public static final List<ReservedPort> BACKUP_RESTORE_METASSTORE_HEAP = allocate(1, 1);
+  public static final List<ReservedPort> BACKUP_RESTORE_METASSTORE_ROCKS = allocate(1, 1);
 
   public static final List<ReservedPort> ZOOKEEPER_FAILURE = allocate(2, 1);
   public static final List<ReservedPort> ZOOKEEPER_CONNECTION_POLICY_STANDARD = allocate(2, 0);
