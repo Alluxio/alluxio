@@ -33,10 +33,25 @@ public class TableShellUtils {
    * @param maxErrors a max number of errors to print to stdout
    */
   public static void printSyncStatus(SyncStatus status, Logger logger, int maxErrors) {
+    System.out.println("# Tables ignored: " + status.getTablesIgnoredCount());
     System.out.println("# Tables unchanged: " + status.getTablesUnchangedCount());
     System.out.println("# Tables updated: " + status.getTablesUpdatedCount());
     System.out.println("# Tables removed: " + status.getTablesRemovedCount());
     System.out.println("# Tables with errors: " + status.getTablesErrorsCount());
+
+    // write the tables to the log
+    for (String table : status.getTablesIgnoredList()) {
+      logger.info("Table ignored: {}", table);
+    }
+    for (String table : status.getTablesUnchangedList()) {
+      logger.info("Table unchanged: {}", table);
+    }
+    for (String table : status.getTablesUpdatedList()) {
+      logger.info("Table updated: {}", table);
+    }
+    for (String table : status.getTablesRemovedList()) {
+      logger.info("Table removed: {}", table);
+    }
 
     if (status.getTablesErrorsCount() > 0) {
       System.out.println("\nSync errors: ");

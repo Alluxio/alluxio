@@ -171,10 +171,11 @@ message DateColumnStatsData {
 }
 
 message SyncStatus {
-    repeated string tables_unchanged = 1;
-    repeated string tables_updated = 2;
-    repeated string tables_removed = 3;
-    map<string, string> tables_errors = 4;
+    map<string, string> tables_errors = 1;
+    repeated string tables_ignored = 2;
+    repeated string tables_unchanged = 3;
+    repeated string tables_updated = 4;
+    repeated string tables_removed = 5;
 }
 
 message GetAllDatabasesPRequest {
