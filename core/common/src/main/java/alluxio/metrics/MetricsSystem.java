@@ -45,12 +45,9 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-<<<<<<< HEAD
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-=======
 import java.util.function.Supplier;
->>>>>>> upstream/master
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
