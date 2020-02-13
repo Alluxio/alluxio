@@ -18,7 +18,6 @@ import alluxio.grpc.ChannelAuthenticationScheme;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
 import alluxio.security.authentication.plain.SaslServerHandlerPlain;
-import alluxio.util.LogUtils;
 import alluxio.util.ThreadFactoryUtils;
 
 import io.grpc.Status;
@@ -40,10 +39,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Default implementation of {@link AuthenticationServer}. Its functions include: -> Authentication
- * server against which client channels could get authenticated -> Registry for identity for known
- * channels during RPC calls.
- *
+ * Default implementation of {@link AuthenticationServer}. Its functions include:
+ * -> Authentication server against which client channels could get authenticated
+ * -> Registry of identities for known channels during RPC calls.
  */
 @ThreadSafe
 public class DefaultAuthenticationServer
@@ -85,17 +83,17 @@ public class DefaultAuthenticationServer
   @Override
   public StreamObserver<SaslMessage> authenticate(StreamObserver<SaslMessage> responseObserver) {
     // Create and return server sasl driver that will coordinate authentication traffic.
-    SaslStreamServerDriver driver = new SaslStreamServerDriver(this);
+    AuthenticatedChannelServerDriver driver = new AuthenticatedChannelServerDriver(this);
     driver.setClientObserver(responseObserver);
     return driver;
   }
 
   @Override
   public void registerChannel(UUID channelId, AuthenticatedUserInfo userInfo,
-      SaslStreamServerDriver saslDriver) {
+      AuthenticatedChannelServerDriver serverDriver) {
     LOG.debug("Registering new channel:{} for user:{}", channelId, userInfo);
     if (null != mChannels.putIfAbsent(channelId,
-        new AuthenticatedChannelInfo(userInfo, saslDriver))) {
+        new AuthenticatedChannelInfo(userInfo, serverDriver))) {
       AuthenticatedChannelInfo existingInfo = mChannels.remove(channelId);
       throw new RuntimeException(
           String.format("Channel: %s already exists in authentication registry for user: %s.",
@@ -116,27 +114,15 @@ public class DefaultAuthenticationServer
   }
 
   @Override
-  public boolean unregisterChannel(UUID channelId) {
+  public void unregisterChannel(UUID channelId) {
     LOG.debug("Unregistering channel: {}", channelId);
     // Remove channel.
-    AuthenticatedChannelInfo channelInfo = mChannels.remove(channelId);
-    if (channelInfo == null) {
-      LOG.debug("Channel was not registered: {}", channelId);
-      return false;
-    }
-    // Close authentication driver.
-    try {
-      channelInfo.getSaslServerDriver().close();
-    } catch (Exception e) {
-      LogUtils.warnWithException(LOG,
-          "Failed to complete the authentication session for channel-Id: {}", channelId, e);
-    }
-    return true;
+    mChannels.remove(channelId);
   }
 
   @Override
   public SaslServerHandler createSaslHandler(ChannelAuthenticationScheme authScheme)
-      throws SaslException, UnauthenticatedException {
+      throws SaslException {
     switch (authScheme) {
       case SIMPLE:
       case CUSTOM:
@@ -152,7 +138,6 @@ public class DefaultAuthenticationServer
     for (Map.Entry<UUID, AuthenticatedChannelInfo> entry : mChannels.entrySet()) {
       try {
         entry.getValue().getSaslServerDriver().close();
-        LOG.debug("Closed authentication session for channel:{}", entry.getKey());
       } catch (Exception exc) {
         LOG.debug("Failed closing authentication session for channel:{}. Error:{}", entry.getKey(),
             exc);
@@ -178,7 +163,7 @@ public class DefaultAuthenticationServer
     // Unregister stale clients.
     LOG.debug("Found {} stale channels for cleanup.", staleChannels.size());
     for (UUID clientId : staleChannels) {
-      unregisterChannel(clientId);
+      mChannels.remove(clientId).getSaslServerDriver().close();
     }
     LOG.debug("Finished state channel cleanup at {}", LocalTime.now());
   }
@@ -208,14 +193,14 @@ public class DefaultAuthenticationServer
   class AuthenticatedChannelInfo {
     private LocalTime mLastAccessTime;
     private AuthenticatedUserInfo mUserInfo;
-    private SaslStreamServerDriver mSaslServerDriver;
+    private AuthenticatedChannelServerDriver mSaslServerDriver;
 
     /**
      * @param userInfo authenticated user info
      * @param saslServerDriver sasl server driver
      */
     public AuthenticatedChannelInfo(AuthenticatedUserInfo userInfo,
-        SaslStreamServerDriver saslServerDriver) {
+        AuthenticatedChannelServerDriver saslServerDriver) {
       mUserInfo = userInfo;
       mSaslServerDriver = saslServerDriver;
       mLastAccessTime = LocalTime.now();
@@ -247,7 +232,7 @@ public class DefaultAuthenticationServer
      *
      * @return the sasl server driver
      */
-    public SaslStreamServerDriver getSaslServerDriver() {
+    public AuthenticatedChannelServerDriver getSaslServerDriver() {
       updateLastAccessTime();
       return mSaslServerDriver;
     }

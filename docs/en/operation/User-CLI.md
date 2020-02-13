@@ -584,6 +584,19 @@ For example, `cp` can be used to copy files between under storage systems.
 $ ./bin/alluxio fs cp /hdfs/file1 /s3/
 ```
 
+### distributedLoad
+
+The `distributedLoad` command moves a file or directory from the under storage system into Alluxio storage in distributed 
+across workers. The job is a no-op if the file is already loaded into Alluxio.
+
+If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
+on a random worker.
+The `--replication` flag can be used to load the data into multiple workers.
+
+```console
+$ ./bin/alluxio fs distributedLoad --replication 2 /data/today
+```
+
 ### du
 
 The `du` command outputs the total size and in Alluxio size of files and folders.
@@ -1189,8 +1202,8 @@ format.
 > In 2.1.0, the supported file formats which can be transformed are: parquet and csv
 > file formats. The resulting transformations are in the parquet file format. Additional formats
 > for input and output will be implemented in future versions.
-> For the coalesce feature, if a partition contains more than 100 files, then the coalesce
-> transformation will result in 100 files.
+> For the coalesce feature, by default it will coalesce into a maximum of 100 files, 
+> with each file no smaller than 2GB. 
 
 ### transformStatus
 

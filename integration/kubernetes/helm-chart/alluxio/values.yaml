@@ -90,6 +90,7 @@ jobMaster:
       cpu: "1"
       memory: "1G"
   ports:
+    embedded: 20003
     rpc: 20001
     web: 20002
   # JVM options specific to the jobMaster container

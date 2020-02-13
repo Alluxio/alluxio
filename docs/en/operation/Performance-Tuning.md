@@ -227,6 +227,16 @@ This is most commonly effective in cases where the files being cached are relati
 However, increase this number sparingly, as it will consume more CPU resources on the worker node
 as the number is increased.
 
+### UFS InStream cache size
+
+Alluxio workers use a pool of open input streams to the UFS controlled by the parameter
+`alluxio.worker.ufs.instream.cache.max.size`. A high number reduces the overhead of opening a new
+stream to the UFS. However, it also places greater load on the UFS. For HDFS as the UFS, the
+parameter should be set based on `dfs.datanode.handler.count`. For instance, if the number of
+Alluxio workers matches the the number of HDFS datanodes, set
+`alluxio.worker.ufs.instream.cache.max.size=dfs.datanode.handler.count` under the assumption
+that the workload is spread evenly over Alluxio workers.
+
 ## Client Tuning
 
 ### Passive caching

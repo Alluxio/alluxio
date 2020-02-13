@@ -20,6 +20,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new ListStatusPResponse();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -43,20 +50,20 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
-            if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
               fileInfos_ = new java.util.ArrayList<alluxio.grpc.FileInfo>();
               mutable_bitField0_ |= 0x00000001;
             }
             fileInfos_.add(
                 input.readMessage(alluxio.grpc.FileInfo.PARSER, extensionRegistry));
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -67,7 +74,7 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((mutable_bitField0_ & 0x00000001) != 0)) {
         fileInfos_ = java.util.Collections.unmodifiableList(fileInfos_);
       }
       this.unknownFields = unknownFields.build();
@@ -79,6 +86,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_ListStatusPResponse_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_ListStatusPResponse_fieldAccessorTable
@@ -122,6 +130,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -131,6 +140,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     for (int i = 0; i < fileInfos_.size(); i++) {
@@ -139,6 +149,7 @@ private static final long serialVersionUID = 0L;
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -163,11 +174,10 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.ListStatusPResponse other = (alluxio.grpc.ListStatusPResponse) obj;
 
-    boolean result = true;
-    result = result && getFileInfosList()
-        .equals(other.getFileInfosList());
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!getFileInfosList()
+        .equals(other.getFileInfosList())) return false;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -256,6 +266,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -263,6 +274,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.ListStatusPResponse prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -286,6 +298,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_ListStatusPResponse_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_ListStatusPResponse_fieldAccessorTable
@@ -309,6 +322,7 @@ private static final long serialVersionUID = 0L;
         getFileInfosFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       if (fileInfosBuilder_ == null) {
@@ -320,15 +334,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_ListStatusPResponse_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.ListStatusPResponse getDefaultInstanceForType() {
       return alluxio.grpc.ListStatusPResponse.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.ListStatusPResponse build() {
       alluxio.grpc.ListStatusPResponse result = buildPartial();
       if (!result.isInitialized()) {
@@ -337,11 +354,12 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.ListStatusPResponse buildPartial() {
       alluxio.grpc.ListStatusPResponse result = new alluxio.grpc.ListStatusPResponse(this);
       int from_bitField0_ = bitField0_;
       if (fileInfosBuilder_ == null) {
-        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((bitField0_ & 0x00000001) != 0)) {
           fileInfos_ = java.util.Collections.unmodifiableList(fileInfos_);
           bitField0_ = (bitField0_ & ~0x00000001);
         }
@@ -353,32 +371,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.ListStatusPResponse) {
         return mergeFrom((alluxio.grpc.ListStatusPResponse)other);
@@ -421,10 +446,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -447,7 +474,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<alluxio.grpc.FileInfo> fileInfos_ =
       java.util.Collections.emptyList();
     private void ensureFileInfosIsMutable() {
-      if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (!((bitField0_ & 0x00000001) != 0)) {
         fileInfos_ = new java.util.ArrayList<alluxio.grpc.FileInfo>(fileInfos_);
         bitField0_ |= 0x00000001;
        }
@@ -676,18 +703,20 @@ private static final long serialVersionUID = 0L;
         fileInfosBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.FileInfo, alluxio.grpc.FileInfo.Builder, alluxio.grpc.FileInfoOrBuilder>(
                 fileInfos_,
-                ((bitField0_ & 0x00000001) == 0x00000001),
+                ((bitField0_ & 0x00000001) != 0),
                 getParentForChildren(),
                 isClean());
         fileInfos_ = null;
       }
       return fileInfosBuilder_;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -709,6 +738,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<ListStatusPResponse>
       PARSER = new com.google.protobuf.AbstractParser<ListStatusPResponse>() {
+    @java.lang.Override
     public ListStatusPResponse parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -726,6 +756,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.ListStatusPResponse getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

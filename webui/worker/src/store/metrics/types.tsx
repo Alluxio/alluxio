@@ -19,9 +19,6 @@ export interface IMetrics {
   operationMetrics: {
     [key: string]: ICounter;
   };
-  rpcInvocationMetrics: {
-    [key: string]: ICounter;
-  };
   timeSeriesMetrics: {
     [key: string]: {
       [key: string]: number;

@@ -37,7 +37,7 @@ public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTes
     assertEquals("", mErrOutput.toString());
     assertEquals(0, errCode);
     assertThat(mOutput.toString(), CoreMatchers.containsString(
-        "Create File Operations                                      1"));
+        "CreateFileOps  (Type: COUNTER, Value: 1)"));
 
     errCode = mFsAdminShell.run("metrics", "clear", "--master");
     assertEquals("", mErrOutput.toString());
@@ -48,6 +48,6 @@ public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTes
     assertEquals("", mErrOutput.toString());
     assertEquals(0, errCode);
     assertThat(mOutput.toString(), CoreMatchers.containsString(
-        "Create File Operations                                      0"));
+        "CreateFileOps  (Type: COUNTER, Value: 0)"));
   }
 }

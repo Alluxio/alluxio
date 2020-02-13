@@ -102,8 +102,10 @@ spec:
             name: rpc
           - containerPort: {{ .Values.master.ports.web }}
             name: web
+          {{- if $isHaEmbedded }}
           - containerPort: {{ .Values.master.ports.embedded }}
             name: embedded
+          {{- end }}
           volumeMounts:
             {{- if $needJournalVolume }}
             - name: alluxio-journal
@@ -153,6 +155,10 @@ spec:
             name: job-rpc
           - containerPort: {{ .Values.jobMaster.ports.web }}
             name: job-web
+          {{- if $isHaEmbedded }}
+          - containerPort: {{ .Values.jobMaster.ports.embedded }}
+            name: job-embedded
+          {{- end }}
           volumeMounts:
           {{- if .Values.secrets }}
             {{- if .Values.secrets.master }}

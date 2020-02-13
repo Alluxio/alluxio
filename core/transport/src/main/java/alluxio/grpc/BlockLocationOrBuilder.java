@@ -9,19 +9,23 @@ public interface BlockLocationOrBuilder extends
 
   /**
    * <code>optional int64 workerId = 1;</code>
+   * @return Whether the workerId field is set.
    */
   boolean hasWorkerId();
   /**
    * <code>optional int64 workerId = 1;</code>
+   * @return The workerId.
    */
   long getWorkerId();
 
   /**
    * <code>optional .alluxio.grpc.WorkerNetAddress workerAddress = 2;</code>
+   * @return Whether the workerAddress field is set.
    */
   boolean hasWorkerAddress();
   /**
    * <code>optional .alluxio.grpc.WorkerNetAddress workerAddress = 2;</code>
+   * @return The workerAddress.
    */
   alluxio.grpc.WorkerNetAddress getWorkerAddress();
   /**
@@ -31,28 +35,34 @@ public interface BlockLocationOrBuilder extends
 
   /**
    * <code>optional string tierAlias = 3;</code>
+   * @return Whether the tierAlias field is set.
    */
   boolean hasTierAlias();
   /**
    * <code>optional string tierAlias = 3;</code>
+   * @return The tierAlias.
    */
   java.lang.String getTierAlias();
   /**
    * <code>optional string tierAlias = 3;</code>
+   * @return The bytes for tierAlias.
    */
   com.google.protobuf.ByteString
       getTierAliasBytes();
 
   /**
    * <code>optional string mediumType = 4;</code>
+   * @return Whether the mediumType field is set.
    */
   boolean hasMediumType();
   /**
    * <code>optional string mediumType = 4;</code>
+   * @return The mediumType.
    */
   java.lang.String getMediumType();
   /**
    * <code>optional string mediumType = 4;</code>
+   * @return The bytes for mediumType.
    */
   com.google.protobuf.ByteString
       getMediumTypeBytes();

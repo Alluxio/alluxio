@@ -9,10 +9,12 @@ public interface GetMasterInfoPResponseOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.meta.MasterInfo masterInfo = 1;</code>
+   * @return Whether the masterInfo field is set.
    */
   boolean hasMasterInfo();
   /**
    * <code>optional .alluxio.grpc.meta.MasterInfo masterInfo = 1;</code>
+   * @return The masterInfo.
    */
   alluxio.grpc.MasterInfo getMasterInfo();
   /**

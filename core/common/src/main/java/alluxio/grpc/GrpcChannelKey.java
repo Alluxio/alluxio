@@ -13,8 +13,11 @@ package alluxio.grpc;
 
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.MoreObjects;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -54,11 +57,25 @@ public class GrpcChannelKey {
   @IdentityField
   private Optional<EventLoopGroup> mEventLoopGroup = Optional.empty();
 
+  /** Non-identity field to show user readable client type. */
   private Optional<String> mClientType = Optional.empty();
-  /** Unique channel identifier. */
-  private UUID mChannelId = UUID.randomUUID();
 
-  private GrpcChannelKey() {}
+  /** Unique channel identifier. */
+  private final UUID mChannelId = UUID.randomUUID();
+  /** Hostname to send to server for identification. */
+  private final String mLocalHostName;
+
+  private GrpcChannelKey(AlluxioConfiguration conf) {
+    // Try to get local host name.
+    String localHostName;
+    try {
+      localHostName = NetworkAddressUtils
+          .getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+    } catch (Exception e) {
+      localHostName = NetworkAddressUtils.UNKNOWN_HOSTNAME;
+    }
+    mLocalHostName = localHostName;
+  }
 
   /**
    * Creates a {@link GrpcChannelKey}.
@@ -67,7 +84,7 @@ public class GrpcChannelKey {
    * @return the created instance
    */
   public static GrpcChannelKey create(AlluxioConfiguration conf) {
-    return new GrpcChannelKey();
+    return new GrpcChannelKey(conf);
   }
 
   /**
@@ -290,6 +307,7 @@ public class GrpcChannelKey {
   public String toStringShort() {
     return MoreObjects.toStringHelper(this)
         .add("ClientType", getStringFromOptional(mClientType))
+        .add("ClientHostname", mLocalHostName)
         .add("ServerAddress", mServerAddress)
         .add("ChannelId", mChannelId)
         .omitNullValues()

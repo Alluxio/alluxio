@@ -19,6 +19,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new Domain();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -42,13 +49,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             alluxio.grpc.table.RangeSet.Builder subBuilder = null;
             if (valueSetCase_ == 1) {
@@ -91,6 +91,13 @@ private static final long serialVersionUID = 0L;
             valueSetCase_ = 3;
             break;
           }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -108,6 +115,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Domain_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Domain_fieldAccessorTable
@@ -119,7 +127,8 @@ private static final long serialVersionUID = 0L;
   private int valueSetCase_ = 0;
   private java.lang.Object valueSet_;
   public enum ValueSetCase
-      implements com.google.protobuf.Internal.EnumLite {
+      implements com.google.protobuf.Internal.EnumLite,
+          com.google.protobuf.AbstractMessage.InternalOneOfEnum {
     RANGE(1),
     EQUATABLE(2),
     ALL_OR_NONE(3),
@@ -129,6 +138,8 @@ private static final long serialVersionUID = 0L;
       this.value = value;
     }
     /**
+     * @param value The number of the enum to look for.
+     * @return The enum associated with the given number.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
     @java.lang.Deprecated
@@ -159,12 +170,14 @@ private static final long serialVersionUID = 0L;
   public static final int RANGE_FIELD_NUMBER = 1;
   /**
    * <code>optional .alluxio.grpc.table.RangeSet range = 1;</code>
+   * @return Whether the range field is set.
    */
   public boolean hasRange() {
     return valueSetCase_ == 1;
   }
   /**
    * <code>optional .alluxio.grpc.table.RangeSet range = 1;</code>
+   * @return The range.
    */
   public alluxio.grpc.table.RangeSet getRange() {
     if (valueSetCase_ == 1) {
@@ -185,12 +198,14 @@ private static final long serialVersionUID = 0L;
   public static final int EQUATABLE_FIELD_NUMBER = 2;
   /**
    * <code>optional .alluxio.grpc.table.EquatableValueSet equatable = 2;</code>
+   * @return Whether the equatable field is set.
    */
   public boolean hasEquatable() {
     return valueSetCase_ == 2;
   }
   /**
    * <code>optional .alluxio.grpc.table.EquatableValueSet equatable = 2;</code>
+   * @return The equatable.
    */
   public alluxio.grpc.table.EquatableValueSet getEquatable() {
     if (valueSetCase_ == 2) {
@@ -211,12 +226,14 @@ private static final long serialVersionUID = 0L;
   public static final int ALL_OR_NONE_FIELD_NUMBER = 3;
   /**
    * <code>optional .alluxio.grpc.table.AllOrNoneSet all_or_none = 3;</code>
+   * @return Whether the allOrNone field is set.
    */
   public boolean hasAllOrNone() {
     return valueSetCase_ == 3;
   }
   /**
    * <code>optional .alluxio.grpc.table.AllOrNoneSet all_or_none = 3;</code>
+   * @return The allOrNone.
    */
   public alluxio.grpc.table.AllOrNoneSet getAllOrNone() {
     if (valueSetCase_ == 3) {
@@ -235,6 +252,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -244,6 +262,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (valueSetCase_ == 1) {
@@ -258,6 +277,7 @@ private static final long serialVersionUID = 0L;
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -290,28 +310,25 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.table.Domain other = (alluxio.grpc.table.Domain) obj;
 
-    boolean result = true;
-    result = result && getValueSetCase().equals(
-        other.getValueSetCase());
-    if (!result) return false;
+    if (!getValueSetCase().equals(other.getValueSetCase())) return false;
     switch (valueSetCase_) {
       case 1:
-        result = result && getRange()
-            .equals(other.getRange());
+        if (!getRange()
+            .equals(other.getRange())) return false;
         break;
       case 2:
-        result = result && getEquatable()
-            .equals(other.getEquatable());
+        if (!getEquatable()
+            .equals(other.getEquatable())) return false;
         break;
       case 3:
-        result = result && getAllOrNone()
-            .equals(other.getAllOrNone());
+        if (!getAllOrNone()
+            .equals(other.getAllOrNone())) return false;
         break;
       case 0:
       default:
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -412,6 +429,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -419,6 +437,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.table.Domain prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -442,6 +461,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Domain_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Domain_fieldAccessorTable
@@ -464,6 +484,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       valueSetCase_ = 0;
@@ -471,15 +492,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Domain_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.Domain getDefaultInstanceForType() {
       return alluxio.grpc.table.Domain.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.Domain build() {
       alluxio.grpc.table.Domain result = buildPartial();
       if (!result.isInitialized()) {
@@ -488,6 +512,7 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.Domain buildPartial() {
       alluxio.grpc.table.Domain result = new alluxio.grpc.table.Domain(this);
       int from_bitField0_ = bitField0_;
@@ -519,32 +544,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.table.Domain) {
         return mergeFrom((alluxio.grpc.table.Domain)other);
@@ -578,10 +610,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -620,12 +654,14 @@ private static final long serialVersionUID = 0L;
         alluxio.grpc.table.RangeSet, alluxio.grpc.table.RangeSet.Builder, alluxio.grpc.table.RangeSetOrBuilder> rangeBuilder_;
     /**
      * <code>optional .alluxio.grpc.table.RangeSet range = 1;</code>
+     * @return Whether the range field is set.
      */
     public boolean hasRange() {
       return valueSetCase_ == 1;
     }
     /**
      * <code>optional .alluxio.grpc.table.RangeSet range = 1;</code>
+     * @return The range.
      */
     public alluxio.grpc.table.RangeSet getRange() {
       if (rangeBuilder_ == null) {
@@ -756,12 +792,14 @@ private static final long serialVersionUID = 0L;
         alluxio.grpc.table.EquatableValueSet, alluxio.grpc.table.EquatableValueSet.Builder, alluxio.grpc.table.EquatableValueSetOrBuilder> equatableBuilder_;
     /**
      * <code>optional .alluxio.grpc.table.EquatableValueSet equatable = 2;</code>
+     * @return Whether the equatable field is set.
      */
     public boolean hasEquatable() {
       return valueSetCase_ == 2;
     }
     /**
      * <code>optional .alluxio.grpc.table.EquatableValueSet equatable = 2;</code>
+     * @return The equatable.
      */
     public alluxio.grpc.table.EquatableValueSet getEquatable() {
       if (equatableBuilder_ == null) {
@@ -892,12 +930,14 @@ private static final long serialVersionUID = 0L;
         alluxio.grpc.table.AllOrNoneSet, alluxio.grpc.table.AllOrNoneSet.Builder, alluxio.grpc.table.AllOrNoneSetOrBuilder> allOrNoneBuilder_;
     /**
      * <code>optional .alluxio.grpc.table.AllOrNoneSet all_or_none = 3;</code>
+     * @return Whether the allOrNone field is set.
      */
     public boolean hasAllOrNone() {
       return valueSetCase_ == 3;
     }
     /**
      * <code>optional .alluxio.grpc.table.AllOrNoneSet all_or_none = 3;</code>
+     * @return The allOrNone.
      */
     public alluxio.grpc.table.AllOrNoneSet getAllOrNone() {
       if (allOrNoneBuilder_ == null) {
@@ -1023,11 +1063,13 @@ private static final long serialVersionUID = 0L;
       onChanged();;
       return allOrNoneBuilder_;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1049,6 +1091,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<Domain>
       PARSER = new com.google.protobuf.AbstractParser<Domain>() {
+    @java.lang.Override
     public Domain parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1066,6 +1109,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.table.Domain getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

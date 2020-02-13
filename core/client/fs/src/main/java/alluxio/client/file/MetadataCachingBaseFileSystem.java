@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -110,18 +111,22 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
    */
   @VisibleForTesting
   public void asyncUpdateFileAccessTime(AlluxioURI path) {
-    mAccessTimeUpdater.submit(() -> {
-      try {
-        AlluxioConfiguration conf = mFsContext.getPathConf(path);
-        GetStatusPOptions getStatusOptions = FileSystemOptions.getStatusDefaults(conf).toBuilder()
-            .setAccessMode(Bits.READ)
-            .setUpdateTimestamps(true)
-            .build();
-        super.getStatus(path, getStatusOptions);
-      } catch (IOException | AlluxioException e) {
-        LOG.error("Failed to update access time for file " + path, e);
-      }
-    });
+    try {
+      mAccessTimeUpdater.submit(() -> {
+        try {
+          AlluxioConfiguration conf = mFsContext.getPathConf(path);
+          GetStatusPOptions getStatusOptions = FileSystemOptions.getStatusDefaults(conf).toBuilder()
+              .setAccessMode(Bits.READ)
+              .setUpdateTimestamps(true)
+              .build();
+          super.getStatus(path, getStatusOptions);
+        } catch (IOException | AlluxioException e) {
+          LOG.error("Failed to update access time for " + path, e);
+        }
+      });
+    } catch (RejectedExecutionException e) {
+      LOG.warn("Failed to submit a task to update access time for {}: {}", path, e.toString());
+    }
   }
 
   @Override

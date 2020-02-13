@@ -63,7 +63,8 @@ public final class EvictorUtils {
       } else {
         int dirIndex = location.dir();
         StorageDirView dirView = tierView.getDirView(dirIndex);
-        if (dirView.getCommittedBytes() + dirView.getAvailableBytes() >= bytesToBeAvailable
+        if (dirView != null
+            && dirView.getCommittedBytes() + dirView.getAvailableBytes() >= bytesToBeAvailable
             && dirView.getAvailableBytes() > maxFreeSize) {
           selectedDirView = dirView;
         }
@@ -107,7 +108,7 @@ public final class EvictorUtils {
     }
 
     StorageDirView dirView = tierView.getDirView(location.dir());
-    return (dirView.getAvailableBytes() >= bytesToBeAvailable) ? dirView : null;
+    return (dirView != null && dirView.getAvailableBytes() >= bytesToBeAvailable) ? dirView : null;
   }
 
   private EvictorUtils() {} // prevent instantiation

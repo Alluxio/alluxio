@@ -174,12 +174,6 @@ alluxio.user.file.writetype.default=CACHE_THROUGH
 </property>
 ```
 
-### 启用数据本地性
-
-建议将 Presto worker 与 Alluxio worker 同置部署，以便 Presto worker 可以在本地读取数据。
-在 Presto 中启用数据本地性的一个重要选项是`hive.force-local-scheduling`，该选项会强制在与提供数据分片的 Alluxio worker 相同的节点上调度数据分片。
-默认情况下，Presto 中的`hive.force-local-scheduling`为`false`，Presto 不会尝试在与 Alluxio worker 节点相同的机器上安排工作。
-
 ### 提高并行度
 
 Presto 的 Hive 集成使用[`hive.max-split-size`](https://teradata.github.io/presto/docs/141t/connector/hive.html)配置来控制查询的并行度。

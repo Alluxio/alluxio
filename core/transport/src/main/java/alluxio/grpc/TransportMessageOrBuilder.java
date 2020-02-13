@@ -9,10 +9,12 @@ public interface TransportMessageOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.messaging.MessagingRequestHeader requestHeader = 1;</code>
+   * @return Whether the requestHeader field is set.
    */
   boolean hasRequestHeader();
   /**
    * <code>optional .alluxio.grpc.messaging.MessagingRequestHeader requestHeader = 1;</code>
+   * @return The requestHeader.
    */
   alluxio.grpc.MessagingRequestHeader getRequestHeader();
   /**
@@ -22,10 +24,12 @@ public interface TransportMessageOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.messaging.MessagingResponseHeader responseHeader = 2;</code>
+   * @return Whether the responseHeader field is set.
    */
   boolean hasResponseHeader();
   /**
    * <code>optional .alluxio.grpc.messaging.MessagingResponseHeader responseHeader = 2;</code>
+   * @return The responseHeader.
    */
   alluxio.grpc.MessagingResponseHeader getResponseHeader();
   /**
@@ -35,10 +39,12 @@ public interface TransportMessageOrBuilder extends
 
   /**
    * <code>optional bytes message = 3;</code>
+   * @return Whether the message field is set.
    */
   boolean hasMessage();
   /**
    * <code>optional bytes message = 3;</code>
+   * @return The message.
    */
   com.google.protobuf.ByteString getMessage();
 }

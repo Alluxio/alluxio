@@ -16,9 +16,15 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private RegisterWorkerPRequest() {
-    workerId_ = 0L;
     storageTiers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     currentBlocks_ = java.util.Collections.emptyList();
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new RegisterWorkerPRequest();
   }
 
   @java.lang.Override
@@ -45,13 +51,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             bitField0_ |= 0x00000001;
             workerId_ = input.readInt64();
@@ -59,7 +58,7 @@ private static final long serialVersionUID = 0L;
           }
           case 18: {
             com.google.protobuf.ByteString bs = input.readBytes();
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
               storageTiers_ = new com.google.protobuf.LazyStringArrayList();
               mutable_bitField0_ |= 0x00000002;
             }
@@ -67,7 +66,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 26: {
-            if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+            if (!((mutable_bitField0_ & 0x00000004) != 0)) {
               totalBytesOnTiers_ = com.google.protobuf.MapField.newMapField(
                   TotalBytesOnTiersDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000004;
@@ -80,7 +79,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 34: {
-            if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+            if (!((mutable_bitField0_ & 0x00000008) != 0)) {
               usedBytesOnTiers_ = com.google.protobuf.MapField.newMapField(
                   UsedBytesOnTiersDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000008;
@@ -93,7 +92,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 42: {
-            if (!((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
+            if (!((mutable_bitField0_ & 0x00000010) != 0)) {
               currentBlocksOnTiers_ = com.google.protobuf.MapField.newMapField(
                   CurrentBlocksOnTiersDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000010;
@@ -107,7 +106,7 @@ private static final long serialVersionUID = 0L;
           }
           case 50: {
             alluxio.grpc.RegisterWorkerPOptions.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000002) == 0x00000002)) {
+            if (((bitField0_ & 0x00000002) != 0)) {
               subBuilder = options_.toBuilder();
             }
             options_ = input.readMessage(alluxio.grpc.RegisterWorkerPOptions.PARSER, extensionRegistry);
@@ -119,7 +118,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 58: {
-            if (!((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+            if (!((mutable_bitField0_ & 0x00000040) != 0)) {
               lostStorage_ = com.google.protobuf.MapField.newMapField(
                   LostStorageDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000040;
@@ -132,12 +131,19 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 66: {
-            if (!((mutable_bitField0_ & 0x00000080) == 0x00000080)) {
+            if (!((mutable_bitField0_ & 0x00000080) != 0)) {
               currentBlocks_ = new java.util.ArrayList<alluxio.grpc.LocationBlockIdListEntry>();
               mutable_bitField0_ |= 0x00000080;
             }
             currentBlocks_.add(
                 input.readMessage(alluxio.grpc.LocationBlockIdListEntry.PARSER, extensionRegistry));
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -148,10 +154,10 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((mutable_bitField0_ & 0x00000002) != 0)) {
         storageTiers_ = storageTiers_.getUnmodifiableView();
       }
-      if (((mutable_bitField0_ & 0x00000080) == 0x00000080)) {
+      if (((mutable_bitField0_ & 0x00000080) != 0)) {
         currentBlocks_ = java.util.Collections.unmodifiableList(currentBlocks_);
       }
       this.unknownFields = unknownFields.build();
@@ -164,6 +170,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @SuppressWarnings({"rawtypes"})
+  @java.lang.Override
   protected com.google.protobuf.MapField internalGetMapField(
       int number) {
     switch (number) {
@@ -180,6 +187,7 @@ private static final long serialVersionUID = 0L;
             "Invalid map field number: " + number);
     }
   }
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_RegisterWorkerPRequest_fieldAccessorTable
@@ -196,9 +204,10 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>optional int64 workerId = 1;</code>
+   * @return Whether the workerId field is set.
    */
   public boolean hasWorkerId() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <pre>
@@ -206,6 +215,7 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>optional int64 workerId = 1;</code>
+   * @return The workerId.
    */
   public long getWorkerId() {
     return workerId_;
@@ -219,6 +229,7 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>repeated string storageTiers = 2;</code>
+   * @return A list containing the storageTiers.
    */
   public com.google.protobuf.ProtocolStringList
       getStorageTiersList() {
@@ -230,6 +241,7 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>repeated string storageTiers = 2;</code>
+   * @return The count of storageTiers.
    */
   public int getStorageTiersCount() {
     return storageTiers_.size();
@@ -240,6 +252,8 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>repeated string storageTiers = 2;</code>
+   * @param index The index of the element to return.
+   * @return The storageTiers at the given index.
    */
   public java.lang.String getStorageTiers(int index) {
     return storageTiers_.get(index);
@@ -250,6 +264,8 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>repeated string storageTiers = 2;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the storageTiers at the given index.
    */
   public com.google.protobuf.ByteString
       getStorageTiersBytes(int index) {
@@ -536,12 +552,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.RegisterWorkerPOptions options_;
   /**
    * <code>optional .alluxio.grpc.block.RegisterWorkerPOptions options = 6;</code>
+   * @return Whether the options field is set.
    */
   public boolean hasOptions() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.block.RegisterWorkerPOptions options = 6;</code>
+   * @return The options.
    */
   public alluxio.grpc.RegisterWorkerPOptions getOptions() {
     return options_ == null ? alluxio.grpc.RegisterWorkerPOptions.getDefaultInstance() : options_;
@@ -701,6 +719,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -710,9 +729,10 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeInt64(1, workerId_);
     }
     for (int i = 0; i < storageTiers_.size(); i++) {
@@ -736,7 +756,7 @@ private static final long serialVersionUID = 0L;
         internalGetCurrentBlocksOnTiers(),
         CurrentBlocksOnTiersDefaultEntryHolder.defaultEntry,
         5);
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeMessage(6, getOptions());
     }
     com.google.protobuf.GeneratedMessageV3
@@ -751,12 +771,13 @@ private static final long serialVersionUID = 0L;
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(1, workerId_);
     }
@@ -798,7 +819,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(5, currentBlocksOnTiers__);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(6, getOptions());
     }
@@ -831,31 +852,30 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.RegisterWorkerPRequest other = (alluxio.grpc.RegisterWorkerPRequest) obj;
 
-    boolean result = true;
-    result = result && (hasWorkerId() == other.hasWorkerId());
+    if (hasWorkerId() != other.hasWorkerId()) return false;
     if (hasWorkerId()) {
-      result = result && (getWorkerId()
-          == other.getWorkerId());
+      if (getWorkerId()
+          != other.getWorkerId()) return false;
     }
-    result = result && getStorageTiersList()
-        .equals(other.getStorageTiersList());
-    result = result && internalGetTotalBytesOnTiers().equals(
-        other.internalGetTotalBytesOnTiers());
-    result = result && internalGetUsedBytesOnTiers().equals(
-        other.internalGetUsedBytesOnTiers());
-    result = result && internalGetCurrentBlocksOnTiers().equals(
-        other.internalGetCurrentBlocksOnTiers());
-    result = result && (hasOptions() == other.hasOptions());
+    if (!getStorageTiersList()
+        .equals(other.getStorageTiersList())) return false;
+    if (!internalGetTotalBytesOnTiers().equals(
+        other.internalGetTotalBytesOnTiers())) return false;
+    if (!internalGetUsedBytesOnTiers().equals(
+        other.internalGetUsedBytesOnTiers())) return false;
+    if (!internalGetCurrentBlocksOnTiers().equals(
+        other.internalGetCurrentBlocksOnTiers())) return false;
+    if (hasOptions() != other.hasOptions()) return false;
     if (hasOptions()) {
-      result = result && getOptions()
-          .equals(other.getOptions());
+      if (!getOptions()
+          .equals(other.getOptions())) return false;
     }
-    result = result && internalGetLostStorage().equals(
-        other.internalGetLostStorage());
-    result = result && getCurrentBlocksList()
-        .equals(other.getCurrentBlocksList());
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!internalGetLostStorage().equals(
+        other.internalGetLostStorage())) return false;
+    if (!getCurrentBlocksList()
+        .equals(other.getCurrentBlocksList())) return false;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -973,6 +993,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -980,6 +1001,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.RegisterWorkerPRequest prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -1037,6 +1059,7 @@ private static final long serialVersionUID = 0L;
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_RegisterWorkerPRequest_fieldAccessorTable
@@ -1061,6 +1084,7 @@ private static final long serialVersionUID = 0L;
         getCurrentBlocksFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       workerId_ = 0L;
@@ -1086,15 +1110,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_RegisterWorkerPRequest_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.RegisterWorkerPRequest getDefaultInstanceForType() {
       return alluxio.grpc.RegisterWorkerPRequest.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.RegisterWorkerPRequest build() {
       alluxio.grpc.RegisterWorkerPRequest result = buildPartial();
       if (!result.isInitialized()) {
@@ -1103,15 +1130,16 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.RegisterWorkerPRequest buildPartial() {
       alluxio.grpc.RegisterWorkerPRequest result = new alluxio.grpc.RegisterWorkerPRequest(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        result.workerId_ = workerId_;
         to_bitField0_ |= 0x00000001;
       }
-      result.workerId_ = workerId_;
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         storageTiers_ = storageTiers_.getUnmodifiableView();
         bitField0_ = (bitField0_ & ~0x00000002);
       }
@@ -1122,18 +1150,18 @@ private static final long serialVersionUID = 0L;
       result.usedBytesOnTiers_.makeImmutable();
       result.currentBlocksOnTiers_ = internalGetCurrentBlocksOnTiers();
       result.currentBlocksOnTiers_.makeImmutable();
-      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((from_bitField0_ & 0x00000020) != 0)) {
+        if (optionsBuilder_ == null) {
+          result.options_ = options_;
+        } else {
+          result.options_ = optionsBuilder_.build();
+        }
         to_bitField0_ |= 0x00000002;
-      }
-      if (optionsBuilder_ == null) {
-        result.options_ = options_;
-      } else {
-        result.options_ = optionsBuilder_.build();
       }
       result.lostStorage_ = internalGetLostStorage();
       result.lostStorage_.makeImmutable();
       if (currentBlocksBuilder_ == null) {
-        if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        if (((bitField0_ & 0x00000080) != 0)) {
           currentBlocks_ = java.util.Collections.unmodifiableList(currentBlocks_);
           bitField0_ = (bitField0_ & ~0x00000080);
         }
@@ -1146,32 +1174,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.RegisterWorkerPRequest) {
         return mergeFrom((alluxio.grpc.RegisterWorkerPRequest)other);
@@ -1238,10 +1273,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1268,9 +1305,10 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional int64 workerId = 1;</code>
+     * @return Whether the workerId field is set.
      */
     public boolean hasWorkerId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <pre>
@@ -1278,6 +1316,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional int64 workerId = 1;</code>
+     * @return The workerId.
      */
     public long getWorkerId() {
       return workerId_;
@@ -1288,6 +1327,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional int64 workerId = 1;</code>
+     * @param value The workerId to set.
+     * @return This builder for chaining.
      */
     public Builder setWorkerId(long value) {
       bitField0_ |= 0x00000001;
@@ -1301,6 +1342,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional int64 workerId = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearWorkerId() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -1311,7 +1353,7 @@ private static final long serialVersionUID = 0L;
 
     private com.google.protobuf.LazyStringList storageTiers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     private void ensureStorageTiersIsMutable() {
-      if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!((bitField0_ & 0x00000002) != 0)) {
         storageTiers_ = new com.google.protobuf.LazyStringArrayList(storageTiers_);
         bitField0_ |= 0x00000002;
        }
@@ -1322,6 +1364,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string storageTiers = 2;</code>
+     * @return A list containing the storageTiers.
      */
     public com.google.protobuf.ProtocolStringList
         getStorageTiersList() {
@@ -1333,6 +1376,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string storageTiers = 2;</code>
+     * @return The count of storageTiers.
      */
     public int getStorageTiersCount() {
       return storageTiers_.size();
@@ -1343,6 +1387,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string storageTiers = 2;</code>
+     * @param index The index of the element to return.
+     * @return The storageTiers at the given index.
      */
     public java.lang.String getStorageTiers(int index) {
       return storageTiers_.get(index);
@@ -1353,6 +1399,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string storageTiers = 2;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the storageTiers at the given index.
      */
     public com.google.protobuf.ByteString
         getStorageTiersBytes(int index) {
@@ -1364,6 +1412,9 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string storageTiers = 2;</code>
+     * @param index The index to set the value at.
+     * @param value The storageTiers to set.
+     * @return This builder for chaining.
      */
     public Builder setStorageTiers(
         int index, java.lang.String value) {
@@ -1381,6 +1432,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string storageTiers = 2;</code>
+     * @param value The storageTiers to add.
+     * @return This builder for chaining.
      */
     public Builder addStorageTiers(
         java.lang.String value) {
@@ -1398,6 +1451,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string storageTiers = 2;</code>
+     * @param values The storageTiers to add.
+     * @return This builder for chaining.
      */
     public Builder addAllStorageTiers(
         java.lang.Iterable<java.lang.String> values) {
@@ -1413,6 +1468,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string storageTiers = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearStorageTiers() {
       storageTiers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
@@ -1426,6 +1482,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string storageTiers = 2;</code>
+     * @param value The bytes of the storageTiers to add.
+     * @return This builder for chaining.
      */
     public Builder addStorageTiersBytes(
         com.google.protobuf.ByteString value) {
@@ -1891,17 +1949,19 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private alluxio.grpc.RegisterWorkerPOptions options_ = null;
+    private alluxio.grpc.RegisterWorkerPOptions options_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.RegisterWorkerPOptions, alluxio.grpc.RegisterWorkerPOptions.Builder, alluxio.grpc.RegisterWorkerPOptionsOrBuilder> optionsBuilder_;
     /**
      * <code>optional .alluxio.grpc.block.RegisterWorkerPOptions options = 6;</code>
+     * @return Whether the options field is set.
      */
     public boolean hasOptions() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000020) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.block.RegisterWorkerPOptions options = 6;</code>
+     * @return The options.
      */
     public alluxio.grpc.RegisterWorkerPOptions getOptions() {
       if (optionsBuilder_ == null) {
@@ -1945,7 +2005,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeOptions(alluxio.grpc.RegisterWorkerPOptions value) {
       if (optionsBuilder_ == null) {
-        if (((bitField0_ & 0x00000020) == 0x00000020) &&
+        if (((bitField0_ & 0x00000020) != 0) &&
             options_ != null &&
             options_ != alluxio.grpc.RegisterWorkerPOptions.getDefaultInstance()) {
           options_ =
@@ -2163,7 +2223,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<alluxio.grpc.LocationBlockIdListEntry> currentBlocks_ =
       java.util.Collections.emptyList();
     private void ensureCurrentBlocksIsMutable() {
-      if (!((bitField0_ & 0x00000080) == 0x00000080)) {
+      if (!((bitField0_ & 0x00000080) != 0)) {
         currentBlocks_ = new java.util.ArrayList<alluxio.grpc.LocationBlockIdListEntry>(currentBlocks_);
         bitField0_ |= 0x00000080;
        }
@@ -2464,18 +2524,20 @@ private static final long serialVersionUID = 0L;
         currentBlocksBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.LocationBlockIdListEntry, alluxio.grpc.LocationBlockIdListEntry.Builder, alluxio.grpc.LocationBlockIdListEntryOrBuilder>(
                 currentBlocks_,
-                ((bitField0_ & 0x00000080) == 0x00000080),
+                ((bitField0_ & 0x00000080) != 0),
                 getParentForChildren(),
                 isClean());
         currentBlocks_ = null;
       }
       return currentBlocksBuilder_;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -2497,6 +2559,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<RegisterWorkerPRequest>
       PARSER = new com.google.protobuf.AbstractParser<RegisterWorkerPRequest>() {
+    @java.lang.Override
     public RegisterWorkerPRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2514,6 +2577,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.RegisterWorkerPRequest getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

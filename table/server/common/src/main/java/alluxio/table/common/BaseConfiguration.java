@@ -54,4 +54,11 @@ public abstract class BaseConfiguration<T extends BaseProperty> {
     }
     return value;
   }
+
+  /**
+   * @return the full map of the configuration
+   */
+  public Map<String, String> getMap() {
+    return mValues;
+  }
 }

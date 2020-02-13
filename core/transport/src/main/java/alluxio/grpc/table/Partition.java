@@ -4,6 +4,10 @@
 package alluxio.grpc.table;
 
 /**
+ * <pre>
+ * next available id: 6
+ * </pre>
+ *
  * Protobuf type {@code alluxio.grpc.table.Partition}
  */
 public  final class Partition extends
@@ -17,6 +21,13 @@ private static final long serialVersionUID = 0L;
   }
   private Partition() {
     transformations_ = java.util.Collections.emptyList();
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new Partition();
   }
 
   @java.lang.Override
@@ -43,16 +54,9 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             alluxio.grpc.table.PartitionSpec.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000001) == 0x00000001)) {
+            if (((bitField0_ & 0x00000001) != 0)) {
               subBuilder = partitionSpec_.toBuilder();
             }
             partitionSpec_ = input.readMessage(alluxio.grpc.table.PartitionSpec.PARSER, extensionRegistry);
@@ -65,7 +69,7 @@ private static final long serialVersionUID = 0L;
           }
           case 18: {
             alluxio.grpc.table.Layout.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000002) == 0x00000002)) {
+            if (((bitField0_ & 0x00000002) != 0)) {
               subBuilder = baseLayout_.toBuilder();
             }
             baseLayout_ = input.readMessage(alluxio.grpc.table.Layout.PARSER, extensionRegistry);
@@ -77,12 +81,29 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 26: {
-            if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+            if (!((mutable_bitField0_ & 0x00000004) != 0)) {
               transformations_ = new java.util.ArrayList<alluxio.grpc.table.Transformation>();
               mutable_bitField0_ |= 0x00000004;
             }
             transformations_.add(
                 input.readMessage(alluxio.grpc.table.Transformation.PARSER, extensionRegistry));
+            break;
+          }
+          case 32: {
+            bitField0_ |= 0x00000004;
+            version_ = input.readInt64();
+            break;
+          }
+          case 40: {
+            bitField0_ |= 0x00000008;
+            versionCreationTime_ = input.readInt64();
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -93,7 +114,7 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((mutable_bitField0_ & 0x00000004) != 0)) {
         transformations_ = java.util.Collections.unmodifiableList(transformations_);
       }
       this.unknownFields = unknownFields.build();
@@ -105,6 +126,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Partition_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Partition_fieldAccessorTable
@@ -117,12 +139,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.table.PartitionSpec partitionSpec_;
   /**
    * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
+   * @return Whether the partitionSpec field is set.
    */
   public boolean hasPartitionSpec() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
+   * @return The partitionSpec.
    */
   public alluxio.grpc.table.PartitionSpec getPartitionSpec() {
     return partitionSpec_ == null ? alluxio.grpc.table.PartitionSpec.getDefaultInstance() : partitionSpec_;
@@ -138,12 +162,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.table.Layout baseLayout_;
   /**
    * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
+   * @return Whether the baseLayout field is set.
    */
   public boolean hasBaseLayout() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
+   * @return The baseLayout.
    */
   public alluxio.grpc.table.Layout getBaseLayout() {
     return baseLayout_ == null ? alluxio.grpc.table.Layout.getDefaultInstance() : baseLayout_;
@@ -215,7 +241,42 @@ private static final long serialVersionUID = 0L;
     return transformations_.get(index);
   }
 
+  public static final int VERSION_FIELD_NUMBER = 4;
+  private long version_;
+  /**
+   * <code>optional int64 version = 4;</code>
+   * @return Whether the version field is set.
+   */
+  public boolean hasVersion() {
+    return ((bitField0_ & 0x00000004) != 0);
+  }
+  /**
+   * <code>optional int64 version = 4;</code>
+   * @return The version.
+   */
+  public long getVersion() {
+    return version_;
+  }
+
+  public static final int VERSION_CREATION_TIME_FIELD_NUMBER = 5;
+  private long versionCreationTime_;
+  /**
+   * <code>optional int64 version_creation_time = 5;</code>
+   * @return Whether the versionCreationTime field is set.
+   */
+  public boolean hasVersionCreationTime() {
+    return ((bitField0_ & 0x00000008) != 0);
+  }
+  /**
+   * <code>optional int64 version_creation_time = 5;</code>
+   * @return The versionCreationTime.
+   */
+  public long getVersionCreationTime() {
+    return versionCreationTime_;
+  }
+
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -237,36 +298,52 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeMessage(1, getPartitionSpec());
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeMessage(2, getBaseLayout());
     }
     for (int i = 0; i < transformations_.size(); i++) {
       output.writeMessage(3, transformations_.get(i));
     }
+    if (((bitField0_ & 0x00000004) != 0)) {
+      output.writeInt64(4, version_);
+    }
+    if (((bitField0_ & 0x00000008) != 0)) {
+      output.writeInt64(5, versionCreationTime_);
+    }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(1, getPartitionSpec());
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(2, getBaseLayout());
     }
     for (int i = 0; i < transformations_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(3, transformations_.get(i));
+    }
+    if (((bitField0_ & 0x00000004) != 0)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(4, version_);
+    }
+    if (((bitField0_ & 0x00000008) != 0)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt64Size(5, versionCreationTime_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -283,21 +360,30 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.table.Partition other = (alluxio.grpc.table.Partition) obj;
 
-    boolean result = true;
-    result = result && (hasPartitionSpec() == other.hasPartitionSpec());
+    if (hasPartitionSpec() != other.hasPartitionSpec()) return false;
     if (hasPartitionSpec()) {
-      result = result && getPartitionSpec()
-          .equals(other.getPartitionSpec());
+      if (!getPartitionSpec()
+          .equals(other.getPartitionSpec())) return false;
     }
-    result = result && (hasBaseLayout() == other.hasBaseLayout());
+    if (hasBaseLayout() != other.hasBaseLayout()) return false;
     if (hasBaseLayout()) {
-      result = result && getBaseLayout()
-          .equals(other.getBaseLayout());
+      if (!getBaseLayout()
+          .equals(other.getBaseLayout())) return false;
     }
-    result = result && getTransformationsList()
-        .equals(other.getTransformationsList());
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!getTransformationsList()
+        .equals(other.getTransformationsList())) return false;
+    if (hasVersion() != other.hasVersion()) return false;
+    if (hasVersion()) {
+      if (getVersion()
+          != other.getVersion()) return false;
+    }
+    if (hasVersionCreationTime() != other.hasVersionCreationTime()) return false;
+    if (hasVersionCreationTime()) {
+      if (getVersionCreationTime()
+          != other.getVersionCreationTime()) return false;
+    }
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -318,6 +404,16 @@ private static final long serialVersionUID = 0L;
     if (getTransformationsCount() > 0) {
       hash = (37 * hash) + TRANSFORMATIONS_FIELD_NUMBER;
       hash = (53 * hash) + getTransformationsList().hashCode();
+    }
+    if (hasVersion()) {
+      hash = (37 * hash) + VERSION_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getVersion());
+    }
+    if (hasVersionCreationTime()) {
+      hash = (37 * hash) + VERSION_CREATION_TIME_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getVersionCreationTime());
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -394,6 +490,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -401,6 +498,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.table.Partition prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -413,6 +511,10 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   * next available id: 6
+   * </pre>
+   *
    * Protobuf type {@code alluxio.grpc.table.Partition}
    */
   public static final class Builder extends
@@ -424,6 +526,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Partition_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Partition_fieldAccessorTable
@@ -449,6 +552,7 @@ private static final long serialVersionUID = 0L;
         getTransformationsFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       if (partitionSpecBuilder_ == null) {
@@ -469,18 +573,25 @@ private static final long serialVersionUID = 0L;
       } else {
         transformationsBuilder_.clear();
       }
+      version_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000008);
+      versionCreationTime_ = 0L;
+      bitField0_ = (bitField0_ & ~0x00000010);
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Partition_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.Partition getDefaultInstanceForType() {
       return alluxio.grpc.table.Partition.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.Partition build() {
       alluxio.grpc.table.Partition result = buildPartial();
       if (!result.isInitialized()) {
@@ -489,28 +600,29 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.Partition buildPartial() {
       alluxio.grpc.table.Partition result = new alluxio.grpc.table.Partition(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        if (partitionSpecBuilder_ == null) {
+          result.partitionSpec_ = partitionSpec_;
+        } else {
+          result.partitionSpec_ = partitionSpecBuilder_.build();
+        }
         to_bitField0_ |= 0x00000001;
       }
-      if (partitionSpecBuilder_ == null) {
-        result.partitionSpec_ = partitionSpec_;
-      } else {
-        result.partitionSpec_ = partitionSpecBuilder_.build();
-      }
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
+        if (baseLayoutBuilder_ == null) {
+          result.baseLayout_ = baseLayout_;
+        } else {
+          result.baseLayout_ = baseLayoutBuilder_.build();
+        }
         to_bitField0_ |= 0x00000002;
       }
-      if (baseLayoutBuilder_ == null) {
-        result.baseLayout_ = baseLayout_;
-      } else {
-        result.baseLayout_ = baseLayoutBuilder_.build();
-      }
       if (transformationsBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((bitField0_ & 0x00000004) != 0)) {
           transformations_ = java.util.Collections.unmodifiableList(transformations_);
           bitField0_ = (bitField0_ & ~0x00000004);
         }
@@ -518,37 +630,52 @@ private static final long serialVersionUID = 0L;
       } else {
         result.transformations_ = transformationsBuilder_.build();
       }
+      if (((from_bitField0_ & 0x00000008) != 0)) {
+        result.version_ = version_;
+        to_bitField0_ |= 0x00000004;
+      }
+      if (((from_bitField0_ & 0x00000010) != 0)) {
+        result.versionCreationTime_ = versionCreationTime_;
+        to_bitField0_ |= 0x00000008;
+      }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.table.Partition) {
         return mergeFrom((alluxio.grpc.table.Partition)other);
@@ -592,11 +719,18 @@ private static final long serialVersionUID = 0L;
           }
         }
       }
+      if (other.hasVersion()) {
+        setVersion(other.getVersion());
+      }
+      if (other.hasVersionCreationTime()) {
+        setVersionCreationTime(other.getVersionCreationTime());
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       if (hasBaseLayout()) {
         if (!getBaseLayout().isInitialized()) {
@@ -611,6 +745,7 @@ private static final long serialVersionUID = 0L;
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -630,17 +765,19 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private alluxio.grpc.table.PartitionSpec partitionSpec_ = null;
+    private alluxio.grpc.table.PartitionSpec partitionSpec_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.PartitionSpec, alluxio.grpc.table.PartitionSpec.Builder, alluxio.grpc.table.PartitionSpecOrBuilder> partitionSpecBuilder_;
     /**
      * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
+     * @return Whether the partitionSpec field is set.
      */
     public boolean hasPartitionSpec() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.table.PartitionSpec partition_spec = 1;</code>
+     * @return The partitionSpec.
      */
     public alluxio.grpc.table.PartitionSpec getPartitionSpec() {
       if (partitionSpecBuilder_ == null) {
@@ -684,7 +821,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergePartitionSpec(alluxio.grpc.table.PartitionSpec value) {
       if (partitionSpecBuilder_ == null) {
-        if (((bitField0_ & 0x00000001) == 0x00000001) &&
+        if (((bitField0_ & 0x00000001) != 0) &&
             partitionSpec_ != null &&
             partitionSpec_ != alluxio.grpc.table.PartitionSpec.getDefaultInstance()) {
           partitionSpec_ =
@@ -748,17 +885,19 @@ private static final long serialVersionUID = 0L;
       return partitionSpecBuilder_;
     }
 
-    private alluxio.grpc.table.Layout baseLayout_ = null;
+    private alluxio.grpc.table.Layout baseLayout_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.table.Layout, alluxio.grpc.table.Layout.Builder, alluxio.grpc.table.LayoutOrBuilder> baseLayoutBuilder_;
     /**
      * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
+     * @return Whether the baseLayout field is set.
      */
     public boolean hasBaseLayout() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.table.Layout base_layout = 2;</code>
+     * @return The baseLayout.
      */
     public alluxio.grpc.table.Layout getBaseLayout() {
       if (baseLayoutBuilder_ == null) {
@@ -802,7 +941,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeBaseLayout(alluxio.grpc.table.Layout value) {
       if (baseLayoutBuilder_ == null) {
-        if (((bitField0_ & 0x00000002) == 0x00000002) &&
+        if (((bitField0_ & 0x00000002) != 0) &&
             baseLayout_ != null &&
             baseLayout_ != alluxio.grpc.table.Layout.getDefaultInstance()) {
           baseLayout_ =
@@ -869,7 +1008,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<alluxio.grpc.table.Transformation> transformations_ =
       java.util.Collections.emptyList();
     private void ensureTransformationsIsMutable() {
-      if (!((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (!((bitField0_ & 0x00000004) != 0)) {
         transformations_ = new java.util.ArrayList<alluxio.grpc.table.Transformation>(transformations_);
         bitField0_ |= 0x00000004;
        }
@@ -1188,18 +1327,94 @@ private static final long serialVersionUID = 0L;
         transformationsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.table.Transformation, alluxio.grpc.table.Transformation.Builder, alluxio.grpc.table.TransformationOrBuilder>(
                 transformations_,
-                ((bitField0_ & 0x00000004) == 0x00000004),
+                ((bitField0_ & 0x00000004) != 0),
                 getParentForChildren(),
                 isClean());
         transformations_ = null;
       }
       return transformationsBuilder_;
     }
+
+    private long version_ ;
+    /**
+     * <code>optional int64 version = 4;</code>
+     * @return Whether the version field is set.
+     */
+    public boolean hasVersion() {
+      return ((bitField0_ & 0x00000008) != 0);
+    }
+    /**
+     * <code>optional int64 version = 4;</code>
+     * @return The version.
+     */
+    public long getVersion() {
+      return version_;
+    }
+    /**
+     * <code>optional int64 version = 4;</code>
+     * @param value The version to set.
+     * @return This builder for chaining.
+     */
+    public Builder setVersion(long value) {
+      bitField0_ |= 0x00000008;
+      version_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 version = 4;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearVersion() {
+      bitField0_ = (bitField0_ & ~0x00000008);
+      version_ = 0L;
+      onChanged();
+      return this;
+    }
+
+    private long versionCreationTime_ ;
+    /**
+     * <code>optional int64 version_creation_time = 5;</code>
+     * @return Whether the versionCreationTime field is set.
+     */
+    public boolean hasVersionCreationTime() {
+      return ((bitField0_ & 0x00000010) != 0);
+    }
+    /**
+     * <code>optional int64 version_creation_time = 5;</code>
+     * @return The versionCreationTime.
+     */
+    public long getVersionCreationTime() {
+      return versionCreationTime_;
+    }
+    /**
+     * <code>optional int64 version_creation_time = 5;</code>
+     * @param value The versionCreationTime to set.
+     * @return This builder for chaining.
+     */
+    public Builder setVersionCreationTime(long value) {
+      bitField0_ |= 0x00000010;
+      versionCreationTime_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional int64 version_creation_time = 5;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearVersionCreationTime() {
+      bitField0_ = (bitField0_ & ~0x00000010);
+      versionCreationTime_ = 0L;
+      onChanged();
+      return this;
+    }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1221,6 +1436,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<Partition>
       PARSER = new com.google.protobuf.AbstractParser<Partition>() {
+    @java.lang.Override
     public Partition parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1238,6 +1454,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.table.Partition getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

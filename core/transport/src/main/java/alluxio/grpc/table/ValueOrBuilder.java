@@ -9,42 +9,51 @@ public interface ValueOrBuilder extends
 
   /**
    * <code>optional int64 long_type = 1;</code>
+   * @return Whether the longType field is set.
    */
   boolean hasLongType();
   /**
    * <code>optional int64 long_type = 1;</code>
+   * @return The longType.
    */
   long getLongType();
 
   /**
    * <code>optional double double_type = 2;</code>
+   * @return Whether the doubleType field is set.
    */
   boolean hasDoubleType();
   /**
    * <code>optional double double_type = 2;</code>
+   * @return The doubleType.
    */
   double getDoubleType();
 
   /**
    * <code>optional string string_type = 3;</code>
+   * @return Whether the stringType field is set.
    */
   boolean hasStringType();
   /**
    * <code>optional string string_type = 3;</code>
+   * @return The stringType.
    */
   java.lang.String getStringType();
   /**
    * <code>optional string string_type = 3;</code>
+   * @return The bytes for stringType.
    */
   com.google.protobuf.ByteString
       getStringTypeBytes();
 
   /**
    * <code>optional bool boolean_type = 4;</code>
+   * @return Whether the booleanType field is set.
    */
   boolean hasBooleanType();
   /**
    * <code>optional bool boolean_type = 4;</code>
+   * @return The booleanType.
    */
   boolean getBooleanType();
 

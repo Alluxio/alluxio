@@ -13,6 +13,7 @@ public interface GetBlockInfoPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 blockId = 1;</code>
+   * @return Whether the blockId field is set.
    */
   boolean hasBlockId();
   /**
@@ -21,15 +22,18 @@ public interface GetBlockInfoPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 blockId = 1;</code>
+   * @return The blockId.
    */
   long getBlockId();
 
   /**
    * <code>optional .alluxio.grpc.block.GetBlockInfoPOptions options = 2;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.block.GetBlockInfoPOptions options = 2;</code>
+   * @return The options.
    */
   alluxio.grpc.GetBlockInfoPOptions getOptions();
   /**

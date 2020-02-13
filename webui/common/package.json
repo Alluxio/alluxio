@@ -8,6 +8,7 @@
     "@fortawesome/free-regular-svg-icons": "5.7.2",
     "@fortawesome/free-solid-svg-icons": "5.7.2",
     "@fortawesome/react-fontawesome": "0.1.4",
+    "@openfonts/anonymous-pro_all": "^1.44.0",
     "bootstrap": "4.3.1",
     "bootswatch": "4.3.1",
     "jquery": "1.9.1",
@@ -17,7 +18,6 @@
     "react-router-dom": "4.3.1",
     "react-scripts": "2.1.5",
     "reactstrap": "7.1.0",
-    "source-code-pro": "^2.30.1",
     "source-sans-pro": "^2.45.0",
     "source-serif-pro": "^2.10.0"
   },

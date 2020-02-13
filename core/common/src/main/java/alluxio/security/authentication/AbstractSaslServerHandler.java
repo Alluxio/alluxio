@@ -11,6 +11,10 @@
 
 package alluxio.security.authentication;
 
+import alluxio.grpc.SaslMessage;
+import alluxio.grpc.SaslMessageType;
+
+import com.google.protobuf.ByteString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,8 +31,24 @@ public abstract class AbstractSaslServerHandler implements SaslServerHandler {
   protected SaslServer mSaslServer;
 
   @Override
-  public SaslServer getSaslServer() {
-    return mSaslServer;
+  public SaslMessage handleMessage(SaslMessage message) throws SaslException {
+    switch (message.getMessageType()) {
+      case CHALLENGE:
+        byte[] saslResponse = mSaslServer.evaluateResponse(message.getMessage().toByteArray());
+        SaslMessage.Builder response = SaslMessage.newBuilder();
+        if (mSaslServer.isComplete()) {
+          response.setMessageType(SaslMessageType.SUCCESS);
+        } else {
+          response.setMessageType(SaslMessageType.CHALLENGE);
+        }
+        if (saslResponse != null) {
+          response.setMessage(ByteString.copyFrom(saslResponse));
+        }
+        return response.build();
+      default:
+        throw new SaslException(
+            "Server can't process Sasl message type:" + message.getMessageType().name());
+    }
   }
 
   @Override

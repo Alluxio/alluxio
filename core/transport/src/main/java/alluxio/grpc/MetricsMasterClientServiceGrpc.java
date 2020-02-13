@@ -22,7 +22,7 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.17.1)",
+    value = "by gRPC proto compiler (version 1.27.0)",
     comments = "Source: grpc/metric_master.proto")
 public final class MetricsMasterClientServiceGrpc {
 
@@ -45,22 +45,21 @@ public final class MetricsMasterClientServiceGrpc {
     if ((getClearMetricsMethod = MetricsMasterClientServiceGrpc.getClearMetricsMethod) == null) {
       synchronized (MetricsMasterClientServiceGrpc.class) {
         if ((getClearMetricsMethod = MetricsMasterClientServiceGrpc.getClearMetricsMethod) == null) {
-          MetricsMasterClientServiceGrpc.getClearMetricsMethod = getClearMetricsMethod = 
+          MetricsMasterClientServiceGrpc.getClearMetricsMethod = getClearMetricsMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.ClearMetricsPRequest, alluxio.grpc.ClearMetricsPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.metric.MetricsMasterClientService", "ClearMetrics"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ClearMetrics"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.ClearMetricsPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.ClearMetricsPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new MetricsMasterClientServiceMethodDescriptorSupplier("ClearMetrics"))
-                  .build();
-          }
+              .setSchemaDescriptor(new MetricsMasterClientServiceMethodDescriptorSupplier("ClearMetrics"))
+              .build();
         }
-     }
-     return getClearMetricsMethod;
+      }
+    }
+    return getClearMetricsMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.MetricsHeartbeatPRequest,
@@ -77,29 +76,66 @@ public final class MetricsMasterClientServiceGrpc {
     if ((getMetricsHeartbeatMethod = MetricsMasterClientServiceGrpc.getMetricsHeartbeatMethod) == null) {
       synchronized (MetricsMasterClientServiceGrpc.class) {
         if ((getMetricsHeartbeatMethod = MetricsMasterClientServiceGrpc.getMetricsHeartbeatMethod) == null) {
-          MetricsMasterClientServiceGrpc.getMetricsHeartbeatMethod = getMetricsHeartbeatMethod = 
+          MetricsMasterClientServiceGrpc.getMetricsHeartbeatMethod = getMetricsHeartbeatMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.MetricsHeartbeatPRequest, alluxio.grpc.MetricsHeartbeatPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.metric.MetricsMasterClientService", "MetricsHeartbeat"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "MetricsHeartbeat"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.MetricsHeartbeatPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.MetricsHeartbeatPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new MetricsMasterClientServiceMethodDescriptorSupplier("MetricsHeartbeat"))
-                  .build();
-          }
+              .setSchemaDescriptor(new MetricsMasterClientServiceMethodDescriptorSupplier("MetricsHeartbeat"))
+              .build();
         }
-     }
-     return getMetricsHeartbeatMethod;
+      }
+    }
+    return getMetricsHeartbeatMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetMetricsPOptions,
+      alluxio.grpc.GetMetricsPResponse> getGetMetricsMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetMetrics",
+      requestType = alluxio.grpc.GetMetricsPOptions.class,
+      responseType = alluxio.grpc.GetMetricsPResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<alluxio.grpc.GetMetricsPOptions,
+      alluxio.grpc.GetMetricsPResponse> getGetMetricsMethod() {
+    io.grpc.MethodDescriptor<alluxio.grpc.GetMetricsPOptions, alluxio.grpc.GetMetricsPResponse> getGetMetricsMethod;
+    if ((getGetMetricsMethod = MetricsMasterClientServiceGrpc.getGetMetricsMethod) == null) {
+      synchronized (MetricsMasterClientServiceGrpc.class) {
+        if ((getGetMetricsMethod = MetricsMasterClientServiceGrpc.getGetMetricsMethod) == null) {
+          MetricsMasterClientServiceGrpc.getGetMetricsMethod = getGetMetricsMethod =
+              io.grpc.MethodDescriptor.<alluxio.grpc.GetMetricsPOptions, alluxio.grpc.GetMetricsPResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetMetrics"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetMetricsPOptions.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  alluxio.grpc.GetMetricsPResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new MetricsMasterClientServiceMethodDescriptorSupplier("GetMetrics"))
+              .build();
+        }
+      }
+    }
+    return getGetMetricsMethod;
   }
 
   /**
    * Creates a new async stub that supports all call types for the service
    */
   public static MetricsMasterClientServiceStub newStub(io.grpc.Channel channel) {
-    return new MetricsMasterClientServiceStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<MetricsMasterClientServiceStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<MetricsMasterClientServiceStub>() {
+        @java.lang.Override
+        public MetricsMasterClientServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new MetricsMasterClientServiceStub(channel, callOptions);
+        }
+      };
+    return MetricsMasterClientServiceStub.newStub(factory, channel);
   }
 
   /**
@@ -107,7 +143,14 @@ public final class MetricsMasterClientServiceGrpc {
    */
   public static MetricsMasterClientServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new MetricsMasterClientServiceBlockingStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<MetricsMasterClientServiceBlockingStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<MetricsMasterClientServiceBlockingStub>() {
+        @java.lang.Override
+        public MetricsMasterClientServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new MetricsMasterClientServiceBlockingStub(channel, callOptions);
+        }
+      };
+    return MetricsMasterClientServiceBlockingStub.newStub(factory, channel);
   }
 
   /**
@@ -115,7 +158,14 @@ public final class MetricsMasterClientServiceGrpc {
    */
   public static MetricsMasterClientServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new MetricsMasterClientServiceFutureStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<MetricsMasterClientServiceFutureStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<MetricsMasterClientServiceFutureStub>() {
+        @java.lang.Override
+        public MetricsMasterClientServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new MetricsMasterClientServiceFutureStub(channel, callOptions);
+        }
+      };
+    return MetricsMasterClientServiceFutureStub.newStub(factory, channel);
   }
 
   /**
@@ -148,6 +198,17 @@ public final class MetricsMasterClientServiceGrpc {
       asyncUnimplementedUnaryCall(getMetricsHeartbeatMethod(), responseObserver);
     }
 
+    /**
+     * <pre>
+     **
+     * Returns a map of metrics property names and their values from Alluxio metrics system.
+     * </pre>
+     */
+    public void getMetrics(alluxio.grpc.GetMetricsPOptions request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetMetricsPResponse> responseObserver) {
+      asyncUnimplementedUnaryCall(getGetMetricsMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -164,6 +225,13 @@ public final class MetricsMasterClientServiceGrpc {
                 alluxio.grpc.MetricsHeartbeatPRequest,
                 alluxio.grpc.MetricsHeartbeatPResponse>(
                   this, METHODID_METRICS_HEARTBEAT)))
+          .addMethod(
+            getGetMetricsMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                alluxio.grpc.GetMetricsPOptions,
+                alluxio.grpc.GetMetricsPResponse>(
+                  this, METHODID_GET_METRICS)))
           .build();
     }
   }
@@ -174,19 +242,15 @@ public final class MetricsMasterClientServiceGrpc {
    * This interface contains metrics master service endpoints for Alluxio clients.
    * </pre>
    */
-  public static final class MetricsMasterClientServiceStub extends io.grpc.stub.AbstractStub<MetricsMasterClientServiceStub> {
-    private MetricsMasterClientServiceStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private MetricsMasterClientServiceStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class MetricsMasterClientServiceStub extends io.grpc.stub.AbstractAsyncStub<MetricsMasterClientServiceStub> {
+    private MetricsMasterClientServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected MetricsMasterClientServiceStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected MetricsMasterClientServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MetricsMasterClientServiceStub(channel, callOptions);
     }
 
@@ -213,6 +277,18 @@ public final class MetricsMasterClientServiceGrpc {
       asyncUnaryCall(
           getChannel().newCall(getMetricsHeartbeatMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     **
+     * Returns a map of metrics property names and their values from Alluxio metrics system.
+     * </pre>
+     */
+    public void getMetrics(alluxio.grpc.GetMetricsPOptions request,
+        io.grpc.stub.StreamObserver<alluxio.grpc.GetMetricsPResponse> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getGetMetricsMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -221,19 +297,15 @@ public final class MetricsMasterClientServiceGrpc {
    * This interface contains metrics master service endpoints for Alluxio clients.
    * </pre>
    */
-  public static final class MetricsMasterClientServiceBlockingStub extends io.grpc.stub.AbstractStub<MetricsMasterClientServiceBlockingStub> {
-    private MetricsMasterClientServiceBlockingStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private MetricsMasterClientServiceBlockingStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class MetricsMasterClientServiceBlockingStub extends io.grpc.stub.AbstractBlockingStub<MetricsMasterClientServiceBlockingStub> {
+    private MetricsMasterClientServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected MetricsMasterClientServiceBlockingStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected MetricsMasterClientServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MetricsMasterClientServiceBlockingStub(channel, callOptions);
     }
 
@@ -258,6 +330,17 @@ public final class MetricsMasterClientServiceGrpc {
       return blockingUnaryCall(
           getChannel(), getMetricsHeartbeatMethod(), getCallOptions(), request);
     }
+
+    /**
+     * <pre>
+     **
+     * Returns a map of metrics property names and their values from Alluxio metrics system.
+     * </pre>
+     */
+    public alluxio.grpc.GetMetricsPResponse getMetrics(alluxio.grpc.GetMetricsPOptions request) {
+      return blockingUnaryCall(
+          getChannel(), getGetMetricsMethod(), getCallOptions(), request);
+    }
   }
 
   /**
@@ -266,19 +349,15 @@ public final class MetricsMasterClientServiceGrpc {
    * This interface contains metrics master service endpoints for Alluxio clients.
    * </pre>
    */
-  public static final class MetricsMasterClientServiceFutureStub extends io.grpc.stub.AbstractStub<MetricsMasterClientServiceFutureStub> {
-    private MetricsMasterClientServiceFutureStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private MetricsMasterClientServiceFutureStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class MetricsMasterClientServiceFutureStub extends io.grpc.stub.AbstractFutureStub<MetricsMasterClientServiceFutureStub> {
+    private MetricsMasterClientServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected MetricsMasterClientServiceFutureStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected MetricsMasterClientServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MetricsMasterClientServiceFutureStub(channel, callOptions);
     }
 
@@ -305,10 +384,23 @@ public final class MetricsMasterClientServiceGrpc {
       return futureUnaryCall(
           getChannel().newCall(getMetricsHeartbeatMethod(), getCallOptions()), request);
     }
+
+    /**
+     * <pre>
+     **
+     * Returns a map of metrics property names and their values from Alluxio metrics system.
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetMetricsPResponse> getMetrics(
+        alluxio.grpc.GetMetricsPOptions request) {
+      return futureUnaryCall(
+          getChannel().newCall(getGetMetricsMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_CLEAR_METRICS = 0;
   private static final int METHODID_METRICS_HEARTBEAT = 1;
+  private static final int METHODID_GET_METRICS = 2;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -334,6 +426,10 @@ public final class MetricsMasterClientServiceGrpc {
         case METHODID_METRICS_HEARTBEAT:
           serviceImpl.metricsHeartbeat((alluxio.grpc.MetricsHeartbeatPRequest) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.MetricsHeartbeatPResponse>) responseObserver);
+          break;
+        case METHODID_GET_METRICS:
+          serviceImpl.getMetrics((alluxio.grpc.GetMetricsPOptions) request,
+              (io.grpc.stub.StreamObserver<alluxio.grpc.GetMetricsPResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -398,6 +494,7 @@ public final class MetricsMasterClientServiceGrpc {
               .setSchemaDescriptor(new MetricsMasterClientServiceFileDescriptorSupplier())
               .addMethod(getClearMetricsMethod())
               .addMethod(getMetricsHeartbeatMethod())
+              .addMethod(getGetMetricsMethod())
               .build();
         }
       }

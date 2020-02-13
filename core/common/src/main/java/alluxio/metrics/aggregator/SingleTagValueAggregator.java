@@ -71,8 +71,8 @@ public class SingleTagValueAggregator implements MultiValueMetricsAggregator {
     for (Metric metric : map.get(mFilter)) {
       Map<String, String> tags = metric.getTags();
       if (tags.containsKey(mTagName)) {
-        String ufsName = MetricsSystem.getClusterMetricName(
-            Metric.getMetricNameWithTags(mAggregationName, mTagName, tags.get(mTagName)));
+        String ufsName =
+            Metric.getMetricNameWithTags(mAggregationName, mTagName, tags.get(mTagName));
         long value = updated.getOrDefault(ufsName, 0L);
         updated.put(ufsName, (long) (value + metric.getValue()));
       }

@@ -28,6 +28,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.security.authentication.AuthenticationUserUtils;
@@ -228,15 +229,25 @@ public final class FileSystemContext implements Closeable {
     mClosed.set(false);
     mMasterClientContext = MasterClientContext.newBuilder(ctx)
         .setMasterInquireClient(masterInquireClient).build();
+    mMetricsEnabled = getClusterConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED);
+    if (mMetricsEnabled) {
+      try {
+        InetSocketAddress masterAddr = masterInquireClient.getPrimaryRpcAddress();
+        mMasterClientContext.loadConf(masterAddr, true, true);
+      } catch (UnavailableException e) {
+        LOG.error("Failed to get master address during initialization", e);
+      } catch (AlluxioStatusException ae) {
+        LOG.error("Failed to load configuration from "
+            + "meta master during initialization", ae);
+      }
+      MetricsSystem.startSinks(getClusterConf().get(PropertyKey.METRICS_CONF_FILE));
+      MetricsHeartbeatContext.addHeartbeat(getClientContext(), masterInquireClient);
+    }
     mFileSystemMasterClientPool = new FileSystemMasterClientPool(mMasterClientContext);
     mBlockMasterClientPool = new BlockMasterClientPool(mMasterClientContext);
     mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(getClusterConf()),
         getClusterConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
         String.format("alluxio-client-nettyPool-%s-%%d", mId), true);
-    mMetricsEnabled = getClusterConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED);
-    if (mMetricsEnabled) {
-      MetricsHeartbeatContext.addHeartbeat(getClientContext(), masterInquireClient);
-    }
     mUriValidationEnabled = ctx.getUriValidationEnabled();
   }
 

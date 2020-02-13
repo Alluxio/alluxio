@@ -18,6 +18,7 @@ import alluxio.table.common.UdbPartition;
 import alluxio.table.common.transform.TransformContext;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
+import alluxio.util.CommonUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,8 +27,12 @@ import java.util.List;
  * The table partition class.
  */
 public class Partition {
+  private static final long FIRST_VERSION = 1;
+
   private final String mPartitionSpec;
   private final Layout mBaseLayout;
+  private final long mVersion;
+  private final long mVersionCreationTime;
   private volatile Transformation mTransformation;
 
   /**
@@ -88,10 +93,15 @@ public class Partition {
    *
    * @param partitionSpec the partition spec
    * @param baseLayout the partition layout
+   * @param version the version
+   * @param versionCreationTime the version creation time
    */
-  public Partition(String partitionSpec, Layout baseLayout) {
+  private Partition(String partitionSpec, Layout baseLayout, long version,
+      long versionCreationTime) {
     mPartitionSpec = partitionSpec;
     mBaseLayout = baseLayout;
+    mVersion = version;
+    mVersionCreationTime = versionCreationTime;
   }
 
   /**
@@ -100,7 +110,19 @@ public class Partition {
    * @param udbPartition the udb partition
    */
   public Partition(UdbPartition udbPartition) {
-    this(udbPartition.getSpec(), udbPartition.getLayout());
+    this(udbPartition.getSpec(), udbPartition.getLayout(), FIRST_VERSION,
+        CommonUtils.getCurrentMs());
+  }
+
+  /**
+   * Creates the next version of an existing partition.
+   *
+   * @param udbPartition the udb partition
+   * @return a new Partition instance representing the next version of this partition
+   */
+  public Partition createNext(UdbPartition udbPartition) {
+    return new Partition(udbPartition.getSpec(), udbPartition.getLayout(), getVersion() + 1,
+        CommonUtils.getCurrentMs());
   }
 
   /**
@@ -108,6 +130,20 @@ public class Partition {
    */
   public Layout getLayout() {
     return mTransformation == null ? mBaseLayout : mTransformation.getLayout();
+  }
+
+  /**
+   * @return the base layout
+   */
+  public Layout getBaseLayout() {
+    return mBaseLayout;
+  }
+
+  /**
+   * @return the version
+   */
+  public long getVersion() {
+    return mVersion;
   }
 
   /**
@@ -154,7 +190,9 @@ public class Partition {
   public alluxio.grpc.table.Partition toProto() {
     alluxio.grpc.table.Partition.Builder builder = alluxio.grpc.table.Partition.newBuilder()
         .setPartitionSpec(PartitionSpec.newBuilder().setSpec(mPartitionSpec).build())
-        .setBaseLayout(mBaseLayout.toProto());
+        .setBaseLayout(mBaseLayout.toProto())
+        .setVersion(mVersion)
+        .setVersionCreationTime(mVersionCreationTime);
     if (mTransformation != null) {
       builder.addTransformations(mTransformation.toProto());
     }
@@ -169,7 +207,8 @@ public class Partition {
   public static Partition fromProto(LayoutRegistry layoutRegistry,
       alluxio.grpc.table.Partition proto) {
     Partition partition = new Partition(proto.getPartitionSpec().getSpec(),
-        layoutRegistry.create(proto.getBaseLayout()));
+        layoutRegistry.create(proto.getBaseLayout()), proto.getVersion(),
+        proto.getVersionCreationTime());
     List<alluxio.grpc.table.Transformation> transformations = proto.getTransformationsList();
     if (!transformations.isEmpty()) {
       partition.mTransformation = Transformation.fromProto(layoutRegistry, transformations.get(0));

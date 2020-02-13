@@ -19,7 +19,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.journal.sink.JournalSink;
-import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 
@@ -290,7 +290,8 @@ public final class AsyncJournalWriter {
 
         // Either written new entries or previous flush had been failed.
         if (mFlushCounter.get() < mWriteCounter) {
-          try (Timer.Context ctx = MetricsSystem.timer(MasterMetrics.JOURNAL_FLUSH_TIMER).time()) {
+          try (Timer.Context ctx = MetricsSystem
+              .timer(MetricKey.MASTER_JOURNAL_FLUSH_TIMER.getName()).time()) {
             mJournalWriter.flush();
           }
           JournalUtils.sinkFlush(mJournalSinks);
@@ -374,7 +375,7 @@ public final class AsyncJournalWriter {
   @ThreadSafe
   private static final class Metrics {
     private static final Counter JOURNAL_FLUSH_FAILURE =
-        MetricsSystem.counter(MasterMetrics.JOURNAL_FLUSH_FAILURE);
+        MetricsSystem.counter(MetricKey.MASTER_JOURNAL_FLUSH_FAILURE.getName());
 
     private Metrics() {} // prevent instantiation
   }

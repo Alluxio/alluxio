@@ -9,56 +9,68 @@ public interface MountPointInfoOrBuilder extends
 
   /**
    * <code>optional string ufsUri = 1;</code>
+   * @return Whether the ufsUri field is set.
    */
   boolean hasUfsUri();
   /**
    * <code>optional string ufsUri = 1;</code>
+   * @return The ufsUri.
    */
   java.lang.String getUfsUri();
   /**
    * <code>optional string ufsUri = 1;</code>
+   * @return The bytes for ufsUri.
    */
   com.google.protobuf.ByteString
       getUfsUriBytes();
 
   /**
    * <code>optional string ufsType = 2;</code>
+   * @return Whether the ufsType field is set.
    */
   boolean hasUfsType();
   /**
    * <code>optional string ufsType = 2;</code>
+   * @return The ufsType.
    */
   java.lang.String getUfsType();
   /**
    * <code>optional string ufsType = 2;</code>
+   * @return The bytes for ufsType.
    */
   com.google.protobuf.ByteString
       getUfsTypeBytes();
 
   /**
    * <code>optional int64 ufsCapacityBytes = 3 [default = -1];</code>
+   * @return Whether the ufsCapacityBytes field is set.
    */
   boolean hasUfsCapacityBytes();
   /**
    * <code>optional int64 ufsCapacityBytes = 3 [default = -1];</code>
+   * @return The ufsCapacityBytes.
    */
   long getUfsCapacityBytes();
 
   /**
    * <code>optional int64 ufsUsedBytes = 4 [default = -1];</code>
+   * @return Whether the ufsUsedBytes field is set.
    */
   boolean hasUfsUsedBytes();
   /**
    * <code>optional int64 ufsUsedBytes = 4 [default = -1];</code>
+   * @return The ufsUsedBytes.
    */
   long getUfsUsedBytes();
 
   /**
    * <code>optional bool readOnly = 5;</code>
+   * @return Whether the readOnly field is set.
    */
   boolean hasReadOnly();
   /**
    * <code>optional bool readOnly = 5;</code>
+   * @return The readOnly.
    */
   boolean getReadOnly();
 
@@ -98,10 +110,12 @@ public interface MountPointInfoOrBuilder extends
 
   /**
    * <code>optional bool shared = 7;</code>
+   * @return Whether the shared field is set.
    */
   boolean hasShared();
   /**
    * <code>optional bool shared = 7;</code>
+   * @return The shared.
    */
   boolean getShared();
 }

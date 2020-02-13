@@ -9,28 +9,34 @@ public interface GetConfigurationPOptionsOrBuilder extends
 
   /**
    * <code>optional bool rawValue = 1;</code>
+   * @return Whether the rawValue field is set.
    */
   boolean hasRawValue();
   /**
    * <code>optional bool rawValue = 1;</code>
+   * @return The rawValue.
    */
   boolean getRawValue();
 
   /**
    * <code>optional bool ignoreClusterConf = 2;</code>
+   * @return Whether the ignoreClusterConf field is set.
    */
   boolean hasIgnoreClusterConf();
   /**
    * <code>optional bool ignoreClusterConf = 2;</code>
+   * @return The ignoreClusterConf.
    */
   boolean getIgnoreClusterConf();
 
   /**
    * <code>optional bool ignorePathConf = 3;</code>
+   * @return Whether the ignorePathConf field is set.
    */
   boolean hasIgnorePathConf();
   /**
    * <code>optional bool ignorePathConf = 3;</code>
+   * @return The ignorePathConf.
    */
   boolean getIgnorePathConf();
 }

@@ -20,6 +20,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new FileSystemHeartbeatPOptions();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -43,20 +50,20 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
+          case 10: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+              persistedFileFingerprints_ = new com.google.protobuf.LazyStringArrayList();
+              mutable_bitField0_ |= 0x00000001;
+            }
+            persistedFileFingerprints_.add(bs);
+            break;
+          }
           default: {
             if (!parseUnknownField(
                 input, unknownFields, extensionRegistry, tag)) {
               done = true;
             }
-            break;
-          }
-          case 10: {
-            com.google.protobuf.ByteString bs = input.readBytes();
-            if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-              persistedFileFingerprints_ = new com.google.protobuf.LazyStringArrayList();
-              mutable_bitField0_ |= 0x00000001;
-            }
-            persistedFileFingerprints_.add(bs);
             break;
           }
         }
@@ -67,7 +74,7 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((mutable_bitField0_ & 0x00000001) != 0)) {
         persistedFileFingerprints_ = persistedFileFingerprints_.getUnmodifiableView();
       }
       this.unknownFields = unknownFields.build();
@@ -79,6 +86,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileSystemHeartbeatPOptions_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileSystemHeartbeatPOptions_fieldAccessorTable
@@ -90,6 +98,7 @@ private static final long serialVersionUID = 0L;
   private com.google.protobuf.LazyStringList persistedFileFingerprints_;
   /**
    * <code>repeated string persistedFileFingerprints = 1;</code>
+   * @return A list containing the persistedFileFingerprints.
    */
   public com.google.protobuf.ProtocolStringList
       getPersistedFileFingerprintsList() {
@@ -97,18 +106,23 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>repeated string persistedFileFingerprints = 1;</code>
+   * @return The count of persistedFileFingerprints.
    */
   public int getPersistedFileFingerprintsCount() {
     return persistedFileFingerprints_.size();
   }
   /**
    * <code>repeated string persistedFileFingerprints = 1;</code>
+   * @param index The index of the element to return.
+   * @return The persistedFileFingerprints at the given index.
    */
   public java.lang.String getPersistedFileFingerprints(int index) {
     return persistedFileFingerprints_.get(index);
   }
   /**
    * <code>repeated string persistedFileFingerprints = 1;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the persistedFileFingerprints at the given index.
    */
   public com.google.protobuf.ByteString
       getPersistedFileFingerprintsBytes(int index) {
@@ -116,6 +130,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -125,6 +140,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     for (int i = 0; i < persistedFileFingerprints_.size(); i++) {
@@ -133,6 +149,7 @@ private static final long serialVersionUID = 0L;
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -161,11 +178,10 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.FileSystemHeartbeatPOptions other = (alluxio.grpc.FileSystemHeartbeatPOptions) obj;
 
-    boolean result = true;
-    result = result && getPersistedFileFingerprintsList()
-        .equals(other.getPersistedFileFingerprintsList());
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!getPersistedFileFingerprintsList()
+        .equals(other.getPersistedFileFingerprintsList())) return false;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -254,6 +270,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -261,6 +278,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.FileSystemHeartbeatPOptions prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -284,6 +302,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileSystemHeartbeatPOptions_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileSystemHeartbeatPOptions_fieldAccessorTable
@@ -306,6 +325,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       persistedFileFingerprints_ = com.google.protobuf.LazyStringArrayList.EMPTY;
@@ -313,15 +333,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileSystemHeartbeatPOptions_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.FileSystemHeartbeatPOptions getDefaultInstanceForType() {
       return alluxio.grpc.FileSystemHeartbeatPOptions.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.FileSystemHeartbeatPOptions build() {
       alluxio.grpc.FileSystemHeartbeatPOptions result = buildPartial();
       if (!result.isInitialized()) {
@@ -330,10 +353,11 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.FileSystemHeartbeatPOptions buildPartial() {
       alluxio.grpc.FileSystemHeartbeatPOptions result = new alluxio.grpc.FileSystemHeartbeatPOptions(this);
       int from_bitField0_ = bitField0_;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         persistedFileFingerprints_ = persistedFileFingerprints_.getUnmodifiableView();
         bitField0_ = (bitField0_ & ~0x00000001);
       }
@@ -342,32 +366,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.FileSystemHeartbeatPOptions) {
         return mergeFrom((alluxio.grpc.FileSystemHeartbeatPOptions)other);
@@ -394,10 +425,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -419,13 +452,14 @@ private static final long serialVersionUID = 0L;
 
     private com.google.protobuf.LazyStringList persistedFileFingerprints_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     private void ensurePersistedFileFingerprintsIsMutable() {
-      if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (!((bitField0_ & 0x00000001) != 0)) {
         persistedFileFingerprints_ = new com.google.protobuf.LazyStringArrayList(persistedFileFingerprints_);
         bitField0_ |= 0x00000001;
        }
     }
     /**
      * <code>repeated string persistedFileFingerprints = 1;</code>
+     * @return A list containing the persistedFileFingerprints.
      */
     public com.google.protobuf.ProtocolStringList
         getPersistedFileFingerprintsList() {
@@ -433,18 +467,23 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated string persistedFileFingerprints = 1;</code>
+     * @return The count of persistedFileFingerprints.
      */
     public int getPersistedFileFingerprintsCount() {
       return persistedFileFingerprints_.size();
     }
     /**
      * <code>repeated string persistedFileFingerprints = 1;</code>
+     * @param index The index of the element to return.
+     * @return The persistedFileFingerprints at the given index.
      */
     public java.lang.String getPersistedFileFingerprints(int index) {
       return persistedFileFingerprints_.get(index);
     }
     /**
      * <code>repeated string persistedFileFingerprints = 1;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the persistedFileFingerprints at the given index.
      */
     public com.google.protobuf.ByteString
         getPersistedFileFingerprintsBytes(int index) {
@@ -452,6 +491,9 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated string persistedFileFingerprints = 1;</code>
+     * @param index The index to set the value at.
+     * @param value The persistedFileFingerprints to set.
+     * @return This builder for chaining.
      */
     public Builder setPersistedFileFingerprints(
         int index, java.lang.String value) {
@@ -465,6 +507,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated string persistedFileFingerprints = 1;</code>
+     * @param value The persistedFileFingerprints to add.
+     * @return This builder for chaining.
      */
     public Builder addPersistedFileFingerprints(
         java.lang.String value) {
@@ -478,6 +522,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated string persistedFileFingerprints = 1;</code>
+     * @param values The persistedFileFingerprints to add.
+     * @return This builder for chaining.
      */
     public Builder addAllPersistedFileFingerprints(
         java.lang.Iterable<java.lang.String> values) {
@@ -489,6 +535,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated string persistedFileFingerprints = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearPersistedFileFingerprints() {
       persistedFileFingerprints_ = com.google.protobuf.LazyStringArrayList.EMPTY;
@@ -498,6 +545,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated string persistedFileFingerprints = 1;</code>
+     * @param value The bytes of the persistedFileFingerprints to add.
+     * @return This builder for chaining.
      */
     public Builder addPersistedFileFingerprintsBytes(
         com.google.protobuf.ByteString value) {
@@ -509,11 +558,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -535,6 +586,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<FileSystemHeartbeatPOptions>
       PARSER = new com.google.protobuf.AbstractParser<FileSystemHeartbeatPOptions>() {
+    @java.lang.Override
     public FileSystemHeartbeatPOptions parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -552,6 +604,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.FileSystemHeartbeatPOptions getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

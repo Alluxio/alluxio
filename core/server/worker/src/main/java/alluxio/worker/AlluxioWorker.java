@@ -59,7 +59,7 @@ public final class AlluxioWorker {
     try {
       RetryUtils.retry("load cluster default configuration with master", () -> {
         InetSocketAddress masterAddress = masterInquireClient.getPrimaryRpcAddress();
-        ServerConfiguration.loadClusterDefaultsIfNotLoaded(masterAddress);
+        ServerConfiguration.loadWorkerClusterDefaults(masterAddress);
       }, RetryUtils.defaultWorkerMasterClientRetry(
           ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
     } catch (IOException e) {
@@ -75,6 +75,8 @@ public final class AlluxioWorker {
       // fatalError will exit, so we shouldn't reach here.
       throw t;
     }
+
+    ProcessUtils.stopProcessOnShutdown(process);
     ProcessUtils.run(process);
   }
 

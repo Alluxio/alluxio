@@ -46,7 +46,7 @@ public class SumInstancesAggregator implements SingleValueAggregator {
     Preconditions.checkNotNull(aggregationName, "aggregationName");
     mInstanceType = instanceType;
     mAggregationName = aggregationName;
-    mFilter = new MetricsFilter(mInstanceType, metricName);
+    mFilter = new MetricsFilter(mInstanceType, MetricsSystem.stripInstanceAndHost(metricName));
   }
 
   /**

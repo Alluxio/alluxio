@@ -16,13 +16,15 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private JobWorkerHealth() {
-    workerId_ = 0L;
-    loadAverage_ = java.util.Collections.emptyList();
-    lastUpdated_ = 0L;
+    loadAverage_ = emptyDoubleList();
     hostname_ = "";
-    taskPoolSize_ = 0;
-    numActiveTasks_ = 0;
-    unfinishedTasks_ = 0;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new JobWorkerHealth();
   }
 
   @java.lang.Override
@@ -49,35 +51,28 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             bitField0_ |= 0x00000001;
             workerId_ = input.readInt64();
             break;
           }
           case 17: {
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-              loadAverage_ = new java.util.ArrayList<java.lang.Double>();
+            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
+              loadAverage_ = newDoubleList();
               mutable_bitField0_ |= 0x00000002;
             }
-            loadAverage_.add(input.readDouble());
+            loadAverage_.addDouble(input.readDouble());
             break;
           }
           case 18: {
             int length = input.readRawVarint32();
             int limit = input.pushLimit(length);
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002) && input.getBytesUntilLimit() > 0) {
-              loadAverage_ = new java.util.ArrayList<java.lang.Double>();
+            if (!((mutable_bitField0_ & 0x00000002) != 0) && input.getBytesUntilLimit() > 0) {
+              loadAverage_ = newDoubleList();
               mutable_bitField0_ |= 0x00000002;
             }
             while (input.getBytesUntilLimit() > 0) {
-              loadAverage_.add(input.readDouble());
+              loadAverage_.addDouble(input.readDouble());
             }
             input.popLimit(limit);
             break;
@@ -108,6 +103,13 @@ private static final long serialVersionUID = 0L;
             unfinishedTasks_ = input.readInt32();
             break;
           }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -116,8 +118,8 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-        loadAverage_ = java.util.Collections.unmodifiableList(loadAverage_);
+      if (((mutable_bitField0_ & 0x00000002) != 0)) {
+        loadAverage_.makeImmutable(); // C
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -128,6 +130,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_JobWorkerHealth_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_JobWorkerHealth_fieldAccessorTable
@@ -140,21 +143,24 @@ private static final long serialVersionUID = 0L;
   private long workerId_;
   /**
    * <code>optional int64 workerId = 1;</code>
+   * @return Whether the workerId field is set.
    */
   public boolean hasWorkerId() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional int64 workerId = 1;</code>
+   * @return The workerId.
    */
   public long getWorkerId() {
     return workerId_;
   }
 
   public static final int LOADAVERAGE_FIELD_NUMBER = 2;
-  private java.util.List<java.lang.Double> loadAverage_;
+  private com.google.protobuf.Internal.DoubleList loadAverage_;
   /**
    * <code>repeated double loadAverage = 2;</code>
+   * @return A list containing the loadAverage.
    */
   public java.util.List<java.lang.Double>
       getLoadAverageList() {
@@ -162,27 +168,32 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>repeated double loadAverage = 2;</code>
+   * @return The count of loadAverage.
    */
   public int getLoadAverageCount() {
     return loadAverage_.size();
   }
   /**
    * <code>repeated double loadAverage = 2;</code>
+   * @param index The index of the element to return.
+   * @return The loadAverage at the given index.
    */
   public double getLoadAverage(int index) {
-    return loadAverage_.get(index);
+    return loadAverage_.getDouble(index);
   }
 
   public static final int LASTUPDATED_FIELD_NUMBER = 3;
   private long lastUpdated_;
   /**
    * <code>optional int64 lastUpdated = 3;</code>
+   * @return Whether the lastUpdated field is set.
    */
   public boolean hasLastUpdated() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional int64 lastUpdated = 3;</code>
+   * @return The lastUpdated.
    */
   public long getLastUpdated() {
     return lastUpdated_;
@@ -192,12 +203,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object hostname_;
   /**
    * <code>optional string hostname = 4;</code>
+   * @return Whether the hostname field is set.
    */
   public boolean hasHostname() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional string hostname = 4;</code>
+   * @return The hostname.
    */
   public java.lang.String getHostname() {
     java.lang.Object ref = hostname_;
@@ -215,6 +228,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string hostname = 4;</code>
+   * @return The bytes for hostname.
    */
   public com.google.protobuf.ByteString
       getHostnameBytes() {
@@ -234,12 +248,14 @@ private static final long serialVersionUID = 0L;
   private int taskPoolSize_;
   /**
    * <code>optional int32 taskPoolSize = 5;</code>
+   * @return Whether the taskPoolSize field is set.
    */
   public boolean hasTaskPoolSize() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000008) != 0);
   }
   /**
    * <code>optional int32 taskPoolSize = 5;</code>
+   * @return The taskPoolSize.
    */
   public int getTaskPoolSize() {
     return taskPoolSize_;
@@ -249,12 +265,14 @@ private static final long serialVersionUID = 0L;
   private int numActiveTasks_;
   /**
    * <code>optional int32 numActiveTasks = 6;</code>
+   * @return Whether the numActiveTasks field is set.
    */
   public boolean hasNumActiveTasks() {
-    return ((bitField0_ & 0x00000010) == 0x00000010);
+    return ((bitField0_ & 0x00000010) != 0);
   }
   /**
    * <code>optional int32 numActiveTasks = 6;</code>
+   * @return The numActiveTasks.
    */
   public int getNumActiveTasks() {
     return numActiveTasks_;
@@ -264,18 +282,21 @@ private static final long serialVersionUID = 0L;
   private int unfinishedTasks_;
   /**
    * <code>optional int32 unfinishedTasks = 7;</code>
+   * @return Whether the unfinishedTasks field is set.
    */
   public boolean hasUnfinishedTasks() {
-    return ((bitField0_ & 0x00000020) == 0x00000020);
+    return ((bitField0_ & 0x00000020) != 0);
   }
   /**
    * <code>optional int32 unfinishedTasks = 7;</code>
+   * @return The unfinishedTasks.
    */
   public int getUnfinishedTasks() {
     return unfinishedTasks_;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -285,38 +306,40 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeInt64(1, workerId_);
     }
     for (int i = 0; i < loadAverage_.size(); i++) {
-      output.writeDouble(2, loadAverage_.get(i));
+      output.writeDouble(2, loadAverage_.getDouble(i));
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeInt64(3, lastUpdated_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 4, hostname_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       output.writeInt32(5, taskPoolSize_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       output.writeInt32(6, numActiveTasks_);
     }
-    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+    if (((bitField0_ & 0x00000020) != 0)) {
       output.writeInt32(7, unfinishedTasks_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(1, workerId_);
     }
@@ -326,22 +349,22 @@ private static final long serialVersionUID = 0L;
       size += dataSize;
       size += 1 * getLoadAverageList().size();
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(3, lastUpdated_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, hostname_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(5, taskPoolSize_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(6, numActiveTasks_);
     }
-    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+    if (((bitField0_ & 0x00000020) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(7, unfinishedTasks_);
     }
@@ -360,41 +383,40 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.JobWorkerHealth other = (alluxio.grpc.JobWorkerHealth) obj;
 
-    boolean result = true;
-    result = result && (hasWorkerId() == other.hasWorkerId());
+    if (hasWorkerId() != other.hasWorkerId()) return false;
     if (hasWorkerId()) {
-      result = result && (getWorkerId()
-          == other.getWorkerId());
+      if (getWorkerId()
+          != other.getWorkerId()) return false;
     }
-    result = result && getLoadAverageList()
-        .equals(other.getLoadAverageList());
-    result = result && (hasLastUpdated() == other.hasLastUpdated());
+    if (!getLoadAverageList()
+        .equals(other.getLoadAverageList())) return false;
+    if (hasLastUpdated() != other.hasLastUpdated()) return false;
     if (hasLastUpdated()) {
-      result = result && (getLastUpdated()
-          == other.getLastUpdated());
+      if (getLastUpdated()
+          != other.getLastUpdated()) return false;
     }
-    result = result && (hasHostname() == other.hasHostname());
+    if (hasHostname() != other.hasHostname()) return false;
     if (hasHostname()) {
-      result = result && getHostname()
-          .equals(other.getHostname());
+      if (!getHostname()
+          .equals(other.getHostname())) return false;
     }
-    result = result && (hasTaskPoolSize() == other.hasTaskPoolSize());
+    if (hasTaskPoolSize() != other.hasTaskPoolSize()) return false;
     if (hasTaskPoolSize()) {
-      result = result && (getTaskPoolSize()
-          == other.getTaskPoolSize());
+      if (getTaskPoolSize()
+          != other.getTaskPoolSize()) return false;
     }
-    result = result && (hasNumActiveTasks() == other.hasNumActiveTasks());
+    if (hasNumActiveTasks() != other.hasNumActiveTasks()) return false;
     if (hasNumActiveTasks()) {
-      result = result && (getNumActiveTasks()
-          == other.getNumActiveTasks());
+      if (getNumActiveTasks()
+          != other.getNumActiveTasks()) return false;
     }
-    result = result && (hasUnfinishedTasks() == other.hasUnfinishedTasks());
+    if (hasUnfinishedTasks() != other.hasUnfinishedTasks()) return false;
     if (hasUnfinishedTasks()) {
-      result = result && (getUnfinishedTasks()
-          == other.getUnfinishedTasks());
+      if (getUnfinishedTasks()
+          != other.getUnfinishedTasks()) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -509,6 +531,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -516,6 +539,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.JobWorkerHealth prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -539,6 +563,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_JobWorkerHealth_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_JobWorkerHealth_fieldAccessorTable
@@ -561,11 +586,12 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       workerId_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
-      loadAverage_ = java.util.Collections.emptyList();
+      loadAverage_ = emptyDoubleList();
       bitField0_ = (bitField0_ & ~0x00000002);
       lastUpdated_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -580,15 +606,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_JobWorkerHealth_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.JobWorkerHealth getDefaultInstanceForType() {
       return alluxio.grpc.JobWorkerHealth.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.JobWorkerHealth build() {
       alluxio.grpc.JobWorkerHealth result = buildPartial();
       if (!result.isInitialized()) {
@@ -597,70 +626,78 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.JobWorkerHealth buildPartial() {
       alluxio.grpc.JobWorkerHealth result = new alluxio.grpc.JobWorkerHealth(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        result.workerId_ = workerId_;
         to_bitField0_ |= 0x00000001;
       }
-      result.workerId_ = workerId_;
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        loadAverage_ = java.util.Collections.unmodifiableList(loadAverage_);
+      if (((bitField0_ & 0x00000002) != 0)) {
+        loadAverage_.makeImmutable();
         bitField0_ = (bitField0_ & ~0x00000002);
       }
       result.loadAverage_ = loadAverage_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
+        result.lastUpdated_ = lastUpdated_;
         to_bitField0_ |= 0x00000002;
       }
-      result.lastUpdated_ = lastUpdated_;
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000008) != 0)) {
         to_bitField0_ |= 0x00000004;
       }
       result.hostname_ = hostname_;
-      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((from_bitField0_ & 0x00000010) != 0)) {
+        result.taskPoolSize_ = taskPoolSize_;
         to_bitField0_ |= 0x00000008;
       }
-      result.taskPoolSize_ = taskPoolSize_;
-      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((from_bitField0_ & 0x00000020) != 0)) {
+        result.numActiveTasks_ = numActiveTasks_;
         to_bitField0_ |= 0x00000010;
       }
-      result.numActiveTasks_ = numActiveTasks_;
-      if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((from_bitField0_ & 0x00000040) != 0)) {
+        result.unfinishedTasks_ = unfinishedTasks_;
         to_bitField0_ |= 0x00000020;
       }
-      result.unfinishedTasks_ = unfinishedTasks_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.JobWorkerHealth) {
         return mergeFrom((alluxio.grpc.JobWorkerHealth)other);
@@ -707,10 +744,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -733,18 +772,22 @@ private static final long serialVersionUID = 0L;
     private long workerId_ ;
     /**
      * <code>optional int64 workerId = 1;</code>
+     * @return Whether the workerId field is set.
      */
     public boolean hasWorkerId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional int64 workerId = 1;</code>
+     * @return The workerId.
      */
     public long getWorkerId() {
       return workerId_;
     }
     /**
      * <code>optional int64 workerId = 1;</code>
+     * @param value The workerId to set.
+     * @return This builder for chaining.
      */
     public Builder setWorkerId(long value) {
       bitField0_ |= 0x00000001;
@@ -754,6 +797,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 workerId = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearWorkerId() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -762,53 +806,65 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.util.List<java.lang.Double> loadAverage_ = java.util.Collections.emptyList();
+    private com.google.protobuf.Internal.DoubleList loadAverage_ = emptyDoubleList();
     private void ensureLoadAverageIsMutable() {
-      if (!((bitField0_ & 0x00000002) == 0x00000002)) {
-        loadAverage_ = new java.util.ArrayList<java.lang.Double>(loadAverage_);
+      if (!((bitField0_ & 0x00000002) != 0)) {
+        loadAverage_ = mutableCopy(loadAverage_);
         bitField0_ |= 0x00000002;
        }
     }
     /**
      * <code>repeated double loadAverage = 2;</code>
+     * @return A list containing the loadAverage.
      */
     public java.util.List<java.lang.Double>
         getLoadAverageList() {
-      return java.util.Collections.unmodifiableList(loadAverage_);
+      return ((bitField0_ & 0x00000002) != 0) ?
+               java.util.Collections.unmodifiableList(loadAverage_) : loadAverage_;
     }
     /**
      * <code>repeated double loadAverage = 2;</code>
+     * @return The count of loadAverage.
      */
     public int getLoadAverageCount() {
       return loadAverage_.size();
     }
     /**
      * <code>repeated double loadAverage = 2;</code>
+     * @param index The index of the element to return.
+     * @return The loadAverage at the given index.
      */
     public double getLoadAverage(int index) {
-      return loadAverage_.get(index);
+      return loadAverage_.getDouble(index);
     }
     /**
      * <code>repeated double loadAverage = 2;</code>
+     * @param index The index to set the value at.
+     * @param value The loadAverage to set.
+     * @return This builder for chaining.
      */
     public Builder setLoadAverage(
         int index, double value) {
       ensureLoadAverageIsMutable();
-      loadAverage_.set(index, value);
+      loadAverage_.setDouble(index, value);
       onChanged();
       return this;
     }
     /**
      * <code>repeated double loadAverage = 2;</code>
+     * @param value The loadAverage to add.
+     * @return This builder for chaining.
      */
     public Builder addLoadAverage(double value) {
       ensureLoadAverageIsMutable();
-      loadAverage_.add(value);
+      loadAverage_.addDouble(value);
       onChanged();
       return this;
     }
     /**
      * <code>repeated double loadAverage = 2;</code>
+     * @param values The loadAverage to add.
+     * @return This builder for chaining.
      */
     public Builder addAllLoadAverage(
         java.lang.Iterable<? extends java.lang.Double> values) {
@@ -820,9 +876,10 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated double loadAverage = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearLoadAverage() {
-      loadAverage_ = java.util.Collections.emptyList();
+      loadAverage_ = emptyDoubleList();
       bitField0_ = (bitField0_ & ~0x00000002);
       onChanged();
       return this;
@@ -831,18 +888,22 @@ private static final long serialVersionUID = 0L;
     private long lastUpdated_ ;
     /**
      * <code>optional int64 lastUpdated = 3;</code>
+     * @return Whether the lastUpdated field is set.
      */
     public boolean hasLastUpdated() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional int64 lastUpdated = 3;</code>
+     * @return The lastUpdated.
      */
     public long getLastUpdated() {
       return lastUpdated_;
     }
     /**
      * <code>optional int64 lastUpdated = 3;</code>
+     * @param value The lastUpdated to set.
+     * @return This builder for chaining.
      */
     public Builder setLastUpdated(long value) {
       bitField0_ |= 0x00000004;
@@ -852,6 +913,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 lastUpdated = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearLastUpdated() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -863,12 +925,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object hostname_ = "";
     /**
      * <code>optional string hostname = 4;</code>
+     * @return Whether the hostname field is set.
      */
     public boolean hasHostname() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional string hostname = 4;</code>
+     * @return The hostname.
      */
     public java.lang.String getHostname() {
       java.lang.Object ref = hostname_;
@@ -886,6 +950,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string hostname = 4;</code>
+     * @return The bytes for hostname.
      */
     public com.google.protobuf.ByteString
         getHostnameBytes() {
@@ -902,6 +967,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string hostname = 4;</code>
+     * @param value The hostname to set.
+     * @return This builder for chaining.
      */
     public Builder setHostname(
         java.lang.String value) {
@@ -915,6 +982,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string hostname = 4;</code>
+     * @return This builder for chaining.
      */
     public Builder clearHostname() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -924,6 +992,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string hostname = 4;</code>
+     * @param value The bytes for hostname to set.
+     * @return This builder for chaining.
      */
     public Builder setHostnameBytes(
         com.google.protobuf.ByteString value) {
@@ -939,18 +1009,22 @@ private static final long serialVersionUID = 0L;
     private int taskPoolSize_ ;
     /**
      * <code>optional int32 taskPoolSize = 5;</code>
+     * @return Whether the taskPoolSize field is set.
      */
     public boolean hasTaskPoolSize() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000010) != 0);
     }
     /**
      * <code>optional int32 taskPoolSize = 5;</code>
+     * @return The taskPoolSize.
      */
     public int getTaskPoolSize() {
       return taskPoolSize_;
     }
     /**
      * <code>optional int32 taskPoolSize = 5;</code>
+     * @param value The taskPoolSize to set.
+     * @return This builder for chaining.
      */
     public Builder setTaskPoolSize(int value) {
       bitField0_ |= 0x00000010;
@@ -960,6 +1034,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int32 taskPoolSize = 5;</code>
+     * @return This builder for chaining.
      */
     public Builder clearTaskPoolSize() {
       bitField0_ = (bitField0_ & ~0x00000010);
@@ -971,18 +1046,22 @@ private static final long serialVersionUID = 0L;
     private int numActiveTasks_ ;
     /**
      * <code>optional int32 numActiveTasks = 6;</code>
+     * @return Whether the numActiveTasks field is set.
      */
     public boolean hasNumActiveTasks() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000020) != 0);
     }
     /**
      * <code>optional int32 numActiveTasks = 6;</code>
+     * @return The numActiveTasks.
      */
     public int getNumActiveTasks() {
       return numActiveTasks_;
     }
     /**
      * <code>optional int32 numActiveTasks = 6;</code>
+     * @param value The numActiveTasks to set.
+     * @return This builder for chaining.
      */
     public Builder setNumActiveTasks(int value) {
       bitField0_ |= 0x00000020;
@@ -992,6 +1071,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int32 numActiveTasks = 6;</code>
+     * @return This builder for chaining.
      */
     public Builder clearNumActiveTasks() {
       bitField0_ = (bitField0_ & ~0x00000020);
@@ -1003,18 +1083,22 @@ private static final long serialVersionUID = 0L;
     private int unfinishedTasks_ ;
     /**
      * <code>optional int32 unfinishedTasks = 7;</code>
+     * @return Whether the unfinishedTasks field is set.
      */
     public boolean hasUnfinishedTasks() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
+      return ((bitField0_ & 0x00000040) != 0);
     }
     /**
      * <code>optional int32 unfinishedTasks = 7;</code>
+     * @return The unfinishedTasks.
      */
     public int getUnfinishedTasks() {
       return unfinishedTasks_;
     }
     /**
      * <code>optional int32 unfinishedTasks = 7;</code>
+     * @param value The unfinishedTasks to set.
+     * @return This builder for chaining.
      */
     public Builder setUnfinishedTasks(int value) {
       bitField0_ |= 0x00000040;
@@ -1024,6 +1108,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int32 unfinishedTasks = 7;</code>
+     * @return This builder for chaining.
      */
     public Builder clearUnfinishedTasks() {
       bitField0_ = (bitField0_ & ~0x00000040);
@@ -1031,11 +1116,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1057,6 +1144,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<JobWorkerHealth>
       PARSER = new com.google.protobuf.AbstractParser<JobWorkerHealth>() {
+    @java.lang.Override
     public JobWorkerHealth parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1074,6 +1162,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.JobWorkerHealth getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

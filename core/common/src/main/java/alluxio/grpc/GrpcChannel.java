@@ -11,7 +11,7 @@
 
 package alluxio.grpc;
 
-import alluxio.security.authentication.AuthenticatedChannel;
+import alluxio.security.authentication.AuthenticatedChannelClientDriver;
 
 import com.google.common.base.MoreObjects;
 import io.grpc.CallOptions;
@@ -25,63 +25,63 @@ import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 
-import java.util.function.Supplier;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * An authenticated gRPC channel. This channel can communicate with servers of type
  * {@link GrpcServer}.
  */
+@NotThreadSafe
 public final class GrpcChannel extends Channel {
+  /** Key that is used to create given managed channel. */
   private final GrpcChannelKey mChannelKey;
-  private Supplier<Boolean> mChannelHealthState;
-  private Channel mChannel;
-  private Runnable mAuthCloseCallback;
-  private boolean mChannelReleased = false;
-  private boolean mChannelHealthy = true;
+  /** Original channel. */
+  private final Channel mOriginalChannel;
+  /** Used to determine how long to wait during shutdown. */
   private final long mShutdownTimeoutMs;
+
+  /** Effective intercepted channel. */
+  private Channel mTrackedChannel;
+  /** Interceptor for tracking responses on the channel. */
+  private ChannelResponseTracker mResponseTracker;
+
+  /** Client-side authentication driver. */
+  private AuthenticatedChannelClientDriver mAuthDriver;
+
+  /** Used to prevent double release of the channel. */
+  private boolean mChannelReleased = false;
 
   /**
    * Create a new instance of {@link GrpcChannel}.
    *
    * @param channelKey the channel key
-   * @param channel the grpc channel to wrap
+   * @param channel the gRPC channel
    * @param shutdownTimeoutMs shutdown timeout in milliseconds
+   * @param authDriver nullable client-side authentication driver
    */
   public GrpcChannel(GrpcChannelKey channelKey, Channel channel,
-      long shutdownTimeoutMs) {
+      long shutdownTimeoutMs, @Nullable AuthenticatedChannelClientDriver authDriver) {
     mChannelKey = channelKey;
-    mChannelHealthState = () -> mChannelHealthy;
-    mChannel = ClientInterceptors.intercept(channel, new ChannelResponseTracker((this)));
     mShutdownTimeoutMs = shutdownTimeoutMs;
-  }
+    mOriginalChannel = channel;
+    mAuthDriver = authDriver;
 
-  /**
-   * Create a new instance of {@link GrpcChannel} with an authenticated channel.
-   *
-   * @param channelKey the channel key
-   * @param channel the authenticated grpc channel
-   * @param shutdownTimeoutMs shutdown timeout in milliseconds
-   */
-  public GrpcChannel(GrpcChannelKey channelKey, AuthenticatedChannel channel,
-      long shutdownTimeoutMs) {
-    this(channelKey, (Channel) channel, shutdownTimeoutMs);
-    // Update the channel health supplier for authenticated channel.
-    mChannelHealthState = () -> (channel.isAuthenticated() && mChannelHealthy);
-
-    // Store {@link AuthenticatedChannel::#close) for signaling end of
-    // authenticated session during shutdown.
-    mAuthCloseCallback = channel::close;
+    // Response tracking interceptor for monitoring call health.
+    mResponseTracker = new ChannelResponseTracker();
+    // Intercept given channel with response tracker.
+    mTrackedChannel = ClientInterceptors.intercept(mOriginalChannel, mResponseTracker);
   }
 
   @Override
   public <RequestT, ResponseT> ClientCall<RequestT, ResponseT> newCall(
       MethodDescriptor<RequestT, ResponseT> methodDescriptor, CallOptions callOptions) {
-    return mChannel.newCall(methodDescriptor, callOptions);
+    return mTrackedChannel.newCall(methodDescriptor, callOptions);
   }
 
   @Override
   public String authority() {
-    return mChannel.authority();
+    return mTrackedChannel.authority();
   }
 
   /**
@@ -89,28 +89,32 @@ public final class GrpcChannel extends Channel {
    * @param interceptor interceptor
    */
   public void intercept(ClientInterceptor interceptor) {
-    mChannel = ClientInterceptors.intercept(mChannel, interceptor);
+    mTrackedChannel = ClientInterceptors.intercept(mTrackedChannel, interceptor);
   }
 
   /**
    * Shuts down the channel.
+   *
+   * Shutdown should be synchronized as it could be called concurrently due to:
+   *  - Authentication long polling
+   *  - gRPC messaging stream.
    */
   public synchronized void shutdown() {
-    if (mAuthCloseCallback != null) {
-      // Stop authenticated session with server.
-      mAuthCloseCallback.run();
-      mAuthCloseCallback = null;
+    if (mAuthDriver != null) {
+      // Close authenticated session with server.
+      mAuthDriver.close();
+      mAuthDriver = null;
     }
     if (!mChannelReleased) {
       GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey, mShutdownTimeoutMs);
+      mChannelReleased = true;
     }
-    mChannelReleased = true;
   }
 
   /**
    * @return {@code true} if the channel has been shut down
    */
-  public synchronized boolean isShutdown() {
+  public boolean isShutdown() {
     return mChannelReleased;
   }
 
@@ -118,14 +122,18 @@ public final class GrpcChannel extends Channel {
    * @return {@code true} if channel is healthy
    */
   public boolean isHealthy() {
-    return mChannelHealthState.get();
+    boolean healthy = mResponseTracker.isChannelHealthy();
+    if (mAuthDriver != null) {
+      healthy &= mAuthDriver.isAuthenticated();
+    }
+    return healthy;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("ChannelKey", mChannelKey)
-        .add("ChannelHealthy", mChannelHealthy)
+        .add("ChannelHealthy", isHealthy())
         .add("ChannelReleased", mChannelReleased)
         .toString();
   }
@@ -144,10 +152,10 @@ public final class GrpcChannel extends Channel {
    * the channel.
    */
   private class ChannelResponseTracker implements ClientInterceptor {
-    private GrpcChannel mGrpcChannel;
+    private boolean mChannelHealthy = true;
 
-    public ChannelResponseTracker(GrpcChannel grpcChannel) {
-      mGrpcChannel = grpcChannel;
+    public boolean isChannelHealthy() {
+      return mChannelHealthy;
     }
 
     @Override
@@ -163,7 +171,7 @@ public final class GrpcChannel extends Channel {
             @Override
             public void onClose(io.grpc.Status status, Metadata trailers) {
               if (status == Status.UNAUTHENTICATED || status == Status.UNAVAILABLE) {
-                mGrpcChannel.mChannelHealthy = false;
+                mChannelHealthy = false;
               }
               super.onClose(status, trailers);
             }

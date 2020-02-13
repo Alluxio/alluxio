@@ -115,6 +115,10 @@
       <artifactId>jackson-datatype-protobuf</artifactId>
       <version>0.9.10-jackson2.9-proto3</version>
     </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-core</artifactId>
+    </dependency>
 
     <!-- Test dependencies -->
     <dependency>

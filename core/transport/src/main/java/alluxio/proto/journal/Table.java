@@ -20,56 +20,68 @@ public final class Table {
 
     /**
      * <code>optional string udb_type = 1;</code>
+     * @return Whether the udbType field is set.
      */
     boolean hasUdbType();
     /**
      * <code>optional string udb_type = 1;</code>
+     * @return The udbType.
      */
     java.lang.String getUdbType();
     /**
      * <code>optional string udb_type = 1;</code>
+     * @return The bytes for udbType.
      */
     com.google.protobuf.ByteString
         getUdbTypeBytes();
 
     /**
      * <code>optional string udb_connection_uri = 2;</code>
+     * @return Whether the udbConnectionUri field is set.
      */
     boolean hasUdbConnectionUri();
     /**
      * <code>optional string udb_connection_uri = 2;</code>
+     * @return The udbConnectionUri.
      */
     java.lang.String getUdbConnectionUri();
     /**
      * <code>optional string udb_connection_uri = 2;</code>
+     * @return The bytes for udbConnectionUri.
      */
     com.google.protobuf.ByteString
         getUdbConnectionUriBytes();
 
     /**
      * <code>optional string udb_db_name = 3;</code>
+     * @return Whether the udbDbName field is set.
      */
     boolean hasUdbDbName();
     /**
      * <code>optional string udb_db_name = 3;</code>
+     * @return The udbDbName.
      */
     java.lang.String getUdbDbName();
     /**
      * <code>optional string udb_db_name = 3;</code>
+     * @return The bytes for udbDbName.
      */
     com.google.protobuf.ByteString
         getUdbDbNameBytes();
 
     /**
      * <code>optional string db_name = 4;</code>
+     * @return Whether the dbName field is set.
      */
     boolean hasDbName();
     /**
      * <code>optional string db_name = 4;</code>
+     * @return The dbName.
      */
     java.lang.String getDbName();
     /**
      * <code>optional string db_name = 4;</code>
+     * @return The bytes for dbName.
      */
     com.google.protobuf.ByteString
         getDbNameBytes();
@@ -132,6 +144,13 @@ public final class Table {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new AttachDbEntry();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -155,13 +174,6 @@ public final class Table {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
@@ -187,7 +199,7 @@ public final class Table {
               break;
             }
             case 42: {
-              if (!((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
+              if (!((mutable_bitField0_ & 0x00000010) != 0)) {
                 config_ = com.google.protobuf.MapField.newMapField(
                     ConfigDefaultEntryHolder.defaultEntry);
                 mutable_bitField0_ |= 0x00000010;
@@ -197,6 +209,13 @@ public final class Table {
                   ConfigDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
               config_.getMutableMap().put(
                   config__.getKey(), config__.getValue());
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -217,6 +236,7 @@ public final class Table {
     }
 
     @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
@@ -227,6 +247,7 @@ public final class Table {
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_AttachDbEntry_fieldAccessorTable
@@ -239,12 +260,14 @@ public final class Table {
     private volatile java.lang.Object udbType_;
     /**
      * <code>optional string udb_type = 1;</code>
+     * @return Whether the udbType field is set.
      */
     public boolean hasUdbType() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string udb_type = 1;</code>
+     * @return The udbType.
      */
     public java.lang.String getUdbType() {
       java.lang.Object ref = udbType_;
@@ -262,6 +285,7 @@ public final class Table {
     }
     /**
      * <code>optional string udb_type = 1;</code>
+     * @return The bytes for udbType.
      */
     public com.google.protobuf.ByteString
         getUdbTypeBytes() {
@@ -281,12 +305,14 @@ public final class Table {
     private volatile java.lang.Object udbConnectionUri_;
     /**
      * <code>optional string udb_connection_uri = 2;</code>
+     * @return Whether the udbConnectionUri field is set.
      */
     public boolean hasUdbConnectionUri() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string udb_connection_uri = 2;</code>
+     * @return The udbConnectionUri.
      */
     public java.lang.String getUdbConnectionUri() {
       java.lang.Object ref = udbConnectionUri_;
@@ -304,6 +330,7 @@ public final class Table {
     }
     /**
      * <code>optional string udb_connection_uri = 2;</code>
+     * @return The bytes for udbConnectionUri.
      */
     public com.google.protobuf.ByteString
         getUdbConnectionUriBytes() {
@@ -323,12 +350,14 @@ public final class Table {
     private volatile java.lang.Object udbDbName_;
     /**
      * <code>optional string udb_db_name = 3;</code>
+     * @return Whether the udbDbName field is set.
      */
     public boolean hasUdbDbName() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional string udb_db_name = 3;</code>
+     * @return The udbDbName.
      */
     public java.lang.String getUdbDbName() {
       java.lang.Object ref = udbDbName_;
@@ -346,6 +375,7 @@ public final class Table {
     }
     /**
      * <code>optional string udb_db_name = 3;</code>
+     * @return The bytes for udbDbName.
      */
     public com.google.protobuf.ByteString
         getUdbDbNameBytes() {
@@ -365,12 +395,14 @@ public final class Table {
     private volatile java.lang.Object dbName_;
     /**
      * <code>optional string db_name = 4;</code>
+     * @return Whether the dbName field is set.
      */
     public boolean hasDbName() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional string db_name = 4;</code>
+     * @return The dbName.
      */
     public java.lang.String getDbName() {
       java.lang.Object ref = dbName_;
@@ -388,6 +420,7 @@ public final class Table {
     }
     /**
      * <code>optional string db_name = 4;</code>
+     * @return The bytes for dbName.
      */
     public com.google.protobuf.ByteString
         getDbNameBytes() {
@@ -480,6 +513,7 @@ public final class Table {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -489,18 +523,19 @@ public final class Table {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, udbType_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, udbConnectionUri_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, udbDbName_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000008) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 4, dbName_);
       }
       com.google.protobuf.GeneratedMessageV3
@@ -512,21 +547,22 @@ public final class Table {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, udbType_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, udbConnectionUri_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, udbDbName_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000008) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, dbName_);
       }
       for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
@@ -554,31 +590,30 @@ public final class Table {
       }
       alluxio.proto.journal.Table.AttachDbEntry other = (alluxio.proto.journal.Table.AttachDbEntry) obj;
 
-      boolean result = true;
-      result = result && (hasUdbType() == other.hasUdbType());
+      if (hasUdbType() != other.hasUdbType()) return false;
       if (hasUdbType()) {
-        result = result && getUdbType()
-            .equals(other.getUdbType());
+        if (!getUdbType()
+            .equals(other.getUdbType())) return false;
       }
-      result = result && (hasUdbConnectionUri() == other.hasUdbConnectionUri());
+      if (hasUdbConnectionUri() != other.hasUdbConnectionUri()) return false;
       if (hasUdbConnectionUri()) {
-        result = result && getUdbConnectionUri()
-            .equals(other.getUdbConnectionUri());
+        if (!getUdbConnectionUri()
+            .equals(other.getUdbConnectionUri())) return false;
       }
-      result = result && (hasUdbDbName() == other.hasUdbDbName());
+      if (hasUdbDbName() != other.hasUdbDbName()) return false;
       if (hasUdbDbName()) {
-        result = result && getUdbDbName()
-            .equals(other.getUdbDbName());
+        if (!getUdbDbName()
+            .equals(other.getUdbDbName())) return false;
       }
-      result = result && (hasDbName() == other.hasDbName());
+      if (hasDbName() != other.hasDbName()) return false;
       if (hasDbName()) {
-        result = result && getDbName()
-            .equals(other.getDbName());
+        if (!getDbName()
+            .equals(other.getDbName())) return false;
       }
-      result = result && internalGetConfig().equals(
-          other.internalGetConfig());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!internalGetConfig().equals(
+          other.internalGetConfig())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -683,6 +718,7 @@ public final class Table {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -690,6 +726,7 @@ public final class Table {
     public static Builder newBuilder(alluxio.proto.journal.Table.AttachDbEntry prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -739,6 +776,7 @@ public final class Table {
                 "Invalid map field number: " + number);
         }
       }
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_AttachDbEntry_fieldAccessorTable
@@ -761,6 +799,7 @@ public final class Table {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         udbType_ = "";
@@ -775,15 +814,18 @@ public final class Table {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_AttachDbEntry_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.AttachDbEntry getDefaultInstanceForType() {
         return alluxio.proto.journal.Table.AttachDbEntry.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.AttachDbEntry build() {
         alluxio.proto.journal.Table.AttachDbEntry result = buildPartial();
         if (!result.isInitialized()) {
@@ -792,23 +834,24 @@ public final class Table {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.AttachDbEntry buildPartial() {
         alluxio.proto.journal.Table.AttachDbEntry result = new alluxio.proto.journal.Table.AttachDbEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
           to_bitField0_ |= 0x00000001;
         }
         result.udbType_ = udbType_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
           to_bitField0_ |= 0x00000002;
         }
         result.udbConnectionUri_ = udbConnectionUri_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((from_bitField0_ & 0x00000004) != 0)) {
           to_bitField0_ |= 0x00000004;
         }
         result.udbDbName_ = udbDbName_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        if (((from_bitField0_ & 0x00000008) != 0)) {
           to_bitField0_ |= 0x00000008;
         }
         result.dbName_ = dbName_;
@@ -819,32 +862,39 @@ public final class Table {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Table.AttachDbEntry) {
           return mergeFrom((alluxio.proto.journal.Table.AttachDbEntry)other);
@@ -883,10 +933,12 @@ public final class Table {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -909,12 +961,14 @@ public final class Table {
       private java.lang.Object udbType_ = "";
       /**
        * <code>optional string udb_type = 1;</code>
+       * @return Whether the udbType field is set.
        */
       public boolean hasUdbType() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional string udb_type = 1;</code>
+       * @return The udbType.
        */
       public java.lang.String getUdbType() {
         java.lang.Object ref = udbType_;
@@ -932,6 +986,7 @@ public final class Table {
       }
       /**
        * <code>optional string udb_type = 1;</code>
+       * @return The bytes for udbType.
        */
       public com.google.protobuf.ByteString
           getUdbTypeBytes() {
@@ -948,6 +1003,8 @@ public final class Table {
       }
       /**
        * <code>optional string udb_type = 1;</code>
+       * @param value The udbType to set.
+       * @return This builder for chaining.
        */
       public Builder setUdbType(
           java.lang.String value) {
@@ -961,6 +1018,7 @@ public final class Table {
       }
       /**
        * <code>optional string udb_type = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearUdbType() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -970,6 +1028,8 @@ public final class Table {
       }
       /**
        * <code>optional string udb_type = 1;</code>
+       * @param value The bytes for udbType to set.
+       * @return This builder for chaining.
        */
       public Builder setUdbTypeBytes(
           com.google.protobuf.ByteString value) {
@@ -985,12 +1045,14 @@ public final class Table {
       private java.lang.Object udbConnectionUri_ = "";
       /**
        * <code>optional string udb_connection_uri = 2;</code>
+       * @return Whether the udbConnectionUri field is set.
        */
       public boolean hasUdbConnectionUri() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <code>optional string udb_connection_uri = 2;</code>
+       * @return The udbConnectionUri.
        */
       public java.lang.String getUdbConnectionUri() {
         java.lang.Object ref = udbConnectionUri_;
@@ -1008,6 +1070,7 @@ public final class Table {
       }
       /**
        * <code>optional string udb_connection_uri = 2;</code>
+       * @return The bytes for udbConnectionUri.
        */
       public com.google.protobuf.ByteString
           getUdbConnectionUriBytes() {
@@ -1024,6 +1087,8 @@ public final class Table {
       }
       /**
        * <code>optional string udb_connection_uri = 2;</code>
+       * @param value The udbConnectionUri to set.
+       * @return This builder for chaining.
        */
       public Builder setUdbConnectionUri(
           java.lang.String value) {
@@ -1037,6 +1102,7 @@ public final class Table {
       }
       /**
        * <code>optional string udb_connection_uri = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearUdbConnectionUri() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -1046,6 +1112,8 @@ public final class Table {
       }
       /**
        * <code>optional string udb_connection_uri = 2;</code>
+       * @param value The bytes for udbConnectionUri to set.
+       * @return This builder for chaining.
        */
       public Builder setUdbConnectionUriBytes(
           com.google.protobuf.ByteString value) {
@@ -1061,12 +1129,14 @@ public final class Table {
       private java.lang.Object udbDbName_ = "";
       /**
        * <code>optional string udb_db_name = 3;</code>
+       * @return Whether the udbDbName field is set.
        */
       public boolean hasUdbDbName() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000004) != 0);
       }
       /**
        * <code>optional string udb_db_name = 3;</code>
+       * @return The udbDbName.
        */
       public java.lang.String getUdbDbName() {
         java.lang.Object ref = udbDbName_;
@@ -1084,6 +1154,7 @@ public final class Table {
       }
       /**
        * <code>optional string udb_db_name = 3;</code>
+       * @return The bytes for udbDbName.
        */
       public com.google.protobuf.ByteString
           getUdbDbNameBytes() {
@@ -1100,6 +1171,8 @@ public final class Table {
       }
       /**
        * <code>optional string udb_db_name = 3;</code>
+       * @param value The udbDbName to set.
+       * @return This builder for chaining.
        */
       public Builder setUdbDbName(
           java.lang.String value) {
@@ -1113,6 +1186,7 @@ public final class Table {
       }
       /**
        * <code>optional string udb_db_name = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearUdbDbName() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -1122,6 +1196,8 @@ public final class Table {
       }
       /**
        * <code>optional string udb_db_name = 3;</code>
+       * @param value The bytes for udbDbName to set.
+       * @return This builder for chaining.
        */
       public Builder setUdbDbNameBytes(
           com.google.protobuf.ByteString value) {
@@ -1137,12 +1213,14 @@ public final class Table {
       private java.lang.Object dbName_ = "";
       /**
        * <code>optional string db_name = 4;</code>
+       * @return Whether the dbName field is set.
        */
       public boolean hasDbName() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
+        return ((bitField0_ & 0x00000008) != 0);
       }
       /**
        * <code>optional string db_name = 4;</code>
+       * @return The dbName.
        */
       public java.lang.String getDbName() {
         java.lang.Object ref = dbName_;
@@ -1160,6 +1238,7 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 4;</code>
+       * @return The bytes for dbName.
        */
       public com.google.protobuf.ByteString
           getDbNameBytes() {
@@ -1176,6 +1255,8 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 4;</code>
+       * @param value The dbName to set.
+       * @return This builder for chaining.
        */
       public Builder setDbName(
           java.lang.String value) {
@@ -1189,6 +1270,7 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 4;</code>
+       * @return This builder for chaining.
        */
       public Builder clearDbName() {
         bitField0_ = (bitField0_ & ~0x00000008);
@@ -1198,6 +1280,8 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 4;</code>
+       * @param value The bytes for dbName to set.
+       * @return This builder for chaining.
        */
       public Builder setDbNameBytes(
           com.google.protobuf.ByteString value) {
@@ -1332,11 +1416,13 @@ public final class Table {
             .putAll(values);
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -1358,6 +1444,7 @@ public final class Table {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<AttachDbEntry>
         PARSER = new com.google.protobuf.AbstractParser<AttachDbEntry>() {
+      @java.lang.Override
       public AttachDbEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1375,6 +1462,7 @@ public final class Table {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.journal.Table.AttachDbEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -1387,14 +1475,17 @@ public final class Table {
 
     /**
      * <code>optional string db_name = 1;</code>
+     * @return Whether the dbName field is set.
      */
     boolean hasDbName();
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The dbName.
      */
     java.lang.String getDbName();
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The bytes for dbName.
      */
     com.google.protobuf.ByteString
         getDbNameBytes();
@@ -1417,6 +1508,13 @@ public final class Table {
     }
     private DetachDbEntry() {
       dbName_ = "";
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new DetachDbEntry();
     }
 
     @java.lang.Override
@@ -1443,17 +1541,17 @@ public final class Table {
             case 0:
               done = true;
               break;
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              dbName_ = bs;
+              break;
+            }
             default: {
               if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
-              break;
-            }
-            case 10: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000001;
-              dbName_ = bs;
               break;
             }
           }
@@ -1473,6 +1571,7 @@ public final class Table {
       return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_DetachDbEntry_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_DetachDbEntry_fieldAccessorTable
@@ -1485,12 +1584,14 @@ public final class Table {
     private volatile java.lang.Object dbName_;
     /**
      * <code>optional string db_name = 1;</code>
+     * @return Whether the dbName field is set.
      */
     public boolean hasDbName() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The dbName.
      */
     public java.lang.String getDbName() {
       java.lang.Object ref = dbName_;
@@ -1508,6 +1609,7 @@ public final class Table {
     }
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The bytes for dbName.
      */
     public com.google.protobuf.ByteString
         getDbNameBytes() {
@@ -1524,6 +1626,7 @@ public final class Table {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -1533,20 +1636,22 @@ public final class Table {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, dbName_);
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, dbName_);
       }
       size += unknownFields.getSerializedSize();
@@ -1564,14 +1669,13 @@ public final class Table {
       }
       alluxio.proto.journal.Table.DetachDbEntry other = (alluxio.proto.journal.Table.DetachDbEntry) obj;
 
-      boolean result = true;
-      result = result && (hasDbName() == other.hasDbName());
+      if (hasDbName() != other.hasDbName()) return false;
       if (hasDbName()) {
-        result = result && getDbName()
-            .equals(other.getDbName());
+        if (!getDbName()
+            .equals(other.getDbName())) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -1660,6 +1764,7 @@ public final class Table {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -1667,6 +1772,7 @@ public final class Table {
     public static Builder newBuilder(alluxio.proto.journal.Table.DetachDbEntry prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -1694,6 +1800,7 @@ public final class Table {
         return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_DetachDbEntry_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_DetachDbEntry_fieldAccessorTable
@@ -1716,6 +1823,7 @@ public final class Table {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         dbName_ = "";
@@ -1723,15 +1831,18 @@ public final class Table {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_DetachDbEntry_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.DetachDbEntry getDefaultInstanceForType() {
         return alluxio.proto.journal.Table.DetachDbEntry.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.DetachDbEntry build() {
         alluxio.proto.journal.Table.DetachDbEntry result = buildPartial();
         if (!result.isInitialized()) {
@@ -1740,11 +1851,12 @@ public final class Table {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.DetachDbEntry buildPartial() {
         alluxio.proto.journal.Table.DetachDbEntry result = new alluxio.proto.journal.Table.DetachDbEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
           to_bitField0_ |= 0x00000001;
         }
         result.dbName_ = dbName_;
@@ -1753,32 +1865,39 @@ public final class Table {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Table.DetachDbEntry) {
           return mergeFrom((alluxio.proto.journal.Table.DetachDbEntry)other);
@@ -1800,10 +1919,12 @@ public final class Table {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1826,12 +1947,14 @@ public final class Table {
       private java.lang.Object dbName_ = "";
       /**
        * <code>optional string db_name = 1;</code>
+       * @return Whether the dbName field is set.
        */
       public boolean hasDbName() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @return The dbName.
        */
       public java.lang.String getDbName() {
         java.lang.Object ref = dbName_;
@@ -1849,6 +1972,7 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @return The bytes for dbName.
        */
       public com.google.protobuf.ByteString
           getDbNameBytes() {
@@ -1865,6 +1989,8 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @param value The dbName to set.
+       * @return This builder for chaining.
        */
       public Builder setDbName(
           java.lang.String value) {
@@ -1878,6 +2004,7 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearDbName() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -1887,6 +2014,8 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @param value The bytes for dbName to set.
+       * @return This builder for chaining.
        */
       public Builder setDbNameBytes(
           com.google.protobuf.ByteString value) {
@@ -1898,11 +2027,13 @@ public final class Table {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -1924,6 +2055,7 @@ public final class Table {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<DetachDbEntry>
         PARSER = new com.google.protobuf.AbstractParser<DetachDbEntry>() {
+      @java.lang.Override
       public DetachDbEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1941,6 +2073,7 @@ public final class Table {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.journal.Table.DetachDbEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -1953,52 +2086,63 @@ public final class Table {
 
     /**
      * <code>optional string db_name = 1;</code>
+     * @return Whether the dbName field is set.
      */
     boolean hasDbName();
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The dbName.
      */
     java.lang.String getDbName();
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The bytes for dbName.
      */
     com.google.protobuf.ByteString
         getDbNameBytes();
 
     /**
      * <code>optional string table_name = 2;</code>
+     * @return Whether the tableName field is set.
      */
     boolean hasTableName();
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The tableName.
      */
     java.lang.String getTableName();
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The bytes for tableName.
      */
     com.google.protobuf.ByteString
         getTableNameBytes();
 
     /**
      * <code>optional string owner = 3;</code>
+     * @return Whether the owner field is set.
      */
     boolean hasOwner();
     /**
      * <code>optional string owner = 3;</code>
+     * @return The owner.
      */
     java.lang.String getOwner();
     /**
      * <code>optional string owner = 3;</code>
+     * @return The bytes for owner.
      */
     com.google.protobuf.ByteString
         getOwnerBytes();
 
     /**
      * <code>optional .alluxio.grpc.table.Schema schema = 4;</code>
+     * @return Whether the schema field is set.
      */
     boolean hasSchema();
     /**
      * <code>optional .alluxio.grpc.table.Schema schema = 4;</code>
+     * @return The schema.
      */
     alluxio.grpc.table.Schema getSchema();
     /**
@@ -2008,10 +2152,12 @@ public final class Table {
 
     /**
      * <code>optional .alluxio.grpc.table.Layout layout = 5;</code>
+     * @return Whether the layout field is set.
      */
     boolean hasLayout();
     /**
      * <code>optional .alluxio.grpc.table.Layout layout = 5;</code>
+     * @return The layout.
      */
     alluxio.grpc.table.Layout getLayout();
     /**
@@ -2144,10 +2290,43 @@ public final class Table {
      */
     alluxio.grpc.table.PartitionOrBuilder getPartitionsOrBuilder(
         int index);
+
+    /**
+     * <code>optional int64 previous_version = 10;</code>
+     * @return Whether the previousVersion field is set.
+     */
+    boolean hasPreviousVersion();
+    /**
+     * <code>optional int64 previous_version = 10;</code>
+     * @return The previousVersion.
+     */
+    long getPreviousVersion();
+
+    /**
+     * <code>optional int64 version = 11;</code>
+     * @return Whether the version field is set.
+     */
+    boolean hasVersion();
+    /**
+     * <code>optional int64 version = 11;</code>
+     * @return The version.
+     */
+    long getVersion();
+
+    /**
+     * <code>optional int64 version_creation_time = 12;</code>
+     * @return Whether the versionCreationTime field is set.
+     */
+    boolean hasVersionCreationTime();
+    /**
+     * <code>optional int64 version_creation_time = 12;</code>
+     * @return The versionCreationTime.
+     */
+    long getVersionCreationTime();
   }
   /**
    * <pre>
-   * next available id: 10
+   * next available id: 13
    * </pre>
    *
    * Protobuf type {@code alluxio.proto.journal.AddTableEntry}
@@ -2168,6 +2347,13 @@ public final class Table {
       tableStats_ = java.util.Collections.emptyList();
       partitionCols_ = java.util.Collections.emptyList();
       partitions_ = java.util.Collections.emptyList();
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new AddTableEntry();
     }
 
     @java.lang.Override
@@ -2194,13 +2380,6 @@ public final class Table {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
@@ -2221,7 +2400,7 @@ public final class Table {
             }
             case 34: {
               alluxio.grpc.table.Schema.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000008) == 0x00000008)) {
+              if (((bitField0_ & 0x00000008) != 0)) {
                 subBuilder = schema_.toBuilder();
               }
               schema_ = input.readMessage(alluxio.grpc.table.Schema.PARSER, extensionRegistry);
@@ -2234,7 +2413,7 @@ public final class Table {
             }
             case 42: {
               alluxio.grpc.table.Layout.Builder subBuilder = null;
-              if (((bitField0_ & 0x00000010) == 0x00000010)) {
+              if (((bitField0_ & 0x00000010) != 0)) {
                 subBuilder = layout_.toBuilder();
               }
               layout_ = input.readMessage(alluxio.grpc.table.Layout.PARSER, extensionRegistry);
@@ -2246,7 +2425,7 @@ public final class Table {
               break;
             }
             case 50: {
-              if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+              if (!((mutable_bitField0_ & 0x00000020) != 0)) {
                 tableStats_ = new java.util.ArrayList<alluxio.grpc.table.ColumnStatisticsInfo>();
                 mutable_bitField0_ |= 0x00000020;
               }
@@ -2255,7 +2434,7 @@ public final class Table {
               break;
             }
             case 58: {
-              if (!((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+              if (!((mutable_bitField0_ & 0x00000040) != 0)) {
                 parameters_ = com.google.protobuf.MapField.newMapField(
                     ParametersDefaultEntryHolder.defaultEntry);
                 mutable_bitField0_ |= 0x00000040;
@@ -2268,7 +2447,7 @@ public final class Table {
               break;
             }
             case 66: {
-              if (!((mutable_bitField0_ & 0x00000080) == 0x00000080)) {
+              if (!((mutable_bitField0_ & 0x00000080) != 0)) {
                 partitionCols_ = new java.util.ArrayList<alluxio.grpc.table.FieldSchema>();
                 mutable_bitField0_ |= 0x00000080;
               }
@@ -2277,12 +2456,34 @@ public final class Table {
               break;
             }
             case 74: {
-              if (!((mutable_bitField0_ & 0x00000100) == 0x00000100)) {
+              if (!((mutable_bitField0_ & 0x00000100) != 0)) {
                 partitions_ = new java.util.ArrayList<alluxio.grpc.table.Partition>();
                 mutable_bitField0_ |= 0x00000100;
               }
               partitions_.add(
                   input.readMessage(alluxio.grpc.table.Partition.PARSER, extensionRegistry));
+              break;
+            }
+            case 80: {
+              bitField0_ |= 0x00000020;
+              previousVersion_ = input.readInt64();
+              break;
+            }
+            case 88: {
+              bitField0_ |= 0x00000040;
+              version_ = input.readInt64();
+              break;
+            }
+            case 96: {
+              bitField0_ |= 0x00000080;
+              versionCreationTime_ = input.readInt64();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -2293,13 +2494,13 @@ public final class Table {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+        if (((mutable_bitField0_ & 0x00000020) != 0)) {
           tableStats_ = java.util.Collections.unmodifiableList(tableStats_);
         }
-        if (((mutable_bitField0_ & 0x00000080) == 0x00000080)) {
+        if (((mutable_bitField0_ & 0x00000080) != 0)) {
           partitionCols_ = java.util.Collections.unmodifiableList(partitionCols_);
         }
-        if (((mutable_bitField0_ & 0x00000100) == 0x00000100)) {
+        if (((mutable_bitField0_ & 0x00000100) != 0)) {
           partitions_ = java.util.Collections.unmodifiableList(partitions_);
         }
         this.unknownFields = unknownFields.build();
@@ -2312,6 +2513,7 @@ public final class Table {
     }
 
     @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
@@ -2322,6 +2524,7 @@ public final class Table {
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_AddTableEntry_fieldAccessorTable
@@ -2334,12 +2537,14 @@ public final class Table {
     private volatile java.lang.Object dbName_;
     /**
      * <code>optional string db_name = 1;</code>
+     * @return Whether the dbName field is set.
      */
     public boolean hasDbName() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The dbName.
      */
     public java.lang.String getDbName() {
       java.lang.Object ref = dbName_;
@@ -2357,6 +2562,7 @@ public final class Table {
     }
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The bytes for dbName.
      */
     public com.google.protobuf.ByteString
         getDbNameBytes() {
@@ -2376,12 +2582,14 @@ public final class Table {
     private volatile java.lang.Object tableName_;
     /**
      * <code>optional string table_name = 2;</code>
+     * @return Whether the tableName field is set.
      */
     public boolean hasTableName() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The tableName.
      */
     public java.lang.String getTableName() {
       java.lang.Object ref = tableName_;
@@ -2399,6 +2607,7 @@ public final class Table {
     }
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The bytes for tableName.
      */
     public com.google.protobuf.ByteString
         getTableNameBytes() {
@@ -2418,12 +2627,14 @@ public final class Table {
     private volatile java.lang.Object owner_;
     /**
      * <code>optional string owner = 3;</code>
+     * @return Whether the owner field is set.
      */
     public boolean hasOwner() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional string owner = 3;</code>
+     * @return The owner.
      */
     public java.lang.String getOwner() {
       java.lang.Object ref = owner_;
@@ -2441,6 +2652,7 @@ public final class Table {
     }
     /**
      * <code>optional string owner = 3;</code>
+     * @return The bytes for owner.
      */
     public com.google.protobuf.ByteString
         getOwnerBytes() {
@@ -2460,12 +2672,14 @@ public final class Table {
     private alluxio.grpc.table.Schema schema_;
     /**
      * <code>optional .alluxio.grpc.table.Schema schema = 4;</code>
+     * @return Whether the schema field is set.
      */
     public boolean hasSchema() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.table.Schema schema = 4;</code>
+     * @return The schema.
      */
     public alluxio.grpc.table.Schema getSchema() {
       return schema_ == null ? alluxio.grpc.table.Schema.getDefaultInstance() : schema_;
@@ -2481,12 +2695,14 @@ public final class Table {
     private alluxio.grpc.table.Layout layout_;
     /**
      * <code>optional .alluxio.grpc.table.Layout layout = 5;</code>
+     * @return Whether the layout field is set.
      */
     public boolean hasLayout() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000010) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.table.Layout layout = 5;</code>
+     * @return The layout.
      */
     public alluxio.grpc.table.Layout getLayout() {
       return layout_ == null ? alluxio.grpc.table.Layout.getDefaultInstance() : layout_;
@@ -2699,7 +2915,59 @@ public final class Table {
       return partitions_.get(index);
     }
 
+    public static final int PREVIOUS_VERSION_FIELD_NUMBER = 10;
+    private long previousVersion_;
+    /**
+     * <code>optional int64 previous_version = 10;</code>
+     * @return Whether the previousVersion field is set.
+     */
+    public boolean hasPreviousVersion() {
+      return ((bitField0_ & 0x00000020) != 0);
+    }
+    /**
+     * <code>optional int64 previous_version = 10;</code>
+     * @return The previousVersion.
+     */
+    public long getPreviousVersion() {
+      return previousVersion_;
+    }
+
+    public static final int VERSION_FIELD_NUMBER = 11;
+    private long version_;
+    /**
+     * <code>optional int64 version = 11;</code>
+     * @return Whether the version field is set.
+     */
+    public boolean hasVersion() {
+      return ((bitField0_ & 0x00000040) != 0);
+    }
+    /**
+     * <code>optional int64 version = 11;</code>
+     * @return The version.
+     */
+    public long getVersion() {
+      return version_;
+    }
+
+    public static final int VERSION_CREATION_TIME_FIELD_NUMBER = 12;
+    private long versionCreationTime_;
+    /**
+     * <code>optional int64 version_creation_time = 12;</code>
+     * @return Whether the versionCreationTime field is set.
+     */
+    public boolean hasVersionCreationTime() {
+      return ((bitField0_ & 0x00000080) != 0);
+    }
+    /**
+     * <code>optional int64 version_creation_time = 12;</code>
+     * @return The versionCreationTime.
+     */
+    public long getVersionCreationTime() {
+      return versionCreationTime_;
+    }
+
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -2727,21 +2995,22 @@ public final class Table {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, dbName_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, tableName_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, owner_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000008) != 0)) {
         output.writeMessage(4, getSchema());
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((bitField0_ & 0x00000010) != 0)) {
         output.writeMessage(5, getLayout());
       }
       for (int i = 0; i < tableStats_.size(); i++) {
@@ -2759,28 +3028,38 @@ public final class Table {
       for (int i = 0; i < partitions_.size(); i++) {
         output.writeMessage(9, partitions_.get(i));
       }
+      if (((bitField0_ & 0x00000020) != 0)) {
+        output.writeInt64(10, previousVersion_);
+      }
+      if (((bitField0_ & 0x00000040) != 0)) {
+        output.writeInt64(11, version_);
+      }
+      if (((bitField0_ & 0x00000080) != 0)) {
+        output.writeInt64(12, versionCreationTime_);
+      }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, dbName_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, tableName_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, owner_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000008) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(4, getSchema());
       }
-      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((bitField0_ & 0x00000010) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(5, getLayout());
       }
@@ -2806,6 +3085,18 @@ public final class Table {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(9, partitions_.get(i));
       }
+      if (((bitField0_ & 0x00000020) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(10, previousVersion_);
+      }
+      if (((bitField0_ & 0x00000040) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(11, version_);
+      }
+      if (((bitField0_ & 0x00000080) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(12, versionCreationTime_);
+      }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
       return size;
@@ -2821,42 +3112,56 @@ public final class Table {
       }
       alluxio.proto.journal.Table.AddTableEntry other = (alluxio.proto.journal.Table.AddTableEntry) obj;
 
-      boolean result = true;
-      result = result && (hasDbName() == other.hasDbName());
+      if (hasDbName() != other.hasDbName()) return false;
       if (hasDbName()) {
-        result = result && getDbName()
-            .equals(other.getDbName());
+        if (!getDbName()
+            .equals(other.getDbName())) return false;
       }
-      result = result && (hasTableName() == other.hasTableName());
+      if (hasTableName() != other.hasTableName()) return false;
       if (hasTableName()) {
-        result = result && getTableName()
-            .equals(other.getTableName());
+        if (!getTableName()
+            .equals(other.getTableName())) return false;
       }
-      result = result && (hasOwner() == other.hasOwner());
+      if (hasOwner() != other.hasOwner()) return false;
       if (hasOwner()) {
-        result = result && getOwner()
-            .equals(other.getOwner());
+        if (!getOwner()
+            .equals(other.getOwner())) return false;
       }
-      result = result && (hasSchema() == other.hasSchema());
+      if (hasSchema() != other.hasSchema()) return false;
       if (hasSchema()) {
-        result = result && getSchema()
-            .equals(other.getSchema());
+        if (!getSchema()
+            .equals(other.getSchema())) return false;
       }
-      result = result && (hasLayout() == other.hasLayout());
+      if (hasLayout() != other.hasLayout()) return false;
       if (hasLayout()) {
-        result = result && getLayout()
-            .equals(other.getLayout());
+        if (!getLayout()
+            .equals(other.getLayout())) return false;
       }
-      result = result && getTableStatsList()
-          .equals(other.getTableStatsList());
-      result = result && internalGetParameters().equals(
-          other.internalGetParameters());
-      result = result && getPartitionColsList()
-          .equals(other.getPartitionColsList());
-      result = result && getPartitionsList()
-          .equals(other.getPartitionsList());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!getTableStatsList()
+          .equals(other.getTableStatsList())) return false;
+      if (!internalGetParameters().equals(
+          other.internalGetParameters())) return false;
+      if (!getPartitionColsList()
+          .equals(other.getPartitionColsList())) return false;
+      if (!getPartitionsList()
+          .equals(other.getPartitionsList())) return false;
+      if (hasPreviousVersion() != other.hasPreviousVersion()) return false;
+      if (hasPreviousVersion()) {
+        if (getPreviousVersion()
+            != other.getPreviousVersion()) return false;
+      }
+      if (hasVersion() != other.hasVersion()) return false;
+      if (hasVersion()) {
+        if (getVersion()
+            != other.getVersion()) return false;
+      }
+      if (hasVersionCreationTime() != other.hasVersionCreationTime()) return false;
+      if (hasVersionCreationTime()) {
+        if (getVersionCreationTime()
+            != other.getVersionCreationTime()) return false;
+      }
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -2901,6 +3206,21 @@ public final class Table {
       if (getPartitionsCount() > 0) {
         hash = (37 * hash) + PARTITIONS_FIELD_NUMBER;
         hash = (53 * hash) + getPartitionsList().hashCode();
+      }
+      if (hasPreviousVersion()) {
+        hash = (37 * hash) + PREVIOUS_VERSION_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getPreviousVersion());
+      }
+      if (hasVersion()) {
+        hash = (37 * hash) + VERSION_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getVersion());
+      }
+      if (hasVersionCreationTime()) {
+        hash = (37 * hash) + VERSION_CREATION_TIME_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getVersionCreationTime());
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -2977,6 +3297,7 @@ public final class Table {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -2984,6 +3305,7 @@ public final class Table {
     public static Builder newBuilder(alluxio.proto.journal.Table.AddTableEntry prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -2997,7 +3319,7 @@ public final class Table {
     }
     /**
      * <pre>
-     * next available id: 10
+     * next available id: 13
      * </pre>
      *
      * Protobuf type {@code alluxio.proto.journal.AddTableEntry}
@@ -3033,6 +3355,7 @@ public final class Table {
                 "Invalid map field number: " + number);
         }
       }
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_AddTableEntry_fieldAccessorTable
@@ -3060,6 +3383,7 @@ public final class Table {
           getPartitionsFieldBuilder();
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         dbName_ = "";
@@ -3099,18 +3423,27 @@ public final class Table {
         } else {
           partitionsBuilder_.clear();
         }
+        previousVersion_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000200);
+        version_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000400);
+        versionCreationTime_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000800);
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_AddTableEntry_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.AddTableEntry getDefaultInstanceForType() {
         return alluxio.proto.journal.Table.AddTableEntry.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.AddTableEntry build() {
         alluxio.proto.journal.Table.AddTableEntry result = buildPartial();
         if (!result.isInitialized()) {
@@ -3119,40 +3452,41 @@ public final class Table {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.AddTableEntry buildPartial() {
         alluxio.proto.journal.Table.AddTableEntry result = new alluxio.proto.journal.Table.AddTableEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
           to_bitField0_ |= 0x00000001;
         }
         result.dbName_ = dbName_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
           to_bitField0_ |= 0x00000002;
         }
         result.tableName_ = tableName_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((from_bitField0_ & 0x00000004) != 0)) {
           to_bitField0_ |= 0x00000004;
         }
         result.owner_ = owner_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          if (schemaBuilder_ == null) {
+            result.schema_ = schema_;
+          } else {
+            result.schema_ = schemaBuilder_.build();
+          }
           to_bitField0_ |= 0x00000008;
         }
-        if (schemaBuilder_ == null) {
-          result.schema_ = schema_;
-        } else {
-          result.schema_ = schemaBuilder_.build();
-        }
-        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          if (layoutBuilder_ == null) {
+            result.layout_ = layout_;
+          } else {
+            result.layout_ = layoutBuilder_.build();
+          }
           to_bitField0_ |= 0x00000010;
         }
-        if (layoutBuilder_ == null) {
-          result.layout_ = layout_;
-        } else {
-          result.layout_ = layoutBuilder_.build();
-        }
         if (tableStatsBuilder_ == null) {
-          if (((bitField0_ & 0x00000020) == 0x00000020)) {
+          if (((bitField0_ & 0x00000020) != 0)) {
             tableStats_ = java.util.Collections.unmodifiableList(tableStats_);
             bitField0_ = (bitField0_ & ~0x00000020);
           }
@@ -3163,7 +3497,7 @@ public final class Table {
         result.parameters_ = internalGetParameters();
         result.parameters_.makeImmutable();
         if (partitionColsBuilder_ == null) {
-          if (((bitField0_ & 0x00000080) == 0x00000080)) {
+          if (((bitField0_ & 0x00000080) != 0)) {
             partitionCols_ = java.util.Collections.unmodifiableList(partitionCols_);
             bitField0_ = (bitField0_ & ~0x00000080);
           }
@@ -3172,7 +3506,7 @@ public final class Table {
           result.partitionCols_ = partitionColsBuilder_.build();
         }
         if (partitionsBuilder_ == null) {
-          if (((bitField0_ & 0x00000100) == 0x00000100)) {
+          if (((bitField0_ & 0x00000100) != 0)) {
             partitions_ = java.util.Collections.unmodifiableList(partitions_);
             bitField0_ = (bitField0_ & ~0x00000100);
           }
@@ -3180,37 +3514,56 @@ public final class Table {
         } else {
           result.partitions_ = partitionsBuilder_.build();
         }
+        if (((from_bitField0_ & 0x00000200) != 0)) {
+          result.previousVersion_ = previousVersion_;
+          to_bitField0_ |= 0x00000020;
+        }
+        if (((from_bitField0_ & 0x00000400) != 0)) {
+          result.version_ = version_;
+          to_bitField0_ |= 0x00000040;
+        }
+        if (((from_bitField0_ & 0x00000800) != 0)) {
+          result.versionCreationTime_ = versionCreationTime_;
+          to_bitField0_ |= 0x00000080;
+        }
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Table.AddTableEntry) {
           return mergeFrom((alluxio.proto.journal.Table.AddTableEntry)other);
@@ -3323,11 +3676,21 @@ public final class Table {
             }
           }
         }
+        if (other.hasPreviousVersion()) {
+          setPreviousVersion(other.getPreviousVersion());
+        }
+        if (other.hasVersion()) {
+          setVersion(other.getVersion());
+        }
+        if (other.hasVersionCreationTime()) {
+          setVersionCreationTime(other.getVersionCreationTime());
+        }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         if (hasLayout()) {
           if (!getLayout().isInitialized()) {
@@ -3347,6 +3710,7 @@ public final class Table {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -3369,12 +3733,14 @@ public final class Table {
       private java.lang.Object dbName_ = "";
       /**
        * <code>optional string db_name = 1;</code>
+       * @return Whether the dbName field is set.
        */
       public boolean hasDbName() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @return The dbName.
        */
       public java.lang.String getDbName() {
         java.lang.Object ref = dbName_;
@@ -3392,6 +3758,7 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @return The bytes for dbName.
        */
       public com.google.protobuf.ByteString
           getDbNameBytes() {
@@ -3408,6 +3775,8 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @param value The dbName to set.
+       * @return This builder for chaining.
        */
       public Builder setDbName(
           java.lang.String value) {
@@ -3421,6 +3790,7 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearDbName() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -3430,6 +3800,8 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @param value The bytes for dbName to set.
+       * @return This builder for chaining.
        */
       public Builder setDbNameBytes(
           com.google.protobuf.ByteString value) {
@@ -3445,12 +3817,14 @@ public final class Table {
       private java.lang.Object tableName_ = "";
       /**
        * <code>optional string table_name = 2;</code>
+       * @return Whether the tableName field is set.
        */
       public boolean hasTableName() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @return The tableName.
        */
       public java.lang.String getTableName() {
         java.lang.Object ref = tableName_;
@@ -3468,6 +3842,7 @@ public final class Table {
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @return The bytes for tableName.
        */
       public com.google.protobuf.ByteString
           getTableNameBytes() {
@@ -3484,6 +3859,8 @@ public final class Table {
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @param value The tableName to set.
+       * @return This builder for chaining.
        */
       public Builder setTableName(
           java.lang.String value) {
@@ -3497,6 +3874,7 @@ public final class Table {
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearTableName() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -3506,6 +3884,8 @@ public final class Table {
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @param value The bytes for tableName to set.
+       * @return This builder for chaining.
        */
       public Builder setTableNameBytes(
           com.google.protobuf.ByteString value) {
@@ -3521,12 +3901,14 @@ public final class Table {
       private java.lang.Object owner_ = "";
       /**
        * <code>optional string owner = 3;</code>
+       * @return Whether the owner field is set.
        */
       public boolean hasOwner() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000004) != 0);
       }
       /**
        * <code>optional string owner = 3;</code>
+       * @return The owner.
        */
       public java.lang.String getOwner() {
         java.lang.Object ref = owner_;
@@ -3544,6 +3926,7 @@ public final class Table {
       }
       /**
        * <code>optional string owner = 3;</code>
+       * @return The bytes for owner.
        */
       public com.google.protobuf.ByteString
           getOwnerBytes() {
@@ -3560,6 +3943,8 @@ public final class Table {
       }
       /**
        * <code>optional string owner = 3;</code>
+       * @param value The owner to set.
+       * @return This builder for chaining.
        */
       public Builder setOwner(
           java.lang.String value) {
@@ -3573,6 +3958,7 @@ public final class Table {
       }
       /**
        * <code>optional string owner = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearOwner() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -3582,6 +3968,8 @@ public final class Table {
       }
       /**
        * <code>optional string owner = 3;</code>
+       * @param value The bytes for owner to set.
+       * @return This builder for chaining.
        */
       public Builder setOwnerBytes(
           com.google.protobuf.ByteString value) {
@@ -3594,17 +3982,19 @@ public final class Table {
         return this;
       }
 
-      private alluxio.grpc.table.Schema schema_ = null;
+      private alluxio.grpc.table.Schema schema_;
       private com.google.protobuf.SingleFieldBuilderV3<
           alluxio.grpc.table.Schema, alluxio.grpc.table.Schema.Builder, alluxio.grpc.table.SchemaOrBuilder> schemaBuilder_;
       /**
        * <code>optional .alluxio.grpc.table.Schema schema = 4;</code>
+       * @return Whether the schema field is set.
        */
       public boolean hasSchema() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
+        return ((bitField0_ & 0x00000008) != 0);
       }
       /**
        * <code>optional .alluxio.grpc.table.Schema schema = 4;</code>
+       * @return The schema.
        */
       public alluxio.grpc.table.Schema getSchema() {
         if (schemaBuilder_ == null) {
@@ -3648,7 +4038,7 @@ public final class Table {
        */
       public Builder mergeSchema(alluxio.grpc.table.Schema value) {
         if (schemaBuilder_ == null) {
-          if (((bitField0_ & 0x00000008) == 0x00000008) &&
+          if (((bitField0_ & 0x00000008) != 0) &&
               schema_ != null &&
               schema_ != alluxio.grpc.table.Schema.getDefaultInstance()) {
             schema_ =
@@ -3712,17 +4102,19 @@ public final class Table {
         return schemaBuilder_;
       }
 
-      private alluxio.grpc.table.Layout layout_ = null;
+      private alluxio.grpc.table.Layout layout_;
       private com.google.protobuf.SingleFieldBuilderV3<
           alluxio.grpc.table.Layout, alluxio.grpc.table.Layout.Builder, alluxio.grpc.table.LayoutOrBuilder> layoutBuilder_;
       /**
        * <code>optional .alluxio.grpc.table.Layout layout = 5;</code>
+       * @return Whether the layout field is set.
        */
       public boolean hasLayout() {
-        return ((bitField0_ & 0x00000010) == 0x00000010);
+        return ((bitField0_ & 0x00000010) != 0);
       }
       /**
        * <code>optional .alluxio.grpc.table.Layout layout = 5;</code>
+       * @return The layout.
        */
       public alluxio.grpc.table.Layout getLayout() {
         if (layoutBuilder_ == null) {
@@ -3766,7 +4158,7 @@ public final class Table {
        */
       public Builder mergeLayout(alluxio.grpc.table.Layout value) {
         if (layoutBuilder_ == null) {
-          if (((bitField0_ & 0x00000010) == 0x00000010) &&
+          if (((bitField0_ & 0x00000010) != 0) &&
               layout_ != null &&
               layout_ != alluxio.grpc.table.Layout.getDefaultInstance()) {
             layout_ =
@@ -3833,7 +4225,7 @@ public final class Table {
       private java.util.List<alluxio.grpc.table.ColumnStatisticsInfo> tableStats_ =
         java.util.Collections.emptyList();
       private void ensureTableStatsIsMutable() {
-        if (!((bitField0_ & 0x00000020) == 0x00000020)) {
+        if (!((bitField0_ & 0x00000020) != 0)) {
           tableStats_ = new java.util.ArrayList<alluxio.grpc.table.ColumnStatisticsInfo>(tableStats_);
           bitField0_ |= 0x00000020;
          }
@@ -4062,7 +4454,7 @@ public final class Table {
           tableStatsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               alluxio.grpc.table.ColumnStatisticsInfo, alluxio.grpc.table.ColumnStatisticsInfo.Builder, alluxio.grpc.table.ColumnStatisticsInfoOrBuilder>(
                   tableStats_,
-                  ((bitField0_ & 0x00000020) == 0x00000020),
+                  ((bitField0_ & 0x00000020) != 0),
                   getParentForChildren(),
                   isClean());
           tableStats_ = null;
@@ -4196,7 +4588,7 @@ public final class Table {
       private java.util.List<alluxio.grpc.table.FieldSchema> partitionCols_ =
         java.util.Collections.emptyList();
       private void ensurePartitionColsIsMutable() {
-        if (!((bitField0_ & 0x00000080) == 0x00000080)) {
+        if (!((bitField0_ & 0x00000080) != 0)) {
           partitionCols_ = new java.util.ArrayList<alluxio.grpc.table.FieldSchema>(partitionCols_);
           bitField0_ |= 0x00000080;
          }
@@ -4497,7 +4889,7 @@ public final class Table {
           partitionColsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               alluxio.grpc.table.FieldSchema, alluxio.grpc.table.FieldSchema.Builder, alluxio.grpc.table.FieldSchemaOrBuilder>(
                   partitionCols_,
-                  ((bitField0_ & 0x00000080) == 0x00000080),
+                  ((bitField0_ & 0x00000080) != 0),
                   getParentForChildren(),
                   isClean());
           partitionCols_ = null;
@@ -4508,7 +4900,7 @@ public final class Table {
       private java.util.List<alluxio.grpc.table.Partition> partitions_ =
         java.util.Collections.emptyList();
       private void ensurePartitionsIsMutable() {
-        if (!((bitField0_ & 0x00000100) == 0x00000100)) {
+        if (!((bitField0_ & 0x00000100) != 0)) {
           partitions_ = new java.util.ArrayList<alluxio.grpc.table.Partition>(partitions_);
           bitField0_ |= 0x00000100;
          }
@@ -4737,18 +5129,131 @@ public final class Table {
           partitionsBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               alluxio.grpc.table.Partition, alluxio.grpc.table.Partition.Builder, alluxio.grpc.table.PartitionOrBuilder>(
                   partitions_,
-                  ((bitField0_ & 0x00000100) == 0x00000100),
+                  ((bitField0_ & 0x00000100) != 0),
                   getParentForChildren(),
                   isClean());
           partitions_ = null;
         }
         return partitionsBuilder_;
       }
+
+      private long previousVersion_ ;
+      /**
+       * <code>optional int64 previous_version = 10;</code>
+       * @return Whether the previousVersion field is set.
+       */
+      public boolean hasPreviousVersion() {
+        return ((bitField0_ & 0x00000200) != 0);
+      }
+      /**
+       * <code>optional int64 previous_version = 10;</code>
+       * @return The previousVersion.
+       */
+      public long getPreviousVersion() {
+        return previousVersion_;
+      }
+      /**
+       * <code>optional int64 previous_version = 10;</code>
+       * @param value The previousVersion to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPreviousVersion(long value) {
+        bitField0_ |= 0x00000200;
+        previousVersion_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 previous_version = 10;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPreviousVersion() {
+        bitField0_ = (bitField0_ & ~0x00000200);
+        previousVersion_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long version_ ;
+      /**
+       * <code>optional int64 version = 11;</code>
+       * @return Whether the version field is set.
+       */
+      public boolean hasVersion() {
+        return ((bitField0_ & 0x00000400) != 0);
+      }
+      /**
+       * <code>optional int64 version = 11;</code>
+       * @return The version.
+       */
+      public long getVersion() {
+        return version_;
+      }
+      /**
+       * <code>optional int64 version = 11;</code>
+       * @param value The version to set.
+       * @return This builder for chaining.
+       */
+      public Builder setVersion(long value) {
+        bitField0_ |= 0x00000400;
+        version_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 version = 11;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearVersion() {
+        bitField0_ = (bitField0_ & ~0x00000400);
+        version_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long versionCreationTime_ ;
+      /**
+       * <code>optional int64 version_creation_time = 12;</code>
+       * @return Whether the versionCreationTime field is set.
+       */
+      public boolean hasVersionCreationTime() {
+        return ((bitField0_ & 0x00000800) != 0);
+      }
+      /**
+       * <code>optional int64 version_creation_time = 12;</code>
+       * @return The versionCreationTime.
+       */
+      public long getVersionCreationTime() {
+        return versionCreationTime_;
+      }
+      /**
+       * <code>optional int64 version_creation_time = 12;</code>
+       * @param value The versionCreationTime to set.
+       * @return This builder for chaining.
+       */
+      public Builder setVersionCreationTime(long value) {
+        bitField0_ |= 0x00000800;
+        versionCreationTime_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 version_creation_time = 12;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearVersionCreationTime() {
+        bitField0_ = (bitField0_ & ~0x00000800);
+        versionCreationTime_ = 0L;
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -4770,6 +5275,7 @@ public final class Table {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<AddTableEntry>
         PARSER = new com.google.protobuf.AbstractParser<AddTableEntry>() {
+      @java.lang.Override
       public AddTableEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -4787,7 +5293,894 @@ public final class Table {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.journal.Table.AddTableEntry getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface RemoveTableEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.RemoveTableEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional string db_name = 1;</code>
+     * @return Whether the dbName field is set.
+     */
+    boolean hasDbName();
+    /**
+     * <code>optional string db_name = 1;</code>
+     * @return The dbName.
+     */
+    java.lang.String getDbName();
+    /**
+     * <code>optional string db_name = 1;</code>
+     * @return The bytes for dbName.
+     */
+    com.google.protobuf.ByteString
+        getDbNameBytes();
+
+    /**
+     * <code>optional string table_name = 2;</code>
+     * @return Whether the tableName field is set.
+     */
+    boolean hasTableName();
+    /**
+     * <code>optional string table_name = 2;</code>
+     * @return The tableName.
+     */
+    java.lang.String getTableName();
+    /**
+     * <code>optional string table_name = 2;</code>
+     * @return The bytes for tableName.
+     */
+    com.google.protobuf.ByteString
+        getTableNameBytes();
+
+    /**
+     * <code>optional int64 version = 4;</code>
+     * @return Whether the version field is set.
+     */
+    boolean hasVersion();
+    /**
+     * <code>optional int64 version = 4;</code>
+     * @return The version.
+     */
+    long getVersion();
+  }
+  /**
+   * <pre>
+   * next available id: 5
+   * </pre>
+   *
+   * Protobuf type {@code alluxio.proto.journal.RemoveTableEntry}
+   */
+  public  static final class RemoveTableEntry extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.RemoveTableEntry)
+      RemoveTableEntryOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use RemoveTableEntry.newBuilder() to construct.
+    private RemoveTableEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private RemoveTableEntry() {
+      dbName_ = "";
+      tableName_ = "";
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new RemoveTableEntry();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private RemoveTableEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              dbName_ = bs;
+              break;
+            }
+            case 18: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000002;
+              tableName_ = bs;
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000004;
+              version_ = input.readInt64();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTableEntry_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTableEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.journal.Table.RemoveTableEntry.class, alluxio.proto.journal.Table.RemoveTableEntry.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int DB_NAME_FIELD_NUMBER = 1;
+    private volatile java.lang.Object dbName_;
+    /**
+     * <code>optional string db_name = 1;</code>
+     * @return Whether the dbName field is set.
+     */
+    public boolean hasDbName() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>optional string db_name = 1;</code>
+     * @return The dbName.
+     */
+    public java.lang.String getDbName() {
+      java.lang.Object ref = dbName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          dbName_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string db_name = 1;</code>
+     * @return The bytes for dbName.
+     */
+    public com.google.protobuf.ByteString
+        getDbNameBytes() {
+      java.lang.Object ref = dbName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        dbName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TABLE_NAME_FIELD_NUMBER = 2;
+    private volatile java.lang.Object tableName_;
+    /**
+     * <code>optional string table_name = 2;</code>
+     * @return Whether the tableName field is set.
+     */
+    public boolean hasTableName() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>optional string table_name = 2;</code>
+     * @return The tableName.
+     */
+    public java.lang.String getTableName() {
+      java.lang.Object ref = tableName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          tableName_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string table_name = 2;</code>
+     * @return The bytes for tableName.
+     */
+    public com.google.protobuf.ByteString
+        getTableNameBytes() {
+      java.lang.Object ref = tableName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        tableName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int VERSION_FIELD_NUMBER = 4;
+    private long version_;
+    /**
+     * <code>optional int64 version = 4;</code>
+     * @return Whether the version field is set.
+     */
+    public boolean hasVersion() {
+      return ((bitField0_ & 0x00000004) != 0);
+    }
+    /**
+     * <code>optional int64 version = 4;</code>
+     * @return The version.
+     */
+    public long getVersion() {
+      return version_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) != 0)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, dbName_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, tableName_);
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        output.writeInt64(4, version_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, dbName_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, tableName_);
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(4, version_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof alluxio.proto.journal.Table.RemoveTableEntry)) {
+        return super.equals(obj);
+      }
+      alluxio.proto.journal.Table.RemoveTableEntry other = (alluxio.proto.journal.Table.RemoveTableEntry) obj;
+
+      if (hasDbName() != other.hasDbName()) return false;
+      if (hasDbName()) {
+        if (!getDbName()
+            .equals(other.getDbName())) return false;
+      }
+      if (hasTableName() != other.hasTableName()) return false;
+      if (hasTableName()) {
+        if (!getTableName()
+            .equals(other.getTableName())) return false;
+      }
+      if (hasVersion() != other.hasVersion()) return false;
+      if (hasVersion()) {
+        if (getVersion()
+            != other.getVersion()) return false;
+      }
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasDbName()) {
+        hash = (37 * hash) + DB_NAME_FIELD_NUMBER;
+        hash = (53 * hash) + getDbName().hashCode();
+      }
+      if (hasTableName()) {
+        hash = (37 * hash) + TABLE_NAME_FIELD_NUMBER;
+        hash = (53 * hash) + getTableName().hashCode();
+      }
+      if (hasVersion()) {
+        hash = (37 * hash) + VERSION_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getVersion());
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static alluxio.proto.journal.Table.RemoveTableEntry parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.Table.RemoveTableEntry parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.Table.RemoveTableEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.Table.RemoveTableEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.Table.RemoveTableEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.Table.RemoveTableEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.Table.RemoveTableEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static alluxio.proto.journal.Table.RemoveTableEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.Table.RemoveTableEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static alluxio.proto.journal.Table.RemoveTableEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.Table.RemoveTableEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static alluxio.proto.journal.Table.RemoveTableEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(alluxio.proto.journal.Table.RemoveTableEntry prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * next available id: 5
+     * </pre>
+     *
+     * Protobuf type {@code alluxio.proto.journal.RemoveTableEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.RemoveTableEntry)
+        alluxio.proto.journal.Table.RemoveTableEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTableEntry_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTableEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.journal.Table.RemoveTableEntry.class, alluxio.proto.journal.Table.RemoveTableEntry.Builder.class);
+      }
+
+      // Construct using alluxio.proto.journal.Table.RemoveTableEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        dbName_ = "";
+        bitField0_ = (bitField0_ & ~0x00000001);
+        tableName_ = "";
+        bitField0_ = (bitField0_ & ~0x00000002);
+        version_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTableEntry_descriptor;
+      }
+
+      @java.lang.Override
+      public alluxio.proto.journal.Table.RemoveTableEntry getDefaultInstanceForType() {
+        return alluxio.proto.journal.Table.RemoveTableEntry.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public alluxio.proto.journal.Table.RemoveTableEntry build() {
+        alluxio.proto.journal.Table.RemoveTableEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public alluxio.proto.journal.Table.RemoveTableEntry buildPartial() {
+        alluxio.proto.journal.Table.RemoveTableEntry result = new alluxio.proto.journal.Table.RemoveTableEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.dbName_ = dbName_;
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.tableName_ = tableName_;
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.version_ = version_;
+          to_bitField0_ |= 0x00000004;
+        }
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.journal.Table.RemoveTableEntry) {
+          return mergeFrom((alluxio.proto.journal.Table.RemoveTableEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.journal.Table.RemoveTableEntry other) {
+        if (other == alluxio.proto.journal.Table.RemoveTableEntry.getDefaultInstance()) return this;
+        if (other.hasDbName()) {
+          bitField0_ |= 0x00000001;
+          dbName_ = other.dbName_;
+          onChanged();
+        }
+        if (other.hasTableName()) {
+          bitField0_ |= 0x00000002;
+          tableName_ = other.tableName_;
+          onChanged();
+        }
+        if (other.hasVersion()) {
+          setVersion(other.getVersion());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.journal.Table.RemoveTableEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.journal.Table.RemoveTableEntry) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object dbName_ = "";
+      /**
+       * <code>optional string db_name = 1;</code>
+       * @return Whether the dbName field is set.
+       */
+      public boolean hasDbName() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>optional string db_name = 1;</code>
+       * @return The dbName.
+       */
+      public java.lang.String getDbName() {
+        java.lang.Object ref = dbName_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            dbName_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string db_name = 1;</code>
+       * @return The bytes for dbName.
+       */
+      public com.google.protobuf.ByteString
+          getDbNameBytes() {
+        java.lang.Object ref = dbName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          dbName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string db_name = 1;</code>
+       * @param value The dbName to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDbName(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        dbName_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string db_name = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDbName() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        dbName_ = getDefaultInstance().getDbName();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string db_name = 1;</code>
+       * @param value The bytes for dbName to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDbNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        dbName_ = value;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object tableName_ = "";
+      /**
+       * <code>optional string table_name = 2;</code>
+       * @return Whether the tableName field is set.
+       */
+      public boolean hasTableName() {
+        return ((bitField0_ & 0x00000002) != 0);
+      }
+      /**
+       * <code>optional string table_name = 2;</code>
+       * @return The tableName.
+       */
+      public java.lang.String getTableName() {
+        java.lang.Object ref = tableName_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            tableName_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string table_name = 2;</code>
+       * @return The bytes for tableName.
+       */
+      public com.google.protobuf.ByteString
+          getTableNameBytes() {
+        java.lang.Object ref = tableName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          tableName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string table_name = 2;</code>
+       * @param value The tableName to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTableName(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        tableName_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string table_name = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTableName() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        tableName_ = getDefaultInstance().getTableName();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string table_name = 2;</code>
+       * @param value The bytes for tableName to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTableNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        tableName_ = value;
+        onChanged();
+        return this;
+      }
+
+      private long version_ ;
+      /**
+       * <code>optional int64 version = 4;</code>
+       * @return Whether the version field is set.
+       */
+      public boolean hasVersion() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <code>optional int64 version = 4;</code>
+       * @return The version.
+       */
+      public long getVersion() {
+        return version_;
+      }
+      /**
+       * <code>optional int64 version = 4;</code>
+       * @param value The version to set.
+       * @return This builder for chaining.
+       */
+      public Builder setVersion(long value) {
+        bitField0_ |= 0x00000004;
+        version_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 version = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearVersion() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        version_ = 0L;
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.RemoveTableEntry)
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.RemoveTableEntry)
+    private static final alluxio.proto.journal.Table.RemoveTableEntry DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new alluxio.proto.journal.Table.RemoveTableEntry();
+    }
+
+    public static alluxio.proto.journal.Table.RemoveTableEntry getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<RemoveTableEntry>
+        PARSER = new com.google.protobuf.AbstractParser<RemoveTableEntry>() {
+      @java.lang.Override
+      public RemoveTableEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new RemoveTableEntry(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<RemoveTableEntry> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<RemoveTableEntry> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public alluxio.proto.journal.Table.RemoveTableEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -4799,42 +6192,51 @@ public final class Table {
 
     /**
      * <code>optional string db_name = 1;</code>
+     * @return Whether the dbName field is set.
      */
     boolean hasDbName();
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The dbName.
      */
     java.lang.String getDbName();
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The bytes for dbName.
      */
     com.google.protobuf.ByteString
         getDbNameBytes();
 
     /**
      * <code>optional string table_name = 2;</code>
+     * @return Whether the tableName field is set.
      */
     boolean hasTableName();
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The tableName.
      */
     java.lang.String getTableName();
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The bytes for tableName.
      */
     com.google.protobuf.ByteString
         getTableNameBytes();
 
     /**
      * <code>optional string definition = 3;</code>
+     * @return Whether the definition field is set.
      */
     boolean hasDefinition();
     /**
      * <code>optional string definition = 3;</code>
+     * @return The definition.
      */
     java.lang.String getDefinition();
     /**
      * <code>optional string definition = 3;</code>
+     * @return The bytes for definition.
      */
     com.google.protobuf.ByteString
         getDefinitionBytes();
@@ -4916,6 +6318,13 @@ public final class Table {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new CompleteTransformTableEntry();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -4939,13 +6348,6 @@ public final class Table {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
@@ -4965,7 +6367,7 @@ public final class Table {
               break;
             }
             case 34: {
-              if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+              if (!((mutable_bitField0_ & 0x00000008) != 0)) {
                 transformedLayouts_ = com.google.protobuf.MapField.newMapField(
                     TransformedLayoutsDefaultEntryHolder.defaultEntry);
                 mutable_bitField0_ |= 0x00000008;
@@ -4975,6 +6377,13 @@ public final class Table {
                   TransformedLayoutsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
               transformedLayouts_.getMutableMap().put(
                   transformedLayouts__.getKey(), transformedLayouts__.getValue());
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -4995,6 +6404,7 @@ public final class Table {
     }
 
     @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
@@ -5005,6 +6415,7 @@ public final class Table {
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_CompleteTransformTableEntry_fieldAccessorTable
@@ -5017,12 +6428,14 @@ public final class Table {
     private volatile java.lang.Object dbName_;
     /**
      * <code>optional string db_name = 1;</code>
+     * @return Whether the dbName field is set.
      */
     public boolean hasDbName() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The dbName.
      */
     public java.lang.String getDbName() {
       java.lang.Object ref = dbName_;
@@ -5040,6 +6453,7 @@ public final class Table {
     }
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The bytes for dbName.
      */
     public com.google.protobuf.ByteString
         getDbNameBytes() {
@@ -5059,12 +6473,14 @@ public final class Table {
     private volatile java.lang.Object tableName_;
     /**
      * <code>optional string table_name = 2;</code>
+     * @return Whether the tableName field is set.
      */
     public boolean hasTableName() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The tableName.
      */
     public java.lang.String getTableName() {
       java.lang.Object ref = tableName_;
@@ -5082,6 +6498,7 @@ public final class Table {
     }
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The bytes for tableName.
      */
     public com.google.protobuf.ByteString
         getTableNameBytes() {
@@ -5101,12 +6518,14 @@ public final class Table {
     private volatile java.lang.Object definition_;
     /**
      * <code>optional string definition = 3;</code>
+     * @return Whether the definition field is set.
      */
     public boolean hasDefinition() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional string definition = 3;</code>
+     * @return The definition.
      */
     public java.lang.String getDefinition() {
       java.lang.Object ref = definition_;
@@ -5124,6 +6543,7 @@ public final class Table {
     }
     /**
      * <code>optional string definition = 3;</code>
+     * @return The bytes for definition.
      */
     public com.google.protobuf.ByteString
         getDefinitionBytes() {
@@ -5232,6 +6652,7 @@ public final class Table {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -5247,15 +6668,16 @@ public final class Table {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, dbName_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, tableName_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, definition_);
       }
       com.google.protobuf.GeneratedMessageV3
@@ -5267,18 +6689,19 @@ public final class Table {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, dbName_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, tableName_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, definition_);
       }
       for (java.util.Map.Entry<java.lang.String, alluxio.grpc.table.Layout> entry
@@ -5306,26 +6729,25 @@ public final class Table {
       }
       alluxio.proto.journal.Table.CompleteTransformTableEntry other = (alluxio.proto.journal.Table.CompleteTransformTableEntry) obj;
 
-      boolean result = true;
-      result = result && (hasDbName() == other.hasDbName());
+      if (hasDbName() != other.hasDbName()) return false;
       if (hasDbName()) {
-        result = result && getDbName()
-            .equals(other.getDbName());
+        if (!getDbName()
+            .equals(other.getDbName())) return false;
       }
-      result = result && (hasTableName() == other.hasTableName());
+      if (hasTableName() != other.hasTableName()) return false;
       if (hasTableName()) {
-        result = result && getTableName()
-            .equals(other.getTableName());
+        if (!getTableName()
+            .equals(other.getTableName())) return false;
       }
-      result = result && (hasDefinition() == other.hasDefinition());
+      if (hasDefinition() != other.hasDefinition()) return false;
       if (hasDefinition()) {
-        result = result && getDefinition()
-            .equals(other.getDefinition());
+        if (!getDefinition()
+            .equals(other.getDefinition())) return false;
       }
-      result = result && internalGetTransformedLayouts().equals(
-          other.internalGetTransformedLayouts());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!internalGetTransformedLayouts().equals(
+          other.internalGetTransformedLayouts())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -5426,6 +6848,7 @@ public final class Table {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -5433,6 +6856,7 @@ public final class Table {
     public static Builder newBuilder(alluxio.proto.journal.Table.CompleteTransformTableEntry prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -5482,6 +6906,7 @@ public final class Table {
                 "Invalid map field number: " + number);
         }
       }
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_CompleteTransformTableEntry_fieldAccessorTable
@@ -5504,6 +6929,7 @@ public final class Table {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         dbName_ = "";
@@ -5516,15 +6942,18 @@ public final class Table {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_CompleteTransformTableEntry_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.CompleteTransformTableEntry getDefaultInstanceForType() {
         return alluxio.proto.journal.Table.CompleteTransformTableEntry.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.CompleteTransformTableEntry build() {
         alluxio.proto.journal.Table.CompleteTransformTableEntry result = buildPartial();
         if (!result.isInitialized()) {
@@ -5533,19 +6962,20 @@ public final class Table {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.CompleteTransformTableEntry buildPartial() {
         alluxio.proto.journal.Table.CompleteTransformTableEntry result = new alluxio.proto.journal.Table.CompleteTransformTableEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
           to_bitField0_ |= 0x00000001;
         }
         result.dbName_ = dbName_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
           to_bitField0_ |= 0x00000002;
         }
         result.tableName_ = tableName_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((from_bitField0_ & 0x00000004) != 0)) {
           to_bitField0_ |= 0x00000004;
         }
         result.definition_ = definition_;
@@ -5556,32 +6986,39 @@ public final class Table {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Table.CompleteTransformTableEntry) {
           return mergeFrom((alluxio.proto.journal.Table.CompleteTransformTableEntry)other);
@@ -5615,6 +7052,7 @@ public final class Table {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         for (alluxio.grpc.table.Layout item : getTransformedLayoutsMap().values()) {
           if (!item.isInitialized()) {
@@ -5624,6 +7062,7 @@ public final class Table {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -5646,12 +7085,14 @@ public final class Table {
       private java.lang.Object dbName_ = "";
       /**
        * <code>optional string db_name = 1;</code>
+       * @return Whether the dbName field is set.
        */
       public boolean hasDbName() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @return The dbName.
        */
       public java.lang.String getDbName() {
         java.lang.Object ref = dbName_;
@@ -5669,6 +7110,7 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @return The bytes for dbName.
        */
       public com.google.protobuf.ByteString
           getDbNameBytes() {
@@ -5685,6 +7127,8 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @param value The dbName to set.
+       * @return This builder for chaining.
        */
       public Builder setDbName(
           java.lang.String value) {
@@ -5698,6 +7142,7 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearDbName() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -5707,6 +7152,8 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @param value The bytes for dbName to set.
+       * @return This builder for chaining.
        */
       public Builder setDbNameBytes(
           com.google.protobuf.ByteString value) {
@@ -5722,12 +7169,14 @@ public final class Table {
       private java.lang.Object tableName_ = "";
       /**
        * <code>optional string table_name = 2;</code>
+       * @return Whether the tableName field is set.
        */
       public boolean hasTableName() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @return The tableName.
        */
       public java.lang.String getTableName() {
         java.lang.Object ref = tableName_;
@@ -5745,6 +7194,7 @@ public final class Table {
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @return The bytes for tableName.
        */
       public com.google.protobuf.ByteString
           getTableNameBytes() {
@@ -5761,6 +7211,8 @@ public final class Table {
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @param value The tableName to set.
+       * @return This builder for chaining.
        */
       public Builder setTableName(
           java.lang.String value) {
@@ -5774,6 +7226,7 @@ public final class Table {
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearTableName() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -5783,6 +7236,8 @@ public final class Table {
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @param value The bytes for tableName to set.
+       * @return This builder for chaining.
        */
       public Builder setTableNameBytes(
           com.google.protobuf.ByteString value) {
@@ -5798,12 +7253,14 @@ public final class Table {
       private java.lang.Object definition_ = "";
       /**
        * <code>optional string definition = 3;</code>
+       * @return Whether the definition field is set.
        */
       public boolean hasDefinition() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000004) != 0);
       }
       /**
        * <code>optional string definition = 3;</code>
+       * @return The definition.
        */
       public java.lang.String getDefinition() {
         java.lang.Object ref = definition_;
@@ -5821,6 +7278,7 @@ public final class Table {
       }
       /**
        * <code>optional string definition = 3;</code>
+       * @return The bytes for definition.
        */
       public com.google.protobuf.ByteString
           getDefinitionBytes() {
@@ -5837,6 +7295,8 @@ public final class Table {
       }
       /**
        * <code>optional string definition = 3;</code>
+       * @param value The definition to set.
+       * @return This builder for chaining.
        */
       public Builder setDefinition(
           java.lang.String value) {
@@ -5850,6 +7310,7 @@ public final class Table {
       }
       /**
        * <code>optional string definition = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearDefinition() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -5859,6 +7320,8 @@ public final class Table {
       }
       /**
        * <code>optional string definition = 3;</code>
+       * @param value The bytes for definition to set.
+       * @return This builder for chaining.
        */
       public Builder setDefinitionBytes(
           com.google.protobuf.ByteString value) {
@@ -6021,11 +7484,13 @@ public final class Table {
             .putAll(values);
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -6047,6 +7512,7 @@ public final class Table {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<CompleteTransformTableEntry>
         PARSER = new com.google.protobuf.AbstractParser<CompleteTransformTableEntry>() {
+      @java.lang.Override
       public CompleteTransformTableEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -6064,6 +7530,7 @@ public final class Table {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.journal.Table.CompleteTransformTableEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -6076,52 +7543,63 @@ public final class Table {
 
     /**
      * <code>optional string db_name = 1;</code>
+     * @return Whether the dbName field is set.
      */
     boolean hasDbName();
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The dbName.
      */
     java.lang.String getDbName();
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The bytes for dbName.
      */
     com.google.protobuf.ByteString
         getDbNameBytes();
 
     /**
      * <code>optional string table_name = 2;</code>
+     * @return Whether the tableName field is set.
      */
     boolean hasTableName();
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The tableName.
      */
     java.lang.String getTableName();
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The bytes for tableName.
      */
     com.google.protobuf.ByteString
         getTableNameBytes();
 
     /**
      * <code>optional string definition = 3;</code>
+     * @return Whether the definition field is set.
      */
     boolean hasDefinition();
     /**
      * <code>optional string definition = 3;</code>
+     * @return The definition.
      */
     java.lang.String getDefinition();
     /**
      * <code>optional string definition = 3;</code>
+     * @return The bytes for definition.
      */
     com.google.protobuf.ByteString
         getDefinitionBytes();
 
     /**
      * <code>optional int64 job_id = 4;</code>
+     * @return Whether the jobId field is set.
      */
     boolean hasJobId();
     /**
      * <code>optional int64 job_id = 4;</code>
+     * @return The jobId.
      */
     long getJobId();
 
@@ -6179,7 +7657,13 @@ public final class Table {
       dbName_ = "";
       tableName_ = "";
       definition_ = "";
-      jobId_ = 0L;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new AddTransformJobInfoEntry();
     }
 
     @java.lang.Override
@@ -6206,13 +7690,6 @@ public final class Table {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
@@ -6237,7 +7714,7 @@ public final class Table {
               break;
             }
             case 42: {
-              if (!((mutable_bitField0_ & 0x00000010) == 0x00000010)) {
+              if (!((mutable_bitField0_ & 0x00000010) != 0)) {
                 transformedLayouts_ = com.google.protobuf.MapField.newMapField(
                     TransformedLayoutsDefaultEntryHolder.defaultEntry);
                 mutable_bitField0_ |= 0x00000010;
@@ -6247,6 +7724,13 @@ public final class Table {
                   TransformedLayoutsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
               transformedLayouts_.getMutableMap().put(
                   transformedLayouts__.getKey(), transformedLayouts__.getValue());
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -6267,6 +7751,7 @@ public final class Table {
     }
 
     @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
@@ -6277,6 +7762,7 @@ public final class Table {
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_fieldAccessorTable
@@ -6289,12 +7775,14 @@ public final class Table {
     private volatile java.lang.Object dbName_;
     /**
      * <code>optional string db_name = 1;</code>
+     * @return Whether the dbName field is set.
      */
     public boolean hasDbName() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The dbName.
      */
     public java.lang.String getDbName() {
       java.lang.Object ref = dbName_;
@@ -6312,6 +7800,7 @@ public final class Table {
     }
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The bytes for dbName.
      */
     public com.google.protobuf.ByteString
         getDbNameBytes() {
@@ -6331,12 +7820,14 @@ public final class Table {
     private volatile java.lang.Object tableName_;
     /**
      * <code>optional string table_name = 2;</code>
+     * @return Whether the tableName field is set.
      */
     public boolean hasTableName() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The tableName.
      */
     public java.lang.String getTableName() {
       java.lang.Object ref = tableName_;
@@ -6354,6 +7845,7 @@ public final class Table {
     }
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The bytes for tableName.
      */
     public com.google.protobuf.ByteString
         getTableNameBytes() {
@@ -6373,12 +7865,14 @@ public final class Table {
     private volatile java.lang.Object definition_;
     /**
      * <code>optional string definition = 3;</code>
+     * @return Whether the definition field is set.
      */
     public boolean hasDefinition() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional string definition = 3;</code>
+     * @return The definition.
      */
     public java.lang.String getDefinition() {
       java.lang.Object ref = definition_;
@@ -6396,6 +7890,7 @@ public final class Table {
     }
     /**
      * <code>optional string definition = 3;</code>
+     * @return The bytes for definition.
      */
     public com.google.protobuf.ByteString
         getDefinitionBytes() {
@@ -6415,12 +7910,14 @@ public final class Table {
     private long jobId_;
     /**
      * <code>optional int64 job_id = 4;</code>
+     * @return Whether the jobId field is set.
      */
     public boolean hasJobId() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional int64 job_id = 4;</code>
+     * @return The jobId.
      */
     public long getJobId() {
       return jobId_;
@@ -6503,6 +8000,7 @@ public final class Table {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -6518,18 +8016,19 @@ public final class Table {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, dbName_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, tableName_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, definition_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000008) != 0)) {
         output.writeInt64(4, jobId_);
       }
       com.google.protobuf.GeneratedMessageV3
@@ -6541,21 +8040,22 @@ public final class Table {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, dbName_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, tableName_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, definition_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000008) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(4, jobId_);
       }
@@ -6584,31 +8084,30 @@ public final class Table {
       }
       alluxio.proto.journal.Table.AddTransformJobInfoEntry other = (alluxio.proto.journal.Table.AddTransformJobInfoEntry) obj;
 
-      boolean result = true;
-      result = result && (hasDbName() == other.hasDbName());
+      if (hasDbName() != other.hasDbName()) return false;
       if (hasDbName()) {
-        result = result && getDbName()
-            .equals(other.getDbName());
+        if (!getDbName()
+            .equals(other.getDbName())) return false;
       }
-      result = result && (hasTableName() == other.hasTableName());
+      if (hasTableName() != other.hasTableName()) return false;
       if (hasTableName()) {
-        result = result && getTableName()
-            .equals(other.getTableName());
+        if (!getTableName()
+            .equals(other.getTableName())) return false;
       }
-      result = result && (hasDefinition() == other.hasDefinition());
+      if (hasDefinition() != other.hasDefinition()) return false;
       if (hasDefinition()) {
-        result = result && getDefinition()
-            .equals(other.getDefinition());
+        if (!getDefinition()
+            .equals(other.getDefinition())) return false;
       }
-      result = result && (hasJobId() == other.hasJobId());
+      if (hasJobId() != other.hasJobId()) return false;
       if (hasJobId()) {
-        result = result && (getJobId()
-            == other.getJobId());
+        if (getJobId()
+            != other.getJobId()) return false;
       }
-      result = result && internalGetTransformedLayouts().equals(
-          other.internalGetTransformedLayouts());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!internalGetTransformedLayouts().equals(
+          other.internalGetTransformedLayouts())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -6714,6 +8213,7 @@ public final class Table {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -6721,6 +8221,7 @@ public final class Table {
     public static Builder newBuilder(alluxio.proto.journal.Table.AddTransformJobInfoEntry prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -6770,6 +8271,7 @@ public final class Table {
                 "Invalid map field number: " + number);
         }
       }
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_fieldAccessorTable
@@ -6792,6 +8294,7 @@ public final class Table {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         dbName_ = "";
@@ -6806,15 +8309,18 @@ public final class Table {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.AddTransformJobInfoEntry getDefaultInstanceForType() {
         return alluxio.proto.journal.Table.AddTransformJobInfoEntry.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.AddTransformJobInfoEntry build() {
         alluxio.proto.journal.Table.AddTransformJobInfoEntry result = buildPartial();
         if (!result.isInitialized()) {
@@ -6823,26 +8329,27 @@ public final class Table {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.AddTransformJobInfoEntry buildPartial() {
         alluxio.proto.journal.Table.AddTransformJobInfoEntry result = new alluxio.proto.journal.Table.AddTransformJobInfoEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
           to_bitField0_ |= 0x00000001;
         }
         result.dbName_ = dbName_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
           to_bitField0_ |= 0x00000002;
         }
         result.tableName_ = tableName_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((from_bitField0_ & 0x00000004) != 0)) {
           to_bitField0_ |= 0x00000004;
         }
         result.definition_ = definition_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.jobId_ = jobId_;
           to_bitField0_ |= 0x00000008;
         }
-        result.jobId_ = jobId_;
         result.transformedLayouts_ = internalGetTransformedLayouts();
         result.transformedLayouts_.makeImmutable();
         result.bitField0_ = to_bitField0_;
@@ -6850,32 +8357,39 @@ public final class Table {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Table.AddTransformJobInfoEntry) {
           return mergeFrom((alluxio.proto.journal.Table.AddTransformJobInfoEntry)other);
@@ -6912,6 +8426,7 @@ public final class Table {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         for (alluxio.grpc.table.Layout item : getTransformedLayoutsMap().values()) {
           if (!item.isInitialized()) {
@@ -6921,6 +8436,7 @@ public final class Table {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -6943,12 +8459,14 @@ public final class Table {
       private java.lang.Object dbName_ = "";
       /**
        * <code>optional string db_name = 1;</code>
+       * @return Whether the dbName field is set.
        */
       public boolean hasDbName() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @return The dbName.
        */
       public java.lang.String getDbName() {
         java.lang.Object ref = dbName_;
@@ -6966,6 +8484,7 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @return The bytes for dbName.
        */
       public com.google.protobuf.ByteString
           getDbNameBytes() {
@@ -6982,6 +8501,8 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @param value The dbName to set.
+       * @return This builder for chaining.
        */
       public Builder setDbName(
           java.lang.String value) {
@@ -6995,6 +8516,7 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearDbName() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -7004,6 +8526,8 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @param value The bytes for dbName to set.
+       * @return This builder for chaining.
        */
       public Builder setDbNameBytes(
           com.google.protobuf.ByteString value) {
@@ -7019,12 +8543,14 @@ public final class Table {
       private java.lang.Object tableName_ = "";
       /**
        * <code>optional string table_name = 2;</code>
+       * @return Whether the tableName field is set.
        */
       public boolean hasTableName() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @return The tableName.
        */
       public java.lang.String getTableName() {
         java.lang.Object ref = tableName_;
@@ -7042,6 +8568,7 @@ public final class Table {
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @return The bytes for tableName.
        */
       public com.google.protobuf.ByteString
           getTableNameBytes() {
@@ -7058,6 +8585,8 @@ public final class Table {
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @param value The tableName to set.
+       * @return This builder for chaining.
        */
       public Builder setTableName(
           java.lang.String value) {
@@ -7071,6 +8600,7 @@ public final class Table {
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearTableName() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -7080,6 +8610,8 @@ public final class Table {
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @param value The bytes for tableName to set.
+       * @return This builder for chaining.
        */
       public Builder setTableNameBytes(
           com.google.protobuf.ByteString value) {
@@ -7095,12 +8627,14 @@ public final class Table {
       private java.lang.Object definition_ = "";
       /**
        * <code>optional string definition = 3;</code>
+       * @return Whether the definition field is set.
        */
       public boolean hasDefinition() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000004) != 0);
       }
       /**
        * <code>optional string definition = 3;</code>
+       * @return The definition.
        */
       public java.lang.String getDefinition() {
         java.lang.Object ref = definition_;
@@ -7118,6 +8652,7 @@ public final class Table {
       }
       /**
        * <code>optional string definition = 3;</code>
+       * @return The bytes for definition.
        */
       public com.google.protobuf.ByteString
           getDefinitionBytes() {
@@ -7134,6 +8669,8 @@ public final class Table {
       }
       /**
        * <code>optional string definition = 3;</code>
+       * @param value The definition to set.
+       * @return This builder for chaining.
        */
       public Builder setDefinition(
           java.lang.String value) {
@@ -7147,6 +8684,7 @@ public final class Table {
       }
       /**
        * <code>optional string definition = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearDefinition() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -7156,6 +8694,8 @@ public final class Table {
       }
       /**
        * <code>optional string definition = 3;</code>
+       * @param value The bytes for definition to set.
+       * @return This builder for chaining.
        */
       public Builder setDefinitionBytes(
           com.google.protobuf.ByteString value) {
@@ -7171,18 +8711,22 @@ public final class Table {
       private long jobId_ ;
       /**
        * <code>optional int64 job_id = 4;</code>
+       * @return Whether the jobId field is set.
        */
       public boolean hasJobId() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
+        return ((bitField0_ & 0x00000008) != 0);
       }
       /**
        * <code>optional int64 job_id = 4;</code>
+       * @return The jobId.
        */
       public long getJobId() {
         return jobId_;
       }
       /**
        * <code>optional int64 job_id = 4;</code>
+       * @param value The jobId to set.
+       * @return This builder for chaining.
        */
       public Builder setJobId(long value) {
         bitField0_ |= 0x00000008;
@@ -7192,6 +8736,7 @@ public final class Table {
       }
       /**
        * <code>optional int64 job_id = 4;</code>
+       * @return This builder for chaining.
        */
       public Builder clearJobId() {
         bitField0_ = (bitField0_ & ~0x00000008);
@@ -7322,11 +8867,13 @@ public final class Table {
             .putAll(values);
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -7348,6 +8895,7 @@ public final class Table {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<AddTransformJobInfoEntry>
         PARSER = new com.google.protobuf.AbstractParser<AddTransformJobInfoEntry>() {
+      @java.lang.Override
       public AddTransformJobInfoEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -7365,6 +8913,7 @@ public final class Table {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.journal.Table.AddTransformJobInfoEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -7377,28 +8926,34 @@ public final class Table {
 
     /**
      * <code>optional string db_name = 1;</code>
+     * @return Whether the dbName field is set.
      */
     boolean hasDbName();
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The dbName.
      */
     java.lang.String getDbName();
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The bytes for dbName.
      */
     com.google.protobuf.ByteString
         getDbNameBytes();
 
     /**
      * <code>optional string table_name = 2;</code>
+     * @return Whether the tableName field is set.
      */
     boolean hasTableName();
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The tableName.
      */
     java.lang.String getTableName();
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The bytes for tableName.
      */
     com.google.protobuf.ByteString
         getTableNameBytes();
@@ -7425,6 +8980,13 @@ public final class Table {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new RemoveTransformJobInfoEntry();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -7448,13 +9010,6 @@ public final class Table {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
@@ -7465,6 +9020,13 @@ public final class Table {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000002;
               tableName_ = bs;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -7484,6 +9046,7 @@ public final class Table {
       return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_fieldAccessorTable
@@ -7496,12 +9059,14 @@ public final class Table {
     private volatile java.lang.Object dbName_;
     /**
      * <code>optional string db_name = 1;</code>
+     * @return Whether the dbName field is set.
      */
     public boolean hasDbName() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The dbName.
      */
     public java.lang.String getDbName() {
       java.lang.Object ref = dbName_;
@@ -7519,6 +9084,7 @@ public final class Table {
     }
     /**
      * <code>optional string db_name = 1;</code>
+     * @return The bytes for dbName.
      */
     public com.google.protobuf.ByteString
         getDbNameBytes() {
@@ -7538,12 +9104,14 @@ public final class Table {
     private volatile java.lang.Object tableName_;
     /**
      * <code>optional string table_name = 2;</code>
+     * @return Whether the tableName field is set.
      */
     public boolean hasTableName() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The tableName.
      */
     public java.lang.String getTableName() {
       java.lang.Object ref = tableName_;
@@ -7561,6 +9129,7 @@ public final class Table {
     }
     /**
      * <code>optional string table_name = 2;</code>
+     * @return The bytes for tableName.
      */
     public com.google.protobuf.ByteString
         getTableNameBytes() {
@@ -7577,6 +9146,7 @@ public final class Table {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -7586,26 +9156,28 @@ public final class Table {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, dbName_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, tableName_);
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, dbName_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, tableName_);
       }
       size += unknownFields.getSerializedSize();
@@ -7623,19 +9195,18 @@ public final class Table {
       }
       alluxio.proto.journal.Table.RemoveTransformJobInfoEntry other = (alluxio.proto.journal.Table.RemoveTransformJobInfoEntry) obj;
 
-      boolean result = true;
-      result = result && (hasDbName() == other.hasDbName());
+      if (hasDbName() != other.hasDbName()) return false;
       if (hasDbName()) {
-        result = result && getDbName()
-            .equals(other.getDbName());
+        if (!getDbName()
+            .equals(other.getDbName())) return false;
       }
-      result = result && (hasTableName() == other.hasTableName());
+      if (hasTableName() != other.hasTableName()) return false;
       if (hasTableName()) {
-        result = result && getTableName()
-            .equals(other.getTableName());
+        if (!getTableName()
+            .equals(other.getTableName())) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -7728,6 +9299,7 @@ public final class Table {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -7735,6 +9307,7 @@ public final class Table {
     public static Builder newBuilder(alluxio.proto.journal.Table.RemoveTransformJobInfoEntry prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -7762,6 +9335,7 @@ public final class Table {
         return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_fieldAccessorTable
@@ -7784,6 +9358,7 @@ public final class Table {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         dbName_ = "";
@@ -7793,15 +9368,18 @@ public final class Table {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.RemoveTransformJobInfoEntry getDefaultInstanceForType() {
         return alluxio.proto.journal.Table.RemoveTransformJobInfoEntry.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.RemoveTransformJobInfoEntry build() {
         alluxio.proto.journal.Table.RemoveTransformJobInfoEntry result = buildPartial();
         if (!result.isInitialized()) {
@@ -7810,15 +9388,16 @@ public final class Table {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Table.RemoveTransformJobInfoEntry buildPartial() {
         alluxio.proto.journal.Table.RemoveTransformJobInfoEntry result = new alluxio.proto.journal.Table.RemoveTransformJobInfoEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
           to_bitField0_ |= 0x00000001;
         }
         result.dbName_ = dbName_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
           to_bitField0_ |= 0x00000002;
         }
         result.tableName_ = tableName_;
@@ -7827,32 +9406,39 @@ public final class Table {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Table.RemoveTransformJobInfoEntry) {
           return mergeFrom((alluxio.proto.journal.Table.RemoveTransformJobInfoEntry)other);
@@ -7879,10 +9465,12 @@ public final class Table {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -7905,12 +9493,14 @@ public final class Table {
       private java.lang.Object dbName_ = "";
       /**
        * <code>optional string db_name = 1;</code>
+       * @return Whether the dbName field is set.
        */
       public boolean hasDbName() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @return The dbName.
        */
       public java.lang.String getDbName() {
         java.lang.Object ref = dbName_;
@@ -7928,6 +9518,7 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @return The bytes for dbName.
        */
       public com.google.protobuf.ByteString
           getDbNameBytes() {
@@ -7944,6 +9535,8 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @param value The dbName to set.
+       * @return This builder for chaining.
        */
       public Builder setDbName(
           java.lang.String value) {
@@ -7957,6 +9550,7 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearDbName() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -7966,6 +9560,8 @@ public final class Table {
       }
       /**
        * <code>optional string db_name = 1;</code>
+       * @param value The bytes for dbName to set.
+       * @return This builder for chaining.
        */
       public Builder setDbNameBytes(
           com.google.protobuf.ByteString value) {
@@ -7981,12 +9577,14 @@ public final class Table {
       private java.lang.Object tableName_ = "";
       /**
        * <code>optional string table_name = 2;</code>
+       * @return Whether the tableName field is set.
        */
       public boolean hasTableName() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @return The tableName.
        */
       public java.lang.String getTableName() {
         java.lang.Object ref = tableName_;
@@ -8004,6 +9602,7 @@ public final class Table {
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @return The bytes for tableName.
        */
       public com.google.protobuf.ByteString
           getTableNameBytes() {
@@ -8020,6 +9619,8 @@ public final class Table {
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @param value The tableName to set.
+       * @return This builder for chaining.
        */
       public Builder setTableName(
           java.lang.String value) {
@@ -8033,6 +9634,7 @@ public final class Table {
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearTableName() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -8042,6 +9644,8 @@ public final class Table {
       }
       /**
        * <code>optional string table_name = 2;</code>
+       * @param value The bytes for tableName to set.
+       * @return This builder for chaining.
        */
       public Builder setTableNameBytes(
           com.google.protobuf.ByteString value) {
@@ -8053,11 +9657,13 @@ public final class Table {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -8079,6 +9685,7 @@ public final class Table {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<RemoveTransformJobInfoEntry>
         PARSER = new com.google.protobuf.AbstractParser<RemoveTransformJobInfoEntry>() {
+      @java.lang.Override
       public RemoveTransformJobInfoEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -8096,7 +9703,1572 @@ public final class Table {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.journal.Table.RemoveTransformJobInfoEntry getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface UpdateDatabaseInfoEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.UpdateDatabaseInfoEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional string db_name = 1;</code>
+     * @return Whether the dbName field is set.
+     */
+    boolean hasDbName();
+    /**
+     * <code>optional string db_name = 1;</code>
+     * @return The dbName.
+     */
+    java.lang.String getDbName();
+    /**
+     * <code>optional string db_name = 1;</code>
+     * @return The bytes for dbName.
+     */
+    com.google.protobuf.ByteString
+        getDbNameBytes();
+
+    /**
+     * <code>optional string location = 2;</code>
+     * @return Whether the location field is set.
+     */
+    boolean hasLocation();
+    /**
+     * <code>optional string location = 2;</code>
+     * @return The location.
+     */
+    java.lang.String getLocation();
+    /**
+     * <code>optional string location = 2;</code>
+     * @return The bytes for location.
+     */
+    com.google.protobuf.ByteString
+        getLocationBytes();
+
+    /**
+     * <code>map&lt;string, string&gt; parameter = 3;</code>
+     */
+    int getParameterCount();
+    /**
+     * <code>map&lt;string, string&gt; parameter = 3;</code>
+     */
+    boolean containsParameter(
+        java.lang.String key);
+    /**
+     * Use {@link #getParameterMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getParameter();
+    /**
+     * <code>map&lt;string, string&gt; parameter = 3;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getParameterMap();
+    /**
+     * <code>map&lt;string, string&gt; parameter = 3;</code>
+     */
+
+    java.lang.String getParameterOrDefault(
+        java.lang.String key,
+        java.lang.String defaultValue);
+    /**
+     * <code>map&lt;string, string&gt; parameter = 3;</code>
+     */
+
+    java.lang.String getParameterOrThrow(
+        java.lang.String key);
+
+    /**
+     * <code>optional string owner_name = 4;</code>
+     * @return Whether the ownerName field is set.
+     */
+    boolean hasOwnerName();
+    /**
+     * <code>optional string owner_name = 4;</code>
+     * @return The ownerName.
+     */
+    java.lang.String getOwnerName();
+    /**
+     * <code>optional string owner_name = 4;</code>
+     * @return The bytes for ownerName.
+     */
+    com.google.protobuf.ByteString
+        getOwnerNameBytes();
+
+    /**
+     * <code>optional .alluxio.grpc.table.PrincipalType owner_type = 5;</code>
+     * @return Whether the ownerType field is set.
+     */
+    boolean hasOwnerType();
+    /**
+     * <code>optional .alluxio.grpc.table.PrincipalType owner_type = 5;</code>
+     * @return The ownerType.
+     */
+    alluxio.grpc.table.PrincipalType getOwnerType();
+
+    /**
+     * <code>optional string comment = 6;</code>
+     * @return Whether the comment field is set.
+     */
+    boolean hasComment();
+    /**
+     * <code>optional string comment = 6;</code>
+     * @return The comment.
+     */
+    java.lang.String getComment();
+    /**
+     * <code>optional string comment = 6;</code>
+     * @return The bytes for comment.
+     */
+    com.google.protobuf.ByteString
+        getCommentBytes();
+  }
+  /**
+   * <pre>
+   * next available id: 6
+   * </pre>
+   *
+   * Protobuf type {@code alluxio.proto.journal.UpdateDatabaseInfoEntry}
+   */
+  public  static final class UpdateDatabaseInfoEntry extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.UpdateDatabaseInfoEntry)
+      UpdateDatabaseInfoEntryOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use UpdateDatabaseInfoEntry.newBuilder() to construct.
+    private UpdateDatabaseInfoEntry(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private UpdateDatabaseInfoEntry() {
+      dbName_ = "";
+      location_ = "";
+      ownerName_ = "";
+      ownerType_ = 0;
+      comment_ = "";
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new UpdateDatabaseInfoEntry();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private UpdateDatabaseInfoEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              dbName_ = bs;
+              break;
+            }
+            case 18: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000002;
+              location_ = bs;
+              break;
+            }
+            case 26: {
+              if (!((mutable_bitField0_ & 0x00000004) != 0)) {
+                parameter_ = com.google.protobuf.MapField.newMapField(
+                    ParameterDefaultEntryHolder.defaultEntry);
+                mutable_bitField0_ |= 0x00000004;
+              }
+              com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+              parameter__ = input.readMessage(
+                  ParameterDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+              parameter_.getMutableMap().put(
+                  parameter__.getKey(), parameter__.getValue());
+              break;
+            }
+            case 34: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000004;
+              ownerName_ = bs;
+              break;
+            }
+            case 40: {
+              int rawValue = input.readEnum();
+                @SuppressWarnings("deprecation")
+              alluxio.grpc.table.PrincipalType value = alluxio.grpc.table.PrincipalType.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(5, rawValue);
+              } else {
+                bitField0_ |= 0x00000008;
+                ownerType_ = rawValue;
+              }
+              break;
+            }
+            case 50: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000010;
+              comment_ = bs;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_descriptor;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
+    protected com.google.protobuf.MapField internalGetMapField(
+        int number) {
+      switch (number) {
+        case 3:
+          return internalGetParameter();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.class, alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int DB_NAME_FIELD_NUMBER = 1;
+    private volatile java.lang.Object dbName_;
+    /**
+     * <code>optional string db_name = 1;</code>
+     * @return Whether the dbName field is set.
+     */
+    public boolean hasDbName() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>optional string db_name = 1;</code>
+     * @return The dbName.
+     */
+    public java.lang.String getDbName() {
+      java.lang.Object ref = dbName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          dbName_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string db_name = 1;</code>
+     * @return The bytes for dbName.
+     */
+    public com.google.protobuf.ByteString
+        getDbNameBytes() {
+      java.lang.Object ref = dbName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        dbName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int LOCATION_FIELD_NUMBER = 2;
+    private volatile java.lang.Object location_;
+    /**
+     * <code>optional string location = 2;</code>
+     * @return Whether the location field is set.
+     */
+    public boolean hasLocation() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>optional string location = 2;</code>
+     * @return The location.
+     */
+    public java.lang.String getLocation() {
+      java.lang.Object ref = location_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          location_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string location = 2;</code>
+     * @return The bytes for location.
+     */
+    public com.google.protobuf.ByteString
+        getLocationBytes() {
+      java.lang.Object ref = location_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        location_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int PARAMETER_FIELD_NUMBER = 3;
+    private static final class ParameterDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_ParameterEntry_descriptor, 
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> parameter_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetParameter() {
+      if (parameter_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            ParameterDefaultEntryHolder.defaultEntry);
+      }
+      return parameter_;
+    }
+
+    public int getParameterCount() {
+      return internalGetParameter().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, string&gt; parameter = 3;</code>
+     */
+
+    public boolean containsParameter(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      return internalGetParameter().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getParameterMap()} instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getParameter() {
+      return getParameterMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; parameter = 3;</code>
+     */
+
+    public java.util.Map<java.lang.String, java.lang.String> getParameterMap() {
+      return internalGetParameter().getMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; parameter = 3;</code>
+     */
+
+    public java.lang.String getParameterOrDefault(
+        java.lang.String key,
+        java.lang.String defaultValue) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetParameter().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, string&gt; parameter = 3;</code>
+     */
+
+    public java.lang.String getParameterOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new java.lang.NullPointerException(); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetParameter().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public static final int OWNER_NAME_FIELD_NUMBER = 4;
+    private volatile java.lang.Object ownerName_;
+    /**
+     * <code>optional string owner_name = 4;</code>
+     * @return Whether the ownerName field is set.
+     */
+    public boolean hasOwnerName() {
+      return ((bitField0_ & 0x00000004) != 0);
+    }
+    /**
+     * <code>optional string owner_name = 4;</code>
+     * @return The ownerName.
+     */
+    public java.lang.String getOwnerName() {
+      java.lang.Object ref = ownerName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          ownerName_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string owner_name = 4;</code>
+     * @return The bytes for ownerName.
+     */
+    public com.google.protobuf.ByteString
+        getOwnerNameBytes() {
+      java.lang.Object ref = ownerName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ownerName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OWNER_TYPE_FIELD_NUMBER = 5;
+    private int ownerType_;
+    /**
+     * <code>optional .alluxio.grpc.table.PrincipalType owner_type = 5;</code>
+     * @return Whether the ownerType field is set.
+     */
+    public boolean hasOwnerType() {
+      return ((bitField0_ & 0x00000008) != 0);
+    }
+    /**
+     * <code>optional .alluxio.grpc.table.PrincipalType owner_type = 5;</code>
+     * @return The ownerType.
+     */
+    public alluxio.grpc.table.PrincipalType getOwnerType() {
+      @SuppressWarnings("deprecation")
+      alluxio.grpc.table.PrincipalType result = alluxio.grpc.table.PrincipalType.valueOf(ownerType_);
+      return result == null ? alluxio.grpc.table.PrincipalType.USER : result;
+    }
+
+    public static final int COMMENT_FIELD_NUMBER = 6;
+    private volatile java.lang.Object comment_;
+    /**
+     * <code>optional string comment = 6;</code>
+     * @return Whether the comment field is set.
+     */
+    public boolean hasComment() {
+      return ((bitField0_ & 0x00000010) != 0);
+    }
+    /**
+     * <code>optional string comment = 6;</code>
+     * @return The comment.
+     */
+    public java.lang.String getComment() {
+      java.lang.Object ref = comment_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          comment_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string comment = 6;</code>
+     * @return The bytes for comment.
+     */
+    public com.google.protobuf.ByteString
+        getCommentBytes() {
+      java.lang.Object ref = comment_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        comment_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) != 0)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, dbName_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, location_);
+      }
+      com.google.protobuf.GeneratedMessageV3
+        .serializeStringMapTo(
+          output,
+          internalGetParameter(),
+          ParameterDefaultEntryHolder.defaultEntry,
+          3);
+      if (((bitField0_ & 0x00000004) != 0)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, ownerName_);
+      }
+      if (((bitField0_ & 0x00000008) != 0)) {
+        output.writeEnum(5, ownerType_);
+      }
+      if (((bitField0_ & 0x00000010) != 0)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 6, comment_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, dbName_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, location_);
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetParameter().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        parameter__ = ParameterDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .build();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(3, parameter__);
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, ownerName_);
+      }
+      if (((bitField0_ & 0x00000008) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(5, ownerType_);
+      }
+      if (((bitField0_ & 0x00000010) != 0)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(6, comment_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof alluxio.proto.journal.Table.UpdateDatabaseInfoEntry)) {
+        return super.equals(obj);
+      }
+      alluxio.proto.journal.Table.UpdateDatabaseInfoEntry other = (alluxio.proto.journal.Table.UpdateDatabaseInfoEntry) obj;
+
+      if (hasDbName() != other.hasDbName()) return false;
+      if (hasDbName()) {
+        if (!getDbName()
+            .equals(other.getDbName())) return false;
+      }
+      if (hasLocation() != other.hasLocation()) return false;
+      if (hasLocation()) {
+        if (!getLocation()
+            .equals(other.getLocation())) return false;
+      }
+      if (!internalGetParameter().equals(
+          other.internalGetParameter())) return false;
+      if (hasOwnerName() != other.hasOwnerName()) return false;
+      if (hasOwnerName()) {
+        if (!getOwnerName()
+            .equals(other.getOwnerName())) return false;
+      }
+      if (hasOwnerType() != other.hasOwnerType()) return false;
+      if (hasOwnerType()) {
+        if (ownerType_ != other.ownerType_) return false;
+      }
+      if (hasComment() != other.hasComment()) return false;
+      if (hasComment()) {
+        if (!getComment()
+            .equals(other.getComment())) return false;
+      }
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasDbName()) {
+        hash = (37 * hash) + DB_NAME_FIELD_NUMBER;
+        hash = (53 * hash) + getDbName().hashCode();
+      }
+      if (hasLocation()) {
+        hash = (37 * hash) + LOCATION_FIELD_NUMBER;
+        hash = (53 * hash) + getLocation().hashCode();
+      }
+      if (!internalGetParameter().getMap().isEmpty()) {
+        hash = (37 * hash) + PARAMETER_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetParameter().hashCode();
+      }
+      if (hasOwnerName()) {
+        hash = (37 * hash) + OWNER_NAME_FIELD_NUMBER;
+        hash = (53 * hash) + getOwnerName().hashCode();
+      }
+      if (hasOwnerType()) {
+        hash = (37 * hash) + OWNER_TYPE_FIELD_NUMBER;
+        hash = (53 * hash) + ownerType_;
+      }
+      if (hasComment()) {
+        hash = (37 * hash) + COMMENT_FIELD_NUMBER;
+        hash = (53 * hash) + getComment().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static alluxio.proto.journal.Table.UpdateDatabaseInfoEntry parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.Table.UpdateDatabaseInfoEntry parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.Table.UpdateDatabaseInfoEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.Table.UpdateDatabaseInfoEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.Table.UpdateDatabaseInfoEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.Table.UpdateDatabaseInfoEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.Table.UpdateDatabaseInfoEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static alluxio.proto.journal.Table.UpdateDatabaseInfoEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.Table.UpdateDatabaseInfoEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static alluxio.proto.journal.Table.UpdateDatabaseInfoEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.Table.UpdateDatabaseInfoEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static alluxio.proto.journal.Table.UpdateDatabaseInfoEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(alluxio.proto.journal.Table.UpdateDatabaseInfoEntry prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * next available id: 6
+     * </pre>
+     *
+     * Protobuf type {@code alluxio.proto.journal.UpdateDatabaseInfoEntry}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.UpdateDatabaseInfoEntry)
+        alluxio.proto.journal.Table.UpdateDatabaseInfoEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_descriptor;
+      }
+
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMapField(
+          int number) {
+        switch (number) {
+          case 3:
+            return internalGetParameter();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapField internalGetMutableMapField(
+          int number) {
+        switch (number) {
+          case 3:
+            return internalGetMutableParameter();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.class, alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.Builder.class);
+      }
+
+      // Construct using alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        dbName_ = "";
+        bitField0_ = (bitField0_ & ~0x00000001);
+        location_ = "";
+        bitField0_ = (bitField0_ & ~0x00000002);
+        internalGetMutableParameter().clear();
+        ownerName_ = "";
+        bitField0_ = (bitField0_ & ~0x00000008);
+        ownerType_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000010);
+        comment_ = "";
+        bitField0_ = (bitField0_ & ~0x00000020);
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.journal.Table.internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_descriptor;
+      }
+
+      @java.lang.Override
+      public alluxio.proto.journal.Table.UpdateDatabaseInfoEntry getDefaultInstanceForType() {
+        return alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public alluxio.proto.journal.Table.UpdateDatabaseInfoEntry build() {
+        alluxio.proto.journal.Table.UpdateDatabaseInfoEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public alluxio.proto.journal.Table.UpdateDatabaseInfoEntry buildPartial() {
+        alluxio.proto.journal.Table.UpdateDatabaseInfoEntry result = new alluxio.proto.journal.Table.UpdateDatabaseInfoEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.dbName_ = dbName_;
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.location_ = location_;
+        result.parameter_ = internalGetParameter();
+        result.parameter_.makeImmutable();
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.ownerName_ = ownerName_;
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.ownerType_ = ownerType_;
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.comment_ = comment_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.journal.Table.UpdateDatabaseInfoEntry) {
+          return mergeFrom((alluxio.proto.journal.Table.UpdateDatabaseInfoEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.journal.Table.UpdateDatabaseInfoEntry other) {
+        if (other == alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.getDefaultInstance()) return this;
+        if (other.hasDbName()) {
+          bitField0_ |= 0x00000001;
+          dbName_ = other.dbName_;
+          onChanged();
+        }
+        if (other.hasLocation()) {
+          bitField0_ |= 0x00000002;
+          location_ = other.location_;
+          onChanged();
+        }
+        internalGetMutableParameter().mergeFrom(
+            other.internalGetParameter());
+        if (other.hasOwnerName()) {
+          bitField0_ |= 0x00000008;
+          ownerName_ = other.ownerName_;
+          onChanged();
+        }
+        if (other.hasOwnerType()) {
+          setOwnerType(other.getOwnerType());
+        }
+        if (other.hasComment()) {
+          bitField0_ |= 0x00000020;
+          comment_ = other.comment_;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.journal.Table.UpdateDatabaseInfoEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.journal.Table.UpdateDatabaseInfoEntry) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object dbName_ = "";
+      /**
+       * <code>optional string db_name = 1;</code>
+       * @return Whether the dbName field is set.
+       */
+      public boolean hasDbName() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>optional string db_name = 1;</code>
+       * @return The dbName.
+       */
+      public java.lang.String getDbName() {
+        java.lang.Object ref = dbName_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            dbName_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string db_name = 1;</code>
+       * @return The bytes for dbName.
+       */
+      public com.google.protobuf.ByteString
+          getDbNameBytes() {
+        java.lang.Object ref = dbName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          dbName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string db_name = 1;</code>
+       * @param value The dbName to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDbName(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        dbName_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string db_name = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDbName() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        dbName_ = getDefaultInstance().getDbName();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string db_name = 1;</code>
+       * @param value The bytes for dbName to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDbNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        dbName_ = value;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object location_ = "";
+      /**
+       * <code>optional string location = 2;</code>
+       * @return Whether the location field is set.
+       */
+      public boolean hasLocation() {
+        return ((bitField0_ & 0x00000002) != 0);
+      }
+      /**
+       * <code>optional string location = 2;</code>
+       * @return The location.
+       */
+      public java.lang.String getLocation() {
+        java.lang.Object ref = location_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            location_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string location = 2;</code>
+       * @return The bytes for location.
+       */
+      public com.google.protobuf.ByteString
+          getLocationBytes() {
+        java.lang.Object ref = location_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          location_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string location = 2;</code>
+       * @param value The location to set.
+       * @return This builder for chaining.
+       */
+      public Builder setLocation(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        location_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string location = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearLocation() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        location_ = getDefaultInstance().getLocation();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string location = 2;</code>
+       * @param value The bytes for location to set.
+       * @return This builder for chaining.
+       */
+      public Builder setLocationBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        location_ = value;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> parameter_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+      internalGetParameter() {
+        if (parameter_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              ParameterDefaultEntryHolder.defaultEntry);
+        }
+        return parameter_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+      internalGetMutableParameter() {
+        onChanged();;
+        if (parameter_ == null) {
+          parameter_ = com.google.protobuf.MapField.newMapField(
+              ParameterDefaultEntryHolder.defaultEntry);
+        }
+        if (!parameter_.isMutable()) {
+          parameter_ = parameter_.copy();
+        }
+        return parameter_;
+      }
+
+      public int getParameterCount() {
+        return internalGetParameter().getMap().size();
+      }
+      /**
+       * <code>map&lt;string, string&gt; parameter = 3;</code>
+       */
+
+      public boolean containsParameter(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        return internalGetParameter().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getParameterMap()} instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getParameter() {
+        return getParameterMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; parameter = 3;</code>
+       */
+
+      public java.util.Map<java.lang.String, java.lang.String> getParameterMap() {
+        return internalGetParameter().getMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; parameter = 3;</code>
+       */
+
+      public java.lang.String getParameterOrDefault(
+          java.lang.String key,
+          java.lang.String defaultValue) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetParameter().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <code>map&lt;string, string&gt; parameter = 3;</code>
+       */
+
+      public java.lang.String getParameterOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetParameter().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+
+      public Builder clearParameter() {
+        internalGetMutableParameter().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; parameter = 3;</code>
+       */
+
+      public Builder removeParameter(
+          java.lang.String key) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableParameter().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+      getMutableParameter() {
+        return internalGetMutableParameter().getMutableMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; parameter = 3;</code>
+       */
+      public Builder putParameter(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new java.lang.NullPointerException(); }
+        if (value == null) { throw new java.lang.NullPointerException(); }
+        internalGetMutableParameter().getMutableMap()
+            .put(key, value);
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; parameter = 3;</code>
+       */
+
+      public Builder putAllParameter(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableParameter().getMutableMap()
+            .putAll(values);
+        return this;
+      }
+
+      private java.lang.Object ownerName_ = "";
+      /**
+       * <code>optional string owner_name = 4;</code>
+       * @return Whether the ownerName field is set.
+       */
+      public boolean hasOwnerName() {
+        return ((bitField0_ & 0x00000008) != 0);
+      }
+      /**
+       * <code>optional string owner_name = 4;</code>
+       * @return The ownerName.
+       */
+      public java.lang.String getOwnerName() {
+        java.lang.Object ref = ownerName_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            ownerName_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string owner_name = 4;</code>
+       * @return The bytes for ownerName.
+       */
+      public com.google.protobuf.ByteString
+          getOwnerNameBytes() {
+        java.lang.Object ref = ownerName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ownerName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string owner_name = 4;</code>
+       * @param value The ownerName to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOwnerName(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+        ownerName_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string owner_name = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOwnerName() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        ownerName_ = getDefaultInstance().getOwnerName();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string owner_name = 4;</code>
+       * @param value The bytes for ownerName to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOwnerNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+        ownerName_ = value;
+        onChanged();
+        return this;
+      }
+
+      private int ownerType_ = 0;
+      /**
+       * <code>optional .alluxio.grpc.table.PrincipalType owner_type = 5;</code>
+       * @return Whether the ownerType field is set.
+       */
+      public boolean hasOwnerType() {
+        return ((bitField0_ & 0x00000010) != 0);
+      }
+      /**
+       * <code>optional .alluxio.grpc.table.PrincipalType owner_type = 5;</code>
+       * @return The ownerType.
+       */
+      public alluxio.grpc.table.PrincipalType getOwnerType() {
+        @SuppressWarnings("deprecation")
+        alluxio.grpc.table.PrincipalType result = alluxio.grpc.table.PrincipalType.valueOf(ownerType_);
+        return result == null ? alluxio.grpc.table.PrincipalType.USER : result;
+      }
+      /**
+       * <code>optional .alluxio.grpc.table.PrincipalType owner_type = 5;</code>
+       * @param value The ownerType to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOwnerType(alluxio.grpc.table.PrincipalType value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        bitField0_ |= 0x00000010;
+        ownerType_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.grpc.table.PrincipalType owner_type = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOwnerType() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        ownerType_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object comment_ = "";
+      /**
+       * <code>optional string comment = 6;</code>
+       * @return Whether the comment field is set.
+       */
+      public boolean hasComment() {
+        return ((bitField0_ & 0x00000020) != 0);
+      }
+      /**
+       * <code>optional string comment = 6;</code>
+       * @return The comment.
+       */
+      public java.lang.String getComment() {
+        java.lang.Object ref = comment_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            comment_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string comment = 6;</code>
+       * @return The bytes for comment.
+       */
+      public com.google.protobuf.ByteString
+          getCommentBytes() {
+        java.lang.Object ref = comment_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          comment_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string comment = 6;</code>
+       * @param value The comment to set.
+       * @return This builder for chaining.
+       */
+      public Builder setComment(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000020;
+        comment_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string comment = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearComment() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        comment_ = getDefaultInstance().getComment();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string comment = 6;</code>
+       * @param value The bytes for comment to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCommentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000020;
+        comment_ = value;
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.UpdateDatabaseInfoEntry)
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.UpdateDatabaseInfoEntry)
+    private static final alluxio.proto.journal.Table.UpdateDatabaseInfoEntry DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new alluxio.proto.journal.Table.UpdateDatabaseInfoEntry();
+    }
+
+    public static alluxio.proto.journal.Table.UpdateDatabaseInfoEntry getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<UpdateDatabaseInfoEntry>
+        PARSER = new com.google.protobuf.AbstractParser<UpdateDatabaseInfoEntry>() {
+      @java.lang.Override
+      public UpdateDatabaseInfoEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new UpdateDatabaseInfoEntry(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<UpdateDatabaseInfoEntry> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<UpdateDatabaseInfoEntry> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public alluxio.proto.journal.Table.UpdateDatabaseInfoEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -8128,6 +11300,11 @@ public final class Table {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_AddTableEntry_ParametersEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_journal_RemoveTableEntry_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_proto_journal_RemoveTableEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_CompleteTransformTableEntry_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -8152,6 +11329,16 @@ public final class Table {
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_ParameterEntry_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_ParameterEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -8169,7 +11356,7 @@ public final class Table {
       "0.alluxio.proto.journal.AttachDbEntry.Co" +
       "nfigEntry\032-\n\013ConfigEntry\022\013\n\003key\030\001 \001(\t\022\r\n" +
       "\005value\030\002 \001(\t:\0028\001\" \n\rDetachDbEntry\022\017\n\007db_" +
-      "name\030\001 \001(\t\"\303\003\n\rAddTableEntry\022\017\n\007db_name\030" +
+      "name\030\001 \001(\t\"\215\004\n\rAddTableEntry\022\017\n\007db_name\030" +
       "\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\022\r\n\005owner\030\003 \001(\t" +
       "\022*\n\006schema\030\004 \001(\0132\032.alluxio.grpc.table.Sc" +
       "hema\022*\n\006layout\030\005 \001(\0132\032.alluxio.grpc.tabl" +
@@ -8179,38 +11366,41 @@ public final class Table {
       "ableEntry.ParametersEntry\0227\n\016partition_c" +
       "ols\030\010 \003(\0132\037.alluxio.grpc.table.FieldSche" +
       "ma\0221\n\npartitions\030\t \003(\0132\035.alluxio.grpc.ta" +
-      "ble.Partition\0321\n\017ParametersEntry\022\013\n\003key\030" +
-      "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\226\002\n\033CompleteTra" +
-      "nsformTableEntry\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntab" +
-      "le_name\030\002 \001(\t\022\022\n\ndefinition\030\003 \001(\t\022g\n\023tra" +
-      "nsformed_layouts\030\004 \003(\0132J.alluxio.proto.j" +
-      "ournal.CompleteTransformTableEntry.Trans" +
-      "formedLayoutsEntry\032U\n\027TransformedLayouts" +
-      "Entry\022\013\n\003key\030\001 \001(\t\022)\n\005value\030\002 \001(\0132\032.allu" +
-      "xio.grpc.table.Layout:\0028\001\"\240\002\n\030AddTransfo" +
-      "rmJobInfoEntry\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable" +
-      "_name\030\002 \001(\t\022\022\n\ndefinition\030\003 \001(\t\022\016\n\006job_i" +
-      "d\030\004 \001(\003\022d\n\023transformed_layouts\030\005 \003(\0132G.a" +
-      "lluxio.proto.journal.AddTransformJobInfo" +
-      "Entry.TransformedLayoutsEntry\032U\n\027Transfo" +
-      "rmedLayoutsEntry\022\013\n\003key\030\001 \001(\t\022)\n\005value\030\002" +
-      " \001(\0132\032.alluxio.grpc.table.Layout:\0028\001\"B\n\033" +
-      "RemoveTransformJobInfoEntry\022\017\n\007db_name\030\001" +
-      " \001(\t\022\022\n\ntable_name\030\002 \001(\t"
+      "ble.Partition\022\030\n\020previous_version\030\n \001(\003\022" +
+      "\017\n\007version\030\013 \001(\003\022\035\n\025version_creation_tim" +
+      "e\030\014 \001(\003\0321\n\017ParametersEntry\022\013\n\003key\030\001 \001(\t\022" +
+      "\r\n\005value\030\002 \001(\t:\0028\001\"H\n\020RemoveTableEntry\022\017" +
+      "\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\022\017\n\007v" +
+      "ersion\030\004 \001(\003\"\226\002\n\033CompleteTransformTableE" +
+      "ntry\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(" +
+      "\t\022\022\n\ndefinition\030\003 \001(\t\022g\n\023transformed_lay" +
+      "outs\030\004 \003(\0132J.alluxio.proto.journal.Compl" +
+      "eteTransformTableEntry.TransformedLayout" +
+      "sEntry\032U\n\027TransformedLayoutsEntry\022\013\n\003key" +
+      "\030\001 \001(\t\022)\n\005value\030\002 \001(\0132\032.alluxio.grpc.tab" +
+      "le.Layout:\0028\001\"\240\002\n\030AddTransformJobInfoEnt" +
+      "ry\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\022" +
+      "\022\n\ndefinition\030\003 \001(\t\022\016\n\006job_id\030\004 \001(\003\022d\n\023t" +
+      "ransformed_layouts\030\005 \003(\0132G.alluxio.proto" +
+      ".journal.AddTransformJobInfoEntry.Transf" +
+      "ormedLayoutsEntry\032U\n\027TransformedLayoutsE" +
+      "ntry\022\013\n\003key\030\001 \001(\t\022)\n\005value\030\002 \001(\0132\032.allux" +
+      "io.grpc.table.Layout:\0028\001\"B\n\033RemoveTransf" +
+      "ormJobInfoEntry\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntabl" +
+      "e_name\030\002 \001(\t\"\234\002\n\027UpdateDatabaseInfoEntry" +
+      "\022\017\n\007db_name\030\001 \001(\t\022\020\n\010location\030\002 \001(\t\022P\n\tp" +
+      "arameter\030\003 \003(\0132=.alluxio.proto.journal.U" +
+      "pdateDatabaseInfoEntry.ParameterEntry\022\022\n" +
+      "\nowner_name\030\004 \001(\t\0225\n\nowner_type\030\005 \001(\0162!." +
+      "alluxio.grpc.table.PrincipalType\022\017\n\007comm" +
+      "ent\030\006 \001(\t\0320\n\016ParameterEntry\022\013\n\003key\030\001 \001(\t" +
+      "\022\r\n\005value\030\002 \001(\t:\0028\001"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           alluxio.grpc.table.TableMasterProto.getDescriptor(),
-        }, assigner);
+        });
     internal_static_alluxio_proto_journal_AttachDbEntry_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_alluxio_proto_journal_AttachDbEntry_fieldAccessorTable = new
@@ -8234,15 +11424,21 @@ public final class Table {
     internal_static_alluxio_proto_journal_AddTableEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_AddTableEntry_descriptor,
-        new java.lang.String[] { "DbName", "TableName", "Owner", "Schema", "Layout", "TableStats", "Parameters", "PartitionCols", "Partitions", });
+        new java.lang.String[] { "DbName", "TableName", "Owner", "Schema", "Layout", "TableStats", "Parameters", "PartitionCols", "Partitions", "PreviousVersion", "Version", "VersionCreationTime", });
     internal_static_alluxio_proto_journal_AddTableEntry_ParametersEntry_descriptor =
       internal_static_alluxio_proto_journal_AddTableEntry_descriptor.getNestedTypes().get(0);
     internal_static_alluxio_proto_journal_AddTableEntry_ParametersEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_AddTableEntry_ParametersEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_alluxio_proto_journal_CompleteTransformTableEntry_descriptor =
+    internal_static_alluxio_proto_journal_RemoveTableEntry_descriptor =
       getDescriptor().getMessageTypes().get(3);
+    internal_static_alluxio_proto_journal_RemoveTableEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_RemoveTableEntry_descriptor,
+        new java.lang.String[] { "DbName", "TableName", "Version", });
+    internal_static_alluxio_proto_journal_CompleteTransformTableEntry_descriptor =
+      getDescriptor().getMessageTypes().get(4);
     internal_static_alluxio_proto_journal_CompleteTransformTableEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_CompleteTransformTableEntry_descriptor,
@@ -8254,7 +11450,7 @@ public final class Table {
         internal_static_alluxio_proto_journal_CompleteTransformTableEntry_TransformedLayoutsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_descriptor =
-      getDescriptor().getMessageTypes().get(4);
+      getDescriptor().getMessageTypes().get(5);
     internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_descriptor,
@@ -8266,11 +11462,23 @@ public final class Table {
         internal_static_alluxio_proto_journal_AddTransformJobInfoEntry_TransformedLayoutsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_descriptor =
-      getDescriptor().getMessageTypes().get(5);
+      getDescriptor().getMessageTypes().get(6);
     internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_proto_journal_RemoveTransformJobInfoEntry_descriptor,
         new java.lang.String[] { "DbName", "TableName", });
+    internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_descriptor =
+      getDescriptor().getMessageTypes().get(7);
+    internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_descriptor,
+        new java.lang.String[] { "DbName", "Location", "Parameter", "OwnerName", "OwnerType", "Comment", });
+    internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_ParameterEntry_descriptor =
+      internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_descriptor.getNestedTypes().get(0);
+    internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_ParameterEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_UpdateDatabaseInfoEntry_ParameterEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
     alluxio.grpc.table.TableMasterProto.getDescriptor();
   }
 

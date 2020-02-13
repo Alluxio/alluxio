@@ -9,14 +9,17 @@ public interface BackupStatusPRequestOrBuilder extends
 
   /**
    * <code>optional string backupId = 1;</code>
+   * @return Whether the backupId field is set.
    */
   boolean hasBackupId();
   /**
    * <code>optional string backupId = 1;</code>
+   * @return The backupId.
    */
   java.lang.String getBackupId();
   /**
    * <code>optional string backupId = 1;</code>
+   * @return The bytes for backupId.
    */
   com.google.protobuf.ByteString
       getBackupIdBytes();

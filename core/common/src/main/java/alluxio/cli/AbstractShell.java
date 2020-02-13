@@ -61,6 +61,8 @@ public abstract class AbstractShell implements Closeable {
     mUnstableAlias = unstableAlias;
     mCommandAlias = commandAlias;
     mCommands = loadCommands();
+    // Register all loaded commands under closer.
+    mCommands.values().stream().forEach((cmd) -> mCloser.register(cmd));
   }
 
   /**

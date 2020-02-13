@@ -16,16 +16,17 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcChannelKey;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
+import alluxio.security.User;
 import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 
-import io.grpc.Channel;
 import org.hamcrest.core.StringStartsWith;
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,8 +35,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.powermock.reflect.Whitebox;
 
+import javax.security.auth.Subject;
 import javax.security.sasl.AuthenticationException;
 import java.net.InetSocketAddress;
+import java.util.UUID;
 
 /**
  * Unit test for {@link alluxio.grpc.GrpcChannelBuilder} and {@link alluxio.grpc.GrpcServerBuilder}.
@@ -104,8 +107,8 @@ public class GrpcSecurityTest {
       server.start();
       GrpcChannelBuilder channelBuilder =
           GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
-      channelBuilder.setCredentials(ExactlyMatchAuthenticationProvider.USERNAME,
-          ExactlyMatchAuthenticationProvider.PASSWORD, null).build();
+      channelBuilder.setSubject(createSubject(ExactlyMatchAuthenticationProvider.USERNAME,
+          ExactlyMatchAuthenticationProvider.PASSWORD)).build();
     } finally {
       server.shutdown();
     }
@@ -122,7 +125,7 @@ public class GrpcSecurityTest {
       GrpcChannelBuilder channelBuilder =
           GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
       mThrown.expect(UnauthenticatedException.class);
-      channelBuilder.setCredentials("fail", "fail", null).build();
+      channelBuilder.setSubject(createSubject("fail", "fail")).build();
     } finally {
       server.shutdown();
     }
@@ -167,21 +170,18 @@ public class GrpcSecurityTest {
           GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration)
               .setSubject(us.getSubject()).build();
 
-      // Grab internal authenticated channel reference.
-      Channel interceptorChannel = Whitebox.getInternalState(channel, "mChannel");
-      AuthenticatedChannel authenticatedChannel =
-          Whitebox.getInternalState(interceptorChannel, "channel");
+      // Grab internal channel-Id.
+      GrpcChannelKey channelKey = Whitebox.getInternalState(channel, "mChannelKey");
+      UUID channelId = channelKey.getChannelId();
       // Assert that authentication server has a login info for the channel.
-      Assert.assertNotNull(server.getAuthenticationServer()
-          .getUserInfoForChannel(authenticatedChannel.getChannelId()));
-      // Close the underlying authenticated channel.
-      authenticatedChannel.close();
+      Assert.assertNotNull(server.getAuthenticationServer().getUserInfoForChannel(channelId));
+      // Shutdown channel.
+      channel.shutdown();
       // Assert that authentication server doesn't contain login info for the channel anymore.
       // Wait in a loop. Because closing the authentication will propagate asynchronously.
       CommonUtils.waitFor("login state removed", () -> {
         try {
-          server.getAuthenticationServer()
-              .getUserInfoForChannel(authenticatedChannel.getChannelId());
+          server.getAuthenticationServer().getUserInfoForChannel(channelId);
           return false;
         } catch (UnauthenticatedException exc) {
           return true;
@@ -233,6 +233,13 @@ public class GrpcSecurityTest {
     GrpcServerBuilder serverBuilder = GrpcServerBuilder
         .forAddress(GrpcServerAddress.create("localhost", bindAddress), mConfiguration, us);
     return serverBuilder.build();
+  }
+
+  private Subject createSubject(String username, String password) {
+    Subject subject = new Subject();
+    subject.getPrincipals().add(new User(username));
+    subject.getPrivateCredentials().add(password);
+    return subject;
   }
 
   /**

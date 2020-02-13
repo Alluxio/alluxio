@@ -9,6 +9,7 @@
     "@fortawesome/free-regular-svg-icons": "5.7.2",
     "@fortawesome/free-solid-svg-icons": "5.7.2",
     "@fortawesome/react-fontawesome": "0.1.4",
+    "@openfonts/anonymous-pro_all": "^1.44.0",
     "@nivo/line": "^0.52.1",
     "axios": "0.18.0",
     "babel-polyfill": "6.26.0",
@@ -25,7 +26,6 @@
     "reactstrap": "7.1.0",
     "redux": "4.0.1",
     "redux-saga": "1.0.1",
-    "source-code-pro": "^2.30.1",
     "source-sans-pro": "^2.45.0",
     "source-serif-pro": "^2.10.0",
     "typesafe-actions": "3.1.0"

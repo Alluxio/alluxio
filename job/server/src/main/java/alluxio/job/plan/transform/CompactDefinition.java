@@ -26,6 +26,7 @@ import alluxio.job.util.SerializableVoid;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
+import avro.shaded.com.google.common.collect.ImmutableMap;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -49,6 +50,11 @@ public final class CompactDefinition
   private static final String COMPACTED_FILE_PATTERN = "part-%d.parquet";
   private static final String SUCCESS_FILENAME = "_SUCCESS";
   private static final String CRC_FILENAME_SUFFIX = ".crc";
+
+  private static final Map<Format, Double> COMPRESSION_RATIO = ImmutableMap.of(
+      Format.PARQUET, 1.0,
+      Format.CSV, 5.0,
+      Format.GZIP_CSV, 2.5);
 
   /**
    * Constructs a new {@link CompactDefinition}.
@@ -80,24 +86,52 @@ public final class CompactDefinition
     AlluxioURI outputDir = new AlluxioURI(config.getOutput());
 
     List<URIStatus> files = Lists.newArrayList();
+    // use double to prevent overflow
+    double totalFileSize = 0;
     for (URIStatus status : context.getFileSystem().listStatus(inputDir)) {
       if (!shouldIgnore(status)) {
         files.add(status);
+        totalFileSize += status.getLength();
       }
     }
+
     Map<WorkerInfo, ArrayList<CompactTask>> assignments = Maps.newHashMap();
-    int groupSize = Math.max(1, (files.size() + 1) / config.getNumFiles());
+    int maxNumFiles = config.getMaxNumFiles();
+    long groupMinSize = config.getMinFileSize();
+    if (totalFileSize / groupMinSize > maxNumFiles) {
+      groupMinSize = Math.round(totalFileSize / maxNumFiles);
+    }
+
+    if (!files.isEmpty() && config.getPartitionInfo() != null) {
+      // adjust the group minimum size for source compression ratio
+      groupMinSize *= COMPRESSION_RATIO.get(
+          config.getPartitionInfo().getFormat(files.get(0).getName()));
+    }
+
     // Files to be compacted are grouped into different groups,
     // each group of files are compacted to one file,
     // one task is to compact one group of files,
     // different tasks are assigned to different workers in a round robin way.
-    ArrayList<String> group = new ArrayList<>(groupSize);
+    // We keep adding files to the group, until adding more files makes it too big.
+    ArrayList<String> group = new ArrayList<>();
     int workerIndex = 0;
     int outputIndex = 0;
-    for (int i = 0; i < files.size(); i++) {
-      URIStatus file = files.get(i);
-      group.add(inputDir.join(file.getName()).toString());
-      if (group.size() == groupSize || i == files.size() - 1) {
+    // Number of groups already generated
+    int groupIndex = 0;
+    long currentGroupSize = 0;
+    long halfGroupMinSize = groupMinSize / 2;
+    for (URIStatus file : files) {
+      // add the file to the group if
+      // 1. group is empty
+      // 2. group is the last group
+      // 3. group size with the new file is closer to the groupMinSize than group size without it
+      if (group.isEmpty() || groupIndex == maxNumFiles - 1
+          || (currentGroupSize + file.getLength()) <= halfGroupMinSize
+          || (Math.abs(currentGroupSize + file.getLength() - groupMinSize)
+          <= Math.abs(currentGroupSize - groupMinSize))) {
+        group.add(inputDir.join(file.getName()).toString());
+        currentGroupSize += file.getLength();
+      } else {
         WorkerInfo worker = jobWorkers.get(workerIndex++);
         if (workerIndex == jobWorkers.size()) {
           workerIndex = 0;
@@ -107,8 +141,20 @@ public final class CompactDefinition
         }
         ArrayList<CompactTask> tasks = assignments.get(worker);
         tasks.add(new CompactTask(group, getOutputPath(outputDir, outputIndex++)));
-        group = new ArrayList<>(groupSize);
+        group = new ArrayList<>();
+        group.add(inputDir.join(file.getName()).toString());
+        currentGroupSize = file.getLength();
+        groupIndex++;
       }
+    }
+    // handle the last group
+    if (!group.isEmpty()) {
+      WorkerInfo worker = jobWorkers.get(workerIndex);
+      if (!assignments.containsKey(worker)) {
+        assignments.put(worker, new ArrayList<>());
+      }
+      ArrayList<CompactTask> tasks = assignments.get(worker);
+      tasks.add(new CompactTask(group, getOutputPath(outputDir, outputIndex)));
     }
 
     Set<Pair<WorkerInfo, ArrayList<CompactTask>>> result = Sets.newHashSet();

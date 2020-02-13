@@ -89,36 +89,35 @@ public final class CsvRow implements TableRow {
     // cwiki.apache.org/confluence/display/Hive/LanguageManual+Types#LanguageManualTypes-dates
     // github.com/apache/parquet-format/blob/master/LogicalTypes.md
 
-    if (type.startsWith(HiveConstants.Types.DECIMAL)) {
-      // CSV: 12.34, precision=2, scale=4
-      // Parquet: byte[] representation of number 123400
-      Decimal decimal = new Decimal(type);
-      return decimal.toParquetBytes(v);
+    switch (HiveConstants.Types.getHiveConstantType(type)) {
+      case HiveConstants.Types.DECIMAL:
+        // CSV: 12.34, precision=2, scale=4
+        // Parquet: byte[] representation of number 123400
+        Decimal decimal = new Decimal(type);
+        return decimal.toParquetBytes(v);
+      case HiveConstants.Types.BINARY:
+        // CSV: binary is encoded into base64, then encoded as UTF-8
+        // Parquet: the decoded byte array
+        return Base64.getDecoder().decode(v.getBytes(StandardCharsets.UTF_8));
+      case HiveConstants.Types.DATE:
+        // CSV: 2019-01-02
+        // Parquet: days from the Unix epoch
+        try {
+          return LocalDate.parse(v).toEpochDay();
+        } catch (Throwable e) {
+          throw new IOException("Failed to parse '" + v + "' as DATE: " + e);
+        }
+      case HiveConstants.Types.TIMESTAMP:
+        // CSV: 2019-10-29 10:17:42.338
+        // Parquet: milliseconds from the Unix epoch
+        try {
+          return Timestamp.valueOf(v).getTime();
+        } catch (Throwable e) {
+          throw new IOException("Failed to parse '" + v + "' as TIMESTAMP: " + e);
+        }
+      default:
+        throw new IOException("Unsupported type " + type + " for field " + name);
     }
-    if (type.equals(HiveConstants.Types.BINARY)) {
-      // CSV: binary is encoded into base64, then encoded as UTF-8
-      // Parquet: the decoded byte array
-      return Base64.getDecoder().decode(v.getBytes(StandardCharsets.UTF_8));
-    }
-    if (type.equals(HiveConstants.Types.DATE)) {
-      // CSV: 2019-01-02
-      // Parquet: days from the Unix epoch
-      try {
-        return LocalDate.parse(v).toEpochDay();
-      } catch (Throwable e) {
-        throw new IOException("Failed to parse '" + v + "' as DATE: " + e);
-      }
-    }
-    if (type.equals(HiveConstants.Types.TIMESTAMP)) {
-      // CSV: 2019-10-29 10:17:42.338
-      // Parquet: milliseconds from the Unix epoch
-      try {
-        return Timestamp.valueOf(v).getTime();
-      } catch (Throwable e) {
-        throw new IOException("Failed to parse '" + v + "' as TIMESTAMP: " + e);
-      }
-    }
-    throw new IOException("Unsupported type " + type + " for field " + name);
   }
 
   @Override

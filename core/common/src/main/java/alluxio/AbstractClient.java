@@ -26,8 +26,8 @@ import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
-import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
@@ -237,6 +237,11 @@ public abstract class AbstractClient implements Client {
         LOG.debug("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
         lastConnectFailure = e;
+        if (e instanceof UnauthenticatedException) {
+          // If there has been a failure in opening GrpcChannel, it's possible because
+          // the authentication credential has expired. Relogin.
+          mContext.getUserState().relogin();
+        }
         if (e instanceof NotFoundException) {
           // service is not found in the server, skip retry
           break;
@@ -404,7 +409,7 @@ public abstract class AbstractClient implements Client {
     try {
       if (SecurityUtils.isAuthenticationEnabled(mContext.getClusterConf())
           && mContext.getUserState().getUser() != null) {
-        return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
+        return Metric.getMetricNameWithTags(metricName, MetricInfo.TAG_USER,
             mContext.getUserState().getUser().getName());
       } else {
         return metricName;

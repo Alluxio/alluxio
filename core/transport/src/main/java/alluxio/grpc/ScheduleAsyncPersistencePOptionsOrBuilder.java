@@ -9,10 +9,12 @@ public interface ScheduleAsyncPersistencePOptionsOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 1;</code>
+   * @return Whether the commonOptions field is set.
    */
   boolean hasCommonOptions();
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 1;</code>
+   * @return The commonOptions.
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**
@@ -22,10 +24,12 @@ public interface ScheduleAsyncPersistencePOptionsOrBuilder extends
 
   /**
    * <code>optional int64 persistenceWaitTime = 2;</code>
+   * @return Whether the persistenceWaitTime field is set.
    */
   boolean hasPersistenceWaitTime();
   /**
    * <code>optional int64 persistenceWaitTime = 2;</code>
+   * @return The persistenceWaitTime.
    */
   long getPersistenceWaitTime();
 }

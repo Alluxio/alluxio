@@ -44,6 +44,26 @@ public final class MetricMasterProto {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_alluxio_grpc_metric_MetricsHeartbeatPResponse_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_metric_MetricValue_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_metric_MetricValue_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_metric_GetMetricsPOptions_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_metric_GetMetricsPOptions_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_metric_GetMetricsPResponse_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_metric_GetMetricsPResponse_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_grpc_metric_GetMetricsPResponse_MetricsEntry_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_alluxio_grpc_metric_GetMetricsPResponse_MetricsEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -58,33 +78,35 @@ public final class MetricMasterProto {
       "csPRequest\"\027\n\025ClearMetricsPResponse\"U\n\030M" +
       "etricsHeartbeatPOptions\0229\n\rclientMetrics" +
       "\030\001 \003(\0132\".alluxio.grpc.metric.ClientMetri" +
-      "cs\"Z\n\rClientMetrics\022\020\n\010clientId\030\001 \001(\t\022\020\n" +
-      "\010hostname\030\002 \001(\t\022%\n\007metrics\030\003 \003(\0132\024.allux" +
-      "io.grpc.Metric\"Z\n\030MetricsHeartbeatPReque" +
-      "st\022>\n\007options\030\001 \001(\0132-.alluxio.grpc.metri" +
-      "c.MetricsHeartbeatPOptions\"\033\n\031MetricsHea" +
-      "rtbeatPResponse2\366\001\n\032MetricsMasterClientS" +
-      "ervice\022e\n\014ClearMetrics\022).alluxio.grpc.me" +
-      "tric.ClearMetricsPRequest\032*.alluxio.grpc" +
-      ".metric.ClearMetricsPResponse\022q\n\020Metrics" +
-      "Heartbeat\022-.alluxio.grpc.metric.MetricsH" +
-      "eartbeatPRequest\032..alluxio.grpc.metric.M" +
-      "etricsHeartbeatPResponseB#\n\014alluxio.grpc" +
-      "B\021MetricMasterProtoP\001"
+      "cs\"F\n\rClientMetrics\022\016\n\006source\030\001 \001(\t\022%\n\007m" +
+      "etrics\030\002 \003(\0132\024.alluxio.grpc.Metric\"Z\n\030Me" +
+      "tricsHeartbeatPRequest\022>\n\007options\030\001 \001(\0132" +
+      "-.alluxio.grpc.metric.MetricsHeartbeatPO" +
+      "ptions\"\033\n\031MetricsHeartbeatPResponse\"e\n\013M" +
+      "etricValue\022\023\n\013doubleValue\030\001 \001(\001\022\023\n\013strin" +
+      "gValue\030\002 \001(\t\022,\n\nmetricType\030\006 \001(\0162\030.allux" +
+      "io.grpc.MetricType\"\024\n\022GetMetricsPOptions" +
+      "\"\257\001\n\023GetMetricsPResponse\022F\n\007metrics\030\001 \003(" +
+      "\01325.alluxio.grpc.metric.GetMetricsPRespo" +
+      "nse.MetricsEntry\032P\n\014MetricsEntry\022\013\n\003key\030" +
+      "\001 \001(\t\022/\n\005value\030\002 \001(\0132 .alluxio.grpc.metr" +
+      "ic.MetricValue:\0028\0012\327\002\n\032MetricsMasterClie" +
+      "ntService\022e\n\014ClearMetrics\022).alluxio.grpc" +
+      ".metric.ClearMetricsPRequest\032*.alluxio.g" +
+      "rpc.metric.ClearMetricsPResponse\022q\n\020Metr" +
+      "icsHeartbeat\022-.alluxio.grpc.metric.Metri" +
+      "csHeartbeatPRequest\032..alluxio.grpc.metri" +
+      "c.MetricsHeartbeatPResponse\022_\n\nGetMetric" +
+      "s\022\'.alluxio.grpc.metric.GetMetricsPOptio" +
+      "ns\032(.alluxio.grpc.metric.GetMetricsPResp" +
+      "onseB#\n\014alluxio.grpcB\021MetricMasterProtoP" +
+      "\001"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           alluxio.grpc.CommonProto.getDescriptor(),
-        }, assigner);
+        });
     internal_static_alluxio_grpc_metric_ClearMetricsPRequest_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_alluxio_grpc_metric_ClearMetricsPRequest_fieldAccessorTable = new
@@ -108,7 +130,7 @@ public final class MetricMasterProto {
     internal_static_alluxio_grpc_metric_ClientMetrics_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_metric_ClientMetrics_descriptor,
-        new java.lang.String[] { "ClientId", "Hostname", "Metrics", });
+        new java.lang.String[] { "Source", "Metrics", });
     internal_static_alluxio_grpc_metric_MetricsHeartbeatPRequest_descriptor =
       getDescriptor().getMessageTypes().get(4);
     internal_static_alluxio_grpc_metric_MetricsHeartbeatPRequest_fieldAccessorTable = new
@@ -121,6 +143,30 @@ public final class MetricMasterProto {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_metric_MetricsHeartbeatPResponse_descriptor,
         new java.lang.String[] { });
+    internal_static_alluxio_grpc_metric_MetricValue_descriptor =
+      getDescriptor().getMessageTypes().get(6);
+    internal_static_alluxio_grpc_metric_MetricValue_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_metric_MetricValue_descriptor,
+        new java.lang.String[] { "DoubleValue", "StringValue", "MetricType", });
+    internal_static_alluxio_grpc_metric_GetMetricsPOptions_descriptor =
+      getDescriptor().getMessageTypes().get(7);
+    internal_static_alluxio_grpc_metric_GetMetricsPOptions_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_metric_GetMetricsPOptions_descriptor,
+        new java.lang.String[] { });
+    internal_static_alluxio_grpc_metric_GetMetricsPResponse_descriptor =
+      getDescriptor().getMessageTypes().get(8);
+    internal_static_alluxio_grpc_metric_GetMetricsPResponse_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_metric_GetMetricsPResponse_descriptor,
+        new java.lang.String[] { "Metrics", });
+    internal_static_alluxio_grpc_metric_GetMetricsPResponse_MetricsEntry_descriptor =
+      internal_static_alluxio_grpc_metric_GetMetricsPResponse_descriptor.getNestedTypes().get(0);
+    internal_static_alluxio_grpc_metric_GetMetricsPResponse_MetricsEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_alluxio_grpc_metric_GetMetricsPResponse_MetricsEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
     alluxio.grpc.CommonProto.getDescriptor();
   }
 

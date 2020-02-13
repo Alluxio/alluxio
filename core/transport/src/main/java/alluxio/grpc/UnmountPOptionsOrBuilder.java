@@ -9,10 +9,12 @@ public interface UnmountPOptionsOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 1;</code>
+   * @return Whether the commonOptions field is set.
    */
   boolean hasCommonOptions();
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 1;</code>
+   * @return The commonOptions.
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**

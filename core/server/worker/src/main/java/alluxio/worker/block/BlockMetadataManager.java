@@ -174,7 +174,7 @@ public final class BlockMetadataManager {
 
     int dirIndex = location.dir();
     StorageDir dir = tier.getDir(dirIndex);
-    return dir.getAvailableBytes();
+    return dir == null ? 0 : dir.getAvailableBytes();
   }
 
   /**
@@ -202,10 +202,15 @@ public final class BlockMetadataManager {
    *
    * @param blockId the id of the block
    * @param location location of a particular {@link StorageDir} to store this block
-   * @return the path of this block in this location
+   * @return the path of this block in this location, or null if the location is not available
    */
+  @Nullable
   public String getBlockPath(long blockId, BlockStoreLocation location) {
-    return AbstractBlockMeta.commitPath(getDir(location), blockId);
+    StorageDir dir = getDir(location);
+    if (dir == null) {
+      return null;
+    }
+    return AbstractBlockMeta.commitPath(dir, blockId);
   }
 
   /**
@@ -424,7 +429,7 @@ public final class BlockMetadataManager {
       }
     } else {
       StorageDir dir = newTier.getDir(newLocation.dir());
-      if (dir.getAvailableBytes() >= blockSize) {
+      if (dir != null && dir.getAvailableBytes() >= blockSize) {
         newDir = dir;
       }
     }

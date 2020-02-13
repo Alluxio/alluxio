@@ -22,7 +22,7 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.17.1)",
+    value = "by gRPC proto compiler (version 1.27.0)",
     comments = "Source: grpc/meta_master.proto")
 public final class MetaMasterClientServiceGrpc {
 
@@ -45,22 +45,21 @@ public final class MetaMasterClientServiceGrpc {
     if ((getBackupMethod = MetaMasterClientServiceGrpc.getBackupMethod) == null) {
       synchronized (MetaMasterClientServiceGrpc.class) {
         if ((getBackupMethod = MetaMasterClientServiceGrpc.getBackupMethod) == null) {
-          MetaMasterClientServiceGrpc.getBackupMethod = getBackupMethod = 
+          MetaMasterClientServiceGrpc.getBackupMethod = getBackupMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.BackupPRequest, alluxio.grpc.BackupPStatus>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.meta.MetaMasterClientService", "Backup"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Backup"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.BackupPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.BackupPStatus.getDefaultInstance()))
-                  .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("Backup"))
-                  .build();
-          }
+              .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("Backup"))
+              .build();
         }
-     }
-     return getBackupMethod;
+      }
+    }
+    return getBackupMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.BackupStatusPRequest,
@@ -77,22 +76,21 @@ public final class MetaMasterClientServiceGrpc {
     if ((getGetBackupStatusMethod = MetaMasterClientServiceGrpc.getGetBackupStatusMethod) == null) {
       synchronized (MetaMasterClientServiceGrpc.class) {
         if ((getGetBackupStatusMethod = MetaMasterClientServiceGrpc.getGetBackupStatusMethod) == null) {
-          MetaMasterClientServiceGrpc.getGetBackupStatusMethod = getGetBackupStatusMethod = 
+          MetaMasterClientServiceGrpc.getGetBackupStatusMethod = getGetBackupStatusMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.BackupStatusPRequest, alluxio.grpc.BackupPStatus>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.meta.MetaMasterClientService", "GetBackupStatus"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetBackupStatus"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.BackupStatusPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.BackupPStatus.getDefaultInstance()))
-                  .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("GetBackupStatus"))
-                  .build();
-          }
+              .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("GetBackupStatus"))
+              .build();
         }
-     }
-     return getGetBackupStatusMethod;
+      }
+    }
+    return getGetBackupStatusMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetConfigReportPOptions,
@@ -109,22 +107,21 @@ public final class MetaMasterClientServiceGrpc {
     if ((getGetConfigReportMethod = MetaMasterClientServiceGrpc.getGetConfigReportMethod) == null) {
       synchronized (MetaMasterClientServiceGrpc.class) {
         if ((getGetConfigReportMethod = MetaMasterClientServiceGrpc.getGetConfigReportMethod) == null) {
-          MetaMasterClientServiceGrpc.getGetConfigReportMethod = getGetConfigReportMethod = 
+          MetaMasterClientServiceGrpc.getGetConfigReportMethod = getGetConfigReportMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetConfigReportPOptions, alluxio.grpc.GetConfigReportPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.meta.MetaMasterClientService", "GetConfigReport"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetConfigReport"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetConfigReportPOptions.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetConfigReportPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("GetConfigReport"))
-                  .build();
-          }
+              .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("GetConfigReport"))
+              .build();
         }
-     }
-     return getGetConfigReportMethod;
+      }
+    }
+    return getGetConfigReportMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetMasterInfoPOptions,
@@ -141,54 +138,21 @@ public final class MetaMasterClientServiceGrpc {
     if ((getGetMasterInfoMethod = MetaMasterClientServiceGrpc.getGetMasterInfoMethod) == null) {
       synchronized (MetaMasterClientServiceGrpc.class) {
         if ((getGetMasterInfoMethod = MetaMasterClientServiceGrpc.getGetMasterInfoMethod) == null) {
-          MetaMasterClientServiceGrpc.getGetMasterInfoMethod = getGetMasterInfoMethod = 
+          MetaMasterClientServiceGrpc.getGetMasterInfoMethod = getGetMasterInfoMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetMasterInfoPOptions, alluxio.grpc.GetMasterInfoPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.meta.MetaMasterClientService", "GetMasterInfo"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetMasterInfo"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetMasterInfoPOptions.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetMasterInfoPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("GetMasterInfo"))
-                  .build();
-          }
+              .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("GetMasterInfo"))
+              .build();
         }
-     }
-     return getGetMasterInfoMethod;
-  }
-
-  private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetMetricsPOptions,
-      alluxio.grpc.GetMetricsPResponse> getGetMetricsMethod;
-
-  @io.grpc.stub.annotations.RpcMethod(
-      fullMethodName = SERVICE_NAME + '/' + "GetMetrics",
-      requestType = alluxio.grpc.GetMetricsPOptions.class,
-      responseType = alluxio.grpc.GetMetricsPResponse.class,
-      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
-  public static io.grpc.MethodDescriptor<alluxio.grpc.GetMetricsPOptions,
-      alluxio.grpc.GetMetricsPResponse> getGetMetricsMethod() {
-    io.grpc.MethodDescriptor<alluxio.grpc.GetMetricsPOptions, alluxio.grpc.GetMetricsPResponse> getGetMetricsMethod;
-    if ((getGetMetricsMethod = MetaMasterClientServiceGrpc.getGetMetricsMethod) == null) {
-      synchronized (MetaMasterClientServiceGrpc.class) {
-        if ((getGetMetricsMethod = MetaMasterClientServiceGrpc.getGetMetricsMethod) == null) {
-          MetaMasterClientServiceGrpc.getGetMetricsMethod = getGetMetricsMethod = 
-              io.grpc.MethodDescriptor.<alluxio.grpc.GetMetricsPOptions, alluxio.grpc.GetMetricsPResponse>newBuilder()
-              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.meta.MetaMasterClientService", "GetMetrics"))
-              .setSampledToLocalTracing(true)
-              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  alluxio.grpc.GetMetricsPOptions.getDefaultInstance()))
-              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
-                  alluxio.grpc.GetMetricsPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("GetMetrics"))
-                  .build();
-          }
-        }
-     }
-     return getGetMetricsMethod;
+      }
+    }
+    return getGetMasterInfoMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CheckpointPOptions,
@@ -205,29 +169,35 @@ public final class MetaMasterClientServiceGrpc {
     if ((getCheckpointMethod = MetaMasterClientServiceGrpc.getCheckpointMethod) == null) {
       synchronized (MetaMasterClientServiceGrpc.class) {
         if ((getCheckpointMethod = MetaMasterClientServiceGrpc.getCheckpointMethod) == null) {
-          MetaMasterClientServiceGrpc.getCheckpointMethod = getCheckpointMethod = 
+          MetaMasterClientServiceGrpc.getCheckpointMethod = getCheckpointMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.CheckpointPOptions, alluxio.grpc.CheckpointPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.meta.MetaMasterClientService", "Checkpoint"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Checkpoint"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CheckpointPOptions.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CheckpointPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("Checkpoint"))
-                  .build();
-          }
+              .setSchemaDescriptor(new MetaMasterClientServiceMethodDescriptorSupplier("Checkpoint"))
+              .build();
         }
-     }
-     return getCheckpointMethod;
+      }
+    }
+    return getCheckpointMethod;
   }
 
   /**
    * Creates a new async stub that supports all call types for the service
    */
   public static MetaMasterClientServiceStub newStub(io.grpc.Channel channel) {
-    return new MetaMasterClientServiceStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<MetaMasterClientServiceStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<MetaMasterClientServiceStub>() {
+        @java.lang.Override
+        public MetaMasterClientServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new MetaMasterClientServiceStub(channel, callOptions);
+        }
+      };
+    return MetaMasterClientServiceStub.newStub(factory, channel);
   }
 
   /**
@@ -235,7 +205,14 @@ public final class MetaMasterClientServiceGrpc {
    */
   public static MetaMasterClientServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new MetaMasterClientServiceBlockingStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<MetaMasterClientServiceBlockingStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<MetaMasterClientServiceBlockingStub>() {
+        @java.lang.Override
+        public MetaMasterClientServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new MetaMasterClientServiceBlockingStub(channel, callOptions);
+        }
+      };
+    return MetaMasterClientServiceBlockingStub.newStub(factory, channel);
   }
 
   /**
@@ -243,7 +220,14 @@ public final class MetaMasterClientServiceGrpc {
    */
   public static MetaMasterClientServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new MetaMasterClientServiceFutureStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<MetaMasterClientServiceFutureStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<MetaMasterClientServiceFutureStub>() {
+        @java.lang.Override
+        public MetaMasterClientServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new MetaMasterClientServiceFutureStub(channel, callOptions);
+        }
+      };
+    return MetaMasterClientServiceFutureStub.newStub(factory, channel);
   }
 
   /**
@@ -301,17 +285,6 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Returns a map of metrics property names and their values from Alluxio metrics system.
-     * </pre>
-     */
-    public void getMetrics(alluxio.grpc.GetMetricsPOptions request,
-        io.grpc.stub.StreamObserver<alluxio.grpc.GetMetricsPResponse> responseObserver) {
-      asyncUnimplementedUnaryCall(getGetMetricsMethod(), responseObserver);
-    }
-
-    /**
-     * <pre>
-     **
      * Creates a checkpoint in the primary master journal system.
      * </pre>
      */
@@ -351,13 +324,6 @@ public final class MetaMasterClientServiceGrpc {
                 alluxio.grpc.GetMasterInfoPResponse>(
                   this, METHODID_GET_MASTER_INFO)))
           .addMethod(
-            getGetMetricsMethod(),
-            asyncUnaryCall(
-              new MethodHandlers<
-                alluxio.grpc.GetMetricsPOptions,
-                alluxio.grpc.GetMetricsPResponse>(
-                  this, METHODID_GET_METRICS)))
-          .addMethod(
             getCheckpointMethod(),
             asyncUnaryCall(
               new MethodHandlers<
@@ -374,19 +340,15 @@ public final class MetaMasterClientServiceGrpc {
    * This interface contains meta master service endpoints for Alluxio clients.
    * </pre>
    */
-  public static final class MetaMasterClientServiceStub extends io.grpc.stub.AbstractStub<MetaMasterClientServiceStub> {
-    private MetaMasterClientServiceStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private MetaMasterClientServiceStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class MetaMasterClientServiceStub extends io.grpc.stub.AbstractAsyncStub<MetaMasterClientServiceStub> {
+    private MetaMasterClientServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected MetaMasterClientServiceStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected MetaMasterClientServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MetaMasterClientServiceStub(channel, callOptions);
     }
 
@@ -441,18 +403,6 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Returns a map of metrics property names and their values from Alluxio metrics system.
-     * </pre>
-     */
-    public void getMetrics(alluxio.grpc.GetMetricsPOptions request,
-        io.grpc.stub.StreamObserver<alluxio.grpc.GetMetricsPResponse> responseObserver) {
-      asyncUnaryCall(
-          getChannel().newCall(getGetMetricsMethod(), getCallOptions()), request, responseObserver);
-    }
-
-    /**
-     * <pre>
-     **
      * Creates a checkpoint in the primary master journal system.
      * </pre>
      */
@@ -469,19 +419,15 @@ public final class MetaMasterClientServiceGrpc {
    * This interface contains meta master service endpoints for Alluxio clients.
    * </pre>
    */
-  public static final class MetaMasterClientServiceBlockingStub extends io.grpc.stub.AbstractStub<MetaMasterClientServiceBlockingStub> {
-    private MetaMasterClientServiceBlockingStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private MetaMasterClientServiceBlockingStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class MetaMasterClientServiceBlockingStub extends io.grpc.stub.AbstractBlockingStub<MetaMasterClientServiceBlockingStub> {
+    private MetaMasterClientServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected MetaMasterClientServiceBlockingStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected MetaMasterClientServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MetaMasterClientServiceBlockingStub(channel, callOptions);
     }
 
@@ -532,17 +478,6 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Returns a map of metrics property names and their values from Alluxio metrics system.
-     * </pre>
-     */
-    public alluxio.grpc.GetMetricsPResponse getMetrics(alluxio.grpc.GetMetricsPOptions request) {
-      return blockingUnaryCall(
-          getChannel(), getGetMetricsMethod(), getCallOptions(), request);
-    }
-
-    /**
-     * <pre>
-     **
      * Creates a checkpoint in the primary master journal system.
      * </pre>
      */
@@ -558,19 +493,15 @@ public final class MetaMasterClientServiceGrpc {
    * This interface contains meta master service endpoints for Alluxio clients.
    * </pre>
    */
-  public static final class MetaMasterClientServiceFutureStub extends io.grpc.stub.AbstractStub<MetaMasterClientServiceFutureStub> {
-    private MetaMasterClientServiceFutureStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private MetaMasterClientServiceFutureStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class MetaMasterClientServiceFutureStub extends io.grpc.stub.AbstractFutureStub<MetaMasterClientServiceFutureStub> {
+    private MetaMasterClientServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected MetaMasterClientServiceFutureStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected MetaMasterClientServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MetaMasterClientServiceFutureStub(channel, callOptions);
     }
 
@@ -625,18 +556,6 @@ public final class MetaMasterClientServiceGrpc {
     /**
      * <pre>
      **
-     * Returns a map of metrics property names and their values from Alluxio metrics system.
-     * </pre>
-     */
-    public com.google.common.util.concurrent.ListenableFuture<alluxio.grpc.GetMetricsPResponse> getMetrics(
-        alluxio.grpc.GetMetricsPOptions request) {
-      return futureUnaryCall(
-          getChannel().newCall(getGetMetricsMethod(), getCallOptions()), request);
-    }
-
-    /**
-     * <pre>
-     **
      * Creates a checkpoint in the primary master journal system.
      * </pre>
      */
@@ -651,8 +570,7 @@ public final class MetaMasterClientServiceGrpc {
   private static final int METHODID_GET_BACKUP_STATUS = 1;
   private static final int METHODID_GET_CONFIG_REPORT = 2;
   private static final int METHODID_GET_MASTER_INFO = 3;
-  private static final int METHODID_GET_METRICS = 4;
-  private static final int METHODID_CHECKPOINT = 5;
+  private static final int METHODID_CHECKPOINT = 4;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -686,10 +604,6 @@ public final class MetaMasterClientServiceGrpc {
         case METHODID_GET_MASTER_INFO:
           serviceImpl.getMasterInfo((alluxio.grpc.GetMasterInfoPOptions) request,
               (io.grpc.stub.StreamObserver<alluxio.grpc.GetMasterInfoPResponse>) responseObserver);
-          break;
-        case METHODID_GET_METRICS:
-          serviceImpl.getMetrics((alluxio.grpc.GetMetricsPOptions) request,
-              (io.grpc.stub.StreamObserver<alluxio.grpc.GetMetricsPResponse>) responseObserver);
           break;
         case METHODID_CHECKPOINT:
           serviceImpl.checkpoint((alluxio.grpc.CheckpointPOptions) request,
@@ -760,7 +674,6 @@ public final class MetaMasterClientServiceGrpc {
               .addMethod(getGetBackupStatusMethod())
               .addMethod(getGetConfigReportMethod())
               .addMethod(getGetMasterInfoMethod())
-              .addMethod(getGetMetricsMethod())
               .addMethod(getCheckpointMethod())
               .build();
         }

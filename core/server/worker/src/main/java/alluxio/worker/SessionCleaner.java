@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +30,7 @@ import java.util.List;
  * worker-to-master heartbeat configurations.
  */
 @NotThreadSafe
-public final class SessionCleaner implements Runnable {
+public final class SessionCleaner implements Runnable, Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(SessionCleaner.class);
 
   /** The object which supports cleaning up sessions. */
@@ -88,7 +89,7 @@ public final class SessionCleaner implements Runnable {
   /**
    * Stops the checking, once this method is called, the object should be discarded.
    */
-  public void stop() {
+  public void close() {
     mRunning = false;
   }
 }

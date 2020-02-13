@@ -24,24 +24,16 @@ import alluxio.grpc.GetConfigReportPOptions;
 import alluxio.grpc.GetConfigReportPResponse;
 import alluxio.grpc.GetMasterInfoPOptions;
 import alluxio.grpc.GetMasterInfoPResponse;
-import alluxio.grpc.GetMetricsPOptions;
-import alluxio.grpc.GetMetricsPResponse;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
-import alluxio.metrics.MetricsSystem;
 import alluxio.wire.Address;
 
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.MetricRegistry;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -133,36 +125,6 @@ public final class MetaMasterClientServiceHandler
       }
       return GetMasterInfoPResponse.newBuilder().setMasterInfo(masterInfo).build();
     }, "getMasterInfo", "options=%s", responseObserver, options);
-  }
-
-  @Override
-  public void getMetrics(GetMetricsPOptions options,
-      StreamObserver<GetMetricsPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMetricsPResponse>) () -> {
-
-      MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
-      Map<String, alluxio.grpc.MetricValue> metricsMap = new HashMap<>();
-
-      for (Map.Entry<String, Counter> entry : mr.getCounters().entrySet()) {
-        metricsMap.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), alluxio.grpc.MetricValue
-            .newBuilder().setLongValue(entry.getValue().getCount()).build());
-      }
-
-      for (Map.Entry<String, Gauge> entry : mr.getGauges().entrySet()) {
-        Object value = entry.getValue().getValue();
-        if (value instanceof Integer) {
-          metricsMap.put(entry.getKey(), alluxio.grpc.MetricValue.newBuilder()
-              .setLongValue(Long.valueOf((Integer) value)).build());
-        } else if (value instanceof Long) {
-          metricsMap.put(entry.getKey(), alluxio.grpc.MetricValue.newBuilder()
-              .setLongValue((long) value).build());
-        } else if (value instanceof Double) {
-          metricsMap.put(entry.getKey(),
-              alluxio.grpc.MetricValue.newBuilder().setDoubleValue((Double) value).build());
-        }
-      }
-      return GetMetricsPResponse.newBuilder().putAllMetrics(metricsMap).build();
-    }, "getConfiguration", "options=%s", responseObserver, options);
   }
 
   @Override

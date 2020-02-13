@@ -233,6 +233,10 @@ public class AlluxioFileInStream extends FileInStream {
       return -1;
     }
 
+    if (len < mContext.getPathConf(new AlluxioURI(mStatus.getPath()))
+        .getBytes(PropertyKey.USER_FILE_SEQUENTIAL_PREAD_THRESHOLD)) {
+      mOptions.setPositionShort(true);
+    }
     int lenCopy = len;
     CountingRetry retry = new CountingRetry(mBlockWorkerClientReadRetry);
     IOException lastException = null;

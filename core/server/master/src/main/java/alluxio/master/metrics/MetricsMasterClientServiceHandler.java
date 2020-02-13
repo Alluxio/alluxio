@@ -14,6 +14,8 @@ package alluxio.master.metrics;
 import alluxio.RpcUtils;
 import alluxio.grpc.ClearMetricsPRequest;
 import alluxio.grpc.ClearMetricsPResponse;
+import alluxio.grpc.GetMetricsPOptions;
+import alluxio.grpc.GetMetricsPResponse;
 import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsHeartbeatPResponse;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
@@ -71,9 +73,17 @@ public final class MetricsMasterClientServiceHandler
               metrics.add(Metric.fromProto(metric));
             }
             mMetricsMaster.clientHeartbeat(
-                clientMetric.getClientId(), clientMetric.getHostname(), metrics);
+                clientMetric.getSource(), metrics);
           }
           return MetricsHeartbeatPResponse.getDefaultInstance();
         }, "metricsHeartbeat", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getMetrics(GetMetricsPOptions options,
+      StreamObserver<GetMetricsPResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMetricsPResponse>) () ->
+        GetMetricsPResponse.newBuilder().putAllMetrics(mMetricsMaster.getMetrics()).build(),
+        "getMetrics", "options=%s", responseObserver, options);
   }
 }

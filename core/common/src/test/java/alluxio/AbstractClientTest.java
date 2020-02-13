@@ -19,6 +19,7 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ServiceType;
 import alluxio.retry.CountingRetry;
+import alluxio.security.user.BaseUserState;
 import alluxio.util.ConfigurationUtils;
 
 import org.junit.Assert;
@@ -146,6 +147,9 @@ public final class AbstractClientTest {
     Mockito.doThrow(new RuntimeException("test"))
             .when(context)
             .loadConfIfNotLoaded(argument.capture());
+    Mockito.doReturn(Mockito.mock(BaseUserState.class))
+            .when(context)
+            .getUserState();
 
     try {
       client.connect();

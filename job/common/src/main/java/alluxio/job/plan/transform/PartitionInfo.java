@@ -69,6 +69,14 @@ public class PartitionInfo implements Serializable {
       }
       return Format.CSV;
     }
+    // failed to get format from serde info, try to get it from extension
+    if (filename.endsWith(Format.CSV.getSuffix())) {
+      return Format.CSV;
+    }
+    if (filename.endsWith(Format.PARQUET.getSuffix())) {
+      return Format.PARQUET;
+    }
+    // both method failed, throw exception
     throw new IOException("Cannot determine format for " + filename);
   }
 

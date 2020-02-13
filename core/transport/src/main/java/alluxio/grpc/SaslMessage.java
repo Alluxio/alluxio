@@ -20,6 +20,14 @@ private static final long serialVersionUID = 0L;
     message_ = com.google.protobuf.ByteString.EMPTY;
     clientId_ = "";
     authenticationScheme_ = 0;
+    channelRef_ = "";
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new SaslMessage();
   }
 
   @java.lang.Override
@@ -46,15 +54,9 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             int rawValue = input.readEnum();
+              @SuppressWarnings("deprecation")
             alluxio.grpc.SaslMessageType value = alluxio.grpc.SaslMessageType.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(1, rawValue);
@@ -77,12 +79,26 @@ private static final long serialVersionUID = 0L;
           }
           case 32: {
             int rawValue = input.readEnum();
+              @SuppressWarnings("deprecation")
             alluxio.grpc.ChannelAuthenticationScheme value = alluxio.grpc.ChannelAuthenticationScheme.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(4, rawValue);
             } else {
               bitField0_ |= 0x00000008;
               authenticationScheme_ = rawValue;
+            }
+            break;
+          }
+          case 42: {
+            com.google.protobuf.ByteString bs = input.readBytes();
+            bitField0_ |= 0x00000010;
+            channelRef_ = bs;
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
             }
             break;
           }
@@ -103,6 +119,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.AuthenticationServerProto.internal_static_alluxio_grpc_sasl_SaslMessage_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.AuthenticationServerProto.internal_static_alluxio_grpc_sasl_SaslMessage_fieldAccessorTable
@@ -115,14 +132,17 @@ private static final long serialVersionUID = 0L;
   private int messageType_;
   /**
    * <code>optional .alluxio.grpc.sasl.SaslMessageType messageType = 1;</code>
+   * @return Whether the messageType field is set.
    */
   public boolean hasMessageType() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.sasl.SaslMessageType messageType = 1;</code>
+   * @return The messageType.
    */
   public alluxio.grpc.SaslMessageType getMessageType() {
+    @SuppressWarnings("deprecation")
     alluxio.grpc.SaslMessageType result = alluxio.grpc.SaslMessageType.valueOf(messageType_);
     return result == null ? alluxio.grpc.SaslMessageType.CHALLENGE : result;
   }
@@ -131,12 +151,14 @@ private static final long serialVersionUID = 0L;
   private com.google.protobuf.ByteString message_;
   /**
    * <code>optional bytes message = 2;</code>
+   * @return Whether the message field is set.
    */
   public boolean hasMessage() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional bytes message = 2;</code>
+   * @return The message.
    */
   public com.google.protobuf.ByteString getMessage() {
     return message_;
@@ -146,12 +168,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object clientId_;
   /**
    * <code>optional string clientId = 3;</code>
+   * @return Whether the clientId field is set.
    */
   public boolean hasClientId() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional string clientId = 3;</code>
+   * @return The clientId.
    */
   public java.lang.String getClientId() {
     java.lang.Object ref = clientId_;
@@ -169,6 +193,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string clientId = 3;</code>
+   * @return The bytes for clientId.
    */
   public com.google.protobuf.ByteString
       getClientIdBytes() {
@@ -188,19 +213,68 @@ private static final long serialVersionUID = 0L;
   private int authenticationScheme_;
   /**
    * <code>optional .alluxio.grpc.sasl.ChannelAuthenticationScheme authenticationScheme = 4;</code>
+   * @return Whether the authenticationScheme field is set.
    */
   public boolean hasAuthenticationScheme() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000008) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.sasl.ChannelAuthenticationScheme authenticationScheme = 4;</code>
+   * @return The authenticationScheme.
    */
   public alluxio.grpc.ChannelAuthenticationScheme getAuthenticationScheme() {
+    @SuppressWarnings("deprecation")
     alluxio.grpc.ChannelAuthenticationScheme result = alluxio.grpc.ChannelAuthenticationScheme.valueOf(authenticationScheme_);
     return result == null ? alluxio.grpc.ChannelAuthenticationScheme.NOSASL : result;
   }
 
+  public static final int CHANNELREF_FIELD_NUMBER = 5;
+  private volatile java.lang.Object channelRef_;
+  /**
+   * <code>optional string channelRef = 5;</code>
+   * @return Whether the channelRef field is set.
+   */
+  public boolean hasChannelRef() {
+    return ((bitField0_ & 0x00000010) != 0);
+  }
+  /**
+   * <code>optional string channelRef = 5;</code>
+   * @return The channelRef.
+   */
+  public java.lang.String getChannelRef() {
+    java.lang.Object ref = channelRef_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      if (bs.isValidUtf8()) {
+        channelRef_ = s;
+      }
+      return s;
+    }
+  }
+  /**
+   * <code>optional string channelRef = 5;</code>
+   * @return The bytes for channelRef.
+   */
+  public com.google.protobuf.ByteString
+      getChannelRefBytes() {
+    java.lang.Object ref = channelRef_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      channelRef_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -210,42 +284,50 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeEnum(1, messageType_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeBytes(2, message_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 3, clientId_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       output.writeEnum(4, authenticationScheme_);
+    }
+    if (((bitField0_ & 0x00000010) != 0)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 5, channelRef_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(1, messageType_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBytesSize(2, message_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, clientId_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(4, authenticationScheme_);
+    }
+    if (((bitField0_ & 0x00000010) != 0)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, channelRef_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -262,27 +344,31 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.SaslMessage other = (alluxio.grpc.SaslMessage) obj;
 
-    boolean result = true;
-    result = result && (hasMessageType() == other.hasMessageType());
+    if (hasMessageType() != other.hasMessageType()) return false;
     if (hasMessageType()) {
-      result = result && messageType_ == other.messageType_;
+      if (messageType_ != other.messageType_) return false;
     }
-    result = result && (hasMessage() == other.hasMessage());
+    if (hasMessage() != other.hasMessage()) return false;
     if (hasMessage()) {
-      result = result && getMessage()
-          .equals(other.getMessage());
+      if (!getMessage()
+          .equals(other.getMessage())) return false;
     }
-    result = result && (hasClientId() == other.hasClientId());
+    if (hasClientId() != other.hasClientId()) return false;
     if (hasClientId()) {
-      result = result && getClientId()
-          .equals(other.getClientId());
+      if (!getClientId()
+          .equals(other.getClientId())) return false;
     }
-    result = result && (hasAuthenticationScheme() == other.hasAuthenticationScheme());
+    if (hasAuthenticationScheme() != other.hasAuthenticationScheme()) return false;
     if (hasAuthenticationScheme()) {
-      result = result && authenticationScheme_ == other.authenticationScheme_;
+      if (authenticationScheme_ != other.authenticationScheme_) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (hasChannelRef() != other.hasChannelRef()) return false;
+    if (hasChannelRef()) {
+      if (!getChannelRef()
+          .equals(other.getChannelRef())) return false;
+    }
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -307,6 +393,10 @@ private static final long serialVersionUID = 0L;
     if (hasAuthenticationScheme()) {
       hash = (37 * hash) + AUTHENTICATIONSCHEME_FIELD_NUMBER;
       hash = (53 * hash) + authenticationScheme_;
+    }
+    if (hasChannelRef()) {
+      hash = (37 * hash) + CHANNELREF_FIELD_NUMBER;
+      hash = (53 * hash) + getChannelRef().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -383,6 +473,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -390,6 +481,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.SaslMessage prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -413,6 +505,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.AuthenticationServerProto.internal_static_alluxio_grpc_sasl_SaslMessage_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.AuthenticationServerProto.internal_static_alluxio_grpc_sasl_SaslMessage_fieldAccessorTable
@@ -435,6 +528,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       messageType_ = 0;
@@ -445,18 +539,23 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000004);
       authenticationScheme_ = 0;
       bitField0_ = (bitField0_ & ~0x00000008);
+      channelRef_ = "";
+      bitField0_ = (bitField0_ & ~0x00000010);
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.AuthenticationServerProto.internal_static_alluxio_grpc_sasl_SaslMessage_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.SaslMessage getDefaultInstanceForType() {
       return alluxio.grpc.SaslMessage.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.SaslMessage build() {
       alluxio.grpc.SaslMessage result = buildPartial();
       if (!result.isInitialized()) {
@@ -465,57 +564,69 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.SaslMessage buildPartial() {
       alluxio.grpc.SaslMessage result = new alluxio.grpc.SaslMessage(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
         to_bitField0_ |= 0x00000001;
       }
       result.messageType_ = messageType_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
         to_bitField0_ |= 0x00000002;
       }
       result.message_ = message_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
         to_bitField0_ |= 0x00000004;
       }
       result.clientId_ = clientId_;
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000008) != 0)) {
         to_bitField0_ |= 0x00000008;
       }
       result.authenticationScheme_ = authenticationScheme_;
+      if (((from_bitField0_ & 0x00000010) != 0)) {
+        to_bitField0_ |= 0x00000010;
+      }
+      result.channelRef_ = channelRef_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.SaslMessage) {
         return mergeFrom((alluxio.grpc.SaslMessage)other);
@@ -541,15 +652,22 @@ private static final long serialVersionUID = 0L;
       if (other.hasAuthenticationScheme()) {
         setAuthenticationScheme(other.getAuthenticationScheme());
       }
+      if (other.hasChannelRef()) {
+        bitField0_ |= 0x00000010;
+        channelRef_ = other.channelRef_;
+        onChanged();
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -572,19 +690,24 @@ private static final long serialVersionUID = 0L;
     private int messageType_ = 0;
     /**
      * <code>optional .alluxio.grpc.sasl.SaslMessageType messageType = 1;</code>
+     * @return Whether the messageType field is set.
      */
     public boolean hasMessageType() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.sasl.SaslMessageType messageType = 1;</code>
+     * @return The messageType.
      */
     public alluxio.grpc.SaslMessageType getMessageType() {
+      @SuppressWarnings("deprecation")
       alluxio.grpc.SaslMessageType result = alluxio.grpc.SaslMessageType.valueOf(messageType_);
       return result == null ? alluxio.grpc.SaslMessageType.CHALLENGE : result;
     }
     /**
      * <code>optional .alluxio.grpc.sasl.SaslMessageType messageType = 1;</code>
+     * @param value The messageType to set.
+     * @return This builder for chaining.
      */
     public Builder setMessageType(alluxio.grpc.SaslMessageType value) {
       if (value == null) {
@@ -597,6 +720,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional .alluxio.grpc.sasl.SaslMessageType messageType = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearMessageType() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -608,18 +732,22 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.ByteString message_ = com.google.protobuf.ByteString.EMPTY;
     /**
      * <code>optional bytes message = 2;</code>
+     * @return Whether the message field is set.
      */
     public boolean hasMessage() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional bytes message = 2;</code>
+     * @return The message.
      */
     public com.google.protobuf.ByteString getMessage() {
       return message_;
     }
     /**
      * <code>optional bytes message = 2;</code>
+     * @param value The message to set.
+     * @return This builder for chaining.
      */
     public Builder setMessage(com.google.protobuf.ByteString value) {
       if (value == null) {
@@ -632,6 +760,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bytes message = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearMessage() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -643,12 +772,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object clientId_ = "";
     /**
      * <code>optional string clientId = 3;</code>
+     * @return Whether the clientId field is set.
      */
     public boolean hasClientId() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional string clientId = 3;</code>
+     * @return The clientId.
      */
     public java.lang.String getClientId() {
       java.lang.Object ref = clientId_;
@@ -666,6 +797,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string clientId = 3;</code>
+     * @return The bytes for clientId.
      */
     public com.google.protobuf.ByteString
         getClientIdBytes() {
@@ -682,6 +814,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string clientId = 3;</code>
+     * @param value The clientId to set.
+     * @return This builder for chaining.
      */
     public Builder setClientId(
         java.lang.String value) {
@@ -695,6 +829,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string clientId = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearClientId() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -704,6 +839,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string clientId = 3;</code>
+     * @param value The bytes for clientId to set.
+     * @return This builder for chaining.
      */
     public Builder setClientIdBytes(
         com.google.protobuf.ByteString value) {
@@ -719,19 +856,24 @@ private static final long serialVersionUID = 0L;
     private int authenticationScheme_ = 0;
     /**
      * <code>optional .alluxio.grpc.sasl.ChannelAuthenticationScheme authenticationScheme = 4;</code>
+     * @return Whether the authenticationScheme field is set.
      */
     public boolean hasAuthenticationScheme() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.sasl.ChannelAuthenticationScheme authenticationScheme = 4;</code>
+     * @return The authenticationScheme.
      */
     public alluxio.grpc.ChannelAuthenticationScheme getAuthenticationScheme() {
+      @SuppressWarnings("deprecation")
       alluxio.grpc.ChannelAuthenticationScheme result = alluxio.grpc.ChannelAuthenticationScheme.valueOf(authenticationScheme_);
       return result == null ? alluxio.grpc.ChannelAuthenticationScheme.NOSASL : result;
     }
     /**
      * <code>optional .alluxio.grpc.sasl.ChannelAuthenticationScheme authenticationScheme = 4;</code>
+     * @param value The authenticationScheme to set.
+     * @return This builder for chaining.
      */
     public Builder setAuthenticationScheme(alluxio.grpc.ChannelAuthenticationScheme value) {
       if (value == null) {
@@ -744,6 +886,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional .alluxio.grpc.sasl.ChannelAuthenticationScheme authenticationScheme = 4;</code>
+     * @return This builder for chaining.
      */
     public Builder clearAuthenticationScheme() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -751,11 +894,97 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+
+    private java.lang.Object channelRef_ = "";
+    /**
+     * <code>optional string channelRef = 5;</code>
+     * @return Whether the channelRef field is set.
+     */
+    public boolean hasChannelRef() {
+      return ((bitField0_ & 0x00000010) != 0);
+    }
+    /**
+     * <code>optional string channelRef = 5;</code>
+     * @return The channelRef.
+     */
+    public java.lang.String getChannelRef() {
+      java.lang.Object ref = channelRef_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          channelRef_ = s;
+        }
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <code>optional string channelRef = 5;</code>
+     * @return The bytes for channelRef.
+     */
+    public com.google.protobuf.ByteString
+        getChannelRefBytes() {
+      java.lang.Object ref = channelRef_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        channelRef_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <code>optional string channelRef = 5;</code>
+     * @param value The channelRef to set.
+     * @return This builder for chaining.
+     */
+    public Builder setChannelRef(
+        java.lang.String value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000010;
+      channelRef_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string channelRef = 5;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearChannelRef() {
+      bitField0_ = (bitField0_ & ~0x00000010);
+      channelRef_ = getDefaultInstance().getChannelRef();
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>optional string channelRef = 5;</code>
+     * @param value The bytes for channelRef to set.
+     * @return This builder for chaining.
+     */
+    public Builder setChannelRefBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000010;
+      channelRef_ = value;
+      onChanged();
+      return this;
+    }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -777,6 +1006,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<SaslMessage>
       PARSER = new com.google.protobuf.AbstractParser<SaslMessage>() {
+    @java.lang.Override
     public SaslMessage parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -794,6 +1024,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.SaslMessage getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

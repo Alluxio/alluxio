@@ -41,7 +41,6 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.net.HostAndPort;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -77,7 +76,7 @@ import javax.security.auth.Subject;
  * used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
  */
 @NotThreadSafe
-abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
+public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystem.class);
 
   public static final String FIRST_COM_PATH = "alluxio_dep/";
@@ -96,15 +95,14 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *
    * @param fileSystem handler to file system
    */
-  @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
-  AbstractFileSystem(FileSystem fileSystem) {
+  protected AbstractFileSystem(FileSystem fileSystem) {
     mFileSystem = fileSystem;
   }
 
   /**
    * Constructs a new {@link AbstractFileSystem} instance.
    */
-  AbstractFileSystem() {}
+  protected AbstractFileSystem() {}
 
   @Override
   public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)

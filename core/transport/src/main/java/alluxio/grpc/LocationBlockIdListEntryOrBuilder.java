@@ -9,10 +9,12 @@ public interface LocationBlockIdListEntryOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
+   * @return Whether the key field is set.
    */
   boolean hasKey();
   /**
    * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
+   * @return The key.
    */
   alluxio.grpc.BlockStoreLocationProto getKey();
   /**
@@ -22,10 +24,12 @@ public interface LocationBlockIdListEntryOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.block.BlockIdList value = 2;</code>
+   * @return Whether the value field is set.
    */
   boolean hasValue();
   /**
    * <code>optional .alluxio.grpc.block.BlockIdList value = 2;</code>
+   * @return The value.
    */
   alluxio.grpc.BlockIdList getValue();
   /**

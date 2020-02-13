@@ -122,13 +122,12 @@ public class StorageTierTest {
    */
   @Test
   public void getDir() {
-    mThrown.expect(IndexOutOfBoundsException.class);
     StorageDir dir1 = mTier.getDir(0);
     Assert.assertEquals(mTestBlockDirPath1, dir1.getDirPath());
     StorageDir dir2 = mTier.getDir(1);
     Assert.assertEquals(mTestBlockDirPath2, dir2.getDirPath());
     // Get dir by a non-existing index, expect getDir to fail and throw IndexOutOfBoundsException
-    mTier.getDir(2);
+    Assert.assertNull(mTier.getDir(2));
   }
 
   /**

@@ -49,27 +49,34 @@ public final class CompactConfig implements PlanConfig {
    */
   private final String mDatabaseType;
   /**
-   * Number of files after compaction.
+   * Max number of files after compaction.
    */
-  private final int mNumFiles;
+  private final int mMaxNumFiles;
+  /**
+   * Minimum file size for compaction.
+   */
+  private final long mMinFileSize;
 
   /**
    * @param partitionInfo the partition info
    * @param input the input directory
    * @param output the output directory
    * @param databaseType the type of database to write the compacted table to
-   * @param numFiles the number of files after compaction
+   * @param maxNumFiles the maximum number of files after compaction
+   * @param minFileSize the minimum file size for coalescing
    */
   public CompactConfig(@JsonProperty("partitionInfo") PartitionInfo partitionInfo,
       @JsonProperty("input") String input,
       @JsonProperty("output") String output,
       @JsonProperty("databaseType") String databaseType,
-      @JsonProperty("numFiles") Integer numFiles) {
+      @JsonProperty("maxNumFiles") Integer maxNumFiles,
+      @JsonProperty("minFileSize") Long minFileSize) {
     mPartitionInfo = partitionInfo;
     mInput = Preconditions.checkNotNull(input, "input");
     mOutput = Preconditions.checkNotNull(output, "output");
     mDatabaseType = Preconditions.checkNotNull(databaseType, "databaseType");
-    mNumFiles = Preconditions.checkNotNull(numFiles, "numFiles");
+    mMaxNumFiles = Preconditions.checkNotNull(maxNumFiles, "maxNumFiles");
+    mMinFileSize = Preconditions.checkNotNull(minFileSize, "minFileSize");
   }
 
   /**
@@ -103,8 +110,15 @@ public final class CompactConfig implements PlanConfig {
   /**
    * @return the number of files after compaction
    */
-  public int getNumFiles() {
-    return mNumFiles;
+  public int getMaxNumFiles() {
+    return mMaxNumFiles;
+  }
+
+  /**
+   * @return the file size
+   */
+  public long getMinFileSize() {
+    return mMinFileSize;
   }
 
   @Override
@@ -123,12 +137,14 @@ public final class CompactConfig implements PlanConfig {
         && mInput.equals(that.mInput)
         && mDatabaseType.equals(that.mDatabaseType)
         && mOutput.equals(that.mOutput)
-        && mNumFiles == that.mNumFiles;
+        && mMaxNumFiles == that.mMaxNumFiles
+        && mMinFileSize == that.mMinFileSize;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPartitionInfo, mInput, mOutput, mDatabaseType, mNumFiles);
+    return Objects.hashCode(mPartitionInfo, mInput, mOutput,
+        mDatabaseType, mMaxNumFiles, mMinFileSize);
   }
 
   @Override
@@ -138,7 +154,8 @@ public final class CompactConfig implements PlanConfig {
         .add("input", mInput)
         .add("output", mOutput)
         .add("databaseType", mDatabaseType)
-        .add("numFiles", mNumFiles)
+        .add("maxNumFiles", mMaxNumFiles)
+        .add("minFileSize", mMinFileSize)
         .toString();
   }
 

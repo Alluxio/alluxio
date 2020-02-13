@@ -9,10 +9,12 @@ public interface JobHeartbeatPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
+   * @return Whether the jobWorkerHealth field is set.
    */
   boolean hasJobWorkerHealth();
   /**
    * <code>optional .alluxio.grpc.job.JobWorkerHealth jobWorkerHealth = 1;</code>
+   * @return The jobWorkerHealth.
    */
   alluxio.grpc.JobWorkerHealth getJobWorkerHealth();
   /**
@@ -46,10 +48,12 @@ public interface JobHeartbeatPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.job.JobHeartbeatPOptions options = 3;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.job.JobHeartbeatPOptions options = 3;</code>
+   * @return The options.
    */
   alluxio.grpc.JobHeartbeatPOptions getOptions();
   /**

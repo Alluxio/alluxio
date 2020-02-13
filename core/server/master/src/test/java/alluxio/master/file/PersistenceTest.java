@@ -485,6 +485,7 @@ public final class PersistenceTest {
     CommonUtils.waitFor("persist jobs list to be empty", () -> persistJobs.isEmpty(),
         WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS));
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), fileInfo.getPersistenceState());
+    Assert.assertNotEquals(Constants.INVALID_UFS_FINGERPRINT, fileInfo.getUfsFingerprint());
   }
 
   private void checkPersistenceInProgress(AlluxioURI testFile, long jobId) throws Exception {

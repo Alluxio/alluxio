@@ -28,7 +28,7 @@ public class StorageTierAllocatorView extends StorageTierView {
     super(tier);
     for (StorageDir dir : mTier.getStorageDirs()) {
       StorageDirAllocatorView dirView = new StorageDirAllocatorView(dir, this);
-      mDirViews.add(dirView);
+      mDirViews.put(dirView.getDirViewIndex(), dirView);
     }
   }
 }

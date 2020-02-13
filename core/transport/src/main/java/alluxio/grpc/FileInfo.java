@@ -16,35 +16,23 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private FileInfo() {
-    fileId_ = 0L;
     name_ = "";
     path_ = "";
     ufsPath_ = "";
-    length_ = 0L;
-    blockSizeBytes_ = 0L;
-    creationTimeMs_ = 0L;
-    completed_ = false;
-    folder_ = false;
-    pinned_ = false;
-    cacheable_ = false;
-    persisted_ = false;
-    blockIds_ = java.util.Collections.emptyList();
-    lastModificationTimeMs_ = 0L;
-    ttl_ = 0L;
+    blockIds_ = emptyLongList();
     owner_ = "";
     group_ = "";
-    mode_ = 0;
     persistenceState_ = "";
-    mountPoint_ = false;
     fileBlockInfos_ = java.util.Collections.emptyList();
     ttlAction_ = 0;
-    mountId_ = 0L;
-    inAlluxioPercentage_ = 0;
-    inMemoryPercentage_ = 0;
     ufsFingerprint_ = "";
-    replicationMax_ = 0;
-    replicationMin_ = 0;
-    lastAccessTimeMs_ = 0L;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new FileInfo();
   }
 
   @java.lang.Override
@@ -71,13 +59,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             bitField0_ |= 0x00000001;
             fileId_ = input.readInt64();
@@ -142,22 +123,22 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 104: {
-            if (!((mutable_bitField0_ & 0x00001000) == 0x00001000)) {
-              blockIds_ = new java.util.ArrayList<java.lang.Long>();
+            if (!((mutable_bitField0_ & 0x00001000) != 0)) {
+              blockIds_ = newLongList();
               mutable_bitField0_ |= 0x00001000;
             }
-            blockIds_.add(input.readInt64());
+            blockIds_.addLong(input.readInt64());
             break;
           }
           case 106: {
             int length = input.readRawVarint32();
             int limit = input.pushLimit(length);
-            if (!((mutable_bitField0_ & 0x00001000) == 0x00001000) && input.getBytesUntilLimit() > 0) {
-              blockIds_ = new java.util.ArrayList<java.lang.Long>();
+            if (!((mutable_bitField0_ & 0x00001000) != 0) && input.getBytesUntilLimit() > 0) {
+              blockIds_ = newLongList();
               mutable_bitField0_ |= 0x00001000;
             }
             while (input.getBytesUntilLimit() > 0) {
-              blockIds_.add(input.readInt64());
+              blockIds_.addLong(input.readInt64());
             }
             input.popLimit(limit);
             break;
@@ -201,7 +182,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 170: {
-            if (!((mutable_bitField0_ & 0x00100000) == 0x00100000)) {
+            if (!((mutable_bitField0_ & 0x00100000) != 0)) {
               fileBlockInfos_ = new java.util.ArrayList<alluxio.grpc.FileBlockInfo>();
               mutable_bitField0_ |= 0x00100000;
             }
@@ -211,6 +192,7 @@ private static final long serialVersionUID = 0L;
           }
           case 176: {
             int rawValue = input.readEnum();
+              @SuppressWarnings("deprecation")
             alluxio.grpc.TtlAction value = alluxio.grpc.TtlAction.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(22, rawValue);
@@ -243,7 +225,7 @@ private static final long serialVersionUID = 0L;
           }
           case 218: {
             alluxio.grpc.PAcl.Builder subBuilder = null;
-            if (((bitField0_ & 0x01000000) == 0x01000000)) {
+            if (((bitField0_ & 0x01000000) != 0)) {
               subBuilder = acl_.toBuilder();
             }
             acl_ = input.readMessage(alluxio.grpc.PAcl.PARSER, extensionRegistry);
@@ -256,7 +238,7 @@ private static final long serialVersionUID = 0L;
           }
           case 226: {
             alluxio.grpc.PAcl.Builder subBuilder = null;
-            if (((bitField0_ & 0x02000000) == 0x02000000)) {
+            if (((bitField0_ & 0x02000000) != 0)) {
               subBuilder = defaultAcl_.toBuilder();
             }
             defaultAcl_ = input.readMessage(alluxio.grpc.PAcl.PARSER, extensionRegistry);
@@ -282,6 +264,13 @@ private static final long serialVersionUID = 0L;
             lastAccessTimeMs_ = input.readInt64();
             break;
           }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -290,10 +279,10 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00001000) == 0x00001000)) {
-        blockIds_ = java.util.Collections.unmodifiableList(blockIds_);
+      if (((mutable_bitField0_ & 0x00001000) != 0)) {
+        blockIds_.makeImmutable(); // C
       }
-      if (((mutable_bitField0_ & 0x00100000) == 0x00100000)) {
+      if (((mutable_bitField0_ & 0x00100000) != 0)) {
         fileBlockInfos_ = java.util.Collections.unmodifiableList(fileBlockInfos_);
       }
       this.unknownFields = unknownFields.build();
@@ -305,6 +294,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileInfo_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileInfo_fieldAccessorTable
@@ -317,12 +307,14 @@ private static final long serialVersionUID = 0L;
   private long fileId_;
   /**
    * <code>optional int64 fileId = 1;</code>
+   * @return Whether the fileId field is set.
    */
   public boolean hasFileId() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional int64 fileId = 1;</code>
+   * @return The fileId.
    */
   public long getFileId() {
     return fileId_;
@@ -332,12 +324,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object name_;
   /**
    * <code>optional string name = 2;</code>
+   * @return Whether the name field is set.
    */
   public boolean hasName() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional string name = 2;</code>
+   * @return The name.
    */
   public java.lang.String getName() {
     java.lang.Object ref = name_;
@@ -355,6 +349,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string name = 2;</code>
+   * @return The bytes for name.
    */
   public com.google.protobuf.ByteString
       getNameBytes() {
@@ -374,12 +369,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object path_;
   /**
    * <code>optional string path = 3;</code>
+   * @return Whether the path field is set.
    */
   public boolean hasPath() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional string path = 3;</code>
+   * @return The path.
    */
   public java.lang.String getPath() {
     java.lang.Object ref = path_;
@@ -397,6 +394,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string path = 3;</code>
+   * @return The bytes for path.
    */
   public com.google.protobuf.ByteString
       getPathBytes() {
@@ -416,12 +414,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object ufsPath_;
   /**
    * <code>optional string ufsPath = 4;</code>
+   * @return Whether the ufsPath field is set.
    */
   public boolean hasUfsPath() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000008) != 0);
   }
   /**
    * <code>optional string ufsPath = 4;</code>
+   * @return The ufsPath.
    */
   public java.lang.String getUfsPath() {
     java.lang.Object ref = ufsPath_;
@@ -439,6 +439,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string ufsPath = 4;</code>
+   * @return The bytes for ufsPath.
    */
   public com.google.protobuf.ByteString
       getUfsPathBytes() {
@@ -458,12 +459,14 @@ private static final long serialVersionUID = 0L;
   private long length_;
   /**
    * <code>optional int64 length = 5;</code>
+   * @return Whether the length field is set.
    */
   public boolean hasLength() {
-    return ((bitField0_ & 0x00000010) == 0x00000010);
+    return ((bitField0_ & 0x00000010) != 0);
   }
   /**
    * <code>optional int64 length = 5;</code>
+   * @return The length.
    */
   public long getLength() {
     return length_;
@@ -473,12 +476,14 @@ private static final long serialVersionUID = 0L;
   private long blockSizeBytes_;
   /**
    * <code>optional int64 blockSizeBytes = 6;</code>
+   * @return Whether the blockSizeBytes field is set.
    */
   public boolean hasBlockSizeBytes() {
-    return ((bitField0_ & 0x00000020) == 0x00000020);
+    return ((bitField0_ & 0x00000020) != 0);
   }
   /**
    * <code>optional int64 blockSizeBytes = 6;</code>
+   * @return The blockSizeBytes.
    */
   public long getBlockSizeBytes() {
     return blockSizeBytes_;
@@ -488,12 +493,14 @@ private static final long serialVersionUID = 0L;
   private long creationTimeMs_;
   /**
    * <code>optional int64 creationTimeMs = 7;</code>
+   * @return Whether the creationTimeMs field is set.
    */
   public boolean hasCreationTimeMs() {
-    return ((bitField0_ & 0x00000040) == 0x00000040);
+    return ((bitField0_ & 0x00000040) != 0);
   }
   /**
    * <code>optional int64 creationTimeMs = 7;</code>
+   * @return The creationTimeMs.
    */
   public long getCreationTimeMs() {
     return creationTimeMs_;
@@ -503,12 +510,14 @@ private static final long serialVersionUID = 0L;
   private boolean completed_;
   /**
    * <code>optional bool completed = 8;</code>
+   * @return Whether the completed field is set.
    */
   public boolean hasCompleted() {
-    return ((bitField0_ & 0x00000080) == 0x00000080);
+    return ((bitField0_ & 0x00000080) != 0);
   }
   /**
    * <code>optional bool completed = 8;</code>
+   * @return The completed.
    */
   public boolean getCompleted() {
     return completed_;
@@ -518,12 +527,14 @@ private static final long serialVersionUID = 0L;
   private boolean folder_;
   /**
    * <code>optional bool folder = 9;</code>
+   * @return Whether the folder field is set.
    */
   public boolean hasFolder() {
-    return ((bitField0_ & 0x00000100) == 0x00000100);
+    return ((bitField0_ & 0x00000100) != 0);
   }
   /**
    * <code>optional bool folder = 9;</code>
+   * @return The folder.
    */
   public boolean getFolder() {
     return folder_;
@@ -533,12 +544,14 @@ private static final long serialVersionUID = 0L;
   private boolean pinned_;
   /**
    * <code>optional bool pinned = 10;</code>
+   * @return Whether the pinned field is set.
    */
   public boolean hasPinned() {
-    return ((bitField0_ & 0x00000200) == 0x00000200);
+    return ((bitField0_ & 0x00000200) != 0);
   }
   /**
    * <code>optional bool pinned = 10;</code>
+   * @return The pinned.
    */
   public boolean getPinned() {
     return pinned_;
@@ -548,12 +561,14 @@ private static final long serialVersionUID = 0L;
   private boolean cacheable_;
   /**
    * <code>optional bool cacheable = 11;</code>
+   * @return Whether the cacheable field is set.
    */
   public boolean hasCacheable() {
-    return ((bitField0_ & 0x00000400) == 0x00000400);
+    return ((bitField0_ & 0x00000400) != 0);
   }
   /**
    * <code>optional bool cacheable = 11;</code>
+   * @return The cacheable.
    */
   public boolean getCacheable() {
     return cacheable_;
@@ -563,21 +578,24 @@ private static final long serialVersionUID = 0L;
   private boolean persisted_;
   /**
    * <code>optional bool persisted = 12;</code>
+   * @return Whether the persisted field is set.
    */
   public boolean hasPersisted() {
-    return ((bitField0_ & 0x00000800) == 0x00000800);
+    return ((bitField0_ & 0x00000800) != 0);
   }
   /**
    * <code>optional bool persisted = 12;</code>
+   * @return The persisted.
    */
   public boolean getPersisted() {
     return persisted_;
   }
 
   public static final int BLOCKIDS_FIELD_NUMBER = 13;
-  private java.util.List<java.lang.Long> blockIds_;
+  private com.google.protobuf.Internal.LongList blockIds_;
   /**
    * <code>repeated int64 blockIds = 13;</code>
+   * @return A list containing the blockIds.
    */
   public java.util.List<java.lang.Long>
       getBlockIdsList() {
@@ -585,27 +603,32 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>repeated int64 blockIds = 13;</code>
+   * @return The count of blockIds.
    */
   public int getBlockIdsCount() {
     return blockIds_.size();
   }
   /**
    * <code>repeated int64 blockIds = 13;</code>
+   * @param index The index of the element to return.
+   * @return The blockIds at the given index.
    */
   public long getBlockIds(int index) {
-    return blockIds_.get(index);
+    return blockIds_.getLong(index);
   }
 
   public static final int LASTMODIFICATIONTIMEMS_FIELD_NUMBER = 14;
   private long lastModificationTimeMs_;
   /**
    * <code>optional int64 lastModificationTimeMs = 14;</code>
+   * @return Whether the lastModificationTimeMs field is set.
    */
   public boolean hasLastModificationTimeMs() {
-    return ((bitField0_ & 0x00001000) == 0x00001000);
+    return ((bitField0_ & 0x00001000) != 0);
   }
   /**
    * <code>optional int64 lastModificationTimeMs = 14;</code>
+   * @return The lastModificationTimeMs.
    */
   public long getLastModificationTimeMs() {
     return lastModificationTimeMs_;
@@ -615,12 +638,14 @@ private static final long serialVersionUID = 0L;
   private long ttl_;
   /**
    * <code>optional int64 ttl = 15;</code>
+   * @return Whether the ttl field is set.
    */
   public boolean hasTtl() {
-    return ((bitField0_ & 0x00002000) == 0x00002000);
+    return ((bitField0_ & 0x00002000) != 0);
   }
   /**
    * <code>optional int64 ttl = 15;</code>
+   * @return The ttl.
    */
   public long getTtl() {
     return ttl_;
@@ -630,12 +655,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object owner_;
   /**
    * <code>optional string owner = 16;</code>
+   * @return Whether the owner field is set.
    */
   public boolean hasOwner() {
-    return ((bitField0_ & 0x00004000) == 0x00004000);
+    return ((bitField0_ & 0x00004000) != 0);
   }
   /**
    * <code>optional string owner = 16;</code>
+   * @return The owner.
    */
   public java.lang.String getOwner() {
     java.lang.Object ref = owner_;
@@ -653,6 +680,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string owner = 16;</code>
+   * @return The bytes for owner.
    */
   public com.google.protobuf.ByteString
       getOwnerBytes() {
@@ -672,12 +700,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object group_;
   /**
    * <code>optional string group = 17;</code>
+   * @return Whether the group field is set.
    */
   public boolean hasGroup() {
-    return ((bitField0_ & 0x00008000) == 0x00008000);
+    return ((bitField0_ & 0x00008000) != 0);
   }
   /**
    * <code>optional string group = 17;</code>
+   * @return The group.
    */
   public java.lang.String getGroup() {
     java.lang.Object ref = group_;
@@ -695,6 +725,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string group = 17;</code>
+   * @return The bytes for group.
    */
   public com.google.protobuf.ByteString
       getGroupBytes() {
@@ -714,12 +745,14 @@ private static final long serialVersionUID = 0L;
   private int mode_;
   /**
    * <code>optional int32 mode = 18;</code>
+   * @return Whether the mode field is set.
    */
   public boolean hasMode() {
-    return ((bitField0_ & 0x00010000) == 0x00010000);
+    return ((bitField0_ & 0x00010000) != 0);
   }
   /**
    * <code>optional int32 mode = 18;</code>
+   * @return The mode.
    */
   public int getMode() {
     return mode_;
@@ -729,12 +762,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object persistenceState_;
   /**
    * <code>optional string persistenceState = 19;</code>
+   * @return Whether the persistenceState field is set.
    */
   public boolean hasPersistenceState() {
-    return ((bitField0_ & 0x00020000) == 0x00020000);
+    return ((bitField0_ & 0x00020000) != 0);
   }
   /**
    * <code>optional string persistenceState = 19;</code>
+   * @return The persistenceState.
    */
   public java.lang.String getPersistenceState() {
     java.lang.Object ref = persistenceState_;
@@ -752,6 +787,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string persistenceState = 19;</code>
+   * @return The bytes for persistenceState.
    */
   public com.google.protobuf.ByteString
       getPersistenceStateBytes() {
@@ -771,12 +807,14 @@ private static final long serialVersionUID = 0L;
   private boolean mountPoint_;
   /**
    * <code>optional bool mountPoint = 20;</code>
+   * @return Whether the mountPoint field is set.
    */
   public boolean hasMountPoint() {
-    return ((bitField0_ & 0x00040000) == 0x00040000);
+    return ((bitField0_ & 0x00040000) != 0);
   }
   /**
    * <code>optional bool mountPoint = 20;</code>
+   * @return The mountPoint.
    */
   public boolean getMountPoint() {
     return mountPoint_;
@@ -821,14 +859,17 @@ private static final long serialVersionUID = 0L;
   private int ttlAction_;
   /**
    * <code>optional .alluxio.grpc.TtlAction ttlAction = 22;</code>
+   * @return Whether the ttlAction field is set.
    */
   public boolean hasTtlAction() {
-    return ((bitField0_ & 0x00080000) == 0x00080000);
+    return ((bitField0_ & 0x00080000) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.TtlAction ttlAction = 22;</code>
+   * @return The ttlAction.
    */
   public alluxio.grpc.TtlAction getTtlAction() {
+    @SuppressWarnings("deprecation")
     alluxio.grpc.TtlAction result = alluxio.grpc.TtlAction.valueOf(ttlAction_);
     return result == null ? alluxio.grpc.TtlAction.DELETE : result;
   }
@@ -837,12 +878,14 @@ private static final long serialVersionUID = 0L;
   private long mountId_;
   /**
    * <code>optional int64 mountId = 23;</code>
+   * @return Whether the mountId field is set.
    */
   public boolean hasMountId() {
-    return ((bitField0_ & 0x00100000) == 0x00100000);
+    return ((bitField0_ & 0x00100000) != 0);
   }
   /**
    * <code>optional int64 mountId = 23;</code>
+   * @return The mountId.
    */
   public long getMountId() {
     return mountId_;
@@ -852,12 +895,14 @@ private static final long serialVersionUID = 0L;
   private int inAlluxioPercentage_;
   /**
    * <code>optional int32 inAlluxioPercentage = 24;</code>
+   * @return Whether the inAlluxioPercentage field is set.
    */
   public boolean hasInAlluxioPercentage() {
-    return ((bitField0_ & 0x00200000) == 0x00200000);
+    return ((bitField0_ & 0x00200000) != 0);
   }
   /**
    * <code>optional int32 inAlluxioPercentage = 24;</code>
+   * @return The inAlluxioPercentage.
    */
   public int getInAlluxioPercentage() {
     return inAlluxioPercentage_;
@@ -867,12 +912,14 @@ private static final long serialVersionUID = 0L;
   private int inMemoryPercentage_;
   /**
    * <code>optional int32 inMemoryPercentage = 25;</code>
+   * @return Whether the inMemoryPercentage field is set.
    */
   public boolean hasInMemoryPercentage() {
-    return ((bitField0_ & 0x00400000) == 0x00400000);
+    return ((bitField0_ & 0x00400000) != 0);
   }
   /**
    * <code>optional int32 inMemoryPercentage = 25;</code>
+   * @return The inMemoryPercentage.
    */
   public int getInMemoryPercentage() {
     return inMemoryPercentage_;
@@ -882,12 +929,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object ufsFingerprint_;
   /**
    * <code>optional string ufsFingerprint = 26;</code>
+   * @return Whether the ufsFingerprint field is set.
    */
   public boolean hasUfsFingerprint() {
-    return ((bitField0_ & 0x00800000) == 0x00800000);
+    return ((bitField0_ & 0x00800000) != 0);
   }
   /**
    * <code>optional string ufsFingerprint = 26;</code>
+   * @return The ufsFingerprint.
    */
   public java.lang.String getUfsFingerprint() {
     java.lang.Object ref = ufsFingerprint_;
@@ -905,6 +954,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string ufsFingerprint = 26;</code>
+   * @return The bytes for ufsFingerprint.
    */
   public com.google.protobuf.ByteString
       getUfsFingerprintBytes() {
@@ -924,12 +974,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.PAcl acl_;
   /**
    * <code>optional .alluxio.grpc.file.PAcl acl = 27;</code>
+   * @return Whether the acl field is set.
    */
   public boolean hasAcl() {
-    return ((bitField0_ & 0x01000000) == 0x01000000);
+    return ((bitField0_ & 0x01000000) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.file.PAcl acl = 27;</code>
+   * @return The acl.
    */
   public alluxio.grpc.PAcl getAcl() {
     return acl_ == null ? alluxio.grpc.PAcl.getDefaultInstance() : acl_;
@@ -945,12 +997,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.PAcl defaultAcl_;
   /**
    * <code>optional .alluxio.grpc.file.PAcl defaultAcl = 28;</code>
+   * @return Whether the defaultAcl field is set.
    */
   public boolean hasDefaultAcl() {
-    return ((bitField0_ & 0x02000000) == 0x02000000);
+    return ((bitField0_ & 0x02000000) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.file.PAcl defaultAcl = 28;</code>
+   * @return The defaultAcl.
    */
   public alluxio.grpc.PAcl getDefaultAcl() {
     return defaultAcl_ == null ? alluxio.grpc.PAcl.getDefaultInstance() : defaultAcl_;
@@ -966,12 +1020,14 @@ private static final long serialVersionUID = 0L;
   private int replicationMax_;
   /**
    * <code>optional int32 replicationMax = 29;</code>
+   * @return Whether the replicationMax field is set.
    */
   public boolean hasReplicationMax() {
-    return ((bitField0_ & 0x04000000) == 0x04000000);
+    return ((bitField0_ & 0x04000000) != 0);
   }
   /**
    * <code>optional int32 replicationMax = 29;</code>
+   * @return The replicationMax.
    */
   public int getReplicationMax() {
     return replicationMax_;
@@ -981,12 +1037,14 @@ private static final long serialVersionUID = 0L;
   private int replicationMin_;
   /**
    * <code>optional int32 replicationMin = 30;</code>
+   * @return Whether the replicationMin field is set.
    */
   public boolean hasReplicationMin() {
-    return ((bitField0_ & 0x08000000) == 0x08000000);
+    return ((bitField0_ & 0x08000000) != 0);
   }
   /**
    * <code>optional int32 replicationMin = 30;</code>
+   * @return The replicationMin.
    */
   public int getReplicationMin() {
     return replicationMin_;
@@ -996,18 +1054,21 @@ private static final long serialVersionUID = 0L;
   private long lastAccessTimeMs_;
   /**
    * <code>optional int64 lastAccessTimeMs = 31;</code>
+   * @return Whether the lastAccessTimeMs field is set.
    */
   public boolean hasLastAccessTimeMs() {
-    return ((bitField0_ & 0x10000000) == 0x10000000);
+    return ((bitField0_ & 0x10000000) != 0);
   }
   /**
    * <code>optional int64 lastAccessTimeMs = 31;</code>
+   * @return The lastAccessTimeMs.
    */
   public long getLastAccessTimeMs() {
     return lastAccessTimeMs_;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -1017,151 +1078,153 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeInt64(1, fileId_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, name_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 3, path_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 4, ufsPath_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       output.writeInt64(5, length_);
     }
-    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+    if (((bitField0_ & 0x00000020) != 0)) {
       output.writeInt64(6, blockSizeBytes_);
     }
-    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+    if (((bitField0_ & 0x00000040) != 0)) {
       output.writeInt64(7, creationTimeMs_);
     }
-    if (((bitField0_ & 0x00000080) == 0x00000080)) {
+    if (((bitField0_ & 0x00000080) != 0)) {
       output.writeBool(8, completed_);
     }
-    if (((bitField0_ & 0x00000100) == 0x00000100)) {
+    if (((bitField0_ & 0x00000100) != 0)) {
       output.writeBool(9, folder_);
     }
-    if (((bitField0_ & 0x00000200) == 0x00000200)) {
+    if (((bitField0_ & 0x00000200) != 0)) {
       output.writeBool(10, pinned_);
     }
-    if (((bitField0_ & 0x00000400) == 0x00000400)) {
+    if (((bitField0_ & 0x00000400) != 0)) {
       output.writeBool(11, cacheable_);
     }
-    if (((bitField0_ & 0x00000800) == 0x00000800)) {
+    if (((bitField0_ & 0x00000800) != 0)) {
       output.writeBool(12, persisted_);
     }
     for (int i = 0; i < blockIds_.size(); i++) {
-      output.writeInt64(13, blockIds_.get(i));
+      output.writeInt64(13, blockIds_.getLong(i));
     }
-    if (((bitField0_ & 0x00001000) == 0x00001000)) {
+    if (((bitField0_ & 0x00001000) != 0)) {
       output.writeInt64(14, lastModificationTimeMs_);
     }
-    if (((bitField0_ & 0x00002000) == 0x00002000)) {
+    if (((bitField0_ & 0x00002000) != 0)) {
       output.writeInt64(15, ttl_);
     }
-    if (((bitField0_ & 0x00004000) == 0x00004000)) {
+    if (((bitField0_ & 0x00004000) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 16, owner_);
     }
-    if (((bitField0_ & 0x00008000) == 0x00008000)) {
+    if (((bitField0_ & 0x00008000) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 17, group_);
     }
-    if (((bitField0_ & 0x00010000) == 0x00010000)) {
+    if (((bitField0_ & 0x00010000) != 0)) {
       output.writeInt32(18, mode_);
     }
-    if (((bitField0_ & 0x00020000) == 0x00020000)) {
+    if (((bitField0_ & 0x00020000) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 19, persistenceState_);
     }
-    if (((bitField0_ & 0x00040000) == 0x00040000)) {
+    if (((bitField0_ & 0x00040000) != 0)) {
       output.writeBool(20, mountPoint_);
     }
     for (int i = 0; i < fileBlockInfos_.size(); i++) {
       output.writeMessage(21, fileBlockInfos_.get(i));
     }
-    if (((bitField0_ & 0x00080000) == 0x00080000)) {
+    if (((bitField0_ & 0x00080000) != 0)) {
       output.writeEnum(22, ttlAction_);
     }
-    if (((bitField0_ & 0x00100000) == 0x00100000)) {
+    if (((bitField0_ & 0x00100000) != 0)) {
       output.writeInt64(23, mountId_);
     }
-    if (((bitField0_ & 0x00200000) == 0x00200000)) {
+    if (((bitField0_ & 0x00200000) != 0)) {
       output.writeInt32(24, inAlluxioPercentage_);
     }
-    if (((bitField0_ & 0x00400000) == 0x00400000)) {
+    if (((bitField0_ & 0x00400000) != 0)) {
       output.writeInt32(25, inMemoryPercentage_);
     }
-    if (((bitField0_ & 0x00800000) == 0x00800000)) {
+    if (((bitField0_ & 0x00800000) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 26, ufsFingerprint_);
     }
-    if (((bitField0_ & 0x01000000) == 0x01000000)) {
+    if (((bitField0_ & 0x01000000) != 0)) {
       output.writeMessage(27, getAcl());
     }
-    if (((bitField0_ & 0x02000000) == 0x02000000)) {
+    if (((bitField0_ & 0x02000000) != 0)) {
       output.writeMessage(28, getDefaultAcl());
     }
-    if (((bitField0_ & 0x04000000) == 0x04000000)) {
+    if (((bitField0_ & 0x04000000) != 0)) {
       output.writeInt32(29, replicationMax_);
     }
-    if (((bitField0_ & 0x08000000) == 0x08000000)) {
+    if (((bitField0_ & 0x08000000) != 0)) {
       output.writeInt32(30, replicationMin_);
     }
-    if (((bitField0_ & 0x10000000) == 0x10000000)) {
+    if (((bitField0_ & 0x10000000) != 0)) {
       output.writeInt64(31, lastAccessTimeMs_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(1, fileId_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, name_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, path_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, ufsPath_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(5, length_);
     }
-    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+    if (((bitField0_ & 0x00000020) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(6, blockSizeBytes_);
     }
-    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+    if (((bitField0_ & 0x00000040) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(7, creationTimeMs_);
     }
-    if (((bitField0_ & 0x00000080) == 0x00000080)) {
+    if (((bitField0_ & 0x00000080) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(8, completed_);
     }
-    if (((bitField0_ & 0x00000100) == 0x00000100)) {
+    if (((bitField0_ & 0x00000100) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(9, folder_);
     }
-    if (((bitField0_ & 0x00000200) == 0x00000200)) {
+    if (((bitField0_ & 0x00000200) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(10, pinned_);
     }
-    if (((bitField0_ & 0x00000400) == 0x00000400)) {
+    if (((bitField0_ & 0x00000400) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(11, cacheable_);
     }
-    if (((bitField0_ & 0x00000800) == 0x00000800)) {
+    if (((bitField0_ & 0x00000800) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(12, persisted_);
     }
@@ -1169,33 +1232,33 @@ private static final long serialVersionUID = 0L;
       int dataSize = 0;
       for (int i = 0; i < blockIds_.size(); i++) {
         dataSize += com.google.protobuf.CodedOutputStream
-          .computeInt64SizeNoTag(blockIds_.get(i));
+          .computeInt64SizeNoTag(blockIds_.getLong(i));
       }
       size += dataSize;
       size += 1 * getBlockIdsList().size();
     }
-    if (((bitField0_ & 0x00001000) == 0x00001000)) {
+    if (((bitField0_ & 0x00001000) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(14, lastModificationTimeMs_);
     }
-    if (((bitField0_ & 0x00002000) == 0x00002000)) {
+    if (((bitField0_ & 0x00002000) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(15, ttl_);
     }
-    if (((bitField0_ & 0x00004000) == 0x00004000)) {
+    if (((bitField0_ & 0x00004000) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(16, owner_);
     }
-    if (((bitField0_ & 0x00008000) == 0x00008000)) {
+    if (((bitField0_ & 0x00008000) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(17, group_);
     }
-    if (((bitField0_ & 0x00010000) == 0x00010000)) {
+    if (((bitField0_ & 0x00010000) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(18, mode_);
     }
-    if (((bitField0_ & 0x00020000) == 0x00020000)) {
+    if (((bitField0_ & 0x00020000) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(19, persistenceState_);
     }
-    if (((bitField0_ & 0x00040000) == 0x00040000)) {
+    if (((bitField0_ & 0x00040000) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(20, mountPoint_);
     }
@@ -1203,42 +1266,42 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(21, fileBlockInfos_.get(i));
     }
-    if (((bitField0_ & 0x00080000) == 0x00080000)) {
+    if (((bitField0_ & 0x00080000) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(22, ttlAction_);
     }
-    if (((bitField0_ & 0x00100000) == 0x00100000)) {
+    if (((bitField0_ & 0x00100000) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(23, mountId_);
     }
-    if (((bitField0_ & 0x00200000) == 0x00200000)) {
+    if (((bitField0_ & 0x00200000) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(24, inAlluxioPercentage_);
     }
-    if (((bitField0_ & 0x00400000) == 0x00400000)) {
+    if (((bitField0_ & 0x00400000) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(25, inMemoryPercentage_);
     }
-    if (((bitField0_ & 0x00800000) == 0x00800000)) {
+    if (((bitField0_ & 0x00800000) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(26, ufsFingerprint_);
     }
-    if (((bitField0_ & 0x01000000) == 0x01000000)) {
+    if (((bitField0_ & 0x01000000) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(27, getAcl());
     }
-    if (((bitField0_ & 0x02000000) == 0x02000000)) {
+    if (((bitField0_ & 0x02000000) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(28, getDefaultAcl());
     }
-    if (((bitField0_ & 0x04000000) == 0x04000000)) {
+    if (((bitField0_ & 0x04000000) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(29, replicationMax_);
     }
-    if (((bitField0_ & 0x08000000) == 0x08000000)) {
+    if (((bitField0_ & 0x08000000) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(30, replicationMin_);
     }
-    if (((bitField0_ & 0x10000000) == 0x10000000)) {
+    if (((bitField0_ & 0x10000000) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(31, lastAccessTimeMs_);
     }
@@ -1257,157 +1320,156 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.FileInfo other = (alluxio.grpc.FileInfo) obj;
 
-    boolean result = true;
-    result = result && (hasFileId() == other.hasFileId());
+    if (hasFileId() != other.hasFileId()) return false;
     if (hasFileId()) {
-      result = result && (getFileId()
-          == other.getFileId());
+      if (getFileId()
+          != other.getFileId()) return false;
     }
-    result = result && (hasName() == other.hasName());
+    if (hasName() != other.hasName()) return false;
     if (hasName()) {
-      result = result && getName()
-          .equals(other.getName());
+      if (!getName()
+          .equals(other.getName())) return false;
     }
-    result = result && (hasPath() == other.hasPath());
+    if (hasPath() != other.hasPath()) return false;
     if (hasPath()) {
-      result = result && getPath()
-          .equals(other.getPath());
+      if (!getPath()
+          .equals(other.getPath())) return false;
     }
-    result = result && (hasUfsPath() == other.hasUfsPath());
+    if (hasUfsPath() != other.hasUfsPath()) return false;
     if (hasUfsPath()) {
-      result = result && getUfsPath()
-          .equals(other.getUfsPath());
+      if (!getUfsPath()
+          .equals(other.getUfsPath())) return false;
     }
-    result = result && (hasLength() == other.hasLength());
+    if (hasLength() != other.hasLength()) return false;
     if (hasLength()) {
-      result = result && (getLength()
-          == other.getLength());
+      if (getLength()
+          != other.getLength()) return false;
     }
-    result = result && (hasBlockSizeBytes() == other.hasBlockSizeBytes());
+    if (hasBlockSizeBytes() != other.hasBlockSizeBytes()) return false;
     if (hasBlockSizeBytes()) {
-      result = result && (getBlockSizeBytes()
-          == other.getBlockSizeBytes());
+      if (getBlockSizeBytes()
+          != other.getBlockSizeBytes()) return false;
     }
-    result = result && (hasCreationTimeMs() == other.hasCreationTimeMs());
+    if (hasCreationTimeMs() != other.hasCreationTimeMs()) return false;
     if (hasCreationTimeMs()) {
-      result = result && (getCreationTimeMs()
-          == other.getCreationTimeMs());
+      if (getCreationTimeMs()
+          != other.getCreationTimeMs()) return false;
     }
-    result = result && (hasCompleted() == other.hasCompleted());
+    if (hasCompleted() != other.hasCompleted()) return false;
     if (hasCompleted()) {
-      result = result && (getCompleted()
-          == other.getCompleted());
+      if (getCompleted()
+          != other.getCompleted()) return false;
     }
-    result = result && (hasFolder() == other.hasFolder());
+    if (hasFolder() != other.hasFolder()) return false;
     if (hasFolder()) {
-      result = result && (getFolder()
-          == other.getFolder());
+      if (getFolder()
+          != other.getFolder()) return false;
     }
-    result = result && (hasPinned() == other.hasPinned());
+    if (hasPinned() != other.hasPinned()) return false;
     if (hasPinned()) {
-      result = result && (getPinned()
-          == other.getPinned());
+      if (getPinned()
+          != other.getPinned()) return false;
     }
-    result = result && (hasCacheable() == other.hasCacheable());
+    if (hasCacheable() != other.hasCacheable()) return false;
     if (hasCacheable()) {
-      result = result && (getCacheable()
-          == other.getCacheable());
+      if (getCacheable()
+          != other.getCacheable()) return false;
     }
-    result = result && (hasPersisted() == other.hasPersisted());
+    if (hasPersisted() != other.hasPersisted()) return false;
     if (hasPersisted()) {
-      result = result && (getPersisted()
-          == other.getPersisted());
+      if (getPersisted()
+          != other.getPersisted()) return false;
     }
-    result = result && getBlockIdsList()
-        .equals(other.getBlockIdsList());
-    result = result && (hasLastModificationTimeMs() == other.hasLastModificationTimeMs());
+    if (!getBlockIdsList()
+        .equals(other.getBlockIdsList())) return false;
+    if (hasLastModificationTimeMs() != other.hasLastModificationTimeMs()) return false;
     if (hasLastModificationTimeMs()) {
-      result = result && (getLastModificationTimeMs()
-          == other.getLastModificationTimeMs());
+      if (getLastModificationTimeMs()
+          != other.getLastModificationTimeMs()) return false;
     }
-    result = result && (hasTtl() == other.hasTtl());
+    if (hasTtl() != other.hasTtl()) return false;
     if (hasTtl()) {
-      result = result && (getTtl()
-          == other.getTtl());
+      if (getTtl()
+          != other.getTtl()) return false;
     }
-    result = result && (hasOwner() == other.hasOwner());
+    if (hasOwner() != other.hasOwner()) return false;
     if (hasOwner()) {
-      result = result && getOwner()
-          .equals(other.getOwner());
+      if (!getOwner()
+          .equals(other.getOwner())) return false;
     }
-    result = result && (hasGroup() == other.hasGroup());
+    if (hasGroup() != other.hasGroup()) return false;
     if (hasGroup()) {
-      result = result && getGroup()
-          .equals(other.getGroup());
+      if (!getGroup()
+          .equals(other.getGroup())) return false;
     }
-    result = result && (hasMode() == other.hasMode());
+    if (hasMode() != other.hasMode()) return false;
     if (hasMode()) {
-      result = result && (getMode()
-          == other.getMode());
+      if (getMode()
+          != other.getMode()) return false;
     }
-    result = result && (hasPersistenceState() == other.hasPersistenceState());
+    if (hasPersistenceState() != other.hasPersistenceState()) return false;
     if (hasPersistenceState()) {
-      result = result && getPersistenceState()
-          .equals(other.getPersistenceState());
+      if (!getPersistenceState()
+          .equals(other.getPersistenceState())) return false;
     }
-    result = result && (hasMountPoint() == other.hasMountPoint());
+    if (hasMountPoint() != other.hasMountPoint()) return false;
     if (hasMountPoint()) {
-      result = result && (getMountPoint()
-          == other.getMountPoint());
+      if (getMountPoint()
+          != other.getMountPoint()) return false;
     }
-    result = result && getFileBlockInfosList()
-        .equals(other.getFileBlockInfosList());
-    result = result && (hasTtlAction() == other.hasTtlAction());
+    if (!getFileBlockInfosList()
+        .equals(other.getFileBlockInfosList())) return false;
+    if (hasTtlAction() != other.hasTtlAction()) return false;
     if (hasTtlAction()) {
-      result = result && ttlAction_ == other.ttlAction_;
+      if (ttlAction_ != other.ttlAction_) return false;
     }
-    result = result && (hasMountId() == other.hasMountId());
+    if (hasMountId() != other.hasMountId()) return false;
     if (hasMountId()) {
-      result = result && (getMountId()
-          == other.getMountId());
+      if (getMountId()
+          != other.getMountId()) return false;
     }
-    result = result && (hasInAlluxioPercentage() == other.hasInAlluxioPercentage());
+    if (hasInAlluxioPercentage() != other.hasInAlluxioPercentage()) return false;
     if (hasInAlluxioPercentage()) {
-      result = result && (getInAlluxioPercentage()
-          == other.getInAlluxioPercentage());
+      if (getInAlluxioPercentage()
+          != other.getInAlluxioPercentage()) return false;
     }
-    result = result && (hasInMemoryPercentage() == other.hasInMemoryPercentage());
+    if (hasInMemoryPercentage() != other.hasInMemoryPercentage()) return false;
     if (hasInMemoryPercentage()) {
-      result = result && (getInMemoryPercentage()
-          == other.getInMemoryPercentage());
+      if (getInMemoryPercentage()
+          != other.getInMemoryPercentage()) return false;
     }
-    result = result && (hasUfsFingerprint() == other.hasUfsFingerprint());
+    if (hasUfsFingerprint() != other.hasUfsFingerprint()) return false;
     if (hasUfsFingerprint()) {
-      result = result && getUfsFingerprint()
-          .equals(other.getUfsFingerprint());
+      if (!getUfsFingerprint()
+          .equals(other.getUfsFingerprint())) return false;
     }
-    result = result && (hasAcl() == other.hasAcl());
+    if (hasAcl() != other.hasAcl()) return false;
     if (hasAcl()) {
-      result = result && getAcl()
-          .equals(other.getAcl());
+      if (!getAcl()
+          .equals(other.getAcl())) return false;
     }
-    result = result && (hasDefaultAcl() == other.hasDefaultAcl());
+    if (hasDefaultAcl() != other.hasDefaultAcl()) return false;
     if (hasDefaultAcl()) {
-      result = result && getDefaultAcl()
-          .equals(other.getDefaultAcl());
+      if (!getDefaultAcl()
+          .equals(other.getDefaultAcl())) return false;
     }
-    result = result && (hasReplicationMax() == other.hasReplicationMax());
+    if (hasReplicationMax() != other.hasReplicationMax()) return false;
     if (hasReplicationMax()) {
-      result = result && (getReplicationMax()
-          == other.getReplicationMax());
+      if (getReplicationMax()
+          != other.getReplicationMax()) return false;
     }
-    result = result && (hasReplicationMin() == other.hasReplicationMin());
+    if (hasReplicationMin() != other.hasReplicationMin()) return false;
     if (hasReplicationMin()) {
-      result = result && (getReplicationMin()
-          == other.getReplicationMin());
+      if (getReplicationMin()
+          != other.getReplicationMin()) return false;
     }
-    result = result && (hasLastAccessTimeMs() == other.hasLastAccessTimeMs());
+    if (hasLastAccessTimeMs() != other.hasLastAccessTimeMs()) return false;
     if (hasLastAccessTimeMs()) {
-      result = result && (getLastAccessTimeMs()
-          == other.getLastAccessTimeMs());
+      if (getLastAccessTimeMs()
+          != other.getLastAccessTimeMs()) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -1630,6 +1692,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -1637,6 +1700,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.FileInfo prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -1660,6 +1724,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileInfo_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileInfo_fieldAccessorTable
@@ -1685,6 +1750,7 @@ private static final long serialVersionUID = 0L;
         getDefaultAclFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       fileId_ = 0L;
@@ -1711,7 +1777,7 @@ private static final long serialVersionUID = 0L;
       bitField0_ = (bitField0_ & ~0x00000400);
       persisted_ = false;
       bitField0_ = (bitField0_ & ~0x00000800);
-      blockIds_ = java.util.Collections.emptyList();
+      blockIds_ = emptyLongList();
       bitField0_ = (bitField0_ & ~0x00001000);
       lastModificationTimeMs_ = 0L;
       bitField0_ = (bitField0_ & ~0x00002000);
@@ -1764,15 +1830,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_FileInfo_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.FileInfo getDefaultInstanceForType() {
       return alluxio.grpc.FileInfo.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.FileInfo build() {
       alluxio.grpc.FileInfo result = buildPartial();
       if (!result.isInitialized()) {
@@ -1781,93 +1850,94 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.FileInfo buildPartial() {
       alluxio.grpc.FileInfo result = new alluxio.grpc.FileInfo(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        result.fileId_ = fileId_;
         to_bitField0_ |= 0x00000001;
       }
-      result.fileId_ = fileId_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
         to_bitField0_ |= 0x00000002;
       }
       result.name_ = name_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
         to_bitField0_ |= 0x00000004;
       }
       result.path_ = path_;
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000008) != 0)) {
         to_bitField0_ |= 0x00000008;
       }
       result.ufsPath_ = ufsPath_;
-      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((from_bitField0_ & 0x00000010) != 0)) {
+        result.length_ = length_;
         to_bitField0_ |= 0x00000010;
       }
-      result.length_ = length_;
-      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((from_bitField0_ & 0x00000020) != 0)) {
+        result.blockSizeBytes_ = blockSizeBytes_;
         to_bitField0_ |= 0x00000020;
       }
-      result.blockSizeBytes_ = blockSizeBytes_;
-      if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((from_bitField0_ & 0x00000040) != 0)) {
+        result.creationTimeMs_ = creationTimeMs_;
         to_bitField0_ |= 0x00000040;
       }
-      result.creationTimeMs_ = creationTimeMs_;
-      if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+      if (((from_bitField0_ & 0x00000080) != 0)) {
+        result.completed_ = completed_;
         to_bitField0_ |= 0x00000080;
       }
-      result.completed_ = completed_;
-      if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
+      if (((from_bitField0_ & 0x00000100) != 0)) {
+        result.folder_ = folder_;
         to_bitField0_ |= 0x00000100;
       }
-      result.folder_ = folder_;
-      if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
+      if (((from_bitField0_ & 0x00000200) != 0)) {
+        result.pinned_ = pinned_;
         to_bitField0_ |= 0x00000200;
       }
-      result.pinned_ = pinned_;
-      if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
+      if (((from_bitField0_ & 0x00000400) != 0)) {
+        result.cacheable_ = cacheable_;
         to_bitField0_ |= 0x00000400;
       }
-      result.cacheable_ = cacheable_;
-      if (((from_bitField0_ & 0x00000800) == 0x00000800)) {
+      if (((from_bitField0_ & 0x00000800) != 0)) {
+        result.persisted_ = persisted_;
         to_bitField0_ |= 0x00000800;
       }
-      result.persisted_ = persisted_;
-      if (((bitField0_ & 0x00001000) == 0x00001000)) {
-        blockIds_ = java.util.Collections.unmodifiableList(blockIds_);
+      if (((bitField0_ & 0x00001000) != 0)) {
+        blockIds_.makeImmutable();
         bitField0_ = (bitField0_ & ~0x00001000);
       }
       result.blockIds_ = blockIds_;
-      if (((from_bitField0_ & 0x00002000) == 0x00002000)) {
+      if (((from_bitField0_ & 0x00002000) != 0)) {
+        result.lastModificationTimeMs_ = lastModificationTimeMs_;
         to_bitField0_ |= 0x00001000;
       }
-      result.lastModificationTimeMs_ = lastModificationTimeMs_;
-      if (((from_bitField0_ & 0x00004000) == 0x00004000)) {
+      if (((from_bitField0_ & 0x00004000) != 0)) {
+        result.ttl_ = ttl_;
         to_bitField0_ |= 0x00002000;
       }
-      result.ttl_ = ttl_;
-      if (((from_bitField0_ & 0x00008000) == 0x00008000)) {
+      if (((from_bitField0_ & 0x00008000) != 0)) {
         to_bitField0_ |= 0x00004000;
       }
       result.owner_ = owner_;
-      if (((from_bitField0_ & 0x00010000) == 0x00010000)) {
+      if (((from_bitField0_ & 0x00010000) != 0)) {
         to_bitField0_ |= 0x00008000;
       }
       result.group_ = group_;
-      if (((from_bitField0_ & 0x00020000) == 0x00020000)) {
+      if (((from_bitField0_ & 0x00020000) != 0)) {
+        result.mode_ = mode_;
         to_bitField0_ |= 0x00010000;
       }
-      result.mode_ = mode_;
-      if (((from_bitField0_ & 0x00040000) == 0x00040000)) {
+      if (((from_bitField0_ & 0x00040000) != 0)) {
         to_bitField0_ |= 0x00020000;
       }
       result.persistenceState_ = persistenceState_;
-      if (((from_bitField0_ & 0x00080000) == 0x00080000)) {
+      if (((from_bitField0_ & 0x00080000) != 0)) {
+        result.mountPoint_ = mountPoint_;
         to_bitField0_ |= 0x00040000;
       }
-      result.mountPoint_ = mountPoint_;
       if (fileBlockInfosBuilder_ == null) {
-        if (((bitField0_ & 0x00100000) == 0x00100000)) {
+        if (((bitField0_ & 0x00100000) != 0)) {
           fileBlockInfos_ = java.util.Collections.unmodifiableList(fileBlockInfos_);
           bitField0_ = (bitField0_ & ~0x00100000);
         }
@@ -1875,85 +1945,92 @@ private static final long serialVersionUID = 0L;
       } else {
         result.fileBlockInfos_ = fileBlockInfosBuilder_.build();
       }
-      if (((from_bitField0_ & 0x00200000) == 0x00200000)) {
+      if (((from_bitField0_ & 0x00200000) != 0)) {
         to_bitField0_ |= 0x00080000;
       }
       result.ttlAction_ = ttlAction_;
-      if (((from_bitField0_ & 0x00400000) == 0x00400000)) {
+      if (((from_bitField0_ & 0x00400000) != 0)) {
+        result.mountId_ = mountId_;
         to_bitField0_ |= 0x00100000;
       }
-      result.mountId_ = mountId_;
-      if (((from_bitField0_ & 0x00800000) == 0x00800000)) {
+      if (((from_bitField0_ & 0x00800000) != 0)) {
+        result.inAlluxioPercentage_ = inAlluxioPercentage_;
         to_bitField0_ |= 0x00200000;
       }
-      result.inAlluxioPercentage_ = inAlluxioPercentage_;
-      if (((from_bitField0_ & 0x01000000) == 0x01000000)) {
+      if (((from_bitField0_ & 0x01000000) != 0)) {
+        result.inMemoryPercentage_ = inMemoryPercentage_;
         to_bitField0_ |= 0x00400000;
       }
-      result.inMemoryPercentage_ = inMemoryPercentage_;
-      if (((from_bitField0_ & 0x02000000) == 0x02000000)) {
+      if (((from_bitField0_ & 0x02000000) != 0)) {
         to_bitField0_ |= 0x00800000;
       }
       result.ufsFingerprint_ = ufsFingerprint_;
-      if (((from_bitField0_ & 0x04000000) == 0x04000000)) {
+      if (((from_bitField0_ & 0x04000000) != 0)) {
+        if (aclBuilder_ == null) {
+          result.acl_ = acl_;
+        } else {
+          result.acl_ = aclBuilder_.build();
+        }
         to_bitField0_ |= 0x01000000;
       }
-      if (aclBuilder_ == null) {
-        result.acl_ = acl_;
-      } else {
-        result.acl_ = aclBuilder_.build();
-      }
-      if (((from_bitField0_ & 0x08000000) == 0x08000000)) {
+      if (((from_bitField0_ & 0x08000000) != 0)) {
+        if (defaultAclBuilder_ == null) {
+          result.defaultAcl_ = defaultAcl_;
+        } else {
+          result.defaultAcl_ = defaultAclBuilder_.build();
+        }
         to_bitField0_ |= 0x02000000;
       }
-      if (defaultAclBuilder_ == null) {
-        result.defaultAcl_ = defaultAcl_;
-      } else {
-        result.defaultAcl_ = defaultAclBuilder_.build();
-      }
-      if (((from_bitField0_ & 0x10000000) == 0x10000000)) {
+      if (((from_bitField0_ & 0x10000000) != 0)) {
+        result.replicationMax_ = replicationMax_;
         to_bitField0_ |= 0x04000000;
       }
-      result.replicationMax_ = replicationMax_;
-      if (((from_bitField0_ & 0x20000000) == 0x20000000)) {
+      if (((from_bitField0_ & 0x20000000) != 0)) {
+        result.replicationMin_ = replicationMin_;
         to_bitField0_ |= 0x08000000;
       }
-      result.replicationMin_ = replicationMin_;
-      if (((from_bitField0_ & 0x40000000) == 0x40000000)) {
+      if (((from_bitField0_ & 0x40000000) != 0)) {
+        result.lastAccessTimeMs_ = lastAccessTimeMs_;
         to_bitField0_ |= 0x10000000;
       }
-      result.lastAccessTimeMs_ = lastAccessTimeMs_;
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.FileInfo) {
         return mergeFrom((alluxio.grpc.FileInfo)other);
@@ -2107,10 +2184,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2133,18 +2212,22 @@ private static final long serialVersionUID = 0L;
     private long fileId_ ;
     /**
      * <code>optional int64 fileId = 1;</code>
+     * @return Whether the fileId field is set.
      */
     public boolean hasFileId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional int64 fileId = 1;</code>
+     * @return The fileId.
      */
     public long getFileId() {
       return fileId_;
     }
     /**
      * <code>optional int64 fileId = 1;</code>
+     * @param value The fileId to set.
+     * @return This builder for chaining.
      */
     public Builder setFileId(long value) {
       bitField0_ |= 0x00000001;
@@ -2154,6 +2237,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 fileId = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearFileId() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -2165,12 +2249,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object name_ = "";
     /**
      * <code>optional string name = 2;</code>
+     * @return Whether the name field is set.
      */
     public boolean hasName() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string name = 2;</code>
+     * @return The name.
      */
     public java.lang.String getName() {
       java.lang.Object ref = name_;
@@ -2188,6 +2274,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string name = 2;</code>
+     * @return The bytes for name.
      */
     public com.google.protobuf.ByteString
         getNameBytes() {
@@ -2204,6 +2291,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string name = 2;</code>
+     * @param value The name to set.
+     * @return This builder for chaining.
      */
     public Builder setName(
         java.lang.String value) {
@@ -2217,6 +2306,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string name = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearName() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -2226,6 +2316,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string name = 2;</code>
+     * @param value The bytes for name to set.
+     * @return This builder for chaining.
      */
     public Builder setNameBytes(
         com.google.protobuf.ByteString value) {
@@ -2241,12 +2333,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object path_ = "";
     /**
      * <code>optional string path = 3;</code>
+     * @return Whether the path field is set.
      */
     public boolean hasPath() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional string path = 3;</code>
+     * @return The path.
      */
     public java.lang.String getPath() {
       java.lang.Object ref = path_;
@@ -2264,6 +2358,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string path = 3;</code>
+     * @return The bytes for path.
      */
     public com.google.protobuf.ByteString
         getPathBytes() {
@@ -2280,6 +2375,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string path = 3;</code>
+     * @param value The path to set.
+     * @return This builder for chaining.
      */
     public Builder setPath(
         java.lang.String value) {
@@ -2293,6 +2390,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string path = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearPath() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -2302,6 +2400,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string path = 3;</code>
+     * @param value The bytes for path to set.
+     * @return This builder for chaining.
      */
     public Builder setPathBytes(
         com.google.protobuf.ByteString value) {
@@ -2317,12 +2417,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object ufsPath_ = "";
     /**
      * <code>optional string ufsPath = 4;</code>
+     * @return Whether the ufsPath field is set.
      */
     public boolean hasUfsPath() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional string ufsPath = 4;</code>
+     * @return The ufsPath.
      */
     public java.lang.String getUfsPath() {
       java.lang.Object ref = ufsPath_;
@@ -2340,6 +2442,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string ufsPath = 4;</code>
+     * @return The bytes for ufsPath.
      */
     public com.google.protobuf.ByteString
         getUfsPathBytes() {
@@ -2356,6 +2459,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string ufsPath = 4;</code>
+     * @param value The ufsPath to set.
+     * @return This builder for chaining.
      */
     public Builder setUfsPath(
         java.lang.String value) {
@@ -2369,6 +2474,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string ufsPath = 4;</code>
+     * @return This builder for chaining.
      */
     public Builder clearUfsPath() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -2378,6 +2484,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string ufsPath = 4;</code>
+     * @param value The bytes for ufsPath to set.
+     * @return This builder for chaining.
      */
     public Builder setUfsPathBytes(
         com.google.protobuf.ByteString value) {
@@ -2393,18 +2501,22 @@ private static final long serialVersionUID = 0L;
     private long length_ ;
     /**
      * <code>optional int64 length = 5;</code>
+     * @return Whether the length field is set.
      */
     public boolean hasLength() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000010) != 0);
     }
     /**
      * <code>optional int64 length = 5;</code>
+     * @return The length.
      */
     public long getLength() {
       return length_;
     }
     /**
      * <code>optional int64 length = 5;</code>
+     * @param value The length to set.
+     * @return This builder for chaining.
      */
     public Builder setLength(long value) {
       bitField0_ |= 0x00000010;
@@ -2414,6 +2526,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 length = 5;</code>
+     * @return This builder for chaining.
      */
     public Builder clearLength() {
       bitField0_ = (bitField0_ & ~0x00000010);
@@ -2425,18 +2538,22 @@ private static final long serialVersionUID = 0L;
     private long blockSizeBytes_ ;
     /**
      * <code>optional int64 blockSizeBytes = 6;</code>
+     * @return Whether the blockSizeBytes field is set.
      */
     public boolean hasBlockSizeBytes() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000020) != 0);
     }
     /**
      * <code>optional int64 blockSizeBytes = 6;</code>
+     * @return The blockSizeBytes.
      */
     public long getBlockSizeBytes() {
       return blockSizeBytes_;
     }
     /**
      * <code>optional int64 blockSizeBytes = 6;</code>
+     * @param value The blockSizeBytes to set.
+     * @return This builder for chaining.
      */
     public Builder setBlockSizeBytes(long value) {
       bitField0_ |= 0x00000020;
@@ -2446,6 +2563,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 blockSizeBytes = 6;</code>
+     * @return This builder for chaining.
      */
     public Builder clearBlockSizeBytes() {
       bitField0_ = (bitField0_ & ~0x00000020);
@@ -2457,18 +2575,22 @@ private static final long serialVersionUID = 0L;
     private long creationTimeMs_ ;
     /**
      * <code>optional int64 creationTimeMs = 7;</code>
+     * @return Whether the creationTimeMs field is set.
      */
     public boolean hasCreationTimeMs() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
+      return ((bitField0_ & 0x00000040) != 0);
     }
     /**
      * <code>optional int64 creationTimeMs = 7;</code>
+     * @return The creationTimeMs.
      */
     public long getCreationTimeMs() {
       return creationTimeMs_;
     }
     /**
      * <code>optional int64 creationTimeMs = 7;</code>
+     * @param value The creationTimeMs to set.
+     * @return This builder for chaining.
      */
     public Builder setCreationTimeMs(long value) {
       bitField0_ |= 0x00000040;
@@ -2478,6 +2600,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 creationTimeMs = 7;</code>
+     * @return This builder for chaining.
      */
     public Builder clearCreationTimeMs() {
       bitField0_ = (bitField0_ & ~0x00000040);
@@ -2489,18 +2612,22 @@ private static final long serialVersionUID = 0L;
     private boolean completed_ ;
     /**
      * <code>optional bool completed = 8;</code>
+     * @return Whether the completed field is set.
      */
     public boolean hasCompleted() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
+      return ((bitField0_ & 0x00000080) != 0);
     }
     /**
      * <code>optional bool completed = 8;</code>
+     * @return The completed.
      */
     public boolean getCompleted() {
       return completed_;
     }
     /**
      * <code>optional bool completed = 8;</code>
+     * @param value The completed to set.
+     * @return This builder for chaining.
      */
     public Builder setCompleted(boolean value) {
       bitField0_ |= 0x00000080;
@@ -2510,6 +2637,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool completed = 8;</code>
+     * @return This builder for chaining.
      */
     public Builder clearCompleted() {
       bitField0_ = (bitField0_ & ~0x00000080);
@@ -2521,18 +2649,22 @@ private static final long serialVersionUID = 0L;
     private boolean folder_ ;
     /**
      * <code>optional bool folder = 9;</code>
+     * @return Whether the folder field is set.
      */
     public boolean hasFolder() {
-      return ((bitField0_ & 0x00000100) == 0x00000100);
+      return ((bitField0_ & 0x00000100) != 0);
     }
     /**
      * <code>optional bool folder = 9;</code>
+     * @return The folder.
      */
     public boolean getFolder() {
       return folder_;
     }
     /**
      * <code>optional bool folder = 9;</code>
+     * @param value The folder to set.
+     * @return This builder for chaining.
      */
     public Builder setFolder(boolean value) {
       bitField0_ |= 0x00000100;
@@ -2542,6 +2674,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool folder = 9;</code>
+     * @return This builder for chaining.
      */
     public Builder clearFolder() {
       bitField0_ = (bitField0_ & ~0x00000100);
@@ -2553,18 +2686,22 @@ private static final long serialVersionUID = 0L;
     private boolean pinned_ ;
     /**
      * <code>optional bool pinned = 10;</code>
+     * @return Whether the pinned field is set.
      */
     public boolean hasPinned() {
-      return ((bitField0_ & 0x00000200) == 0x00000200);
+      return ((bitField0_ & 0x00000200) != 0);
     }
     /**
      * <code>optional bool pinned = 10;</code>
+     * @return The pinned.
      */
     public boolean getPinned() {
       return pinned_;
     }
     /**
      * <code>optional bool pinned = 10;</code>
+     * @param value The pinned to set.
+     * @return This builder for chaining.
      */
     public Builder setPinned(boolean value) {
       bitField0_ |= 0x00000200;
@@ -2574,6 +2711,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool pinned = 10;</code>
+     * @return This builder for chaining.
      */
     public Builder clearPinned() {
       bitField0_ = (bitField0_ & ~0x00000200);
@@ -2585,18 +2723,22 @@ private static final long serialVersionUID = 0L;
     private boolean cacheable_ ;
     /**
      * <code>optional bool cacheable = 11;</code>
+     * @return Whether the cacheable field is set.
      */
     public boolean hasCacheable() {
-      return ((bitField0_ & 0x00000400) == 0x00000400);
+      return ((bitField0_ & 0x00000400) != 0);
     }
     /**
      * <code>optional bool cacheable = 11;</code>
+     * @return The cacheable.
      */
     public boolean getCacheable() {
       return cacheable_;
     }
     /**
      * <code>optional bool cacheable = 11;</code>
+     * @param value The cacheable to set.
+     * @return This builder for chaining.
      */
     public Builder setCacheable(boolean value) {
       bitField0_ |= 0x00000400;
@@ -2606,6 +2748,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool cacheable = 11;</code>
+     * @return This builder for chaining.
      */
     public Builder clearCacheable() {
       bitField0_ = (bitField0_ & ~0x00000400);
@@ -2617,18 +2760,22 @@ private static final long serialVersionUID = 0L;
     private boolean persisted_ ;
     /**
      * <code>optional bool persisted = 12;</code>
+     * @return Whether the persisted field is set.
      */
     public boolean hasPersisted() {
-      return ((bitField0_ & 0x00000800) == 0x00000800);
+      return ((bitField0_ & 0x00000800) != 0);
     }
     /**
      * <code>optional bool persisted = 12;</code>
+     * @return The persisted.
      */
     public boolean getPersisted() {
       return persisted_;
     }
     /**
      * <code>optional bool persisted = 12;</code>
+     * @param value The persisted to set.
+     * @return This builder for chaining.
      */
     public Builder setPersisted(boolean value) {
       bitField0_ |= 0x00000800;
@@ -2638,6 +2785,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool persisted = 12;</code>
+     * @return This builder for chaining.
      */
     public Builder clearPersisted() {
       bitField0_ = (bitField0_ & ~0x00000800);
@@ -2646,53 +2794,65 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.util.List<java.lang.Long> blockIds_ = java.util.Collections.emptyList();
+    private com.google.protobuf.Internal.LongList blockIds_ = emptyLongList();
     private void ensureBlockIdsIsMutable() {
-      if (!((bitField0_ & 0x00001000) == 0x00001000)) {
-        blockIds_ = new java.util.ArrayList<java.lang.Long>(blockIds_);
+      if (!((bitField0_ & 0x00001000) != 0)) {
+        blockIds_ = mutableCopy(blockIds_);
         bitField0_ |= 0x00001000;
        }
     }
     /**
      * <code>repeated int64 blockIds = 13;</code>
+     * @return A list containing the blockIds.
      */
     public java.util.List<java.lang.Long>
         getBlockIdsList() {
-      return java.util.Collections.unmodifiableList(blockIds_);
+      return ((bitField0_ & 0x00001000) != 0) ?
+               java.util.Collections.unmodifiableList(blockIds_) : blockIds_;
     }
     /**
      * <code>repeated int64 blockIds = 13;</code>
+     * @return The count of blockIds.
      */
     public int getBlockIdsCount() {
       return blockIds_.size();
     }
     /**
      * <code>repeated int64 blockIds = 13;</code>
+     * @param index The index of the element to return.
+     * @return The blockIds at the given index.
      */
     public long getBlockIds(int index) {
-      return blockIds_.get(index);
+      return blockIds_.getLong(index);
     }
     /**
      * <code>repeated int64 blockIds = 13;</code>
+     * @param index The index to set the value at.
+     * @param value The blockIds to set.
+     * @return This builder for chaining.
      */
     public Builder setBlockIds(
         int index, long value) {
       ensureBlockIdsIsMutable();
-      blockIds_.set(index, value);
+      blockIds_.setLong(index, value);
       onChanged();
       return this;
     }
     /**
      * <code>repeated int64 blockIds = 13;</code>
+     * @param value The blockIds to add.
+     * @return This builder for chaining.
      */
     public Builder addBlockIds(long value) {
       ensureBlockIdsIsMutable();
-      blockIds_.add(value);
+      blockIds_.addLong(value);
       onChanged();
       return this;
     }
     /**
      * <code>repeated int64 blockIds = 13;</code>
+     * @param values The blockIds to add.
+     * @return This builder for chaining.
      */
     public Builder addAllBlockIds(
         java.lang.Iterable<? extends java.lang.Long> values) {
@@ -2704,9 +2864,10 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated int64 blockIds = 13;</code>
+     * @return This builder for chaining.
      */
     public Builder clearBlockIds() {
-      blockIds_ = java.util.Collections.emptyList();
+      blockIds_ = emptyLongList();
       bitField0_ = (bitField0_ & ~0x00001000);
       onChanged();
       return this;
@@ -2715,18 +2876,22 @@ private static final long serialVersionUID = 0L;
     private long lastModificationTimeMs_ ;
     /**
      * <code>optional int64 lastModificationTimeMs = 14;</code>
+     * @return Whether the lastModificationTimeMs field is set.
      */
     public boolean hasLastModificationTimeMs() {
-      return ((bitField0_ & 0x00002000) == 0x00002000);
+      return ((bitField0_ & 0x00002000) != 0);
     }
     /**
      * <code>optional int64 lastModificationTimeMs = 14;</code>
+     * @return The lastModificationTimeMs.
      */
     public long getLastModificationTimeMs() {
       return lastModificationTimeMs_;
     }
     /**
      * <code>optional int64 lastModificationTimeMs = 14;</code>
+     * @param value The lastModificationTimeMs to set.
+     * @return This builder for chaining.
      */
     public Builder setLastModificationTimeMs(long value) {
       bitField0_ |= 0x00002000;
@@ -2736,6 +2901,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 lastModificationTimeMs = 14;</code>
+     * @return This builder for chaining.
      */
     public Builder clearLastModificationTimeMs() {
       bitField0_ = (bitField0_ & ~0x00002000);
@@ -2747,18 +2913,22 @@ private static final long serialVersionUID = 0L;
     private long ttl_ ;
     /**
      * <code>optional int64 ttl = 15;</code>
+     * @return Whether the ttl field is set.
      */
     public boolean hasTtl() {
-      return ((bitField0_ & 0x00004000) == 0x00004000);
+      return ((bitField0_ & 0x00004000) != 0);
     }
     /**
      * <code>optional int64 ttl = 15;</code>
+     * @return The ttl.
      */
     public long getTtl() {
       return ttl_;
     }
     /**
      * <code>optional int64 ttl = 15;</code>
+     * @param value The ttl to set.
+     * @return This builder for chaining.
      */
     public Builder setTtl(long value) {
       bitField0_ |= 0x00004000;
@@ -2768,6 +2938,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 ttl = 15;</code>
+     * @return This builder for chaining.
      */
     public Builder clearTtl() {
       bitField0_ = (bitField0_ & ~0x00004000);
@@ -2779,12 +2950,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object owner_ = "";
     /**
      * <code>optional string owner = 16;</code>
+     * @return Whether the owner field is set.
      */
     public boolean hasOwner() {
-      return ((bitField0_ & 0x00008000) == 0x00008000);
+      return ((bitField0_ & 0x00008000) != 0);
     }
     /**
      * <code>optional string owner = 16;</code>
+     * @return The owner.
      */
     public java.lang.String getOwner() {
       java.lang.Object ref = owner_;
@@ -2802,6 +2975,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string owner = 16;</code>
+     * @return The bytes for owner.
      */
     public com.google.protobuf.ByteString
         getOwnerBytes() {
@@ -2818,6 +2992,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string owner = 16;</code>
+     * @param value The owner to set.
+     * @return This builder for chaining.
      */
     public Builder setOwner(
         java.lang.String value) {
@@ -2831,6 +3007,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string owner = 16;</code>
+     * @return This builder for chaining.
      */
     public Builder clearOwner() {
       bitField0_ = (bitField0_ & ~0x00008000);
@@ -2840,6 +3017,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string owner = 16;</code>
+     * @param value The bytes for owner to set.
+     * @return This builder for chaining.
      */
     public Builder setOwnerBytes(
         com.google.protobuf.ByteString value) {
@@ -2855,12 +3034,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object group_ = "";
     /**
      * <code>optional string group = 17;</code>
+     * @return Whether the group field is set.
      */
     public boolean hasGroup() {
-      return ((bitField0_ & 0x00010000) == 0x00010000);
+      return ((bitField0_ & 0x00010000) != 0);
     }
     /**
      * <code>optional string group = 17;</code>
+     * @return The group.
      */
     public java.lang.String getGroup() {
       java.lang.Object ref = group_;
@@ -2878,6 +3059,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string group = 17;</code>
+     * @return The bytes for group.
      */
     public com.google.protobuf.ByteString
         getGroupBytes() {
@@ -2894,6 +3076,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string group = 17;</code>
+     * @param value The group to set.
+     * @return This builder for chaining.
      */
     public Builder setGroup(
         java.lang.String value) {
@@ -2907,6 +3091,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string group = 17;</code>
+     * @return This builder for chaining.
      */
     public Builder clearGroup() {
       bitField0_ = (bitField0_ & ~0x00010000);
@@ -2916,6 +3101,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string group = 17;</code>
+     * @param value The bytes for group to set.
+     * @return This builder for chaining.
      */
     public Builder setGroupBytes(
         com.google.protobuf.ByteString value) {
@@ -2931,18 +3118,22 @@ private static final long serialVersionUID = 0L;
     private int mode_ ;
     /**
      * <code>optional int32 mode = 18;</code>
+     * @return Whether the mode field is set.
      */
     public boolean hasMode() {
-      return ((bitField0_ & 0x00020000) == 0x00020000);
+      return ((bitField0_ & 0x00020000) != 0);
     }
     /**
      * <code>optional int32 mode = 18;</code>
+     * @return The mode.
      */
     public int getMode() {
       return mode_;
     }
     /**
      * <code>optional int32 mode = 18;</code>
+     * @param value The mode to set.
+     * @return This builder for chaining.
      */
     public Builder setMode(int value) {
       bitField0_ |= 0x00020000;
@@ -2952,6 +3143,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int32 mode = 18;</code>
+     * @return This builder for chaining.
      */
     public Builder clearMode() {
       bitField0_ = (bitField0_ & ~0x00020000);
@@ -2963,12 +3155,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object persistenceState_ = "";
     /**
      * <code>optional string persistenceState = 19;</code>
+     * @return Whether the persistenceState field is set.
      */
     public boolean hasPersistenceState() {
-      return ((bitField0_ & 0x00040000) == 0x00040000);
+      return ((bitField0_ & 0x00040000) != 0);
     }
     /**
      * <code>optional string persistenceState = 19;</code>
+     * @return The persistenceState.
      */
     public java.lang.String getPersistenceState() {
       java.lang.Object ref = persistenceState_;
@@ -2986,6 +3180,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string persistenceState = 19;</code>
+     * @return The bytes for persistenceState.
      */
     public com.google.protobuf.ByteString
         getPersistenceStateBytes() {
@@ -3002,6 +3197,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string persistenceState = 19;</code>
+     * @param value The persistenceState to set.
+     * @return This builder for chaining.
      */
     public Builder setPersistenceState(
         java.lang.String value) {
@@ -3015,6 +3212,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string persistenceState = 19;</code>
+     * @return This builder for chaining.
      */
     public Builder clearPersistenceState() {
       bitField0_ = (bitField0_ & ~0x00040000);
@@ -3024,6 +3222,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string persistenceState = 19;</code>
+     * @param value The bytes for persistenceState to set.
+     * @return This builder for chaining.
      */
     public Builder setPersistenceStateBytes(
         com.google.protobuf.ByteString value) {
@@ -3039,18 +3239,22 @@ private static final long serialVersionUID = 0L;
     private boolean mountPoint_ ;
     /**
      * <code>optional bool mountPoint = 20;</code>
+     * @return Whether the mountPoint field is set.
      */
     public boolean hasMountPoint() {
-      return ((bitField0_ & 0x00080000) == 0x00080000);
+      return ((bitField0_ & 0x00080000) != 0);
     }
     /**
      * <code>optional bool mountPoint = 20;</code>
+     * @return The mountPoint.
      */
     public boolean getMountPoint() {
       return mountPoint_;
     }
     /**
      * <code>optional bool mountPoint = 20;</code>
+     * @param value The mountPoint to set.
+     * @return This builder for chaining.
      */
     public Builder setMountPoint(boolean value) {
       bitField0_ |= 0x00080000;
@@ -3060,6 +3264,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool mountPoint = 20;</code>
+     * @return This builder for chaining.
      */
     public Builder clearMountPoint() {
       bitField0_ = (bitField0_ & ~0x00080000);
@@ -3071,7 +3276,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<alluxio.grpc.FileBlockInfo> fileBlockInfos_ =
       java.util.Collections.emptyList();
     private void ensureFileBlockInfosIsMutable() {
-      if (!((bitField0_ & 0x00100000) == 0x00100000)) {
+      if (!((bitField0_ & 0x00100000) != 0)) {
         fileBlockInfos_ = new java.util.ArrayList<alluxio.grpc.FileBlockInfo>(fileBlockInfos_);
         bitField0_ |= 0x00100000;
        }
@@ -3300,7 +3505,7 @@ private static final long serialVersionUID = 0L;
         fileBlockInfosBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.FileBlockInfo, alluxio.grpc.FileBlockInfo.Builder, alluxio.grpc.FileBlockInfoOrBuilder>(
                 fileBlockInfos_,
-                ((bitField0_ & 0x00100000) == 0x00100000),
+                ((bitField0_ & 0x00100000) != 0),
                 getParentForChildren(),
                 isClean());
         fileBlockInfos_ = null;
@@ -3311,19 +3516,24 @@ private static final long serialVersionUID = 0L;
     private int ttlAction_ = 0;
     /**
      * <code>optional .alluxio.grpc.TtlAction ttlAction = 22;</code>
+     * @return Whether the ttlAction field is set.
      */
     public boolean hasTtlAction() {
-      return ((bitField0_ & 0x00200000) == 0x00200000);
+      return ((bitField0_ & 0x00200000) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.TtlAction ttlAction = 22;</code>
+     * @return The ttlAction.
      */
     public alluxio.grpc.TtlAction getTtlAction() {
+      @SuppressWarnings("deprecation")
       alluxio.grpc.TtlAction result = alluxio.grpc.TtlAction.valueOf(ttlAction_);
       return result == null ? alluxio.grpc.TtlAction.DELETE : result;
     }
     /**
      * <code>optional .alluxio.grpc.TtlAction ttlAction = 22;</code>
+     * @param value The ttlAction to set.
+     * @return This builder for chaining.
      */
     public Builder setTtlAction(alluxio.grpc.TtlAction value) {
       if (value == null) {
@@ -3336,6 +3546,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional .alluxio.grpc.TtlAction ttlAction = 22;</code>
+     * @return This builder for chaining.
      */
     public Builder clearTtlAction() {
       bitField0_ = (bitField0_ & ~0x00200000);
@@ -3347,18 +3558,22 @@ private static final long serialVersionUID = 0L;
     private long mountId_ ;
     /**
      * <code>optional int64 mountId = 23;</code>
+     * @return Whether the mountId field is set.
      */
     public boolean hasMountId() {
-      return ((bitField0_ & 0x00400000) == 0x00400000);
+      return ((bitField0_ & 0x00400000) != 0);
     }
     /**
      * <code>optional int64 mountId = 23;</code>
+     * @return The mountId.
      */
     public long getMountId() {
       return mountId_;
     }
     /**
      * <code>optional int64 mountId = 23;</code>
+     * @param value The mountId to set.
+     * @return This builder for chaining.
      */
     public Builder setMountId(long value) {
       bitField0_ |= 0x00400000;
@@ -3368,6 +3583,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 mountId = 23;</code>
+     * @return This builder for chaining.
      */
     public Builder clearMountId() {
       bitField0_ = (bitField0_ & ~0x00400000);
@@ -3379,18 +3595,22 @@ private static final long serialVersionUID = 0L;
     private int inAlluxioPercentage_ ;
     /**
      * <code>optional int32 inAlluxioPercentage = 24;</code>
+     * @return Whether the inAlluxioPercentage field is set.
      */
     public boolean hasInAlluxioPercentage() {
-      return ((bitField0_ & 0x00800000) == 0x00800000);
+      return ((bitField0_ & 0x00800000) != 0);
     }
     /**
      * <code>optional int32 inAlluxioPercentage = 24;</code>
+     * @return The inAlluxioPercentage.
      */
     public int getInAlluxioPercentage() {
       return inAlluxioPercentage_;
     }
     /**
      * <code>optional int32 inAlluxioPercentage = 24;</code>
+     * @param value The inAlluxioPercentage to set.
+     * @return This builder for chaining.
      */
     public Builder setInAlluxioPercentage(int value) {
       bitField0_ |= 0x00800000;
@@ -3400,6 +3620,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int32 inAlluxioPercentage = 24;</code>
+     * @return This builder for chaining.
      */
     public Builder clearInAlluxioPercentage() {
       bitField0_ = (bitField0_ & ~0x00800000);
@@ -3411,18 +3632,22 @@ private static final long serialVersionUID = 0L;
     private int inMemoryPercentage_ ;
     /**
      * <code>optional int32 inMemoryPercentage = 25;</code>
+     * @return Whether the inMemoryPercentage field is set.
      */
     public boolean hasInMemoryPercentage() {
-      return ((bitField0_ & 0x01000000) == 0x01000000);
+      return ((bitField0_ & 0x01000000) != 0);
     }
     /**
      * <code>optional int32 inMemoryPercentage = 25;</code>
+     * @return The inMemoryPercentage.
      */
     public int getInMemoryPercentage() {
       return inMemoryPercentage_;
     }
     /**
      * <code>optional int32 inMemoryPercentage = 25;</code>
+     * @param value The inMemoryPercentage to set.
+     * @return This builder for chaining.
      */
     public Builder setInMemoryPercentage(int value) {
       bitField0_ |= 0x01000000;
@@ -3432,6 +3657,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int32 inMemoryPercentage = 25;</code>
+     * @return This builder for chaining.
      */
     public Builder clearInMemoryPercentage() {
       bitField0_ = (bitField0_ & ~0x01000000);
@@ -3443,12 +3669,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object ufsFingerprint_ = "";
     /**
      * <code>optional string ufsFingerprint = 26;</code>
+     * @return Whether the ufsFingerprint field is set.
      */
     public boolean hasUfsFingerprint() {
-      return ((bitField0_ & 0x02000000) == 0x02000000);
+      return ((bitField0_ & 0x02000000) != 0);
     }
     /**
      * <code>optional string ufsFingerprint = 26;</code>
+     * @return The ufsFingerprint.
      */
     public java.lang.String getUfsFingerprint() {
       java.lang.Object ref = ufsFingerprint_;
@@ -3466,6 +3694,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string ufsFingerprint = 26;</code>
+     * @return The bytes for ufsFingerprint.
      */
     public com.google.protobuf.ByteString
         getUfsFingerprintBytes() {
@@ -3482,6 +3711,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string ufsFingerprint = 26;</code>
+     * @param value The ufsFingerprint to set.
+     * @return This builder for chaining.
      */
     public Builder setUfsFingerprint(
         java.lang.String value) {
@@ -3495,6 +3726,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string ufsFingerprint = 26;</code>
+     * @return This builder for chaining.
      */
     public Builder clearUfsFingerprint() {
       bitField0_ = (bitField0_ & ~0x02000000);
@@ -3504,6 +3736,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string ufsFingerprint = 26;</code>
+     * @param value The bytes for ufsFingerprint to set.
+     * @return This builder for chaining.
      */
     public Builder setUfsFingerprintBytes(
         com.google.protobuf.ByteString value) {
@@ -3516,17 +3750,19 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private alluxio.grpc.PAcl acl_ = null;
+    private alluxio.grpc.PAcl acl_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.PAcl, alluxio.grpc.PAcl.Builder, alluxio.grpc.PAclOrBuilder> aclBuilder_;
     /**
      * <code>optional .alluxio.grpc.file.PAcl acl = 27;</code>
+     * @return Whether the acl field is set.
      */
     public boolean hasAcl() {
-      return ((bitField0_ & 0x04000000) == 0x04000000);
+      return ((bitField0_ & 0x04000000) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.file.PAcl acl = 27;</code>
+     * @return The acl.
      */
     public alluxio.grpc.PAcl getAcl() {
       if (aclBuilder_ == null) {
@@ -3570,7 +3806,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeAcl(alluxio.grpc.PAcl value) {
       if (aclBuilder_ == null) {
-        if (((bitField0_ & 0x04000000) == 0x04000000) &&
+        if (((bitField0_ & 0x04000000) != 0) &&
             acl_ != null &&
             acl_ != alluxio.grpc.PAcl.getDefaultInstance()) {
           acl_ =
@@ -3634,17 +3870,19 @@ private static final long serialVersionUID = 0L;
       return aclBuilder_;
     }
 
-    private alluxio.grpc.PAcl defaultAcl_ = null;
+    private alluxio.grpc.PAcl defaultAcl_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.PAcl, alluxio.grpc.PAcl.Builder, alluxio.grpc.PAclOrBuilder> defaultAclBuilder_;
     /**
      * <code>optional .alluxio.grpc.file.PAcl defaultAcl = 28;</code>
+     * @return Whether the defaultAcl field is set.
      */
     public boolean hasDefaultAcl() {
-      return ((bitField0_ & 0x08000000) == 0x08000000);
+      return ((bitField0_ & 0x08000000) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.file.PAcl defaultAcl = 28;</code>
+     * @return The defaultAcl.
      */
     public alluxio.grpc.PAcl getDefaultAcl() {
       if (defaultAclBuilder_ == null) {
@@ -3688,7 +3926,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeDefaultAcl(alluxio.grpc.PAcl value) {
       if (defaultAclBuilder_ == null) {
-        if (((bitField0_ & 0x08000000) == 0x08000000) &&
+        if (((bitField0_ & 0x08000000) != 0) &&
             defaultAcl_ != null &&
             defaultAcl_ != alluxio.grpc.PAcl.getDefaultInstance()) {
           defaultAcl_ =
@@ -3755,18 +3993,22 @@ private static final long serialVersionUID = 0L;
     private int replicationMax_ ;
     /**
      * <code>optional int32 replicationMax = 29;</code>
+     * @return Whether the replicationMax field is set.
      */
     public boolean hasReplicationMax() {
-      return ((bitField0_ & 0x10000000) == 0x10000000);
+      return ((bitField0_ & 0x10000000) != 0);
     }
     /**
      * <code>optional int32 replicationMax = 29;</code>
+     * @return The replicationMax.
      */
     public int getReplicationMax() {
       return replicationMax_;
     }
     /**
      * <code>optional int32 replicationMax = 29;</code>
+     * @param value The replicationMax to set.
+     * @return This builder for chaining.
      */
     public Builder setReplicationMax(int value) {
       bitField0_ |= 0x10000000;
@@ -3776,6 +4018,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int32 replicationMax = 29;</code>
+     * @return This builder for chaining.
      */
     public Builder clearReplicationMax() {
       bitField0_ = (bitField0_ & ~0x10000000);
@@ -3787,18 +4030,22 @@ private static final long serialVersionUID = 0L;
     private int replicationMin_ ;
     /**
      * <code>optional int32 replicationMin = 30;</code>
+     * @return Whether the replicationMin field is set.
      */
     public boolean hasReplicationMin() {
-      return ((bitField0_ & 0x20000000) == 0x20000000);
+      return ((bitField0_ & 0x20000000) != 0);
     }
     /**
      * <code>optional int32 replicationMin = 30;</code>
+     * @return The replicationMin.
      */
     public int getReplicationMin() {
       return replicationMin_;
     }
     /**
      * <code>optional int32 replicationMin = 30;</code>
+     * @param value The replicationMin to set.
+     * @return This builder for chaining.
      */
     public Builder setReplicationMin(int value) {
       bitField0_ |= 0x20000000;
@@ -3808,6 +4055,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int32 replicationMin = 30;</code>
+     * @return This builder for chaining.
      */
     public Builder clearReplicationMin() {
       bitField0_ = (bitField0_ & ~0x20000000);
@@ -3819,18 +4067,22 @@ private static final long serialVersionUID = 0L;
     private long lastAccessTimeMs_ ;
     /**
      * <code>optional int64 lastAccessTimeMs = 31;</code>
+     * @return Whether the lastAccessTimeMs field is set.
      */
     public boolean hasLastAccessTimeMs() {
-      return ((bitField0_ & 0x40000000) == 0x40000000);
+      return ((bitField0_ & 0x40000000) != 0);
     }
     /**
      * <code>optional int64 lastAccessTimeMs = 31;</code>
+     * @return The lastAccessTimeMs.
      */
     public long getLastAccessTimeMs() {
       return lastAccessTimeMs_;
     }
     /**
      * <code>optional int64 lastAccessTimeMs = 31;</code>
+     * @param value The lastAccessTimeMs to set.
+     * @return This builder for chaining.
      */
     public Builder setLastAccessTimeMs(long value) {
       bitField0_ |= 0x40000000;
@@ -3840,6 +4092,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 lastAccessTimeMs = 31;</code>
+     * @return This builder for chaining.
      */
     public Builder clearLastAccessTimeMs() {
       bitField0_ = (bitField0_ & ~0x40000000);
@@ -3847,11 +4100,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -3873,6 +4128,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<FileInfo>
       PARSER = new com.google.protobuf.AbstractParser<FileInfo>() {
+    @java.lang.Override
     public FileInfo parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -3890,6 +4146,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.FileInfo getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

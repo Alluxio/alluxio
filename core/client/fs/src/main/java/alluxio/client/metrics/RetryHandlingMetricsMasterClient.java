@@ -13,9 +13,12 @@ package alluxio.client.metrics;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ClearMetricsPRequest;
 import alluxio.grpc.ClientMetrics;
+import alluxio.grpc.GetMetricsPOptions;
+import alluxio.grpc.MetricValue;
 import alluxio.grpc.MetricsHeartbeatPOptions;
 import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
@@ -24,6 +27,7 @@ import alluxio.master.MasterClientContext;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -81,5 +85,11 @@ public class RetryHandlingMetricsMasterClient extends AbstractMasterClient
       disconnect();
       throw new UnavailableException(e);
     }
+  }
+
+  @Override
+  public Map<String, MetricValue> getMetrics() throws AlluxioStatusException {
+    return retryRPC(
+        () -> mClient.getMetrics(GetMetricsPOptions.getDefaultInstance()).getMetricsMap());
   }
 }

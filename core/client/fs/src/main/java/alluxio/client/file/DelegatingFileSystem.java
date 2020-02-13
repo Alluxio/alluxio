@@ -147,6 +147,13 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
+  public FileInStream openFile(URIStatus status, OpenFilePOptions options)
+      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+      IOException, AlluxioException {
+    return mDelegatedFileSystem.openFile(status, options);
+  }
+
+  @Override
   public void persist(AlluxioURI path, ScheduleAsyncPersistencePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     mDelegatedFileSystem.persist(path, options);

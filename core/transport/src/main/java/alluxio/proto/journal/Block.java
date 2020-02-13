@@ -20,10 +20,12 @@ public final class Block {
 
     /**
      * <code>optional int64 next_container_id = 1;</code>
+     * @return Whether the nextContainerId field is set.
      */
     boolean hasNextContainerId();
     /**
      * <code>optional int64 next_container_id = 1;</code>
+     * @return The nextContainerId.
      */
     long getNextContainerId();
   }
@@ -44,7 +46,13 @@ public final class Block {
       super(builder);
     }
     private BlockContainerIdGeneratorEntry() {
-      nextContainerId_ = 0L;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new BlockContainerIdGeneratorEntry();
     }
 
     @java.lang.Override
@@ -71,16 +79,16 @@ public final class Block {
             case 0:
               done = true;
               break;
+            case 8: {
+              bitField0_ |= 0x00000001;
+              nextContainerId_ = input.readInt64();
+              break;
+            }
             default: {
               if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
-              break;
-            }
-            case 8: {
-              bitField0_ |= 0x00000001;
-              nextContainerId_ = input.readInt64();
               break;
             }
           }
@@ -100,6 +108,7 @@ public final class Block {
       return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_BlockContainerIdGeneratorEntry_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_BlockContainerIdGeneratorEntry_fieldAccessorTable
@@ -112,18 +121,21 @@ public final class Block {
     private long nextContainerId_;
     /**
      * <code>optional int64 next_container_id = 1;</code>
+     * @return Whether the nextContainerId field is set.
      */
     public boolean hasNextContainerId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional int64 next_container_id = 1;</code>
+     * @return The nextContainerId.
      */
     public long getNextContainerId() {
       return nextContainerId_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -133,20 +145,22 @@ public final class Block {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         output.writeInt64(1, nextContainerId_);
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, nextContainerId_);
       }
@@ -165,14 +179,13 @@ public final class Block {
       }
       alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry other = (alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry) obj;
 
-      boolean result = true;
-      result = result && (hasNextContainerId() == other.hasNextContainerId());
+      if (hasNextContainerId() != other.hasNextContainerId()) return false;
       if (hasNextContainerId()) {
-        result = result && (getNextContainerId()
-            == other.getNextContainerId());
+        if (getNextContainerId()
+            != other.getNextContainerId()) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -262,6 +275,7 @@ public final class Block {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -269,6 +283,7 @@ public final class Block {
     public static Builder newBuilder(alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -296,6 +311,7 @@ public final class Block {
         return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_BlockContainerIdGeneratorEntry_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_BlockContainerIdGeneratorEntry_fieldAccessorTable
@@ -318,6 +334,7 @@ public final class Block {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         nextContainerId_ = 0L;
@@ -325,15 +342,18 @@ public final class Block {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_BlockContainerIdGeneratorEntry_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry getDefaultInstanceForType() {
         return alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry build() {
         alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry result = buildPartial();
         if (!result.isInitialized()) {
@@ -342,45 +362,53 @@ public final class Block {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry buildPartial() {
         alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry result = new alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.nextContainerId_ = nextContainerId_;
           to_bitField0_ |= 0x00000001;
         }
-        result.nextContainerId_ = nextContainerId_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry) {
           return mergeFrom((alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry)other);
@@ -400,10 +428,12 @@ public final class Block {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -426,18 +456,22 @@ public final class Block {
       private long nextContainerId_ ;
       /**
        * <code>optional int64 next_container_id = 1;</code>
+       * @return Whether the nextContainerId field is set.
        */
       public boolean hasNextContainerId() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional int64 next_container_id = 1;</code>
+       * @return The nextContainerId.
        */
       public long getNextContainerId() {
         return nextContainerId_;
       }
       /**
        * <code>optional int64 next_container_id = 1;</code>
+       * @param value The nextContainerId to set.
+       * @return This builder for chaining.
        */
       public Builder setNextContainerId(long value) {
         bitField0_ |= 0x00000001;
@@ -447,6 +481,7 @@ public final class Block {
       }
       /**
        * <code>optional int64 next_container_id = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearNextContainerId() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -454,11 +489,13 @@ public final class Block {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -480,6 +517,7 @@ public final class Block {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<BlockContainerIdGeneratorEntry>
         PARSER = new com.google.protobuf.AbstractParser<BlockContainerIdGeneratorEntry>() {
+      @java.lang.Override
       public BlockContainerIdGeneratorEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -497,6 +535,7 @@ public final class Block {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -509,19 +548,23 @@ public final class Block {
 
     /**
      * <code>optional int64 block_id = 1;</code>
+     * @return Whether the blockId field is set.
      */
     boolean hasBlockId();
     /**
      * <code>optional int64 block_id = 1;</code>
+     * @return The blockId.
      */
     long getBlockId();
 
     /**
      * <code>optional int64 length = 2;</code>
+     * @return Whether the length field is set.
      */
     boolean hasLength();
     /**
      * <code>optional int64 length = 2;</code>
+     * @return The length.
      */
     long getLength();
   }
@@ -542,8 +585,13 @@ public final class Block {
       super(builder);
     }
     private BlockInfoEntry() {
-      blockId_ = 0L;
-      length_ = 0L;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new BlockInfoEntry();
     }
 
     @java.lang.Override
@@ -570,13 +618,6 @@ public final class Block {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               bitField0_ |= 0x00000001;
               blockId_ = input.readInt64();
@@ -585,6 +626,13 @@ public final class Block {
             case 16: {
               bitField0_ |= 0x00000002;
               length_ = input.readInt64();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -604,6 +652,7 @@ public final class Block {
       return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_BlockInfoEntry_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_BlockInfoEntry_fieldAccessorTable
@@ -616,12 +665,14 @@ public final class Block {
     private long blockId_;
     /**
      * <code>optional int64 block_id = 1;</code>
+     * @return Whether the blockId field is set.
      */
     public boolean hasBlockId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional int64 block_id = 1;</code>
+     * @return The blockId.
      */
     public long getBlockId() {
       return blockId_;
@@ -631,18 +682,21 @@ public final class Block {
     private long length_;
     /**
      * <code>optional int64 length = 2;</code>
+     * @return Whether the length field is set.
      */
     public boolean hasLength() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional int64 length = 2;</code>
+     * @return The length.
      */
     public long getLength() {
       return length_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -652,27 +706,29 @@ public final class Block {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         output.writeInt64(1, blockId_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         output.writeInt64(2, length_);
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, blockId_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(2, length_);
       }
@@ -691,19 +747,18 @@ public final class Block {
       }
       alluxio.proto.journal.Block.BlockInfoEntry other = (alluxio.proto.journal.Block.BlockInfoEntry) obj;
 
-      boolean result = true;
-      result = result && (hasBlockId() == other.hasBlockId());
+      if (hasBlockId() != other.hasBlockId()) return false;
       if (hasBlockId()) {
-        result = result && (getBlockId()
-            == other.getBlockId());
+        if (getBlockId()
+            != other.getBlockId()) return false;
       }
-      result = result && (hasLength() == other.hasLength());
+      if (hasLength() != other.hasLength()) return false;
       if (hasLength()) {
-        result = result && (getLength()
-            == other.getLength());
+        if (getLength()
+            != other.getLength()) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -798,6 +853,7 @@ public final class Block {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -805,6 +861,7 @@ public final class Block {
     public static Builder newBuilder(alluxio.proto.journal.Block.BlockInfoEntry prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -832,6 +889,7 @@ public final class Block {
         return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_BlockInfoEntry_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_BlockInfoEntry_fieldAccessorTable
@@ -854,6 +912,7 @@ public final class Block {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         blockId_ = 0L;
@@ -863,15 +922,18 @@ public final class Block {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_BlockInfoEntry_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Block.BlockInfoEntry getDefaultInstanceForType() {
         return alluxio.proto.journal.Block.BlockInfoEntry.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Block.BlockInfoEntry build() {
         alluxio.proto.journal.Block.BlockInfoEntry result = buildPartial();
         if (!result.isInitialized()) {
@@ -880,49 +942,57 @@ public final class Block {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Block.BlockInfoEntry buildPartial() {
         alluxio.proto.journal.Block.BlockInfoEntry result = new alluxio.proto.journal.Block.BlockInfoEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.blockId_ = blockId_;
           to_bitField0_ |= 0x00000001;
         }
-        result.blockId_ = blockId_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.length_ = length_;
           to_bitField0_ |= 0x00000002;
         }
-        result.length_ = length_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Block.BlockInfoEntry) {
           return mergeFrom((alluxio.proto.journal.Block.BlockInfoEntry)other);
@@ -945,10 +1015,12 @@ public final class Block {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -971,18 +1043,22 @@ public final class Block {
       private long blockId_ ;
       /**
        * <code>optional int64 block_id = 1;</code>
+       * @return Whether the blockId field is set.
        */
       public boolean hasBlockId() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional int64 block_id = 1;</code>
+       * @return The blockId.
        */
       public long getBlockId() {
         return blockId_;
       }
       /**
        * <code>optional int64 block_id = 1;</code>
+       * @param value The blockId to set.
+       * @return This builder for chaining.
        */
       public Builder setBlockId(long value) {
         bitField0_ |= 0x00000001;
@@ -992,6 +1068,7 @@ public final class Block {
       }
       /**
        * <code>optional int64 block_id = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearBlockId() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -1003,18 +1080,22 @@ public final class Block {
       private long length_ ;
       /**
        * <code>optional int64 length = 2;</code>
+       * @return Whether the length field is set.
        */
       public boolean hasLength() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <code>optional int64 length = 2;</code>
+       * @return The length.
        */
       public long getLength() {
         return length_;
       }
       /**
        * <code>optional int64 length = 2;</code>
+       * @param value The length to set.
+       * @return This builder for chaining.
        */
       public Builder setLength(long value) {
         bitField0_ |= 0x00000002;
@@ -1024,6 +1105,7 @@ public final class Block {
       }
       /**
        * <code>optional int64 length = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearLength() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -1031,11 +1113,13 @@ public final class Block {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -1057,6 +1141,7 @@ public final class Block {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<BlockInfoEntry>
         PARSER = new com.google.protobuf.AbstractParser<BlockInfoEntry>() {
+      @java.lang.Override
       public BlockInfoEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1074,6 +1159,7 @@ public final class Block {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.journal.Block.BlockInfoEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -1086,10 +1172,12 @@ public final class Block {
 
     /**
      * <code>optional int64 block_id = 1;</code>
+     * @return Whether the blockId field is set.
      */
     boolean hasBlockId();
     /**
      * <code>optional int64 block_id = 1;</code>
+     * @return The blockId.
      */
     long getBlockId();
   }
@@ -1110,7 +1198,13 @@ public final class Block {
       super(builder);
     }
     private DeleteBlockEntry() {
-      blockId_ = 0L;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new DeleteBlockEntry();
     }
 
     @java.lang.Override
@@ -1137,16 +1231,16 @@ public final class Block {
             case 0:
               done = true;
               break;
+            case 8: {
+              bitField0_ |= 0x00000001;
+              blockId_ = input.readInt64();
+              break;
+            }
             default: {
               if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
-              break;
-            }
-            case 8: {
-              bitField0_ |= 0x00000001;
-              blockId_ = input.readInt64();
               break;
             }
           }
@@ -1166,6 +1260,7 @@ public final class Block {
       return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_DeleteBlockEntry_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_DeleteBlockEntry_fieldAccessorTable
@@ -1178,18 +1273,21 @@ public final class Block {
     private long blockId_;
     /**
      * <code>optional int64 block_id = 1;</code>
+     * @return Whether the blockId field is set.
      */
     public boolean hasBlockId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional int64 block_id = 1;</code>
+     * @return The blockId.
      */
     public long getBlockId() {
       return blockId_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -1199,20 +1297,22 @@ public final class Block {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         output.writeInt64(1, blockId_);
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, blockId_);
       }
@@ -1231,14 +1331,13 @@ public final class Block {
       }
       alluxio.proto.journal.Block.DeleteBlockEntry other = (alluxio.proto.journal.Block.DeleteBlockEntry) obj;
 
-      boolean result = true;
-      result = result && (hasBlockId() == other.hasBlockId());
+      if (hasBlockId() != other.hasBlockId()) return false;
       if (hasBlockId()) {
-        result = result && (getBlockId()
-            == other.getBlockId());
+        if (getBlockId()
+            != other.getBlockId()) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -1328,6 +1427,7 @@ public final class Block {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -1335,6 +1435,7 @@ public final class Block {
     public static Builder newBuilder(alluxio.proto.journal.Block.DeleteBlockEntry prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -1362,6 +1463,7 @@ public final class Block {
         return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_DeleteBlockEntry_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_DeleteBlockEntry_fieldAccessorTable
@@ -1384,6 +1486,7 @@ public final class Block {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         blockId_ = 0L;
@@ -1391,15 +1494,18 @@ public final class Block {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.journal.Block.internal_static_alluxio_proto_journal_DeleteBlockEntry_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Block.DeleteBlockEntry getDefaultInstanceForType() {
         return alluxio.proto.journal.Block.DeleteBlockEntry.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Block.DeleteBlockEntry build() {
         alluxio.proto.journal.Block.DeleteBlockEntry result = buildPartial();
         if (!result.isInitialized()) {
@@ -1408,45 +1514,53 @@ public final class Block {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Block.DeleteBlockEntry buildPartial() {
         alluxio.proto.journal.Block.DeleteBlockEntry result = new alluxio.proto.journal.Block.DeleteBlockEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.blockId_ = blockId_;
           to_bitField0_ |= 0x00000001;
         }
-        result.blockId_ = blockId_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Block.DeleteBlockEntry) {
           return mergeFrom((alluxio.proto.journal.Block.DeleteBlockEntry)other);
@@ -1466,10 +1580,12 @@ public final class Block {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1492,18 +1608,22 @@ public final class Block {
       private long blockId_ ;
       /**
        * <code>optional int64 block_id = 1;</code>
+       * @return Whether the blockId field is set.
        */
       public boolean hasBlockId() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional int64 block_id = 1;</code>
+       * @return The blockId.
        */
       public long getBlockId() {
         return blockId_;
       }
       /**
        * <code>optional int64 block_id = 1;</code>
+       * @param value The blockId to set.
+       * @return This builder for chaining.
        */
       public Builder setBlockId(long value) {
         bitField0_ |= 0x00000001;
@@ -1513,6 +1633,7 @@ public final class Block {
       }
       /**
        * <code>optional int64 block_id = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearBlockId() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -1520,11 +1641,13 @@ public final class Block {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -1546,6 +1669,7 @@ public final class Block {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<DeleteBlockEntry>
         PARSER = new com.google.protobuf.AbstractParser<DeleteBlockEntry>() {
+      @java.lang.Override
       public DeleteBlockEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1563,6 +1687,7 @@ public final class Block {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.journal.Block.DeleteBlockEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -1600,18 +1725,10 @@ public final class Block {
       "\001(\003\"$\n\020DeleteBlockEntry\022\020\n\010block_id\030\001 \001(" +
       "\003"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-        }, assigner);
+        });
     internal_static_alluxio_proto_journal_BlockContainerIdGeneratorEntry_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_alluxio_proto_journal_BlockContainerIdGeneratorEntry_fieldAccessorTable = new

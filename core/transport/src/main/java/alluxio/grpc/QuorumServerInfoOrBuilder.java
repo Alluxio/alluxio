@@ -9,10 +9,12 @@ public interface QuorumServerInfoOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.NetAddress serverAddress = 1;</code>
+   * @return Whether the serverAddress field is set.
    */
   boolean hasServerAddress();
   /**
    * <code>optional .alluxio.grpc.NetAddress serverAddress = 1;</code>
+   * @return The serverAddress.
    */
   alluxio.grpc.NetAddress getServerAddress();
   /**
@@ -22,10 +24,12 @@ public interface QuorumServerInfoOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.journal.QuorumServerState serverState = 2;</code>
+   * @return Whether the serverState field is set.
    */
   boolean hasServerState();
   /**
    * <code>optional .alluxio.grpc.journal.QuorumServerState serverState = 2;</code>
+   * @return The serverState.
    */
   alluxio.grpc.QuorumServerState getServerState();
 }

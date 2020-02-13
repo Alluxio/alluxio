@@ -38,6 +38,7 @@ import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 
+import javax.security.sasl.SaslException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -270,6 +271,8 @@ public class AlluxioStatusException extends IOException {
       return new FailedPreconditionException(e);
     } catch (AlluxioStatusException e) {
       return e;
+    } catch (SaslException e) {
+      return new UnauthenticatedException(e);
     } catch (IOException e) {
       return new UnknownException(e);
     }

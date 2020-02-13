@@ -19,7 +19,7 @@ import alluxio.exception.JournalClosedException;
 import alluxio.exception.JournalClosedException.IOJournalClosedException;
 import alluxio.master.journal.JournalEntryStreamReader;
 import alluxio.master.journal.JournalWriter;
-import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
@@ -162,7 +162,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     }
 
     try (Timer.Context ctx = MetricsSystem
-        .timer(MasterMetrics.UFS_JOURNAL_FAILURE_RECOVER_TIMER).time()) {
+        .timer(MetricKey.MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER.getName()).time()) {
       long lastPersistSeq = recoverLastPersistedJournalEntry();
       if (lastPersistSeq == -1) {
         throw new RuntimeException("Cannot find any journal entry to recover from.");
