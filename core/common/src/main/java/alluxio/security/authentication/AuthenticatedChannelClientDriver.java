@@ -12,8 +12,8 @@
 package alluxio.security.authentication;
 
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnauthenticatedException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcChannelKey;
 import alluxio.grpc.SaslMessage;
 import alluxio.util.LogUtils;
@@ -191,7 +191,7 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
       }
       throw statExc;
     } catch (TimeoutException e) {
-      throw new DeadlineExceededException(e);
+      throw new UnavailableException(e);
     }
   }
 
