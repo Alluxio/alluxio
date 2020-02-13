@@ -45,6 +45,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -76,7 +77,8 @@ public final class MetricsSystem {
   // The source of the metrics in this metrics system.
   // It can be set through property keys based on process types.
   // Local hostname will be used if no related property key founds.
-  private static String sSourceNameSuppier = CommonUtils.memoize(this::constructSourceName);
+  private static Supplier<String> sSourceNameSupplier =
+      CommonUtils.memoize(() -> constructSourceName());
 
   /**
    * An enum of supported instance type.
@@ -375,9 +377,9 @@ public final class MetricsSystem {
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
     if (name.startsWith(instance.toString())) {
-      return Joiner.on(".").join(name, sSourceNameSuppier);
+      return Joiner.on(".").join(name, sSourceNameSupplier);
     }
-    return Joiner.on(".").join(instance, name, sSourceNameSuppier);
+    return Joiner.on(".").join(instance, name, sSourceNameSupplier);
   }
 
   /**

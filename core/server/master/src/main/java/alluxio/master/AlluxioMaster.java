@@ -13,7 +13,6 @@ package alluxio.master;
 
 import alluxio.ProcessUtils;
 import alluxio.RuntimeConstants;
-import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 
 import org.slf4j.Logger;

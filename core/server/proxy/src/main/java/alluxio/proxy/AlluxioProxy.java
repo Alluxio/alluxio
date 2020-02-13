@@ -14,7 +14,6 @@ package alluxio.proxy;
 import alluxio.ProcessUtils;
 import alluxio.RuntimeConstants;
 import alluxio.conf.ServerConfiguration;
-import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 
