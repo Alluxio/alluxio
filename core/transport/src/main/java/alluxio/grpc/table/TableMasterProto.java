@@ -419,127 +419,127 @@ public final class TableMasterProto {
       "value\030\001 \001(\0132\030.alluxio.grpc.table.Date\022,\n" +
       "\nhigh_value\030\002 \001(\0132\030.alluxio.grpc.table.D" +
       "ate\022\021\n\tnum_nulls\030\003 \001(\003\022\025\n\rnum_distincts\030" +
-      "\004 \001(\003\022\023\n\013bit_vectors\030\005 \001(\t\"\324\001\n\nSyncStatu" +
-      "s\022\030\n\020tables_unchanged\030\001 \003(\t\022\026\n\016tables_up" +
-      "dated\030\002 \003(\t\022\026\n\016tables_removed\030\003 \003(\t\022G\n\rt" +
-      "ables_errors\030\004 \003(\01320.alluxio.grpc.table." +
-      "SyncStatus.TablesErrorsEntry\0323\n\021TablesEr" +
-      "rorsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028" +
-      "\001\"\031\n\027GetAllDatabasesPRequest\",\n\030GetAllDa" +
-      "tabasesPResponse\022\020\n\010database\030\001 \003(\t\"(\n\024Ge" +
-      "tAllTablesPRequest\022\020\n\010database\030\001 \001(\t\"&\n\025" +
-      "GetAllTablesPResponse\022\r\n\005table\030\001 \003(\t\"&\n\023" +
-      "GetDatabasePRequest\022\017\n\007db_name\030\001 \001(\t\"@\n\024" +
-      "GetDatabasePResponse\022(\n\002db\030\001 \001(\0132\034.allux" +
-      "io.grpc.table.Database\"7\n\020GetTablePReque" +
-      "st\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\"" +
-      "F\n\021GetTablePResponse\0221\n\ntable_info\030\001 \001(\013" +
-      "2\035.alluxio.grpc.table.TableInfo\"\202\002\n\026Atta" +
-      "chDatabasePRequest\022\020\n\010udb_type\030\001 \001(\t\022\032\n\022" +
-      "udb_connection_uri\030\002 \001(\t\022\023\n\013udb_db_name\030" +
-      "\003 \001(\t\022\017\n\007db_name\030\004 \001(\t\022H\n\007options\030\005 \003(\0132" +
-      "7.alluxio.grpc.table.AttachDatabasePRequ" +
-      "est.OptionsEntry\022\032\n\022ignore_sync_errors\030\006" +
-      " \001(\010\032.\n\014OptionsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005val" +
-      "ue\030\002 \001(\t:\0028\001\"_\n\027AttachDatabasePResponse\022" +
-      "\017\n\007success\030\001 \001(\010\0223\n\013sync_status\030\002 \001(\0132\036." +
-      "alluxio.grpc.table.SyncStatus\")\n\026DetachD" +
-      "atabasePRequest\022\017\n\007db_name\030\001 \001(\t\"*\n\027Deta" +
-      "chDatabasePResponse\022\017\n\007success\030\001 \001(\010\"\'\n\024" +
-      "SyncDatabasePRequest\022\017\n\007db_name\030\001 \001(\t\"X\n" +
-      "\025SyncDatabasePResponse\022\017\n\007success\030\001 \001(\010\022" +
-      ".\n\006status\030\002 \001(\0132\036.alluxio.grpc.table.Syn" +
-      "cStatus\"\251\001\n\016FileStatistics\022>\n\006column\030\001 \003" +
-      "(\0132..alluxio.grpc.table.FileStatistics.C" +
-      "olumnEntry\032W\n\013ColumnEntry\022\013\n\003key\030\001 \001(\t\0227" +
-      "\n\005value\030\002 \001(\0132(.alluxio.grpc.table.Colum" +
-      "nStatisticsInfo:\0028\001\"Z\n GetTableColumnSta" +
+      "\004 \001(\003\022\023\n\013bit_vectors\030\005 \001(\t\"\354\001\n\nSyncStatu" +
+      "s\022G\n\rtables_errors\030\001 \003(\01320.alluxio.grpc." +
+      "table.SyncStatus.TablesErrorsEntry\022\026\n\016ta" +
+      "bles_ignored\030\002 \003(\t\022\030\n\020tables_unchanged\030\003" +
+      " \003(\t\022\026\n\016tables_updated\030\004 \003(\t\022\026\n\016tables_r" +
+      "emoved\030\005 \003(\t\0323\n\021TablesErrorsEntry\022\013\n\003key" +
+      "\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\031\n\027GetAllDatab" +
+      "asesPRequest\",\n\030GetAllDatabasesPResponse" +
+      "\022\020\n\010database\030\001 \003(\t\"(\n\024GetAllTablesPReque" +
+      "st\022\020\n\010database\030\001 \001(\t\"&\n\025GetAllTablesPRes" +
+      "ponse\022\r\n\005table\030\001 \003(\t\"&\n\023GetDatabasePRequ" +
+      "est\022\017\n\007db_name\030\001 \001(\t\"@\n\024GetDatabasePResp" +
+      "onse\022(\n\002db\030\001 \001(\0132\034.alluxio.grpc.table.Da" +
+      "tabase\"7\n\020GetTablePRequest\022\017\n\007db_name\030\001 " +
+      "\001(\t\022\022\n\ntable_name\030\002 \001(\t\"F\n\021GetTablePResp" +
+      "onse\0221\n\ntable_info\030\001 \001(\0132\035.alluxio.grpc." +
+      "table.TableInfo\"\202\002\n\026AttachDatabasePReque" +
+      "st\022\020\n\010udb_type\030\001 \001(\t\022\032\n\022udb_connection_u" +
+      "ri\030\002 \001(\t\022\023\n\013udb_db_name\030\003 \001(\t\022\017\n\007db_name" +
+      "\030\004 \001(\t\022H\n\007options\030\005 \003(\01327.alluxio.grpc.t" +
+      "able.AttachDatabasePRequest.OptionsEntry" +
+      "\022\032\n\022ignore_sync_errors\030\006 \001(\010\032.\n\014OptionsE" +
+      "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"_\n\027" +
+      "AttachDatabasePResponse\022\017\n\007success\030\001 \001(\010" +
+      "\0223\n\013sync_status\030\002 \001(\0132\036.alluxio.grpc.tab" +
+      "le.SyncStatus\")\n\026DetachDatabasePRequest\022" +
+      "\017\n\007db_name\030\001 \001(\t\"*\n\027DetachDatabasePRespo" +
+      "nse\022\017\n\007success\030\001 \001(\010\"\'\n\024SyncDatabasePReq" +
+      "uest\022\017\n\007db_name\030\001 \001(\t\"X\n\025SyncDatabasePRe" +
+      "sponse\022\017\n\007success\030\001 \001(\010\022.\n\006status\030\002 \001(\0132" +
+      "\036.alluxio.grpc.table.SyncStatus\"\251\001\n\016File" +
+      "Statistics\022>\n\006column\030\001 \003(\0132..alluxio.grp" +
+      "c.table.FileStatistics.ColumnEntry\032W\n\013Co" +
+      "lumnEntry\022\013\n\003key\030\001 \001(\t\0227\n\005value\030\002 \001(\0132(." +
+      "alluxio.grpc.table.ColumnStatisticsInfo:" +
+      "\0028\001\"Z\n GetTableColumnStatisticsPRequest\022" +
+      "\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\022\021\n\t" +
+      "col_names\030\003 \003(\t\"r\n$GetPartitionColumnSta" +
       "tisticsPRequest\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntabl" +
-      "e_name\030\002 \001(\t\022\021\n\tcol_names\030\003 \003(\t\"r\n$GetPa" +
-      "rtitionColumnStatisticsPRequest\022\017\n\007db_na" +
-      "me\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\022\021\n\tcol_name" +
-      "s\030\003 \003(\t\022\022\n\npart_names\030\004 \003(\t\"a\n!GetTableC" +
-      "olumnStatisticsPResponse\022<\n\nstatistics\030\001" +
-      " \003(\0132(.alluxio.grpc.table.ColumnStatisti" +
-      "csInfo\"T\n\024ColumnStatisticsList\022<\n\nstatis" +
-      "tics\030\001 \003(\0132(.alluxio.grpc.table.ColumnSt" +
-      "atisticsInfo\"\377\001\n%GetPartitionColumnStati" +
-      "sticsPResponse\022p\n\024partition_statistics\030\001" +
-      " \003(\0132R.alluxio.grpc.table.GetPartitionCo" +
-      "lumnStatisticsPResponse.PartitionStatist" +
-      "icsEntry\032d\n\030PartitionStatisticsEntry\022\013\n\003" +
-      "key\030\001 \001(\t\0227\n\005value\030\002 \001(\0132(.alluxio.grpc." +
-      "table.ColumnStatisticsList:\0028\001\"k\n\005Value\022" +
-      "\023\n\tlong_type\030\001 \001(\003H\000\022\025\n\013double_type\030\002 \001(" +
-      "\001H\000\022\025\n\013string_type\030\003 \001(\tH\000\022\026\n\014boolean_ty" +
-      "pe\030\004 \001(\010H\000B\007\n\005value\"X\n\005Range\022&\n\003low\030\001 \001(" +
-      "\0132\031.alluxio.grpc.table.Value\022\'\n\004high\030\002 \001" +
-      "(\0132\031.alluxio.grpc.table.Value\"5\n\010RangeSe" +
-      "t\022)\n\006ranges\030\001 \003(\0132\031.alluxio.grpc.table.R" +
-      "ange\"V\n\021EquatableValueSet\022-\n\ncandidates\030" +
-      "\001 \003(\0132\031.alluxio.grpc.table.Value\022\022\n\nwhit" +
-      "e_list\030\002 \001(\010\"\033\n\014AllOrNoneSet\022\013\n\003all\030\001 \001(" +
-      "\010\"\271\001\n\006Domain\022-\n\005range\030\001 \001(\0132\034.alluxio.gr" +
-      "pc.table.RangeSetH\000\022:\n\tequatable\030\002 \001(\0132%" +
-      ".alluxio.grpc.table.EquatableValueSetH\000\022" +
-      "7\n\013all_or_none\030\003 \001(\0132 .alluxio.grpc.tabl" +
-      "e.AllOrNoneSetH\000B\013\n\tvalue_set\"\265\001\n\nConstr" +
-      "aint\022Q\n\022column_constraints\030\001 \003(\01325.allux" +
-      "io.grpc.table.Constraint.ColumnConstrain" +
-      "tsEntry\032T\n\026ColumnConstraintsEntry\022\013\n\003key" +
-      "\030\001 \001(\t\022)\n\005value\030\002 \001(\0132\032.alluxio.grpc.tab" +
-      "le.Domain:\0028\001\"l\n\021ReadTablePRequest\022\017\n\007db" +
-      "_name\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\0222\n\nconst" +
-      "raint\030\003 \001(\0132\036.alluxio.grpc.table.Constra" +
-      "int\"G\n\022ReadTablePResponse\0221\n\npartitions\030" +
-      "\001 \003(\0132\035.alluxio.grpc.table.Partition\"Q\n\026" +
-      "TransformTablePRequest\022\017\n\007db_name\030\001 \001(\t\022" +
-      "\022\n\ntable_name\030\002 \001(\t\022\022\n\ndefinition\030\003 \001(\t\"" +
-      ")\n\027TransformTablePResponse\022\016\n\006job_id\030\001 \001" +
-      "(\003\"-\n\033GetTransformJobInfoPRequest\022\016\n\006job" +
-      "_id\030\001 \001(\003\"\234\001\n\020TransformJobInfo\022\017\n\007db_nam" +
-      "e\030\001 \001(\t\022\022\n\ntable_name\030\002 \001(\t\022\022\n\ndefinitio" +
-      "n\030\003 \001(\t\022\016\n\006job_id\030\004 \001(\003\022,\n\njob_status\030\005 " +
-      "\001(\0162\030.alluxio.grpc.job.Status\022\021\n\tjob_err" +
-      "or\030\006 \001(\t\"R\n\034GetTransformJobInfoPResponse" +
-      "\0222\n\004info\030\001 \003(\0132$.alluxio.grpc.table.Tran" +
-      "sformJobInfo*#\n\rPrincipalType\022\010\n\004USER\020\000\022" +
-      "\010\n\004ROLE\020\0012\304\n\n\030TableMasterClientService\022l" +
-      "\n\017GetAllDatabases\022+.alluxio.grpc.table.G" +
-      "etAllDatabasesPRequest\032,.alluxio.grpc.ta" +
-      "ble.GetAllDatabasesPResponse\022c\n\014GetAllTa" +
-      "bles\022(.alluxio.grpc.table.GetAllTablesPR" +
-      "equest\032).alluxio.grpc.table.GetAllTables" +
-      "PResponse\022`\n\013GetDatabase\022\'.alluxio.grpc." +
-      "table.GetDatabasePRequest\032(.alluxio.grpc" +
-      ".table.GetDatabasePResponse\022W\n\010GetTable\022" +
-      "$.alluxio.grpc.table.GetTablePRequest\032%." +
-      "alluxio.grpc.table.GetTablePResponse\022i\n\016" +
-      "AttachDatabase\022*.alluxio.grpc.table.Atta" +
-      "chDatabasePRequest\032+.alluxio.grpc.table." +
-      "AttachDatabasePResponse\022i\n\016DetachDatabas" +
-      "e\022*.alluxio.grpc.table.DetachDatabasePRe" +
-      "quest\032+.alluxio.grpc.table.DetachDatabas" +
-      "ePResponse\022c\n\014SyncDatabase\022(.alluxio.grp" +
-      "c.table.SyncDatabasePRequest\032).alluxio.g" +
-      "rpc.table.SyncDatabasePResponse\022\207\001\n\030GetT" +
-      "ableColumnStatistics\0224.alluxio.grpc.tabl" +
-      "e.GetTableColumnStatisticsPRequest\0325.all" +
-      "uxio.grpc.table.GetTableColumnStatistics" +
-      "PResponse\022\223\001\n\034GetPartitionColumnStatisti" +
-      "cs\0228.alluxio.grpc.table.GetPartitionColu" +
-      "mnStatisticsPRequest\0329.alluxio.grpc.tabl" +
-      "e.GetPartitionColumnStatisticsPResponse\022" +
-      "Z\n\tReadTable\022%.alluxio.grpc.table.ReadTa" +
-      "blePRequest\032&.alluxio.grpc.table.ReadTab" +
-      "lePResponse\022i\n\016TransformTable\022*.alluxio." +
-      "grpc.table.TransformTablePRequest\032+.allu" +
-      "xio.grpc.table.TransformTablePResponse\022x" +
-      "\n\023GetTransformJobInfo\022/.alluxio.grpc.tab" +
-      "le.GetTransformJobInfoPRequest\0320.alluxio" +
-      ".grpc.table.GetTransformJobInfoPResponse" +
-      "B(\n\022alluxio.grpc.tableB\020TableMasterProto" +
-      "P\001"
+      "e_name\030\002 \001(\t\022\021\n\tcol_names\030\003 \003(\t\022\022\n\npart_" +
+      "names\030\004 \003(\t\"a\n!GetTableColumnStatisticsP" +
+      "Response\022<\n\nstatistics\030\001 \003(\0132(.alluxio.g" +
+      "rpc.table.ColumnStatisticsInfo\"T\n\024Column" +
+      "StatisticsList\022<\n\nstatistics\030\001 \003(\0132(.all" +
+      "uxio.grpc.table.ColumnStatisticsInfo\"\377\001\n" +
+      "%GetPartitionColumnStatisticsPResponse\022p" +
+      "\n\024partition_statistics\030\001 \003(\0132R.alluxio.g" +
+      "rpc.table.GetPartitionColumnStatisticsPR" +
+      "esponse.PartitionStatisticsEntry\032d\n\030Part" +
+      "itionStatisticsEntry\022\013\n\003key\030\001 \001(\t\0227\n\005val" +
+      "ue\030\002 \001(\0132(.alluxio.grpc.table.ColumnStat" +
+      "isticsList:\0028\001\"k\n\005Value\022\023\n\tlong_type\030\001 \001" +
+      "(\003H\000\022\025\n\013double_type\030\002 \001(\001H\000\022\025\n\013string_ty" +
+      "pe\030\003 \001(\tH\000\022\026\n\014boolean_type\030\004 \001(\010H\000B\007\n\005va" +
+      "lue\"X\n\005Range\022&\n\003low\030\001 \001(\0132\031.alluxio.grpc" +
+      ".table.Value\022\'\n\004high\030\002 \001(\0132\031.alluxio.grp" +
+      "c.table.Value\"5\n\010RangeSet\022)\n\006ranges\030\001 \003(" +
+      "\0132\031.alluxio.grpc.table.Range\"V\n\021Equatabl" +
+      "eValueSet\022-\n\ncandidates\030\001 \003(\0132\031.alluxio." +
+      "grpc.table.Value\022\022\n\nwhite_list\030\002 \001(\010\"\033\n\014" +
+      "AllOrNoneSet\022\013\n\003all\030\001 \001(\010\"\271\001\n\006Domain\022-\n\005" +
+      "range\030\001 \001(\0132\034.alluxio.grpc.table.RangeSe" +
+      "tH\000\022:\n\tequatable\030\002 \001(\0132%.alluxio.grpc.ta" +
+      "ble.EquatableValueSetH\000\0227\n\013all_or_none\030\003" +
+      " \001(\0132 .alluxio.grpc.table.AllOrNoneSetH\000" +
+      "B\013\n\tvalue_set\"\265\001\n\nConstraint\022Q\n\022column_c" +
+      "onstraints\030\001 \003(\01325.alluxio.grpc.table.Co" +
+      "nstraint.ColumnConstraintsEntry\032T\n\026Colum" +
+      "nConstraintsEntry\022\013\n\003key\030\001 \001(\t\022)\n\005value\030" +
+      "\002 \001(\0132\032.alluxio.grpc.table.Domain:\0028\001\"l\n" +
+      "\021ReadTablePRequest\022\017\n\007db_name\030\001 \001(\t\022\022\n\nt" +
+      "able_name\030\002 \001(\t\0222\n\nconstraint\030\003 \001(\0132\036.al" +
+      "luxio.grpc.table.Constraint\"G\n\022ReadTable" +
+      "PResponse\0221\n\npartitions\030\001 \003(\0132\035.alluxio." +
+      "grpc.table.Partition\"Q\n\026TransformTablePR" +
+      "equest\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable_name\030\002 " +
+      "\001(\t\022\022\n\ndefinition\030\003 \001(\t\")\n\027TransformTabl" +
+      "ePResponse\022\016\n\006job_id\030\001 \001(\003\"-\n\033GetTransfo" +
+      "rmJobInfoPRequest\022\016\n\006job_id\030\001 \001(\003\"\234\001\n\020Tr" +
+      "ansformJobInfo\022\017\n\007db_name\030\001 \001(\t\022\022\n\ntable" +
+      "_name\030\002 \001(\t\022\022\n\ndefinition\030\003 \001(\t\022\016\n\006job_i" +
+      "d\030\004 \001(\003\022,\n\njob_status\030\005 \001(\0162\030.alluxio.gr" +
+      "pc.job.Status\022\021\n\tjob_error\030\006 \001(\t\"R\n\034GetT" +
+      "ransformJobInfoPResponse\0222\n\004info\030\001 \003(\0132$" +
+      ".alluxio.grpc.table.TransformJobInfo*#\n\r" +
+      "PrincipalType\022\010\n\004USER\020\000\022\010\n\004ROLE\020\0012\304\n\n\030Ta" +
+      "bleMasterClientService\022l\n\017GetAllDatabase" +
+      "s\022+.alluxio.grpc.table.GetAllDatabasesPR" +
+      "equest\032,.alluxio.grpc.table.GetAllDataba" +
+      "sesPResponse\022c\n\014GetAllTables\022(.alluxio.g" +
+      "rpc.table.GetAllTablesPRequest\032).alluxio" +
+      ".grpc.table.GetAllTablesPResponse\022`\n\013Get" +
+      "Database\022\'.alluxio.grpc.table.GetDatabas" +
+      "ePRequest\032(.alluxio.grpc.table.GetDataba" +
+      "sePResponse\022W\n\010GetTable\022$.alluxio.grpc.t" +
+      "able.GetTablePRequest\032%.alluxio.grpc.tab" +
+      "le.GetTablePResponse\022i\n\016AttachDatabase\022*" +
+      ".alluxio.grpc.table.AttachDatabasePReque" +
+      "st\032+.alluxio.grpc.table.AttachDatabasePR" +
+      "esponse\022i\n\016DetachDatabase\022*.alluxio.grpc" +
+      ".table.DetachDatabasePRequest\032+.alluxio." +
+      "grpc.table.DetachDatabasePResponse\022c\n\014Sy" +
+      "ncDatabase\022(.alluxio.grpc.table.SyncData" +
+      "basePRequest\032).alluxio.grpc.table.SyncDa" +
+      "tabasePResponse\022\207\001\n\030GetTableColumnStatis" +
+      "tics\0224.alluxio.grpc.table.GetTableColumn" +
+      "StatisticsPRequest\0325.alluxio.grpc.table." +
+      "GetTableColumnStatisticsPResponse\022\223\001\n\034Ge" +
+      "tPartitionColumnStatistics\0228.alluxio.grp" +
+      "c.table.GetPartitionColumnStatisticsPReq" +
+      "uest\0329.alluxio.grpc.table.GetPartitionCo" +
+      "lumnStatisticsPResponse\022Z\n\tReadTable\022%.a" +
+      "lluxio.grpc.table.ReadTablePRequest\032&.al" +
+      "luxio.grpc.table.ReadTablePResponse\022i\n\016T" +
+      "ransformTable\022*.alluxio.grpc.table.Trans" +
+      "formTablePRequest\032+.alluxio.grpc.table.T" +
+      "ransformTablePResponse\022x\n\023GetTransformJo" +
+      "bInfo\022/.alluxio.grpc.table.GetTransformJ" +
+      "obInfoPRequest\0320.alluxio.grpc.table.GetT" +
+      "ransformJobInfoPResponseB(\n\022alluxio.grpc" +
+      ".tableB\020TableMasterProtoP\001"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -690,7 +690,7 @@ public final class TableMasterProto {
     internal_static_alluxio_grpc_table_SyncStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_alluxio_grpc_table_SyncStatus_descriptor,
-        new java.lang.String[] { "TablesUnchanged", "TablesUpdated", "TablesRemoved", "TablesErrors", });
+        new java.lang.String[] { "TablesErrors", "TablesIgnored", "TablesUnchanged", "TablesUpdated", "TablesRemoved", });
     internal_static_alluxio_grpc_table_SyncStatus_TablesErrorsEntry_descriptor =
       internal_static_alluxio_grpc_table_SyncStatus_descriptor.getNestedTypes().get(0);
     internal_static_alluxio_grpc_table_SyncStatus_TablesErrorsEntry_fieldAccessorTable = new

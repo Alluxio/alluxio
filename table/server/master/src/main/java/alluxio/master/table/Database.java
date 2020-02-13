@@ -211,6 +211,7 @@ public class Database implements Journaled {
     for (String tableName : udbTableNames) {
       if (mIgnoreTables.contains(tableName)) {
         // this table should be ignored.
+        builder.addTablesIgnored(tableName);
         continue;
       }
       tasks.add(() -> {
