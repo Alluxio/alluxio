@@ -145,8 +145,8 @@ public class FileInfoTest {
     int replicationMin = random.nextInt(10);
     Map<String, byte[]> xttrs = new HashMap<>();
     for (int i = 0; i < random.nextInt(10); i++) {
-      xttrs.put(CommonUtils.randomAlphaNumString(random.nextInt(10)), CommonUtils.randomBytes
-          (random.nextInt(10)));
+      xttrs.put(CommonUtils.randomAlphaNumString(random.nextInt(10)),
+          CommonUtils.randomBytes(random.nextInt(10)));
     }
 
     result.setBlockIds(blockIds);
