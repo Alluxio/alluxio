@@ -54,6 +54,19 @@ private static final long serialVersionUID = 0L;
             success_ = input.readBool();
             break;
           }
+          case 18: {
+            alluxio.grpc.table.SyncStatus.Builder subBuilder = null;
+            if (((bitField0_ & 0x00000002) != 0)) {
+              subBuilder = status_.toBuilder();
+            }
+            status_ = input.readMessage(alluxio.grpc.table.SyncStatus.PARSER, extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(status_);
+              status_ = subBuilder.buildPartial();
+            }
+            bitField0_ |= 0x00000002;
+            break;
+          }
           default: {
             if (!parseUnknownField(
                 input, unknownFields, extensionRegistry, tag)) {
@@ -90,6 +103,10 @@ private static final long serialVersionUID = 0L;
   public static final int SUCCESS_FIELD_NUMBER = 1;
   private boolean success_;
   /**
+   * <pre>
+   * TODO(gpang): remove in favor of status
+   * </pre>
+   *
    * <code>optional bool success = 1;</code>
    * @return Whether the success field is set.
    */
@@ -97,11 +114,38 @@ private static final long serialVersionUID = 0L;
     return ((bitField0_ & 0x00000001) != 0);
   }
   /**
+   * <pre>
+   * TODO(gpang): remove in favor of status
+   * </pre>
+   *
    * <code>optional bool success = 1;</code>
    * @return The success.
    */
   public boolean getSuccess() {
     return success_;
+  }
+
+  public static final int STATUS_FIELD_NUMBER = 2;
+  private alluxio.grpc.table.SyncStatus status_;
+  /**
+   * <code>optional .alluxio.grpc.table.SyncStatus status = 2;</code>
+   * @return Whether the status field is set.
+   */
+  public boolean hasStatus() {
+    return ((bitField0_ & 0x00000002) != 0);
+  }
+  /**
+   * <code>optional .alluxio.grpc.table.SyncStatus status = 2;</code>
+   * @return The status.
+   */
+  public alluxio.grpc.table.SyncStatus getStatus() {
+    return status_ == null ? alluxio.grpc.table.SyncStatus.getDefaultInstance() : status_;
+  }
+  /**
+   * <code>optional .alluxio.grpc.table.SyncStatus status = 2;</code>
+   */
+  public alluxio.grpc.table.SyncStatusOrBuilder getStatusOrBuilder() {
+    return status_ == null ? alluxio.grpc.table.SyncStatus.getDefaultInstance() : status_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -121,6 +165,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000001) != 0)) {
       output.writeBool(1, success_);
     }
+    if (((bitField0_ & 0x00000002) != 0)) {
+      output.writeMessage(2, getStatus());
+    }
     unknownFields.writeTo(output);
   }
 
@@ -133,6 +180,10 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(1, success_);
+    }
+    if (((bitField0_ & 0x00000002) != 0)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(2, getStatus());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -154,6 +205,11 @@ private static final long serialVersionUID = 0L;
       if (getSuccess()
           != other.getSuccess()) return false;
     }
+    if (hasStatus() != other.hasStatus()) return false;
+    if (hasStatus()) {
+      if (!getStatus()
+          .equals(other.getStatus())) return false;
+    }
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -169,6 +225,10 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + SUCCESS_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getSuccess());
+    }
+    if (hasStatus()) {
+      hash = (37 * hash) + STATUS_FIELD_NUMBER;
+      hash = (53 * hash) + getStatus().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -298,6 +358,7 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
+        getStatusFieldBuilder();
       }
     }
     @java.lang.Override
@@ -305,6 +366,12 @@ private static final long serialVersionUID = 0L;
       super.clear();
       success_ = false;
       bitField0_ = (bitField0_ & ~0x00000001);
+      if (statusBuilder_ == null) {
+        status_ = null;
+      } else {
+        statusBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000002);
       return this;
     }
 
@@ -336,6 +403,14 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000001) != 0)) {
         result.success_ = success_;
         to_bitField0_ |= 0x00000001;
+      }
+      if (((from_bitField0_ & 0x00000002) != 0)) {
+        if (statusBuilder_ == null) {
+          result.status_ = status_;
+        } else {
+          result.status_ = statusBuilder_.build();
+        }
+        to_bitField0_ |= 0x00000002;
       }
       result.bitField0_ = to_bitField0_;
       onBuilt();
@@ -389,6 +464,9 @@ private static final long serialVersionUID = 0L;
       if (other.hasSuccess()) {
         setSuccess(other.getSuccess());
       }
+      if (other.hasStatus()) {
+        mergeStatus(other.getStatus());
+      }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -421,6 +499,10 @@ private static final long serialVersionUID = 0L;
 
     private boolean success_ ;
     /**
+     * <pre>
+     * TODO(gpang): remove in favor of status
+     * </pre>
+     *
      * <code>optional bool success = 1;</code>
      * @return Whether the success field is set.
      */
@@ -428,6 +510,10 @@ private static final long serialVersionUID = 0L;
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
+     * <pre>
+     * TODO(gpang): remove in favor of status
+     * </pre>
+     *
      * <code>optional bool success = 1;</code>
      * @return The success.
      */
@@ -435,6 +521,10 @@ private static final long serialVersionUID = 0L;
       return success_;
     }
     /**
+     * <pre>
+     * TODO(gpang): remove in favor of status
+     * </pre>
+     *
      * <code>optional bool success = 1;</code>
      * @param value The success to set.
      * @return This builder for chaining.
@@ -446,6 +536,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * TODO(gpang): remove in favor of status
+     * </pre>
+     *
      * <code>optional bool success = 1;</code>
      * @return This builder for chaining.
      */
@@ -454,6 +548,126 @@ private static final long serialVersionUID = 0L;
       success_ = false;
       onChanged();
       return this;
+    }
+
+    private alluxio.grpc.table.SyncStatus status_;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.table.SyncStatus, alluxio.grpc.table.SyncStatus.Builder, alluxio.grpc.table.SyncStatusOrBuilder> statusBuilder_;
+    /**
+     * <code>optional .alluxio.grpc.table.SyncStatus status = 2;</code>
+     * @return Whether the status field is set.
+     */
+    public boolean hasStatus() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>optional .alluxio.grpc.table.SyncStatus status = 2;</code>
+     * @return The status.
+     */
+    public alluxio.grpc.table.SyncStatus getStatus() {
+      if (statusBuilder_ == null) {
+        return status_ == null ? alluxio.grpc.table.SyncStatus.getDefaultInstance() : status_;
+      } else {
+        return statusBuilder_.getMessage();
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.table.SyncStatus status = 2;</code>
+     */
+    public Builder setStatus(alluxio.grpc.table.SyncStatus value) {
+      if (statusBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        status_ = value;
+        onChanged();
+      } else {
+        statusBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x00000002;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.table.SyncStatus status = 2;</code>
+     */
+    public Builder setStatus(
+        alluxio.grpc.table.SyncStatus.Builder builderForValue) {
+      if (statusBuilder_ == null) {
+        status_ = builderForValue.build();
+        onChanged();
+      } else {
+        statusBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000002;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.table.SyncStatus status = 2;</code>
+     */
+    public Builder mergeStatus(alluxio.grpc.table.SyncStatus value) {
+      if (statusBuilder_ == null) {
+        if (((bitField0_ & 0x00000002) != 0) &&
+            status_ != null &&
+            status_ != alluxio.grpc.table.SyncStatus.getDefaultInstance()) {
+          status_ =
+            alluxio.grpc.table.SyncStatus.newBuilder(status_).mergeFrom(value).buildPartial();
+        } else {
+          status_ = value;
+        }
+        onChanged();
+      } else {
+        statusBuilder_.mergeFrom(value);
+      }
+      bitField0_ |= 0x00000002;
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.table.SyncStatus status = 2;</code>
+     */
+    public Builder clearStatus() {
+      if (statusBuilder_ == null) {
+        status_ = null;
+        onChanged();
+      } else {
+        statusBuilder_.clear();
+      }
+      bitField0_ = (bitField0_ & ~0x00000002);
+      return this;
+    }
+    /**
+     * <code>optional .alluxio.grpc.table.SyncStatus status = 2;</code>
+     */
+    public alluxio.grpc.table.SyncStatus.Builder getStatusBuilder() {
+      bitField0_ |= 0x00000002;
+      onChanged();
+      return getStatusFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>optional .alluxio.grpc.table.SyncStatus status = 2;</code>
+     */
+    public alluxio.grpc.table.SyncStatusOrBuilder getStatusOrBuilder() {
+      if (statusBuilder_ != null) {
+        return statusBuilder_.getMessageOrBuilder();
+      } else {
+        return status_ == null ?
+            alluxio.grpc.table.SyncStatus.getDefaultInstance() : status_;
+      }
+    }
+    /**
+     * <code>optional .alluxio.grpc.table.SyncStatus status = 2;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        alluxio.grpc.table.SyncStatus, alluxio.grpc.table.SyncStatus.Builder, alluxio.grpc.table.SyncStatusOrBuilder> 
+        getStatusFieldBuilder() {
+      if (statusBuilder_ == null) {
+        statusBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            alluxio.grpc.table.SyncStatus, alluxio.grpc.table.SyncStatus.Builder, alluxio.grpc.table.SyncStatusOrBuilder>(
+                getStatus(),
+                getParentForChildren(),
+                isClean());
+        status_ = null;
+      }
+      return statusBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

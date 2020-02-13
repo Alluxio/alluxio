@@ -116,7 +116,8 @@ public class TransformManagerTest {
     start();
 
     TestDatabase.genTable(NUM_TABLES, NUM_PARTITIONS, false);
-    mTableMaster.attachDatabase(TestUdbFactory.TYPE, "connect", DB, DB, Collections.emptyMap());
+    mTableMaster
+        .attachDatabase(TestUdbFactory.TYPE, "connect", DB, DB, Collections.emptyMap(), false);
   }
 
   @After

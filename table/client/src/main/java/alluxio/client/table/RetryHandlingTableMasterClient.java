@@ -30,6 +30,7 @@ import alluxio.grpc.table.GetTransformJobInfoPRequest;
 import alluxio.grpc.table.Partition;
 import alluxio.grpc.table.ReadTablePRequest;
 import alluxio.grpc.table.SyncDatabasePRequest;
+import alluxio.grpc.table.SyncStatus;
 import alluxio.grpc.table.TableInfo;
 import alluxio.grpc.table.TableMasterClientServiceGrpc;
 import alluxio.grpc.table.TransformJobInfo;
@@ -105,12 +106,14 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public boolean attachDatabase(String udbType, String udbConnectionUri, String udbDbName,
-      String dbName, Map<String, String> configuration) throws AlluxioStatusException {
+  public SyncStatus attachDatabase(String udbType, String udbConnectionUri, String udbDbName,
+      String dbName, Map<String, String> configuration, boolean ignoreSyncErrors)
+      throws AlluxioStatusException {
     return retryRPC(() -> mClient.attachDatabase(
         AttachDatabasePRequest.newBuilder().setUdbType(udbType)
             .setUdbConnectionUri(udbConnectionUri).setUdbDbName(udbDbName).setDbName(dbName)
-            .putAllOptions(configuration).build()).getSuccess());
+            .putAllOptions(configuration).setIgnoreSyncErrors(ignoreSyncErrors).build())
+        .getSyncStatus());
   }
 
   @Override
@@ -121,9 +124,9 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public boolean syncDatabase(String dbName) throws AlluxioStatusException {
+  public SyncStatus syncDatabase(String dbName) throws AlluxioStatusException {
     return retryRPC(() -> mClient.syncDatabase(
-        SyncDatabasePRequest.newBuilder().setDbName(dbName).build()).getSuccess());
+        SyncDatabasePRequest.newBuilder().setDbName(dbName).build()).getStatus());
   }
 
   @Override
