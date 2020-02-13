@@ -108,4 +108,15 @@ public interface AttachDatabasePRequestOrBuilder extends
 
   java.lang.String getOptionsOrThrow(
       java.lang.String key);
+
+  /**
+   * <code>optional bool ignore_sync_errors = 6;</code>
+   * @return Whether the ignoreSyncErrors field is set.
+   */
+  boolean hasIgnoreSyncErrors();
+  /**
+   * <code>optional bool ignore_sync_errors = 6;</code>
+   * @return The ignoreSyncErrors.
+   */
+  boolean getIgnoreSyncErrors();
 }

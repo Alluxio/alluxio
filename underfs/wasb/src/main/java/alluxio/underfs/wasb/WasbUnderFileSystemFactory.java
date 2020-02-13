@@ -39,6 +39,8 @@ public class WasbUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
   public boolean supportsPath(String path) {
-    return path != null && path.startsWith(WasbUnderFileSystem.SCHEME);
+    return path != null
+            && (path.startsWith(WasbUnderFileSystem.SCHEME_SECURE)
+            || path.startsWith(WasbUnderFileSystem.SCHEME_INSECURE));
   }
 }
