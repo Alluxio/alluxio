@@ -11,8 +11,6 @@
 
 package alluxio.master.metastore.rocks;
 
-import alluxio.master.metastore.BlockStore;
-import alluxio.proto.meta.Block;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.primitives.Longs;
@@ -20,8 +18,6 @@ import org.rocksdb.RocksIterator;
 
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * Convenience methods for working with RocksDB.
