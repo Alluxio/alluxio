@@ -12,6 +12,7 @@
 package alluxio.master.metrics;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -53,6 +54,7 @@ public class MetricsMasterTest {
 
   @Before
   public void before() throws Exception {
+    MetricsSystem.clearAllMetrics();
     mRegistry = new MasterRegistry();
     mClock = new ManualClock();
     mExecutorService =
@@ -69,6 +71,23 @@ public class MetricsMasterTest {
   @After
   public void after() throws Exception {
     mRegistry.stop();
+  }
+
+  @Test
+  public void testThroughputGauge() throws Exception {
+    String counterName = "Master.counter";
+    String throughputName = "Cluster.counterThroughput";
+    mMetricsMaster.registerThroughputGauge("Master.counter", "Cluster.counterThroughput");
+    Metric metric = MetricsSystem.getMetricValue(throughputName);
+    assertNotNull(metric);
+    assertEquals(0, (long) metric.getValue());
+
+    Counter masterCounter = MetricsSystem.counter(counterName);
+    masterCounter.inc(100);
+
+    Metric metric2 = MetricsSystem.getMetricValue(throughputName);
+    assertNotNull(metric2);
+    assertNotEquals(0, (long) metric2.getValue());
   }
 
   @Test
