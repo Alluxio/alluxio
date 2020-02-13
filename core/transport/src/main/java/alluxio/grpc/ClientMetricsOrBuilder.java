@@ -8,59 +8,42 @@ public interface ClientMetricsOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>optional string clientId = 1;</code>
-   * @return Whether the clientId field is set.
+   * <code>optional string source = 1;</code>
+   * @return Whether the source field is set.
    */
-  boolean hasClientId();
+  boolean hasSource();
   /**
-   * <code>optional string clientId = 1;</code>
-   * @return The clientId.
+   * <code>optional string source = 1;</code>
+   * @return The source.
    */
-  java.lang.String getClientId();
+  java.lang.String getSource();
   /**
-   * <code>optional string clientId = 1;</code>
-   * @return The bytes for clientId.
-   */
-  com.google.protobuf.ByteString
-      getClientIdBytes();
-
-  /**
-   * <code>optional string hostname = 2;</code>
-   * @return Whether the hostname field is set.
-   */
-  boolean hasHostname();
-  /**
-   * <code>optional string hostname = 2;</code>
-   * @return The hostname.
-   */
-  java.lang.String getHostname();
-  /**
-   * <code>optional string hostname = 2;</code>
-   * @return The bytes for hostname.
+   * <code>optional string source = 1;</code>
+   * @return The bytes for source.
    */
   com.google.protobuf.ByteString
-      getHostnameBytes();
+      getSourceBytes();
 
   /**
-   * <code>repeated .alluxio.grpc.Metric metrics = 3;</code>
+   * <code>repeated .alluxio.grpc.Metric metrics = 2;</code>
    */
   java.util.List<alluxio.grpc.Metric> 
       getMetricsList();
   /**
-   * <code>repeated .alluxio.grpc.Metric metrics = 3;</code>
+   * <code>repeated .alluxio.grpc.Metric metrics = 2;</code>
    */
   alluxio.grpc.Metric getMetrics(int index);
   /**
-   * <code>repeated .alluxio.grpc.Metric metrics = 3;</code>
+   * <code>repeated .alluxio.grpc.Metric metrics = 2;</code>
    */
   int getMetricsCount();
   /**
-   * <code>repeated .alluxio.grpc.Metric metrics = 3;</code>
+   * <code>repeated .alluxio.grpc.Metric metrics = 2;</code>
    */
   java.util.List<? extends alluxio.grpc.MetricOrBuilder> 
       getMetricsOrBuilderList();
   /**
-   * <code>repeated .alluxio.grpc.Metric metrics = 3;</code>
+   * <code>repeated .alluxio.grpc.Metric metrics = 2;</code>
    */
   alluxio.grpc.MetricOrBuilder getMetricsOrBuilder(
       int index);

@@ -65,14 +65,13 @@ public class MetricsStore {
       = new ConcurrentHashMap<>();
 
   /**
-   * Put the metrics from a worker with a hostname. If all the old metrics associated with this
-   * instance will be removed and then replaced by the latest.
+   * Put the metrics from a worker with a source name.
    *
-   * @param hostname the hostname of the instance
+   * @param source the source name
    * @param metrics the new worker metrics
    */
-  public void putWorkerMetrics(String hostname, List<Metric> metrics) {
-    if (metrics.isEmpty() || hostname == null) {
+  public void putWorkerMetrics(String source, List<Metric> metrics) {
+    if (metrics.isEmpty() || source == null) {
       return;
     }
     try (LockResource r = new LockResource(mLock.readLock())) {
@@ -81,13 +80,13 @@ public class MetricsStore {
   }
 
   /**
-   * Put the metrics from a client with a hostname.
+   * Put the metrics from a client with a source name.
    *
-   * @param hostname the hostname of the client
+   * @param source the source name
    * @param metrics the new metrics
    */
-  public void putClientMetrics(String hostname, List<Metric> metrics) {
-    if (metrics.isEmpty() || hostname == null) {
+  public void putClientMetrics(String source, List<Metric> metrics) {
+    if (metrics.isEmpty() || source == null) {
       return;
     }
     try (LockResource r = new LockResource(mLock.readLock())) {
@@ -105,7 +104,7 @@ public class MetricsStore {
    */
   private void putReportedMetrics(InstanceType instanceType, List<Metric> reportedMetrics) {
     for (Metric metric : reportedMetrics) {
-      if (metric.getHostname() == null) {
+      if (metric.getSource() == null) {
         continue; // ignore metrics whose hostname is null
       }
 
