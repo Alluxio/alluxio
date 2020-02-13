@@ -129,7 +129,6 @@ public class CollectAlluxioInfoCommandTest {
 
     // Verify only the better version command output is found
     String fileContent = new String(Files.readAllBytes(subDir.listFiles()[0].toPath()));
-    assertTrue(fileContent.contains("command failed"));
     assertTrue(fileContent.contains("backup command executed"));
   }
 }

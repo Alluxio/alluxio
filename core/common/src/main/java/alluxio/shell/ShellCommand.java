@@ -99,15 +99,20 @@ public class ShellCommand {
   /**
    * Runs a command and returns its output and exit code in Object.
    * Preserves the output when the execution fails.
+   * If the command execution fails (not by an interrupt),
+   * try to wrap the Exception in the {@link CommandReturn}.
    * Stderr is redirected to stdout.
    *
    * @return {@link CommandReturn} object representation of stdout, stderr and exit code
    */
   public CommandReturn runWithOutput() throws IOException {
-    Process process = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
+    Process process = null;
+    BufferedReader inReader = null;
+    try {
+      process = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
+      inReader =
+              new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-    try (BufferedReader inReader =
-                 new BufferedReader(new InputStreamReader(process.getInputStream()))) {
       // read the output of the command
       StringBuilder stdout = new StringBuilder();
       String outLine = inReader.readLine();
@@ -125,7 +130,7 @@ public class ShellCommand {
                 exitCode, Arrays.toString(mCommand)));
       }
 
-      CommandReturn cr = new CommandReturn(exitCode, stdout.toString());
+      CommandReturn cr = new CommandReturn(exitCode, mCommand, stdout.toString());
 
       // destroy the process
       if (process != null) {
@@ -136,7 +141,13 @@ public class ShellCommand {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new IOException(e);
+    } catch (Exception e) {
+      return new CommandReturn(1, String.format("Command %s failed, exception is %s",
+              Arrays.toString(mCommand), e.getMessage()));
     } finally {
+      if (inReader != null) {
+        inReader.close();
+      }
       if (process != null) {
         process.destroy();
       }
@@ -150,5 +161,14 @@ public class ShellCommand {
    * */
   public String toString() {
     return Arrays.toString(mCommand);
+  }
+
+  /**
+   * Gets the command. The original array is immutable.
+   *
+   * @return a copy of the command string array
+   * */
+  public String[] getCommand() {
+    return Arrays.copyOfRange(mCommand, 0, mCommand.length);
   }
 }

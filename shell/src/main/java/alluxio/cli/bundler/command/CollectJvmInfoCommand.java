@@ -14,6 +14,7 @@ package alluxio.cli.bundler.command;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.CommandReturn;
+import alluxio.shell.ShellCommand;
 import alluxio.util.ShellUtils;
 import alluxio.util.SleepUtils;
 
@@ -85,10 +86,11 @@ public class CollectJvmInfoCommand extends AbstractCollectInfoCommand {
   private Map<String, String> getJps() throws IOException {
     Map<String, String> procs = new HashMap<>();
 
-    // Get Jps output
-    String[] jpsCommand = new String[]{"jps"};
+    // Attempt to sudo jps all existing JVMs
+    ShellCommand sudoJpsCommand = new ShellCommand(new String[]{"sudo", "jps"});
+    ShellCommand jpsCommand = new ShellCommand(new String[]{"jps"});
 
-    CommandReturn cr = ShellUtils.execCommandWithOutput(jpsCommand);
+    CommandReturn cr = ShellUtils.execCmdWithBackup(sudoJpsCommand, jpsCommand);
     if (cr.getExitCode() != 0) {
       LOG.warn(cr.getFormattedOutput());
       return procs;
@@ -132,9 +134,11 @@ public class CollectJvmInfoCommand extends AbstractCollectInfoCommand {
       LOG.info(jstackMsg);
       outputBuffer.write(jstackMsg);
 
-      String[] jstackCmd = new String[]{"jstack", pid};
-      CommandReturn cr = ShellUtils.execCommandWithOutput(jstackCmd);
-      LOG.info("{} finished", Arrays.toString(jstackCmd));
+      // If normal jstack fails, attemp to sudo jstack this process
+      ShellCommand jstackCmd = new ShellCommand(new String[]{"jstack", pid});
+      ShellCommand sudoJstackCmd = new ShellCommand(new String[]{"sudo", "jstack", pid});
+      CommandReturn cr = ShellUtils.execCmdWithBackup(jstackCmd, sudoJstackCmd);
+      LOG.info("{} finished", Arrays.toString(cr.getCmd()));
       outputBuffer.write(cr.getFormattedOutput());
     }
 

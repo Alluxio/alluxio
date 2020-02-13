@@ -240,5 +240,23 @@ public final class ShellUtils {
     return new ScpCommand(hostname, fromFile, toFile, isDir).runWithOutput();
   }
 
+  /**
+   * Executes a shell command.
+   * If it fails, try the backup command.
+   *
+   * @param cmd the primary command
+   * @param backupCmd a backup option
+   * @return the {@link CommandReturn} with combined output
+   */
+  public static CommandReturn execCmdWithBackup(ShellCommand cmd, ShellCommand backupCmd)
+          throws IOException {
+    CommandReturn cr = cmd.runWithOutput();
+    // If the command works or there is no backup option, return
+    if (cr.getExitCode() == 0 || backupCmd == null) {
+      return cr;
+    }
+    return backupCmd.runWithOutput();
+  }
+
   private ShellUtils() {} // prevent instantiation
 }

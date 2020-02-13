@@ -11,11 +11,14 @@
 
 package alluxio.shell;
 
+import java.util.Arrays;
+
 /**
  * Object representation of a command execution.
  */
 public class CommandReturn {
   private int mExitCode;
+  private String[] mCmd;
   private String mOutput;
 
   /**
@@ -26,16 +29,21 @@ public class CommandReturn {
    */
   public CommandReturn(int code, String output) {
     mExitCode = code;
+    mCmd = new String[]{};
     mOutput = output;
   }
 
   /**
-   * Gets the stdout content.
+   * Creates object from the contents.
    *
-   * @return stdout content
+   * @param code exit code
+   * @param cmd the command executed
+   * @param output stdout content
    */
-  public String getOutput() {
-    return mOutput;
+  public CommandReturn(int code, String[] cmd, String output) {
+    mExitCode = code;
+    mCmd = cmd;
+    mOutput = output;
   }
 
   /**
@@ -48,13 +56,31 @@ public class CommandReturn {
   }
 
   /**
+   * Gets the command run.
+   *
+   * @return the command
+   * */
+  public String[] getCmd() {
+    return mCmd;
+  }
+
+  /**
+   * Gets the stdout content.
+   *
+   * @return stdout content
+   */
+  public String getOutput() {
+    return mOutput;
+  }
+
+  /**
    * Formats the object to more readable format.
    * This is not done in toString() because stdout and stderr may be long.
    *
    * @return pretty formatted output
    */
   public String getFormattedOutput() {
-    return String.format("StatusCode:%s%nOutput:%n%s", getExitCode(),
-            getOutput());
+    return String.format("ExitCode:%s%nCommand:%s%nOutput:%n%s", getExitCode(),
+            Arrays.toString(getCmd()), getOutput());
   }
 }

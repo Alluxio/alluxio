@@ -73,8 +73,20 @@ public class CollectAlluxioInfoCommand extends ExecuteShellCollectInfoCommand {
     registerCommand("journal",
             new AlluxioCommand(mAlluxioPath, String.format("fs ls -R %s",
                     mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER))),
-            new ShellCommand(new String[]{"ls", "-al", "-R",
-                    mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER)}));
+            getListJournalCommand());
+  }
+
+  /**
+   * Determine how to list the journal based on the type of UFS.
+   * TODO(jiacheng): phase 2 support smarter detection
+   * */
+  private ShellCommand getListJournalCommand() {
+    String journalPath = mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    if (journalPath.startsWith("hdfs:")) {
+      return new ShellCommand(new String[]{"hdfs", "dfs", "-ls", "-R", journalPath});
+    } else {
+      return new ShellCommand(new String[]{"ls", "-al", "-R", journalPath});
+    }
   }
 
   @Override

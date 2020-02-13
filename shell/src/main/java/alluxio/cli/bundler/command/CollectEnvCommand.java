@@ -37,8 +37,18 @@ public class CollectEnvCommand extends ExecuteShellCollectInfoCommand {
 
   @Override
   protected void registerCommands() {
-    registerCommand("ps", new ShellCommand(new String[]{"ps", "-ef", "|grep alluxio*"}), null);
-    registerCommand("env", new ShellCommand(new String[]{"env"}), null);
+    registerCommand("Alluxio ps",
+            new ShellCommand(new String[]{"bash", "-c", "'ps -ef | grep alluxio'"}), null);
+    registerCommand("Spark ps",
+            new ShellCommand(new String[]{"bash", "-c", "'ps -ef | grep spark'"}), null);
+    registerCommand("Yarn ps",
+            new ShellCommand(new String[]{"bash", "-c", "'ps -ef | grep yarn'"}), null);
+    registerCommand("Hdfs ps",
+            new ShellCommand(new String[]{"bash", "-c", "'ps -ef | grep hdfs'"}), null);
+    registerCommand("Presto ps",
+            new ShellCommand(new String[]{"bash", "-c", "'ps -ef | grep presto'"}), null);
+    registerCommand("env",
+            new ShellCommand(new String[]{"env"}), null);
     registerCommand("top", new ShellCommand(new String[]{"atop", "-b", "-n", "1"}),
             new ShellCommand(new String[]{"top", "-b", "-n", "1"}));
     registerCommand("mount", new ShellCommand(new String[]{"mount"}), null);
@@ -47,7 +57,7 @@ public class CollectEnvCommand extends ExecuteShellCollectInfoCommand {
     registerCommand("uname", new ShellCommand(new String[]{"uname", "-a"}), null);
     registerCommand("hostname", new ShellCommand(new String[]{"hostname"}), null);
     registerCommand("host ip", new ShellCommand(new String[]{"hostname", "-i"}), null);
-    registerCommand("host fqdn", new ShellCommand(new String[]{"hostname", "-v"}), null);
+    registerCommand("host fqdn", new ShellCommand(new String[]{"hostname", "-f"}), null);
     registerCommand("list Alluxio home",
             new ShellCommand(new String[]{String.format("ls -al -R %s",
                     mFsContext.getClusterConf().get(PropertyKey.HOME))}), null);

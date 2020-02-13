@@ -72,7 +72,8 @@ public class CollectInfo extends AbstractShell {
   private static final String LOCAL_OPTION_NAME = "local";
   private static final Option THREAD_NUM_OPTION =
           Option.builder().required(false).longOpt(MAX_THREAD_OPTION_NAME).hasArg(true)
-                  .desc("the max thread number to use").build();
+                  .desc("the maximum number of threads to use for collecting information remotely")
+                  .build();
   private static final Option LOCAL_OPTION =
           Option.builder().required(false).longOpt(LOCAL_OPTION_NAME).hasArg(false)
                   .desc("running only on localhost").build();
@@ -141,6 +142,8 @@ public class CollectInfo extends AbstractShell {
 
     // Validate command args
     if (args.length < 2) {
+      System.out.format("Command %s requires at least %s arguments (%s provided)%n",
+              2, argv.length);
       shell.printUsage();
       System.exit(-1);
     }
@@ -198,15 +201,15 @@ public class CollectInfo extends AbstractShell {
                 .toAbsolutePath().toString();
         System.out.format("host: %s, alluxio path %s%n", host, alluxioBinPath);
 
+        String[] collectInfoArgs =
+                (String[]) ArrayUtils.addAll(
+                        new String[]{alluxioBinPath, "collectInfo", "--local"}, args);
         try {
-          String[] collectInfoArgs =
-                  (String[]) ArrayUtils.addAll(
-                          new String[]{alluxioBinPath, "collectInfo", "--local"}, args);
           CommandReturn cr = ShellUtils.sshExecCommandWithOutput(host, collectInfoArgs);
           return cr;
         } catch (Exception e) {
           LOG.error("Execution failed %s", e);
-          return new CommandReturn(1, e.toString());
+          return new CommandReturn(1, collectInfoArgs, e.toString());
         }
       }, mExecutor);
       sshFutureList.add(future);
@@ -247,6 +250,7 @@ public class CollectInfo extends AbstractShell {
                   ShellUtils.scpCommandWithOutput(host, fromPath, toPath, false);
           return cr;
         } catch (IOException e) {
+          // An unexpected error occurred that caused this IOException
           LOG.error("Execution failed %s", e);
           return new CommandReturn(1, e.toString());
         }
@@ -411,7 +415,7 @@ public class CollectInfo extends AbstractShell {
         }
         successfulHosts.add(host);
       }
-      System.out.format("Command successful on %d/%d hosts.%n",
+      System.out.format("Command executed successfully on %d/%d hosts.",
               successfulHosts.size(), hosts.size());
       return successfulHosts;
     }

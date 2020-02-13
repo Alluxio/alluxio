@@ -12,10 +12,10 @@
 package alluxio.cli.bundler.command;
 
 import alluxio.client.file.FileSystemContext;
-import alluxio.collections.Pair;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.CommandReturn;
 import alluxio.shell.ShellCommand;
+import alluxio.util.ShellUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
@@ -50,34 +50,12 @@ public abstract class ExecuteShellCollectInfoCommand extends AbstractCollectInfo
 
   protected abstract void registerCommands();
 
+  // TODO(jiacheng): phase 2 refactor to use a chainable ShellCommand structure
   protected void registerCommand(String name, ShellCommand cmd, ShellCommand alternativeCmd) {
     mCommands.put(name, cmd);
     if (alternativeCmd != null) {
       mCommandsAlt.put(name, alternativeCmd);
     }
-  }
-
-  protected Pair<Integer, String> runAndFormatOutput(ShellCommand cmd) {
-    String crStr;
-    int cmdExitCode;
-    try {
-      CommandReturn cr = cmd.runWithOutput();
-      cmdExitCode = cr.getExitCode();
-      if (cr.getExitCode() != 0) {
-        crStr = String.format("Command %s failed: %s", cmd, cr.getFormattedOutput());
-        LOG.warn(crStr);
-      } else {
-        // Command succeeded
-        crStr = String.format("Command %s succeeded %s", cmd, cr.getFormattedOutput());
-        LOG.info(crStr);
-      }
-    } catch (IOException e) {
-      cmdExitCode = 1;
-      crStr = String.format("Command %s failed with exception %s", cmd, e.getMessage());
-      LOG.warn(crStr);
-      LOG.debug("%s", e);
-    }
-    return new Pair<>(cmdExitCode, crStr);
   }
 
   @Override
@@ -91,28 +69,9 @@ public abstract class ExecuteShellCollectInfoCommand extends AbstractCollectInfo
     for (Map.Entry<String, ShellCommand> entry : mCommands.entrySet()) {
       String cmdName = entry.getKey();
       ShellCommand cmd = entry.getValue();
-
-      int cmdExitCode = 0;
-      Pair<Integer, String> cmdOutput = runAndFormatOutput(cmd);
-      outputBuffer.write(cmdOutput.getSecond());
-
-      if (cmdOutput.getFirst() == 0) {
-        // If the command works, skip the alternative command
-        continue;
-      } else {
-        cmdExitCode = cmdOutput.getFirst();
-      }
-
-      // if there is a backup option, try it first
-      if (mCommandsAlt.containsKey(cmdName)) {
-        ShellCommand betterCmd = mCommandsAlt.get(cmdName);
-        Pair<Integer, String> cmdAltOutput = runAndFormatOutput(betterCmd);
-        outputBuffer.write(cmdAltOutput.getSecond());
-        // If the backup option succeeded, count as successful
-        if (cmdAltOutput.getFirst() == 0) {
-          cmdExitCode = 0;
-        }
-      }
+      ShellCommand backupCmd = mCommandsAlt.getOrDefault(cmdName, null);
+      CommandReturn cr = ShellUtils.execCmdWithBackup(cmd, backupCmd);
+      outputBuffer.write(cr.getFormattedOutput());
 
       // If neither command works, log a warning instead of returning with error state
       // This is because a command can err due to:
@@ -120,8 +79,8 @@ public abstract class ExecuteShellCollectInfoCommand extends AbstractCollectInfo
       // 2. The command is not compatible to the system, eg. Mac.
       // 3. The command is wrong.
       // We choose to tolerate the error state due since we cannot correct state 1 or 2.
-      if (cmdExitCode != 0) {
-        LOG.warn("Command %s failed with exit code %d", cmdName, cmdExitCode);
+      if (cr.getExitCode() != 0) {
+        LOG.warn("Command %s failed with exit code %d", cmdName, cr.getExitCode());
       }
     }
 
