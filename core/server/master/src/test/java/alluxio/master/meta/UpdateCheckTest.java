@@ -14,6 +14,7 @@ package alluxio.master.meta;
 import alluxio.ProjectConstants;
 import alluxio.util.EnvironmentUtils;
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.util.EC2MetadataUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -40,6 +41,9 @@ public class UpdateCheckTest {
     Mockito.when(EnvironmentUtils.isEC2()).thenReturn(false);
     Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(false);
     Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(false);
+    PowerMockito.mockStatic(EC2MetadataUtils.class);
+    Mockito.when(EC2MetadataUtils.getUserData())
+        .thenThrow(new SdkClientException("Unable to contact EC2 metadata service."));
 
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
     System.out.println(userAgentString);
@@ -57,6 +61,9 @@ public class UpdateCheckTest {
     Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("");
     Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(false);
     Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(false);
+    PowerMockito.mockStatic(EC2MetadataUtils.class);
+    Mockito.when(EC2MetadataUtils.getUserData())
+        .thenThrow(new SdkClientException("Unable to contact EC2 metadata service."));
 
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
     Assert.assertTrue(userAgentString
@@ -73,6 +80,9 @@ public class UpdateCheckTest {
     Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("");
     Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(false);
     Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(false);
+    PowerMockito.mockStatic(EC2MetadataUtils.class);
+    Mockito.when(EC2MetadataUtils.getUserData())
+        .thenThrow(new SdkClientException("Unable to contact EC2 metadata service."));
 
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
     Assert.assertTrue(userAgentString.equals(
@@ -84,12 +94,14 @@ public class UpdateCheckTest {
     PowerMockito.mockStatic(EnvironmentUtils.class);
     Mockito.when(EnvironmentUtils.isDocker()).thenReturn(false);
     Mockito.when(EnvironmentUtils.isKubernetes()).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(false);
     Mockito.when(EnvironmentUtils.isEC2()).thenReturn(false);
     Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("");
     Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(false);
     Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(false);
     Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(true);
+    PowerMockito.mockStatic(EC2MetadataUtils.class);
+    Mockito.when(EC2MetadataUtils.getUserData())
+        .thenThrow(new SdkClientException("Unable to contact EC2 metadata service."));
 
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
     Assert.assertTrue(userAgentString.equals(
