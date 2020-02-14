@@ -71,6 +71,9 @@ public final class MetricsSystem {
   // A map that records all the metrics that should be reported and aggregated at leading master
   // from full metric name to its metric type
   private static final Map<String, MetricType> SHOULD_REPORT_METRICS = new HashMap<>();
+  // A map from AlluxioURI to corresponding cached escaped path.
+  private static final ConcurrentHashMap<AlluxioURI, String> CACHED_ESCAPED_PATH
+      = new ConcurrentHashMap<>();
   // A flag telling whether metrics have been reported yet.
   // Using this prevents us from initializing {@link #SHOULD_REPORT_METRICS} more than once
   private static boolean sReported = false;
@@ -404,14 +407,15 @@ public final class MetricsSystem {
    */
   public static String stripInstanceAndHost(String metricsName) {
     String[] pieces = metricsName.split("\\.");
-    if (pieces.length <= 1) {
+    int len = pieces.length;
+    if (len <= 1) {
       return metricsName;
     }
     // Master metrics doesn't have hostname included.
     if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())
         && !pieces[0].equals(InstanceType.CLUSTER.toString())
         && pieces.length > 2) {
-      pieces[2] = null;
+      pieces[len - 1] = null;
     }
     pieces[0] = null;
     return Joiner.on(".").skipNulls().join(pieces);
@@ -428,7 +432,9 @@ public final class MetricsSystem {
    * @return the string representing the escaped URI
    */
   public static String escape(AlluxioURI uri) {
-    return uri.toString().replace("%", "%25").replace("/", "%2F").replace(".", "%2E");
+    return CACHED_ESCAPED_PATH.computeIfAbsent(uri,
+        u -> u.toString().replace("%", "%25")
+            .replace("/", "%2F").replace(".", "%2E"));
   }
 
   /**
@@ -610,14 +616,22 @@ public final class MetricsSystem {
    * @return the worker metrics to send via RPC
    */
   public static List<alluxio.grpc.Metric> reportWorkerMetrics() {
-    return reportMetrics(InstanceType.WORKER);
+    long start = System.currentTimeMillis();
+    List<alluxio.grpc.Metric> metricsList = reportMetrics(InstanceType.WORKER);
+    LOG.debug("Get the worker metrics list to report to leading master in {}ms",
+        System.currentTimeMillis() - start);
+    return metricsList;
   }
 
   /**
    * @return the client metrics to send via RPC
    */
   public static List<alluxio.grpc.Metric> reportClientMetrics() {
-    return reportMetrics(InstanceType.CLIENT);
+    long start = System.currentTimeMillis();
+    List<alluxio.grpc.Metric> metricsList = reportMetrics(InstanceType.CLIENT);
+    LOG.debug("Get the client metrics list to report to leading master in {}ms",
+        System.currentTimeMillis() - start);
+    return metricsList;
   }
 
   /**
@@ -733,6 +747,7 @@ public final class MetricsSystem {
    * This method is not thread-safe and should be used sparingly.
    */
   public static synchronized void resetAllMetrics() {
+    long startTime = System.currentTimeMillis();
     // Gauge metrics don't need to be changed because they calculate value when getting them
     // Counters can be reset to zero values.
     for (Counter counter : METRIC_REGISTRY.getCounters().values()) {
@@ -751,6 +766,8 @@ public final class MetricsSystem {
       METRIC_REGISTRY.timer(timerName);
     }
     LAST_REPORTED_METRICS.clear();
+    LOG.info("Reset all metrics in the metrics system in {}ms",
+        System.currentTimeMillis() - startTime);
   }
 
   /**

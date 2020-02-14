@@ -948,7 +948,6 @@ public final class MetricKey implements Comparable<MetricKey> {
         = "Worker.BytesWrittenDomainThroughput";
 
     public static final String WORKER_BYTES_READ_UFS = "Worker.BytesReadPerUfs";
-    public static final String WORKER_BYTES_READ_UFS_ALL = "Worker.BytesReadUfsAll";
     public static final String WORKER_BYTES_READ_UFS_THROUGHPUT = "Worker.BytesReadUfsThroughput";
     public static final String WORKER_BYTES_WRITTEN_UFS = "Worker.BytesWrittenPerUfs";
     public static final String WORKER_BYTES_WRITTEN_UFS_THROUGHPUT
