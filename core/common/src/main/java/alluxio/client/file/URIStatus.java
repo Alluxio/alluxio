@@ -94,11 +94,19 @@ public class URIStatus {
   }
 
   /**
-   * @return the unique identifier of the entity referenced by this uri used by Alluxio servers,
-   *         immutable
+   * @return the unique long identifier of the entity referenced by this uri used by Alluxio
+   *         servers, immutable
    */
   public long getFileId() {
     return mInfo.getFileId();
+  }
+
+  /**
+   * @return the unique string identifier of the entity referenced by this uri used by Alluxio
+   *         servers, immutable
+   */
+  public String getFileIdentifier() {
+    return mInfo.getFileIdentifier();
   }
 
   /**
