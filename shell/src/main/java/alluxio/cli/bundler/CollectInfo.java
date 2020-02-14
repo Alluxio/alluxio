@@ -167,8 +167,6 @@ public class CollectInfo extends AbstractShell {
     System.exit(ret);
   }
 
-  private void
-
   /**
    * Finds all nodes in the cluster.
    * Then invokes collectInfo with --local option on each of them locally.
