@@ -3825,6 +3825,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         isSuperUser = false;
       }
       if (isSuperUser) {
+        // TODO(AM): Remove once we don't require a write lock on the sync point during a full sync
         // Stop sync w/o acquiring an inode lock to terminate an initial full scan (if running)
         mSyncManager.stopSyncAndJournal(rpcContext, syncPoint);
       }
