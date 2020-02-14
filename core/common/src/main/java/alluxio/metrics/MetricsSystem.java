@@ -67,20 +67,17 @@ public final class MetricsSystem {
   private static int sResolveTimeout =
       (int) new InstancedConfiguration(ConfigurationUtils.defaults())
           .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+  // A map from AlluxioURI to corresponding cached escaped path.
+  private static final ConcurrentHashMap<AlluxioURI, String> CACHED_ESCAPED_PATH
+      = new ConcurrentHashMap<>();
   // A map from the metric name to its previous reported value
   // This map is used for calculated the counter diff value that will be reported
   private static final Map<String, Long> LAST_REPORTED_METRICS = new HashMap<>();
   // A map that records all the metrics that should be reported and aggregated at leading master
   // from full metric name to its metric type
   private static final Map<String, MetricType> SHOULD_REPORT_METRICS = new HashMap<>();
-<<<<<<< HEAD
   // A pattern to get the <instance_type>.<metric_name> from the full metric name
   private static final Pattern METRIC_NAME_PATTERN = Pattern.compile("^(.*?[.].*?)[.].*");
-=======
-  // A map from AlluxioURI to corresponding cached escaped path.
-  private static final ConcurrentHashMap<AlluxioURI, String> CACHED_ESCAPED_PATH
-      = new ConcurrentHashMap<>();
->>>>>>> upstream/master
   // A flag telling whether metrics have been reported yet.
   // Using this prevents us from initializing {@link #SHOULD_REPORT_METRICS} more than once
   private static boolean sReported = false;
