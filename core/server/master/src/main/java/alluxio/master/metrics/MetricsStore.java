@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -49,7 +50,7 @@ public class MetricsStore {
   // The time of the most recent metrics store clearance.
   // This tracks when the cluster counters start aggregating from the reported metrics.
   @GuardedBy("mLock")
-  private long mLastClearTime = System.currentTimeMillis();
+  private AtomicLong mLastClearTime = new AtomicLong(System.currentTimeMillis());
 
   /**
    * A map from the cluster counter key representing the metrics to be aggregated
@@ -209,7 +210,7 @@ public class MetricsStore {
       for (Counter counter : mClusterCounters.values()) {
         counter.dec(counter.getCount());
       }
-      mLastClearTime = System.currentTimeMillis();
+      mLastClearTime.set(System.currentTimeMillis());
       MetricsSystem.resetAllMetrics();
     }
     LOG.info("Cleared the metrics store and metrics system in {} ms",
@@ -221,7 +222,7 @@ public class MetricsStore {
    */
   public long getLastClearTime() {
     try (LockResource r = new LockResource(mLock.readLock())) {
-      return mLastClearTime;
+      return mLastClearTime.get();
     }
   }
 
