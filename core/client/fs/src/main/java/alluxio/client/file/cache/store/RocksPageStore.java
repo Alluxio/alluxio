@@ -44,7 +44,8 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A page store implementation which utilizes rocksDB to persist the data.
+ * A page store implementation which utilizes rocksDB to persist the data. This implementation
+ * will not be included to client jar by default to reduce client jar size.
  */
 @NotThreadSafe
 public class RocksPageStore implements PageStore {
