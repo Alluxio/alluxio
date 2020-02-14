@@ -40,6 +40,16 @@ public class URIStatus {
   private final FileInfo mInfo;
 
   /**
+   * Constructs an instance of this class from a {@link URIStatus}. The two objects will be
+   * backed by the same {@link FileInfo} object.
+   *
+   * @param status the URIStatus to clone from
+   */
+  public URIStatus(URIStatus status) {
+    this(status.mInfo);
+  }
+
+  /**
    * Constructs an instance of this class from a {@link FileInfo}.
    *
    * @param info an object containing the information about a particular uri

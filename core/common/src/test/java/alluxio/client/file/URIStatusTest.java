@@ -34,7 +34,7 @@ public final class URIStatusTest {
   @Test
   public void constructor() {
     try {
-      new URIStatus(null);
+      new URIStatus((FileInfo) null);
       fail("Cannot create a URIStatus from a null FileInfo");
     } catch (Exception e) {
       assertTrue(e instanceof NullPointerException);
