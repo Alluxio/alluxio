@@ -776,7 +776,7 @@ public final class MetricKey implements Comparable<MetricKey> {
   // Client local cache metrics
   public static final MetricKey CLIENT_CACHE_BYTES_READ_CACHE =
       new Builder(Name.CLIENT_CACHE_BYTES_READ_CACHE)
-          .setDescription("Total number of bytes read from the Local Cache.")
+          .setDescription("Total number of bytes read from the local cache.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
@@ -790,8 +790,8 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL =
       new Builder(Name.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL)
           .setDescription("Total number of bytes the user requested to read which resulted in a "
-              + "cache miss. This number may be smaller than CacheBytesReadExternal due to chunk "
-              + "reads.")
+              + "cache miss. This number may be smaller than "
+              + Name.CLIENT_CACHE_BYTES_READ_EXTERNAL + " due to chunk reads.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();

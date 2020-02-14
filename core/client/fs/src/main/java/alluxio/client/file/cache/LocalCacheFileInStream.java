@@ -242,9 +242,9 @@ public class LocalCacheFileInStream extends FileInStream {
     }
     Preconditions.checkState(
         bytesRead == len || (bytesRead < len && currentPosition == mStatus.getLength()),
-        "Invalid number of bytes read - "
+        "Invalid number of bytes positionread - read from position = %d, "
             + "bytes to read = %d, actual bytes read = %d, bytes remains in file %d",
-        len, bytesRead, mStatus.getLength() - currentPosition);
+        pos, len, bytesRead, mStatus.getLength() - currentPosition);
     return bytesRead;
   }
 
