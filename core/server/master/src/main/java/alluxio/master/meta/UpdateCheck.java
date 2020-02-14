@@ -122,7 +122,7 @@ public final class UpdateCheck {
       // Exceptions are expected if instance is not EC2 instance
       // or get metadata operation is not allowed
     }
-    if (!userData.isEmpty()) {
+    if (userData != null && !userData.isEmpty()) {
       isEC2 = true;
       if (EnvironmentUtils.isCFT(userData)) {
         ec2Info.add("cft");
