@@ -74,6 +74,6 @@ public enum Format {
     if (path.endsWith(PARQUET.getSuffix())) {
       return PARQUET;
     }
-    throw new RuntimeException("Unsupported file format for " + path);
+    return null;
   }
 }
