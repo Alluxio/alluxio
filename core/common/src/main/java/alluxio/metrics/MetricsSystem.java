@@ -377,9 +377,9 @@ public final class MetricsSystem {
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
     if (name.startsWith(instance.toString())) {
-      return Joiner.on(".").join(name, sSourceNameSupplier);
+      return Joiner.on(".").join(name, sSourceNameSupplier.get());
     }
-    return Joiner.on(".").join(instance, name, sSourceNameSupplier);
+    return Joiner.on(".").join(instance, name, sSourceNameSupplier.get());
   }
 
   /**
