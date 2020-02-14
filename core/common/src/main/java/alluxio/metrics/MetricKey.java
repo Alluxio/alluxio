@@ -773,6 +773,28 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
+  // Client local cache metrics
+  public static final MetricKey CLIENT_CACHE_BYTES_READ_CACHE =
+      new Builder(Name.CLIENT_CACHE_BYTES_READ_CACHE)
+          .setDescription("Total number of bytes read from the local cache.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_BYTES_READ_EXTERNAL =
+      new Builder(Name.CLIENT_CACHE_BYTES_READ_EXTERNAL)
+          .setDescription("Total number of bytes read from external storage due to a cache miss "
+              + "on the local cache.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL =
+      new Builder(Name.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL)
+          .setDescription("Total number of bytes the user requested to read which resulted in a "
+              + "cache miss. This number may be smaller than "
+              + Name.CLIENT_CACHE_BYTES_READ_EXTERNAL + " due to chunk reads.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
 
   /**
    * Registers the given key to the global key map.
@@ -964,6 +986,12 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLIENT_BYTES_WRITTEN_LOCAL_THROUGHPUT
         = "Client.BytesWrittenLocalThroughput";
     public static final String CLIENT_BYTES_WRITTEN_UFS = "Client.BytesWrittenUfs";
+
+    // Client local cache metrics
+    public static final String CLIENT_CACHE_BYTES_READ_CACHE = "Client.CacheBytesReadCache";
+    public static final String CLIENT_CACHE_BYTES_READ_EXTERNAL = "Client.CacheBytesReadExternal";
+    public static final String CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL
+        = "Client.CacheBytesRequestedExternal";
 
     private Name() {} // prevent instantiation
   }
