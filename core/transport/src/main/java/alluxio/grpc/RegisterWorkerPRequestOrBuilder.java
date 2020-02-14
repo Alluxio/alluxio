@@ -13,6 +13,7 @@ public interface RegisterWorkerPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 workerId = 1;</code>
+   * @return Whether the workerId field is set.
    */
   boolean hasWorkerId();
   /**
@@ -21,6 +22,7 @@ public interface RegisterWorkerPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional int64 workerId = 1;</code>
+   * @return The workerId.
    */
   long getWorkerId();
 
@@ -30,6 +32,7 @@ public interface RegisterWorkerPRequestOrBuilder extends
    * </pre>
    *
    * <code>repeated string storageTiers = 2;</code>
+   * @return A list containing the storageTiers.
    */
   java.util.List<java.lang.String>
       getStorageTiersList();
@@ -39,6 +42,7 @@ public interface RegisterWorkerPRequestOrBuilder extends
    * </pre>
    *
    * <code>repeated string storageTiers = 2;</code>
+   * @return The count of storageTiers.
    */
   int getStorageTiersCount();
   /**
@@ -47,6 +51,8 @@ public interface RegisterWorkerPRequestOrBuilder extends
    * </pre>
    *
    * <code>repeated string storageTiers = 2;</code>
+   * @param index The index of the element to return.
+   * @return The storageTiers at the given index.
    */
   java.lang.String getStorageTiers(int index);
   /**
@@ -55,6 +61,8 @@ public interface RegisterWorkerPRequestOrBuilder extends
    * </pre>
    *
    * <code>repeated string storageTiers = 2;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the storageTiers at the given index.
    */
   com.google.protobuf.ByteString
       getStorageTiersBytes(int index);
@@ -223,10 +231,12 @@ public interface RegisterWorkerPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.block.RegisterWorkerPOptions options = 6;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.block.RegisterWorkerPOptions options = 6;</code>
+   * @return The options.
    */
   alluxio.grpc.RegisterWorkerPOptions getOptions();
   /**

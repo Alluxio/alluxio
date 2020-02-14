@@ -19,6 +19,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new JobCommand();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -42,16 +49,9 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             alluxio.grpc.RunTaskCommand.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000001) == 0x00000001)) {
+            if (((bitField0_ & 0x00000001) != 0)) {
               subBuilder = runTaskCommand_.toBuilder();
             }
             runTaskCommand_ = input.readMessage(alluxio.grpc.RunTaskCommand.PARSER, extensionRegistry);
@@ -64,7 +64,7 @@ private static final long serialVersionUID = 0L;
           }
           case 18: {
             alluxio.grpc.CancelTaskCommand.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000002) == 0x00000002)) {
+            if (((bitField0_ & 0x00000002) != 0)) {
               subBuilder = cancelTaskCommand_.toBuilder();
             }
             cancelTaskCommand_ = input.readMessage(alluxio.grpc.CancelTaskCommand.PARSER, extensionRegistry);
@@ -77,7 +77,7 @@ private static final long serialVersionUID = 0L;
           }
           case 26: {
             alluxio.grpc.RegisterCommand.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000004) == 0x00000004)) {
+            if (((bitField0_ & 0x00000004) != 0)) {
               subBuilder = registerCommand_.toBuilder();
             }
             registerCommand_ = input.readMessage(alluxio.grpc.RegisterCommand.PARSER, extensionRegistry);
@@ -90,7 +90,7 @@ private static final long serialVersionUID = 0L;
           }
           case 34: {
             alluxio.grpc.SetTaskPoolSizeCommand.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000008) == 0x00000008)) {
+            if (((bitField0_ & 0x00000008) != 0)) {
               subBuilder = setTaskPoolSizeCommand_.toBuilder();
             }
             setTaskPoolSizeCommand_ = input.readMessage(alluxio.grpc.SetTaskPoolSizeCommand.PARSER, extensionRegistry);
@@ -99,6 +99,13 @@ private static final long serialVersionUID = 0L;
               setTaskPoolSizeCommand_ = subBuilder.buildPartial();
             }
             bitField0_ |= 0x00000008;
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -118,6 +125,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_JobCommand_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_JobCommand_fieldAccessorTable
@@ -130,12 +138,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.RunTaskCommand runTaskCommand_;
   /**
    * <code>optional .alluxio.grpc.job.RunTaskCommand runTaskCommand = 1;</code>
+   * @return Whether the runTaskCommand field is set.
    */
   public boolean hasRunTaskCommand() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.job.RunTaskCommand runTaskCommand = 1;</code>
+   * @return The runTaskCommand.
    */
   public alluxio.grpc.RunTaskCommand getRunTaskCommand() {
     return runTaskCommand_ == null ? alluxio.grpc.RunTaskCommand.getDefaultInstance() : runTaskCommand_;
@@ -151,12 +161,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.CancelTaskCommand cancelTaskCommand_;
   /**
    * <code>optional .alluxio.grpc.job.CancelTaskCommand cancelTaskCommand = 2;</code>
+   * @return Whether the cancelTaskCommand field is set.
    */
   public boolean hasCancelTaskCommand() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.job.CancelTaskCommand cancelTaskCommand = 2;</code>
+   * @return The cancelTaskCommand.
    */
   public alluxio.grpc.CancelTaskCommand getCancelTaskCommand() {
     return cancelTaskCommand_ == null ? alluxio.grpc.CancelTaskCommand.getDefaultInstance() : cancelTaskCommand_;
@@ -172,12 +184,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.RegisterCommand registerCommand_;
   /**
    * <code>optional .alluxio.grpc.job.RegisterCommand registerCommand = 3;</code>
+   * @return Whether the registerCommand field is set.
    */
   public boolean hasRegisterCommand() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.job.RegisterCommand registerCommand = 3;</code>
+   * @return The registerCommand.
    */
   public alluxio.grpc.RegisterCommand getRegisterCommand() {
     return registerCommand_ == null ? alluxio.grpc.RegisterCommand.getDefaultInstance() : registerCommand_;
@@ -193,12 +207,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.SetTaskPoolSizeCommand setTaskPoolSizeCommand_;
   /**
    * <code>optional .alluxio.grpc.job.SetTaskPoolSizeCommand setTaskPoolSizeCommand = 4;</code>
+   * @return Whether the setTaskPoolSizeCommand field is set.
    */
   public boolean hasSetTaskPoolSizeCommand() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000008) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.job.SetTaskPoolSizeCommand setTaskPoolSizeCommand = 4;</code>
+   * @return The setTaskPoolSizeCommand.
    */
   public alluxio.grpc.SetTaskPoolSizeCommand getSetTaskPoolSizeCommand() {
     return setTaskPoolSizeCommand_ == null ? alluxio.grpc.SetTaskPoolSizeCommand.getDefaultInstance() : setTaskPoolSizeCommand_;
@@ -211,6 +227,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -220,41 +237,43 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeMessage(1, getRunTaskCommand());
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeMessage(2, getCancelTaskCommand());
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       output.writeMessage(3, getRegisterCommand());
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       output.writeMessage(4, getSetTaskPoolSizeCommand());
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(1, getRunTaskCommand());
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(2, getCancelTaskCommand());
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(3, getRegisterCommand());
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(4, getSetTaskPoolSizeCommand());
     }
@@ -273,29 +292,28 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.JobCommand other = (alluxio.grpc.JobCommand) obj;
 
-    boolean result = true;
-    result = result && (hasRunTaskCommand() == other.hasRunTaskCommand());
+    if (hasRunTaskCommand() != other.hasRunTaskCommand()) return false;
     if (hasRunTaskCommand()) {
-      result = result && getRunTaskCommand()
-          .equals(other.getRunTaskCommand());
+      if (!getRunTaskCommand()
+          .equals(other.getRunTaskCommand())) return false;
     }
-    result = result && (hasCancelTaskCommand() == other.hasCancelTaskCommand());
+    if (hasCancelTaskCommand() != other.hasCancelTaskCommand()) return false;
     if (hasCancelTaskCommand()) {
-      result = result && getCancelTaskCommand()
-          .equals(other.getCancelTaskCommand());
+      if (!getCancelTaskCommand()
+          .equals(other.getCancelTaskCommand())) return false;
     }
-    result = result && (hasRegisterCommand() == other.hasRegisterCommand());
+    if (hasRegisterCommand() != other.hasRegisterCommand()) return false;
     if (hasRegisterCommand()) {
-      result = result && getRegisterCommand()
-          .equals(other.getRegisterCommand());
+      if (!getRegisterCommand()
+          .equals(other.getRegisterCommand())) return false;
     }
-    result = result && (hasSetTaskPoolSizeCommand() == other.hasSetTaskPoolSizeCommand());
+    if (hasSetTaskPoolSizeCommand() != other.hasSetTaskPoolSizeCommand()) return false;
     if (hasSetTaskPoolSizeCommand()) {
-      result = result && getSetTaskPoolSizeCommand()
-          .equals(other.getSetTaskPoolSizeCommand());
+      if (!getSetTaskPoolSizeCommand()
+          .equals(other.getSetTaskPoolSizeCommand())) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -396,6 +414,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -403,6 +422,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.JobCommand prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -426,6 +446,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_JobCommand_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_JobCommand_fieldAccessorTable
@@ -452,6 +473,7 @@ private static final long serialVersionUID = 0L;
         getSetTaskPoolSizeCommandFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       if (runTaskCommandBuilder_ == null) {
@@ -481,15 +503,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_JobCommand_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.JobCommand getDefaultInstanceForType() {
       return alluxio.grpc.JobCommand.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.JobCommand build() {
       alluxio.grpc.JobCommand result = buildPartial();
       if (!result.isInitialized()) {
@@ -498,73 +523,81 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.JobCommand buildPartial() {
       alluxio.grpc.JobCommand result = new alluxio.grpc.JobCommand(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        if (runTaskCommandBuilder_ == null) {
+          result.runTaskCommand_ = runTaskCommand_;
+        } else {
+          result.runTaskCommand_ = runTaskCommandBuilder_.build();
+        }
         to_bitField0_ |= 0x00000001;
       }
-      if (runTaskCommandBuilder_ == null) {
-        result.runTaskCommand_ = runTaskCommand_;
-      } else {
-        result.runTaskCommand_ = runTaskCommandBuilder_.build();
-      }
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
+        if (cancelTaskCommandBuilder_ == null) {
+          result.cancelTaskCommand_ = cancelTaskCommand_;
+        } else {
+          result.cancelTaskCommand_ = cancelTaskCommandBuilder_.build();
+        }
         to_bitField0_ |= 0x00000002;
       }
-      if (cancelTaskCommandBuilder_ == null) {
-        result.cancelTaskCommand_ = cancelTaskCommand_;
-      } else {
-        result.cancelTaskCommand_ = cancelTaskCommandBuilder_.build();
-      }
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
+        if (registerCommandBuilder_ == null) {
+          result.registerCommand_ = registerCommand_;
+        } else {
+          result.registerCommand_ = registerCommandBuilder_.build();
+        }
         to_bitField0_ |= 0x00000004;
       }
-      if (registerCommandBuilder_ == null) {
-        result.registerCommand_ = registerCommand_;
-      } else {
-        result.registerCommand_ = registerCommandBuilder_.build();
-      }
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000008) != 0)) {
+        if (setTaskPoolSizeCommandBuilder_ == null) {
+          result.setTaskPoolSizeCommand_ = setTaskPoolSizeCommand_;
+        } else {
+          result.setTaskPoolSizeCommand_ = setTaskPoolSizeCommandBuilder_.build();
+        }
         to_bitField0_ |= 0x00000008;
-      }
-      if (setTaskPoolSizeCommandBuilder_ == null) {
-        result.setTaskPoolSizeCommand_ = setTaskPoolSizeCommand_;
-      } else {
-        result.setTaskPoolSizeCommand_ = setTaskPoolSizeCommandBuilder_.build();
       }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.JobCommand) {
         return mergeFrom((alluxio.grpc.JobCommand)other);
@@ -593,10 +626,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -616,17 +651,19 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private alluxio.grpc.RunTaskCommand runTaskCommand_ = null;
+    private alluxio.grpc.RunTaskCommand runTaskCommand_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.RunTaskCommand, alluxio.grpc.RunTaskCommand.Builder, alluxio.grpc.RunTaskCommandOrBuilder> runTaskCommandBuilder_;
     /**
      * <code>optional .alluxio.grpc.job.RunTaskCommand runTaskCommand = 1;</code>
+     * @return Whether the runTaskCommand field is set.
      */
     public boolean hasRunTaskCommand() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.job.RunTaskCommand runTaskCommand = 1;</code>
+     * @return The runTaskCommand.
      */
     public alluxio.grpc.RunTaskCommand getRunTaskCommand() {
       if (runTaskCommandBuilder_ == null) {
@@ -670,7 +707,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeRunTaskCommand(alluxio.grpc.RunTaskCommand value) {
       if (runTaskCommandBuilder_ == null) {
-        if (((bitField0_ & 0x00000001) == 0x00000001) &&
+        if (((bitField0_ & 0x00000001) != 0) &&
             runTaskCommand_ != null &&
             runTaskCommand_ != alluxio.grpc.RunTaskCommand.getDefaultInstance()) {
           runTaskCommand_ =
@@ -734,17 +771,19 @@ private static final long serialVersionUID = 0L;
       return runTaskCommandBuilder_;
     }
 
-    private alluxio.grpc.CancelTaskCommand cancelTaskCommand_ = null;
+    private alluxio.grpc.CancelTaskCommand cancelTaskCommand_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.CancelTaskCommand, alluxio.grpc.CancelTaskCommand.Builder, alluxio.grpc.CancelTaskCommandOrBuilder> cancelTaskCommandBuilder_;
     /**
      * <code>optional .alluxio.grpc.job.CancelTaskCommand cancelTaskCommand = 2;</code>
+     * @return Whether the cancelTaskCommand field is set.
      */
     public boolean hasCancelTaskCommand() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.job.CancelTaskCommand cancelTaskCommand = 2;</code>
+     * @return The cancelTaskCommand.
      */
     public alluxio.grpc.CancelTaskCommand getCancelTaskCommand() {
       if (cancelTaskCommandBuilder_ == null) {
@@ -788,7 +827,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeCancelTaskCommand(alluxio.grpc.CancelTaskCommand value) {
       if (cancelTaskCommandBuilder_ == null) {
-        if (((bitField0_ & 0x00000002) == 0x00000002) &&
+        if (((bitField0_ & 0x00000002) != 0) &&
             cancelTaskCommand_ != null &&
             cancelTaskCommand_ != alluxio.grpc.CancelTaskCommand.getDefaultInstance()) {
           cancelTaskCommand_ =
@@ -852,17 +891,19 @@ private static final long serialVersionUID = 0L;
       return cancelTaskCommandBuilder_;
     }
 
-    private alluxio.grpc.RegisterCommand registerCommand_ = null;
+    private alluxio.grpc.RegisterCommand registerCommand_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.RegisterCommand, alluxio.grpc.RegisterCommand.Builder, alluxio.grpc.RegisterCommandOrBuilder> registerCommandBuilder_;
     /**
      * <code>optional .alluxio.grpc.job.RegisterCommand registerCommand = 3;</code>
+     * @return Whether the registerCommand field is set.
      */
     public boolean hasRegisterCommand() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.job.RegisterCommand registerCommand = 3;</code>
+     * @return The registerCommand.
      */
     public alluxio.grpc.RegisterCommand getRegisterCommand() {
       if (registerCommandBuilder_ == null) {
@@ -906,7 +947,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeRegisterCommand(alluxio.grpc.RegisterCommand value) {
       if (registerCommandBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) == 0x00000004) &&
+        if (((bitField0_ & 0x00000004) != 0) &&
             registerCommand_ != null &&
             registerCommand_ != alluxio.grpc.RegisterCommand.getDefaultInstance()) {
           registerCommand_ =
@@ -970,17 +1011,19 @@ private static final long serialVersionUID = 0L;
       return registerCommandBuilder_;
     }
 
-    private alluxio.grpc.SetTaskPoolSizeCommand setTaskPoolSizeCommand_ = null;
+    private alluxio.grpc.SetTaskPoolSizeCommand setTaskPoolSizeCommand_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.SetTaskPoolSizeCommand, alluxio.grpc.SetTaskPoolSizeCommand.Builder, alluxio.grpc.SetTaskPoolSizeCommandOrBuilder> setTaskPoolSizeCommandBuilder_;
     /**
      * <code>optional .alluxio.grpc.job.SetTaskPoolSizeCommand setTaskPoolSizeCommand = 4;</code>
+     * @return Whether the setTaskPoolSizeCommand field is set.
      */
     public boolean hasSetTaskPoolSizeCommand() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.job.SetTaskPoolSizeCommand setTaskPoolSizeCommand = 4;</code>
+     * @return The setTaskPoolSizeCommand.
      */
     public alluxio.grpc.SetTaskPoolSizeCommand getSetTaskPoolSizeCommand() {
       if (setTaskPoolSizeCommandBuilder_ == null) {
@@ -1024,7 +1067,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeSetTaskPoolSizeCommand(alluxio.grpc.SetTaskPoolSizeCommand value) {
       if (setTaskPoolSizeCommandBuilder_ == null) {
-        if (((bitField0_ & 0x00000008) == 0x00000008) &&
+        if (((bitField0_ & 0x00000008) != 0) &&
             setTaskPoolSizeCommand_ != null &&
             setTaskPoolSizeCommand_ != alluxio.grpc.SetTaskPoolSizeCommand.getDefaultInstance()) {
           setTaskPoolSizeCommand_ =
@@ -1087,11 +1130,13 @@ private static final long serialVersionUID = 0L;
       }
       return setTaskPoolSizeCommandBuilder_;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1113,6 +1158,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<JobCommand>
       PARSER = new com.google.protobuf.AbstractParser<JobCommand>() {
+    @java.lang.Override
     public JobCommand parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1130,6 +1176,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.JobCommand getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

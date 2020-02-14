@@ -52,18 +52,10 @@ public final class MessagingTransportProto {
       "essaging.TransportMessage(\0010\001B)\n\014alluxio" +
       ".grpcB\027MessagingTransportProtoP\001"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-        }, assigner);
+        });
     internal_static_alluxio_grpc_messaging_MessagingRequestHeader_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_alluxio_grpc_messaging_MessagingRequestHeader_fieldAccessorTable = new

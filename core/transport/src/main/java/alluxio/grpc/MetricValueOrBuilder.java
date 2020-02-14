@@ -9,33 +9,40 @@ public interface MetricValueOrBuilder extends
 
   /**
    * <code>optional double doubleValue = 1;</code>
+   * @return Whether the doubleValue field is set.
    */
   boolean hasDoubleValue();
   /**
    * <code>optional double doubleValue = 1;</code>
+   * @return The doubleValue.
    */
   double getDoubleValue();
 
   /**
    * <code>optional string stringValue = 2;</code>
+   * @return Whether the stringValue field is set.
    */
   boolean hasStringValue();
   /**
    * <code>optional string stringValue = 2;</code>
+   * @return The stringValue.
    */
   java.lang.String getStringValue();
   /**
    * <code>optional string stringValue = 2;</code>
+   * @return The bytes for stringValue.
    */
   com.google.protobuf.ByteString
       getStringValueBytes();
 
   /**
    * <code>optional .alluxio.grpc.MetricType metricType = 6;</code>
+   * @return Whether the metricType field is set.
    */
   boolean hasMetricType();
   /**
    * <code>optional .alluxio.grpc.MetricType metricType = 6;</code>
+   * @return The metricType.
    */
   alluxio.grpc.MetricType getMetricType();
 }

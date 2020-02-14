@@ -13,6 +13,7 @@ public interface MountPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string alluxioPath = 1;</code>
+   * @return Whether the alluxioPath field is set.
    */
   boolean hasAlluxioPath();
   /**
@@ -21,6 +22,7 @@ public interface MountPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string alluxioPath = 1;</code>
+   * @return The alluxioPath.
    */
   java.lang.String getAlluxioPath();
   /**
@@ -29,6 +31,7 @@ public interface MountPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string alluxioPath = 1;</code>
+   * @return The bytes for alluxioPath.
    */
   com.google.protobuf.ByteString
       getAlluxioPathBytes();
@@ -39,6 +42,7 @@ public interface MountPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string ufsPath = 2;</code>
+   * @return Whether the ufsPath field is set.
    */
   boolean hasUfsPath();
   /**
@@ -47,6 +51,7 @@ public interface MountPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string ufsPath = 2;</code>
+   * @return The ufsPath.
    */
   java.lang.String getUfsPath();
   /**
@@ -55,16 +60,19 @@ public interface MountPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string ufsPath = 2;</code>
+   * @return The bytes for ufsPath.
    */
   com.google.protobuf.ByteString
       getUfsPathBytes();
 
   /**
    * <code>optional .alluxio.grpc.file.MountPOptions options = 3;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.file.MountPOptions options = 3;</code>
+   * @return The options.
    */
   alluxio.grpc.MountPOptions getOptions();
   /**

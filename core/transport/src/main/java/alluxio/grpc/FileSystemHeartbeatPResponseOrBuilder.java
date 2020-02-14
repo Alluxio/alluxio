@@ -9,10 +9,12 @@ public interface FileSystemHeartbeatPResponseOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.file.FileSystemCommand command = 1;</code>
+   * @return Whether the command field is set.
    */
   boolean hasCommand();
   /**
    * <code>optional .alluxio.grpc.file.FileSystemCommand command = 1;</code>
+   * @return The command.
    */
   alluxio.grpc.FileSystemCommand getCommand();
   /**

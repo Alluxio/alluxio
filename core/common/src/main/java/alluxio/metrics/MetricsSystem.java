@@ -12,6 +12,7 @@
 package alluxio.metrics;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.MetricType;
@@ -40,11 +41,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -73,6 +74,11 @@ public final class MetricsSystem {
   // A flag telling whether metrics have been reported yet.
   // Using this prevents us from initializing {@link #SHOULD_REPORT_METRICS} more than once
   private static boolean sReported = false;
+  // The source of the metrics in this metrics system.
+  // It can be set through property keys based on process types.
+  // Local hostname will be used if no related property key founds.
+  private static Supplier<String> sSourceNameSupplier =
+      CommonUtils.memoize(() -> constructSourceName());
 
   /**
    * An enum of supported instance type.
@@ -138,8 +144,9 @@ public final class MetricsSystem {
   private static final int MINIMAL_POLL_PERIOD = 1;
 
   /**
-   * Starts sinks specified in the configuration. This is an no-op if the sinks have already been
-   * started. Note: This has to be called after Alluxio configuration is initialized.
+   * Starts sinks specified in the configuration.
+   * This is an no-op if the sinks have already been started.
+   * Note: This has to be called after Alluxio configuration is initialized.
    *
    * @param metricsConfFile the location of the metrics configuration file
    */
@@ -156,6 +163,35 @@ public final class MetricsSystem {
     }
     MetricsConfig config = new MetricsConfig(metricsConfFile);
     startSinksFromConfig(config);
+  }
+
+  /**
+   * Constructs the source name of metrics in this {@link MetricsSystem}.
+   */
+  private static String constructSourceName() {
+    PropertyKey sourceKey = null;
+    switch (CommonUtils.PROCESS_TYPE.get()) {
+      case MASTER:
+        sourceKey = PropertyKey.MASTER_HOSTNAME;
+        break;
+      case WORKER:
+        sourceKey = PropertyKey.WORKER_HOSTNAME;
+        break;
+      case CLIENT:
+        sourceKey = PropertyKey.USER_APP_ID;
+        break;
+      case JOB_MASTER:
+        sourceKey = PropertyKey.JOB_MASTER_HOSTNAME;
+        break;
+      case JOB_WORKER:
+        sourceKey = PropertyKey.JOB_WORKER_HOSTNAME;
+        break;
+      default:
+        break;
+    }
+    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    return sourceKey != null && conf.isSet(sourceKey)
+        ? conf.get(sourceKey) : NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
   }
 
   /**
@@ -290,8 +326,7 @@ public final class MetricsSystem {
       return CACHED_METRICS.computeIfAbsent(name, n -> name);
     }
     if (name.startsWith(InstanceType.WORKER.toString())) {
-      return CACHED_METRICS.computeIfAbsent(name,
-          n -> getMetricNameWithUniqueId(InstanceType.WORKER, name));
+      return getWorkerMetricName(name);
     }
 
     return CACHED_METRICS.computeIfAbsent(name,
@@ -342,11 +377,9 @@ public final class MetricsSystem {
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
     if (name.startsWith(instance.toString())) {
-      return Joiner.on(".").join(name,
-          NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
+      return Joiner.on(".").join(name, sSourceNameSupplier);
     }
-    return Joiner.on(".").join(instance, name,
-        NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout));
+    return Joiner.on(".").join(instance, name, sSourceNameSupplier);
   }
 
   /**
@@ -527,17 +560,9 @@ public final class MetricsSystem {
         // This metric does not registered in the metric registry
         continue;
       }
-      if (metric instanceof Gauge) {
-        Gauge gauge = (Gauge) metric;
-        if (!(gauge.getValue() instanceof Number)) {
-          LOG.debug("The value of metric {} of type {} is not sent to metrics master,"
-                  + " only metrics value of number can be collected",
-              entry.getKey(), gauge.getValue().getClass().getSimpleName());
-          continue;
-        }
-        rpcMetrics.add(Metric.from(entry.getKey(),
-            ((Number) gauge.getValue()).longValue(), MetricType.GAUGE).toProto());
-      } else if (metric instanceof Counter) {
+      // Currently all metrics that should be reported are all counters,
+      // the logic here is to support reporting metrics of all types for future convenience
+      if (metric instanceof Counter) {
         Counter counter = (Counter) metric;
         long value = counter.getCount();
         Long prev = LAST_REPORTED_METRICS.replace(entry.getKey(), value);
@@ -551,8 +576,22 @@ public final class MetricsSystem {
         if (diff != 0) { // Only report non-zero counter values
           rpcMetrics.add(Metric.from(entry.getKey(), diff, MetricType.COUNTER).toProto());
         }
+      } else if (metric instanceof Gauge) {
+        Gauge gauge = (Gauge) metric;
+        if (!(gauge.getValue() instanceof Number)) {
+          LOG.debug("The value of metric {} of type {} is not sent to metrics master,"
+                  + " only metrics value of number can be collected",
+              entry.getKey(), gauge.getValue().getClass().getSimpleName());
+          continue;
+        }
+        rpcMetrics.add(Metric.from(entry.getKey(),
+            ((Number) gauge.getValue()).longValue(), MetricType.GAUGE).toProto());
       } else if (metric instanceof Meter) {
         Meter meter = (Meter) metric;
+        // Note that one minute rate may return 0 in the first several seconds
+        // that a value marked. For clients, especially short-life clients,
+        // the minute rates will be zero for their whole life.
+        // That's why all throughput meters are not aggregated at cluster level.
         rpcMetrics.add(Metric.from(entry.getKey(), meter.getOneMinuteRate(),
             MetricType.METER).toProto());
       } else if (metric instanceof Timer) {
@@ -589,17 +628,28 @@ public final class MetricsSystem {
    */
   public static Set<Metric> getMasterMetric(String name) {
     Set<Metric> set = new HashSet<>();
-    Map<String, com.codahale.metrics.Metric> metricMap = METRIC_REGISTRY.getMetrics();
     String fullName = getMasterMetricName(name);
-    com.codahale.metrics.Metric metric = metricMap.get(fullName);
-    if (metric == null) {
-      return set;
-    }
-    Metric alluxioMetric = getAlluxioMetricFromCodahaleMetric(fullName, metric);
+    Metric alluxioMetric = getMetricValue(fullName);
     if (alluxioMetric != null) {
       set.add(alluxioMetric);
     }
     return set;
+  }
+
+  /**
+   * Gets metric with the given full metric name.
+   *
+   * @param fullName the full name of the metric to get
+   * @return a metric set with the master metric of the given metric name
+   */
+  @Nullable
+  public static Metric getMetricValue(String fullName) {
+    Map<String, com.codahale.metrics.Metric> metricMap = METRIC_REGISTRY.getMetrics();
+    com.codahale.metrics.Metric metric = metricMap.get(fullName);
+    if (metric == null) {
+      return null;
+    }
+    return getAlluxioMetricFromCodahaleMetric(fullName, metric);
   }
 
   @Nullable

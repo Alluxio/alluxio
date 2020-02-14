@@ -9,24 +9,29 @@ public interface UfsInfoOrBuilder extends
 
   /**
    * <code>optional string uri = 1;</code>
+   * @return Whether the uri field is set.
    */
   boolean hasUri();
   /**
    * <code>optional string uri = 1;</code>
+   * @return The uri.
    */
   java.lang.String getUri();
   /**
    * <code>optional string uri = 1;</code>
+   * @return The bytes for uri.
    */
   com.google.protobuf.ByteString
       getUriBytes();
 
   /**
    * <code>optional .alluxio.grpc.file.MountPOptions properties = 2;</code>
+   * @return Whether the properties field is set.
    */
   boolean hasProperties();
   /**
    * <code>optional .alluxio.grpc.file.MountPOptions properties = 2;</code>
+   * @return The properties.
    */
   alluxio.grpc.MountPOptions getProperties();
   /**

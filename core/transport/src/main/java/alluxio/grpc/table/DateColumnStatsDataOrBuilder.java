@@ -9,10 +9,12 @@ public interface DateColumnStatsDataOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.Date low_value = 1;</code>
+   * @return Whether the lowValue field is set.
    */
   boolean hasLowValue();
   /**
    * <code>optional .alluxio.grpc.table.Date low_value = 1;</code>
+   * @return The lowValue.
    */
   alluxio.grpc.table.Date getLowValue();
   /**
@@ -22,10 +24,12 @@ public interface DateColumnStatsDataOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.Date high_value = 2;</code>
+   * @return Whether the highValue field is set.
    */
   boolean hasHighValue();
   /**
    * <code>optional .alluxio.grpc.table.Date high_value = 2;</code>
+   * @return The highValue.
    */
   alluxio.grpc.table.Date getHighValue();
   /**
@@ -35,32 +39,39 @@ public interface DateColumnStatsDataOrBuilder extends
 
   /**
    * <code>optional int64 num_nulls = 3;</code>
+   * @return Whether the numNulls field is set.
    */
   boolean hasNumNulls();
   /**
    * <code>optional int64 num_nulls = 3;</code>
+   * @return The numNulls.
    */
   long getNumNulls();
 
   /**
    * <code>optional int64 num_distincts = 4;</code>
+   * @return Whether the numDistincts field is set.
    */
   boolean hasNumDistincts();
   /**
    * <code>optional int64 num_distincts = 4;</code>
+   * @return The numDistincts.
    */
   long getNumDistincts();
 
   /**
    * <code>optional string bit_vectors = 5;</code>
+   * @return Whether the bitVectors field is set.
    */
   boolean hasBitVectors();
   /**
    * <code>optional string bit_vectors = 5;</code>
+   * @return The bitVectors.
    */
   java.lang.String getBitVectors();
   /**
    * <code>optional string bit_vectors = 5;</code>
+   * @return The bytes for bitVectors.
    */
   com.google.protobuf.ByteString
       getBitVectorsBytes();

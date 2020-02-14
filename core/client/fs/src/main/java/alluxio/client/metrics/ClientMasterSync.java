@@ -16,7 +16,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.ClientMetrics;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
-import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -69,14 +68,14 @@ public final class ClientMasterSync {
     // Currently we only support JVM-level metrics. A list is used here because in the near
     // future we will support sending per filesystem client-level metrics.
     List<alluxio.grpc.ClientMetrics> fsClientMetrics = new ArrayList<>();
-    String hostname = NetworkAddressUtils.getClientHostName(mConf);
-    List<alluxio.grpc.Metric> metrics = new ArrayList<>();
-    for (alluxio.grpc.Metric metric : MetricsSystem.reportClientMetrics()) {
-      metrics.add(metric.toBuilder().setInstanceId(mApplicationId).build());
+    List<alluxio.grpc.Metric> metrics = MetricsSystem.reportClientMetrics();
+    if (metrics.size() == 0) {
+      // Likely when all should report metrics are counters
+      // and this client doesn't do any actual operations (only used for meta sync)
+      return;
     }
     fsClientMetrics.add(ClientMetrics.newBuilder()
-        .setHostname(hostname)
-        .setClientId(mApplicationId)
+        .setSource(mApplicationId)
         .addAllMetrics(metrics)
         .build());
     try {

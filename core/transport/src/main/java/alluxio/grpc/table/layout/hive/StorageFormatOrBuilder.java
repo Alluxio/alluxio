@@ -9,42 +9,51 @@ public interface StorageFormatOrBuilder extends
 
   /**
    * <code>optional string serde = 1;</code>
+   * @return Whether the serde field is set.
    */
   boolean hasSerde();
   /**
    * <code>optional string serde = 1;</code>
+   * @return The serde.
    */
   java.lang.String getSerde();
   /**
    * <code>optional string serde = 1;</code>
+   * @return The bytes for serde.
    */
   com.google.protobuf.ByteString
       getSerdeBytes();
 
   /**
    * <code>optional string input_format = 2;</code>
+   * @return Whether the inputFormat field is set.
    */
   boolean hasInputFormat();
   /**
    * <code>optional string input_format = 2;</code>
+   * @return The inputFormat.
    */
   java.lang.String getInputFormat();
   /**
    * <code>optional string input_format = 2;</code>
+   * @return The bytes for inputFormat.
    */
   com.google.protobuf.ByteString
       getInputFormatBytes();
 
   /**
    * <code>optional string output_format = 3;</code>
+   * @return Whether the outputFormat field is set.
    */
   boolean hasOutputFormat();
   /**
    * <code>optional string output_format = 3;</code>
+   * @return The outputFormat.
    */
   java.lang.String getOutputFormat();
   /**
    * <code>optional string output_format = 3;</code>
+   * @return The bytes for outputFormat.
    */
   com.google.protobuf.ByteString
       getOutputFormatBytes();

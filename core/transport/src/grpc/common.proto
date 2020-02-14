@@ -48,12 +48,11 @@ message BlockLocation {
  */
 message Metric {
   optional string instance = 1;
-  optional string hostname = 2;
-  optional string instanceId = 3;
-  optional string name = 4;
-  optional double value = 5;
-  required MetricType metricType = 6;
-  map<string,string> tags = 7;
+  optional string source = 2;
+  optional string name = 3;
+  optional double value = 4;
+  required MetricType metricType = 5;
+  map<string,string> tags = 6;
 }
 
 enum MetricType {

@@ -9,24 +9,29 @@ public interface SyncPointInfoOrBuilder extends
 
   /**
    * <code>optional string syncPointUri = 1;</code>
+   * @return Whether the syncPointUri field is set.
    */
   boolean hasSyncPointUri();
   /**
    * <code>optional string syncPointUri = 1;</code>
+   * @return The syncPointUri.
    */
   java.lang.String getSyncPointUri();
   /**
    * <code>optional string syncPointUri = 1;</code>
+   * @return The bytes for syncPointUri.
    */
   com.google.protobuf.ByteString
       getSyncPointUriBytes();
 
   /**
    * <code>optional .alluxio.grpc.file.SyncPointStatus syncStatus = 2;</code>
+   * @return Whether the syncStatus field is set.
    */
   boolean hasSyncStatus();
   /**
    * <code>optional .alluxio.grpc.file.SyncPointStatus syncStatus = 2;</code>
+   * @return The syncStatus.
    */
   alluxio.grpc.SyncPointStatus getSyncStatus();
 }

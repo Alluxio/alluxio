@@ -20,10 +20,12 @@ public final class Block {
 
     /**
      * <code>optional int64 length = 1;</code>
+     * @return Whether the length field is set.
      */
     boolean hasLength();
     /**
      * <code>optional int64 length = 1;</code>
+     * @return The length.
      */
     long getLength();
   }
@@ -48,7 +50,13 @@ public final class Block {
       super(builder);
     }
     private BlockMeta() {
-      length_ = 0L;
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new BlockMeta();
     }
 
     @java.lang.Override
@@ -75,16 +83,16 @@ public final class Block {
             case 0:
               done = true;
               break;
+            case 8: {
+              bitField0_ |= 0x00000001;
+              length_ = input.readInt64();
+              break;
+            }
             default: {
               if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
-              break;
-            }
-            case 8: {
-              bitField0_ |= 0x00000001;
-              length_ = input.readInt64();
               break;
             }
           }
@@ -104,6 +112,7 @@ public final class Block {
       return alluxio.proto.meta.Block.internal_static_alluxio_proto_meta_BlockMeta_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.meta.Block.internal_static_alluxio_proto_meta_BlockMeta_fieldAccessorTable
@@ -116,18 +125,21 @@ public final class Block {
     private long length_;
     /**
      * <code>optional int64 length = 1;</code>
+     * @return Whether the length field is set.
      */
     public boolean hasLength() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional int64 length = 1;</code>
+     * @return The length.
      */
     public long getLength() {
       return length_;
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -137,20 +149,22 @@ public final class Block {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         output.writeInt64(1, length_);
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, length_);
       }
@@ -169,14 +183,13 @@ public final class Block {
       }
       alluxio.proto.meta.Block.BlockMeta other = (alluxio.proto.meta.Block.BlockMeta) obj;
 
-      boolean result = true;
-      result = result && (hasLength() == other.hasLength());
+      if (hasLength() != other.hasLength()) return false;
       if (hasLength()) {
-        result = result && (getLength()
-            == other.getLength());
+        if (getLength()
+            != other.getLength()) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -266,6 +279,7 @@ public final class Block {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -273,6 +287,7 @@ public final class Block {
     public static Builder newBuilder(alluxio.proto.meta.Block.BlockMeta prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -304,6 +319,7 @@ public final class Block {
         return alluxio.proto.meta.Block.internal_static_alluxio_proto_meta_BlockMeta_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.meta.Block.internal_static_alluxio_proto_meta_BlockMeta_fieldAccessorTable
@@ -326,6 +342,7 @@ public final class Block {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         length_ = 0L;
@@ -333,15 +350,18 @@ public final class Block {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.meta.Block.internal_static_alluxio_proto_meta_BlockMeta_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.meta.Block.BlockMeta getDefaultInstanceForType() {
         return alluxio.proto.meta.Block.BlockMeta.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.meta.Block.BlockMeta build() {
         alluxio.proto.meta.Block.BlockMeta result = buildPartial();
         if (!result.isInitialized()) {
@@ -350,45 +370,53 @@ public final class Block {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.meta.Block.BlockMeta buildPartial() {
         alluxio.proto.meta.Block.BlockMeta result = new alluxio.proto.meta.Block.BlockMeta(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.length_ = length_;
           to_bitField0_ |= 0x00000001;
         }
-        result.length_ = length_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.meta.Block.BlockMeta) {
           return mergeFrom((alluxio.proto.meta.Block.BlockMeta)other);
@@ -408,10 +436,12 @@ public final class Block {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -434,18 +464,22 @@ public final class Block {
       private long length_ ;
       /**
        * <code>optional int64 length = 1;</code>
+       * @return Whether the length field is set.
        */
       public boolean hasLength() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional int64 length = 1;</code>
+       * @return The length.
        */
       public long getLength() {
         return length_;
       }
       /**
        * <code>optional int64 length = 1;</code>
+       * @param value The length to set.
+       * @return This builder for chaining.
        */
       public Builder setLength(long value) {
         bitField0_ |= 0x00000001;
@@ -455,6 +489,7 @@ public final class Block {
       }
       /**
        * <code>optional int64 length = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearLength() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -462,11 +497,13 @@ public final class Block {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -488,6 +525,7 @@ public final class Block {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<BlockMeta>
         PARSER = new com.google.protobuf.AbstractParser<BlockMeta>() {
+      @java.lang.Override
       public BlockMeta parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -505,6 +543,7 @@ public final class Block {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.meta.Block.BlockMeta getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -517,37 +556,45 @@ public final class Block {
 
     /**
      * <code>optional int64 worker_id = 1;</code>
+     * @return Whether the workerId field is set.
      */
     boolean hasWorkerId();
     /**
      * <code>optional int64 worker_id = 1;</code>
+     * @return The workerId.
      */
     long getWorkerId();
 
     /**
      * <code>optional string tier = 2;</code>
+     * @return Whether the tier field is set.
      */
     boolean hasTier();
     /**
      * <code>optional string tier = 2;</code>
+     * @return The tier.
      */
     java.lang.String getTier();
     /**
      * <code>optional string tier = 2;</code>
+     * @return The bytes for tier.
      */
     com.google.protobuf.ByteString
         getTierBytes();
 
     /**
      * <code>optional string mediumType = 3;</code>
+     * @return Whether the mediumType field is set.
      */
     boolean hasMediumType();
     /**
      * <code>optional string mediumType = 3;</code>
+     * @return The mediumType.
      */
     java.lang.String getMediumType();
     /**
      * <code>optional string mediumType = 3;</code>
+     * @return The bytes for mediumType.
      */
     com.google.protobuf.ByteString
         getMediumTypeBytes();
@@ -571,9 +618,15 @@ public final class Block {
       super(builder);
     }
     private BlockLocation() {
-      workerId_ = 0L;
       tier_ = "";
       mediumType_ = "";
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new BlockLocation();
     }
 
     @java.lang.Override
@@ -600,13 +653,6 @@ public final class Block {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 8: {
               bitField0_ |= 0x00000001;
               workerId_ = input.readInt64();
@@ -622,6 +668,13 @@ public final class Block {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000004;
               mediumType_ = bs;
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -641,6 +694,7 @@ public final class Block {
       return alluxio.proto.meta.Block.internal_static_alluxio_proto_meta_BlockLocation_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.meta.Block.internal_static_alluxio_proto_meta_BlockLocation_fieldAccessorTable
@@ -653,12 +707,14 @@ public final class Block {
     private long workerId_;
     /**
      * <code>optional int64 worker_id = 1;</code>
+     * @return Whether the workerId field is set.
      */
     public boolean hasWorkerId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional int64 worker_id = 1;</code>
+     * @return The workerId.
      */
     public long getWorkerId() {
       return workerId_;
@@ -668,12 +724,14 @@ public final class Block {
     private volatile java.lang.Object tier_;
     /**
      * <code>optional string tier = 2;</code>
+     * @return Whether the tier field is set.
      */
     public boolean hasTier() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string tier = 2;</code>
+     * @return The tier.
      */
     public java.lang.String getTier() {
       java.lang.Object ref = tier_;
@@ -691,6 +749,7 @@ public final class Block {
     }
     /**
      * <code>optional string tier = 2;</code>
+     * @return The bytes for tier.
      */
     public com.google.protobuf.ByteString
         getTierBytes() {
@@ -710,12 +769,14 @@ public final class Block {
     private volatile java.lang.Object mediumType_;
     /**
      * <code>optional string mediumType = 3;</code>
+     * @return Whether the mediumType field is set.
      */
     public boolean hasMediumType() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional string mediumType = 3;</code>
+     * @return The mediumType.
      */
     public java.lang.String getMediumType() {
       java.lang.Object ref = mediumType_;
@@ -733,6 +794,7 @@ public final class Block {
     }
     /**
      * <code>optional string mediumType = 3;</code>
+     * @return The bytes for mediumType.
      */
     public com.google.protobuf.ByteString
         getMediumTypeBytes() {
@@ -749,6 +811,7 @@ public final class Block {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -758,33 +821,35 @@ public final class Block {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         output.writeInt64(1, workerId_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, tier_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, mediumType_);
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(1, workerId_);
       }
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, tier_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000004) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, mediumType_);
       }
       size += unknownFields.getSerializedSize();
@@ -802,24 +867,23 @@ public final class Block {
       }
       alluxio.proto.meta.Block.BlockLocation other = (alluxio.proto.meta.Block.BlockLocation) obj;
 
-      boolean result = true;
-      result = result && (hasWorkerId() == other.hasWorkerId());
+      if (hasWorkerId() != other.hasWorkerId()) return false;
       if (hasWorkerId()) {
-        result = result && (getWorkerId()
-            == other.getWorkerId());
+        if (getWorkerId()
+            != other.getWorkerId()) return false;
       }
-      result = result && (hasTier() == other.hasTier());
+      if (hasTier() != other.hasTier()) return false;
       if (hasTier()) {
-        result = result && getTier()
-            .equals(other.getTier());
+        if (!getTier()
+            .equals(other.getTier())) return false;
       }
-      result = result && (hasMediumType() == other.hasMediumType());
+      if (hasMediumType() != other.hasMediumType()) return false;
       if (hasMediumType()) {
-        result = result && getMediumType()
-            .equals(other.getMediumType());
+        if (!getMediumType()
+            .equals(other.getMediumType())) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -917,6 +981,7 @@ public final class Block {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -924,6 +989,7 @@ public final class Block {
     public static Builder newBuilder(alluxio.proto.meta.Block.BlockLocation prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -953,6 +1019,7 @@ public final class Block {
         return alluxio.proto.meta.Block.internal_static_alluxio_proto_meta_BlockLocation_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.meta.Block.internal_static_alluxio_proto_meta_BlockLocation_fieldAccessorTable
@@ -975,6 +1042,7 @@ public final class Block {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         workerId_ = 0L;
@@ -986,15 +1054,18 @@ public final class Block {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.meta.Block.internal_static_alluxio_proto_meta_BlockLocation_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.meta.Block.BlockLocation getDefaultInstanceForType() {
         return alluxio.proto.meta.Block.BlockLocation.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.meta.Block.BlockLocation build() {
         alluxio.proto.meta.Block.BlockLocation result = buildPartial();
         if (!result.isInitialized()) {
@@ -1003,19 +1074,20 @@ public final class Block {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.meta.Block.BlockLocation buildPartial() {
         alluxio.proto.meta.Block.BlockLocation result = new alluxio.proto.meta.Block.BlockLocation(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.workerId_ = workerId_;
           to_bitField0_ |= 0x00000001;
         }
-        result.workerId_ = workerId_;
-        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
           to_bitField0_ |= 0x00000002;
         }
         result.tier_ = tier_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+        if (((from_bitField0_ & 0x00000004) != 0)) {
           to_bitField0_ |= 0x00000004;
         }
         result.mediumType_ = mediumType_;
@@ -1024,32 +1096,39 @@ public final class Block {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.meta.Block.BlockLocation) {
           return mergeFrom((alluxio.proto.meta.Block.BlockLocation)other);
@@ -1079,10 +1158,12 @@ public final class Block {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1105,18 +1186,22 @@ public final class Block {
       private long workerId_ ;
       /**
        * <code>optional int64 worker_id = 1;</code>
+       * @return Whether the workerId field is set.
        */
       public boolean hasWorkerId() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional int64 worker_id = 1;</code>
+       * @return The workerId.
        */
       public long getWorkerId() {
         return workerId_;
       }
       /**
        * <code>optional int64 worker_id = 1;</code>
+       * @param value The workerId to set.
+       * @return This builder for chaining.
        */
       public Builder setWorkerId(long value) {
         bitField0_ |= 0x00000001;
@@ -1126,6 +1211,7 @@ public final class Block {
       }
       /**
        * <code>optional int64 worker_id = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearWorkerId() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -1137,12 +1223,14 @@ public final class Block {
       private java.lang.Object tier_ = "";
       /**
        * <code>optional string tier = 2;</code>
+       * @return Whether the tier field is set.
        */
       public boolean hasTier() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
        * <code>optional string tier = 2;</code>
+       * @return The tier.
        */
       public java.lang.String getTier() {
         java.lang.Object ref = tier_;
@@ -1160,6 +1248,7 @@ public final class Block {
       }
       /**
        * <code>optional string tier = 2;</code>
+       * @return The bytes for tier.
        */
       public com.google.protobuf.ByteString
           getTierBytes() {
@@ -1176,6 +1265,8 @@ public final class Block {
       }
       /**
        * <code>optional string tier = 2;</code>
+       * @param value The tier to set.
+       * @return This builder for chaining.
        */
       public Builder setTier(
           java.lang.String value) {
@@ -1189,6 +1280,7 @@ public final class Block {
       }
       /**
        * <code>optional string tier = 2;</code>
+       * @return This builder for chaining.
        */
       public Builder clearTier() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -1198,6 +1290,8 @@ public final class Block {
       }
       /**
        * <code>optional string tier = 2;</code>
+       * @param value The bytes for tier to set.
+       * @return This builder for chaining.
        */
       public Builder setTierBytes(
           com.google.protobuf.ByteString value) {
@@ -1213,12 +1307,14 @@ public final class Block {
       private java.lang.Object mediumType_ = "";
       /**
        * <code>optional string mediumType = 3;</code>
+       * @return Whether the mediumType field is set.
        */
       public boolean hasMediumType() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000004) != 0);
       }
       /**
        * <code>optional string mediumType = 3;</code>
+       * @return The mediumType.
        */
       public java.lang.String getMediumType() {
         java.lang.Object ref = mediumType_;
@@ -1236,6 +1332,7 @@ public final class Block {
       }
       /**
        * <code>optional string mediumType = 3;</code>
+       * @return The bytes for mediumType.
        */
       public com.google.protobuf.ByteString
           getMediumTypeBytes() {
@@ -1252,6 +1349,8 @@ public final class Block {
       }
       /**
        * <code>optional string mediumType = 3;</code>
+       * @param value The mediumType to set.
+       * @return This builder for chaining.
        */
       public Builder setMediumType(
           java.lang.String value) {
@@ -1265,6 +1364,7 @@ public final class Block {
       }
       /**
        * <code>optional string mediumType = 3;</code>
+       * @return This builder for chaining.
        */
       public Builder clearMediumType() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -1274,6 +1374,8 @@ public final class Block {
       }
       /**
        * <code>optional string mediumType = 3;</code>
+       * @param value The bytes for mediumType to set.
+       * @return This builder for chaining.
        */
       public Builder setMediumTypeBytes(
           com.google.protobuf.ByteString value) {
@@ -1285,11 +1387,13 @@ public final class Block {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -1311,6 +1415,7 @@ public final class Block {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<BlockLocation>
         PARSER = new com.google.protobuf.AbstractParser<BlockLocation>() {
+      @java.lang.Override
       public BlockLocation parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1328,6 +1433,7 @@ public final class Block {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.meta.Block.BlockLocation getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -1358,18 +1464,10 @@ public final class Block {
       "ckLocation\022\021\n\tworker_id\030\001 \001(\003\022\014\n\004tier\030\002 " +
       "\001(\t\022\022\n\nmediumType\030\003 \001(\t"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-        }, assigner);
+        });
     internal_static_alluxio_proto_meta_BlockMeta_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_alluxio_proto_meta_BlockMeta_fieldAccessorTable = new

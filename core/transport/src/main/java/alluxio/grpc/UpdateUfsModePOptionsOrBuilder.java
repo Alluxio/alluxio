@@ -9,10 +9,12 @@ public interface UpdateUfsModePOptionsOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.file.UfsPMode ufsMode = 1;</code>
+   * @return Whether the ufsMode field is set.
    */
   boolean hasUfsMode();
   /**
    * <code>optional .alluxio.grpc.file.UfsPMode ufsMode = 1;</code>
+   * @return The ufsMode.
    */
   alluxio.grpc.UfsPMode getUfsMode();
 }

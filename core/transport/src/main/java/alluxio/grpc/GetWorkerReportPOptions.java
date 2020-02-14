@@ -22,6 +22,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new GetWorkerReportPOptions();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -45,16 +52,9 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             com.google.protobuf.ByteString bs = input.readBytes();
-            if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
               addresses_ = new com.google.protobuf.LazyStringArrayList();
               mutable_bitField0_ |= 0x00000001;
             }
@@ -63,11 +63,12 @@ private static final long serialVersionUID = 0L;
           }
           case 16: {
             int rawValue = input.readEnum();
+            @SuppressWarnings("deprecation")
             alluxio.grpc.WorkerInfoField value = alluxio.grpc.WorkerInfoField.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(2, rawValue);
             } else {
-              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+              if (!((mutable_bitField0_ & 0x00000002) != 0)) {
                 fieldRanges_ = new java.util.ArrayList<java.lang.Integer>();
                 mutable_bitField0_ |= 0x00000002;
               }
@@ -80,11 +81,12 @@ private static final long serialVersionUID = 0L;
             int oldLimit = input.pushLimit(length);
             while(input.getBytesUntilLimit() > 0) {
               int rawValue = input.readEnum();
+              @SuppressWarnings("deprecation")
               alluxio.grpc.WorkerInfoField value = alluxio.grpc.WorkerInfoField.valueOf(rawValue);
               if (value == null) {
                 unknownFields.mergeVarintField(2, rawValue);
               } else {
-                if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+                if (!((mutable_bitField0_ & 0x00000002) != 0)) {
                   fieldRanges_ = new java.util.ArrayList<java.lang.Integer>();
                   mutable_bitField0_ |= 0x00000002;
                 }
@@ -96,12 +98,20 @@ private static final long serialVersionUID = 0L;
           }
           case 24: {
             int rawValue = input.readEnum();
+              @SuppressWarnings("deprecation")
             alluxio.grpc.WorkerRange value = alluxio.grpc.WorkerRange.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(3, rawValue);
             } else {
               bitField0_ |= 0x00000001;
               workerRange_ = rawValue;
+            }
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
             }
             break;
           }
@@ -113,10 +123,10 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((mutable_bitField0_ & 0x00000001) != 0)) {
         addresses_ = addresses_.getUnmodifiableView();
       }
-      if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((mutable_bitField0_ & 0x00000002) != 0)) {
         fieldRanges_ = java.util.Collections.unmodifiableList(fieldRanges_);
       }
       this.unknownFields = unknownFields.build();
@@ -128,6 +138,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_GetWorkerReportPOptions_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_GetWorkerReportPOptions_fieldAccessorTable
@@ -144,6 +155,7 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>repeated string addresses = 1;</code>
+   * @return A list containing the addresses.
    */
   public com.google.protobuf.ProtocolStringList
       getAddressesList() {
@@ -155,6 +167,7 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>repeated string addresses = 1;</code>
+   * @return The count of addresses.
    */
   public int getAddressesCount() {
     return addresses_.size();
@@ -165,6 +178,8 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>repeated string addresses = 1;</code>
+   * @param index The index of the element to return.
+   * @return The addresses at the given index.
    */
   public java.lang.String getAddresses(int index) {
     return addresses_.get(index);
@@ -175,6 +190,8 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>repeated string addresses = 1;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the addresses at the given index.
    */
   public com.google.protobuf.ByteString
       getAddressesBytes(int index) {
@@ -188,12 +205,14 @@ private static final long serialVersionUID = 0L;
           new com.google.protobuf.Internal.ListAdapter.Converter<
               java.lang.Integer, alluxio.grpc.WorkerInfoField>() {
             public alluxio.grpc.WorkerInfoField convert(java.lang.Integer from) {
+              @SuppressWarnings("deprecation")
               alluxio.grpc.WorkerInfoField result = alluxio.grpc.WorkerInfoField.valueOf(from);
               return result == null ? alluxio.grpc.WorkerInfoField.ADDRESS : result;
             }
           };
   /**
    * <code>repeated .alluxio.grpc.block.WorkerInfoField fieldRanges = 2;</code>
+   * @return A list containing the fieldRanges.
    */
   public java.util.List<alluxio.grpc.WorkerInfoField> getFieldRangesList() {
     return new com.google.protobuf.Internal.ListAdapter<
@@ -201,12 +220,15 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>repeated .alluxio.grpc.block.WorkerInfoField fieldRanges = 2;</code>
+   * @return The count of fieldRanges.
    */
   public int getFieldRangesCount() {
     return fieldRanges_.size();
   }
   /**
    * <code>repeated .alluxio.grpc.block.WorkerInfoField fieldRanges = 2;</code>
+   * @param index The index of the element to return.
+   * @return The fieldRanges at the given index.
    */
   public alluxio.grpc.WorkerInfoField getFieldRanges(int index) {
     return fieldRanges_converter_.convert(fieldRanges_.get(index));
@@ -216,19 +238,23 @@ private static final long serialVersionUID = 0L;
   private int workerRange_;
   /**
    * <code>optional .alluxio.grpc.block.WorkerRange workerRange = 3;</code>
+   * @return Whether the workerRange field is set.
    */
   public boolean hasWorkerRange() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.block.WorkerRange workerRange = 3;</code>
+   * @return The workerRange.
    */
   public alluxio.grpc.WorkerRange getWorkerRange() {
+    @SuppressWarnings("deprecation")
     alluxio.grpc.WorkerRange result = alluxio.grpc.WorkerRange.valueOf(workerRange_);
     return result == null ? alluxio.grpc.WorkerRange.ALL : result;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -238,6 +264,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     for (int i = 0; i < addresses_.size(); i++) {
@@ -246,12 +273,13 @@ private static final long serialVersionUID = 0L;
     for (int i = 0; i < fieldRanges_.size(); i++) {
       output.writeEnum(2, fieldRanges_.get(i));
     }
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeEnum(3, workerRange_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -274,7 +302,7 @@ private static final long serialVersionUID = 0L;
       size += dataSize;
       size += 1 * fieldRanges_.size();
     }
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(3, workerRange_);
     }
@@ -293,16 +321,15 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.GetWorkerReportPOptions other = (alluxio.grpc.GetWorkerReportPOptions) obj;
 
-    boolean result = true;
-    result = result && getAddressesList()
-        .equals(other.getAddressesList());
-    result = result && fieldRanges_.equals(other.fieldRanges_);
-    result = result && (hasWorkerRange() == other.hasWorkerRange());
+    if (!getAddressesList()
+        .equals(other.getAddressesList())) return false;
+    if (!fieldRanges_.equals(other.fieldRanges_)) return false;
+    if (hasWorkerRange() != other.hasWorkerRange()) return false;
     if (hasWorkerRange()) {
-      result = result && workerRange_ == other.workerRange_;
+      if (workerRange_ != other.workerRange_) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -399,6 +426,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -406,6 +434,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.GetWorkerReportPOptions prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -429,6 +458,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_GetWorkerReportPOptions_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_GetWorkerReportPOptions_fieldAccessorTable
@@ -451,6 +481,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       addresses_ = com.google.protobuf.LazyStringArrayList.EMPTY;
@@ -462,15 +493,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_GetWorkerReportPOptions_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.GetWorkerReportPOptions getDefaultInstanceForType() {
       return alluxio.grpc.GetWorkerReportPOptions.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.GetWorkerReportPOptions build() {
       alluxio.grpc.GetWorkerReportPOptions result = buildPartial();
       if (!result.isInitialized()) {
@@ -479,21 +513,22 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.GetWorkerReportPOptions buildPartial() {
       alluxio.grpc.GetWorkerReportPOptions result = new alluxio.grpc.GetWorkerReportPOptions(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         addresses_ = addresses_.getUnmodifiableView();
         bitField0_ = (bitField0_ & ~0x00000001);
       }
       result.addresses_ = addresses_;
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         fieldRanges_ = java.util.Collections.unmodifiableList(fieldRanges_);
         bitField0_ = (bitField0_ & ~0x00000002);
       }
       result.fieldRanges_ = fieldRanges_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
         to_bitField0_ |= 0x00000001;
       }
       result.workerRange_ = workerRange_;
@@ -502,32 +537,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.GetWorkerReportPOptions) {
         return mergeFrom((alluxio.grpc.GetWorkerReportPOptions)other);
@@ -567,10 +609,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -592,7 +636,7 @@ private static final long serialVersionUID = 0L;
 
     private com.google.protobuf.LazyStringList addresses_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     private void ensureAddressesIsMutable() {
-      if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (!((bitField0_ & 0x00000001) != 0)) {
         addresses_ = new com.google.protobuf.LazyStringArrayList(addresses_);
         bitField0_ |= 0x00000001;
        }
@@ -603,6 +647,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string addresses = 1;</code>
+     * @return A list containing the addresses.
      */
     public com.google.protobuf.ProtocolStringList
         getAddressesList() {
@@ -614,6 +659,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string addresses = 1;</code>
+     * @return The count of addresses.
      */
     public int getAddressesCount() {
       return addresses_.size();
@@ -624,6 +670,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string addresses = 1;</code>
+     * @param index The index of the element to return.
+     * @return The addresses at the given index.
      */
     public java.lang.String getAddresses(int index) {
       return addresses_.get(index);
@@ -634,6 +682,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string addresses = 1;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the addresses at the given index.
      */
     public com.google.protobuf.ByteString
         getAddressesBytes(int index) {
@@ -645,6 +695,9 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string addresses = 1;</code>
+     * @param index The index to set the value at.
+     * @param value The addresses to set.
+     * @return This builder for chaining.
      */
     public Builder setAddresses(
         int index, java.lang.String value) {
@@ -662,6 +715,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string addresses = 1;</code>
+     * @param value The addresses to add.
+     * @return This builder for chaining.
      */
     public Builder addAddresses(
         java.lang.String value) {
@@ -679,6 +734,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string addresses = 1;</code>
+     * @param values The addresses to add.
+     * @return This builder for chaining.
      */
     public Builder addAllAddresses(
         java.lang.Iterable<java.lang.String> values) {
@@ -694,6 +751,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string addresses = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearAddresses() {
       addresses_ = com.google.protobuf.LazyStringArrayList.EMPTY;
@@ -707,6 +765,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string addresses = 1;</code>
+     * @param value The bytes of the addresses to add.
+     * @return This builder for chaining.
      */
     public Builder addAddressesBytes(
         com.google.protobuf.ByteString value) {
@@ -722,13 +782,14 @@ private static final long serialVersionUID = 0L;
     private java.util.List<java.lang.Integer> fieldRanges_ =
       java.util.Collections.emptyList();
     private void ensureFieldRangesIsMutable() {
-      if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!((bitField0_ & 0x00000002) != 0)) {
         fieldRanges_ = new java.util.ArrayList<java.lang.Integer>(fieldRanges_);
         bitField0_ |= 0x00000002;
       }
     }
     /**
      * <code>repeated .alluxio.grpc.block.WorkerInfoField fieldRanges = 2;</code>
+     * @return A list containing the fieldRanges.
      */
     public java.util.List<alluxio.grpc.WorkerInfoField> getFieldRangesList() {
       return new com.google.protobuf.Internal.ListAdapter<
@@ -736,18 +797,24 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated .alluxio.grpc.block.WorkerInfoField fieldRanges = 2;</code>
+     * @return The count of fieldRanges.
      */
     public int getFieldRangesCount() {
       return fieldRanges_.size();
     }
     /**
      * <code>repeated .alluxio.grpc.block.WorkerInfoField fieldRanges = 2;</code>
+     * @param index The index of the element to return.
+     * @return The fieldRanges at the given index.
      */
     public alluxio.grpc.WorkerInfoField getFieldRanges(int index) {
       return fieldRanges_converter_.convert(fieldRanges_.get(index));
     }
     /**
      * <code>repeated .alluxio.grpc.block.WorkerInfoField fieldRanges = 2;</code>
+     * @param index The index to set the value at.
+     * @param value The fieldRanges to set.
+     * @return This builder for chaining.
      */
     public Builder setFieldRanges(
         int index, alluxio.grpc.WorkerInfoField value) {
@@ -761,6 +828,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated .alluxio.grpc.block.WorkerInfoField fieldRanges = 2;</code>
+     * @param value The fieldRanges to add.
+     * @return This builder for chaining.
      */
     public Builder addFieldRanges(alluxio.grpc.WorkerInfoField value) {
       if (value == null) {
@@ -773,6 +842,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated .alluxio.grpc.block.WorkerInfoField fieldRanges = 2;</code>
+     * @param values The fieldRanges to add.
+     * @return This builder for chaining.
      */
     public Builder addAllFieldRanges(
         java.lang.Iterable<? extends alluxio.grpc.WorkerInfoField> values) {
@@ -785,6 +856,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated .alluxio.grpc.block.WorkerInfoField fieldRanges = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearFieldRanges() {
       fieldRanges_ = java.util.Collections.emptyList();
@@ -796,19 +868,24 @@ private static final long serialVersionUID = 0L;
     private int workerRange_ = 1;
     /**
      * <code>optional .alluxio.grpc.block.WorkerRange workerRange = 3;</code>
+     * @return Whether the workerRange field is set.
      */
     public boolean hasWorkerRange() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.block.WorkerRange workerRange = 3;</code>
+     * @return The workerRange.
      */
     public alluxio.grpc.WorkerRange getWorkerRange() {
+      @SuppressWarnings("deprecation")
       alluxio.grpc.WorkerRange result = alluxio.grpc.WorkerRange.valueOf(workerRange_);
       return result == null ? alluxio.grpc.WorkerRange.ALL : result;
     }
     /**
      * <code>optional .alluxio.grpc.block.WorkerRange workerRange = 3;</code>
+     * @param value The workerRange to set.
+     * @return This builder for chaining.
      */
     public Builder setWorkerRange(alluxio.grpc.WorkerRange value) {
       if (value == null) {
@@ -821,6 +898,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional .alluxio.grpc.block.WorkerRange workerRange = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearWorkerRange() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -828,11 +906,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -854,6 +934,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<GetWorkerReportPOptions>
       PARSER = new com.google.protobuf.AbstractParser<GetWorkerReportPOptions>() {
+    @java.lang.Override
     public GetWorkerReportPOptions parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -871,6 +952,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.GetWorkerReportPOptions getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

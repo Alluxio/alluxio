@@ -21,6 +21,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new SortingColumn();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -44,13 +51,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
@@ -59,12 +59,20 @@ private static final long serialVersionUID = 0L;
           }
           case 16: {
             int rawValue = input.readEnum();
+              @SuppressWarnings("deprecation")
             alluxio.grpc.table.layout.hive.SortingColumn.SortingOrder value = alluxio.grpc.table.layout.hive.SortingColumn.SortingOrder.valueOf(rawValue);
             if (value == null) {
               unknownFields.mergeVarintField(2, rawValue);
             } else {
               bitField0_ |= 0x00000002;
               order_ = rawValue;
+            }
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
             }
             break;
           }
@@ -85,6 +93,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.layout.hive.HiveLayoutProto.internal_static_alluxio_grpc_table_layout_SortingColumn_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.table.layout.hive.HiveLayoutProto.internal_static_alluxio_grpc_table_layout_SortingColumn_fieldAccessorTable
@@ -122,6 +131,8 @@ private static final long serialVersionUID = 0L;
     }
 
     /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
     @java.lang.Deprecated
@@ -129,6 +140,10 @@ private static final long serialVersionUID = 0L;
       return forNumber(value);
     }
 
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
     public static SortingOrder forNumber(int value) {
       switch (value) {
         case 0: return ASCENDING;
@@ -187,12 +202,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object columnName_;
   /**
    * <code>required string column_name = 1;</code>
+   * @return Whether the columnName field is set.
    */
   public boolean hasColumnName() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>required string column_name = 1;</code>
+   * @return The columnName.
    */
   public java.lang.String getColumnName() {
     java.lang.Object ref = columnName_;
@@ -210,6 +227,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>required string column_name = 1;</code>
+   * @return The bytes for columnName.
    */
   public com.google.protobuf.ByteString
       getColumnNameBytes() {
@@ -229,19 +247,23 @@ private static final long serialVersionUID = 0L;
   private int order_;
   /**
    * <code>required .alluxio.grpc.table.layout.SortingColumn.SortingOrder order = 2;</code>
+   * @return Whether the order field is set.
    */
   public boolean hasOrder() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>required .alluxio.grpc.table.layout.SortingColumn.SortingOrder order = 2;</code>
+   * @return The order.
    */
   public alluxio.grpc.table.layout.hive.SortingColumn.SortingOrder getOrder() {
+    @SuppressWarnings("deprecation")
     alluxio.grpc.table.layout.hive.SortingColumn.SortingOrder result = alluxio.grpc.table.layout.hive.SortingColumn.SortingOrder.valueOf(order_);
     return result == null ? alluxio.grpc.table.layout.hive.SortingColumn.SortingOrder.ASCENDING : result;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -259,26 +281,28 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, columnName_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeEnum(2, order_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, columnName_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(2, order_);
     }
@@ -297,18 +321,17 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.table.layout.hive.SortingColumn other = (alluxio.grpc.table.layout.hive.SortingColumn) obj;
 
-    boolean result = true;
-    result = result && (hasColumnName() == other.hasColumnName());
+    if (hasColumnName() != other.hasColumnName()) return false;
     if (hasColumnName()) {
-      result = result && getColumnName()
-          .equals(other.getColumnName());
+      if (!getColumnName()
+          .equals(other.getColumnName())) return false;
     }
-    result = result && (hasOrder() == other.hasOrder());
+    if (hasOrder() != other.hasOrder()) return false;
     if (hasOrder()) {
-      result = result && order_ == other.order_;
+      if (order_ != other.order_) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -401,6 +424,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -408,6 +432,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.table.layout.hive.SortingColumn prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -431,6 +456,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.table.layout.hive.HiveLayoutProto.internal_static_alluxio_grpc_table_layout_SortingColumn_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.table.layout.hive.HiveLayoutProto.internal_static_alluxio_grpc_table_layout_SortingColumn_fieldAccessorTable
@@ -453,6 +479,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       columnName_ = "";
@@ -462,15 +489,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.table.layout.hive.HiveLayoutProto.internal_static_alluxio_grpc_table_layout_SortingColumn_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.layout.hive.SortingColumn getDefaultInstanceForType() {
       return alluxio.grpc.table.layout.hive.SortingColumn.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.layout.hive.SortingColumn build() {
       alluxio.grpc.table.layout.hive.SortingColumn result = buildPartial();
       if (!result.isInitialized()) {
@@ -479,15 +509,16 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.layout.hive.SortingColumn buildPartial() {
       alluxio.grpc.table.layout.hive.SortingColumn result = new alluxio.grpc.table.layout.hive.SortingColumn(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
         to_bitField0_ |= 0x00000001;
       }
       result.columnName_ = columnName_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
         to_bitField0_ |= 0x00000002;
       }
       result.order_ = order_;
@@ -496,32 +527,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.table.layout.hive.SortingColumn) {
         return mergeFrom((alluxio.grpc.table.layout.hive.SortingColumn)other);
@@ -546,6 +584,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       if (!hasColumnName()) {
         return false;
@@ -556,6 +595,7 @@ private static final long serialVersionUID = 0L;
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -578,12 +618,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object columnName_ = "";
     /**
      * <code>required string column_name = 1;</code>
+     * @return Whether the columnName field is set.
      */
     public boolean hasColumnName() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>required string column_name = 1;</code>
+     * @return The columnName.
      */
     public java.lang.String getColumnName() {
       java.lang.Object ref = columnName_;
@@ -601,6 +643,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>required string column_name = 1;</code>
+     * @return The bytes for columnName.
      */
     public com.google.protobuf.ByteString
         getColumnNameBytes() {
@@ -617,6 +660,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>required string column_name = 1;</code>
+     * @param value The columnName to set.
+     * @return This builder for chaining.
      */
     public Builder setColumnName(
         java.lang.String value) {
@@ -630,6 +675,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>required string column_name = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearColumnName() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -639,6 +685,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>required string column_name = 1;</code>
+     * @param value The bytes for columnName to set.
+     * @return This builder for chaining.
      */
     public Builder setColumnNameBytes(
         com.google.protobuf.ByteString value) {
@@ -654,19 +702,24 @@ private static final long serialVersionUID = 0L;
     private int order_ = 0;
     /**
      * <code>required .alluxio.grpc.table.layout.SortingColumn.SortingOrder order = 2;</code>
+     * @return Whether the order field is set.
      */
     public boolean hasOrder() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>required .alluxio.grpc.table.layout.SortingColumn.SortingOrder order = 2;</code>
+     * @return The order.
      */
     public alluxio.grpc.table.layout.hive.SortingColumn.SortingOrder getOrder() {
+      @SuppressWarnings("deprecation")
       alluxio.grpc.table.layout.hive.SortingColumn.SortingOrder result = alluxio.grpc.table.layout.hive.SortingColumn.SortingOrder.valueOf(order_);
       return result == null ? alluxio.grpc.table.layout.hive.SortingColumn.SortingOrder.ASCENDING : result;
     }
     /**
      * <code>required .alluxio.grpc.table.layout.SortingColumn.SortingOrder order = 2;</code>
+     * @param value The order to set.
+     * @return This builder for chaining.
      */
     public Builder setOrder(alluxio.grpc.table.layout.hive.SortingColumn.SortingOrder value) {
       if (value == null) {
@@ -679,6 +732,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>required .alluxio.grpc.table.layout.SortingColumn.SortingOrder order = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearOrder() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -686,11 +740,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -712,6 +768,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<SortingColumn>
       PARSER = new com.google.protobuf.AbstractParser<SortingColumn>() {
+    @java.lang.Override
     public SortingColumn parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -729,6 +786,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.table.layout.hive.SortingColumn getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

@@ -9,24 +9,29 @@ public interface LayoutOrBuilder extends
 
   /**
    * <code>optional string layout_type = 1;</code>
+   * @return Whether the layoutType field is set.
    */
   boolean hasLayoutType();
   /**
    * <code>optional string layout_type = 1;</code>
+   * @return The layoutType.
    */
   java.lang.String getLayoutType();
   /**
    * <code>optional string layout_type = 1;</code>
+   * @return The bytes for layoutType.
    */
   com.google.protobuf.ByteString
       getLayoutTypeBytes();
 
   /**
    * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
+   * @return Whether the layoutSpec field is set.
    */
   boolean hasLayoutSpec();
   /**
    * <code>optional .alluxio.grpc.table.LayoutSpec layout_spec = 2;</code>
+   * @return The layoutSpec.
    */
   alluxio.grpc.table.LayoutSpec getLayoutSpec();
   /**
@@ -36,10 +41,12 @@ public interface LayoutOrBuilder extends
 
   /**
    * <code>optional bytes layout_data = 3;</code>
+   * @return Whether the layoutData field is set.
    */
   boolean hasLayoutData();
   /**
    * <code>optional bytes layout_data = 3;</code>
+   * @return The layoutData.
    */
   com.google.protobuf.ByteString getLayoutData();
 

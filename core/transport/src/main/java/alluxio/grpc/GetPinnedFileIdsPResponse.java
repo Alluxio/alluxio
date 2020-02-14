@@ -16,7 +16,14 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private GetPinnedFileIdsPResponse() {
-    pinnedFileIds_ = java.util.Collections.emptyList();
+    pinnedFileIds_ = emptyLongList();
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new GetPinnedFileIdsPResponse();
   }
 
   @java.lang.Override
@@ -43,32 +50,32 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
-            if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-              pinnedFileIds_ = new java.util.ArrayList<java.lang.Long>();
+            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+              pinnedFileIds_ = newLongList();
               mutable_bitField0_ |= 0x00000001;
             }
-            pinnedFileIds_.add(input.readInt64());
+            pinnedFileIds_.addLong(input.readInt64());
             break;
           }
           case 10: {
             int length = input.readRawVarint32();
             int limit = input.pushLimit(length);
-            if (!((mutable_bitField0_ & 0x00000001) == 0x00000001) && input.getBytesUntilLimit() > 0) {
-              pinnedFileIds_ = new java.util.ArrayList<java.lang.Long>();
+            if (!((mutable_bitField0_ & 0x00000001) != 0) && input.getBytesUntilLimit() > 0) {
+              pinnedFileIds_ = newLongList();
               mutable_bitField0_ |= 0x00000001;
             }
             while (input.getBytesUntilLimit() > 0) {
-              pinnedFileIds_.add(input.readInt64());
+              pinnedFileIds_.addLong(input.readInt64());
             }
             input.popLimit(limit);
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -79,8 +86,8 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-        pinnedFileIds_ = java.util.Collections.unmodifiableList(pinnedFileIds_);
+      if (((mutable_bitField0_ & 0x00000001) != 0)) {
+        pinnedFileIds_.makeImmutable(); // C
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -91,6 +98,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_GetPinnedFileIdsPResponse_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_GetPinnedFileIdsPResponse_fieldAccessorTable
@@ -99,13 +107,14 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int PINNEDFILEIDS_FIELD_NUMBER = 1;
-  private java.util.List<java.lang.Long> pinnedFileIds_;
+  private com.google.protobuf.Internal.LongList pinnedFileIds_;
   /**
    * <pre>
    * TODO(adit): set replacement?
    * </pre>
    *
    * <code>repeated int64 pinnedFileIds = 1;</code>
+   * @return A list containing the pinnedFileIds.
    */
   public java.util.List<java.lang.Long>
       getPinnedFileIdsList() {
@@ -117,6 +126,7 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>repeated int64 pinnedFileIds = 1;</code>
+   * @return The count of pinnedFileIds.
    */
   public int getPinnedFileIdsCount() {
     return pinnedFileIds_.size();
@@ -127,12 +137,15 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>repeated int64 pinnedFileIds = 1;</code>
+   * @param index The index of the element to return.
+   * @return The pinnedFileIds at the given index.
    */
   public long getPinnedFileIds(int index) {
-    return pinnedFileIds_.get(index);
+    return pinnedFileIds_.getLong(index);
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -142,14 +155,16 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     for (int i = 0; i < pinnedFileIds_.size(); i++) {
-      output.writeInt64(1, pinnedFileIds_.get(i));
+      output.writeInt64(1, pinnedFileIds_.getLong(i));
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -159,7 +174,7 @@ private static final long serialVersionUID = 0L;
       int dataSize = 0;
       for (int i = 0; i < pinnedFileIds_.size(); i++) {
         dataSize += com.google.protobuf.CodedOutputStream
-          .computeInt64SizeNoTag(pinnedFileIds_.get(i));
+          .computeInt64SizeNoTag(pinnedFileIds_.getLong(i));
       }
       size += dataSize;
       size += 1 * getPinnedFileIdsList().size();
@@ -179,11 +194,10 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.GetPinnedFileIdsPResponse other = (alluxio.grpc.GetPinnedFileIdsPResponse) obj;
 
-    boolean result = true;
-    result = result && getPinnedFileIdsList()
-        .equals(other.getPinnedFileIdsList());
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!getPinnedFileIdsList()
+        .equals(other.getPinnedFileIdsList())) return false;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -272,6 +286,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -279,6 +294,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.GetPinnedFileIdsPResponse prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -302,6 +318,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_GetPinnedFileIdsPResponse_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_GetPinnedFileIdsPResponse_fieldAccessorTable
@@ -324,22 +341,26 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
-      pinnedFileIds_ = java.util.Collections.emptyList();
+      pinnedFileIds_ = emptyLongList();
       bitField0_ = (bitField0_ & ~0x00000001);
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_GetPinnedFileIdsPResponse_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.GetPinnedFileIdsPResponse getDefaultInstanceForType() {
       return alluxio.grpc.GetPinnedFileIdsPResponse.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.GetPinnedFileIdsPResponse build() {
       alluxio.grpc.GetPinnedFileIdsPResponse result = buildPartial();
       if (!result.isInitialized()) {
@@ -348,11 +369,12 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.GetPinnedFileIdsPResponse buildPartial() {
       alluxio.grpc.GetPinnedFileIdsPResponse result = new alluxio.grpc.GetPinnedFileIdsPResponse(this);
       int from_bitField0_ = bitField0_;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        pinnedFileIds_ = java.util.Collections.unmodifiableList(pinnedFileIds_);
+      if (((bitField0_ & 0x00000001) != 0)) {
+        pinnedFileIds_.makeImmutable();
         bitField0_ = (bitField0_ & ~0x00000001);
       }
       result.pinnedFileIds_ = pinnedFileIds_;
@@ -360,32 +382,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.GetPinnedFileIdsPResponse) {
         return mergeFrom((alluxio.grpc.GetPinnedFileIdsPResponse)other);
@@ -412,10 +441,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -435,10 +466,10 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.util.List<java.lang.Long> pinnedFileIds_ = java.util.Collections.emptyList();
+    private com.google.protobuf.Internal.LongList pinnedFileIds_ = emptyLongList();
     private void ensurePinnedFileIdsIsMutable() {
-      if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-        pinnedFileIds_ = new java.util.ArrayList<java.lang.Long>(pinnedFileIds_);
+      if (!((bitField0_ & 0x00000001) != 0)) {
+        pinnedFileIds_ = mutableCopy(pinnedFileIds_);
         bitField0_ |= 0x00000001;
        }
     }
@@ -448,10 +479,12 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated int64 pinnedFileIds = 1;</code>
+     * @return A list containing the pinnedFileIds.
      */
     public java.util.List<java.lang.Long>
         getPinnedFileIdsList() {
-      return java.util.Collections.unmodifiableList(pinnedFileIds_);
+      return ((bitField0_ & 0x00000001) != 0) ?
+               java.util.Collections.unmodifiableList(pinnedFileIds_) : pinnedFileIds_;
     }
     /**
      * <pre>
@@ -459,6 +492,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated int64 pinnedFileIds = 1;</code>
+     * @return The count of pinnedFileIds.
      */
     public int getPinnedFileIdsCount() {
       return pinnedFileIds_.size();
@@ -469,9 +503,11 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated int64 pinnedFileIds = 1;</code>
+     * @param index The index of the element to return.
+     * @return The pinnedFileIds at the given index.
      */
     public long getPinnedFileIds(int index) {
-      return pinnedFileIds_.get(index);
+      return pinnedFileIds_.getLong(index);
     }
     /**
      * <pre>
@@ -479,11 +515,14 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated int64 pinnedFileIds = 1;</code>
+     * @param index The index to set the value at.
+     * @param value The pinnedFileIds to set.
+     * @return This builder for chaining.
      */
     public Builder setPinnedFileIds(
         int index, long value) {
       ensurePinnedFileIdsIsMutable();
-      pinnedFileIds_.set(index, value);
+      pinnedFileIds_.setLong(index, value);
       onChanged();
       return this;
     }
@@ -493,10 +532,12 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated int64 pinnedFileIds = 1;</code>
+     * @param value The pinnedFileIds to add.
+     * @return This builder for chaining.
      */
     public Builder addPinnedFileIds(long value) {
       ensurePinnedFileIdsIsMutable();
-      pinnedFileIds_.add(value);
+      pinnedFileIds_.addLong(value);
       onChanged();
       return this;
     }
@@ -506,6 +547,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated int64 pinnedFileIds = 1;</code>
+     * @param values The pinnedFileIds to add.
+     * @return This builder for chaining.
      */
     public Builder addAllPinnedFileIds(
         java.lang.Iterable<? extends java.lang.Long> values) {
@@ -521,18 +564,21 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated int64 pinnedFileIds = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearPinnedFileIds() {
-      pinnedFileIds_ = java.util.Collections.emptyList();
+      pinnedFileIds_ = emptyLongList();
       bitField0_ = (bitField0_ & ~0x00000001);
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -554,6 +600,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<GetPinnedFileIdsPResponse>
       PARSER = new com.google.protobuf.AbstractParser<GetPinnedFileIdsPResponse>() {
+    @java.lang.Override
     public GetPinnedFileIdsPResponse parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -571,6 +618,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.GetPinnedFileIdsPResponse getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

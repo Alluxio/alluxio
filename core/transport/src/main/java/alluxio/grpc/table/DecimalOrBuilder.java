@@ -13,6 +13,7 @@ public interface DecimalOrBuilder extends
    * </pre>
    *
    * <code>required int32 scale = 1;</code>
+   * @return Whether the scale field is set.
    */
   boolean hasScale();
   /**
@@ -21,15 +22,18 @@ public interface DecimalOrBuilder extends
    * </pre>
    *
    * <code>required int32 scale = 1;</code>
+   * @return The scale.
    */
   int getScale();
 
   /**
    * <code>required bytes unscaled = 2;</code>
+   * @return Whether the unscaled field is set.
    */
   boolean hasUnscaled();
   /**
    * <code>required bytes unscaled = 2;</code>
+   * @return The unscaled.
    */
   com.google.protobuf.ByteString getUnscaled();
 }

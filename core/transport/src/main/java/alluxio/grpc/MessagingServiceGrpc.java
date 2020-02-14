@@ -21,7 +21,7 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.17.1)",
+    value = "by gRPC proto compiler (version 1.27.0)",
     comments = "Source: grpc/messaging_transport.proto")
 public final class MessagingServiceGrpc {
 
@@ -44,29 +44,35 @@ public final class MessagingServiceGrpc {
     if ((getConnectMethod = MessagingServiceGrpc.getConnectMethod) == null) {
       synchronized (MessagingServiceGrpc.class) {
         if ((getConnectMethod = MessagingServiceGrpc.getConnectMethod) == null) {
-          MessagingServiceGrpc.getConnectMethod = getConnectMethod = 
+          MessagingServiceGrpc.getConnectMethod = getConnectMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.TransportMessage, alluxio.grpc.TransportMessage>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.messaging.MessagingService", "connect"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "connect"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.TransportMessage.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.TransportMessage.getDefaultInstance()))
-                  .setSchemaDescriptor(new MessagingServiceMethodDescriptorSupplier("connect"))
-                  .build();
-          }
+              .setSchemaDescriptor(new MessagingServiceMethodDescriptorSupplier("connect"))
+              .build();
         }
-     }
-     return getConnectMethod;
+      }
+    }
+    return getConnectMethod;
   }
 
   /**
    * Creates a new async stub that supports all call types for the service
    */
   public static MessagingServiceStub newStub(io.grpc.Channel channel) {
-    return new MessagingServiceStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<MessagingServiceStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<MessagingServiceStub>() {
+        @java.lang.Override
+        public MessagingServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new MessagingServiceStub(channel, callOptions);
+        }
+      };
+    return MessagingServiceStub.newStub(factory, channel);
   }
 
   /**
@@ -74,7 +80,14 @@ public final class MessagingServiceGrpc {
    */
   public static MessagingServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new MessagingServiceBlockingStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<MessagingServiceBlockingStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<MessagingServiceBlockingStub>() {
+        @java.lang.Override
+        public MessagingServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new MessagingServiceBlockingStub(channel, callOptions);
+        }
+      };
+    return MessagingServiceBlockingStub.newStub(factory, channel);
   }
 
   /**
@@ -82,7 +95,14 @@ public final class MessagingServiceGrpc {
    */
   public static MessagingServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new MessagingServiceFutureStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<MessagingServiceFutureStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<MessagingServiceFutureStub>() {
+        @java.lang.Override
+        public MessagingServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new MessagingServiceFutureStub(channel, callOptions);
+        }
+      };
+    return MessagingServiceFutureStub.newStub(factory, channel);
   }
 
   /**
@@ -117,19 +137,15 @@ public final class MessagingServiceGrpc {
    * The messaging transport service.
    * </pre>
    */
-  public static final class MessagingServiceStub extends io.grpc.stub.AbstractStub<MessagingServiceStub> {
-    private MessagingServiceStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private MessagingServiceStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class MessagingServiceStub extends io.grpc.stub.AbstractAsyncStub<MessagingServiceStub> {
+    private MessagingServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected MessagingServiceStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected MessagingServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MessagingServiceStub(channel, callOptions);
     }
 
@@ -147,19 +163,15 @@ public final class MessagingServiceGrpc {
    * The messaging transport service.
    * </pre>
    */
-  public static final class MessagingServiceBlockingStub extends io.grpc.stub.AbstractStub<MessagingServiceBlockingStub> {
-    private MessagingServiceBlockingStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private MessagingServiceBlockingStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class MessagingServiceBlockingStub extends io.grpc.stub.AbstractBlockingStub<MessagingServiceBlockingStub> {
+    private MessagingServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected MessagingServiceBlockingStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected MessagingServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MessagingServiceBlockingStub(channel, callOptions);
     }
   }
@@ -169,19 +181,15 @@ public final class MessagingServiceGrpc {
    * The messaging transport service.
    * </pre>
    */
-  public static final class MessagingServiceFutureStub extends io.grpc.stub.AbstractStub<MessagingServiceFutureStub> {
-    private MessagingServiceFutureStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private MessagingServiceFutureStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class MessagingServiceFutureStub extends io.grpc.stub.AbstractFutureStub<MessagingServiceFutureStub> {
+    private MessagingServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected MessagingServiceFutureStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected MessagingServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MessagingServiceFutureStub(channel, callOptions);
     }
   }

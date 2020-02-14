@@ -21,6 +21,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new RemovePathConfigurationPRequest();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -44,13 +51,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
@@ -59,7 +59,7 @@ private static final long serialVersionUID = 0L;
           }
           case 18: {
             com.google.protobuf.ByteString bs = input.readBytes();
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
               keys_ = new com.google.protobuf.LazyStringArrayList();
               mutable_bitField0_ |= 0x00000002;
             }
@@ -68,7 +68,7 @@ private static final long serialVersionUID = 0L;
           }
           case 26: {
             alluxio.grpc.RemovePathConfigurationPOptions.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000002) == 0x00000002)) {
+            if (((bitField0_ & 0x00000002) != 0)) {
               subBuilder = options_.toBuilder();
             }
             options_ = input.readMessage(alluxio.grpc.RemovePathConfigurationPOptions.PARSER, extensionRegistry);
@@ -79,6 +79,13 @@ private static final long serialVersionUID = 0L;
             bitField0_ |= 0x00000002;
             break;
           }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -87,7 +94,7 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((mutable_bitField0_ & 0x00000002) != 0)) {
         keys_ = keys_.getUnmodifiableView();
       }
       this.unknownFields = unknownFields.build();
@@ -99,6 +106,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_RemovePathConfigurationPRequest_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_RemovePathConfigurationPRequest_fieldAccessorTable
@@ -111,12 +119,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object path_;
   /**
    * <code>optional string path = 1;</code>
+   * @return Whether the path field is set.
    */
   public boolean hasPath() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional string path = 1;</code>
+   * @return The path.
    */
   public java.lang.String getPath() {
     java.lang.Object ref = path_;
@@ -134,6 +144,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string path = 1;</code>
+   * @return The bytes for path.
    */
   public com.google.protobuf.ByteString
       getPathBytes() {
@@ -153,6 +164,7 @@ private static final long serialVersionUID = 0L;
   private com.google.protobuf.LazyStringList keys_;
   /**
    * <code>repeated string keys = 2;</code>
+   * @return A list containing the keys.
    */
   public com.google.protobuf.ProtocolStringList
       getKeysList() {
@@ -160,18 +172,23 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>repeated string keys = 2;</code>
+   * @return The count of keys.
    */
   public int getKeysCount() {
     return keys_.size();
   }
   /**
    * <code>repeated string keys = 2;</code>
+   * @param index The index of the element to return.
+   * @return The keys at the given index.
    */
   public java.lang.String getKeys(int index) {
     return keys_.get(index);
   }
   /**
    * <code>repeated string keys = 2;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the keys at the given index.
    */
   public com.google.protobuf.ByteString
       getKeysBytes(int index) {
@@ -182,12 +199,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.RemovePathConfigurationPOptions options_;
   /**
    * <code>optional .alluxio.grpc.meta.RemovePathConfigurationPOptions options = 3;</code>
+   * @return Whether the options field is set.
    */
   public boolean hasOptions() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.meta.RemovePathConfigurationPOptions options = 3;</code>
+   * @return The options.
    */
   public alluxio.grpc.RemovePathConfigurationPOptions getOptions() {
     return options_ == null ? alluxio.grpc.RemovePathConfigurationPOptions.getDefaultInstance() : options_;
@@ -200,6 +219,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -209,26 +229,28 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, path_);
     }
     for (int i = 0; i < keys_.size(); i++) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, keys_.getRaw(i));
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeMessage(3, getOptions());
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, path_);
     }
     {
@@ -239,7 +261,7 @@ private static final long serialVersionUID = 0L;
       size += dataSize;
       size += 1 * getKeysList().size();
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(3, getOptions());
     }
@@ -258,21 +280,20 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.RemovePathConfigurationPRequest other = (alluxio.grpc.RemovePathConfigurationPRequest) obj;
 
-    boolean result = true;
-    result = result && (hasPath() == other.hasPath());
+    if (hasPath() != other.hasPath()) return false;
     if (hasPath()) {
-      result = result && getPath()
-          .equals(other.getPath());
+      if (!getPath()
+          .equals(other.getPath())) return false;
     }
-    result = result && getKeysList()
-        .equals(other.getKeysList());
-    result = result && (hasOptions() == other.hasOptions());
+    if (!getKeysList()
+        .equals(other.getKeysList())) return false;
+    if (hasOptions() != other.hasOptions()) return false;
     if (hasOptions()) {
-      result = result && getOptions()
-          .equals(other.getOptions());
+      if (!getOptions()
+          .equals(other.getOptions())) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -369,6 +390,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -376,6 +398,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.RemovePathConfigurationPRequest prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -399,6 +422,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_RemovePathConfigurationPRequest_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_RemovePathConfigurationPRequest_fieldAccessorTable
@@ -422,6 +446,7 @@ private static final long serialVersionUID = 0L;
         getOptionsFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       path_ = "";
@@ -437,15 +462,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_RemovePathConfigurationPRequest_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.RemovePathConfigurationPRequest getDefaultInstanceForType() {
       return alluxio.grpc.RemovePathConfigurationPRequest.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.RemovePathConfigurationPRequest build() {
       alluxio.grpc.RemovePathConfigurationPRequest result = buildPartial();
       if (!result.isInitialized()) {
@@ -454,58 +482,66 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.RemovePathConfigurationPRequest buildPartial() {
       alluxio.grpc.RemovePathConfigurationPRequest result = new alluxio.grpc.RemovePathConfigurationPRequest(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
         to_bitField0_ |= 0x00000001;
       }
       result.path_ = path_;
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         keys_ = keys_.getUnmodifiableView();
         bitField0_ = (bitField0_ & ~0x00000002);
       }
       result.keys_ = keys_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
+        if (optionsBuilder_ == null) {
+          result.options_ = options_;
+        } else {
+          result.options_ = optionsBuilder_.build();
+        }
         to_bitField0_ |= 0x00000002;
-      }
-      if (optionsBuilder_ == null) {
-        result.options_ = options_;
-      } else {
-        result.options_ = optionsBuilder_.build();
       }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.RemovePathConfigurationPRequest) {
         return mergeFrom((alluxio.grpc.RemovePathConfigurationPRequest)other);
@@ -540,10 +576,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -566,12 +604,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object path_ = "";
     /**
      * <code>optional string path = 1;</code>
+     * @return Whether the path field is set.
      */
     public boolean hasPath() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string path = 1;</code>
+     * @return The path.
      */
     public java.lang.String getPath() {
       java.lang.Object ref = path_;
@@ -589,6 +629,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string path = 1;</code>
+     * @return The bytes for path.
      */
     public com.google.protobuf.ByteString
         getPathBytes() {
@@ -605,6 +646,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string path = 1;</code>
+     * @param value The path to set.
+     * @return This builder for chaining.
      */
     public Builder setPath(
         java.lang.String value) {
@@ -618,6 +661,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string path = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearPath() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -627,6 +671,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string path = 1;</code>
+     * @param value The bytes for path to set.
+     * @return This builder for chaining.
      */
     public Builder setPathBytes(
         com.google.protobuf.ByteString value) {
@@ -641,13 +687,14 @@ private static final long serialVersionUID = 0L;
 
     private com.google.protobuf.LazyStringList keys_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     private void ensureKeysIsMutable() {
-      if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!((bitField0_ & 0x00000002) != 0)) {
         keys_ = new com.google.protobuf.LazyStringArrayList(keys_);
         bitField0_ |= 0x00000002;
        }
     }
     /**
      * <code>repeated string keys = 2;</code>
+     * @return A list containing the keys.
      */
     public com.google.protobuf.ProtocolStringList
         getKeysList() {
@@ -655,18 +702,23 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated string keys = 2;</code>
+     * @return The count of keys.
      */
     public int getKeysCount() {
       return keys_.size();
     }
     /**
      * <code>repeated string keys = 2;</code>
+     * @param index The index of the element to return.
+     * @return The keys at the given index.
      */
     public java.lang.String getKeys(int index) {
       return keys_.get(index);
     }
     /**
      * <code>repeated string keys = 2;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the keys at the given index.
      */
     public com.google.protobuf.ByteString
         getKeysBytes(int index) {
@@ -674,6 +726,9 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated string keys = 2;</code>
+     * @param index The index to set the value at.
+     * @param value The keys to set.
+     * @return This builder for chaining.
      */
     public Builder setKeys(
         int index, java.lang.String value) {
@@ -687,6 +742,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated string keys = 2;</code>
+     * @param value The keys to add.
+     * @return This builder for chaining.
      */
     public Builder addKeys(
         java.lang.String value) {
@@ -700,6 +757,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated string keys = 2;</code>
+     * @param values The keys to add.
+     * @return This builder for chaining.
      */
     public Builder addAllKeys(
         java.lang.Iterable<java.lang.String> values) {
@@ -711,6 +770,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated string keys = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearKeys() {
       keys_ = com.google.protobuf.LazyStringArrayList.EMPTY;
@@ -720,6 +780,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated string keys = 2;</code>
+     * @param value The bytes of the keys to add.
+     * @return This builder for chaining.
      */
     public Builder addKeysBytes(
         com.google.protobuf.ByteString value) {
@@ -732,17 +794,19 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private alluxio.grpc.RemovePathConfigurationPOptions options_ = null;
+    private alluxio.grpc.RemovePathConfigurationPOptions options_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.RemovePathConfigurationPOptions, alluxio.grpc.RemovePathConfigurationPOptions.Builder, alluxio.grpc.RemovePathConfigurationPOptionsOrBuilder> optionsBuilder_;
     /**
      * <code>optional .alluxio.grpc.meta.RemovePathConfigurationPOptions options = 3;</code>
+     * @return Whether the options field is set.
      */
     public boolean hasOptions() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.meta.RemovePathConfigurationPOptions options = 3;</code>
+     * @return The options.
      */
     public alluxio.grpc.RemovePathConfigurationPOptions getOptions() {
       if (optionsBuilder_ == null) {
@@ -786,7 +850,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeOptions(alluxio.grpc.RemovePathConfigurationPOptions value) {
       if (optionsBuilder_ == null) {
-        if (((bitField0_ & 0x00000004) == 0x00000004) &&
+        if (((bitField0_ & 0x00000004) != 0) &&
             options_ != null &&
             options_ != alluxio.grpc.RemovePathConfigurationPOptions.getDefaultInstance()) {
           options_ =
@@ -849,11 +913,13 @@ private static final long serialVersionUID = 0L;
       }
       return optionsBuilder_;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -875,6 +941,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<RemovePathConfigurationPRequest>
       PARSER = new com.google.protobuf.AbstractParser<RemovePathConfigurationPRequest>() {
+    @java.lang.Override
     public RemovePathConfigurationPRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -892,6 +959,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.RemovePathConfigurationPRequest getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

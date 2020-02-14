@@ -16,8 +16,14 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private Decimal() {
-    scale_ = 0;
     unscaled_ = com.google.protobuf.ByteString.EMPTY;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new Decimal();
   }
 
   @java.lang.Override
@@ -44,13 +50,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             bitField0_ |= 0x00000001;
             scale_ = input.readInt32();
@@ -59,6 +58,13 @@ private static final long serialVersionUID = 0L;
           case 18: {
             bitField0_ |= 0x00000002;
             unscaled_ = input.readBytes();
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -78,6 +84,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Decimal_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Decimal_fieldAccessorTable
@@ -94,9 +101,10 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>required int32 scale = 1;</code>
+   * @return Whether the scale field is set.
    */
   public boolean hasScale() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <pre>
@@ -104,6 +112,7 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>required int32 scale = 1;</code>
+   * @return The scale.
    */
   public int getScale() {
     return scale_;
@@ -113,18 +122,21 @@ private static final long serialVersionUID = 0L;
   private com.google.protobuf.ByteString unscaled_;
   /**
    * <code>required bytes unscaled = 2;</code>
+   * @return Whether the unscaled field is set.
    */
   public boolean hasUnscaled() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>required bytes unscaled = 2;</code>
+   * @return The unscaled.
    */
   public com.google.protobuf.ByteString getUnscaled() {
     return unscaled_;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -142,27 +154,29 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeInt32(1, scale_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeBytes(2, unscaled_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(1, scale_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBytesSize(2, unscaled_);
     }
@@ -181,19 +195,18 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.table.Decimal other = (alluxio.grpc.table.Decimal) obj;
 
-    boolean result = true;
-    result = result && (hasScale() == other.hasScale());
+    if (hasScale() != other.hasScale()) return false;
     if (hasScale()) {
-      result = result && (getScale()
-          == other.getScale());
+      if (getScale()
+          != other.getScale()) return false;
     }
-    result = result && (hasUnscaled() == other.hasUnscaled());
+    if (hasUnscaled() != other.hasUnscaled()) return false;
     if (hasUnscaled()) {
-      result = result && getUnscaled()
-          .equals(other.getUnscaled());
+      if (!getUnscaled()
+          .equals(other.getUnscaled())) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -286,6 +299,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -293,6 +307,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.table.Decimal prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -316,6 +331,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Decimal_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Decimal_fieldAccessorTable
@@ -338,6 +354,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       scale_ = 0;
@@ -347,15 +364,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_Decimal_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.Decimal getDefaultInstanceForType() {
       return alluxio.grpc.table.Decimal.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.Decimal build() {
       alluxio.grpc.table.Decimal result = buildPartial();
       if (!result.isInitialized()) {
@@ -364,15 +384,16 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.Decimal buildPartial() {
       alluxio.grpc.table.Decimal result = new alluxio.grpc.table.Decimal(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        result.scale_ = scale_;
         to_bitField0_ |= 0x00000001;
       }
-      result.scale_ = scale_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
         to_bitField0_ |= 0x00000002;
       }
       result.unscaled_ = unscaled_;
@@ -381,32 +402,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.table.Decimal) {
         return mergeFrom((alluxio.grpc.table.Decimal)other);
@@ -429,6 +457,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       if (!hasScale()) {
         return false;
@@ -439,6 +468,7 @@ private static final long serialVersionUID = 0L;
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -465,9 +495,10 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>required int32 scale = 1;</code>
+     * @return Whether the scale field is set.
      */
     public boolean hasScale() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <pre>
@@ -475,6 +506,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>required int32 scale = 1;</code>
+     * @return The scale.
      */
     public int getScale() {
       return scale_;
@@ -485,6 +517,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>required int32 scale = 1;</code>
+     * @param value The scale to set.
+     * @return This builder for chaining.
      */
     public Builder setScale(int value) {
       bitField0_ |= 0x00000001;
@@ -498,6 +532,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>required int32 scale = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearScale() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -509,18 +544,22 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.ByteString unscaled_ = com.google.protobuf.ByteString.EMPTY;
     /**
      * <code>required bytes unscaled = 2;</code>
+     * @return Whether the unscaled field is set.
      */
     public boolean hasUnscaled() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>required bytes unscaled = 2;</code>
+     * @return The unscaled.
      */
     public com.google.protobuf.ByteString getUnscaled() {
       return unscaled_;
     }
     /**
      * <code>required bytes unscaled = 2;</code>
+     * @param value The unscaled to set.
+     * @return This builder for chaining.
      */
     public Builder setUnscaled(com.google.protobuf.ByteString value) {
       if (value == null) {
@@ -533,6 +572,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>required bytes unscaled = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearUnscaled() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -540,11 +580,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -566,6 +608,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<Decimal>
       PARSER = new com.google.protobuf.AbstractParser<Decimal>() {
+    @java.lang.Override
     public Decimal parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -583,6 +626,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.table.Decimal getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

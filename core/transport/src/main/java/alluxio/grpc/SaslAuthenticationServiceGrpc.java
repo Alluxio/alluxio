@@ -18,7 +18,7 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 /**
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.17.1)",
+    value = "by gRPC proto compiler (version 1.27.0)",
     comments = "Source: grpc/sasl_server.proto")
 public final class SaslAuthenticationServiceGrpc {
 
@@ -41,29 +41,35 @@ public final class SaslAuthenticationServiceGrpc {
     if ((getAuthenticateMethod = SaslAuthenticationServiceGrpc.getAuthenticateMethod) == null) {
       synchronized (SaslAuthenticationServiceGrpc.class) {
         if ((getAuthenticateMethod = SaslAuthenticationServiceGrpc.getAuthenticateMethod) == null) {
-          SaslAuthenticationServiceGrpc.getAuthenticateMethod = getAuthenticateMethod = 
+          SaslAuthenticationServiceGrpc.getAuthenticateMethod = getAuthenticateMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.SaslMessage, alluxio.grpc.SaslMessage>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.sasl.SaslAuthenticationService", "authenticate"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "authenticate"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.SaslMessage.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.SaslMessage.getDefaultInstance()))
-                  .setSchemaDescriptor(new SaslAuthenticationServiceMethodDescriptorSupplier("authenticate"))
-                  .build();
-          }
+              .setSchemaDescriptor(new SaslAuthenticationServiceMethodDescriptorSupplier("authenticate"))
+              .build();
         }
-     }
-     return getAuthenticateMethod;
+      }
+    }
+    return getAuthenticateMethod;
   }
 
   /**
    * Creates a new async stub that supports all call types for the service
    */
   public static SaslAuthenticationServiceStub newStub(io.grpc.Channel channel) {
-    return new SaslAuthenticationServiceStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<SaslAuthenticationServiceStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<SaslAuthenticationServiceStub>() {
+        @java.lang.Override
+        public SaslAuthenticationServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new SaslAuthenticationServiceStub(channel, callOptions);
+        }
+      };
+    return SaslAuthenticationServiceStub.newStub(factory, channel);
   }
 
   /**
@@ -71,7 +77,14 @@ public final class SaslAuthenticationServiceGrpc {
    */
   public static SaslAuthenticationServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new SaslAuthenticationServiceBlockingStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<SaslAuthenticationServiceBlockingStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<SaslAuthenticationServiceBlockingStub>() {
+        @java.lang.Override
+        public SaslAuthenticationServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new SaslAuthenticationServiceBlockingStub(channel, callOptions);
+        }
+      };
+    return SaslAuthenticationServiceBlockingStub.newStub(factory, channel);
   }
 
   /**
@@ -79,7 +92,14 @@ public final class SaslAuthenticationServiceGrpc {
    */
   public static SaslAuthenticationServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new SaslAuthenticationServiceFutureStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<SaslAuthenticationServiceFutureStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<SaslAuthenticationServiceFutureStub>() {
+        @java.lang.Override
+        public SaslAuthenticationServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new SaslAuthenticationServiceFutureStub(channel, callOptions);
+        }
+      };
+    return SaslAuthenticationServiceFutureStub.newStub(factory, channel);
   }
 
   /**
@@ -112,19 +132,15 @@ public final class SaslAuthenticationServiceGrpc {
 
   /**
    */
-  public static final class SaslAuthenticationServiceStub extends io.grpc.stub.AbstractStub<SaslAuthenticationServiceStub> {
-    private SaslAuthenticationServiceStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private SaslAuthenticationServiceStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class SaslAuthenticationServiceStub extends io.grpc.stub.AbstractAsyncStub<SaslAuthenticationServiceStub> {
+    private SaslAuthenticationServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected SaslAuthenticationServiceStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected SaslAuthenticationServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new SaslAuthenticationServiceStub(channel, callOptions);
     }
 
@@ -143,38 +159,30 @@ public final class SaslAuthenticationServiceGrpc {
 
   /**
    */
-  public static final class SaslAuthenticationServiceBlockingStub extends io.grpc.stub.AbstractStub<SaslAuthenticationServiceBlockingStub> {
-    private SaslAuthenticationServiceBlockingStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private SaslAuthenticationServiceBlockingStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class SaslAuthenticationServiceBlockingStub extends io.grpc.stub.AbstractBlockingStub<SaslAuthenticationServiceBlockingStub> {
+    private SaslAuthenticationServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected SaslAuthenticationServiceBlockingStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected SaslAuthenticationServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new SaslAuthenticationServiceBlockingStub(channel, callOptions);
     }
   }
 
   /**
    */
-  public static final class SaslAuthenticationServiceFutureStub extends io.grpc.stub.AbstractStub<SaslAuthenticationServiceFutureStub> {
-    private SaslAuthenticationServiceFutureStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private SaslAuthenticationServiceFutureStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class SaslAuthenticationServiceFutureStub extends io.grpc.stub.AbstractFutureStub<SaslAuthenticationServiceFutureStub> {
+    private SaslAuthenticationServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected SaslAuthenticationServiceFutureStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected SaslAuthenticationServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new SaslAuthenticationServiceFutureStub(channel, callOptions);
     }
   }

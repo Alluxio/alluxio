@@ -9,10 +9,12 @@ public interface ColumnStatisticsDataOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
+   * @return Whether the booleanStats field is set.
    */
   boolean hasBooleanStats();
   /**
    * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
+   * @return The booleanStats.
    */
   alluxio.grpc.table.BooleanColumnStatsData getBooleanStats();
   /**
@@ -22,10 +24,12 @@ public interface ColumnStatisticsDataOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
+   * @return Whether the longStats field is set.
    */
   boolean hasLongStats();
   /**
    * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
+   * @return The longStats.
    */
   alluxio.grpc.table.LongColumnStatsData getLongStats();
   /**
@@ -35,10 +39,12 @@ public interface ColumnStatisticsDataOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
+   * @return Whether the doubleStats field is set.
    */
   boolean hasDoubleStats();
   /**
    * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
+   * @return The doubleStats.
    */
   alluxio.grpc.table.DoubleColumnStatsData getDoubleStats();
   /**
@@ -48,10 +54,12 @@ public interface ColumnStatisticsDataOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
+   * @return Whether the stringStats field is set.
    */
   boolean hasStringStats();
   /**
    * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
+   * @return The stringStats.
    */
   alluxio.grpc.table.StringColumnStatsData getStringStats();
   /**
@@ -61,10 +69,12 @@ public interface ColumnStatisticsDataOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
+   * @return Whether the binaryStats field is set.
    */
   boolean hasBinaryStats();
   /**
    * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
+   * @return The binaryStats.
    */
   alluxio.grpc.table.BinaryColumnStatsData getBinaryStats();
   /**
@@ -74,10 +84,12 @@ public interface ColumnStatisticsDataOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
+   * @return Whether the decimalStats field is set.
    */
   boolean hasDecimalStats();
   /**
    * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
+   * @return The decimalStats.
    */
   alluxio.grpc.table.DecimalColumnStatsData getDecimalStats();
   /**
@@ -87,10 +99,12 @@ public interface ColumnStatisticsDataOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
+   * @return Whether the dateStats field is set.
    */
   boolean hasDateStats();
   /**
    * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
+   * @return The dateStats.
    */
   alluxio.grpc.table.DateColumnStatsData getDateStats();
   /**

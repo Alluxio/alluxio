@@ -9,24 +9,29 @@ public interface NetAddressOrBuilder extends
 
   /**
    * <code>optional string host = 1;</code>
+   * @return Whether the host field is set.
    */
   boolean hasHost();
   /**
    * <code>optional string host = 1;</code>
+   * @return The host.
    */
   java.lang.String getHost();
   /**
    * <code>optional string host = 1;</code>
+   * @return The bytes for host.
    */
   com.google.protobuf.ByteString
       getHostBytes();
 
   /**
    * <code>optional int32 rpcPort = 2;</code>
+   * @return Whether the rpcPort field is set.
    */
   boolean hasRpcPort();
   /**
    * <code>optional int32 rpcPort = 2;</code>
+   * @return The rpcPort.
    */
   int getRpcPort();
 }

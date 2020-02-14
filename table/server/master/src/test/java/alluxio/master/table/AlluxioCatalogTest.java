@@ -85,10 +85,10 @@ public class AlluxioCatalogTest {
   @Test
   public void attachDb() throws Exception {
     String dbName = "testdb";
-    TestDatabase.genTable(1, 2);
+    TestDatabase.genTable(1, 2, false);
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
         TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
-        Collections.emptyMap());
+        Collections.emptyMap(), false);
     List<String> dbs = mCatalog.getAllDatabases();
     assertEquals(1, dbs.size());
     assertEquals(dbName, dbs.get(0));
@@ -103,10 +103,10 @@ public class AlluxioCatalogTest {
   @Test
   public void detachDb() throws Exception {
     String dbName = "testdb";
-    TestDatabase.genTable(1, 2);
+    TestDatabase.genTable(1, 2, false);
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
         TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
-        Collections.emptyMap());
+        Collections.emptyMap(), false);
     assertEquals(1, mCatalog.getAllDatabases().size());
     assertTrue(mCatalog.detachDatabase(NoopJournalContext.INSTANCE, dbName));
     assertEquals(0, mCatalog.getAllDatabases().size());
@@ -115,7 +115,7 @@ public class AlluxioCatalogTest {
   @Test
   public void getDb() throws Exception {
     String dbName = "testdb";
-    TestDatabase.genTable(1, 2);
+    TestDatabase.genTable(1, 2, false);
 
     try {
       mCatalog.getDatabase(dbName);
@@ -126,7 +126,7 @@ public class AlluxioCatalogTest {
 
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
         TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
-        Collections.emptyMap());
+        Collections.emptyMap(), false);
     assertEquals(dbName, mCatalog.getDatabase(dbName).getDbName());
     assertEquals(TestDatabase.sTestDbInfo.getComment(),
         mCatalog.getDatabase(dbName).getComment());
@@ -144,10 +144,10 @@ public class AlluxioCatalogTest {
   public void testGetAllDatabase() throws Exception {
     addMockDbs();
     assertEquals(2, mCatalog.getAllDatabases().size());
-    TestDatabase.genTable(1, 2);
+    TestDatabase.genTable(1, 2, false);
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
         TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, "testdb",
-        Collections.emptyMap());
+        Collections.emptyMap(), false);
     assertEquals(3, mCatalog.getAllDatabases().size());
   }
 
@@ -209,10 +209,10 @@ public class AlluxioCatalogTest {
   @Test
   public void testGetPartitionColumnStats() throws Exception {
     String dbName = "testdb";
-    TestDatabase.genTable(1, 2);
+    TestDatabase.genTable(1, 2, false);
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
         TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
-        Collections.emptyMap());
+        Collections.emptyMap(), false);
     // single partition
     assertEquals(1, mCatalog.getPartitionColumnStatistics(dbName,
         TestDatabase.getTableName(0),
@@ -284,7 +284,7 @@ public class AlluxioCatalogTest {
     String dbName = "existingdb";
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
         TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
-        Collections.emptyMap());
+        Collections.emptyMap(), false);
     assertEquals(1, mCatalog.getAllDatabases().size());
     assertEquals(0, mCatalog.getAllTables(dbName).size());
     String tableName = "doesnotexist";
@@ -296,10 +296,10 @@ public class AlluxioCatalogTest {
   @Test
   public void getTransformPlan() throws Exception {
     String dbName = "testdb";
-    TestDatabase.genTable(1, 1);
+    TestDatabase.genTable(1, 1, false);
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
         TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
-        Collections.emptyMap());
+        Collections.emptyMap(), false);
     assertEquals(1, mCatalog.getAllDatabases().size());
     assertEquals(1, mCatalog.getAllTables(dbName).size());
     String tableName = TestDatabase.getTableName(0);
@@ -316,10 +316,10 @@ public class AlluxioCatalogTest {
   @Test
   public void getTransformPlanOutputUri() throws Exception {
     String dbName = "testdb";
-    TestDatabase.genTable(1, 1);
+    TestDatabase.genTable(1, 1, false);
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
         TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
-        Collections.emptyMap());
+        Collections.emptyMap(), false);
     String tableName = TestDatabase.getTableName(0);
     Table table = mCatalog.getTable(dbName, tableName);
 
@@ -355,7 +355,7 @@ public class AlluxioCatalogTest {
     String dbName = "existingdb";
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
         TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
-        Collections.emptyMap());
+        Collections.emptyMap(), false);
     assertEquals(1, mCatalog.getAllDatabases().size());
     assertEquals(0, mCatalog.getAllTables(dbName).size());
     String tableName = "doesnotexist";
@@ -368,10 +368,10 @@ public class AlluxioCatalogTest {
   @Test
   public void completeTransformTable() throws IOException {
     String dbName = "testdb";
-    TestDatabase.genTable(1, 10);
+    TestDatabase.genTable(1, 10, false);
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
         TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
-        Collections.emptyMap());
+        Collections.emptyMap(), false);
     String tableName = TestDatabase.getTableName(0);
 
     Table table = mCatalog.getTable(dbName, tableName);

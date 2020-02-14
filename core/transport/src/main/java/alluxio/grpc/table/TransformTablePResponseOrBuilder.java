@@ -9,10 +9,12 @@ public interface TransformTablePResponseOrBuilder extends
 
   /**
    * <code>optional int64 job_id = 1;</code>
+   * @return Whether the jobId field is set.
    */
   boolean hasJobId();
   /**
    * <code>optional int64 job_id = 1;</code>
+   * @return The jobId.
    */
   long getJobId();
 }

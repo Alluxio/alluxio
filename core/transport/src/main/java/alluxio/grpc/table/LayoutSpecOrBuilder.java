@@ -9,14 +9,17 @@ public interface LayoutSpecOrBuilder extends
 
   /**
    * <code>optional string spec = 1;</code>
+   * @return Whether the spec field is set.
    */
   boolean hasSpec();
   /**
    * <code>optional string spec = 1;</code>
+   * @return The spec.
    */
   java.lang.String getSpec();
   /**
    * <code>optional string spec = 1;</code>
+   * @return The bytes for spec.
    */
   com.google.protobuf.ByteString
       getSpecBytes();
