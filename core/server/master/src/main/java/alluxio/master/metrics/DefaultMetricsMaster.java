@@ -126,7 +126,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     // TODO(lu) Create a template for dynamically construct MetricKey
     for (MetricInfo.UfsOps ufsOp : MetricInfo.UfsOps.values()) {
       addAggregator(new SingleTagValueAggregator(MetricInfo.UFS_OP_PREFIX + ufsOp,
-          ufsOp.toString(), MetricInfo.TAG_UFS));
+          MetricsSystem.getMasterMetricName(ufsOp.toString()), MetricInfo.TAG_UFS));
     }
   }
 

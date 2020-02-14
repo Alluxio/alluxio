@@ -94,6 +94,38 @@ public class MetricsMasterTest {
   }
 
   @Test
+  public void testRegisteredAggregator() throws Exception {
+    String ufsOp = MetricInfo.UfsOps.values().clone()[0].toString();
+    String masterUfsOpName = MetricsSystem.getMasterMetricName(ufsOp);
+    String ufs = MetricsSystem.escape(new AlluxioURI("hdfs://name:9000/alluxio_storage"));
+
+    String counterName = Metric.getMetricNameWithTags(masterUfsOpName,
+        MetricInfo.TAG_UFS, ufs, MetricInfo.TAG_UFS_TYPE, "hdfs");
+    MetricsSystem.counter(counterName).inc(2333);
+
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER);
+
+    String clusterMetricName = Metric.getMetricNameWithTags(
+        MetricInfo.UFS_OP_PREFIX + ufsOp, MetricInfo.TAG_UFS, ufs);
+    Metric clusterMetric = MetricsSystem.getMetricValue(clusterMetricName);
+    assertNotNull(clusterMetric);
+    assertEquals(2333, (long) clusterMetric.getValue());
+
+    String timerNameOne = Metric.getMetricNameWithTags(masterUfsOpName,
+        MetricInfo.TAG_UFS, ufs, MetricInfo.TAG_USER, "userA");
+    MetricsSystem.timer(timerNameOne).time().close();
+    String timerNameTwo = Metric.getMetricNameWithTags(masterUfsOpName,
+        MetricInfo.TAG_UFS, ufs, MetricInfo.TAG_USER, "userB");
+    MetricsSystem.timer(timerNameTwo).time().close();
+
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER);
+
+    clusterMetric = MetricsSystem.getMetricValue(clusterMetricName);
+    assertNotNull(clusterMetric);
+    assertEquals(2335, (long) clusterMetric.getValue());
+  }
+
+  @Test
   public void testMultiValueAggregator() throws Exception {
     // Add user tag
     String masterMetricName = "Master.TestMetric";

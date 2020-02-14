@@ -289,7 +289,7 @@ public final class MetricsSystem {
    * @param name the metric name
    * @return the metric registry name
    */
-  private static String getMasterMetricName(String name) {
+  public static String getMasterMetricName(String name) {
     String result = CACHED_METRICS.get(name);
     if (result != null) {
       return result;
