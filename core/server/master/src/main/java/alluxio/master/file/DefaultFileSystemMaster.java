@@ -3393,6 +3393,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     } finally {
       inodePath.downgradeToPattern(lockingScheme.getDesiredPattern());
     }
+
     // Update metadata for all the mount points
     for (String mountPoint : pathsToLoad) {
       if (Thread.currentThread().isInterrupted()) {
