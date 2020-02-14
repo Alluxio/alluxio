@@ -16,7 +16,6 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
-import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
@@ -38,7 +37,6 @@ import alluxio.util.network.NetworkAddressUtils;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
@@ -55,11 +53,6 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
   private static final int NUM_MASTERS = 3;
   private static final int RESTART_TIMEOUT_MS = 2 * Constants.MINUTE_MS;
-
-  @Rule
-  public ConfigurationRule mConf =
-      new ConfigurationRule(PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false",
-          ServerConfiguration.global());
 
   public MultiProcessCluster mCluster;
   // Used by growCluster test.

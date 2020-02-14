@@ -12,7 +12,6 @@
 package alluxio.client.cli.fsadmin.command;
 
 import alluxio.AlluxioURI;
-import alluxio.ConfigurationRule;
 import alluxio.SystemErrRule;
 import alluxio.SystemOutRule;
 import alluxio.cli.fsadmin.FileSystemAdminShell;
@@ -46,10 +45,6 @@ import java.util.stream.Collectors;
  * Integration tests for the embedded journal.
  */
 public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
-  @Rule
-  public ConfigurationRule mConf = new ConfigurationRule(
-      PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false", ServerConfiguration.global());
-
   public MultiProcessCluster mCluster;
 
   public ByteArrayOutputStream mOutput = new ByteArrayOutputStream();

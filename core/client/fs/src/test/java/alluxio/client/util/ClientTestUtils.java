@@ -19,7 +19,6 @@ import alluxio.wire.TieredIdentity;
 import alluxio.wire.TieredIdentity.LocalityTier;
 import alluxio.wire.WorkerNetAddress;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,23 +33,6 @@ public final class ClientTestUtils {
   public static void setSmallBufferSizes(InstancedConfiguration conf) {
     conf.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "4KB");
     conf.set(PropertyKey.USER_FILE_BUFFER_BYTES, "4KB");
-  }
-
-  /**
-   * Resets the client to its initial state, re-initializing Alluxio contexts.
-   *
-   * This method should only be used as a cleanup mechanism between tests.
-   */
-  public static void resetClient(InstancedConfiguration conf) {
-    try {
-      resetContexts(conf);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private static void resetContexts(InstancedConfiguration conf) throws IOException {
-    conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
   }
 
   public static BlockWorkerInfo worker(long capacity, String node, String rack) {

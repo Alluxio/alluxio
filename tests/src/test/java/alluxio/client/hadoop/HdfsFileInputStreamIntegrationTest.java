@@ -22,7 +22,6 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.grpc.WritePType;
-import alluxio.hadoop.HadoopClientTestUtils;
 import alluxio.hadoop.HdfsFileInputStream;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -68,7 +67,6 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
       mUfsInputStream.close();
       mFileSystem.delete(new AlluxioURI(UFS_ONLY_FILE));
     }
-    HadoopClientTestUtils.disableMetrics(ServerConfiguration.global());
   }
 
   @Before

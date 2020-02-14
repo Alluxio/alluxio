@@ -12,8 +12,6 @@
 package alluxio.hadoop;
 
 import alluxio.ProjectConstants;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 
 import org.powermock.core.classloader.MockClassLoader;
 
@@ -23,14 +21,6 @@ import java.net.URL;
  * Utility methods for the Hadoop client tests.
  */
 public final class HadoopClientTestUtils {
-  /**
-   * Disables metrics in a configuration
-   *
-   * This method should only be used as a cleanup mechanism between tests.
-   */
-  public static void disableMetrics(InstancedConfiguration conf) {
-    conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
-  }
 
   /**
    * @return true if the hadoop version is 1.x

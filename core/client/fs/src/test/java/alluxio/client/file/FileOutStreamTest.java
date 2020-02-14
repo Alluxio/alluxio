@@ -60,7 +60,6 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -189,11 +188,6 @@ public class FileOutStreamTest {
         OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
     mTestStream = createTestStream(FILE_NAME, options);
-  }
-
-  @After
-  public void after() {
-    ClientTestUtils.resetClient(sConf);
   }
 
   /**

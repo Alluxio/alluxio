@@ -45,7 +45,6 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -166,11 +165,6 @@ public final class AlluxioFileInStreamTest {
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
     mTestStream = new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, readOptions,
         sConf), mContext);
-  }
-
-  @After
-  public void after() {
-    ClientTestUtils.resetClient(sConf);
   }
 
   /**

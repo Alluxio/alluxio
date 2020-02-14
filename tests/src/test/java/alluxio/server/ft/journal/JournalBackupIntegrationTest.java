@@ -18,7 +18,6 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.client.meta.MetaMasterClient;
@@ -42,7 +41,6 @@ import alluxio.util.WaitForOptions;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
@@ -61,13 +59,6 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public MultiProcessCluster mCluster;
   private static final int GET_PRIMARY_INDEX_TIMEOUT_MS = 30000;
   private static final int PRIMARY_KILL_TIMEOUT_MS = 30000;
-
-  @Rule
-  public ConfigurationRule mConf = new ConfigurationRule(new HashMap<PropertyKey, String>() {
-    {
-      put(PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false");
-    }
-  }, ServerConfiguration.global());
 
   @After
   public void after() throws Exception {

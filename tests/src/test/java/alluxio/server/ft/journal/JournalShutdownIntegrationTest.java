@@ -104,7 +104,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     mExecutorsForClient.shutdown();
     mFsContext.close();
     ServerConfiguration.reset();
-    ServerConfiguration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
   }
 
   @Test

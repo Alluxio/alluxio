@@ -18,7 +18,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
-import alluxio.client.util.ClientTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.UnavailableException;
@@ -79,8 +78,6 @@ public abstract class AbstractLocalAlluxioCluster {
   public void start() throws Exception {
     // Disable HDFS client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
-
-    resetClientPools();
 
     setupTest();
     startMasters();
@@ -318,15 +315,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * Resets the cluster to original state.
    */
   protected void reset() {
-    ClientTestUtils.resetClient(ServerConfiguration.global());
     GroupMappingServiceTestUtils.resetCache();
-  }
-
-  /**
-   * Resets the client pools to the original state.
-   */
-  protected void resetClientPools() throws IOException {
-    ServerConfiguration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
   }
 
   /**

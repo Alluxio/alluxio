@@ -52,7 +52,6 @@ public final class AbstractFileSystemApiTest {
   @After
   public void after() {
     mConf = ConfigurationTestUtils.defaults();
-    HadoopClientTestUtils.disableMetrics(mConf);
   }
 
   @Test
