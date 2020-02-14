@@ -146,6 +146,10 @@ public class CollectInfo extends AbstractShell {
               2, argv.length);
       shell.printUsage();
       System.exit(-1);
+    } else if (shell.findCommand(args[0]) == null) {
+      System.out.format("Command %s is not recognized.%n", args[0]);
+      shell.printUsage();
+      System.exit(-2);
     }
 
     // Choose mode based on option
@@ -162,6 +166,8 @@ public class CollectInfo extends AbstractShell {
     shell.close();
     System.exit(ret);
   }
+
+  private void
 
   /**
    * Finds all nodes in the cluster.

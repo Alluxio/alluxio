@@ -44,7 +44,7 @@ public class ScpCommand extends ShellCommand {
    */
   public ScpCommand(String remoteHost, String fromFile, String toFile, boolean isDir) {
     super(new String[]{"bash", "-c",
-            String.format(isDir ? "scp -r %s %s:%s localhost:%s" : "scp %s %s:%s localhost:%s",
+            String.format(isDir ? "scp -r %s %s:%s %s" : "scp %s %s:%s %s",
                     ShellUtils.COMMON_SSH_OPTS, remoteHost, fromFile, toFile)
     });
     mHostName = remoteHost;

@@ -88,7 +88,15 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
       LOG.info(String.format("Metric address URL: %s", url));
 
       // Get metrics
-      String metricsResponse = getMetricsJson(url);
+      String metricsResponse;
+      try {
+        metricsResponse = getMetricsJson(url);
+      } catch (IOException e) {
+        // Do not break the loop since the HTTP failure can be due to many reasons
+        // Return the error message instead
+        LOG.error("Failed to get Alluxio metrics from URL %s. Exception is %s", url, e);
+        metricsResponse =  String.format("Url: %s%nError: %s", url, e.getMessage());
+      }
       outputBuffer.write(metricsResponse);
 
       // Write to file
@@ -120,12 +128,15 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
 
   /**
    * Probes Alluxio metrics json sink.
+   * If the HTTP request fails, return the error content
+   * instead of throwing an exception.
    *
    * @param url URL that serves Alluxio metrics
    * @return HTTP response in JSON string
    */
   public String getMetricsJson(String url) throws IOException {
-    String responseJson = HttpUtils.get(url, COLLECT_METRICS_TIMEOUT);
+    String responseJson;
+    responseJson = HttpUtils.get(url, COLLECT_METRICS_TIMEOUT);
     return String.format("Url: %s%nResponse: %s", url, responseJson);
   }
 }
