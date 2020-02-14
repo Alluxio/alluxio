@@ -29,7 +29,6 @@ import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
-import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
@@ -42,7 +41,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 /**
