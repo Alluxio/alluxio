@@ -149,6 +149,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.SecurityUtils;
+import alluxio.util.SleepUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
@@ -3374,10 +3375,14 @@ public final class DefaultFileSystemMaster extends CoreMaster
     Set<String> pathsToLoad = new HashSet<>();
 
     try {
+      LOG.info("syncMetadataInternal in thread {}", Thread.currentThread().getId());
       if (!inodePath.fullPathExists()) {
+        LOG.info("syncMetadataInternal in thread {} inodePath does not exist", Thread.currentThread().getId());
         // The requested path does not exist in Alluxio, so just load metadata.
         pathsToLoad.add(inodePath.getUri().getPath());
       } else {
+        // TODO(adit): this code path does not interrupt
+        LOG.info("syncMetadataInternal in thread {} inodePath exists", Thread.currentThread().getId());
         SyncResult result =
             syncInodeMetadata(rpcContext, inodePath, syncDescendantType, statusCache);
         if (result.getDeletedInode()) {
@@ -3393,7 +3398,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
     } finally {
       inodePath.downgradeToPattern(lockingScheme.getDesiredPattern());
     }
-
+    LOG.info("Sleeping for a minute in thread {}", Thread.currentThread().getId());
+    SleepUtils.sleepMs(60000);
+    LOG.info("Done sleeping with #paths to load = {}", pathsToLoad.size());
     // Update metadata for all the mount points
     for (String mountPoint : pathsToLoad) {
       if (Thread.currentThread().isInterrupted()) {
@@ -3497,6 +3504,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
+    LOG.info("Sleeping for a minute w/ path {} in thread {}", inodePath.getUri(), Thread.currentThread().getId());
+    SleepUtils.sleepMs(60000);
+    LOG.info("Done sleeping");
     if (Thread.currentThread().isInterrupted()) {
       LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
       return SyncResult.defaults();
@@ -3817,21 +3827,35 @@ public final class DefaultFileSystemMaster extends CoreMaster
   @Override
   public void stopSync(AlluxioURI syncPoint)
       throws IOException, InvalidPathException, AccessControlException {
-    LockingScheme lockingScheme = new LockingScheme(syncPoint, LockPattern.WRITE_EDGE, false);
-    try (RpcContext rpcContext = createRpcContext();
-        LockedInodePath inodePath =
-            mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
-        FileSystemMasterAuditContext auditContext =
-             createAuditContext("stopSync", syncPoint, null,
-                 inodePath.getParentInodeOrNull())) {
+    LockingScheme lockingScheme = new LockingScheme(syncPoint, LockPattern.READ, false);
+    try (RpcContext rpcContext = createRpcContext()) {
+      boolean isSuperUser = true;
       try {
-        mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
+        mPermissionChecker.checkSuperUser();
       } catch (AccessControlException e) {
-        auditContext.setAllowed(false);
-        throw e;
+        isSuperUser = false;
       }
-      mSyncManager.stopSyncAndJournal(rpcContext, inodePath.getUri());
-      auditContext.setSucceeded(true);
+      if (isSuperUser) {
+        // Stop sync w/o acquiring an inode lock to terminate an initial full scan (if running)
+        mSyncManager.stopSyncAndJournal(rpcContext, syncPoint);
+      }
+      try (LockedInodePath inodePath =
+               mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
+           FileSystemMasterAuditContext auditContext =
+               createAuditContext("stopSync", syncPoint, null,
+                   inodePath.getParentInodeOrNull())) {
+        try {
+          mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
+        } catch (AccessControlException e) {
+          auditContext.setAllowed(false);
+          throw e;
+        }
+        if (!isSuperUser) {
+          // Stop sync here only if not terminated w/o holding the inode lock
+          mSyncManager.stopSyncAndJournal(rpcContext, syncPoint);
+        }
+        auditContext.setSucceeded(true);
+      }
     }
   }
 
