@@ -38,15 +38,15 @@ public class CollectEnvCommand extends ExecuteShellCollectInfoCommand {
   @Override
   protected void registerCommands() {
     registerCommand("Alluxio ps",
-            new ShellCommand(new String[]{"bash", "-c", "ps", "-ef | grep alluxio"}), null);
+            new ShellCommand(new String[]{"bash", "-c", "ps", "-ef", "| grep alluxio"}), null);
     registerCommand("Spark ps",
-            new ShellCommand(new String[]{"bash", "-c", "ps", "-ef | grep spark"}), null);
+            new ShellCommand(new String[]{"bash", "-c", "ps", "-ef", "| grep spark"}), null);
     registerCommand("Yarn ps",
-            new ShellCommand(new String[]{"bash", "-c", "ps", "-ef | grep yarn"}), null);
+            new ShellCommand(new String[]{"bash", "-c", "ps", "-ef", "| grep yarn"}), null);
     registerCommand("Hdfs ps",
-            new ShellCommand(new String[]{"bash", "-c", "ps", "-ef | grep hdfs"}), null);
+            new ShellCommand(new String[]{"bash", "-c", "ps", "-ef", "| grep hdfs"}), null);
     registerCommand("Presto ps",
-            new ShellCommand(new String[]{"bash", "-c", "ps", "-ef | grep presto"}), null);
+            new ShellCommand(new String[]{"bash", "-c", "ps", "-ef", "| grep presto"}), null);
     registerCommand("env",
             new ShellCommand(new String[]{"env"}), null);
     registerCommand("top", new ShellCommand(new String[]{"atop", "-b", "-n", "1"}),
@@ -63,7 +63,8 @@ public class CollectEnvCommand extends ExecuteShellCollectInfoCommand {
                     mFsContext.getClusterConf().get(PropertyKey.HOME))}), null);
     registerCommand("dig", new ShellCommand(new String[]{"dig", "$(hostname -i)"}), null);
     registerCommand("nslookup", new ShellCommand(new String[]{"nslookup", "$(hostname -i)"}), null);
-    registerCommand("dstat", new ShellCommand(new String[]{"dstat", "-cdgilmnprsty", "1", "5"}), null);
+    registerCommand("dstat", new ShellCommand(
+            new String[]{"dstat", "-cdgilmnprsty", "1", "5"}), null);
   }
 
   @Override
