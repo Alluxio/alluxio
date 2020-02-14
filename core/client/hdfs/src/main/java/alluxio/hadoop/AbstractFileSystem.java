@@ -542,9 +542,12 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       LOG.warn("Hadoop subject does not exist. Creating a fresh subject for Alluxio client");
       subject = new Subject(false, new HashSet<>(), new HashSet<>(), new HashSet<>());
     }
-    if (subject.getPrincipals(CurrentUser.class).isEmpty() && ugi != null) {
-      subject.getPrincipals().add(new CurrentUser(ugi.getShortUserName(), mUri.toString()));
-    }
+
+    // Remove the previous users from the subject, since this hadoop subject may be re-used.
+    subject.getPrincipals().removeAll(subject.getPrincipals(CurrentUser.class));
+
+    // Add the current user into the subject
+    subject.getPrincipals().add(new CurrentUser(ugi.getShortUserName(), mUri.toString()));
     return subject;
   }
 
