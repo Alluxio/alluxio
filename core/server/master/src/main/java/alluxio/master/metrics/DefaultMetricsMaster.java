@@ -53,8 +53,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   private static final Logger LOG = LoggerFactory.getLogger(DefaultMetricsMaster.class);
   // A map from the to be aggregated metric name to aggregator itself
   // This registry only holds aggregator for master metrics
-  private final Map<String, MultiValueMetricsAggregator>
-      mAggregatorRegistry = new HashMap<>();
+  private final Map<String, MultiValueMetricsAggregator> mAggregatorRegistry = new HashMap<>();
   private final MetricsStore mMetricsStore;
 
   /**

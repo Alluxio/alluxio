@@ -148,7 +148,7 @@ public class MetricsStoreTest {
         MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName()).getCount());
     assertEquals(1,
         MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount());
-    // Make sure the test is not execute too fast
+    // Make sure the test does not execute too fast
     // so that new clear time will be definitely different from the previous one
     Thread.sleep(10);
     mMetricStore.clear();
