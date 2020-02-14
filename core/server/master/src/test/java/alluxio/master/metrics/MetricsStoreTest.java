@@ -12,9 +12,12 @@
 package alluxio.master.metrics;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import alluxio.AlluxioURI;
 import alluxio.grpc.MetricType;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -29,6 +32,7 @@ public class MetricsStoreTest {
 
   @Before
   public void before() {
+    MetricsSystem.resetAllMetrics();
     mMetricStore = new MetricsStore();
     mMetricStore.init();
   }
@@ -74,5 +78,85 @@ public class MetricsStoreTest {
         MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName()).getCount());
     assertEquals(45,
         MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount());
+  }
+
+  @Test
+  public void putWorkerUfsMetrics() {
+    String readBytes = MetricKey.WORKER_BYTES_READ_UFS.getName();
+    String writtenBytes = MetricKey.WORKER_BYTES_WRITTEN_UFS.getName();
+
+    String ufsName1 = MetricsSystem.escape(new AlluxioURI("/my/local/folder"));
+    String readBytesUfs1 = Metric.getMetricNameWithTags(readBytes, MetricInfo.TAG_UFS, ufsName1);
+    String writtenBytesUfs1 = Metric
+        .getMetricNameWithTags(writtenBytes, MetricInfo.TAG_UFS, ufsName1);
+
+    String ufsName2 = MetricsSystem.escape(new AlluxioURI("s3://my/s3/bucket/"));
+    String readBytesUfs2 = Metric.getMetricNameWithTags(readBytes, MetricInfo.TAG_UFS, ufsName2);
+    String writtenBytesUfs2 = Metric
+        .getMetricNameWithTags(writtenBytes, MetricInfo.TAG_UFS, ufsName2);
+
+    String host1 = "192_1_1_1";
+    List<Metric> metrics1 = Lists.newArrayList(
+        Metric.from(readBytesUfs1 + "." + host1, 10, MetricType.COUNTER),
+        Metric.from(writtenBytesUfs1 + "." + host1, 20, MetricType.COUNTER),
+        Metric.from(writtenBytesUfs2 + "." + host1, 7, MetricType.COUNTER));
+    mMetricStore.putWorkerMetrics(host1, metrics1);
+
+    String host2 = "192_1_1_2";
+    List<Metric> metrics2 = Lists.newArrayList(
+        Metric.from(readBytesUfs1 + "." + host2, 5, MetricType.COUNTER),
+        Metric.from(writtenBytesUfs1 + "." + host2, 12, MetricType.COUNTER),
+        Metric.from(readBytesUfs2 + "." + host2, 33, MetricType.COUNTER));
+    mMetricStore.putWorkerMetrics(host2, metrics2);
+
+    assertEquals(15, MetricsSystem.counter(
+        Metric.getMetricNameWithTags(MetricKey.CLUSTER_BYTES_READ_UFS.getName(),
+            MetricInfo.TAG_UFS, ufsName1)).getCount());
+    assertEquals(33, MetricsSystem.counter(
+        Metric.getMetricNameWithTags(MetricKey.CLUSTER_BYTES_READ_UFS.getName(),
+            MetricInfo.TAG_UFS, ufsName2)).getCount());
+    assertEquals(48,
+        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName()).getCount());
+
+    assertEquals(32, MetricsSystem.counter(
+        Metric.getMetricNameWithTags(MetricKey.CLUSTER_BYTES_WRITTEN_UFS.getName(),
+            MetricInfo.TAG_UFS, ufsName1)).getCount());
+    assertEquals(7, MetricsSystem.counter(
+        Metric.getMetricNameWithTags(MetricKey.CLUSTER_BYTES_WRITTEN_UFS.getName(),
+            MetricInfo.TAG_UFS, ufsName2)).getCount());
+    assertEquals(39,
+        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()).getCount());
+  }
+
+  @Test
+  public void clearAndGetClearTime() throws Exception {
+    long clearTime = mMetricStore.getLastClearTime();
+    String workerHost1 = "192_1_1_1";
+    List<Metric> metrics1 = Lists.newArrayList(
+        Metric.from(MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO.getName() + "." + workerHost1,
+            10, MetricType.COUNTER),
+        Metric.from(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName() + "." + workerHost1,
+            20, MetricType.COUNTER));
+    mMetricStore.putWorkerMetrics(workerHost1, metrics1);
+
+    List<Metric> metrics2 = Lists.newArrayList(
+        Metric.from(MetricKey.CLIENT_BYTES_WRITTEN_LOCAL.getName() + ".192_1_1_2:C",
+            1, MetricType.COUNTER));
+    mMetricStore.putClientMetrics("192_1_1_2", metrics2);
+
+    assertEquals(10,
+        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName()).getCount());
+    assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount());
+
+    mMetricStore.clear();
+    assertEquals(0,
+        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName()).getCount());
+    assertEquals(0,
+        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount());
+    // Sleep 1 second to make sure the clear time is updated
+    Thread.sleep(1000);
+    long newClearTime = mMetricStore.getLastClearTime();
+    assertTrue(newClearTime > clearTime);
   }
 }

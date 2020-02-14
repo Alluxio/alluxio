@@ -416,4 +416,38 @@ public interface FileInfoOrBuilder extends
    * @return The lastAccessTimeMs.
    */
   long getLastAccessTimeMs();
+
+  /**
+   * <code>map&lt;string, bytes&gt; xattr = 32;</code>
+   */
+  int getXattrCount();
+  /**
+   * <code>map&lt;string, bytes&gt; xattr = 32;</code>
+   */
+  boolean containsXattr(
+      java.lang.String key);
+  /**
+   * Use {@link #getXattrMap()} instead.
+   */
+  @java.lang.Deprecated
+  java.util.Map<java.lang.String, com.google.protobuf.ByteString>
+  getXattr();
+  /**
+   * <code>map&lt;string, bytes&gt; xattr = 32;</code>
+   */
+  java.util.Map<java.lang.String, com.google.protobuf.ByteString>
+  getXattrMap();
+  /**
+   * <code>map&lt;string, bytes&gt; xattr = 32;</code>
+   */
+
+  com.google.protobuf.ByteString getXattrOrDefault(
+      java.lang.String key,
+      com.google.protobuf.ByteString defaultValue);
+  /**
+   * <code>map&lt;string, bytes&gt; xattr = 32;</code>
+   */
+
+  com.google.protobuf.ByteString getXattrOrThrow(
+      java.lang.String key);
 }
