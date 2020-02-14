@@ -337,9 +337,7 @@ public class ActiveSyncManager implements Journaled {
    */
   public void stopSyncAndJournal(RpcContext rpcContext, AlluxioURI syncPoint)
       throws InvalidPathException {
-    LOG.info("Stop syncPoint {} waiting for lock", syncPoint);
     try (LockResource r = new LockResource(mLock)) {
-      LOG.info("Stop syncPoint {} acquired lock", syncPoint);
       MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
       if (resolution == null) {
         throw new InvalidPathException("Failed to stop sync point " + syncPoint
@@ -516,7 +514,6 @@ public class ActiveSyncManager implements Journaled {
       Future<?> syncFuture = mExecutorService.submit(
           () -> {
             try {
-              LOG.info("Starting initial sync for path {} in thread {}", syncPoint, Thread.currentThread().getId());
               // Notify ufs polling thread to keep track of events related to specified uri
               ufsResource.get().startSync(resolution.getUri());
               // Start the initial metadata sync between the ufs and alluxio for the specified uri
@@ -544,15 +541,12 @@ public class ActiveSyncManager implements Journaled {
    * @throws InvalidPathException
    */
   private void stopSyncInternal(AlluxioURI syncPoint) throws InvalidPathException {
-    LOG.info("Stopping syncPoint {}", syncPoint);
     MountTable.Resolution resolution = mMountTable.resolve(syncPoint);
     // Remove initial sync thread
     Future<?> syncFuture = mSyncPathStatus.remove(syncPoint);
     if (syncFuture != null) {
-      LOG.info("syncPoint future is not null {}", syncPoint);
       syncFuture.cancel(true);
     }
-    LOG.info("done checking syncPoint future {}", syncPoint);
 
     long mountId = resolution.getMountId();
     if (mFilterMap.containsKey(mountId) && mFilterMap.get(mountId).isEmpty()) {
