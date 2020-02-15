@@ -46,8 +46,11 @@ To speed up the compilation, you can run the following instruction to skip diffe
 
 ```console
 $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip \
-  -Dcheckstyle.skip -Dlicense.skip
+  -Dcheckstyle.skip -Dlicense.skip -Dskip.protoc
 ```
+
+Note: The flag `-Dskip.protoc` means protoc do not work this time, so it won't generate the
+proto relates source file. So you shouldn't use `-Dskip.protoc` flag at the first build.
 
 If you are seeing `java.lang.OutOfMemoryError: Java heap space`, please set the following
 variable to increase the memory heap size for maven:
