@@ -135,8 +135,7 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
    * @return HTTP response in JSON string
    */
   public String getMetricsJson(String url) throws IOException {
-    String responseJson;
-    responseJson = HttpUtils.get(url, COLLECT_METRICS_TIMEOUT);
+    String responseJson = HttpUtils.get(url, COLLECT_METRICS_TIMEOUT);
     return String.format("Url: %s%nResponse: %s", url, responseJson);
   }
 }
