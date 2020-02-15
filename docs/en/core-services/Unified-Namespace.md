@@ -308,7 +308,7 @@ To disable active sync on a directory, issue the following Alluxio command.
 $ ./bin/alluxio fs stopSync /syncdir
 ```
 > Note: When `startSync` is issued, a full scan of the sync point is scheduled.
-> If run as the Alluxio superuser stopSync will interrupt any full scans which have not yet ended.
+> If run as the Alluxio superuser, `stopSync` will interrupt any full scans which have not yet ended.
 > If run as any other user, `stopSync` will wait for the full scan to finish before completing.
 
 You can also examine which directories are currently under active sync.
