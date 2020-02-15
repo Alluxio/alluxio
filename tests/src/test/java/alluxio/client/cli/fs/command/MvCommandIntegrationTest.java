@@ -52,15 +52,15 @@ public final class MvCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void renameToExistingFile() throws IOException {
     StringBuilder toCompare = new StringBuilder();
-    mFsShell.run("mkdir", "/testFolder");
-    toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));
-    mFsShell.run("mkdir", "/testFolder1");
-    toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
-    int ret = mFsShell.run("mv", "/testFolder1", "/testFolder");
+    mFsShell.run("touch", "/testFile");
+    toCompare.append(getCommandOutput(new String[] {"touch", "/testFile"}));
+    mFsShell.run("touch", "/testFile1");
+    toCompare.append(getCommandOutput(new String[] {"touch", "/testFile1"}));
+    int ret = mFsShell.run("mv", "/testFile1", "/testFile");
 
     Assert.assertEquals(-1, ret);
     String output = mOutput.toString();
     System.out.println(output);
-    Assert.assertTrue(output.contains("/testFolder already exists"));
+    Assert.assertTrue(output.contains("/testFile already exists"));
   }
 }
