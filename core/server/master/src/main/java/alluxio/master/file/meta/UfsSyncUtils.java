@@ -95,14 +95,12 @@ public final class UfsSyncUtils {
   public static boolean inodeUfsIsContentSynced(Inode inode, Fingerprint inodeFingerprint,
       Fingerprint ufsFingerprint) {
     PersistenceState persistState = inode.getPersistenceState();
+    boolean contentMatch = inodeFingerprint.isValid()
+        && inodeFingerprint.matchContent(ufsFingerprint);
     boolean isSyncedAsyncThrough = (persistState.equals(PersistenceState.TO_BE_PERSISTED)
             || persistState.equals(PersistenceState.LOST))
             && !ufsFingerprint.isValid();
-    boolean isSyncedPersisted = inode.isPersisted()
-        && inodeFingerprint.matchContent(ufsFingerprint)
-        && inodeFingerprint.isValid();
-
-    return isSyncedPersisted || isSyncedAsyncThrough;
+    return contentMatch || isSyncedAsyncThrough;
   }
 
   /**
