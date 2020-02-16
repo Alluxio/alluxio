@@ -49,7 +49,7 @@ enum RequestType {
 }
 
 // The read request.
-// next available id: 6
+// next available id: 9
 message ReadRequest {
   optional int64 block_id = 1;
   optional int64 offset = 2;
@@ -63,6 +63,9 @@ message ReadRequest {
 
   // Read receipt
   optional int64 offset_received = 7;
+
+  // Is position read to a small buffer
+  optional bool position_short = 8;
 }
 
 // The read response.

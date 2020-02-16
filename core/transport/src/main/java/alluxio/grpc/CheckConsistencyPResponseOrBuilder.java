@@ -9,19 +9,25 @@ public interface CheckConsistencyPResponseOrBuilder extends
 
   /**
    * <code>repeated string inconsistentPaths = 1;</code>
+   * @return A list containing the inconsistentPaths.
    */
   java.util.List<java.lang.String>
       getInconsistentPathsList();
   /**
    * <code>repeated string inconsistentPaths = 1;</code>
+   * @return The count of inconsistentPaths.
    */
   int getInconsistentPathsCount();
   /**
    * <code>repeated string inconsistentPaths = 1;</code>
+   * @param index The index of the element to return.
+   * @return The inconsistentPaths at the given index.
    */
   java.lang.String getInconsistentPaths(int index);
   /**
    * <code>repeated string inconsistentPaths = 1;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the inconsistentPaths at the given index.
    */
   com.google.protobuf.ByteString
       getInconsistentPathsBytes(int index);

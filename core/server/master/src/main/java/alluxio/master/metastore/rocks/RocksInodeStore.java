@@ -11,6 +11,8 @@
 
 package alluxio.master.metastore.rocks;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
@@ -64,6 +66,7 @@ public class RocksInodeStore implements InodeStore {
   // These are fields instead of constants because they depend on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
   private final ReadOptions mReadPrefixSameAsStart;
+  private final ReadOptions mIteratorOption;
 
   private final RocksStore mRocksStore;
 
@@ -79,6 +82,8 @@ public class RocksInodeStore implements InodeStore {
     RocksDB.loadLibrary();
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
+    mIteratorOption = new ReadOptions().setReadaheadSize(
+        ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
     ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
@@ -245,7 +250,8 @@ public class RocksInodeStore implements InodeStore {
    * @return an iterator over stored inodes
    */
   public Iterator<InodeView> iterator() {
-    return new RocksInodeViewIterator(db().newIterator(mInodesColumn.get()));
+    return RocksUtils.createIterator(db().newIterator(mInodesColumn.get(), mIteratorOption),
+        (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());
   }
 
   @Override
@@ -367,46 +373,5 @@ public class RocksInodeStore implements InodeStore {
       }
     }
     return sb.toString();
-  }
-
-  /**
-   * Used to iterate over inodes stored in this store.
-   */
-  protected class RocksInodeViewIterator implements Iterator<InodeView> {
-    /** The underlying RockIterator. */
-    private RocksIterator mRocksIterator;
-    /** Whether the underlying iterator is closed. */
-    private boolean mClosed = false;
-
-    /**
-     * @param rocksIterator rocks iterator
-     */
-    public RocksInodeViewIterator(RocksIterator rocksIterator) {
-      mRocksIterator = rocksIterator;
-      mRocksIterator.seekToFirst();
-    }
-
-    @Override
-    public boolean hasNext() {
-      // Can't call isValid on closed RocksIterator.
-      return !mClosed && mRocksIterator.isValid();
-    }
-
-    @Override
-    public InodeView next() {
-      try {
-        return getMutable(Longs.fromByteArray(mRocksIterator.key()), ReadOption.defaults()).get();
-      } catch (Exception exc) {
-        mRocksIterator.close();
-        mClosed = true;
-        throw exc;
-      } finally {
-        mRocksIterator.next();
-        if (!mRocksIterator.isValid()) {
-          mRocksIterator.close();
-          mClosed = true;
-        }
-      }
-    }
   }
 }

@@ -9,10 +9,12 @@ public interface MasterHeartbeatPResponseOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.meta.MetaCommand command = 1;</code>
+   * @return Whether the command field is set.
    */
   boolean hasCommand();
   /**
    * <code>optional .alluxio.grpc.meta.MetaCommand command = 1;</code>
+   * @return The command.
    */
   alluxio.grpc.MetaCommand getCommand();
 }

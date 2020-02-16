@@ -9,14 +9,18 @@ public interface TierListOrBuilder extends
 
   /**
    * <code>repeated int64 tiers = 1;</code>
+   * @return A list containing the tiers.
    */
   java.util.List<java.lang.Long> getTiersList();
   /**
    * <code>repeated int64 tiers = 1;</code>
+   * @return The count of tiers.
    */
   int getTiersCount();
   /**
    * <code>repeated int64 tiers = 1;</code>
+   * @param index The index of the element to return.
+   * @return The tiers at the given index.
    */
   long getTiers(int index);
 }

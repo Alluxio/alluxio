@@ -333,7 +333,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
     Stack<File> dirsToMake = new Stack<>();
     dirsToMake.push(file);
     File parent = file.getParentFile();
-    while (!parent.exists()) {
+    while (parent != null && !parent.exists()) {
       dirsToMake.push(parent);
       parent = parent.getParentFile();
     }

@@ -23,7 +23,7 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.17.1)",
+    value = "by gRPC proto compiler (version 1.27.0)",
     comments = "Source: grpc/meta_master.proto")
 public final class MetaMasterConfigurationServiceGrpc {
 
@@ -46,22 +46,21 @@ public final class MetaMasterConfigurationServiceGrpc {
     if ((getGetConfigurationMethod = MetaMasterConfigurationServiceGrpc.getGetConfigurationMethod) == null) {
       synchronized (MetaMasterConfigurationServiceGrpc.class) {
         if ((getGetConfigurationMethod = MetaMasterConfigurationServiceGrpc.getGetConfigurationMethod) == null) {
-          MetaMasterConfigurationServiceGrpc.getGetConfigurationMethod = getGetConfigurationMethod = 
+          MetaMasterConfigurationServiceGrpc.getGetConfigurationMethod = getGetConfigurationMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetConfigurationPOptions, alluxio.grpc.GetConfigurationPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.meta.MetaMasterConfigurationService", "GetConfiguration"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetConfiguration"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetConfigurationPOptions.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetConfigurationPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new MetaMasterConfigurationServiceMethodDescriptorSupplier("GetConfiguration"))
-                  .build();
-          }
+              .setSchemaDescriptor(new MetaMasterConfigurationServiceMethodDescriptorSupplier("GetConfiguration"))
+              .build();
         }
-     }
-     return getGetConfigurationMethod;
+      }
+    }
+    return getGetConfigurationMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.SetPathConfigurationPRequest,
@@ -78,22 +77,21 @@ public final class MetaMasterConfigurationServiceGrpc {
     if ((getSetPathConfigurationMethod = MetaMasterConfigurationServiceGrpc.getSetPathConfigurationMethod) == null) {
       synchronized (MetaMasterConfigurationServiceGrpc.class) {
         if ((getSetPathConfigurationMethod = MetaMasterConfigurationServiceGrpc.getSetPathConfigurationMethod) == null) {
-          MetaMasterConfigurationServiceGrpc.getSetPathConfigurationMethod = getSetPathConfigurationMethod = 
+          MetaMasterConfigurationServiceGrpc.getSetPathConfigurationMethod = getSetPathConfigurationMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.SetPathConfigurationPRequest, alluxio.grpc.SetPathConfigurationPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.meta.MetaMasterConfigurationService", "SetPathConfiguration"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "SetPathConfiguration"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.SetPathConfigurationPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.SetPathConfigurationPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new MetaMasterConfigurationServiceMethodDescriptorSupplier("SetPathConfiguration"))
-                  .build();
-          }
+              .setSchemaDescriptor(new MetaMasterConfigurationServiceMethodDescriptorSupplier("SetPathConfiguration"))
+              .build();
         }
-     }
-     return getSetPathConfigurationMethod;
+      }
+    }
+    return getSetPathConfigurationMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.RemovePathConfigurationPRequest,
@@ -110,22 +108,21 @@ public final class MetaMasterConfigurationServiceGrpc {
     if ((getRemovePathConfigurationMethod = MetaMasterConfigurationServiceGrpc.getRemovePathConfigurationMethod) == null) {
       synchronized (MetaMasterConfigurationServiceGrpc.class) {
         if ((getRemovePathConfigurationMethod = MetaMasterConfigurationServiceGrpc.getRemovePathConfigurationMethod) == null) {
-          MetaMasterConfigurationServiceGrpc.getRemovePathConfigurationMethod = getRemovePathConfigurationMethod = 
+          MetaMasterConfigurationServiceGrpc.getRemovePathConfigurationMethod = getRemovePathConfigurationMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.RemovePathConfigurationPRequest, alluxio.grpc.RemovePathConfigurationPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.meta.MetaMasterConfigurationService", "RemovePathConfiguration"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "RemovePathConfiguration"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RemovePathConfigurationPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RemovePathConfigurationPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new MetaMasterConfigurationServiceMethodDescriptorSupplier("RemovePathConfiguration"))
-                  .build();
-          }
+              .setSchemaDescriptor(new MetaMasterConfigurationServiceMethodDescriptorSupplier("RemovePathConfiguration"))
+              .build();
         }
-     }
-     return getRemovePathConfigurationMethod;
+      }
+    }
+    return getRemovePathConfigurationMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetConfigHashPOptions,
@@ -142,29 +139,35 @@ public final class MetaMasterConfigurationServiceGrpc {
     if ((getGetConfigHashMethod = MetaMasterConfigurationServiceGrpc.getGetConfigHashMethod) == null) {
       synchronized (MetaMasterConfigurationServiceGrpc.class) {
         if ((getGetConfigHashMethod = MetaMasterConfigurationServiceGrpc.getGetConfigHashMethod) == null) {
-          MetaMasterConfigurationServiceGrpc.getGetConfigHashMethod = getGetConfigHashMethod = 
+          MetaMasterConfigurationServiceGrpc.getGetConfigHashMethod = getGetConfigHashMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetConfigHashPOptions, alluxio.grpc.GetConfigHashPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.meta.MetaMasterConfigurationService", "GetConfigHash"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetConfigHash"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetConfigHashPOptions.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetConfigHashPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new MetaMasterConfigurationServiceMethodDescriptorSupplier("GetConfigHash"))
-                  .build();
-          }
+              .setSchemaDescriptor(new MetaMasterConfigurationServiceMethodDescriptorSupplier("GetConfigHash"))
+              .build();
         }
-     }
-     return getGetConfigHashMethod;
+      }
+    }
+    return getGetConfigHashMethod;
   }
 
   /**
    * Creates a new async stub that supports all call types for the service
    */
   public static MetaMasterConfigurationServiceStub newStub(io.grpc.Channel channel) {
-    return new MetaMasterConfigurationServiceStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<MetaMasterConfigurationServiceStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<MetaMasterConfigurationServiceStub>() {
+        @java.lang.Override
+        public MetaMasterConfigurationServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new MetaMasterConfigurationServiceStub(channel, callOptions);
+        }
+      };
+    return MetaMasterConfigurationServiceStub.newStub(factory, channel);
   }
 
   /**
@@ -172,7 +175,14 @@ public final class MetaMasterConfigurationServiceGrpc {
    */
   public static MetaMasterConfigurationServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new MetaMasterConfigurationServiceBlockingStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<MetaMasterConfigurationServiceBlockingStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<MetaMasterConfigurationServiceBlockingStub>() {
+        @java.lang.Override
+        public MetaMasterConfigurationServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new MetaMasterConfigurationServiceBlockingStub(channel, callOptions);
+        }
+      };
+    return MetaMasterConfigurationServiceBlockingStub.newStub(factory, channel);
   }
 
   /**
@@ -180,7 +190,14 @@ public final class MetaMasterConfigurationServiceGrpc {
    */
   public static MetaMasterConfigurationServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new MetaMasterConfigurationServiceFutureStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<MetaMasterConfigurationServiceFutureStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<MetaMasterConfigurationServiceFutureStub>() {
+        @java.lang.Override
+        public MetaMasterConfigurationServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new MetaMasterConfigurationServiceFutureStub(channel, callOptions);
+        }
+      };
+    return MetaMasterConfigurationServiceFutureStub.newStub(factory, channel);
   }
 
   /**
@@ -277,19 +294,15 @@ public final class MetaMasterConfigurationServiceGrpc {
    * to query cluster configuration.
    * </pre>
    */
-  public static final class MetaMasterConfigurationServiceStub extends io.grpc.stub.AbstractStub<MetaMasterConfigurationServiceStub> {
-    private MetaMasterConfigurationServiceStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private MetaMasterConfigurationServiceStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class MetaMasterConfigurationServiceStub extends io.grpc.stub.AbstractAsyncStub<MetaMasterConfigurationServiceStub> {
+    private MetaMasterConfigurationServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected MetaMasterConfigurationServiceStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected MetaMasterConfigurationServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MetaMasterConfigurationServiceStub(channel, callOptions);
     }
 
@@ -349,19 +362,15 @@ public final class MetaMasterConfigurationServiceGrpc {
    * to query cluster configuration.
    * </pre>
    */
-  public static final class MetaMasterConfigurationServiceBlockingStub extends io.grpc.stub.AbstractStub<MetaMasterConfigurationServiceBlockingStub> {
-    private MetaMasterConfigurationServiceBlockingStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private MetaMasterConfigurationServiceBlockingStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class MetaMasterConfigurationServiceBlockingStub extends io.grpc.stub.AbstractBlockingStub<MetaMasterConfigurationServiceBlockingStub> {
+    private MetaMasterConfigurationServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected MetaMasterConfigurationServiceBlockingStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected MetaMasterConfigurationServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MetaMasterConfigurationServiceBlockingStub(channel, callOptions);
     }
 
@@ -417,19 +426,15 @@ public final class MetaMasterConfigurationServiceGrpc {
    * to query cluster configuration.
    * </pre>
    */
-  public static final class MetaMasterConfigurationServiceFutureStub extends io.grpc.stub.AbstractStub<MetaMasterConfigurationServiceFutureStub> {
-    private MetaMasterConfigurationServiceFutureStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private MetaMasterConfigurationServiceFutureStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class MetaMasterConfigurationServiceFutureStub extends io.grpc.stub.AbstractFutureStub<MetaMasterConfigurationServiceFutureStub> {
+    private MetaMasterConfigurationServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected MetaMasterConfigurationServiceFutureStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected MetaMasterConfigurationServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new MetaMasterConfigurationServiceFutureStub(channel, callOptions);
     }
 

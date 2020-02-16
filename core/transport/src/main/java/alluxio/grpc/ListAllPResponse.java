@@ -16,8 +16,15 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private ListAllPResponse() {
-    jobIds_ = java.util.Collections.emptyList();
+    jobIds_ = emptyLongList();
     jobInfos_ = java.util.Collections.emptyList();
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new ListAllPResponse();
   }
 
   @java.lang.Override
@@ -44,41 +51,41 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
-            if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-              jobIds_ = new java.util.ArrayList<java.lang.Long>();
+            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
+              jobIds_ = newLongList();
               mutable_bitField0_ |= 0x00000001;
             }
-            jobIds_.add(input.readInt64());
+            jobIds_.addLong(input.readInt64());
             break;
           }
           case 10: {
             int length = input.readRawVarint32();
             int limit = input.pushLimit(length);
-            if (!((mutable_bitField0_ & 0x00000001) == 0x00000001) && input.getBytesUntilLimit() > 0) {
-              jobIds_ = new java.util.ArrayList<java.lang.Long>();
+            if (!((mutable_bitField0_ & 0x00000001) != 0) && input.getBytesUntilLimit() > 0) {
+              jobIds_ = newLongList();
               mutable_bitField0_ |= 0x00000001;
             }
             while (input.getBytesUntilLimit() > 0) {
-              jobIds_.add(input.readInt64());
+              jobIds_.addLong(input.readInt64());
             }
             input.popLimit(limit);
             break;
           }
           case 18: {
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
               jobInfos_ = new java.util.ArrayList<alluxio.grpc.JobInfo>();
               mutable_bitField0_ |= 0x00000002;
             }
             jobInfos_.add(
                 input.readMessage(alluxio.grpc.JobInfo.PARSER, extensionRegistry));
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -89,10 +96,10 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-        jobIds_ = java.util.Collections.unmodifiableList(jobIds_);
+      if (((mutable_bitField0_ & 0x00000001) != 0)) {
+        jobIds_.makeImmutable(); // C
       }
-      if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((mutable_bitField0_ & 0x00000002) != 0)) {
         jobInfos_ = java.util.Collections.unmodifiableList(jobInfos_);
       }
       this.unknownFields = unknownFields.build();
@@ -104,6 +111,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_ListAllPResponse_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_ListAllPResponse_fieldAccessorTable
@@ -112,9 +120,10 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int JOBIDS_FIELD_NUMBER = 1;
-  private java.util.List<java.lang.Long> jobIds_;
+  private com.google.protobuf.Internal.LongList jobIds_;
   /**
    * <code>repeated int64 jobIds = 1;</code>
+   * @return A list containing the jobIds.
    */
   public java.util.List<java.lang.Long>
       getJobIdsList() {
@@ -122,15 +131,18 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>repeated int64 jobIds = 1;</code>
+   * @return The count of jobIds.
    */
   public int getJobIdsCount() {
     return jobIds_.size();
   }
   /**
    * <code>repeated int64 jobIds = 1;</code>
+   * @param index The index of the element to return.
+   * @return The jobIds at the given index.
    */
   public long getJobIds(int index) {
-    return jobIds_.get(index);
+    return jobIds_.getLong(index);
   }
 
   public static final int JOBINFOS_FIELD_NUMBER = 2;
@@ -169,6 +181,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -178,10 +191,11 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     for (int i = 0; i < jobIds_.size(); i++) {
-      output.writeInt64(1, jobIds_.get(i));
+      output.writeInt64(1, jobIds_.getLong(i));
     }
     for (int i = 0; i < jobInfos_.size(); i++) {
       output.writeMessage(2, jobInfos_.get(i));
@@ -189,6 +203,7 @@ private static final long serialVersionUID = 0L;
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -198,7 +213,7 @@ private static final long serialVersionUID = 0L;
       int dataSize = 0;
       for (int i = 0; i < jobIds_.size(); i++) {
         dataSize += com.google.protobuf.CodedOutputStream
-          .computeInt64SizeNoTag(jobIds_.get(i));
+          .computeInt64SizeNoTag(jobIds_.getLong(i));
       }
       size += dataSize;
       size += 1 * getJobIdsList().size();
@@ -222,13 +237,12 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.ListAllPResponse other = (alluxio.grpc.ListAllPResponse) obj;
 
-    boolean result = true;
-    result = result && getJobIdsList()
-        .equals(other.getJobIdsList());
-    result = result && getJobInfosList()
-        .equals(other.getJobInfosList());
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!getJobIdsList()
+        .equals(other.getJobIdsList())) return false;
+    if (!getJobInfosList()
+        .equals(other.getJobInfosList())) return false;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -321,6 +335,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -328,6 +343,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.ListAllPResponse prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -351,6 +367,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_ListAllPResponse_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_ListAllPResponse_fieldAccessorTable
@@ -374,9 +391,10 @@ private static final long serialVersionUID = 0L;
         getJobInfosFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
-      jobIds_ = java.util.Collections.emptyList();
+      jobIds_ = emptyLongList();
       bitField0_ = (bitField0_ & ~0x00000001);
       if (jobInfosBuilder_ == null) {
         jobInfos_ = java.util.Collections.emptyList();
@@ -387,15 +405,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.JobMasterProto.internal_static_alluxio_grpc_job_ListAllPResponse_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.ListAllPResponse getDefaultInstanceForType() {
       return alluxio.grpc.ListAllPResponse.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.ListAllPResponse build() {
       alluxio.grpc.ListAllPResponse result = buildPartial();
       if (!result.isInitialized()) {
@@ -404,16 +425,17 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.ListAllPResponse buildPartial() {
       alluxio.grpc.ListAllPResponse result = new alluxio.grpc.ListAllPResponse(this);
       int from_bitField0_ = bitField0_;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        jobIds_ = java.util.Collections.unmodifiableList(jobIds_);
+      if (((bitField0_ & 0x00000001) != 0)) {
+        jobIds_.makeImmutable();
         bitField0_ = (bitField0_ & ~0x00000001);
       }
       result.jobIds_ = jobIds_;
       if (jobInfosBuilder_ == null) {
-        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((bitField0_ & 0x00000002) != 0)) {
           jobInfos_ = java.util.Collections.unmodifiableList(jobInfos_);
           bitField0_ = (bitField0_ & ~0x00000002);
         }
@@ -425,32 +447,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.ListAllPResponse) {
         return mergeFrom((alluxio.grpc.ListAllPResponse)other);
@@ -503,10 +532,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -526,53 +557,65 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private java.util.List<java.lang.Long> jobIds_ = java.util.Collections.emptyList();
+    private com.google.protobuf.Internal.LongList jobIds_ = emptyLongList();
     private void ensureJobIdsIsMutable() {
-      if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-        jobIds_ = new java.util.ArrayList<java.lang.Long>(jobIds_);
+      if (!((bitField0_ & 0x00000001) != 0)) {
+        jobIds_ = mutableCopy(jobIds_);
         bitField0_ |= 0x00000001;
        }
     }
     /**
      * <code>repeated int64 jobIds = 1;</code>
+     * @return A list containing the jobIds.
      */
     public java.util.List<java.lang.Long>
         getJobIdsList() {
-      return java.util.Collections.unmodifiableList(jobIds_);
+      return ((bitField0_ & 0x00000001) != 0) ?
+               java.util.Collections.unmodifiableList(jobIds_) : jobIds_;
     }
     /**
      * <code>repeated int64 jobIds = 1;</code>
+     * @return The count of jobIds.
      */
     public int getJobIdsCount() {
       return jobIds_.size();
     }
     /**
      * <code>repeated int64 jobIds = 1;</code>
+     * @param index The index of the element to return.
+     * @return The jobIds at the given index.
      */
     public long getJobIds(int index) {
-      return jobIds_.get(index);
+      return jobIds_.getLong(index);
     }
     /**
      * <code>repeated int64 jobIds = 1;</code>
+     * @param index The index to set the value at.
+     * @param value The jobIds to set.
+     * @return This builder for chaining.
      */
     public Builder setJobIds(
         int index, long value) {
       ensureJobIdsIsMutable();
-      jobIds_.set(index, value);
+      jobIds_.setLong(index, value);
       onChanged();
       return this;
     }
     /**
      * <code>repeated int64 jobIds = 1;</code>
+     * @param value The jobIds to add.
+     * @return This builder for chaining.
      */
     public Builder addJobIds(long value) {
       ensureJobIdsIsMutable();
-      jobIds_.add(value);
+      jobIds_.addLong(value);
       onChanged();
       return this;
     }
     /**
      * <code>repeated int64 jobIds = 1;</code>
+     * @param values The jobIds to add.
+     * @return This builder for chaining.
      */
     public Builder addAllJobIds(
         java.lang.Iterable<? extends java.lang.Long> values) {
@@ -584,9 +627,10 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated int64 jobIds = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearJobIds() {
-      jobIds_ = java.util.Collections.emptyList();
+      jobIds_ = emptyLongList();
       bitField0_ = (bitField0_ & ~0x00000001);
       onChanged();
       return this;
@@ -595,7 +639,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<alluxio.grpc.JobInfo> jobInfos_ =
       java.util.Collections.emptyList();
     private void ensureJobInfosIsMutable() {
-      if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!((bitField0_ & 0x00000002) != 0)) {
         jobInfos_ = new java.util.ArrayList<alluxio.grpc.JobInfo>(jobInfos_);
         bitField0_ |= 0x00000002;
        }
@@ -824,18 +868,20 @@ private static final long serialVersionUID = 0L;
         jobInfosBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.JobInfo, alluxio.grpc.JobInfo.Builder, alluxio.grpc.JobInfoOrBuilder>(
                 jobInfos_,
-                ((bitField0_ & 0x00000002) == 0x00000002),
+                ((bitField0_ & 0x00000002) != 0),
                 getParentForChildren(),
                 isClean());
         jobInfos_ = null;
       }
       return jobInfosBuilder_;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -857,6 +903,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<ListAllPResponse>
       PARSER = new com.google.protobuf.AbstractParser<ListAllPResponse>() {
+    @java.lang.Override
     public ListAllPResponse parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -874,6 +921,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.ListAllPResponse getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

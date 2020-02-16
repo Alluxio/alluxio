@@ -9,10 +9,12 @@ public interface FileBlockInfoOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.BlockInfo blockInfo = 1;</code>
+   * @return Whether the blockInfo field is set.
    */
   boolean hasBlockInfo();
   /**
    * <code>optional .alluxio.grpc.BlockInfo blockInfo = 1;</code>
+   * @return The blockInfo.
    */
   alluxio.grpc.BlockInfo getBlockInfo();
   /**
@@ -22,10 +24,12 @@ public interface FileBlockInfoOrBuilder extends
 
   /**
    * <code>optional int64 offset = 2;</code>
+   * @return Whether the offset field is set.
    */
   boolean hasOffset();
   /**
    * <code>optional int64 offset = 2;</code>
+   * @return The offset.
    */
   long getOffset();
 
@@ -75,19 +79,25 @@ public interface FileBlockInfoOrBuilder extends
 
   /**
    * <code>repeated string ufsStringLocations = 4;</code>
+   * @return A list containing the ufsStringLocations.
    */
   java.util.List<java.lang.String>
       getUfsStringLocationsList();
   /**
    * <code>repeated string ufsStringLocations = 4;</code>
+   * @return The count of ufsStringLocations.
    */
   int getUfsStringLocationsCount();
   /**
    * <code>repeated string ufsStringLocations = 4;</code>
+   * @param index The index of the element to return.
+   * @return The ufsStringLocations at the given index.
    */
   java.lang.String getUfsStringLocations(int index);
   /**
    * <code>repeated string ufsStringLocations = 4;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the ufsStringLocations at the given index.
    */
   com.google.protobuf.ByteString
       getUfsStringLocationsBytes(int index);

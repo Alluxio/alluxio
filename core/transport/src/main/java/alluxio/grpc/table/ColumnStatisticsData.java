@@ -19,6 +19,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new ColumnStatisticsData();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -42,13 +49,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             alluxio.grpc.table.BooleanColumnStatsData.Builder subBuilder = null;
             if (dataCase_ == 1) {
@@ -147,6 +147,13 @@ private static final long serialVersionUID = 0L;
             dataCase_ = 7;
             break;
           }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -164,6 +171,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_ColumnStatisticsData_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_ColumnStatisticsData_fieldAccessorTable
@@ -175,7 +183,8 @@ private static final long serialVersionUID = 0L;
   private int dataCase_ = 0;
   private java.lang.Object data_;
   public enum DataCase
-      implements com.google.protobuf.Internal.EnumLite {
+      implements com.google.protobuf.Internal.EnumLite,
+          com.google.protobuf.AbstractMessage.InternalOneOfEnum {
     BOOLEAN_STATS(1),
     LONG_STATS(2),
     DOUBLE_STATS(3),
@@ -189,6 +198,8 @@ private static final long serialVersionUID = 0L;
       this.value = value;
     }
     /**
+     * @param value The number of the enum to look for.
+     * @return The enum associated with the given number.
      * @deprecated Use {@link #forNumber(int)} instead.
      */
     @java.lang.Deprecated
@@ -223,12 +234,14 @@ private static final long serialVersionUID = 0L;
   public static final int BOOLEAN_STATS_FIELD_NUMBER = 1;
   /**
    * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
+   * @return Whether the booleanStats field is set.
    */
   public boolean hasBooleanStats() {
     return dataCase_ == 1;
   }
   /**
    * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
+   * @return The booleanStats.
    */
   public alluxio.grpc.table.BooleanColumnStatsData getBooleanStats() {
     if (dataCase_ == 1) {
@@ -249,12 +262,14 @@ private static final long serialVersionUID = 0L;
   public static final int LONG_STATS_FIELD_NUMBER = 2;
   /**
    * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
+   * @return Whether the longStats field is set.
    */
   public boolean hasLongStats() {
     return dataCase_ == 2;
   }
   /**
    * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
+   * @return The longStats.
    */
   public alluxio.grpc.table.LongColumnStatsData getLongStats() {
     if (dataCase_ == 2) {
@@ -275,12 +290,14 @@ private static final long serialVersionUID = 0L;
   public static final int DOUBLE_STATS_FIELD_NUMBER = 3;
   /**
    * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
+   * @return Whether the doubleStats field is set.
    */
   public boolean hasDoubleStats() {
     return dataCase_ == 3;
   }
   /**
    * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
+   * @return The doubleStats.
    */
   public alluxio.grpc.table.DoubleColumnStatsData getDoubleStats() {
     if (dataCase_ == 3) {
@@ -301,12 +318,14 @@ private static final long serialVersionUID = 0L;
   public static final int STRING_STATS_FIELD_NUMBER = 4;
   /**
    * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
+   * @return Whether the stringStats field is set.
    */
   public boolean hasStringStats() {
     return dataCase_ == 4;
   }
   /**
    * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
+   * @return The stringStats.
    */
   public alluxio.grpc.table.StringColumnStatsData getStringStats() {
     if (dataCase_ == 4) {
@@ -327,12 +346,14 @@ private static final long serialVersionUID = 0L;
   public static final int BINARY_STATS_FIELD_NUMBER = 5;
   /**
    * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
+   * @return Whether the binaryStats field is set.
    */
   public boolean hasBinaryStats() {
     return dataCase_ == 5;
   }
   /**
    * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
+   * @return The binaryStats.
    */
   public alluxio.grpc.table.BinaryColumnStatsData getBinaryStats() {
     if (dataCase_ == 5) {
@@ -353,12 +374,14 @@ private static final long serialVersionUID = 0L;
   public static final int DECIMAL_STATS_FIELD_NUMBER = 6;
   /**
    * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
+   * @return Whether the decimalStats field is set.
    */
   public boolean hasDecimalStats() {
     return dataCase_ == 6;
   }
   /**
    * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
+   * @return The decimalStats.
    */
   public alluxio.grpc.table.DecimalColumnStatsData getDecimalStats() {
     if (dataCase_ == 6) {
@@ -379,12 +402,14 @@ private static final long serialVersionUID = 0L;
   public static final int DATE_STATS_FIELD_NUMBER = 7;
   /**
    * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
+   * @return Whether the dateStats field is set.
    */
   public boolean hasDateStats() {
     return dataCase_ == 7;
   }
   /**
    * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
+   * @return The dateStats.
    */
   public alluxio.grpc.table.DateColumnStatsData getDateStats() {
     if (dataCase_ == 7) {
@@ -403,6 +428,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -424,6 +450,7 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
     if (dataCase_ == 1) {
@@ -450,6 +477,7 @@ private static final long serialVersionUID = 0L;
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
@@ -498,44 +526,41 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.table.ColumnStatisticsData other = (alluxio.grpc.table.ColumnStatisticsData) obj;
 
-    boolean result = true;
-    result = result && getDataCase().equals(
-        other.getDataCase());
-    if (!result) return false;
+    if (!getDataCase().equals(other.getDataCase())) return false;
     switch (dataCase_) {
       case 1:
-        result = result && getBooleanStats()
-            .equals(other.getBooleanStats());
+        if (!getBooleanStats()
+            .equals(other.getBooleanStats())) return false;
         break;
       case 2:
-        result = result && getLongStats()
-            .equals(other.getLongStats());
+        if (!getLongStats()
+            .equals(other.getLongStats())) return false;
         break;
       case 3:
-        result = result && getDoubleStats()
-            .equals(other.getDoubleStats());
+        if (!getDoubleStats()
+            .equals(other.getDoubleStats())) return false;
         break;
       case 4:
-        result = result && getStringStats()
-            .equals(other.getStringStats());
+        if (!getStringStats()
+            .equals(other.getStringStats())) return false;
         break;
       case 5:
-        result = result && getBinaryStats()
-            .equals(other.getBinaryStats());
+        if (!getBinaryStats()
+            .equals(other.getBinaryStats())) return false;
         break;
       case 6:
-        result = result && getDecimalStats()
-            .equals(other.getDecimalStats());
+        if (!getDecimalStats()
+            .equals(other.getDecimalStats())) return false;
         break;
       case 7:
-        result = result && getDateStats()
-            .equals(other.getDateStats());
+        if (!getDateStats()
+            .equals(other.getDateStats())) return false;
         break;
       case 0:
       default:
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -652,6 +677,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -659,6 +685,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.table.ColumnStatisticsData prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -682,6 +709,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_ColumnStatisticsData_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_ColumnStatisticsData_fieldAccessorTable
@@ -704,6 +732,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       dataCase_ = 0;
@@ -711,15 +740,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_ColumnStatisticsData_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.ColumnStatisticsData getDefaultInstanceForType() {
       return alluxio.grpc.table.ColumnStatisticsData.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.ColumnStatisticsData build() {
       alluxio.grpc.table.ColumnStatisticsData result = buildPartial();
       if (!result.isInitialized()) {
@@ -728,6 +760,7 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.ColumnStatisticsData buildPartial() {
       alluxio.grpc.table.ColumnStatisticsData result = new alluxio.grpc.table.ColumnStatisticsData(this);
       int from_bitField0_ = bitField0_;
@@ -787,32 +820,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.table.ColumnStatisticsData) {
         return mergeFrom((alluxio.grpc.table.ColumnStatisticsData)other);
@@ -862,6 +902,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       if (hasDecimalStats()) {
         if (!getDecimalStats().isInitialized()) {
@@ -876,6 +917,7 @@ private static final long serialVersionUID = 0L;
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -914,12 +956,14 @@ private static final long serialVersionUID = 0L;
         alluxio.grpc.table.BooleanColumnStatsData, alluxio.grpc.table.BooleanColumnStatsData.Builder, alluxio.grpc.table.BooleanColumnStatsDataOrBuilder> booleanStatsBuilder_;
     /**
      * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
+     * @return Whether the booleanStats field is set.
      */
     public boolean hasBooleanStats() {
       return dataCase_ == 1;
     }
     /**
      * <code>optional .alluxio.grpc.table.BooleanColumnStatsData boolean_stats = 1;</code>
+     * @return The booleanStats.
      */
     public alluxio.grpc.table.BooleanColumnStatsData getBooleanStats() {
       if (booleanStatsBuilder_ == null) {
@@ -1050,12 +1094,14 @@ private static final long serialVersionUID = 0L;
         alluxio.grpc.table.LongColumnStatsData, alluxio.grpc.table.LongColumnStatsData.Builder, alluxio.grpc.table.LongColumnStatsDataOrBuilder> longStatsBuilder_;
     /**
      * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
+     * @return Whether the longStats field is set.
      */
     public boolean hasLongStats() {
       return dataCase_ == 2;
     }
     /**
      * <code>optional .alluxio.grpc.table.LongColumnStatsData long_stats = 2;</code>
+     * @return The longStats.
      */
     public alluxio.grpc.table.LongColumnStatsData getLongStats() {
       if (longStatsBuilder_ == null) {
@@ -1186,12 +1232,14 @@ private static final long serialVersionUID = 0L;
         alluxio.grpc.table.DoubleColumnStatsData, alluxio.grpc.table.DoubleColumnStatsData.Builder, alluxio.grpc.table.DoubleColumnStatsDataOrBuilder> doubleStatsBuilder_;
     /**
      * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
+     * @return Whether the doubleStats field is set.
      */
     public boolean hasDoubleStats() {
       return dataCase_ == 3;
     }
     /**
      * <code>optional .alluxio.grpc.table.DoubleColumnStatsData double_stats = 3;</code>
+     * @return The doubleStats.
      */
     public alluxio.grpc.table.DoubleColumnStatsData getDoubleStats() {
       if (doubleStatsBuilder_ == null) {
@@ -1322,12 +1370,14 @@ private static final long serialVersionUID = 0L;
         alluxio.grpc.table.StringColumnStatsData, alluxio.grpc.table.StringColumnStatsData.Builder, alluxio.grpc.table.StringColumnStatsDataOrBuilder> stringStatsBuilder_;
     /**
      * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
+     * @return Whether the stringStats field is set.
      */
     public boolean hasStringStats() {
       return dataCase_ == 4;
     }
     /**
      * <code>optional .alluxio.grpc.table.StringColumnStatsData string_stats = 4;</code>
+     * @return The stringStats.
      */
     public alluxio.grpc.table.StringColumnStatsData getStringStats() {
       if (stringStatsBuilder_ == null) {
@@ -1458,12 +1508,14 @@ private static final long serialVersionUID = 0L;
         alluxio.grpc.table.BinaryColumnStatsData, alluxio.grpc.table.BinaryColumnStatsData.Builder, alluxio.grpc.table.BinaryColumnStatsDataOrBuilder> binaryStatsBuilder_;
     /**
      * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
+     * @return Whether the binaryStats field is set.
      */
     public boolean hasBinaryStats() {
       return dataCase_ == 5;
     }
     /**
      * <code>optional .alluxio.grpc.table.BinaryColumnStatsData binary_stats = 5;</code>
+     * @return The binaryStats.
      */
     public alluxio.grpc.table.BinaryColumnStatsData getBinaryStats() {
       if (binaryStatsBuilder_ == null) {
@@ -1594,12 +1646,14 @@ private static final long serialVersionUID = 0L;
         alluxio.grpc.table.DecimalColumnStatsData, alluxio.grpc.table.DecimalColumnStatsData.Builder, alluxio.grpc.table.DecimalColumnStatsDataOrBuilder> decimalStatsBuilder_;
     /**
      * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
+     * @return Whether the decimalStats field is set.
      */
     public boolean hasDecimalStats() {
       return dataCase_ == 6;
     }
     /**
      * <code>optional .alluxio.grpc.table.DecimalColumnStatsData decimal_stats = 6;</code>
+     * @return The decimalStats.
      */
     public alluxio.grpc.table.DecimalColumnStatsData getDecimalStats() {
       if (decimalStatsBuilder_ == null) {
@@ -1730,12 +1784,14 @@ private static final long serialVersionUID = 0L;
         alluxio.grpc.table.DateColumnStatsData, alluxio.grpc.table.DateColumnStatsData.Builder, alluxio.grpc.table.DateColumnStatsDataOrBuilder> dateStatsBuilder_;
     /**
      * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
+     * @return Whether the dateStats field is set.
      */
     public boolean hasDateStats() {
       return dataCase_ == 7;
     }
     /**
      * <code>optional .alluxio.grpc.table.DateColumnStatsData date_stats = 7;</code>
+     * @return The dateStats.
      */
     public alluxio.grpc.table.DateColumnStatsData getDateStats() {
       if (dateStatsBuilder_ == null) {
@@ -1861,11 +1917,13 @@ private static final long serialVersionUID = 0L;
       onChanged();;
       return dateStatsBuilder_;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1887,6 +1945,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<ColumnStatisticsData>
       PARSER = new com.google.protobuf.AbstractParser<ColumnStatisticsData>() {
+    @java.lang.Override
     public ColumnStatisticsData parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1904,6 +1963,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.table.ColumnStatisticsData getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

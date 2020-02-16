@@ -9,28 +9,34 @@ public interface BackupPOptionsOrBuilder extends
 
   /**
    * <code>optional bool localFileSystem = 1;</code>
+   * @return Whether the localFileSystem field is set.
    */
   boolean hasLocalFileSystem();
   /**
    * <code>optional bool localFileSystem = 1;</code>
+   * @return The localFileSystem.
    */
   boolean getLocalFileSystem();
 
   /**
    * <code>optional bool runAsync = 2;</code>
+   * @return Whether the runAsync field is set.
    */
   boolean hasRunAsync();
   /**
    * <code>optional bool runAsync = 2;</code>
+   * @return The runAsync.
    */
   boolean getRunAsync();
 
   /**
    * <code>optional bool allowLeader = 3;</code>
+   * @return Whether the allowLeader field is set.
    */
   boolean hasAllowLeader();
   /**
    * <code>optional bool allowLeader = 3;</code>
+   * @return The allowLeader.
    */
   boolean getAllowLeader();
 }

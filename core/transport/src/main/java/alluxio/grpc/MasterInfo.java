@@ -18,14 +18,16 @@ private static final long serialVersionUID = 0L;
   private MasterInfo() {
     leaderMasterAddress_ = "";
     masterAddresses_ = java.util.Collections.emptyList();
-    rpcPort_ = 0;
-    safeMode_ = false;
-    startTimeMs_ = 0L;
-    upTimeMs_ = 0L;
     version_ = "";
-    webPort_ = 0;
     workerAddresses_ = java.util.Collections.emptyList();
     zookeeperAddresses_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new MasterInfo();
   }
 
   @java.lang.Override
@@ -52,13 +54,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             com.google.protobuf.ByteString bs = input.readBytes();
             bitField0_ |= 0x00000001;
@@ -66,7 +61,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 18: {
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
               masterAddresses_ = new java.util.ArrayList<alluxio.grpc.NetAddress>();
               mutable_bitField0_ |= 0x00000002;
             }
@@ -106,7 +101,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 74: {
-            if (!((mutable_bitField0_ & 0x00000100) == 0x00000100)) {
+            if (!((mutable_bitField0_ & 0x00000100) != 0)) {
               workerAddresses_ = new java.util.ArrayList<alluxio.grpc.NetAddress>();
               mutable_bitField0_ |= 0x00000100;
             }
@@ -116,11 +111,18 @@ private static final long serialVersionUID = 0L;
           }
           case 82: {
             com.google.protobuf.ByteString bs = input.readBytes();
-            if (!((mutable_bitField0_ & 0x00000200) == 0x00000200)) {
+            if (!((mutable_bitField0_ & 0x00000200) != 0)) {
               zookeeperAddresses_ = new com.google.protobuf.LazyStringArrayList();
               mutable_bitField0_ |= 0x00000200;
             }
             zookeeperAddresses_.add(bs);
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -131,13 +133,13 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((mutable_bitField0_ & 0x00000002) != 0)) {
         masterAddresses_ = java.util.Collections.unmodifiableList(masterAddresses_);
       }
-      if (((mutable_bitField0_ & 0x00000100) == 0x00000100)) {
+      if (((mutable_bitField0_ & 0x00000100) != 0)) {
         workerAddresses_ = java.util.Collections.unmodifiableList(workerAddresses_);
       }
-      if (((mutable_bitField0_ & 0x00000200) == 0x00000200)) {
+      if (((mutable_bitField0_ & 0x00000200) != 0)) {
         zookeeperAddresses_ = zookeeperAddresses_.getUnmodifiableView();
       }
       this.unknownFields = unknownFields.build();
@@ -149,6 +151,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_MasterInfo_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_MasterInfo_fieldAccessorTable
@@ -161,12 +164,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object leaderMasterAddress_;
   /**
    * <code>optional string leaderMasterAddress = 1;</code>
+   * @return Whether the leaderMasterAddress field is set.
    */
   public boolean hasLeaderMasterAddress() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional string leaderMasterAddress = 1;</code>
+   * @return The leaderMasterAddress.
    */
   public java.lang.String getLeaderMasterAddress() {
     java.lang.Object ref = leaderMasterAddress_;
@@ -184,6 +189,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string leaderMasterAddress = 1;</code>
+   * @return The bytes for leaderMasterAddress.
    */
   public com.google.protobuf.ByteString
       getLeaderMasterAddressBytes() {
@@ -238,12 +244,14 @@ private static final long serialVersionUID = 0L;
   private int rpcPort_;
   /**
    * <code>optional int32 rpcPort = 3;</code>
+   * @return Whether the rpcPort field is set.
    */
   public boolean hasRpcPort() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional int32 rpcPort = 3;</code>
+   * @return The rpcPort.
    */
   public int getRpcPort() {
     return rpcPort_;
@@ -253,12 +261,14 @@ private static final long serialVersionUID = 0L;
   private boolean safeMode_;
   /**
    * <code>optional bool safeMode = 4;</code>
+   * @return Whether the safeMode field is set.
    */
   public boolean hasSafeMode() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional bool safeMode = 4;</code>
+   * @return The safeMode.
    */
   public boolean getSafeMode() {
     return safeMode_;
@@ -268,12 +278,14 @@ private static final long serialVersionUID = 0L;
   private long startTimeMs_;
   /**
    * <code>optional int64 startTimeMs = 5;</code>
+   * @return Whether the startTimeMs field is set.
    */
   public boolean hasStartTimeMs() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000008) != 0);
   }
   /**
    * <code>optional int64 startTimeMs = 5;</code>
+   * @return The startTimeMs.
    */
   public long getStartTimeMs() {
     return startTimeMs_;
@@ -283,12 +295,14 @@ private static final long serialVersionUID = 0L;
   private long upTimeMs_;
   /**
    * <code>optional int64 upTimeMs = 6;</code>
+   * @return Whether the upTimeMs field is set.
    */
   public boolean hasUpTimeMs() {
-    return ((bitField0_ & 0x00000010) == 0x00000010);
+    return ((bitField0_ & 0x00000010) != 0);
   }
   /**
    * <code>optional int64 upTimeMs = 6;</code>
+   * @return The upTimeMs.
    */
   public long getUpTimeMs() {
     return upTimeMs_;
@@ -298,12 +312,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object version_;
   /**
    * <code>optional string version = 7;</code>
+   * @return Whether the version field is set.
    */
   public boolean hasVersion() {
-    return ((bitField0_ & 0x00000020) == 0x00000020);
+    return ((bitField0_ & 0x00000020) != 0);
   }
   /**
    * <code>optional string version = 7;</code>
+   * @return The version.
    */
   public java.lang.String getVersion() {
     java.lang.Object ref = version_;
@@ -321,6 +337,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string version = 7;</code>
+   * @return The bytes for version.
    */
   public com.google.protobuf.ByteString
       getVersionBytes() {
@@ -340,12 +357,14 @@ private static final long serialVersionUID = 0L;
   private int webPort_;
   /**
    * <code>optional int32 webPort = 8;</code>
+   * @return Whether the webPort field is set.
    */
   public boolean hasWebPort() {
-    return ((bitField0_ & 0x00000040) == 0x00000040);
+    return ((bitField0_ & 0x00000040) != 0);
   }
   /**
    * <code>optional int32 webPort = 8;</code>
+   * @return The webPort.
    */
   public int getWebPort() {
     return webPort_;
@@ -394,6 +413,7 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>repeated string zookeeperAddresses = 10;</code>
+   * @return A list containing the zookeeperAddresses.
    */
   public com.google.protobuf.ProtocolStringList
       getZookeeperAddressesList() {
@@ -405,6 +425,7 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>repeated string zookeeperAddresses = 10;</code>
+   * @return The count of zookeeperAddresses.
    */
   public int getZookeeperAddressesCount() {
     return zookeeperAddresses_.size();
@@ -415,6 +436,8 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>repeated string zookeeperAddresses = 10;</code>
+   * @param index The index of the element to return.
+   * @return The zookeeperAddresses at the given index.
    */
   public java.lang.String getZookeeperAddresses(int index) {
     return zookeeperAddresses_.get(index);
@@ -425,6 +448,8 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>repeated string zookeeperAddresses = 10;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the zookeeperAddresses at the given index.
    */
   public com.google.protobuf.ByteString
       getZookeeperAddressesBytes(int index) {
@@ -432,6 +457,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -441,30 +467,31 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, leaderMasterAddress_);
     }
     for (int i = 0; i < masterAddresses_.size(); i++) {
       output.writeMessage(2, masterAddresses_.get(i));
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeInt32(3, rpcPort_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       output.writeBool(4, safeMode_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       output.writeInt64(5, startTimeMs_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       output.writeInt64(6, upTimeMs_);
     }
-    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+    if (((bitField0_ & 0x00000020) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 7, version_);
     }
-    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+    if (((bitField0_ & 0x00000040) != 0)) {
       output.writeInt32(8, webPort_);
     }
     for (int i = 0; i < workerAddresses_.size(); i++) {
@@ -476,38 +503,39 @@ private static final long serialVersionUID = 0L;
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, leaderMasterAddress_);
     }
     for (int i = 0; i < masterAddresses_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(2, masterAddresses_.get(i));
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(3, rpcPort_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeBoolSize(4, safeMode_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(5, startTimeMs_);
     }
-    if (((bitField0_ & 0x00000010) == 0x00000010)) {
+    if (((bitField0_ & 0x00000010) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(6, upTimeMs_);
     }
-    if (((bitField0_ & 0x00000020) == 0x00000020)) {
+    if (((bitField0_ & 0x00000020) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(7, version_);
     }
-    if (((bitField0_ & 0x00000040) == 0x00000040)) {
+    if (((bitField0_ & 0x00000040) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(8, webPort_);
     }
@@ -538,50 +566,49 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.MasterInfo other = (alluxio.grpc.MasterInfo) obj;
 
-    boolean result = true;
-    result = result && (hasLeaderMasterAddress() == other.hasLeaderMasterAddress());
+    if (hasLeaderMasterAddress() != other.hasLeaderMasterAddress()) return false;
     if (hasLeaderMasterAddress()) {
-      result = result && getLeaderMasterAddress()
-          .equals(other.getLeaderMasterAddress());
+      if (!getLeaderMasterAddress()
+          .equals(other.getLeaderMasterAddress())) return false;
     }
-    result = result && getMasterAddressesList()
-        .equals(other.getMasterAddressesList());
-    result = result && (hasRpcPort() == other.hasRpcPort());
+    if (!getMasterAddressesList()
+        .equals(other.getMasterAddressesList())) return false;
+    if (hasRpcPort() != other.hasRpcPort()) return false;
     if (hasRpcPort()) {
-      result = result && (getRpcPort()
-          == other.getRpcPort());
+      if (getRpcPort()
+          != other.getRpcPort()) return false;
     }
-    result = result && (hasSafeMode() == other.hasSafeMode());
+    if (hasSafeMode() != other.hasSafeMode()) return false;
     if (hasSafeMode()) {
-      result = result && (getSafeMode()
-          == other.getSafeMode());
+      if (getSafeMode()
+          != other.getSafeMode()) return false;
     }
-    result = result && (hasStartTimeMs() == other.hasStartTimeMs());
+    if (hasStartTimeMs() != other.hasStartTimeMs()) return false;
     if (hasStartTimeMs()) {
-      result = result && (getStartTimeMs()
-          == other.getStartTimeMs());
+      if (getStartTimeMs()
+          != other.getStartTimeMs()) return false;
     }
-    result = result && (hasUpTimeMs() == other.hasUpTimeMs());
+    if (hasUpTimeMs() != other.hasUpTimeMs()) return false;
     if (hasUpTimeMs()) {
-      result = result && (getUpTimeMs()
-          == other.getUpTimeMs());
+      if (getUpTimeMs()
+          != other.getUpTimeMs()) return false;
     }
-    result = result && (hasVersion() == other.hasVersion());
+    if (hasVersion() != other.hasVersion()) return false;
     if (hasVersion()) {
-      result = result && getVersion()
-          .equals(other.getVersion());
+      if (!getVersion()
+          .equals(other.getVersion())) return false;
     }
-    result = result && (hasWebPort() == other.hasWebPort());
+    if (hasWebPort() != other.hasWebPort()) return false;
     if (hasWebPort()) {
-      result = result && (getWebPort()
-          == other.getWebPort());
+      if (getWebPort()
+          != other.getWebPort()) return false;
     }
-    result = result && getWorkerAddressesList()
-        .equals(other.getWorkerAddressesList());
-    result = result && getZookeeperAddressesList()
-        .equals(other.getZookeeperAddressesList());
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!getWorkerAddressesList()
+        .equals(other.getWorkerAddressesList())) return false;
+    if (!getZookeeperAddressesList()
+        .equals(other.getZookeeperAddressesList())) return false;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -709,6 +736,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -716,6 +744,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.MasterInfo prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -739,6 +768,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_MasterInfo_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_MasterInfo_fieldAccessorTable
@@ -763,6 +793,7 @@ private static final long serialVersionUID = 0L;
         getWorkerAddressesFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       leaderMasterAddress_ = "";
@@ -796,15 +827,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.MetaMasterProto.internal_static_alluxio_grpc_meta_MasterInfo_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.MasterInfo getDefaultInstanceForType() {
       return alluxio.grpc.MasterInfo.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.MasterInfo build() {
       alluxio.grpc.MasterInfo result = buildPartial();
       if (!result.isInitialized()) {
@@ -813,16 +847,17 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.MasterInfo buildPartial() {
       alluxio.grpc.MasterInfo result = new alluxio.grpc.MasterInfo(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
         to_bitField0_ |= 0x00000001;
       }
       result.leaderMasterAddress_ = leaderMasterAddress_;
       if (masterAddressesBuilder_ == null) {
-        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        if (((bitField0_ & 0x00000002) != 0)) {
           masterAddresses_ = java.util.Collections.unmodifiableList(masterAddresses_);
           bitField0_ = (bitField0_ & ~0x00000002);
         }
@@ -830,32 +865,32 @@ private static final long serialVersionUID = 0L;
       } else {
         result.masterAddresses_ = masterAddressesBuilder_.build();
       }
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
+        result.rpcPort_ = rpcPort_;
         to_bitField0_ |= 0x00000002;
       }
-      result.rpcPort_ = rpcPort_;
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000008) != 0)) {
+        result.safeMode_ = safeMode_;
         to_bitField0_ |= 0x00000004;
       }
-      result.safeMode_ = safeMode_;
-      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((from_bitField0_ & 0x00000010) != 0)) {
+        result.startTimeMs_ = startTimeMs_;
         to_bitField0_ |= 0x00000008;
       }
-      result.startTimeMs_ = startTimeMs_;
-      if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+      if (((from_bitField0_ & 0x00000020) != 0)) {
+        result.upTimeMs_ = upTimeMs_;
         to_bitField0_ |= 0x00000010;
       }
-      result.upTimeMs_ = upTimeMs_;
-      if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((from_bitField0_ & 0x00000040) != 0)) {
         to_bitField0_ |= 0x00000020;
       }
       result.version_ = version_;
-      if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+      if (((from_bitField0_ & 0x00000080) != 0)) {
+        result.webPort_ = webPort_;
         to_bitField0_ |= 0x00000040;
       }
-      result.webPort_ = webPort_;
       if (workerAddressesBuilder_ == null) {
-        if (((bitField0_ & 0x00000100) == 0x00000100)) {
+        if (((bitField0_ & 0x00000100) != 0)) {
           workerAddresses_ = java.util.Collections.unmodifiableList(workerAddresses_);
           bitField0_ = (bitField0_ & ~0x00000100);
         }
@@ -863,7 +898,7 @@ private static final long serialVersionUID = 0L;
       } else {
         result.workerAddresses_ = workerAddressesBuilder_.build();
       }
-      if (((bitField0_ & 0x00000200) == 0x00000200)) {
+      if (((bitField0_ & 0x00000200) != 0)) {
         zookeeperAddresses_ = zookeeperAddresses_.getUnmodifiableView();
         bitField0_ = (bitField0_ & ~0x00000200);
       }
@@ -873,32 +908,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.MasterInfo) {
         return mergeFrom((alluxio.grpc.MasterInfo)other);
@@ -1002,10 +1044,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1028,12 +1072,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object leaderMasterAddress_ = "";
     /**
      * <code>optional string leaderMasterAddress = 1;</code>
+     * @return Whether the leaderMasterAddress field is set.
      */
     public boolean hasLeaderMasterAddress() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string leaderMasterAddress = 1;</code>
+     * @return The leaderMasterAddress.
      */
     public java.lang.String getLeaderMasterAddress() {
       java.lang.Object ref = leaderMasterAddress_;
@@ -1051,6 +1097,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string leaderMasterAddress = 1;</code>
+     * @return The bytes for leaderMasterAddress.
      */
     public com.google.protobuf.ByteString
         getLeaderMasterAddressBytes() {
@@ -1067,6 +1114,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string leaderMasterAddress = 1;</code>
+     * @param value The leaderMasterAddress to set.
+     * @return This builder for chaining.
      */
     public Builder setLeaderMasterAddress(
         java.lang.String value) {
@@ -1080,6 +1129,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string leaderMasterAddress = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearLeaderMasterAddress() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -1089,6 +1139,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string leaderMasterAddress = 1;</code>
+     * @param value The bytes for leaderMasterAddress to set.
+     * @return This builder for chaining.
      */
     public Builder setLeaderMasterAddressBytes(
         com.google.protobuf.ByteString value) {
@@ -1104,7 +1156,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<alluxio.grpc.NetAddress> masterAddresses_ =
       java.util.Collections.emptyList();
     private void ensureMasterAddressesIsMutable() {
-      if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+      if (!((bitField0_ & 0x00000002) != 0)) {
         masterAddresses_ = new java.util.ArrayList<alluxio.grpc.NetAddress>(masterAddresses_);
         bitField0_ |= 0x00000002;
        }
@@ -1333,7 +1385,7 @@ private static final long serialVersionUID = 0L;
         masterAddressesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.NetAddress, alluxio.grpc.NetAddress.Builder, alluxio.grpc.NetAddressOrBuilder>(
                 masterAddresses_,
-                ((bitField0_ & 0x00000002) == 0x00000002),
+                ((bitField0_ & 0x00000002) != 0),
                 getParentForChildren(),
                 isClean());
         masterAddresses_ = null;
@@ -1344,18 +1396,22 @@ private static final long serialVersionUID = 0L;
     private int rpcPort_ ;
     /**
      * <code>optional int32 rpcPort = 3;</code>
+     * @return Whether the rpcPort field is set.
      */
     public boolean hasRpcPort() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional int32 rpcPort = 3;</code>
+     * @return The rpcPort.
      */
     public int getRpcPort() {
       return rpcPort_;
     }
     /**
      * <code>optional int32 rpcPort = 3;</code>
+     * @param value The rpcPort to set.
+     * @return This builder for chaining.
      */
     public Builder setRpcPort(int value) {
       bitField0_ |= 0x00000004;
@@ -1365,6 +1421,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int32 rpcPort = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearRpcPort() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -1376,18 +1433,22 @@ private static final long serialVersionUID = 0L;
     private boolean safeMode_ ;
     /**
      * <code>optional bool safeMode = 4;</code>
+     * @return Whether the safeMode field is set.
      */
     public boolean hasSafeMode() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional bool safeMode = 4;</code>
+     * @return The safeMode.
      */
     public boolean getSafeMode() {
       return safeMode_;
     }
     /**
      * <code>optional bool safeMode = 4;</code>
+     * @param value The safeMode to set.
+     * @return This builder for chaining.
      */
     public Builder setSafeMode(boolean value) {
       bitField0_ |= 0x00000008;
@@ -1397,6 +1458,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional bool safeMode = 4;</code>
+     * @return This builder for chaining.
      */
     public Builder clearSafeMode() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -1408,18 +1470,22 @@ private static final long serialVersionUID = 0L;
     private long startTimeMs_ ;
     /**
      * <code>optional int64 startTimeMs = 5;</code>
+     * @return Whether the startTimeMs field is set.
      */
     public boolean hasStartTimeMs() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000010) != 0);
     }
     /**
      * <code>optional int64 startTimeMs = 5;</code>
+     * @return The startTimeMs.
      */
     public long getStartTimeMs() {
       return startTimeMs_;
     }
     /**
      * <code>optional int64 startTimeMs = 5;</code>
+     * @param value The startTimeMs to set.
+     * @return This builder for chaining.
      */
     public Builder setStartTimeMs(long value) {
       bitField0_ |= 0x00000010;
@@ -1429,6 +1495,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 startTimeMs = 5;</code>
+     * @return This builder for chaining.
      */
     public Builder clearStartTimeMs() {
       bitField0_ = (bitField0_ & ~0x00000010);
@@ -1440,18 +1507,22 @@ private static final long serialVersionUID = 0L;
     private long upTimeMs_ ;
     /**
      * <code>optional int64 upTimeMs = 6;</code>
+     * @return Whether the upTimeMs field is set.
      */
     public boolean hasUpTimeMs() {
-      return ((bitField0_ & 0x00000020) == 0x00000020);
+      return ((bitField0_ & 0x00000020) != 0);
     }
     /**
      * <code>optional int64 upTimeMs = 6;</code>
+     * @return The upTimeMs.
      */
     public long getUpTimeMs() {
       return upTimeMs_;
     }
     /**
      * <code>optional int64 upTimeMs = 6;</code>
+     * @param value The upTimeMs to set.
+     * @return This builder for chaining.
      */
     public Builder setUpTimeMs(long value) {
       bitField0_ |= 0x00000020;
@@ -1461,6 +1532,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 upTimeMs = 6;</code>
+     * @return This builder for chaining.
      */
     public Builder clearUpTimeMs() {
       bitField0_ = (bitField0_ & ~0x00000020);
@@ -1472,12 +1544,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object version_ = "";
     /**
      * <code>optional string version = 7;</code>
+     * @return Whether the version field is set.
      */
     public boolean hasVersion() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
+      return ((bitField0_ & 0x00000040) != 0);
     }
     /**
      * <code>optional string version = 7;</code>
+     * @return The version.
      */
     public java.lang.String getVersion() {
       java.lang.Object ref = version_;
@@ -1495,6 +1569,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string version = 7;</code>
+     * @return The bytes for version.
      */
     public com.google.protobuf.ByteString
         getVersionBytes() {
@@ -1511,6 +1586,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string version = 7;</code>
+     * @param value The version to set.
+     * @return This builder for chaining.
      */
     public Builder setVersion(
         java.lang.String value) {
@@ -1524,6 +1601,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string version = 7;</code>
+     * @return This builder for chaining.
      */
     public Builder clearVersion() {
       bitField0_ = (bitField0_ & ~0x00000040);
@@ -1533,6 +1611,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string version = 7;</code>
+     * @param value The bytes for version to set.
+     * @return This builder for chaining.
      */
     public Builder setVersionBytes(
         com.google.protobuf.ByteString value) {
@@ -1548,18 +1628,22 @@ private static final long serialVersionUID = 0L;
     private int webPort_ ;
     /**
      * <code>optional int32 webPort = 8;</code>
+     * @return Whether the webPort field is set.
      */
     public boolean hasWebPort() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
+      return ((bitField0_ & 0x00000080) != 0);
     }
     /**
      * <code>optional int32 webPort = 8;</code>
+     * @return The webPort.
      */
     public int getWebPort() {
       return webPort_;
     }
     /**
      * <code>optional int32 webPort = 8;</code>
+     * @param value The webPort to set.
+     * @return This builder for chaining.
      */
     public Builder setWebPort(int value) {
       bitField0_ |= 0x00000080;
@@ -1569,6 +1653,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int32 webPort = 8;</code>
+     * @return This builder for chaining.
      */
     public Builder clearWebPort() {
       bitField0_ = (bitField0_ & ~0x00000080);
@@ -1580,7 +1665,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<alluxio.grpc.NetAddress> workerAddresses_ =
       java.util.Collections.emptyList();
     private void ensureWorkerAddressesIsMutable() {
-      if (!((bitField0_ & 0x00000100) == 0x00000100)) {
+      if (!((bitField0_ & 0x00000100) != 0)) {
         workerAddresses_ = new java.util.ArrayList<alluxio.grpc.NetAddress>(workerAddresses_);
         bitField0_ |= 0x00000100;
        }
@@ -1809,7 +1894,7 @@ private static final long serialVersionUID = 0L;
         workerAddressesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.NetAddress, alluxio.grpc.NetAddress.Builder, alluxio.grpc.NetAddressOrBuilder>(
                 workerAddresses_,
-                ((bitField0_ & 0x00000100) == 0x00000100),
+                ((bitField0_ & 0x00000100) != 0),
                 getParentForChildren(),
                 isClean());
         workerAddresses_ = null;
@@ -1819,7 +1904,7 @@ private static final long serialVersionUID = 0L;
 
     private com.google.protobuf.LazyStringList zookeeperAddresses_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     private void ensureZookeeperAddressesIsMutable() {
-      if (!((bitField0_ & 0x00000200) == 0x00000200)) {
+      if (!((bitField0_ & 0x00000200) != 0)) {
         zookeeperAddresses_ = new com.google.protobuf.LazyStringArrayList(zookeeperAddresses_);
         bitField0_ |= 0x00000200;
        }
@@ -1830,6 +1915,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string zookeeperAddresses = 10;</code>
+     * @return A list containing the zookeeperAddresses.
      */
     public com.google.protobuf.ProtocolStringList
         getZookeeperAddressesList() {
@@ -1841,6 +1927,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string zookeeperAddresses = 10;</code>
+     * @return The count of zookeeperAddresses.
      */
     public int getZookeeperAddressesCount() {
       return zookeeperAddresses_.size();
@@ -1851,6 +1938,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string zookeeperAddresses = 10;</code>
+     * @param index The index of the element to return.
+     * @return The zookeeperAddresses at the given index.
      */
     public java.lang.String getZookeeperAddresses(int index) {
       return zookeeperAddresses_.get(index);
@@ -1861,6 +1950,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string zookeeperAddresses = 10;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the zookeeperAddresses at the given index.
      */
     public com.google.protobuf.ByteString
         getZookeeperAddressesBytes(int index) {
@@ -1872,6 +1963,9 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string zookeeperAddresses = 10;</code>
+     * @param index The index to set the value at.
+     * @param value The zookeeperAddresses to set.
+     * @return This builder for chaining.
      */
     public Builder setZookeeperAddresses(
         int index, java.lang.String value) {
@@ -1889,6 +1983,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string zookeeperAddresses = 10;</code>
+     * @param value The zookeeperAddresses to add.
+     * @return This builder for chaining.
      */
     public Builder addZookeeperAddresses(
         java.lang.String value) {
@@ -1906,6 +2002,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string zookeeperAddresses = 10;</code>
+     * @param values The zookeeperAddresses to add.
+     * @return This builder for chaining.
      */
     public Builder addAllZookeeperAddresses(
         java.lang.Iterable<java.lang.String> values) {
@@ -1921,6 +2019,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string zookeeperAddresses = 10;</code>
+     * @return This builder for chaining.
      */
     public Builder clearZookeeperAddresses() {
       zookeeperAddresses_ = com.google.protobuf.LazyStringArrayList.EMPTY;
@@ -1934,6 +2033,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated string zookeeperAddresses = 10;</code>
+     * @param value The bytes of the zookeeperAddresses to add.
+     * @return This builder for chaining.
      */
     public Builder addZookeeperAddressesBytes(
         com.google.protobuf.ByteString value) {
@@ -1945,11 +2046,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -1971,6 +2074,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<MasterInfo>
       PARSER = new com.google.protobuf.AbstractParser<MasterInfo>() {
+    @java.lang.Override
     public MasterInfo parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1988,6 +2092,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.MasterInfo getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

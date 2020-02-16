@@ -654,7 +654,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder(Name.WORKER_BYTES_READ_ALLUXIO_THROUGHPUT)
           .setDescription("Bytes read throughput from Alluxio storage by this worker")
           .setMetricType(MetricType.METER)
-          .setIsClusterAggregated(true)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BYTES_READ_DOMAIN =
       new Builder(Name.WORKER_BYTES_READ_DOMAIN)
@@ -668,7 +668,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Bytes read throughput from Alluxio storage "
               + "via domain socket by this worker")
           .setMetricType(MetricType.METER)
-          .setIsClusterAggregated(true)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BYTES_READ_UFS =
       new Builder(Name.WORKER_BYTES_READ_UFS)
@@ -680,7 +680,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new MetricKey.Builder(Name.WORKER_BYTES_READ_UFS_THROUGHPUT)
           .setDescription("Bytes read throughput from all Alluxio UFSes by this worker")
           .setMetricType(MetricType.METER)
-          .setIsClusterAggregated(true)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_ALLUXIO =
       new Builder(Name.WORKER_BYTES_WRITTEN_ALLUXIO)
@@ -693,7 +693,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder(Name.WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT)
           .setDescription("Bytes write throughput to Alluxio storage by this worker")
           .setMetricType(MetricType.METER)
-          .setIsClusterAggregated(true)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_DOMAIN =
       new Builder(Name.WORKER_BYTES_WRITTEN_DOMAIN)
@@ -707,7 +707,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Throughput of bytes written to Alluxio storage "
               + "via domain socket by this worker")
           .setMetricType(MetricType.METER)
-          .setIsClusterAggregated(true)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BYTES_WRITTEN_UFS =
       new Builder(Name.WORKER_BYTES_WRITTEN_UFS)
@@ -719,7 +719,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder(Name.WORKER_BYTES_WRITTEN_UFS_THROUGHPUT)
           .setDescription("Bytes write throughput to all Alluxio UFSes by this worker")
           .setMetricType(MetricType.METER)
-          .setIsClusterAggregated(true)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_CAPACITY_TOTAL =
       new Builder(Name.WORKER_CAPACITY_TOTAL)
@@ -752,7 +752,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder(Name.CLIENT_BYTES_READ_LOCAL_THROUGHPUT)
           .setDescription("Bytes throughput short-circuit read from local storage by this client")
           .setMetricType(MetricType.METER)
-          .setIsClusterAggregated(true)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_BYTES_WRITTEN_LOCAL =
       new Builder(Name.CLIENT_BYTES_WRITTEN_LOCAL)
@@ -765,13 +765,35 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder(Name.CLIENT_BYTES_WRITTEN_LOCAL_THROUGHPUT)
           .setDescription("Bytes throughput short-circuit written to local storage by this client")
           .setMetricType(MetricType.METER)
-          .setIsClusterAggregated(true)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_BYTES_WRITTEN_UFS =
       new Builder(Name.CLIENT_BYTES_WRITTEN_UFS)
           .setDescription("Total number of bytes write to Alluxio UFS by this client")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
+          .build();
+  // Client local cache metrics
+  public static final MetricKey CLIENT_CACHE_BYTES_READ_CACHE =
+      new Builder(Name.CLIENT_CACHE_BYTES_READ_CACHE)
+          .setDescription("Total number of bytes read from the local cache.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_BYTES_READ_EXTERNAL =
+      new Builder(Name.CLIENT_CACHE_BYTES_READ_EXTERNAL)
+          .setDescription("Total number of bytes read from external storage due to a cache miss "
+              + "on the local cache.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL =
+      new Builder(Name.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL)
+          .setDescription("Total number of bytes the user requested to read which resulted in a "
+              + "cache miss. This number may be smaller than "
+              + Name.CLIENT_CACHE_BYTES_READ_EXTERNAL + " due to chunk reads.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
           .build();
 
   /**
@@ -948,7 +970,6 @@ public final class MetricKey implements Comparable<MetricKey> {
         = "Worker.BytesWrittenDomainThroughput";
 
     public static final String WORKER_BYTES_READ_UFS = "Worker.BytesReadPerUfs";
-    public static final String WORKER_BYTES_READ_UFS_ALL = "Worker.BytesReadUfsAll";
     public static final String WORKER_BYTES_READ_UFS_THROUGHPUT = "Worker.BytesReadUfsThroughput";
     public static final String WORKER_BYTES_WRITTEN_UFS = "Worker.BytesWrittenPerUfs";
     public static final String WORKER_BYTES_WRITTEN_UFS_THROUGHPUT
@@ -965,6 +986,12 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLIENT_BYTES_WRITTEN_LOCAL_THROUGHPUT
         = "Client.BytesWrittenLocalThroughput";
     public static final String CLIENT_BYTES_WRITTEN_UFS = "Client.BytesWrittenUfs";
+
+    // Client local cache metrics
+    public static final String CLIENT_CACHE_BYTES_READ_CACHE = "Client.CacheBytesReadCache";
+    public static final String CLIENT_CACHE_BYTES_READ_EXTERNAL = "Client.CacheBytesReadExternal";
+    public static final String CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL
+        = "Client.CacheBytesRequestedExternal";
 
     private Name() {} // prevent instantiation
   }

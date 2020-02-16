@@ -16,10 +16,16 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private FieldSchema() {
-    id_ = 0;
     name_ = "";
     type_ = "";
     comment_ = "";
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new FieldSchema();
   }
 
   @java.lang.Override
@@ -46,13 +52,6 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             bitField0_ |= 0x00000001;
             id_ = input.readUInt32();
@@ -76,6 +75,13 @@ private static final long serialVersionUID = 0L;
             comment_ = bs;
             break;
           }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
+            break;
+          }
         }
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -93,6 +99,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_FieldSchema_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_FieldSchema_fieldAccessorTable
@@ -105,12 +112,14 @@ private static final long serialVersionUID = 0L;
   private int id_;
   /**
    * <code>optional uint32 id = 1;</code>
+   * @return Whether the id field is set.
    */
   public boolean hasId() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional uint32 id = 1;</code>
+   * @return The id.
    */
   public int getId() {
     return id_;
@@ -120,12 +129,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object name_;
   /**
    * <code>optional string name = 2;</code>
+   * @return Whether the name field is set.
    */
   public boolean hasName() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional string name = 2;</code>
+   * @return The name.
    */
   public java.lang.String getName() {
     java.lang.Object ref = name_;
@@ -143,6 +154,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string name = 2;</code>
+   * @return The bytes for name.
    */
   public com.google.protobuf.ByteString
       getNameBytes() {
@@ -162,12 +174,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object type_;
   /**
    * <code>optional string type = 3;</code>
+   * @return Whether the type field is set.
    */
   public boolean hasType() {
-    return ((bitField0_ & 0x00000004) == 0x00000004);
+    return ((bitField0_ & 0x00000004) != 0);
   }
   /**
    * <code>optional string type = 3;</code>
+   * @return The type.
    */
   public java.lang.String getType() {
     java.lang.Object ref = type_;
@@ -185,6 +199,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string type = 3;</code>
+   * @return The bytes for type.
    */
   public com.google.protobuf.ByteString
       getTypeBytes() {
@@ -204,12 +219,14 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object comment_;
   /**
    * <code>optional string comment = 4;</code>
+   * @return Whether the comment field is set.
    */
   public boolean hasComment() {
-    return ((bitField0_ & 0x00000008) == 0x00000008);
+    return ((bitField0_ & 0x00000008) != 0);
   }
   /**
    * <code>optional string comment = 4;</code>
+   * @return The comment.
    */
   public java.lang.String getComment() {
     java.lang.Object ref = comment_;
@@ -227,6 +244,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>optional string comment = 4;</code>
+   * @return The bytes for comment.
    */
   public com.google.protobuf.ByteString
       getCommentBytes() {
@@ -243,6 +261,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -252,39 +271,41 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeUInt32(1, id_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, name_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 3, type_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 4, comment_);
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeUInt32Size(1, id_);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, name_);
     }
-    if (((bitField0_ & 0x00000004) == 0x00000004)) {
+    if (((bitField0_ & 0x00000004) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, type_);
     }
-    if (((bitField0_ & 0x00000008) == 0x00000008)) {
+    if (((bitField0_ & 0x00000008) != 0)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, comment_);
     }
     size += unknownFields.getSerializedSize();
@@ -302,29 +323,28 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.table.FieldSchema other = (alluxio.grpc.table.FieldSchema) obj;
 
-    boolean result = true;
-    result = result && (hasId() == other.hasId());
+    if (hasId() != other.hasId()) return false;
     if (hasId()) {
-      result = result && (getId()
-          == other.getId());
+      if (getId()
+          != other.getId()) return false;
     }
-    result = result && (hasName() == other.hasName());
+    if (hasName() != other.hasName()) return false;
     if (hasName()) {
-      result = result && getName()
-          .equals(other.getName());
+      if (!getName()
+          .equals(other.getName())) return false;
     }
-    result = result && (hasType() == other.hasType());
+    if (hasType() != other.hasType()) return false;
     if (hasType()) {
-      result = result && getType()
-          .equals(other.getType());
+      if (!getType()
+          .equals(other.getType())) return false;
     }
-    result = result && (hasComment() == other.hasComment());
+    if (hasComment() != other.hasComment()) return false;
     if (hasComment()) {
-      result = result && getComment()
-          .equals(other.getComment());
+      if (!getComment()
+          .equals(other.getComment())) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -425,6 +445,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -432,6 +453,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.table.FieldSchema prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -455,6 +477,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_FieldSchema_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_FieldSchema_fieldAccessorTable
@@ -477,6 +500,7 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       id_ = 0;
@@ -490,15 +514,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.table.TableMasterProto.internal_static_alluxio_grpc_table_FieldSchema_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.FieldSchema getDefaultInstanceForType() {
       return alluxio.grpc.table.FieldSchema.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.FieldSchema build() {
       alluxio.grpc.table.FieldSchema result = buildPartial();
       if (!result.isInitialized()) {
@@ -507,23 +534,24 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.table.FieldSchema buildPartial() {
       alluxio.grpc.table.FieldSchema result = new alluxio.grpc.table.FieldSchema(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        result.id_ = id_;
         to_bitField0_ |= 0x00000001;
       }
-      result.id_ = id_;
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
         to_bitField0_ |= 0x00000002;
       }
       result.name_ = name_;
-      if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((from_bitField0_ & 0x00000004) != 0)) {
         to_bitField0_ |= 0x00000004;
       }
       result.type_ = type_;
-      if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((from_bitField0_ & 0x00000008) != 0)) {
         to_bitField0_ |= 0x00000008;
       }
       result.comment_ = comment_;
@@ -532,32 +560,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.table.FieldSchema) {
         return mergeFrom((alluxio.grpc.table.FieldSchema)other);
@@ -592,10 +627,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -618,18 +655,22 @@ private static final long serialVersionUID = 0L;
     private int id_ ;
     /**
      * <code>optional uint32 id = 1;</code>
+     * @return Whether the id field is set.
      */
     public boolean hasId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional uint32 id = 1;</code>
+     * @return The id.
      */
     public int getId() {
       return id_;
     }
     /**
      * <code>optional uint32 id = 1;</code>
+     * @param value The id to set.
+     * @return This builder for chaining.
      */
     public Builder setId(int value) {
       bitField0_ |= 0x00000001;
@@ -639,6 +680,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional uint32 id = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearId() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -650,12 +692,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object name_ = "";
     /**
      * <code>optional string name = 2;</code>
+     * @return Whether the name field is set.
      */
     public boolean hasName() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional string name = 2;</code>
+     * @return The name.
      */
     public java.lang.String getName() {
       java.lang.Object ref = name_;
@@ -673,6 +717,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string name = 2;</code>
+     * @return The bytes for name.
      */
     public com.google.protobuf.ByteString
         getNameBytes() {
@@ -689,6 +734,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string name = 2;</code>
+     * @param value The name to set.
+     * @return This builder for chaining.
      */
     public Builder setName(
         java.lang.String value) {
@@ -702,6 +749,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string name = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearName() {
       bitField0_ = (bitField0_ & ~0x00000002);
@@ -711,6 +759,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string name = 2;</code>
+     * @param value The bytes for name to set.
+     * @return This builder for chaining.
      */
     public Builder setNameBytes(
         com.google.protobuf.ByteString value) {
@@ -726,12 +776,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object type_ = "";
     /**
      * <code>optional string type = 3;</code>
+     * @return Whether the type field is set.
      */
     public boolean hasType() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
      * <code>optional string type = 3;</code>
+     * @return The type.
      */
     public java.lang.String getType() {
       java.lang.Object ref = type_;
@@ -749,6 +801,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string type = 3;</code>
+     * @return The bytes for type.
      */
     public com.google.protobuf.ByteString
         getTypeBytes() {
@@ -765,6 +818,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string type = 3;</code>
+     * @param value The type to set.
+     * @return This builder for chaining.
      */
     public Builder setType(
         java.lang.String value) {
@@ -778,6 +833,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string type = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearType() {
       bitField0_ = (bitField0_ & ~0x00000004);
@@ -787,6 +843,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string type = 3;</code>
+     * @param value The bytes for type to set.
+     * @return This builder for chaining.
      */
     public Builder setTypeBytes(
         com.google.protobuf.ByteString value) {
@@ -802,12 +860,14 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object comment_ = "";
     /**
      * <code>optional string comment = 4;</code>
+     * @return Whether the comment field is set.
      */
     public boolean hasComment() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000008) != 0);
     }
     /**
      * <code>optional string comment = 4;</code>
+     * @return The comment.
      */
     public java.lang.String getComment() {
       java.lang.Object ref = comment_;
@@ -825,6 +885,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string comment = 4;</code>
+     * @return The bytes for comment.
      */
     public com.google.protobuf.ByteString
         getCommentBytes() {
@@ -841,6 +902,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string comment = 4;</code>
+     * @param value The comment to set.
+     * @return This builder for chaining.
      */
     public Builder setComment(
         java.lang.String value) {
@@ -854,6 +917,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string comment = 4;</code>
+     * @return This builder for chaining.
      */
     public Builder clearComment() {
       bitField0_ = (bitField0_ & ~0x00000008);
@@ -863,6 +927,8 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional string comment = 4;</code>
+     * @param value The bytes for comment to set.
+     * @return This builder for chaining.
      */
     public Builder setCommentBytes(
         com.google.protobuf.ByteString value) {
@@ -874,11 +940,13 @@ private static final long serialVersionUID = 0L;
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -900,6 +968,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<FieldSchema>
       PARSER = new com.google.protobuf.AbstractParser<FieldSchema>() {
+    @java.lang.Override
     public FieldSchema parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -917,6 +986,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.table.FieldSchema getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

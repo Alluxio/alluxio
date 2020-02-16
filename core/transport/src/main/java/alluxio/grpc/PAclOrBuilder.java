@@ -9,28 +9,34 @@ public interface PAclOrBuilder extends
 
   /**
    * <code>optional string owner = 1;</code>
+   * @return Whether the owner field is set.
    */
   boolean hasOwner();
   /**
    * <code>optional string owner = 1;</code>
+   * @return The owner.
    */
   java.lang.String getOwner();
   /**
    * <code>optional string owner = 1;</code>
+   * @return The bytes for owner.
    */
   com.google.protobuf.ByteString
       getOwnerBytes();
 
   /**
    * <code>optional string owningGroup = 2;</code>
+   * @return Whether the owningGroup field is set.
    */
   boolean hasOwningGroup();
   /**
    * <code>optional string owningGroup = 2;</code>
+   * @return The owningGroup.
    */
   java.lang.String getOwningGroup();
   /**
    * <code>optional string owningGroup = 2;</code>
+   * @return The bytes for owningGroup.
    */
   com.google.protobuf.ByteString
       getOwningGroupBytes();
@@ -61,28 +67,34 @@ public interface PAclOrBuilder extends
 
   /**
    * <code>optional int32 mode = 4;</code>
+   * @return Whether the mode field is set.
    */
   boolean hasMode();
   /**
    * <code>optional int32 mode = 4;</code>
+   * @return The mode.
    */
   int getMode();
 
   /**
    * <code>optional bool isDefault = 5;</code>
+   * @return Whether the isDefault field is set.
    */
   boolean hasIsDefault();
   /**
    * <code>optional bool isDefault = 5;</code>
+   * @return The isDefault.
    */
   boolean getIsDefault();
 
   /**
    * <code>optional bool isDefaultEmpty = 6;</code>
+   * @return Whether the isDefaultEmpty field is set.
    */
   boolean hasIsDefaultEmpty();
   /**
    * <code>optional bool isDefaultEmpty = 6;</code>
+   * @return The isDefaultEmpty.
    */
   boolean getIsDefaultEmpty();
 }

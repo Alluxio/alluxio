@@ -9,19 +9,25 @@ public interface FileSystemHeartbeatPOptionsOrBuilder extends
 
   /**
    * <code>repeated string persistedFileFingerprints = 1;</code>
+   * @return A list containing the persistedFileFingerprints.
    */
   java.util.List<java.lang.String>
       getPersistedFileFingerprintsList();
   /**
    * <code>repeated string persistedFileFingerprints = 1;</code>
+   * @return The count of persistedFileFingerprints.
    */
   int getPersistedFileFingerprintsCount();
   /**
    * <code>repeated string persistedFileFingerprints = 1;</code>
+   * @param index The index of the element to return.
+   * @return The persistedFileFingerprints at the given index.
    */
   java.lang.String getPersistedFileFingerprints(int index);
   /**
    * <code>repeated string persistedFileFingerprints = 1;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the persistedFileFingerprints at the given index.
    */
   com.google.protobuf.ByteString
       getPersistedFileFingerprintsBytes(int index);

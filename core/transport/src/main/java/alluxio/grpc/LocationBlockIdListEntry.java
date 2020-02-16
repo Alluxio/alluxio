@@ -19,6 +19,13 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new LocationBlockIdListEntry();
+  }
+
+  @java.lang.Override
   public final com.google.protobuf.UnknownFieldSet
   getUnknownFields() {
     return this.unknownFields;
@@ -42,16 +49,9 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 10: {
             alluxio.grpc.BlockStoreLocationProto.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000001) == 0x00000001)) {
+            if (((bitField0_ & 0x00000001) != 0)) {
               subBuilder = key_.toBuilder();
             }
             key_ = input.readMessage(alluxio.grpc.BlockStoreLocationProto.PARSER, extensionRegistry);
@@ -64,7 +64,7 @@ private static final long serialVersionUID = 0L;
           }
           case 18: {
             alluxio.grpc.BlockIdList.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000002) == 0x00000002)) {
+            if (((bitField0_ & 0x00000002) != 0)) {
               subBuilder = value_.toBuilder();
             }
             value_ = input.readMessage(alluxio.grpc.BlockIdList.PARSER, extensionRegistry);
@@ -73,6 +73,13 @@ private static final long serialVersionUID = 0L;
               value_ = subBuilder.buildPartial();
             }
             bitField0_ |= 0x00000002;
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -92,6 +99,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_LocationBlockIdListEntry_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_LocationBlockIdListEntry_fieldAccessorTable
@@ -104,12 +112,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.BlockStoreLocationProto key_;
   /**
    * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
+   * @return Whether the key field is set.
    */
   public boolean hasKey() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
+   * @return The key.
    */
   public alluxio.grpc.BlockStoreLocationProto getKey() {
     return key_ == null ? alluxio.grpc.BlockStoreLocationProto.getDefaultInstance() : key_;
@@ -125,12 +135,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.BlockIdList value_;
   /**
    * <code>optional .alluxio.grpc.block.BlockIdList value = 2;</code>
+   * @return Whether the value field is set.
    */
   public boolean hasValue() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.block.BlockIdList value = 2;</code>
+   * @return The value.
    */
   public alluxio.grpc.BlockIdList getValue() {
     return value_ == null ? alluxio.grpc.BlockIdList.getDefaultInstance() : value_;
@@ -143,6 +155,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -152,27 +165,29 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeMessage(1, getKey());
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeMessage(2, getValue());
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(1, getKey());
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(2, getValue());
     }
@@ -191,19 +206,18 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.LocationBlockIdListEntry other = (alluxio.grpc.LocationBlockIdListEntry) obj;
 
-    boolean result = true;
-    result = result && (hasKey() == other.hasKey());
+    if (hasKey() != other.hasKey()) return false;
     if (hasKey()) {
-      result = result && getKey()
-          .equals(other.getKey());
+      if (!getKey()
+          .equals(other.getKey())) return false;
     }
-    result = result && (hasValue() == other.hasValue());
+    if (hasValue() != other.hasValue()) return false;
     if (hasValue()) {
-      result = result && getValue()
-          .equals(other.getValue());
+      if (!getValue()
+          .equals(other.getValue())) return false;
     }
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -296,6 +310,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -303,6 +318,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.LocationBlockIdListEntry prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -326,6 +342,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_LocationBlockIdListEntry_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_LocationBlockIdListEntry_fieldAccessorTable
@@ -350,6 +367,7 @@ private static final long serialVersionUID = 0L;
         getValueFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       if (keyBuilder_ == null) {
@@ -367,15 +385,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_LocationBlockIdListEntry_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.LocationBlockIdListEntry getDefaultInstanceForType() {
       return alluxio.grpc.LocationBlockIdListEntry.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.LocationBlockIdListEntry build() {
       alluxio.grpc.LocationBlockIdListEntry result = buildPartial();
       if (!result.isInitialized()) {
@@ -384,57 +405,65 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.LocationBlockIdListEntry buildPartial() {
       alluxio.grpc.LocationBlockIdListEntry result = new alluxio.grpc.LocationBlockIdListEntry(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        if (keyBuilder_ == null) {
+          result.key_ = key_;
+        } else {
+          result.key_ = keyBuilder_.build();
+        }
         to_bitField0_ |= 0x00000001;
       }
-      if (keyBuilder_ == null) {
-        result.key_ = key_;
-      } else {
-        result.key_ = keyBuilder_.build();
-      }
-      if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+      if (((from_bitField0_ & 0x00000002) != 0)) {
+        if (valueBuilder_ == null) {
+          result.value_ = value_;
+        } else {
+          result.value_ = valueBuilder_.build();
+        }
         to_bitField0_ |= 0x00000002;
-      }
-      if (valueBuilder_ == null) {
-        result.value_ = value_;
-      } else {
-        result.value_ = valueBuilder_.build();
       }
       result.bitField0_ = to_bitField0_;
       onBuilt();
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.LocationBlockIdListEntry) {
         return mergeFrom((alluxio.grpc.LocationBlockIdListEntry)other);
@@ -457,10 +486,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -480,17 +511,19 @@ private static final long serialVersionUID = 0L;
     }
     private int bitField0_;
 
-    private alluxio.grpc.BlockStoreLocationProto key_ = null;
+    private alluxio.grpc.BlockStoreLocationProto key_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.BlockStoreLocationProto, alluxio.grpc.BlockStoreLocationProto.Builder, alluxio.grpc.BlockStoreLocationProtoOrBuilder> keyBuilder_;
     /**
      * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
+     * @return Whether the key field is set.
      */
     public boolean hasKey() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.BlockStoreLocationProto key = 1;</code>
+     * @return The key.
      */
     public alluxio.grpc.BlockStoreLocationProto getKey() {
       if (keyBuilder_ == null) {
@@ -534,7 +567,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeKey(alluxio.grpc.BlockStoreLocationProto value) {
       if (keyBuilder_ == null) {
-        if (((bitField0_ & 0x00000001) == 0x00000001) &&
+        if (((bitField0_ & 0x00000001) != 0) &&
             key_ != null &&
             key_ != alluxio.grpc.BlockStoreLocationProto.getDefaultInstance()) {
           key_ =
@@ -598,17 +631,19 @@ private static final long serialVersionUID = 0L;
       return keyBuilder_;
     }
 
-    private alluxio.grpc.BlockIdList value_ = null;
+    private alluxio.grpc.BlockIdList value_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.BlockIdList, alluxio.grpc.BlockIdList.Builder, alluxio.grpc.BlockIdListOrBuilder> valueBuilder_;
     /**
      * <code>optional .alluxio.grpc.block.BlockIdList value = 2;</code>
+     * @return Whether the value field is set.
      */
     public boolean hasValue() {
-      return ((bitField0_ & 0x00000002) == 0x00000002);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.block.BlockIdList value = 2;</code>
+     * @return The value.
      */
     public alluxio.grpc.BlockIdList getValue() {
       if (valueBuilder_ == null) {
@@ -652,7 +687,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeValue(alluxio.grpc.BlockIdList value) {
       if (valueBuilder_ == null) {
-        if (((bitField0_ & 0x00000002) == 0x00000002) &&
+        if (((bitField0_ & 0x00000002) != 0) &&
             value_ != null &&
             value_ != alluxio.grpc.BlockIdList.getDefaultInstance()) {
           value_ =
@@ -715,11 +750,13 @@ private static final long serialVersionUID = 0L;
       }
       return valueBuilder_;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -741,6 +778,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<LocationBlockIdListEntry>
       PARSER = new com.google.protobuf.AbstractParser<LocationBlockIdListEntry>() {
+    @java.lang.Override
     public LocationBlockIdListEntry parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -758,6 +796,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.LocationBlockIdListEntry getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

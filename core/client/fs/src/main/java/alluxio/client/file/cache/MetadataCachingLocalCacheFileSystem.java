@@ -40,7 +40,7 @@ public class MetadataCachingLocalCacheFileSystem extends LocalCacheFileSystem {
    * @param context the fs context
    */
   public MetadataCachingLocalCacheFileSystem(FileSystem fs, FileSystemContext context) {
-    super(fs);
+    super(fs, context.getClusterConf());
     mCloser = Closer.create();
     mFsContext = context;
     mMetadataCacheManager = new MetadataCacheManager(fs, context);

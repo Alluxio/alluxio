@@ -9,10 +9,12 @@ public interface RemoveBlockRequestOrBuilder extends
 
   /**
    * <code>optional int64 block_id = 1;</code>
+   * @return Whether the blockId field is set.
    */
   boolean hasBlockId();
   /**
    * <code>optional int64 block_id = 1;</code>
+   * @return The blockId.
    */
   long getBlockId();
 }

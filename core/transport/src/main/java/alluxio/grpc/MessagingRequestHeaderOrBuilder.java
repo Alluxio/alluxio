@@ -9,10 +9,12 @@ public interface MessagingRequestHeaderOrBuilder extends
 
   /**
    * <code>optional int64 requestId = 1;</code>
+   * @return Whether the requestId field is set.
    */
   boolean hasRequestId();
   /**
    * <code>optional int64 requestId = 1;</code>
+   * @return The requestId.
    */
   long getRequestId();
 }

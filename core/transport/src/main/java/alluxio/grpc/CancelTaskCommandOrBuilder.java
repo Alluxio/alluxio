@@ -9,19 +9,23 @@ public interface CancelTaskCommandOrBuilder extends
 
   /**
    * <code>optional int64 jobId = 1;</code>
+   * @return Whether the jobId field is set.
    */
   boolean hasJobId();
   /**
    * <code>optional int64 jobId = 1;</code>
+   * @return The jobId.
    */
   long getJobId();
 
   /**
    * <code>optional int64 taskId = 2;</code>
+   * @return Whether the taskId field is set.
    */
   boolean hasTaskId();
   /**
    * <code>optional int64 taskId = 2;</code>
+   * @return The taskId.
    */
   long getTaskId();
 }

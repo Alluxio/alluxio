@@ -9,10 +9,12 @@ public interface GetDatabasePResponseOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.Database db = 1;</code>
+   * @return Whether the db field is set.
    */
   boolean hasDb();
   /**
    * <code>optional .alluxio.grpc.table.Database db = 1;</code>
+   * @return The db.
    */
   alluxio.grpc.table.Database getDb();
   /**

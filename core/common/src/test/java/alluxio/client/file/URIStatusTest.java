@@ -21,7 +21,10 @@ import alluxio.wire.FileInfoTest;
 
 import org.hamcrest.CoreMatchers;
 
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Map;
 
 /**
  * Tests for the {@link URIStatus} class.
@@ -76,6 +79,10 @@ public final class URIStatusTest {
     assertEquals(uriStatus.isMountPoint(), fileInfo.isMountPoint());
     assertEquals(uriStatus.getFileBlockInfos(), fileInfo.getFileBlockInfos());
     assertEquals(uriStatus.toString(), fileInfo.toString());
+    assertEquals(uriStatus.getXAttr().size(), fileInfo.getXAttr().size());
+    for (Map.Entry<String, byte[]> entry : uriStatus.getXAttr().entrySet()) {
+      Assert.assertArrayEquals(entry.getValue(), fileInfo.getXAttr().get(entry.getKey()));
+    }
   }
 
   @Test

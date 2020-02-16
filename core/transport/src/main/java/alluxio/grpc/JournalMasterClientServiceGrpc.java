@@ -22,7 +22,7 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.17.1)",
+    value = "by gRPC proto compiler (version 1.27.0)",
     comments = "Source: grpc/journal_master.proto")
 public final class JournalMasterClientServiceGrpc {
 
@@ -45,22 +45,21 @@ public final class JournalMasterClientServiceGrpc {
     if ((getGetQuorumInfoMethod = JournalMasterClientServiceGrpc.getGetQuorumInfoMethod) == null) {
       synchronized (JournalMasterClientServiceGrpc.class) {
         if ((getGetQuorumInfoMethod = JournalMasterClientServiceGrpc.getGetQuorumInfoMethod) == null) {
-          JournalMasterClientServiceGrpc.getGetQuorumInfoMethod = getGetQuorumInfoMethod = 
+          JournalMasterClientServiceGrpc.getGetQuorumInfoMethod = getGetQuorumInfoMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetQuorumInfoPRequest, alluxio.grpc.GetQuorumInfoPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.journal.JournalMasterClientService", "GetQuorumInfo"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetQuorumInfo"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetQuorumInfoPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetQuorumInfoPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new JournalMasterClientServiceMethodDescriptorSupplier("GetQuorumInfo"))
-                  .build();
-          }
+              .setSchemaDescriptor(new JournalMasterClientServiceMethodDescriptorSupplier("GetQuorumInfo"))
+              .build();
         }
-     }
-     return getGetQuorumInfoMethod;
+      }
+    }
+    return getGetQuorumInfoMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.RemoveQuorumServerPRequest,
@@ -77,29 +76,35 @@ public final class JournalMasterClientServiceGrpc {
     if ((getRemoveQuorumServerMethod = JournalMasterClientServiceGrpc.getRemoveQuorumServerMethod) == null) {
       synchronized (JournalMasterClientServiceGrpc.class) {
         if ((getRemoveQuorumServerMethod = JournalMasterClientServiceGrpc.getRemoveQuorumServerMethod) == null) {
-          JournalMasterClientServiceGrpc.getRemoveQuorumServerMethod = getRemoveQuorumServerMethod = 
+          JournalMasterClientServiceGrpc.getRemoveQuorumServerMethod = getRemoveQuorumServerMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.RemoveQuorumServerPRequest, alluxio.grpc.RemoveQuorumServerPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.journal.JournalMasterClientService", "RemoveQuorumServer"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "RemoveQuorumServer"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RemoveQuorumServerPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RemoveQuorumServerPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new JournalMasterClientServiceMethodDescriptorSupplier("RemoveQuorumServer"))
-                  .build();
-          }
+              .setSchemaDescriptor(new JournalMasterClientServiceMethodDescriptorSupplier("RemoveQuorumServer"))
+              .build();
         }
-     }
-     return getRemoveQuorumServerMethod;
+      }
+    }
+    return getRemoveQuorumServerMethod;
   }
 
   /**
    * Creates a new async stub that supports all call types for the service
    */
   public static JournalMasterClientServiceStub newStub(io.grpc.Channel channel) {
-    return new JournalMasterClientServiceStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<JournalMasterClientServiceStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<JournalMasterClientServiceStub>() {
+        @java.lang.Override
+        public JournalMasterClientServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new JournalMasterClientServiceStub(channel, callOptions);
+        }
+      };
+    return JournalMasterClientServiceStub.newStub(factory, channel);
   }
 
   /**
@@ -107,7 +112,14 @@ public final class JournalMasterClientServiceGrpc {
    */
   public static JournalMasterClientServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new JournalMasterClientServiceBlockingStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<JournalMasterClientServiceBlockingStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<JournalMasterClientServiceBlockingStub>() {
+        @java.lang.Override
+        public JournalMasterClientServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new JournalMasterClientServiceBlockingStub(channel, callOptions);
+        }
+      };
+    return JournalMasterClientServiceBlockingStub.newStub(factory, channel);
   }
 
   /**
@@ -115,7 +127,14 @@ public final class JournalMasterClientServiceGrpc {
    */
   public static JournalMasterClientServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new JournalMasterClientServiceFutureStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<JournalMasterClientServiceFutureStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<JournalMasterClientServiceFutureStub>() {
+        @java.lang.Override
+        public JournalMasterClientServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new JournalMasterClientServiceFutureStub(channel, callOptions);
+        }
+      };
+    return JournalMasterClientServiceFutureStub.newStub(factory, channel);
   }
 
   /**
@@ -174,19 +193,15 @@ public final class JournalMasterClientServiceGrpc {
    * This interface contains journal master service endpoints for Alluxio clients.
    * </pre>
    */
-  public static final class JournalMasterClientServiceStub extends io.grpc.stub.AbstractStub<JournalMasterClientServiceStub> {
-    private JournalMasterClientServiceStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private JournalMasterClientServiceStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class JournalMasterClientServiceStub extends io.grpc.stub.AbstractAsyncStub<JournalMasterClientServiceStub> {
+    private JournalMasterClientServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected JournalMasterClientServiceStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected JournalMasterClientServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new JournalMasterClientServiceStub(channel, callOptions);
     }
 
@@ -221,19 +236,15 @@ public final class JournalMasterClientServiceGrpc {
    * This interface contains journal master service endpoints for Alluxio clients.
    * </pre>
    */
-  public static final class JournalMasterClientServiceBlockingStub extends io.grpc.stub.AbstractStub<JournalMasterClientServiceBlockingStub> {
-    private JournalMasterClientServiceBlockingStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private JournalMasterClientServiceBlockingStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class JournalMasterClientServiceBlockingStub extends io.grpc.stub.AbstractBlockingStub<JournalMasterClientServiceBlockingStub> {
+    private JournalMasterClientServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected JournalMasterClientServiceBlockingStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected JournalMasterClientServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new JournalMasterClientServiceBlockingStub(channel, callOptions);
     }
 
@@ -266,19 +277,15 @@ public final class JournalMasterClientServiceGrpc {
    * This interface contains journal master service endpoints for Alluxio clients.
    * </pre>
    */
-  public static final class JournalMasterClientServiceFutureStub extends io.grpc.stub.AbstractStub<JournalMasterClientServiceFutureStub> {
-    private JournalMasterClientServiceFutureStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private JournalMasterClientServiceFutureStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class JournalMasterClientServiceFutureStub extends io.grpc.stub.AbstractFutureStub<JournalMasterClientServiceFutureStub> {
+    private JournalMasterClientServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected JournalMasterClientServiceFutureStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected JournalMasterClientServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new JournalMasterClientServiceFutureStub(channel, callOptions);
     }
 

@@ -13,6 +13,7 @@ public interface PartitionInfoOrBuilder extends
    * </pre>
    *
    * <code>repeated string values = 1;</code>
+   * @return A list containing the values.
    */
   java.util.List<java.lang.String>
       getValuesList();
@@ -22,6 +23,7 @@ public interface PartitionInfoOrBuilder extends
    * </pre>
    *
    * <code>repeated string values = 1;</code>
+   * @return The count of values.
    */
   int getValuesCount();
   /**
@@ -30,6 +32,8 @@ public interface PartitionInfoOrBuilder extends
    * </pre>
    *
    * <code>repeated string values = 1;</code>
+   * @param index The index of the element to return.
+   * @return The values at the given index.
    */
   java.lang.String getValues(int index);
   /**
@@ -38,6 +42,8 @@ public interface PartitionInfoOrBuilder extends
    * </pre>
    *
    * <code>repeated string values = 1;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the values at the given index.
    */
   com.google.protobuf.ByteString
       getValuesBytes(int index);
@@ -48,6 +54,7 @@ public interface PartitionInfoOrBuilder extends
    * </pre>
    *
    * <code>optional string partition_name = 2;</code>
+   * @return Whether the partitionName field is set.
    */
   boolean hasPartitionName();
   /**
@@ -56,6 +63,7 @@ public interface PartitionInfoOrBuilder extends
    * </pre>
    *
    * <code>optional string partition_name = 2;</code>
+   * @return The partitionName.
    */
   java.lang.String getPartitionName();
   /**
@@ -64,44 +72,53 @@ public interface PartitionInfoOrBuilder extends
    * </pre>
    *
    * <code>optional string partition_name = 2;</code>
+   * @return The bytes for partitionName.
    */
   com.google.protobuf.ByteString
       getPartitionNameBytes();
 
   /**
    * <code>optional string db_name = 3;</code>
+   * @return Whether the dbName field is set.
    */
   boolean hasDbName();
   /**
    * <code>optional string db_name = 3;</code>
+   * @return The dbName.
    */
   java.lang.String getDbName();
   /**
    * <code>optional string db_name = 3;</code>
+   * @return The bytes for dbName.
    */
   com.google.protobuf.ByteString
       getDbNameBytes();
 
   /**
    * <code>optional string table_name = 4;</code>
+   * @return Whether the tableName field is set.
    */
   boolean hasTableName();
   /**
    * <code>optional string table_name = 4;</code>
+   * @return The tableName.
    */
   java.lang.String getTableName();
   /**
    * <code>optional string table_name = 4;</code>
+   * @return The bytes for tableName.
    */
   com.google.protobuf.ByteString
       getTableNameBytes();
 
   /**
    * <code>optional .alluxio.grpc.table.layout.Storage storage = 5;</code>
+   * @return Whether the storage field is set.
    */
   boolean hasStorage();
   /**
    * <code>optional .alluxio.grpc.table.layout.Storage storage = 5;</code>
+   * @return The storage.
    */
   alluxio.grpc.table.layout.hive.Storage getStorage();
   /**

@@ -9,10 +9,12 @@ public interface DomainOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.RangeSet range = 1;</code>
+   * @return Whether the range field is set.
    */
   boolean hasRange();
   /**
    * <code>optional .alluxio.grpc.table.RangeSet range = 1;</code>
+   * @return The range.
    */
   alluxio.grpc.table.RangeSet getRange();
   /**
@@ -22,10 +24,12 @@ public interface DomainOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.EquatableValueSet equatable = 2;</code>
+   * @return Whether the equatable field is set.
    */
   boolean hasEquatable();
   /**
    * <code>optional .alluxio.grpc.table.EquatableValueSet equatable = 2;</code>
+   * @return The equatable.
    */
   alluxio.grpc.table.EquatableValueSet getEquatable();
   /**
@@ -35,10 +39,12 @@ public interface DomainOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.AllOrNoneSet all_or_none = 3;</code>
+   * @return Whether the allOrNone field is set.
    */
   boolean hasAllOrNone();
   /**
    * <code>optional .alluxio.grpc.table.AllOrNoneSet all_or_none = 3;</code>
+   * @return The allOrNone.
    */
   alluxio.grpc.table.AllOrNoneSet getAllOrNone();
   /**

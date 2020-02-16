@@ -9,10 +9,12 @@ public interface ChunkOrBuilder extends
 
   /**
    * <code>optional bytes data = 1;</code>
+   * @return Whether the data field is set.
    */
   boolean hasData();
   /**
    * <code>optional bytes data = 1;</code>
+   * @return The data.
    */
   com.google.protobuf.ByteString getData();
 }

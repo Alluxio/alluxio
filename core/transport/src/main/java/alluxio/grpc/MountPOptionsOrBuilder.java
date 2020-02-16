@@ -9,10 +9,12 @@ public interface MountPOptionsOrBuilder extends
 
   /**
    * <code>optional bool readOnly = 1;</code>
+   * @return Whether the readOnly field is set.
    */
   boolean hasReadOnly();
   /**
    * <code>optional bool readOnly = 1;</code>
+   * @return The readOnly.
    */
   boolean getReadOnly();
 
@@ -52,19 +54,23 @@ public interface MountPOptionsOrBuilder extends
 
   /**
    * <code>optional bool shared = 3;</code>
+   * @return Whether the shared field is set.
    */
   boolean hasShared();
   /**
    * <code>optional bool shared = 3;</code>
+   * @return The shared.
    */
   boolean getShared();
 
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 4;</code>
+   * @return Whether the commonOptions field is set.
    */
   boolean hasCommonOptions();
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 4;</code>
+   * @return The commonOptions.
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**

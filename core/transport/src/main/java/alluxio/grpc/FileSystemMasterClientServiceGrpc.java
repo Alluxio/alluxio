@@ -22,7 +22,7 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
  * </pre>
  */
 @javax.annotation.Generated(
-    value = "by gRPC proto compiler (version 1.17.1)",
+    value = "by gRPC proto compiler (version 1.27.0)",
     comments = "Source: grpc/file_system_master.proto")
 public final class FileSystemMasterClientServiceGrpc {
 
@@ -45,22 +45,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getCheckConsistencyMethod = FileSystemMasterClientServiceGrpc.getCheckConsistencyMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getCheckConsistencyMethod = FileSystemMasterClientServiceGrpc.getCheckConsistencyMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getCheckConsistencyMethod = getCheckConsistencyMethod = 
+          FileSystemMasterClientServiceGrpc.getCheckConsistencyMethod = getCheckConsistencyMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.CheckConsistencyPRequest, alluxio.grpc.CheckConsistencyPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "CheckConsistency"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CheckConsistency"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CheckConsistencyPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CheckConsistencyPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("CheckConsistency"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("CheckConsistency"))
+              .build();
         }
-     }
-     return getCheckConsistencyMethod;
+      }
+    }
+    return getCheckConsistencyMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CompleteFilePRequest,
@@ -77,22 +76,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getCompleteFileMethod = FileSystemMasterClientServiceGrpc.getCompleteFileMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getCompleteFileMethod = FileSystemMasterClientServiceGrpc.getCompleteFileMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getCompleteFileMethod = getCompleteFileMethod = 
+          FileSystemMasterClientServiceGrpc.getCompleteFileMethod = getCompleteFileMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.CompleteFilePRequest, alluxio.grpc.CompleteFilePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "CompleteFile"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CompleteFile"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CompleteFilePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CompleteFilePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("CompleteFile"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("CompleteFile"))
+              .build();
         }
-     }
-     return getCompleteFileMethod;
+      }
+    }
+    return getCompleteFileMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CreateDirectoryPRequest,
@@ -109,22 +107,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getCreateDirectoryMethod = FileSystemMasterClientServiceGrpc.getCreateDirectoryMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getCreateDirectoryMethod = FileSystemMasterClientServiceGrpc.getCreateDirectoryMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getCreateDirectoryMethod = getCreateDirectoryMethod = 
+          FileSystemMasterClientServiceGrpc.getCreateDirectoryMethod = getCreateDirectoryMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.CreateDirectoryPRequest, alluxio.grpc.CreateDirectoryPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "CreateDirectory"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateDirectory"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CreateDirectoryPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CreateDirectoryPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("CreateDirectory"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("CreateDirectory"))
+              .build();
         }
-     }
-     return getCreateDirectoryMethod;
+      }
+    }
+    return getCreateDirectoryMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.CreateFilePRequest,
@@ -141,22 +138,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getCreateFileMethod = FileSystemMasterClientServiceGrpc.getCreateFileMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getCreateFileMethod = FileSystemMasterClientServiceGrpc.getCreateFileMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getCreateFileMethod = getCreateFileMethod = 
+          FileSystemMasterClientServiceGrpc.getCreateFileMethod = getCreateFileMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.CreateFilePRequest, alluxio.grpc.CreateFilePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "CreateFile"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateFile"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CreateFilePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.CreateFilePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("CreateFile"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("CreateFile"))
+              .build();
         }
-     }
-     return getCreateFileMethod;
+      }
+    }
+    return getCreateFileMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.FreePRequest,
@@ -173,22 +169,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getFreeMethod = FileSystemMasterClientServiceGrpc.getFreeMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getFreeMethod = FileSystemMasterClientServiceGrpc.getFreeMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getFreeMethod = getFreeMethod = 
+          FileSystemMasterClientServiceGrpc.getFreeMethod = getFreeMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.FreePRequest, alluxio.grpc.FreePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "Free"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Free"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.FreePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.FreePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("Free"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("Free"))
+              .build();
         }
-     }
-     return getFreeMethod;
+      }
+    }
+    return getFreeMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetFilePathPRequest,
@@ -205,22 +200,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getGetFilePathMethod = FileSystemMasterClientServiceGrpc.getGetFilePathMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getGetFilePathMethod = FileSystemMasterClientServiceGrpc.getGetFilePathMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getGetFilePathMethod = getGetFilePathMethod = 
+          FileSystemMasterClientServiceGrpc.getGetFilePathMethod = getGetFilePathMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetFilePathPRequest, alluxio.grpc.GetFilePathPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "GetFilePath"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetFilePath"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetFilePathPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetFilePathPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("GetFilePath"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("GetFilePath"))
+              .build();
         }
-     }
-     return getGetFilePathMethod;
+      }
+    }
+    return getGetFilePathMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetMountTablePRequest,
@@ -237,22 +231,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getGetMountTableMethod = FileSystemMasterClientServiceGrpc.getGetMountTableMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getGetMountTableMethod = FileSystemMasterClientServiceGrpc.getGetMountTableMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getGetMountTableMethod = getGetMountTableMethod = 
+          FileSystemMasterClientServiceGrpc.getGetMountTableMethod = getGetMountTableMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetMountTablePRequest, alluxio.grpc.GetMountTablePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "GetMountTable"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetMountTable"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetMountTablePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetMountTablePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("GetMountTable"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("GetMountTable"))
+              .build();
         }
-     }
-     return getGetMountTableMethod;
+      }
+    }
+    return getGetMountTableMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetSyncPathListPRequest,
@@ -269,22 +262,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getGetSyncPathListMethod = FileSystemMasterClientServiceGrpc.getGetSyncPathListMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getGetSyncPathListMethod = FileSystemMasterClientServiceGrpc.getGetSyncPathListMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getGetSyncPathListMethod = getGetSyncPathListMethod = 
+          FileSystemMasterClientServiceGrpc.getGetSyncPathListMethod = getGetSyncPathListMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetSyncPathListPRequest, alluxio.grpc.GetSyncPathListPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "GetSyncPathList"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetSyncPathList"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetSyncPathListPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetSyncPathListPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("GetSyncPathList"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("GetSyncPathList"))
+              .build();
         }
-     }
-     return getGetSyncPathListMethod;
+      }
+    }
+    return getGetSyncPathListMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetNewBlockIdForFilePRequest,
@@ -301,22 +293,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getGetNewBlockIdForFileMethod = FileSystemMasterClientServiceGrpc.getGetNewBlockIdForFileMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getGetNewBlockIdForFileMethod = FileSystemMasterClientServiceGrpc.getGetNewBlockIdForFileMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getGetNewBlockIdForFileMethod = getGetNewBlockIdForFileMethod = 
+          FileSystemMasterClientServiceGrpc.getGetNewBlockIdForFileMethod = getGetNewBlockIdForFileMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetNewBlockIdForFilePRequest, alluxio.grpc.GetNewBlockIdForFilePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "GetNewBlockIdForFile"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetNewBlockIdForFile"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetNewBlockIdForFilePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetNewBlockIdForFilePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("GetNewBlockIdForFile"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("GetNewBlockIdForFile"))
+              .build();
         }
-     }
-     return getGetNewBlockIdForFileMethod;
+      }
+    }
+    return getGetNewBlockIdForFileMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.GetStatusPRequest,
@@ -333,22 +324,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getGetStatusMethod = FileSystemMasterClientServiceGrpc.getGetStatusMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getGetStatusMethod = FileSystemMasterClientServiceGrpc.getGetStatusMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getGetStatusMethod = getGetStatusMethod = 
+          FileSystemMasterClientServiceGrpc.getGetStatusMethod = getGetStatusMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.GetStatusPRequest, alluxio.grpc.GetStatusPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "GetStatus"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetStatus"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetStatusPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.GetStatusPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("GetStatus"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("GetStatus"))
+              .build();
         }
-     }
-     return getGetStatusMethod;
+      }
+    }
+    return getGetStatusMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.ListStatusPRequest,
@@ -365,22 +355,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getListStatusMethod = FileSystemMasterClientServiceGrpc.getListStatusMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getListStatusMethod = FileSystemMasterClientServiceGrpc.getListStatusMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getListStatusMethod = getListStatusMethod = 
+          FileSystemMasterClientServiceGrpc.getListStatusMethod = getListStatusMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.ListStatusPRequest, alluxio.grpc.ListStatusPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "ListStatus"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListStatus"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.ListStatusPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.ListStatusPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("ListStatus"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("ListStatus"))
+              .build();
         }
-     }
-     return getListStatusMethod;
+      }
+    }
+    return getListStatusMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.MountPRequest,
@@ -397,22 +386,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getMountMethod = FileSystemMasterClientServiceGrpc.getMountMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getMountMethod = FileSystemMasterClientServiceGrpc.getMountMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getMountMethod = getMountMethod = 
+          FileSystemMasterClientServiceGrpc.getMountMethod = getMountMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.MountPRequest, alluxio.grpc.MountPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "Mount"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Mount"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.MountPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.MountPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("Mount"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("Mount"))
+              .build();
         }
-     }
-     return getMountMethod;
+      }
+    }
+    return getMountMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.DeletePRequest,
@@ -429,22 +417,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getRemoveMethod = FileSystemMasterClientServiceGrpc.getRemoveMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getRemoveMethod = FileSystemMasterClientServiceGrpc.getRemoveMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getRemoveMethod = getRemoveMethod = 
+          FileSystemMasterClientServiceGrpc.getRemoveMethod = getRemoveMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.DeletePRequest, alluxio.grpc.DeletePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "Remove"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Remove"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.DeletePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.DeletePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("Remove"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("Remove"))
+              .build();
         }
-     }
-     return getRemoveMethod;
+      }
+    }
+    return getRemoveMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.RenamePRequest,
@@ -461,22 +448,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getRenameMethod = FileSystemMasterClientServiceGrpc.getRenameMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getRenameMethod = FileSystemMasterClientServiceGrpc.getRenameMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getRenameMethod = getRenameMethod = 
+          FileSystemMasterClientServiceGrpc.getRenameMethod = getRenameMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.RenamePRequest, alluxio.grpc.RenamePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "Rename"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Rename"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RenamePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.RenamePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("Rename"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("Rename"))
+              .build();
         }
-     }
-     return getRenameMethod;
+      }
+    }
+    return getRenameMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.ReverseResolvePRequest,
@@ -493,22 +479,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getReverseResolveMethod = FileSystemMasterClientServiceGrpc.getReverseResolveMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getReverseResolveMethod = FileSystemMasterClientServiceGrpc.getReverseResolveMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getReverseResolveMethod = getReverseResolveMethod = 
+          FileSystemMasterClientServiceGrpc.getReverseResolveMethod = getReverseResolveMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.ReverseResolvePRequest, alluxio.grpc.ReverseResolvePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "ReverseResolve"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ReverseResolve"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.ReverseResolvePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.ReverseResolvePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("ReverseResolve"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("ReverseResolve"))
+              .build();
         }
-     }
-     return getReverseResolveMethod;
+      }
+    }
+    return getReverseResolveMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.ScheduleAsyncPersistencePRequest,
@@ -525,22 +510,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getScheduleAsyncPersistenceMethod = FileSystemMasterClientServiceGrpc.getScheduleAsyncPersistenceMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getScheduleAsyncPersistenceMethod = FileSystemMasterClientServiceGrpc.getScheduleAsyncPersistenceMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getScheduleAsyncPersistenceMethod = getScheduleAsyncPersistenceMethod = 
+          FileSystemMasterClientServiceGrpc.getScheduleAsyncPersistenceMethod = getScheduleAsyncPersistenceMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.ScheduleAsyncPersistencePRequest, alluxio.grpc.ScheduleAsyncPersistencePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "ScheduleAsyncPersistence"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ScheduleAsyncPersistence"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.ScheduleAsyncPersistencePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.ScheduleAsyncPersistencePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("ScheduleAsyncPersistence"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("ScheduleAsyncPersistence"))
+              .build();
         }
-     }
-     return getScheduleAsyncPersistenceMethod;
+      }
+    }
+    return getScheduleAsyncPersistenceMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.SetAclPRequest,
@@ -557,22 +541,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getSetAclMethod = FileSystemMasterClientServiceGrpc.getSetAclMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getSetAclMethod = FileSystemMasterClientServiceGrpc.getSetAclMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getSetAclMethod = getSetAclMethod = 
+          FileSystemMasterClientServiceGrpc.getSetAclMethod = getSetAclMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.SetAclPRequest, alluxio.grpc.SetAclPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "SetAcl"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "SetAcl"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.SetAclPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.SetAclPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("SetAcl"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("SetAcl"))
+              .build();
         }
-     }
-     return getSetAclMethod;
+      }
+    }
+    return getSetAclMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.SetAttributePRequest,
@@ -589,22 +572,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getSetAttributeMethod = FileSystemMasterClientServiceGrpc.getSetAttributeMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getSetAttributeMethod = FileSystemMasterClientServiceGrpc.getSetAttributeMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getSetAttributeMethod = getSetAttributeMethod = 
+          FileSystemMasterClientServiceGrpc.getSetAttributeMethod = getSetAttributeMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.SetAttributePRequest, alluxio.grpc.SetAttributePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "SetAttribute"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "SetAttribute"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.SetAttributePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.SetAttributePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("SetAttribute"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("SetAttribute"))
+              .build();
         }
-     }
-     return getSetAttributeMethod;
+      }
+    }
+    return getSetAttributeMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.StartSyncPRequest,
@@ -621,22 +603,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getStartSyncMethod = FileSystemMasterClientServiceGrpc.getStartSyncMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getStartSyncMethod = FileSystemMasterClientServiceGrpc.getStartSyncMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getStartSyncMethod = getStartSyncMethod = 
+          FileSystemMasterClientServiceGrpc.getStartSyncMethod = getStartSyncMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.StartSyncPRequest, alluxio.grpc.StartSyncPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "StartSync"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "StartSync"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.StartSyncPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.StartSyncPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("StartSync"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("StartSync"))
+              .build();
         }
-     }
-     return getStartSyncMethod;
+      }
+    }
+    return getStartSyncMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.StopSyncPRequest,
@@ -653,22 +634,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getStopSyncMethod = FileSystemMasterClientServiceGrpc.getStopSyncMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getStopSyncMethod = FileSystemMasterClientServiceGrpc.getStopSyncMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getStopSyncMethod = getStopSyncMethod = 
+          FileSystemMasterClientServiceGrpc.getStopSyncMethod = getStopSyncMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.StopSyncPRequest, alluxio.grpc.StopSyncPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "StopSync"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "StopSync"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.StopSyncPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.StopSyncPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("StopSync"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("StopSync"))
+              .build();
         }
-     }
-     return getStopSyncMethod;
+      }
+    }
+    return getStopSyncMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.UnmountPRequest,
@@ -685,22 +665,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getUnmountMethod = FileSystemMasterClientServiceGrpc.getUnmountMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getUnmountMethod = FileSystemMasterClientServiceGrpc.getUnmountMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getUnmountMethod = getUnmountMethod = 
+          FileSystemMasterClientServiceGrpc.getUnmountMethod = getUnmountMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.UnmountPRequest, alluxio.grpc.UnmountPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "Unmount"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "Unmount"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.UnmountPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.UnmountPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("Unmount"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("Unmount"))
+              .build();
         }
-     }
-     return getUnmountMethod;
+      }
+    }
+    return getUnmountMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.UpdateMountPRequest,
@@ -717,22 +696,21 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getUpdateMountMethod = FileSystemMasterClientServiceGrpc.getUpdateMountMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getUpdateMountMethod = FileSystemMasterClientServiceGrpc.getUpdateMountMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getUpdateMountMethod = getUpdateMountMethod = 
+          FileSystemMasterClientServiceGrpc.getUpdateMountMethod = getUpdateMountMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.UpdateMountPRequest, alluxio.grpc.UpdateMountPResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "UpdateMount"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "UpdateMount"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.UpdateMountPRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.UpdateMountPResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("UpdateMount"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("UpdateMount"))
+              .build();
         }
-     }
-     return getUpdateMountMethod;
+      }
+    }
+    return getUpdateMountMethod;
   }
 
   private static volatile io.grpc.MethodDescriptor<alluxio.grpc.UpdateUfsModePRequest,
@@ -749,29 +727,35 @@ public final class FileSystemMasterClientServiceGrpc {
     if ((getUpdateUfsModeMethod = FileSystemMasterClientServiceGrpc.getUpdateUfsModeMethod) == null) {
       synchronized (FileSystemMasterClientServiceGrpc.class) {
         if ((getUpdateUfsModeMethod = FileSystemMasterClientServiceGrpc.getUpdateUfsModeMethod) == null) {
-          FileSystemMasterClientServiceGrpc.getUpdateUfsModeMethod = getUpdateUfsModeMethod = 
+          FileSystemMasterClientServiceGrpc.getUpdateUfsModeMethod = getUpdateUfsModeMethod =
               io.grpc.MethodDescriptor.<alluxio.grpc.UpdateUfsModePRequest, alluxio.grpc.UpdateUfsModePResponse>newBuilder()
               .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
-              .setFullMethodName(generateFullMethodName(
-                  "alluxio.grpc.file.FileSystemMasterClientService", "UpdateUfsMode"))
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "UpdateUfsMode"))
               .setSampledToLocalTracing(true)
               .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.UpdateUfsModePRequest.getDefaultInstance()))
               .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
                   alluxio.grpc.UpdateUfsModePResponse.getDefaultInstance()))
-                  .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("UpdateUfsMode"))
-                  .build();
-          }
+              .setSchemaDescriptor(new FileSystemMasterClientServiceMethodDescriptorSupplier("UpdateUfsMode"))
+              .build();
         }
-     }
-     return getUpdateUfsModeMethod;
+      }
+    }
+    return getUpdateUfsModeMethod;
   }
 
   /**
    * Creates a new async stub that supports all call types for the service
    */
   public static FileSystemMasterClientServiceStub newStub(io.grpc.Channel channel) {
-    return new FileSystemMasterClientServiceStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterClientServiceStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterClientServiceStub>() {
+        @java.lang.Override
+        public FileSystemMasterClientServiceStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new FileSystemMasterClientServiceStub(channel, callOptions);
+        }
+      };
+    return FileSystemMasterClientServiceStub.newStub(factory, channel);
   }
 
   /**
@@ -779,7 +763,14 @@ public final class FileSystemMasterClientServiceGrpc {
    */
   public static FileSystemMasterClientServiceBlockingStub newBlockingStub(
       io.grpc.Channel channel) {
-    return new FileSystemMasterClientServiceBlockingStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterClientServiceBlockingStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterClientServiceBlockingStub>() {
+        @java.lang.Override
+        public FileSystemMasterClientServiceBlockingStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new FileSystemMasterClientServiceBlockingStub(channel, callOptions);
+        }
+      };
+    return FileSystemMasterClientServiceBlockingStub.newStub(factory, channel);
   }
 
   /**
@@ -787,7 +778,14 @@ public final class FileSystemMasterClientServiceGrpc {
    */
   public static FileSystemMasterClientServiceFutureStub newFutureStub(
       io.grpc.Channel channel) {
-    return new FileSystemMasterClientServiceFutureStub(channel);
+    io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterClientServiceFutureStub> factory =
+      new io.grpc.stub.AbstractStub.StubFactory<FileSystemMasterClientServiceFutureStub>() {
+        @java.lang.Override
+        public FileSystemMasterClientServiceFutureStub newStub(io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
+          return new FileSystemMasterClientServiceFutureStub(channel, callOptions);
+        }
+      };
+    return FileSystemMasterClientServiceFutureStub.newStub(factory, channel);
   }
 
   /**
@@ -1229,19 +1227,15 @@ public final class FileSystemMasterClientServiceGrpc {
    * This interface contains file system master service endpoints for Alluxio clients.
    * </pre>
    */
-  public static final class FileSystemMasterClientServiceStub extends io.grpc.stub.AbstractStub<FileSystemMasterClientServiceStub> {
-    private FileSystemMasterClientServiceStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private FileSystemMasterClientServiceStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class FileSystemMasterClientServiceStub extends io.grpc.stub.AbstractAsyncStub<FileSystemMasterClientServiceStub> {
+    private FileSystemMasterClientServiceStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected FileSystemMasterClientServiceStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected FileSystemMasterClientServiceStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new FileSystemMasterClientServiceStub(channel, callOptions);
     }
 
@@ -1533,19 +1527,15 @@ public final class FileSystemMasterClientServiceGrpc {
    * This interface contains file system master service endpoints for Alluxio clients.
    * </pre>
    */
-  public static final class FileSystemMasterClientServiceBlockingStub extends io.grpc.stub.AbstractStub<FileSystemMasterClientServiceBlockingStub> {
-    private FileSystemMasterClientServiceBlockingStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private FileSystemMasterClientServiceBlockingStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class FileSystemMasterClientServiceBlockingStub extends io.grpc.stub.AbstractBlockingStub<FileSystemMasterClientServiceBlockingStub> {
+    private FileSystemMasterClientServiceBlockingStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected FileSystemMasterClientServiceBlockingStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected FileSystemMasterClientServiceBlockingStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new FileSystemMasterClientServiceBlockingStub(channel, callOptions);
     }
 
@@ -1815,19 +1805,15 @@ public final class FileSystemMasterClientServiceGrpc {
    * This interface contains file system master service endpoints for Alluxio clients.
    * </pre>
    */
-  public static final class FileSystemMasterClientServiceFutureStub extends io.grpc.stub.AbstractStub<FileSystemMasterClientServiceFutureStub> {
-    private FileSystemMasterClientServiceFutureStub(io.grpc.Channel channel) {
-      super(channel);
-    }
-
-    private FileSystemMasterClientServiceFutureStub(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+  public static final class FileSystemMasterClientServiceFutureStub extends io.grpc.stub.AbstractFutureStub<FileSystemMasterClientServiceFutureStub> {
+    private FileSystemMasterClientServiceFutureStub(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       super(channel, callOptions);
     }
 
     @java.lang.Override
-    protected FileSystemMasterClientServiceFutureStub build(io.grpc.Channel channel,
-        io.grpc.CallOptions callOptions) {
+    protected FileSystemMasterClientServiceFutureStub build(
+        io.grpc.Channel channel, io.grpc.CallOptions callOptions) {
       return new FileSystemMasterClientServiceFutureStub(channel, callOptions);
     }
 

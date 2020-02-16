@@ -9,23 +9,29 @@ public interface PersistFileOrBuilder extends
 
   /**
    * <code>optional int64 fileId = 1;</code>
+   * @return Whether the fileId field is set.
    */
   boolean hasFileId();
   /**
    * <code>optional int64 fileId = 1;</code>
+   * @return The fileId.
    */
   long getFileId();
 
   /**
    * <code>repeated int64 blockIds = 2;</code>
+   * @return A list containing the blockIds.
    */
   java.util.List<java.lang.Long> getBlockIdsList();
   /**
    * <code>repeated int64 blockIds = 2;</code>
+   * @return The count of blockIds.
    */
   int getBlockIdsCount();
   /**
    * <code>repeated int64 blockIds = 2;</code>
+   * @param index The index of the element to return.
+   * @return The blockIds at the given index.
    */
   long getBlockIds(int index);
 }

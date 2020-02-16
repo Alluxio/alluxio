@@ -9,10 +9,12 @@ public interface MetricsHeartbeatPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.metric.MetricsHeartbeatPOptions options = 1;</code>
+   * @return The options.
    */
   alluxio.grpc.MetricsHeartbeatPOptions getOptions();
   /**

@@ -16,8 +16,14 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private PersistFile() {
-    fileId_ = 0L;
-    blockIds_ = java.util.Collections.emptyList();
+    blockIds_ = emptyLongList();
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new PersistFile();
   }
 
   @java.lang.Override
@@ -44,37 +50,37 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             bitField0_ |= 0x00000001;
             fileId_ = input.readInt64();
             break;
           }
           case 16: {
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-              blockIds_ = new java.util.ArrayList<java.lang.Long>();
+            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
+              blockIds_ = newLongList();
               mutable_bitField0_ |= 0x00000002;
             }
-            blockIds_.add(input.readInt64());
+            blockIds_.addLong(input.readInt64());
             break;
           }
           case 18: {
             int length = input.readRawVarint32();
             int limit = input.pushLimit(length);
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002) && input.getBytesUntilLimit() > 0) {
-              blockIds_ = new java.util.ArrayList<java.lang.Long>();
+            if (!((mutable_bitField0_ & 0x00000002) != 0) && input.getBytesUntilLimit() > 0) {
+              blockIds_ = newLongList();
               mutable_bitField0_ |= 0x00000002;
             }
             while (input.getBytesUntilLimit() > 0) {
-              blockIds_.add(input.readInt64());
+              blockIds_.addLong(input.readInt64());
             }
             input.popLimit(limit);
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -85,8 +91,8 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-        blockIds_ = java.util.Collections.unmodifiableList(blockIds_);
+      if (((mutable_bitField0_ & 0x00000002) != 0)) {
+        blockIds_.makeImmutable(); // C
       }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
@@ -97,6 +103,7 @@ private static final long serialVersionUID = 0L;
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_PersistFile_descriptor;
   }
 
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_PersistFile_fieldAccessorTable
@@ -109,21 +116,24 @@ private static final long serialVersionUID = 0L;
   private long fileId_;
   /**
    * <code>optional int64 fileId = 1;</code>
+   * @return Whether the fileId field is set.
    */
   public boolean hasFileId() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <code>optional int64 fileId = 1;</code>
+   * @return The fileId.
    */
   public long getFileId() {
     return fileId_;
   }
 
   public static final int BLOCKIDS_FIELD_NUMBER = 2;
-  private java.util.List<java.lang.Long> blockIds_;
+  private com.google.protobuf.Internal.LongList blockIds_;
   /**
    * <code>repeated int64 blockIds = 2;</code>
+   * @return A list containing the blockIds.
    */
   public java.util.List<java.lang.Long>
       getBlockIdsList() {
@@ -131,18 +141,22 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <code>repeated int64 blockIds = 2;</code>
+   * @return The count of blockIds.
    */
   public int getBlockIdsCount() {
     return blockIds_.size();
   }
   /**
    * <code>repeated int64 blockIds = 2;</code>
+   * @param index The index of the element to return.
+   * @return The blockIds at the given index.
    */
   public long getBlockIds(int index) {
-    return blockIds_.get(index);
+    return blockIds_.getLong(index);
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -152,23 +166,25 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeInt64(1, fileId_);
     }
     for (int i = 0; i < blockIds_.size(); i++) {
-      output.writeInt64(2, blockIds_.get(i));
+      output.writeInt64(2, blockIds_.getLong(i));
     }
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(1, fileId_);
     }
@@ -176,7 +192,7 @@ private static final long serialVersionUID = 0L;
       int dataSize = 0;
       for (int i = 0; i < blockIds_.size(); i++) {
         dataSize += com.google.protobuf.CodedOutputStream
-          .computeInt64SizeNoTag(blockIds_.get(i));
+          .computeInt64SizeNoTag(blockIds_.getLong(i));
       }
       size += dataSize;
       size += 1 * getBlockIdsList().size();
@@ -196,16 +212,15 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.PersistFile other = (alluxio.grpc.PersistFile) obj;
 
-    boolean result = true;
-    result = result && (hasFileId() == other.hasFileId());
+    if (hasFileId() != other.hasFileId()) return false;
     if (hasFileId()) {
-      result = result && (getFileId()
-          == other.getFileId());
+      if (getFileId()
+          != other.getFileId()) return false;
     }
-    result = result && getBlockIdsList()
-        .equals(other.getBlockIdsList());
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!getBlockIdsList()
+        .equals(other.getBlockIdsList())) return false;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -299,6 +314,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -306,6 +322,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.PersistFile prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -329,6 +346,7 @@ private static final long serialVersionUID = 0L;
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_PersistFile_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_PersistFile_fieldAccessorTable
@@ -351,24 +369,28 @@ private static final long serialVersionUID = 0L;
               .alwaysUseFieldBuilders) {
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       fileId_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
-      blockIds_ = java.util.Collections.emptyList();
+      blockIds_ = emptyLongList();
       bitField0_ = (bitField0_ & ~0x00000002);
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.FileSystemMasterProto.internal_static_alluxio_grpc_file_PersistFile_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.PersistFile getDefaultInstanceForType() {
       return alluxio.grpc.PersistFile.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.PersistFile build() {
       alluxio.grpc.PersistFile result = buildPartial();
       if (!result.isInitialized()) {
@@ -377,16 +399,17 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.PersistFile buildPartial() {
       alluxio.grpc.PersistFile result = new alluxio.grpc.PersistFile(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        result.fileId_ = fileId_;
         to_bitField0_ |= 0x00000001;
       }
-      result.fileId_ = fileId_;
-      if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        blockIds_ = java.util.Collections.unmodifiableList(blockIds_);
+      if (((bitField0_ & 0x00000002) != 0)) {
+        blockIds_.makeImmutable();
         bitField0_ = (bitField0_ & ~0x00000002);
       }
       result.blockIds_ = blockIds_;
@@ -395,32 +418,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.PersistFile) {
         return mergeFrom((alluxio.grpc.PersistFile)other);
@@ -450,10 +480,12 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -476,18 +508,22 @@ private static final long serialVersionUID = 0L;
     private long fileId_ ;
     /**
      * <code>optional int64 fileId = 1;</code>
+     * @return Whether the fileId field is set.
      */
     public boolean hasFileId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional int64 fileId = 1;</code>
+     * @return The fileId.
      */
     public long getFileId() {
       return fileId_;
     }
     /**
      * <code>optional int64 fileId = 1;</code>
+     * @param value The fileId to set.
+     * @return This builder for chaining.
      */
     public Builder setFileId(long value) {
       bitField0_ |= 0x00000001;
@@ -497,6 +533,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>optional int64 fileId = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearFileId() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -505,53 +542,65 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.util.List<java.lang.Long> blockIds_ = java.util.Collections.emptyList();
+    private com.google.protobuf.Internal.LongList blockIds_ = emptyLongList();
     private void ensureBlockIdsIsMutable() {
-      if (!((bitField0_ & 0x00000002) == 0x00000002)) {
-        blockIds_ = new java.util.ArrayList<java.lang.Long>(blockIds_);
+      if (!((bitField0_ & 0x00000002) != 0)) {
+        blockIds_ = mutableCopy(blockIds_);
         bitField0_ |= 0x00000002;
        }
     }
     /**
      * <code>repeated int64 blockIds = 2;</code>
+     * @return A list containing the blockIds.
      */
     public java.util.List<java.lang.Long>
         getBlockIdsList() {
-      return java.util.Collections.unmodifiableList(blockIds_);
+      return ((bitField0_ & 0x00000002) != 0) ?
+               java.util.Collections.unmodifiableList(blockIds_) : blockIds_;
     }
     /**
      * <code>repeated int64 blockIds = 2;</code>
+     * @return The count of blockIds.
      */
     public int getBlockIdsCount() {
       return blockIds_.size();
     }
     /**
      * <code>repeated int64 blockIds = 2;</code>
+     * @param index The index of the element to return.
+     * @return The blockIds at the given index.
      */
     public long getBlockIds(int index) {
-      return blockIds_.get(index);
+      return blockIds_.getLong(index);
     }
     /**
      * <code>repeated int64 blockIds = 2;</code>
+     * @param index The index to set the value at.
+     * @param value The blockIds to set.
+     * @return This builder for chaining.
      */
     public Builder setBlockIds(
         int index, long value) {
       ensureBlockIdsIsMutable();
-      blockIds_.set(index, value);
+      blockIds_.setLong(index, value);
       onChanged();
       return this;
     }
     /**
      * <code>repeated int64 blockIds = 2;</code>
+     * @param value The blockIds to add.
+     * @return This builder for chaining.
      */
     public Builder addBlockIds(long value) {
       ensureBlockIdsIsMutable();
-      blockIds_.add(value);
+      blockIds_.addLong(value);
       onChanged();
       return this;
     }
     /**
      * <code>repeated int64 blockIds = 2;</code>
+     * @param values The blockIds to add.
+     * @return This builder for chaining.
      */
     public Builder addAllBlockIds(
         java.lang.Iterable<? extends java.lang.Long> values) {
@@ -563,18 +612,21 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <code>repeated int64 blockIds = 2;</code>
+     * @return This builder for chaining.
      */
     public Builder clearBlockIds() {
-      blockIds_ = java.util.Collections.emptyList();
+      blockIds_ = emptyLongList();
       bitField0_ = (bitField0_ & ~0x00000002);
       onChanged();
       return this;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -596,6 +648,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<PersistFile>
       PARSER = new com.google.protobuf.AbstractParser<PersistFile>() {
+    @java.lang.Override
     public PersistFile parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -613,6 +666,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.PersistFile getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

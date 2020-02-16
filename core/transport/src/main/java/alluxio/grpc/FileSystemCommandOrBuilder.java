@@ -9,19 +9,23 @@ public interface FileSystemCommandOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.CommandType commandType = 1;</code>
+   * @return Whether the commandType field is set.
    */
   boolean hasCommandType();
   /**
    * <code>optional .alluxio.grpc.CommandType commandType = 1;</code>
+   * @return The commandType.
    */
   alluxio.grpc.CommandType getCommandType();
 
   /**
    * <code>optional .alluxio.grpc.file.FileSystemCommandOptions commandOptions = 2;</code>
+   * @return Whether the commandOptions field is set.
    */
   boolean hasCommandOptions();
   /**
    * <code>optional .alluxio.grpc.file.FileSystemCommandOptions commandOptions = 2;</code>
+   * @return The commandOptions.
    */
   alluxio.grpc.FileSystemCommandOptions getCommandOptions();
   /**
