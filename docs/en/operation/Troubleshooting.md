@@ -56,6 +56,69 @@ set the debug server's host and port, and start the debug session. If you set a 
 will enter debug mode and you can inspect the current context's variables, call stack, thread list, and expression
 evaluation.
 
+## Alluxio collectInfo command
+
+Alluxio has a `collectInfo` command that collect information to troubleshoot an Alluxio cluster. 
+`collectInfo` will run a set of sub-commands that each collects one aspect of system information, as explained below.
+In the end the collected information will be bundled into one tarball which contains all information regarding your Alluxio cluster.
+The tarball can then be shared with someone you trust to help troubleshoot your Alluxio cluster.
+
+The `collectInfo` will SSH to each node and execute the set of sub-commands.
+In the end of execution the collected information will be written to files and tarballed.
+Each individual tarball will be collected to the issuing node.
+Then all the tarballs will be bundled into the final tarball, which contains all information about the Alluxio cluster. 
+
+>NOTE: Be careful if your configuration contains credentials like AWS keys!
+You should ALWAYS CHECK what is in the tarball and REMOVE the sensitive information from the tarball before sharing it with someone!
+
+### Collect Alluxio cluster information
+`collectAlluxioInfo` will run a set of Alluxio commands that collect information about the Alluxio cluster, like `bin/alluxio fsadmin report` etc.
+When the Alluxio cluster is not running, this command will fail to collect some information.
+
+### Collect Alluxio configuration files
+`collectConfig` will collect all the configuration files under `${alluxio.work.dir}/conf`.
+
+### Collect Alluxio logs
+`collectLog` will collect all the logs under `${alluxio.work.dir}/logs`.
+
+### Collect Alluxio metrics
+`collectMetrics` will collect Alluxio metrics served at `http://${alluxio.master.hostname}:${alluxio.master.web.port}/metrics/json/` by default.
+The metrics will be collected multiple times to see the progress.
+
+### Collect JVM information
+`collectJvmInfo` will collect information about the existing JVMs on each node.
+This is done by running a `jps` command then `jstack` on each found JVM process.
+This will be done multiple times to see if the JVMs are making progress. 
+
+### Collect system information
+`collectEnv` will run a set of bash commands to collect information about the running node.
+This runs system troubleshooting commands like `env`, `hostname`, `top` etc.
+
+### Command options
+
+The `collectInfo` command has the below options.
+
+```console
+$ bin/alluxio collectInfo [--local] [--max-threads threadNum]
+    [all <outputPath>]
+    [collectAlluxioInfo <outputPath>]                         
+    [collectConfig <outputPath>]                              
+    [collectEnv <outputPath>]                                 
+    [collectJvmInfo <outputPath>]                             
+    [collectLogs <outputPath>]                                
+    [collectMetrics <outputPath>]
+```
+
+`<outputPath>` is the directory you want the final tarball to be written into.
+
+Options:
+1. `--local` option specifies the `collectInfo` command to run only on `localhost`.
+That means the command will only collect information about the `localhost`.
+
+1. `--max-threads threadNum` option configures how many threads to use for concurrently collecting information and transmitting tarballs.
+When the cluster has a large number of nodes, or large log files, the network IO for transmitting tarballs can be significant.
+Use this parameter to constrain the resource usage of this command. 
+
 ## Setup FAQ
 
 ### Q: I'm new to Alluxio and cannot set up Alluxio on my local machine. What should I do?
