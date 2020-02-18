@@ -144,6 +144,17 @@ public class DefaultPermissionChecker implements PermissionChecker {
     }
   }
 
+  @Override
+  public void checkSuperUser() throws AccessControlException {
+    // collects user and groups
+    String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
+    List<String> groups = getGroups(user);
+    if (!isPrivilegedUser(user, groups)) {
+      throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
+          .getMessage(user + " is not a super user or in super group"));
+    }
+  }
+
   /**
    * @param user the user to get groups for
    * @return the groups for the given user
@@ -179,21 +190,6 @@ public class DefaultPermissionChecker implements PermissionChecker {
     }
 
     checkInodeList(user, groups, null, inodePath.getUri().getPath(), inodeList, true);
-  }
-
-  /**
-   * Checks whether the user is a super user or in super group.
-   *
-   * @throws AccessControlException if the user is not a super user
-   */
-  private void checkSuperUser() throws AccessControlException {
-    // collects user and groups
-    String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
-    List<String> groups = getGroups(user);
-    if (!isPrivilegedUser(user, groups)) {
-      throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
-          .getMessage(user + " is not a super user or in super group"));
-    }
   }
 
   /**

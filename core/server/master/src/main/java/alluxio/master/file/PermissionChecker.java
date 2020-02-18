@@ -47,6 +47,13 @@ public interface PermissionChecker {
       throws AccessControlException;
 
   /**
+   * Checks whether the user is a super user or in super group.
+   *
+   * @throws AccessControlException if the user is not a super user
+   */
+  void checkSuperUser() throws AccessControlException;
+
+  /**
    * Gets the permission to access inodePath for the current client user.
    *
    * @param inodePath the inode path
