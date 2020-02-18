@@ -140,9 +140,9 @@ public interface FileSystem extends Closeable {
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
-      FileSystem fs = (conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED))
+      FileSystem fs = conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)
           ? new MetadataCachingBaseFileSystem(context) : new BaseFileSystem(context);
-      if (conf.getBoolean(PropertyKey.USER_LOCAL_CACHE_ENABLED)) {
+      if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)) {
         return new LocalCacheFileSystem(fs, conf);
       }
       return fs;

@@ -3184,6 +3184,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_CLIENT_CACHE_ENABLED)
           .setDefaultValue(false)
           .setDescription("If this is enabled, data will be cached on Alluxio client.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_EVICTOR_CLASS =
@@ -3192,12 +3193,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The strategy that client uses to evict local cached pages when running "
               + "out of space. Currently the only valid option provided is "
               + "`alluxio.client.file.cache.evictor.LRUCacheEvictor`.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_DIR =
       new Builder(Name.USER_CLIENT_CACHE_DIR)
           .setDefaultValue("/tmp/alluxio_cache")
           .setDescription("The directory where client-side cache is stored.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_STORE_TYPE =
@@ -3206,18 +3209,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The type of page store to use for client-side cache. Can be either "
               + "`LOCAL` or `ROCKS`. The `LOCAL` page store stores all pages in a directory, "
               + "the `ROCKS` page store utilizes rocksDB to persist the data.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_SIZE =
       new Builder(Name.USER_CLIENT_CACHE_SIZE)
           .setDefaultValue("512MB")
           .setDescription("The maximum size of the client-side cache.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_PAGE_SIZE =
       new Builder(Name.USER_CLIENT_CACHE_PAGE_SIZE)
           .setDefaultValue("1MB")
           .setDescription("Size of each page in client-side cache.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
@@ -3249,13 +3255,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "bottom going up (-1 identifies the last tier, -2 identifies the second to "
               + "last tier, and so on). If the absolute value of the provided value is "
               + "greater than the number of tiers, it identifies the first tier.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_LOCAL_CACHE_ENABLED =
-      new Builder(Name.USER_LOCAL_CACHE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("If this is enabled, data will be cached on Alluxio client.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -4674,7 +4673,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
-    public static final String USER_LOCAL_CACHE_ENABLED = "alluxio.user.local.cache.enabled";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.reader.chunk.size.bytes";
     public static final String USER_LOCAL_WRITER_CHUNK_SIZE_BYTES =
