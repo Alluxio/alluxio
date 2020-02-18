@@ -193,6 +193,13 @@ public final class CompactDefinition
             }
           }
         }
+      } catch (Throwable e) {
+        try {
+          context.getFileSystem().delete(output); // outputUri is the output file
+        } catch (Throwable t) {
+          e.addSuppressed(t);
+        }
+        throw e;
       }
     }
     return null;
