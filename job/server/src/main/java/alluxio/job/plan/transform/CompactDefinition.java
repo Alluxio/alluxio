@@ -180,7 +180,8 @@ public final class CompactDefinition
       AlluxioURI output = new AlluxioURI(task.getOutput());
 
       TableSchema schema;
-      try (TableReader reader = TableReader.create(new AlluxioURI(inputs.get(0)), config.getPartitionInfo())) {
+      try (TableReader reader = TableReader.create(new AlluxioURI(inputs.get(0)),
+          config.getPartitionInfo())) {
         schema = reader.getSchema();
       }
 
