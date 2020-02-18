@@ -17,7 +17,7 @@ fullnameOverride: alluxio
 
 # Docker Image
 image: alluxio/alluxio
-imageTag: 2.2.0-SNAPSHOT
+imageTag: 2.3.0-SNAPSHOT
 imagePullPolicy: IfNotPresent
 
 # Security Context
@@ -188,7 +188,7 @@ jobWorker:
 
 fuse:
   image: alluxio/alluxio-fuse
-  imageTag: 2.2.0-SNAPSHOT
+  imageTag: 2.3.0-SNAPSHOT
   imagePullPolicy: IfNotPresent
   # Properties for the jobWorker component
   properties:
