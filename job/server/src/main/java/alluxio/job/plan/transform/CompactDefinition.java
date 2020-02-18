@@ -193,8 +193,6 @@ public final class CompactDefinition
             }
           }
         }
-      } finally {
-        context.getFileSystem().delete(output); // output is the compacted file
       }
     }
     return null;
