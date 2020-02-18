@@ -74,8 +74,7 @@ public class MetadataCachingBaseFileSystemTest {
     when(mFileContext.getClusterConf()).thenReturn(mConf);
     when(mFileContext.getPathConf(any())).thenReturn(mConf);
     when(mFileContext.getUriValidationEnabled()).thenReturn(true);
-    FileSystem fs = new BaseFileSystem(mFileContext);
-    mFs = new MetadataCachingBaseFileSystem(fs, mFileContext);
+    mFs = new MetadataCachingBaseFileSystem(mFileContext);
   }
 
   @After

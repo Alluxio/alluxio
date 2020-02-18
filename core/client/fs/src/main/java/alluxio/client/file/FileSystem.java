@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.cache.LocalCacheFileSystem;
-import alluxio.client.file.cache.MetadataCachingLocalCacheFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -45,7 +44,6 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
-import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
@@ -142,20 +140,12 @@ public interface FileSystem extends Closeable {
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
-      Class fsClass = conf.getClass(PropertyKey.USER_FILESYSTEM_CLASS);
-      Class[] ctorArgClasses = new Class[] {FileSystemContext.class};
-      Object[] ctorArgs = new Object[] {context};
-      FileSystem fs =
-          (FileSystem) CommonUtils.createNewClassInstance(fsClass, ctorArgClasses, ctorArgs);
-      boolean dataCache = conf.getBoolean(PropertyKey.USER_LOCAL_CACHE_ENABLED);
-      boolean metadataCache =
-          conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED);
-      if (dataCache) {
-        return metadataCache ? new MetadataCachingLocalCacheFileSystem(fs, context)
-            : new LocalCacheFileSystem(fs, conf);
-      } else {
-        return metadataCache ? new MetadataCachingBaseFileSystem(fs, context) : fs;
+      FileSystem fs = (conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) ?
+          new MetadataCachingBaseFileSystem(context) : new BaseFileSystem(context);
+      if (conf.getBoolean(PropertyKey.USER_LOCAL_CACHE_ENABLED)) {
+        return new LocalCacheFileSystem(fs, conf);
       }
+      return fs;
     }
   }
 

@@ -15,6 +15,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
@@ -53,8 +54,10 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AclEntry;
+import alluxio.uri.Authority;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.BlockLocationInfo;
@@ -63,6 +66,7 @@ import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import com.google.common.net.HostAndPort;
 import org.slf4j.Logger;
@@ -87,10 +91,10 @@ public class BaseFileSystem implements FileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
   /** Used to manage closeable resources. */
   private final Closer mCloser = Closer.create();
-  private final FileSystemContext mFsContext;
-  private final AlluxioBlockStore mBlockStore;
+  protected final FileSystemContext mFsContext;
+  protected final AlluxioBlockStore mBlockStore;
 
-  private volatile boolean mClosed = false;
+  protected volatile boolean mClosed = false;
 
   /**
    * Constructs a new base file system.
@@ -127,7 +131,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, path);
+    checkUri(path);
     rpc(client -> {
       CreateDirectoryPOptions mergedOptions = FileSystemOptions.createDirectoryDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
@@ -140,7 +144,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, path);
+    checkUri(path);
     return rpc(client -> {
       CreateFilePOptions mergedOptions = FileSystemOptions.createFileDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
@@ -164,7 +168,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void delete(AlluxioURI path, DeletePOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, path);
+    checkUri(path);
     rpc(client -> {
       DeletePOptions mergedOptions = FileSystemOptions.deleteDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
@@ -177,7 +181,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public boolean exists(AlluxioURI path, final ExistsPOptions options)
       throws IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, path);
+    checkUri(path);
     try {
       return rpc(client -> {
         ExistsPOptions mergedOptions = FileSystemOptions.existsDefaults(
@@ -194,7 +198,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void free(AlluxioURI path, final FreePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, path);
+    checkUri(path);
     rpc(client -> {
       FreePOptions mergedOptions = FileSystemOptions.freeDefaults(mFsContext.getPathConf(path))
           .toBuilder().mergeFrom(options).build();
@@ -250,7 +254,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, path);
+    checkUri(path);
     return rpc(client -> {
       GetStatusPOptions mergedOptions = FileSystemOptions.getStatusDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
@@ -261,7 +265,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public List<URIStatus> listStatus(AlluxioURI path, final ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, path);
+    checkUri(path);
     return rpc(client -> {
       // TODO(calvin): Fix the exception handling in the master
       ListStatusPOptions mergedOptions = FileSystemOptions.listStatusDefaults(
@@ -273,7 +277,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, final MountPOptions options)
       throws IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, alluxioPath);
+    checkUri(alluxioPath);
     rpc(client -> {
       MountPOptions mergedOptions = FileSystemOptions.mountDefaults(
           mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
@@ -287,7 +291,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void updateMount(AlluxioURI alluxioPath, final MountPOptions options)
       throws IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, alluxioPath);
+    checkUri(alluxioPath);
     rpc(client -> {
       MountPOptions mergedOptions = FileSystemOptions.mountDefaults(
           mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
@@ -310,7 +314,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void persist(final AlluxioURI path, final ScheduleAsyncPersistencePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, path);
+    checkUri(path);
     rpc(client -> {
       ScheduleAsyncPersistencePOptions mergedOptions =
           FileSystemOptions.scheduleAsyncPersistDefaults(mFsContext.getPathConf(path)).toBuilder()
@@ -325,7 +329,7 @@ public class BaseFileSystem implements FileSystem {
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
       IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, path);
+    checkUri(path);
     AlluxioConfiguration conf = mFsContext.getPathConf(path);
     URIStatus status = getStatus(path,
         FileSystemOptions.getStatusDefaults(conf).toBuilder()
@@ -356,8 +360,8 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, src);
-    FileSystemUtils.checkUri(mFsContext, dst);
+    checkUri(src);
+    checkUri(dst);
     rpc(client -> {
       RenamePOptions mergedOptions = FileSystemOptions.renameDefaults(mFsContext.getPathConf(dst))
           .toBuilder().mergeFrom(options).build();
@@ -380,7 +384,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, path);
+    checkUri(path);
     rpc(client -> {
       SetAclPOptions mergedOptions = FileSystemOptions.setAclDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
@@ -394,7 +398,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, path);
+    checkUri(path);
     SetAttributePOptions mergedOptions =
         FileSystemOptions.setAttributeClientDefaults(mFsContext.getPathConf(path))
             .toBuilder().mergeFrom(options).build();
@@ -413,7 +417,6 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void startSync(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, path);
     rpc(client -> {
       client.startSync(path);
       LOG.debug("Start syncing for {}", path.getPath());
@@ -428,7 +431,6 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void stopSync(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, path);
     rpc(client -> {
       client.stopSync(path);
       LOG.debug("Stop syncing for {}", path.getPath());
@@ -439,7 +441,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void unmount(AlluxioURI path, UnmountPOptions options)
       throws IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, path);
+    checkUri(path);
     rpc(client -> {
       UnmountPOptions mergedOptions = FileSystemOptions.unmountDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
@@ -447,6 +449,49 @@ public class BaseFileSystem implements FileSystem {
       LOG.debug("Unmounted {}, options: {}", path.getPath(), mergedOptions);
       return null;
     });
+  }
+
+  /**
+   * Checks an {@link AlluxioURI} for scheme and authority information. Warn the user and throw an
+   * exception if necessary.
+   */
+  protected void checkUri(AlluxioURI uri) {
+    Preconditions.checkNotNull(uri, "uri");
+    if (!mFsContext.getUriValidationEnabled()) {
+      return;
+    }
+
+    if (uri.hasScheme()) {
+      String warnMsg = "The URI scheme \"{}\" is ignored and not required in URIs passed to"
+          + " the Alluxio Filesystem client.";
+      switch (uri.getScheme()) {
+        case Constants.SCHEME:
+          LOG.warn(warnMsg, Constants.SCHEME);
+          break;
+        default:
+          throw new IllegalArgumentException(
+              String.format("Scheme %s:// in AlluxioURI is invalid. Schemes in filesystem"
+                  + " operations are ignored. \"alluxio://\" or no scheme at all is valid.",
+                  uri.getScheme()));
+      }
+    }
+
+    if (uri.hasAuthority()) {
+      LOG.warn("The URI authority (hostname and port) is ignored and not required in URIs passed "
+          + "to the Alluxio Filesystem client.");
+      /* Even if we choose to log the warning, check if the Configuration host matches what the
+       * user passes. If not, throw an exception letting the user know they don't match.
+       */
+      Authority configured =
+          MasterInquireClient.Factory
+              .create(mFsContext.getClusterConf(), mFsContext.getClientContext().getUserState())
+              .getConnectDetails().toAuthority();
+      if (!configured.equals(uri.getAuthority())) {
+        throw new IllegalArgumentException(
+            String.format("The URI authority %s does not match the configured " + "value of %s.",
+                uri.getAuthority(), configured));
+      }
+    }
   }
 
   @FunctionalInterface

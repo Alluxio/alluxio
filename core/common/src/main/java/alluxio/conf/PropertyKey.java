@@ -3233,16 +3233,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_FILESYSTEM_CLASS =
-      new Builder(Name.USER_FILESYSTEM_CLASS)
-          .setDefaultValue("alluxio.client.file.BaseFileSystem")
-          .setDescription("Type of file system to use. Users can select augmented file systems "
-              + "based on the use case. For example, MetadataCachingBaseFileSystem is efficient "
-              + "for FUSE workloads. Possible values are alluxio.client.file.BaseFileSystem "
-              + "(default) and alluxio.client.file.MetadataCachingBaseFileSystem.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_HOSTNAME = new Builder(Name.USER_HOSTNAME)
       .setDescription("The hostname to use for an Alluxio client.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4683,7 +4673,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";
-    public static final String USER_FILESYSTEM_CLASS = "alluxio.user.filesystem.class";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
     public static final String USER_LOCAL_CACHE_ENABLED = "alluxio.user.local.cache.enabled";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =

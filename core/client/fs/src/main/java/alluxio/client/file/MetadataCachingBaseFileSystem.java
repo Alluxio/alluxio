@@ -12,53 +12,128 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.Bits;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.util.FileSystemOptions;
+import alluxio.util.ThreadUtils;
 
-import com.google.common.io.Closer;
+import com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * FileSystem implementation with the capability of caching metadata of paths.
  */
+@ThreadSafe
 public class MetadataCachingBaseFileSystem extends BaseFileSystem {
-  private final MetadataCacheManager mMetadataCacheManager;
-  private final FileSystemContext mFsContext;
-  private final Closer mCloser;
+  private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
+  private static final int THREAD_KEEPALIVE_SECOND = 60;
+  private static final int THREAD_TERMINATION_TIMEOUT_MS = 10000;
+
+  private final MetadataCache mMetadataCache;
+  private final ExecutorService mAccessTimeUpdater;
 
   /**
-   * @param fs delegated file system
    * @param context the fs context
    */
-  public MetadataCachingBaseFileSystem(FileSystem fs, FileSystemContext context) {
+  public MetadataCachingBaseFileSystem(FileSystemContext context) {
     super(context);
-    mCloser = Closer.create();
-    mFsContext = context;
-    mMetadataCacheManager = new MetadataCacheManager(fs, context);
-    mCloser.register(fs);
-    mCloser.register(mMetadataCacheManager);
+
+    int maxSize = mFsContext.getClusterConf().getInt(PropertyKey.USER_METADATA_CACHE_MAX_SIZE);
+    long expirationTimeMs = mFsContext.getClusterConf()
+        .getMs(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME);
+    mMetadataCache = new MetadataCache(maxSize, expirationTimeMs);
+    int masterClientThreads = mFsContext.getClusterConf()
+        .getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX);
+    // At a time point, there are at most the same number of concurrent master clients that
+    // asynchronously update access time.
+    mAccessTimeUpdater = new ThreadPoolExecutor(0, masterClientThreads, THREAD_KEEPALIVE_SECOND,
+        TimeUnit.SECONDS, new SynchronousQueue<>());
   }
 
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, path);
-    return mMetadataCacheManager.getStatus(path, options);
+    checkUri(path);
+    URIStatus status = mMetadataCache.get(path);
+    if (status == null) {
+      status = super.getStatus(path, options);
+      mMetadataCache.put(path, status);
+    } else if (options.getUpdateTimestamps()) {
+      // Asynchronously send an RPC to master to update the access time.
+      // Otherwise, if we need to synchronously send RPC to master to do this,
+      // caching the status does not bring any benefit.
+      asyncUpdateFileAccessTime(path);
+    }
+    return status;
   }
 
   @Override
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    FileSystemUtils.checkUri(mFsContext, path);
-    return mMetadataCacheManager.listStatus(path, options);
+    checkUri(path);
+
+    if (options.getRecursive()) {
+      // Do not cache results of recursive list status,
+      // because some results might be cached multiple times.
+      // Otherwise, needs more complicated logic inside the cache,
+      // that might not worth the effort of caching.
+      return super.listStatus(path, options);
+    }
+
+    List<URIStatus> statuses = mMetadataCache.listStatus(path);
+    if (statuses == null) {
+      statuses = super.listStatus(path, options);
+      mMetadataCache.put(path, statuses);
+    }
+    return statuses;
+  }
+
+  /**
+   * Asynchronously update file's last access time.
+   *
+   * @param path the path to the file
+   */
+  @VisibleForTesting
+  public void asyncUpdateFileAccessTime(AlluxioURI path) {
+    try {
+      mAccessTimeUpdater.submit(() -> {
+        try {
+          AlluxioConfiguration conf = mFsContext.getPathConf(path);
+          GetStatusPOptions getStatusOptions = FileSystemOptions.getStatusDefaults(conf).toBuilder()
+              .setAccessMode(Bits.READ)
+              .setUpdateTimestamps(true)
+              .build();
+          super.getStatus(path, getStatusOptions);
+        } catch (IOException | AlluxioException e) {
+          LOG.error("Failed to update access time for " + path, e);
+        }
+      });
+    } catch (RejectedExecutionException e) {
+      LOG.warn("Failed to submit a task to update access time for {}: {}", path, e.toString());
+    }
   }
 
   @Override
   public synchronized void close() throws IOException {
-    mCloser.close();
+    if (!mClosed) {
+      ThreadUtils.shutdownAndAwaitTermination(mAccessTimeUpdater, THREAD_TERMINATION_TIMEOUT_MS);
+      super.close();
+    }
   }
 }
