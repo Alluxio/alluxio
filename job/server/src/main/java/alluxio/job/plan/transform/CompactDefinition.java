@@ -96,14 +96,15 @@ public final class CompactDefinition
     Map<WorkerInfo, ArrayList<CompactTask>> assignments = Maps.newHashMap();
     int maxNumFiles = config.getMaxNumFiles();
     long groupMinSize = config.getMinFileSize();
-    if (totalFileSize / groupMinSize > maxNumFiles) {
-      groupMinSize = Math.round(totalFileSize / maxNumFiles);
-    }
 
     if (!files.isEmpty() && config.getPartitionInfo() != null) {
       // adjust the group minimum size for source compression ratio
       groupMinSize *= COMPRESSION_RATIO.get(
           config.getPartitionInfo().getFormat(files.get(0).getName()));
+    }
+
+    if (totalFileSize / groupMinSize > maxNumFiles) {
+      groupMinSize = Math.round(totalFileSize / maxNumFiles);
     }
 
     // Files to be compacted are grouped into different groups,

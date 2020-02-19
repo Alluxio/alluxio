@@ -12,6 +12,8 @@
 package alluxio.job.plan.transform;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
@@ -45,7 +47,10 @@ public class CompactDefinitionSelectExecutorsTest extends SelectExecutorsTest {
     int numCompactedFiles = 100;
     int totalFiles = 5000;
 
-    CompactConfig config = new CompactConfig(null, INPUT_DIR, OUTPUT_DIR, "test",
+    PartitionInfo mockPartitionInfo = mock(PartitionInfo.class);
+    when(mockPartitionInfo.getFormat(any())).thenReturn(Format.CSV);
+
+    CompactConfig config = new CompactConfig(mockPartitionInfo, INPUT_DIR, OUTPUT_DIR, "test",
         numCompactedFiles, 2 * FileUtils.ONE_GB);
 
     List<URIStatus> inputFiles = new ArrayList<>();
