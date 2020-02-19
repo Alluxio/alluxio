@@ -95,6 +95,7 @@ public class MetricsMasterTest {
     masterCounter.inc(200);
     mClock.addTimeMs(2 * Constants.MINUTE_MS);
     System.out.println(gauge.getValue());
+    // The uptime will round up to 3 minutes, 300/3 = 100
     assertEquals(100.0, gauge.getValue());
   }
 
