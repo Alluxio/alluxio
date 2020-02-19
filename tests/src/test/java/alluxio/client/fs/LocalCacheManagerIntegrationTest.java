@@ -58,7 +58,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     mConf = new InstancedConfiguration(new AlluxioProperties());
     mConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
-    mConf.set(PropertyKey.USER_LOCAL_CACHE_ENABLED, true);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED, true);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getPath());
   }
 
