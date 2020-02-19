@@ -12,7 +12,6 @@
 package alluxio.master.metrics;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -85,10 +84,15 @@ public class MetricsMasterTest {
     assertEquals(0, (long) metric.getValue());
 
     Counter masterCounter = MetricsSystem.counter(counterName);
-    masterCounter.inc(100 * Constants.MINUTE_MS);
+    masterCounter.inc(100);
     Gauge gauge = MetricsSystem.METRIC_REGISTRY.getGauges().get(throughputName);
     assertNotNull(gauge);
-    assertNotEquals(0, (long) gauge.getValue());
+    assertEquals(100.0, gauge.getValue());
+
+    masterCounter.inc(300);
+    mClock.addTimeMs(2 * Constants.MINUTE_MS);
+    System.out.println(gauge.getValue());
+    assertEquals(200.0, gauge.getValue());
   }
 
   @Test
