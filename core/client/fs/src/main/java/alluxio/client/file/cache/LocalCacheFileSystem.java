@@ -21,6 +21,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.OpenFilePOptions;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,7 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
   private static Optional<CacheManager> sCacheManager;
 
   private final AlluxioConfiguration mConf;
+  private final boolean mDryRun;
 
   /**
    * @param fs a FileSystem instance to query on local cache miss
@@ -59,6 +61,9 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
       }
     }
     mConf = conf;
+    CacheMode cacheMode = getConf().getEnum(PropertyKey.USER_LOCAL_CACHE_MODE, CacheMode.class);
+    Preconditions.checkArgument(cacheMode != CacheMode.DISABLED);
+    mDryRun = (cacheMode == CacheMode.DRYRUN);
   }
 
   @Override
@@ -75,7 +80,12 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
     if (sCacheManager == null || !sCacheManager.isPresent()) {
       return mDelegatedFileSystem.openFile(path, options);
     }
-    return new LocalCacheFileInStream(path, options, mDelegatedFileSystem, sCacheManager.get());
+    if (mDryRun) {
+      return new DryRunLocalCacheFileInStream(
+          path, options, mDelegatedFileSystem, sCacheManager.get());
+    } else {
+      return new LocalCacheFileInStream(path, options, mDelegatedFileSystem, sCacheManager.get());
+    }
   }
 
   @Override
@@ -84,6 +94,11 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
     if (sCacheManager == null || !sCacheManager.isPresent()) {
       return mDelegatedFileSystem.openFile(status, options);
     }
-    return new LocalCacheFileInStream(status, options, mDelegatedFileSystem, sCacheManager.get());
+    if (mDryRun) {
+      return new DryRunLocalCacheFileInStream(
+          status, options, mDelegatedFileSystem, sCacheManager.get());
+    } else {
+      return new LocalCacheFileInStream(status, options, mDelegatedFileSystem, sCacheManager.get());
+    }
   }
 }

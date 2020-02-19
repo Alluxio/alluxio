@@ -18,6 +18,8 @@ import org.apache.commons.io.input.NullInputStream;
 import java.io.IOException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * A page store used in dry run mode to keep track of the blocks without writing any data.
@@ -37,13 +39,23 @@ public class DryRunPageStore implements PageStore {
   }
 
   @Override
-  public void delete(PageId pageId) throws IOException, PageNotFoundException {
+  public void delete(PageId pageId, long pageSize) throws IOException, PageNotFoundException {
     mSize--;
   }
 
   @Override
-  public int size() {
+  public long pages() {
     return mSize;
+  }
+
+  @Override
+  public long bytes() {
+    return 0;
+  }
+
+  @Override
+  public Collection<PageInfo> getPages() {
+    return Collections.emptyList();
   }
 
   @Override

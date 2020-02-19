@@ -17,6 +17,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
+import alluxio.client.file.cache.CacheMode;
 import alluxio.client.file.cache.LocalCacheManager;
 import alluxio.client.file.cache.PageId;
 import alluxio.conf.AlluxioProperties;
@@ -58,7 +59,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     mConf = new InstancedConfiguration(new AlluxioProperties());
     mConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
-    mConf.set(PropertyKey.USER_LOCAL_CACHE_ENABLED, true);
+    mConf.set(PropertyKey.USER_LOCAL_CACHE_MODE, CacheMode.ENABLED);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getPath());
   }
 

@@ -317,17 +317,18 @@ public class LocalCacheFileInStreamTest {
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     InstancedConfiguration conf = new InstancedConfiguration(sConf);
     conf.set(PropertyKey.USER_LOCAL_CACHE_MODE, CacheMode.DRYRUN);
-    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager, conf);
+    LocalCacheFileInStream stream = setupDryRunWithSingleFile(testData, manager, conf);
     // cache miss
     int readSize = PAGE_SIZE * 3 - 1;
     long lastRead;
     byte[] cacheMiss = new byte[readSize];
     stream.read(cacheMiss);
-    Assert.assertEquals(0, MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_CACHE).getCount());
-    Assert.assertEquals(readSize,
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_REQUESTED_EXTERNAL).getCount());
+    Assert.assertEquals(0,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
+    Assert.assertEquals(readSize, MetricsSystem.counter(
+        MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(PAGE_SIZE * 3,
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL).getCount());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
 
     MockFileInStream externalStream = (MockFileInStream) stream.getExternalFileInStream();
     Assert.assertEquals(readSize, externalStream.getBytesRead());
@@ -336,11 +337,12 @@ public class LocalCacheFileInStreamTest {
 
     // cache hit
     stream.read();
-    Assert.assertEquals(1, MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_CACHE).getCount());
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
+    Assert.assertEquals(0, MetricsSystem.counter(
+        MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(0,
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_REQUESTED_EXTERNAL).getCount());
-    Assert.assertEquals(0,
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL).getCount());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
     Assert.assertEquals(lastRead + 1, externalStream.getBytesRead());
     MetricsSystem.resetCountersAndGauges();
     lastRead = externalStream.getBytesRead();
@@ -349,11 +351,11 @@ public class LocalCacheFileInStreamTest {
     readSize = 5;
     byte[] positionBuffer = new byte[readSize];
     stream.positionedRead(PAGE_SIZE * 4, positionBuffer, 0, 5);
-    Assert.assertEquals(0, MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_CACHE).getCount());
+    Assert.assertEquals(0, MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
     Assert.assertEquals(5,
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_REQUESTED_EXTERNAL).getCount());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(PAGE_SIZE,
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL).getCount());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
 
     Assert.assertEquals(lastRead + 5, externalStream.getBytesRead());
     MetricsSystem.resetCountersAndGauges();
@@ -361,11 +363,11 @@ public class LocalCacheFileInStreamTest {
 
     // position hit
     stream.positionedRead(PAGE_SIZE * 4 + 5, positionBuffer, 0, 5);
-    Assert.assertEquals(5, MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_CACHE).getCount());
+    Assert.assertEquals(5, MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
     Assert.assertEquals(0,
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_REQUESTED_EXTERNAL).getCount());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(0,
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL).getCount());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
     Assert.assertEquals(lastRead + 5, externalStream.getBytesRead());
   }
 
@@ -385,11 +387,23 @@ public class LocalCacheFileInStreamTest {
         testFilename, OpenFilePOptions.getDefaultInstance(), fs, manager);
   }
 
+  private LocalCacheFileInStream setupDryRunWithSingleFile(byte[] data, CacheManager manager,
+      AlluxioConfiguration conf) {
+    Map<AlluxioURI, byte[]> files = new HashMap<>();
+    AlluxioURI testFilename = new AlluxioURI("/test");
+    files.put(testFilename, data);
+
+    ByteArrayFileSystem fs = new ByteArrayFileSystem(files, conf);
+
+    return new DryRunLocalCacheFileInStream(
+        testFilename, OpenFilePOptions.getDefaultInstance(), fs, manager);
+  }
+
   private  Map<AlluxioURI, LocalCacheFileInStream> setupWithMultipleFiles(Map<String, byte[]> files,
       CacheManager manager) {
     Map<AlluxioURI, byte[]> fileMap = files.entrySet().stream()
         .collect(Collectors.toMap(entry -> new AlluxioURI(entry.getKey()), Map.Entry::getValue));
-    ByteArrayFileSystem fs = new ByteArrayFileSystem(fileMap);
+    ByteArrayFileSystem fs = new ByteArrayFileSystem(fileMap, sConf);
 
     return fileMap.entrySet().stream()
         .collect(Collectors.toMap(Map.Entry::getKey, entry -> new LocalCacheFileInStream(
@@ -653,7 +667,7 @@ public class LocalCacheFileInStreamTest {
 
   private class MultiReadByteArrayFileSystem extends ByteArrayFileSystem {
     MultiReadByteArrayFileSystem(Map<AlluxioURI, byte[]> files) {
-      super(files);
+      super(files, sConf);
     }
 
     @Override

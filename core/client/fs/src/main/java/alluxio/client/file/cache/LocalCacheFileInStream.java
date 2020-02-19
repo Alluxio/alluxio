@@ -54,7 +54,6 @@ public class LocalCacheFileInStream extends FileInStream {
   /** File info, fetched from external FS. */
   private final URIStatus mStatus;
   private final OpenFilePOptions mOpenOptions;
-  private final boolean mDryRun;
 
   /** Stream reading from the external file system, opened once. */
   private FileInStream mExternalFileInStream;
@@ -74,10 +73,6 @@ public class LocalCacheFileInStream extends FileInStream {
   public LocalCacheFileInStream(AlluxioURI path, OpenFilePOptions options, FileSystem externalFs,
       CacheManager cacheManager) {
     mPageSize = externalFs.getConf().getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
-    CacheMode dryrun = externalFs.getConf()
-        .getEnum(PropertyKey.USER_LOCAL_CACHE_MODE, CacheMode.class);
-    Preconditions.checkArgument(dryrun != CacheMode.DISABLED);
-    mDryRun = (dryrun == CacheMode.DRYRUN);
     mPath = path;
     mOpenOptions = options;
     mExternalFs = externalFs;
@@ -136,9 +131,6 @@ public class LocalCacheFileInStream extends FileInStream {
     if (mPosition >= mStatus.getLength()) { // at end of file
       return -1;
     }
-    if (mDryRun) {
-      getExternalFileInStream(mPosition).read(b, off, len);
-    }
     int bytesRead = 0;
     long lengthToRead = Math.min(len, mStatus.getLength() - mPosition);
     // for each page, check if it is available in the cache
@@ -149,19 +141,7 @@ public class LocalCacheFileInStream extends FileInStream {
       PageId pageId = new PageId(mStatus.getFileIdentifier(), currentPage);
       try (ReadableByteChannel cachedData = mCacheManager.get(pageId, currentPageOffset)) {
         if (cachedData != null) { // cache hit
-          // wrap return byte array in a bytebuffer and set the pos/limit for the page read
-          if (!mDryRun) {
-            ByteBuffer buf = ByteBuffer.wrap(b);
-            buf.position(off + bytesRead);
-            buf.limit(off + bytesRead + bytesLeftInPage);
-            // read data from cache
-            while (buf.position() != buf.limit()) {
-              if (cachedData.read(buf) == -1) {
-                break;
-              }
-            }
-            Preconditions.checkState(buf.position() == buf.limit());
-          }
+          readPage(b, off + bytesRead, cachedData, bytesLeftInPage);
           bytesRead += bytesLeftInPage;
           mPosition += bytesLeftInPage;
           Metrics.BYTES_READ_CACHE.inc(bytesLeftInPage);
@@ -169,9 +149,7 @@ public class LocalCacheFileInStream extends FileInStream {
           byte[] page = readExternalPage(mPosition);
           if (page.length > 0) {
             mCacheManager.put(pageId, page);
-            if (!mDryRun) {
-              System.arraycopy(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
-            }
+            copyPage(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
             bytesRead += bytesLeftInPage;
             mPosition += bytesLeftInPage;
             Metrics.BYTES_REQUESTED_EXTERNAL.inc(bytesLeftInPage);
@@ -218,9 +196,6 @@ public class LocalCacheFileInStream extends FileInStream {
     if (pos < 0 || pos >= mStatus.getLength()) { // at end of file
       return -1;
     }
-    if (mDryRun) {
-      getExternalFileInStream(mPosition).positionedRead(pos, b, off, len);
-    }
     int bytesRead = 0;
     long currentPosition = pos;
     long lengthToRead = Math.min(len, mStatus.getLength() - pos);
@@ -233,27 +208,14 @@ public class LocalCacheFileInStream extends FileInStream {
       try (ReadableByteChannel cachedData = mCacheManager.get(pageId, currentPageOffset)) {
         if (cachedData != null) { // cache hit
           // wrap return byte array in a bytebuffer and set the pos/limit for the page read
-          if (!mDryRun) {
-            ByteBuffer buf = ByteBuffer.wrap(b);
-            buf.position(off + bytesRead);
-            buf.limit(off + bytesRead + bytesLeftInPage);
-            // read data from cache
-            while (buf.position() != buf.limit()) {
-              if (cachedData.read(buf) == -1) {
-                break;
-              }
-            }
-            Preconditions.checkState(buf.position() == buf.limit());
-          }
+          readPage(b, off + bytesRead, cachedData, bytesLeftInPage);
           bytesRead += bytesLeftInPage;
           currentPosition += bytesLeftInPage;
           Metrics.BYTES_READ_CACHE.inc(bytesLeftInPage);
         } else { // cache miss
           byte[] page = readExternalPage(currentPosition);
           mCacheManager.put(pageId, page);
-          if (!mDryRun) {
-            System.arraycopy(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
-          }
+          copyPage(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
           bytesRead += bytesLeftInPage;
           currentPosition += bytesLeftInPage;
           Metrics.BYTES_REQUESTED_EXTERNAL.inc(bytesLeftInPage);
@@ -303,7 +265,7 @@ public class LocalCacheFileInStream extends FileInStream {
    *
    * @param pos position to set the external stream to
    */
-  private FileInStream getExternalFileInStream(long pos) throws IOException {
+  protected FileInStream getExternalFileInStream(long pos) throws IOException {
     try {
       if (mExternalFileInStream == null) {
         mExternalFileInStream = mExternalFs.openFile(mPath, mOpenOptions);
@@ -317,6 +279,43 @@ public class LocalCacheFileInStream extends FileInStream {
       mExternalFileInStream.seek(pageStart);
     }
     return mExternalFileInStream;
+  }
+
+  /**
+   * Reads a cached page from a channel into a buffer.
+   *
+   * @param buffer the buffer to write the data to
+   * @param offset the offset in buffer where the write should start
+   * @param page the channel which contains the page data
+   * @param bytesLeft the amount of data left in the channel
+   * @throws IOException
+   */
+  protected void readPage(byte[] buffer, int offset, ReadableByteChannel page, int bytesLeft)
+      throws IOException {
+    ByteBuffer buf = ByteBuffer.wrap(buffer);
+    buf.position(offset);
+    buf.limit(offset + bytesLeft);
+    // read data from cache
+    while (buf.position() != buf.limit()) {
+      if (page.read(buf) == -1) {
+        break;
+      }
+    }
+    Preconditions.checkState(buf.position() == buf.limit());
+  }
+
+  /**
+   * Copies page data into a buffer.
+   *
+   * @param page the byte array contains the page data
+   * @param pageOffset the offset in the page where the data starts
+   * @param buffer the buffer to write data into
+   * @param bufferOffset the offset where the data should writes to
+   * @param length the length of the data to copy
+   */
+  protected void copyPage(byte[] page, int  pageOffset, byte[] buffer, int bufferOffset,
+      int length) {
+    System.arraycopy(page, pageOffset, buffer, bufferOffset, length);
   }
 
   @VisibleForTesting
@@ -343,24 +342,33 @@ public class LocalCacheFileInStream extends FileInStream {
     long pageStart = pos - (pos % mPageSize);
     int pageSize = (int) Math.min(mPageSize, mStatus.getLength() - pageStart);
     byte[] page = new byte[pageSize];
-    if (!mDryRun) {
-      FileInStream stream = getExternalFileInStream(pageStart);
-      page = new byte[pageSize];
-      int totalBytesRead = 0;
-      while (totalBytesRead < pageSize) {
-        int bytesRead = stream.read(page, totalBytesRead, pageSize - totalBytesRead);
-        if (bytesRead <= 0) {
-          break;
-        }
-        totalBytesRead += bytesRead;
-      }
-      Metrics.BYTES_READ_EXTERNAL.inc(totalBytesRead);
-      if (totalBytesRead != pageSize) {
-        throw new IOException("Failed to read complete page from external storage. Bytes read: "
-            + totalBytesRead + " Page size: " + pageSize);
-      }
-    }
+    readExternalPage(pageStart, pageSize, page);
+    Metrics.BYTES_READ_EXTERNAL.inc(pageSize);
     return page;
+  }
+
+  /**
+   * Reads a page from external storage which contains the position specified.
+   *
+   * @param pageStart the offset where the page starts
+   * @param pageSize the size of the page
+   * @param buffer the buffer to read page into
+   * @throws IOException if an error occurs while reading data
+   */
+  protected void readExternalPage(long pageStart, int pageSize, byte[] buffer) throws IOException {
+    int totalBytesRead = 0;
+    FileInStream stream = getExternalFileInStream(pageStart);
+    while (totalBytesRead < pageSize) {
+      int bytesRead = stream.read(buffer, totalBytesRead, pageSize - totalBytesRead);
+      if (bytesRead <= 0) {
+        break;
+      }
+      totalBytesRead += bytesRead;
+    }
+    if (totalBytesRead != pageSize) {
+      throw new IOException("Failed to read complete page from external storage. Bytes read: "
+          + totalBytesRead + " Page size: " + pageSize);
+    }
   }
 
   private static final class Metrics {

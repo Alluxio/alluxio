@@ -23,6 +23,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheMode;
+import alluxio.client.file.cache.DryRunLocalCacheFileInStream;
 import alluxio.client.file.cache.LocalCacheFileInStream;
 import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.conf.InstancedConfiguration;
@@ -30,7 +31,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.metrics.ClientMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -186,7 +187,8 @@ public final class LocalCacheFileInStreamIntegrationTest extends BaseIntegration
     FileSystemTestUtils.createByteFile(
         mFileSystem, mFilePath, WritePType.MUST_CACHE, pageCount * PAGE_SIZE_BYTES);
     // position read from multiple pages
-    try (FileInStream stream = openFile(path)) {
+    try (FileInStream stream = new DryRunLocalCacheFileInStream(path,
+        OpenFilePOptions.getDefaultInstance(), mExternalFileSystem, mCacheManager)) {
       for (int i = 0; i < pageCount; i += 2) {
         byte[] buffer = new byte[PAGE_SIZE_BYTES / 4];
         int bytesRead = stream.positionedRead(i * PAGE_SIZE_BYTES, buffer, 0, buffer.length);
@@ -194,25 +196,26 @@ public final class LocalCacheFileInStreamIntegrationTest extends BaseIntegration
         assertTrue(
             BufferUtils.equalIncreasingByteArray(i * PAGE_SIZE_BYTES, buffer.length, buffer));
         Assert.assertEquals(0,
-            MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_CACHE).getCount());
-        Assert.assertEquals((i / 2 + 1) * buffer.length,
-            MetricsSystem.counter(ClientMetrics.CACHE_BYTES_REQUESTED_EXTERNAL).getCount());
+            MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
+        Assert.assertEquals((i / 2 + 1) * buffer.length, MetricsSystem.counter(
+            MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
         Assert.assertEquals((i / 2 + 1) * PAGE_SIZE_BYTES,
-            MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL).getCount());
+            MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
       }
     }
 
     // read whole file with some pages "cached"
-    try (InputStream stream = openFile(path)) {
+    try (InputStream stream = new DryRunLocalCacheFileInStream(path,
+        OpenFilePOptions.getDefaultInstance(), mExternalFileSystem, mCacheManager)) {
       assertTrue(BufferUtils.equalIncreasingByteArray(
           PAGE_SIZE_BYTES * pageCount, ByteStreams.toByteArray(stream)));
     }
     Assert.assertEquals(4 * PAGE_SIZE_BYTES,
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_CACHE).getCount());
-    Assert.assertEquals(5 * PAGE_SIZE_BYTES,
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_REQUESTED_EXTERNAL).getCount());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
+    Assert.assertEquals(5 * PAGE_SIZE_BYTES, MetricsSystem.counter(
+        MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(pageCount * PAGE_SIZE_BYTES,
-        MetricsSystem.counter(ClientMetrics.CACHE_BYTES_READ_EXTERNAL).getCount());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
 
     // checks no data is written
     String cacheDir = mFsContext.getClusterConf().get(PropertyKey.USER_CLIENT_CACHE_DIR);
