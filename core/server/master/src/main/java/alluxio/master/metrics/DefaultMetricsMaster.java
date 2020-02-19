@@ -141,10 +141,11 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
         new Gauge<Object>() {
           @Override
           public Object getValue() {
-            double uptime = Math.ceil((mClock.millis() - mMetricsStore.getLastClearTime())
-                / (double) Constants.MINUTE_MS);
+            long uptime = (mClock.millis() - mMetricsStore.getLastClearTime())
+                / Constants.MINUTE_MS;
+            long value = MetricsSystem.counter(counterName).getCount();
             // The value is bytes per minute
-            return uptime == 0 ? 0 : MetricsSystem.counter(counterName).getCount() / uptime;
+            return uptime == 0 ? value : value / uptime;
           }
         });
   }
