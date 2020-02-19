@@ -83,16 +83,19 @@ public class MetricsMasterTest {
     assertNotNull(metric);
     assertEquals(0, (long) metric.getValue());
 
+    // The throughput in the first ms is always zero
+    // Avoid the test running too fast
+    mClock.addTimeMs(10);
     Counter masterCounter = MetricsSystem.counter(counterName);
     masterCounter.inc(100);
     Gauge gauge = MetricsSystem.METRIC_REGISTRY.getGauges().get(throughputName);
     assertNotNull(gauge);
     assertEquals(100.0, gauge.getValue());
 
-    masterCounter.inc(300);
+    masterCounter.inc(200);
     mClock.addTimeMs(2 * Constants.MINUTE_MS);
     System.out.println(gauge.getValue());
-    assertEquals(200.0, gauge.getValue());
+    assertEquals(100.0, gauge.getValue());
   }
 
   @Test
