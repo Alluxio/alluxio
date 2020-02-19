@@ -33,10 +33,12 @@ public interface EquatableValueSetOrBuilder extends
 
   /**
    * <code>optional bool white_list = 2;</code>
+   * @return Whether the whiteList field is set.
    */
   boolean hasWhiteList();
   /**
    * <code>optional bool white_list = 2;</code>
+   * @return The whiteList.
    */
   boolean getWhiteList();
 }

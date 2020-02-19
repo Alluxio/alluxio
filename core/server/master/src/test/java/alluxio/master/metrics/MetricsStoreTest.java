@@ -15,10 +15,10 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.grpc.MetricType;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.google.common.collect.Lists;
-import jersey.repackaged.com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,54 +30,49 @@ public class MetricsStoreTest {
   @Before
   public void before() {
     mMetricStore = new MetricsStore();
+    mMetricStore.init();
   }
 
   @Test
   public void putWorkerMetrics() {
+    String workerHost1 = "192_1_1_1";
     List<Metric> metrics1 = Lists.newArrayList(
-        Metric.from("worker.metric1.192_1_1_1", 10, MetricType.GAUGE),
-        Metric.from("worker.metric2.192_1_1_1", 20, MetricType.GAUGE));
-    mMetricStore.putWorkerMetrics("192_1_1_1", metrics1);
+        Metric.from(MetricKey.WORKER_BYTES_READ_ALLUXIO.getName() + "." + workerHost1,
+            10, MetricType.COUNTER),
+        Metric.from(MetricKey.WORKER_BYTES_READ_DOMAIN.getName() + "." + workerHost1,
+            20, MetricType.COUNTER));
+    mMetricStore.putWorkerMetrics(workerHost1, metrics1);
+
+    String workerHost2 = "192_1_1_2";
     List<Metric> metrics2 = Lists.newArrayList(
-        Metric.from("worker.metric1.192_1_1_2", 1, MetricType.GAUGE));
-    mMetricStore.putWorkerMetrics("192_1_1_2", metrics2);
-    assertEquals(Sets.newHashSet(
-            Metric.from("worker.metric1.192_1_1_1", 10, MetricType.GAUGE),
-            Metric.from("worker.metric1.192_1_1_2", 1, MetricType.GAUGE)),
-        mMetricStore.getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType.WORKER, "metric1"));
+        Metric.from(MetricKey.WORKER_BYTES_READ_ALLUXIO.getName() + "." + workerHost2,
+            1, MetricType.COUNTER));
+    mMetricStore.putWorkerMetrics(workerHost2, metrics2);
+    assertEquals(11,
+        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_ALLUXIO.getName()).getCount());
   }
 
   @Test
   public void putClientMetrics() {
     List<Metric> metrics1 = Lists.newArrayList(
-        Metric.from("client.metric1.192_1_1_1:A", 10, MetricType.GAUGE),
-        Metric.from("client.metric2.192_1_1_1:A", 20, MetricType.GAUGE));
-    mMetricStore.putClientMetrics("192_1_1_1", "A", metrics1);
+        Metric.from(MetricKey.CLIENT_BYTES_READ_LOCAL.getName() + ".192_1_1_1:A",
+            10, MetricType.COUNTER),
+        Metric.from(MetricKey.CLIENT_BYTES_WRITTEN_LOCAL.getName() + ".192_1_1_1:A",
+            20, MetricType.COUNTER));
+    mMetricStore.putClientMetrics("192_1_1_1", metrics1);
     List<Metric> metrics2 = Lists.newArrayList(
-        Metric.from("client.metric1.192_1_1_2:C", 1, MetricType.GAUGE));
-    mMetricStore.putClientMetrics("192_1_1_2", "C", metrics2);
+        Metric.from(MetricKey.CLIENT_BYTES_READ_LOCAL.getName() + ".192_1_1_2:C",
+            1, MetricType.COUNTER));
+    mMetricStore.putClientMetrics("192_1_1_2", metrics2);
     List<Metric> metrics3 = Lists.newArrayList(
-        Metric.from("client.metric1.192_1_1_1:B", 15, MetricType.GAUGE),
-        Metric.from("client.metric2.192_1_1_1:B", 25, MetricType.GAUGE));
-    mMetricStore.putClientMetrics("192_1_1_1", "B", metrics3);
-    assertEquals(Sets.newHashSet(
-        Metric.from("client.metric1.192_1_1_1:A", 10, MetricType.GAUGE),
-        Metric.from("client.metric1.192_1_1_2:C", 1, MetricType.GAUGE),
-        Metric.from("client.metric1.192_1_1_1:B", 15, MetricType.GAUGE)),
-        mMetricStore.getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType.CLIENT, "metric1"));
-  }
-
-  @Test
-  public void putTaggedMetrics() {
-    String name = "test";
-    Metric metric1 =
-        new Metric(MetricsSystem.InstanceType.WORKER, "host", MetricType.METER, name, 1.0);
-    metric1.addTag("Tag", "1");
-    Metric metric2 =
-        new Metric(MetricsSystem.InstanceType.WORKER, "host", MetricType.METER, name, 2.0);
-    metric2.addTag("Tag", "2");
-    mMetricStore.putWorkerMetrics("host", Lists.newArrayList(metric1, metric2));
-    assertEquals(mMetricStore.getMetricsByInstanceTypeAndName(MetricsSystem.InstanceType.WORKER,
-        name), Sets.newHashSet(metric1, metric2));
+        Metric.from(MetricKey.CLIENT_BYTES_READ_LOCAL.getName() + ".192_1_1_1:B",
+            15, MetricType.COUNTER),
+        Metric.from(MetricKey.CLIENT_BYTES_WRITTEN_LOCAL.getName() + ".192_1_1_1:B",
+            25, MetricType.COUNTER));
+    mMetricStore.putClientMetrics("192_1_1_1", metrics3);
+    assertEquals(26,
+        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName()).getCount());
+    assertEquals(45,
+        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount());
   }
 }

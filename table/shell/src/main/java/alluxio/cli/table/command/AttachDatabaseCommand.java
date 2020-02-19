@@ -12,15 +12,19 @@
 package alluxio.cli.table.command;
 
 import alluxio.cli.CommandUtils;
+import alluxio.cli.table.TableShellUtils;
 import alluxio.client.table.TableMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.table.SyncStatus;
 
 import com.google.common.collect.Maps;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 
@@ -28,6 +32,9 @@ import java.util.Properties;
  * A command which can be used to attach a UDB to the Alluxio master's table service.
  */
 public class AttachDatabaseCommand extends AbstractTableCommand {
+  private static final Logger LOG = LoggerFactory.getLogger(AttachDatabaseCommand.class);
+  private static final int PRINT_MAX_ERRORS = 10;
+
   private static final String COMMAND_NAME = "attachdb";
 
   private static final Option OPTION_OPTION = Option.builder("o")
@@ -37,7 +44,7 @@ public class AttachDatabaseCommand extends AbstractTableCommand {
       .numberOfArgs(2)
       .argName("key=value")
       .valueSeparator('=')
-      .desc("options associated with this UDB")
+      .desc("options associated with this database or UDB")
       .build();
   private static final Option DB_OPTION = Option.builder()
       .longOpt("db")
@@ -46,6 +53,12 @@ public class AttachDatabaseCommand extends AbstractTableCommand {
       .numberOfArgs(1)
       .argName("alluxio db name")
       .desc("The name of the db in Alluxio. If unset, will use the udb db name.")
+      .build();
+  private static final Option IGNORE_SYNC_ERRORS_OPTION = Option.builder()
+      .longOpt("ignore-sync-errors")
+      .required(false)
+      .hasArg(false)
+      .desc("Ignores sync errors, and keeps the database attached.")
       .build();
 
   /**
@@ -60,7 +73,10 @@ public class AttachDatabaseCommand extends AbstractTableCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(OPTION_OPTION).addOption(DB_OPTION);
+    return new Options()
+        .addOption(OPTION_OPTION)
+        .addOption(DB_OPTION)
+        .addOption(IGNORE_SYNC_ERRORS_OPTION);
   }
 
   @Override
@@ -84,7 +100,18 @@ public class AttachDatabaseCommand extends AbstractTableCommand {
     }
 
     Properties p = cl.getOptionProperties(OPTION_OPTION.getOpt());
-    mClient.attachDatabase(udbType, udbConnectionUri, udbDbName, dbName, Maps.fromProperties(p));
+    boolean ignoreSyncErrors = cl.hasOption(IGNORE_SYNC_ERRORS_OPTION.getLongOpt());
+
+    SyncStatus status = mClient
+        .attachDatabase(udbType, udbConnectionUri, udbDbName, dbName, Maps.fromProperties(p),
+            ignoreSyncErrors);
+    TableShellUtils.printSyncStatus(status, LOG, PRINT_MAX_ERRORS);
+    if (!ignoreSyncErrors && status.getTablesErrorsCount() > 0) {
+      System.out.println(String.format(
+          "%nDatabase is not attached. To keep it attached even with errors, please re-run '%s' "
+              + "with the '--%s' option.",
+          COMMAND_NAME, IGNORE_SYNC_ERRORS_OPTION.getLongOpt()));
+    }
     return 0;
   }
 
@@ -100,7 +127,7 @@ public class AttachDatabaseCommand extends AbstractTableCommand {
 
   @Override
   public String getUsage() {
-    return "attachdb [-o|--option <key=value>] [--db <alluxio db name>] "
+    return "attachdb [-o|--option <key=value>] [--db <alluxio db name>] [--ignore-sync-errors] "
         + "<udb type> <udb connection uri> <udb db name>";
   }
 }

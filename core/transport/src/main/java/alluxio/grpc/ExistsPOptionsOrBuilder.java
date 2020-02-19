@@ -9,19 +9,23 @@ public interface ExistsPOptionsOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.file.LoadMetadataPType loadMetadataType = 1;</code>
+   * @return Whether the loadMetadataType field is set.
    */
   boolean hasLoadMetadataType();
   /**
    * <code>optional .alluxio.grpc.file.LoadMetadataPType loadMetadataType = 1;</code>
+   * @return The loadMetadataType.
    */
   alluxio.grpc.LoadMetadataPType getLoadMetadataType();
 
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 2;</code>
+   * @return Whether the commonOptions field is set.
    */
   boolean hasCommonOptions();
   /**
    * <code>optional .alluxio.grpc.file.FileSystemMasterCommonPOptions commonOptions = 2;</code>
+   * @return The commonOptions.
    */
   alluxio.grpc.FileSystemMasterCommonPOptions getCommonOptions();
   /**

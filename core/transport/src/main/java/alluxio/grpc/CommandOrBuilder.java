@@ -9,23 +9,29 @@ public interface CommandOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.CommandType commandType = 1;</code>
+   * @return Whether the commandType field is set.
    */
   boolean hasCommandType();
   /**
    * <code>optional .alluxio.grpc.CommandType commandType = 1;</code>
+   * @return The commandType.
    */
   alluxio.grpc.CommandType getCommandType();
 
   /**
    * <code>repeated int64 data = 2;</code>
+   * @return A list containing the data.
    */
   java.util.List<java.lang.Long> getDataList();
   /**
    * <code>repeated int64 data = 2;</code>
+   * @return The count of data.
    */
   int getDataCount();
   /**
    * <code>repeated int64 data = 2;</code>
+   * @param index The index of the element to return.
+   * @return The data at the given index.
    */
   long getData(int index);
 }

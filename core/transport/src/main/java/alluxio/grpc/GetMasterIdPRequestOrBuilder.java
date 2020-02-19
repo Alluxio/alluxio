@@ -9,10 +9,12 @@ public interface GetMasterIdPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.NetAddress masterAddress = 1;</code>
+   * @return Whether the masterAddress field is set.
    */
   boolean hasMasterAddress();
   /**
    * <code>optional .alluxio.grpc.NetAddress masterAddress = 1;</code>
+   * @return The masterAddress.
    */
   alluxio.grpc.NetAddress getMasterAddress();
   /**
@@ -22,10 +24,12 @@ public interface GetMasterIdPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.meta.GetMasterIdPOptions options = 2;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.meta.GetMasterIdPOptions options = 2;</code>
+   * @return The options.
    */
   alluxio.grpc.GetMasterIdPOptions getOptions();
   /**

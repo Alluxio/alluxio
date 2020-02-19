@@ -13,6 +13,7 @@ public interface UpdateMountPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string alluxioPath = 1;</code>
+   * @return Whether the alluxioPath field is set.
    */
   boolean hasAlluxioPath();
   /**
@@ -21,6 +22,7 @@ public interface UpdateMountPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string alluxioPath = 1;</code>
+   * @return The alluxioPath.
    */
   java.lang.String getAlluxioPath();
   /**
@@ -29,16 +31,19 @@ public interface UpdateMountPRequestOrBuilder extends
    * </pre>
    *
    * <code>optional string alluxioPath = 1;</code>
+   * @return The bytes for alluxioPath.
    */
   com.google.protobuf.ByteString
       getAlluxioPathBytes();
 
   /**
    * <code>optional .alluxio.grpc.file.MountPOptions options = 3;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.file.MountPOptions options = 3;</code>
+   * @return The options.
    */
   alluxio.grpc.MountPOptions getOptions();
   /**

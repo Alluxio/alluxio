@@ -9,29 +9,37 @@ public interface HiveBucketPropertyOrBuilder extends
 
   /**
    * <code>repeated string bucketed_by = 1;</code>
+   * @return A list containing the bucketedBy.
    */
   java.util.List<java.lang.String>
       getBucketedByList();
   /**
    * <code>repeated string bucketed_by = 1;</code>
+   * @return The count of bucketedBy.
    */
   int getBucketedByCount();
   /**
    * <code>repeated string bucketed_by = 1;</code>
+   * @param index The index of the element to return.
+   * @return The bucketedBy at the given index.
    */
   java.lang.String getBucketedBy(int index);
   /**
    * <code>repeated string bucketed_by = 1;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the bucketedBy at the given index.
    */
   com.google.protobuf.ByteString
       getBucketedByBytes(int index);
 
   /**
    * <code>optional int64 bucket_count = 2;</code>
+   * @return Whether the bucketCount field is set.
    */
   boolean hasBucketCount();
   /**
    * <code>optional int64 bucket_count = 2;</code>
+   * @return The bucketCount.
    */
   long getBucketCount();
 

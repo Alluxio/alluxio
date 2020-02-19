@@ -116,9 +116,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.TimeSeries;
 import alluxio.proto.journal.File;
-import alluxio.proto.journal.File.AddSyncPointEntry;
 import alluxio.proto.journal.File.NewBlockEntry;
-import alluxio.proto.journal.File.RemoveSyncPointEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAclEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry;
@@ -456,13 +454,16 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
   private static MountInfo getRootMountInfo(MasterUfsManager ufsManager) {
     try (CloseableResource<UnderFileSystem> resource = ufsManager.getRoot().acquireUfsResource()) {
-      String rootUfsUri = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       boolean shared = resource.get().isObjectStorage()
           && ServerConfiguration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY);
+      boolean readonly = ServerConfiguration.getBoolean(
+          PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
+      String rootUfsUri = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       Map<String, String> rootUfsConf =
           ServerConfiguration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
       MountPOptions mountOptions = MountContext
-          .mergeFrom(MountPOptions.newBuilder().setShared(shared).putAllProperties(rootUfsConf))
+          .mergeFrom(MountPOptions.newBuilder().setShared(shared).setReadOnly(readonly)
+                  .putAllProperties(rootUfsConf))
           .getOptions().build();
       return new MountInfo(new AlluxioURI(MountTable.ROOT),
           new AlluxioURI(rootUfsUri), IdUtils.ROOT_MOUNT_ID, mountOptions);
@@ -1570,9 +1571,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
         }
       }
 
-      MountTable.Resolution resolution = mSyncManager.resolveSyncPoint(inodePath.getUri());
-      if (resolution != null) {
-        mSyncManager.stopSyncInternal(inodePath.getUri(), resolution.getMountId());
+      if (mSyncManager.isSyncPoint(inodePath.getUri())) {
+        mSyncManager.stopSyncAndJournal(RpcContext.NOOP, inodePath.getUri());
       }
 
       // Delete Inodes
@@ -2690,7 +2690,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     long newMountId = IdUtils.createMountId();
     // lock sync manager to ensure no sync point is added before the mount point is removed
-    try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
+    try (LockResource r = new LockResource(mSyncManager.getLock())) {
       List<AlluxioURI> syncPoints = mSyncManager.getFilterList(mountInfo.getMountId());
       if (syncPoints != null && !syncPoints.isEmpty()) {
         throw new InvalidArgumentException("Updating a mount point with ActiveSync enabled is not"
@@ -3395,6 +3395,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
     // Update metadata for all the mount points
     for (String mountPoint : pathsToLoad) {
+      if (Thread.currentThread().isInterrupted()) {
+        LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
+        return false;
+      }
       AlluxioURI mountPointUri = new AlluxioURI(mountPoint);
       try {
         if (PathUtils.hasPrefix(inodePath.getUri().getPath(), mountPointUri.getPath())) {
@@ -3492,6 +3496,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
+    if (Thread.currentThread().isInterrupted()) {
+      LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
+      return SyncResult.defaults();
+    }
     // Set to true if the given inode was deleted.
     boolean deletedInode = false;
     // Set of paths to sync
@@ -3784,43 +3792,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
     return mSyncManager.getSyncPathList();
   }
 
-  private void startSyncAndJournal(RpcContext rpcContext, AlluxioURI uri)
-      throws InvalidPathException, IOException {
-    try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
-      MountTable.Resolution resolution = mMountTable.resolve(uri);
-      long mountId = resolution.getMountId();
-      try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-        if (!ufsResource.get().supportsActiveSync()) {
-          throw new UnsupportedOperationException(
-              "Active Syncing is not supported on this UFS type: "
-              + ufsResource.get().getUnderFSType());
-        }
-      }
-
-      if (mSyncManager.isActivelySynced(uri)) {
-        throw new InvalidPathException("URI " + uri + " is already a sync point");
-      }
-      AddSyncPointEntry addSyncPoint =
-          AddSyncPointEntry.newBuilder()
-              .setSyncpointPath(uri.toString())
-              .setMountId(mountId)
-              .build();
-      mSyncManager.applyAndJournal(rpcContext, addSyncPoint);
-      try {
-        mSyncManager.startSyncPostJournal(uri);
-      } catch (Throwable e) {
-        LOG.warn("Start sync failed on {}", uri, e);
-        // revert state;
-        RemoveSyncPointEntry removeSyncPoint =
-            File.RemoveSyncPointEntry.newBuilder()
-                .setSyncpointPath(uri.toString()).build();
-        mSyncManager.applyAndJournal(rpcContext, removeSyncPoint);
-        mSyncManager.recoverFromStartSync(uri, resolution.getMountId());
-        throw e;
-      }
-    }
-  }
-
   @Override
   public void startSync(AlluxioURI syncPoint)
       throws IOException, InvalidPathException, AccessControlException, ConnectionFailedException {
@@ -3837,39 +3808,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
         auditContext.setAllowed(false);
         throw e;
       }
-      startSyncAndJournal(rpcContext, syncPoint);
+      mSyncManager.startSyncAndJournal(rpcContext, syncPoint);
       auditContext.setSucceeded(true);
-    }
-  }
-
-  private void stopSyncAndJournal(RpcContext rpcContext,
-      LockingScheme lockingScheme, LockedInodePath lockedInodePath)
-      throws IOException, InvalidPathException {
-    try (LockResource r = new LockResource(mSyncManager.getSyncManagerLock())) {
-      MountTable.Resolution resolution = mSyncManager.resolveSyncPoint(lockedInodePath.getUri());
-      if (resolution == null) {
-        throw new InvalidPathException(lockedInodePath.getUri() + " is not a sync point.");
-      }
-      AlluxioURI uri = lockedInodePath.getUri();
-      RemoveSyncPointEntry removeSyncPoint = File.RemoveSyncPointEntry.newBuilder()
-              .setSyncpointPath(lockedInodePath.getUri().toString())
-              .setMountId(resolution.getMountId())
-              .build();
-      mSyncManager.applyAndJournal(rpcContext, removeSyncPoint);
-
-      try {
-        long mountId = resolution.getMountId();
-        mSyncManager.stopSyncPostJournal(lockedInodePath.getUri());
-      } catch (Throwable e) {
-        LOG.warn("Stop sync failed on {}", uri, e);
-        // revert state;
-        AddSyncPointEntry addSyncPoint =
-            File.AddSyncPointEntry.newBuilder()
-                .setSyncpointPath(uri.toString()).build();
-        mSyncManager.applyAndJournal(rpcContext, addSyncPoint);
-        mSyncManager.recoverFromStopSync(uri, resolution.getMountId());
-        throw e;
-      }
     }
   }
 
@@ -3889,7 +3829,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         auditContext.setAllowed(false);
         throw e;
       }
-      stopSyncAndJournal(rpcContext, lockingScheme, inodePath);
+      mSyncManager.stopSyncAndJournal(rpcContext, inodePath.getUri());
       auditContext.setSucceeded(true);
     }
   }

@@ -9,10 +9,12 @@ public interface GetQuorumInfoPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.journal.GetQuorumInfoPOptions options = 1;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.journal.GetQuorumInfoPOptions options = 1;</code>
+   * @return The options.
    */
   alluxio.grpc.GetQuorumInfoPOptions getOptions();
   /**

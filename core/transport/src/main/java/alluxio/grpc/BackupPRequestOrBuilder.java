@@ -9,10 +9,12 @@ public interface BackupPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.meta.BackupPOptions options = 1;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.meta.BackupPOptions options = 1;</code>
+   * @return The options.
    */
   alluxio.grpc.BackupPOptions getOptions();
   /**
@@ -22,14 +24,17 @@ public interface BackupPRequestOrBuilder extends
 
   /**
    * <code>optional string targetDirectory = 2;</code>
+   * @return Whether the targetDirectory field is set.
    */
   boolean hasTargetDirectory();
   /**
    * <code>optional string targetDirectory = 2;</code>
+   * @return The targetDirectory.
    */
   java.lang.String getTargetDirectory();
   /**
    * <code>optional string targetDirectory = 2;</code>
+   * @return The bytes for targetDirectory.
    */
   com.google.protobuf.ByteString
       getTargetDirectoryBytes();

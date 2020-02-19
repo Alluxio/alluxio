@@ -36,15 +36,20 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(WasbUnderFileSystem.class);
 
   /** Constant for the wasb URI scheme. */
-  public static final String SCHEME = "wasb://";
+  public static final String SCHEME_INSECURE = "wasb://";
+
+  /** Constant for the wasbs URI scheme. */
+  public static final String SCHEME_SECURE = "wasbs://";
 
   /**
    * Prepares the configuration for this Wasb as an HDFS configuration.
    *
    * @param conf the configuration for this UFS
+   * @param isSecure whether blob storage is using https
    * @return the created configuration
    */
-  public static Configuration createConfiguration(UnderFileSystemConfiguration conf) {
+  public static Configuration createConfiguration(UnderFileSystemConfiguration conf,
+          Boolean isSecure) {
     Configuration wasbConf = HdfsUnderFileSystem.createConfiguration(conf);
     for (Map.Entry<String, String> entry : conf.toMap().entrySet()) {
       String key = entry.getKey();
@@ -53,8 +58,13 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
         wasbConf.set(key, value);
       }
     }
-    wasbConf.set("fs.AbstractFileSystem.wasb.impl", "org.apache.hadoop.fs.azure.Wasb");
-    wasbConf.set("fs.wasb.impl", "org.apache.hadoop.fs.azure.NativeAzureFileSystem");
+    if (isSecure) {
+      wasbConf.set("fs.AbstractFileSystem.wasbs.impl", "org.apache.hadoop.fs.azure.Wasbs");
+      wasbConf.set("fs.wasbs.impl", "org.apache.hadoop.fs.azure.NativeAzureFileSystem");
+    } else {
+      wasbConf.set("fs.AbstractFileSystem.wasb.impl", "org.apache.hadoop.fs.azure.Wasb");
+      wasbConf.set("fs.wasb.impl", "org.apache.hadoop.fs.azure.NativeAzureFileSystem");
+    }
     return wasbConf;
   }
 
@@ -67,7 +77,7 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
    */
   public static WasbUnderFileSystem createInstance(AlluxioURI uri,
       UnderFileSystemConfiguration conf) {
-    Configuration wasbConf = createConfiguration(conf);
+    Configuration wasbConf = createConfiguration(conf, uri.getScheme().startsWith(SCHEME_SECURE));
     return new WasbUnderFileSystem(uri, conf, wasbConf);
   }
 

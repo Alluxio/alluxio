@@ -9,28 +9,34 @@ public interface FileSystemMasterCommonPOptionsOrBuilder extends
 
   /**
    * <code>optional int64 syncIntervalMs = 1;</code>
+   * @return Whether the syncIntervalMs field is set.
    */
   boolean hasSyncIntervalMs();
   /**
    * <code>optional int64 syncIntervalMs = 1;</code>
+   * @return The syncIntervalMs.
    */
   long getSyncIntervalMs();
 
   /**
    * <code>optional int64 ttl = 2;</code>
+   * @return Whether the ttl field is set.
    */
   boolean hasTtl();
   /**
    * <code>optional int64 ttl = 2;</code>
+   * @return The ttl.
    */
   long getTtl();
 
   /**
    * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
+   * @return Whether the ttlAction field is set.
    */
   boolean hasTtlAction();
   /**
    * <code>optional .alluxio.grpc.TtlAction ttlAction = 3;</code>
+   * @return The ttlAction.
    */
   alluxio.grpc.TtlAction getTtlAction();
 }

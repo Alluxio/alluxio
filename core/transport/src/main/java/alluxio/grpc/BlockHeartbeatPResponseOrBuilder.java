@@ -9,10 +9,12 @@ public interface BlockHeartbeatPResponseOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.Command command = 1;</code>
+   * @return Whether the command field is set.
    */
   boolean hasCommand();
   /**
    * <code>optional .alluxio.grpc.Command command = 1;</code>
+   * @return The command.
    */
   alluxio.grpc.Command getCommand();
   /**

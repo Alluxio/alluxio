@@ -16,9 +16,15 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private BlockHeartbeatPRequest() {
-    workerId_ = 0L;
-    removedBlockIds_ = java.util.Collections.emptyList();
+    removedBlockIds_ = emptyLongList();
     addedBlocks_ = java.util.Collections.emptyList();
+  }
+
+  @java.lang.Override
+  @SuppressWarnings({"unused"})
+  protected java.lang.Object newInstance(
+      UnusedPrivateParameter unused) {
+    return new BlockHeartbeatPRequest();
   }
 
   @java.lang.Override
@@ -45,20 +51,13 @@ private static final long serialVersionUID = 0L;
           case 0:
             done = true;
             break;
-          default: {
-            if (!parseUnknownField(
-                input, unknownFields, extensionRegistry, tag)) {
-              done = true;
-            }
-            break;
-          }
           case 8: {
             bitField0_ |= 0x00000001;
             workerId_ = input.readInt64();
             break;
           }
           case 18: {
-            if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
               usedBytesOnTiers_ = com.google.protobuf.MapField.newMapField(
                   UsedBytesOnTiersDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000002;
@@ -71,28 +70,28 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 24: {
-            if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-              removedBlockIds_ = new java.util.ArrayList<java.lang.Long>();
+            if (!((mutable_bitField0_ & 0x00000004) != 0)) {
+              removedBlockIds_ = newLongList();
               mutable_bitField0_ |= 0x00000004;
             }
-            removedBlockIds_.add(input.readInt64());
+            removedBlockIds_.addLong(input.readInt64());
             break;
           }
           case 26: {
             int length = input.readRawVarint32();
             int limit = input.pushLimit(length);
-            if (!((mutable_bitField0_ & 0x00000004) == 0x00000004) && input.getBytesUntilLimit() > 0) {
-              removedBlockIds_ = new java.util.ArrayList<java.lang.Long>();
+            if (!((mutable_bitField0_ & 0x00000004) != 0) && input.getBytesUntilLimit() > 0) {
+              removedBlockIds_ = newLongList();
               mutable_bitField0_ |= 0x00000004;
             }
             while (input.getBytesUntilLimit() > 0) {
-              removedBlockIds_.add(input.readInt64());
+              removedBlockIds_.addLong(input.readInt64());
             }
             input.popLimit(limit);
             break;
           }
           case 34: {
-            if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+            if (!((mutable_bitField0_ & 0x00000008) != 0)) {
               addedBlocksOnTiers_ = com.google.protobuf.MapField.newMapField(
                   AddedBlocksOnTiersDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000008;
@@ -106,7 +105,7 @@ private static final long serialVersionUID = 0L;
           }
           case 42: {
             alluxio.grpc.BlockHeartbeatPOptions.Builder subBuilder = null;
-            if (((bitField0_ & 0x00000002) == 0x00000002)) {
+            if (((bitField0_ & 0x00000002) != 0)) {
               subBuilder = options_.toBuilder();
             }
             options_ = input.readMessage(alluxio.grpc.BlockHeartbeatPOptions.PARSER, extensionRegistry);
@@ -118,7 +117,7 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 50: {
-            if (!((mutable_bitField0_ & 0x00000020) == 0x00000020)) {
+            if (!((mutable_bitField0_ & 0x00000020) != 0)) {
               lostStorage_ = com.google.protobuf.MapField.newMapField(
                   LostStorageDefaultEntryHolder.defaultEntry);
               mutable_bitField0_ |= 0x00000020;
@@ -131,12 +130,19 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 58: {
-            if (!((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+            if (!((mutable_bitField0_ & 0x00000040) != 0)) {
               addedBlocks_ = new java.util.ArrayList<alluxio.grpc.LocationBlockIdListEntry>();
               mutable_bitField0_ |= 0x00000040;
             }
             addedBlocks_.add(
                 input.readMessage(alluxio.grpc.LocationBlockIdListEntry.PARSER, extensionRegistry));
+            break;
+          }
+          default: {
+            if (!parseUnknownField(
+                input, unknownFields, extensionRegistry, tag)) {
+              done = true;
+            }
             break;
           }
         }
@@ -147,10 +153,10 @@ private static final long serialVersionUID = 0L;
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
-        removedBlockIds_ = java.util.Collections.unmodifiableList(removedBlockIds_);
+      if (((mutable_bitField0_ & 0x00000004) != 0)) {
+        removedBlockIds_.makeImmutable(); // C
       }
-      if (((mutable_bitField0_ & 0x00000040) == 0x00000040)) {
+      if (((mutable_bitField0_ & 0x00000040) != 0)) {
         addedBlocks_ = java.util.Collections.unmodifiableList(addedBlocks_);
       }
       this.unknownFields = unknownFields.build();
@@ -163,6 +169,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @SuppressWarnings({"rawtypes"})
+  @java.lang.Override
   protected com.google.protobuf.MapField internalGetMapField(
       int number) {
     switch (number) {
@@ -177,6 +184,7 @@ private static final long serialVersionUID = 0L;
             "Invalid map field number: " + number);
     }
   }
+  @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
     return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_BlockHeartbeatPRequest_fieldAccessorTable
@@ -193,9 +201,10 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>optional int64 workerId = 1;</code>
+   * @return Whether the workerId field is set.
    */
   public boolean hasWorkerId() {
-    return ((bitField0_ & 0x00000001) == 0x00000001);
+    return ((bitField0_ & 0x00000001) != 0);
   }
   /**
    * <pre>
@@ -203,6 +212,7 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>optional int64 workerId = 1;</code>
+   * @return The workerId.
    */
   public long getWorkerId() {
     return workerId_;
@@ -301,13 +311,14 @@ private static final long serialVersionUID = 0L;
   }
 
   public static final int REMOVEDBLOCKIDS_FIELD_NUMBER = 3;
-  private java.util.List<java.lang.Long> removedBlockIds_;
+  private com.google.protobuf.Internal.LongList removedBlockIds_;
   /**
    * <pre>
    ** the list of removed block ids 
    * </pre>
    *
    * <code>repeated int64 removedBlockIds = 3;</code>
+   * @return A list containing the removedBlockIds.
    */
   public java.util.List<java.lang.Long>
       getRemovedBlockIdsList() {
@@ -319,6 +330,7 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>repeated int64 removedBlockIds = 3;</code>
+   * @return The count of removedBlockIds.
    */
   public int getRemovedBlockIdsCount() {
     return removedBlockIds_.size();
@@ -329,9 +341,11 @@ private static final long serialVersionUID = 0L;
    * </pre>
    *
    * <code>repeated int64 removedBlockIds = 3;</code>
+   * @param index The index of the element to return.
+   * @return The removedBlockIds at the given index.
    */
   public long getRemovedBlockIds(int index) {
-    return removedBlockIds_.get(index);
+    return removedBlockIds_.getLong(index);
   }
 
   public static final int ADDEDBLOCKSONTIERS_FIELD_NUMBER = 4;
@@ -430,12 +444,14 @@ private static final long serialVersionUID = 0L;
   private alluxio.grpc.BlockHeartbeatPOptions options_;
   /**
    * <code>optional .alluxio.grpc.block.BlockHeartbeatPOptions options = 5;</code>
+   * @return Whether the options field is set.
    */
   public boolean hasOptions() {
-    return ((bitField0_ & 0x00000002) == 0x00000002);
+    return ((bitField0_ & 0x00000002) != 0);
   }
   /**
    * <code>optional .alluxio.grpc.block.BlockHeartbeatPOptions options = 5;</code>
+   * @return The options.
    */
   public alluxio.grpc.BlockHeartbeatPOptions getOptions() {
     return options_ == null ? alluxio.grpc.BlockHeartbeatPOptions.getDefaultInstance() : options_;
@@ -595,6 +611,7 @@ private static final long serialVersionUID = 0L;
   }
 
   private byte memoizedIsInitialized = -1;
+  @java.lang.Override
   public final boolean isInitialized() {
     byte isInitialized = memoizedIsInitialized;
     if (isInitialized == 1) return true;
@@ -610,9 +627,10 @@ private static final long serialVersionUID = 0L;
     return true;
   }
 
+  @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       output.writeInt64(1, workerId_);
     }
     com.google.protobuf.GeneratedMessageV3
@@ -622,7 +640,7 @@ private static final long serialVersionUID = 0L;
         UsedBytesOnTiersDefaultEntryHolder.defaultEntry,
         2);
     for (int i = 0; i < removedBlockIds_.size(); i++) {
-      output.writeInt64(3, removedBlockIds_.get(i));
+      output.writeInt64(3, removedBlockIds_.getLong(i));
     }
     com.google.protobuf.GeneratedMessageV3
       .serializeStringMapTo(
@@ -630,7 +648,7 @@ private static final long serialVersionUID = 0L;
         internalGetAddedBlocksOnTiers(),
         AddedBlocksOnTiersDefaultEntryHolder.defaultEntry,
         4);
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       output.writeMessage(5, getOptions());
     }
     com.google.protobuf.GeneratedMessageV3
@@ -645,12 +663,13 @@ private static final long serialVersionUID = 0L;
     unknownFields.writeTo(output);
   }
 
+  @java.lang.Override
   public int getSerializedSize() {
     int size = memoizedSize;
     if (size != -1) return size;
 
     size = 0;
-    if (((bitField0_ & 0x00000001) == 0x00000001)) {
+    if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(1, workerId_);
     }
@@ -668,7 +687,7 @@ private static final long serialVersionUID = 0L;
       int dataSize = 0;
       for (int i = 0; i < removedBlockIds_.size(); i++) {
         dataSize += com.google.protobuf.CodedOutputStream
-          .computeInt64SizeNoTag(removedBlockIds_.get(i));
+          .computeInt64SizeNoTag(removedBlockIds_.getLong(i));
       }
       size += dataSize;
       size += 1 * getRemovedBlockIdsList().size();
@@ -683,7 +702,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(4, addedBlocksOnTiers__);
     }
-    if (((bitField0_ & 0x00000002) == 0x00000002)) {
+    if (((bitField0_ & 0x00000002) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(5, getOptions());
     }
@@ -716,29 +735,28 @@ private static final long serialVersionUID = 0L;
     }
     alluxio.grpc.BlockHeartbeatPRequest other = (alluxio.grpc.BlockHeartbeatPRequest) obj;
 
-    boolean result = true;
-    result = result && (hasWorkerId() == other.hasWorkerId());
+    if (hasWorkerId() != other.hasWorkerId()) return false;
     if (hasWorkerId()) {
-      result = result && (getWorkerId()
-          == other.getWorkerId());
+      if (getWorkerId()
+          != other.getWorkerId()) return false;
     }
-    result = result && internalGetUsedBytesOnTiers().equals(
-        other.internalGetUsedBytesOnTiers());
-    result = result && getRemovedBlockIdsList()
-        .equals(other.getRemovedBlockIdsList());
-    result = result && internalGetAddedBlocksOnTiers().equals(
-        other.internalGetAddedBlocksOnTiers());
-    result = result && (hasOptions() == other.hasOptions());
+    if (!internalGetUsedBytesOnTiers().equals(
+        other.internalGetUsedBytesOnTiers())) return false;
+    if (!getRemovedBlockIdsList()
+        .equals(other.getRemovedBlockIdsList())) return false;
+    if (!internalGetAddedBlocksOnTiers().equals(
+        other.internalGetAddedBlocksOnTiers())) return false;
+    if (hasOptions() != other.hasOptions()) return false;
     if (hasOptions()) {
-      result = result && getOptions()
-          .equals(other.getOptions());
+      if (!getOptions()
+          .equals(other.getOptions())) return false;
     }
-    result = result && internalGetLostStorage().equals(
-        other.internalGetLostStorage());
-    result = result && getAddedBlocksList()
-        .equals(other.getAddedBlocksList());
-    result = result && unknownFields.equals(other.unknownFields);
-    return result;
+    if (!internalGetLostStorage().equals(
+        other.internalGetLostStorage())) return false;
+    if (!getAddedBlocksList()
+        .equals(other.getAddedBlocksList())) return false;
+    if (!unknownFields.equals(other.unknownFields)) return false;
+    return true;
   }
 
   @java.lang.Override
@@ -852,6 +870,7 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
+  @java.lang.Override
   public Builder newBuilderForType() { return newBuilder(); }
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
@@ -859,6 +878,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder(alluxio.grpc.BlockHeartbeatPRequest prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
+  @java.lang.Override
   public Builder toBuilder() {
     return this == DEFAULT_INSTANCE
         ? new Builder() : new Builder().mergeFrom(this);
@@ -912,6 +932,7 @@ private static final long serialVersionUID = 0L;
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_BlockHeartbeatPRequest_fieldAccessorTable
@@ -936,12 +957,13 @@ private static final long serialVersionUID = 0L;
         getAddedBlocksFieldBuilder();
       }
     }
+    @java.lang.Override
     public Builder clear() {
       super.clear();
       workerId_ = 0L;
       bitField0_ = (bitField0_ & ~0x00000001);
       internalGetMutableUsedBytesOnTiers().clear();
-      removedBlockIds_ = java.util.Collections.emptyList();
+      removedBlockIds_ = emptyLongList();
       bitField0_ = (bitField0_ & ~0x00000004);
       internalGetMutableAddedBlocksOnTiers().clear();
       if (optionsBuilder_ == null) {
@@ -960,15 +982,18 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
       return alluxio.grpc.BlockMasterProto.internal_static_alluxio_grpc_block_BlockHeartbeatPRequest_descriptor;
     }
 
+    @java.lang.Override
     public alluxio.grpc.BlockHeartbeatPRequest getDefaultInstanceForType() {
       return alluxio.grpc.BlockHeartbeatPRequest.getDefaultInstance();
     }
 
+    @java.lang.Override
     public alluxio.grpc.BlockHeartbeatPRequest build() {
       alluxio.grpc.BlockHeartbeatPRequest result = buildPartial();
       if (!result.isInitialized()) {
@@ -977,35 +1002,36 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public alluxio.grpc.BlockHeartbeatPRequest buildPartial() {
       alluxio.grpc.BlockHeartbeatPRequest result = new alluxio.grpc.BlockHeartbeatPRequest(this);
       int from_bitField0_ = bitField0_;
       int to_bitField0_ = 0;
-      if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((from_bitField0_ & 0x00000001) != 0)) {
+        result.workerId_ = workerId_;
         to_bitField0_ |= 0x00000001;
       }
-      result.workerId_ = workerId_;
       result.usedBytesOnTiers_ = internalGetUsedBytesOnTiers();
       result.usedBytesOnTiers_.makeImmutable();
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        removedBlockIds_ = java.util.Collections.unmodifiableList(removedBlockIds_);
+      if (((bitField0_ & 0x00000004) != 0)) {
+        removedBlockIds_.makeImmutable();
         bitField0_ = (bitField0_ & ~0x00000004);
       }
       result.removedBlockIds_ = removedBlockIds_;
       result.addedBlocksOnTiers_ = internalGetAddedBlocksOnTiers();
       result.addedBlocksOnTiers_.makeImmutable();
-      if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+      if (((from_bitField0_ & 0x00000010) != 0)) {
+        if (optionsBuilder_ == null) {
+          result.options_ = options_;
+        } else {
+          result.options_ = optionsBuilder_.build();
+        }
         to_bitField0_ |= 0x00000002;
-      }
-      if (optionsBuilder_ == null) {
-        result.options_ = options_;
-      } else {
-        result.options_ = optionsBuilder_.build();
       }
       result.lostStorage_ = internalGetLostStorage();
       result.lostStorage_.makeImmutable();
       if (addedBlocksBuilder_ == null) {
-        if (((bitField0_ & 0x00000040) == 0x00000040)) {
+        if (((bitField0_ & 0x00000040) != 0)) {
           addedBlocks_ = java.util.Collections.unmodifiableList(addedBlocks_);
           bitField0_ = (bitField0_ & ~0x00000040);
         }
@@ -1018,32 +1044,39 @@ private static final long serialVersionUID = 0L;
       return result;
     }
 
+    @java.lang.Override
     public Builder clone() {
-      return (Builder) super.clone();
+      return super.clone();
     }
+    @java.lang.Override
     public Builder setField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.setField(field, value);
+      return super.setField(field, value);
     }
+    @java.lang.Override
     public Builder clearField(
         com.google.protobuf.Descriptors.FieldDescriptor field) {
-      return (Builder) super.clearField(field);
+      return super.clearField(field);
     }
+    @java.lang.Override
     public Builder clearOneof(
         com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-      return (Builder) super.clearOneof(oneof);
+      return super.clearOneof(oneof);
     }
+    @java.lang.Override
     public Builder setRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         int index, java.lang.Object value) {
-      return (Builder) super.setRepeatedField(field, index, value);
+      return super.setRepeatedField(field, index, value);
     }
+    @java.lang.Override
     public Builder addRepeatedField(
         com.google.protobuf.Descriptors.FieldDescriptor field,
         java.lang.Object value) {
-      return (Builder) super.addRepeatedField(field, value);
+      return super.addRepeatedField(field, value);
     }
+    @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
       if (other instanceof alluxio.grpc.BlockHeartbeatPRequest) {
         return mergeFrom((alluxio.grpc.BlockHeartbeatPRequest)other);
@@ -1108,6 +1141,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
+    @java.lang.Override
     public final boolean isInitialized() {
       if (hasOptions()) {
         if (!getOptions().isInitialized()) {
@@ -1117,6 +1151,7 @@ private static final long serialVersionUID = 0L;
       return true;
     }
 
+    @java.lang.Override
     public Builder mergeFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1143,9 +1178,10 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional int64 workerId = 1;</code>
+     * @return Whether the workerId field is set.
      */
     public boolean hasWorkerId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <pre>
@@ -1153,6 +1189,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional int64 workerId = 1;</code>
+     * @return The workerId.
      */
     public long getWorkerId() {
       return workerId_;
@@ -1163,6 +1200,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional int64 workerId = 1;</code>
+     * @param value The workerId to set.
+     * @return This builder for chaining.
      */
     public Builder setWorkerId(long value) {
       bitField0_ |= 0x00000001;
@@ -1176,6 +1215,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>optional int64 workerId = 1;</code>
+     * @return This builder for chaining.
      */
     public Builder clearWorkerId() {
       bitField0_ = (bitField0_ & ~0x00000001);
@@ -1335,10 +1375,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.util.List<java.lang.Long> removedBlockIds_ = java.util.Collections.emptyList();
+    private com.google.protobuf.Internal.LongList removedBlockIds_ = emptyLongList();
     private void ensureRemovedBlockIdsIsMutable() {
-      if (!((bitField0_ & 0x00000004) == 0x00000004)) {
-        removedBlockIds_ = new java.util.ArrayList<java.lang.Long>(removedBlockIds_);
+      if (!((bitField0_ & 0x00000004) != 0)) {
+        removedBlockIds_ = mutableCopy(removedBlockIds_);
         bitField0_ |= 0x00000004;
        }
     }
@@ -1348,10 +1388,12 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated int64 removedBlockIds = 3;</code>
+     * @return A list containing the removedBlockIds.
      */
     public java.util.List<java.lang.Long>
         getRemovedBlockIdsList() {
-      return java.util.Collections.unmodifiableList(removedBlockIds_);
+      return ((bitField0_ & 0x00000004) != 0) ?
+               java.util.Collections.unmodifiableList(removedBlockIds_) : removedBlockIds_;
     }
     /**
      * <pre>
@@ -1359,6 +1401,7 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated int64 removedBlockIds = 3;</code>
+     * @return The count of removedBlockIds.
      */
     public int getRemovedBlockIdsCount() {
       return removedBlockIds_.size();
@@ -1369,9 +1412,11 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated int64 removedBlockIds = 3;</code>
+     * @param index The index of the element to return.
+     * @return The removedBlockIds at the given index.
      */
     public long getRemovedBlockIds(int index) {
-      return removedBlockIds_.get(index);
+      return removedBlockIds_.getLong(index);
     }
     /**
      * <pre>
@@ -1379,11 +1424,14 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated int64 removedBlockIds = 3;</code>
+     * @param index The index to set the value at.
+     * @param value The removedBlockIds to set.
+     * @return This builder for chaining.
      */
     public Builder setRemovedBlockIds(
         int index, long value) {
       ensureRemovedBlockIdsIsMutable();
-      removedBlockIds_.set(index, value);
+      removedBlockIds_.setLong(index, value);
       onChanged();
       return this;
     }
@@ -1393,10 +1441,12 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated int64 removedBlockIds = 3;</code>
+     * @param value The removedBlockIds to add.
+     * @return This builder for chaining.
      */
     public Builder addRemovedBlockIds(long value) {
       ensureRemovedBlockIdsIsMutable();
-      removedBlockIds_.add(value);
+      removedBlockIds_.addLong(value);
       onChanged();
       return this;
     }
@@ -1406,6 +1456,8 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated int64 removedBlockIds = 3;</code>
+     * @param values The removedBlockIds to add.
+     * @return This builder for chaining.
      */
     public Builder addAllRemovedBlockIds(
         java.lang.Iterable<? extends java.lang.Long> values) {
@@ -1421,9 +1473,10 @@ private static final long serialVersionUID = 0L;
      * </pre>
      *
      * <code>repeated int64 removedBlockIds = 3;</code>
+     * @return This builder for chaining.
      */
     public Builder clearRemovedBlockIds() {
-      removedBlockIds_ = java.util.Collections.emptyList();
+      removedBlockIds_ = emptyLongList();
       bitField0_ = (bitField0_ & ~0x00000004);
       onChanged();
       return this;
@@ -1580,17 +1633,19 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private alluxio.grpc.BlockHeartbeatPOptions options_ = null;
+    private alluxio.grpc.BlockHeartbeatPOptions options_;
     private com.google.protobuf.SingleFieldBuilderV3<
         alluxio.grpc.BlockHeartbeatPOptions, alluxio.grpc.BlockHeartbeatPOptions.Builder, alluxio.grpc.BlockHeartbeatPOptionsOrBuilder> optionsBuilder_;
     /**
      * <code>optional .alluxio.grpc.block.BlockHeartbeatPOptions options = 5;</code>
+     * @return Whether the options field is set.
      */
     public boolean hasOptions() {
-      return ((bitField0_ & 0x00000010) == 0x00000010);
+      return ((bitField0_ & 0x00000010) != 0);
     }
     /**
      * <code>optional .alluxio.grpc.block.BlockHeartbeatPOptions options = 5;</code>
+     * @return The options.
      */
     public alluxio.grpc.BlockHeartbeatPOptions getOptions() {
       if (optionsBuilder_ == null) {
@@ -1634,7 +1689,7 @@ private static final long serialVersionUID = 0L;
      */
     public Builder mergeOptions(alluxio.grpc.BlockHeartbeatPOptions value) {
       if (optionsBuilder_ == null) {
-        if (((bitField0_ & 0x00000010) == 0x00000010) &&
+        if (((bitField0_ & 0x00000010) != 0) &&
             options_ != null &&
             options_ != alluxio.grpc.BlockHeartbeatPOptions.getDefaultInstance()) {
           options_ =
@@ -1852,7 +1907,7 @@ private static final long serialVersionUID = 0L;
     private java.util.List<alluxio.grpc.LocationBlockIdListEntry> addedBlocks_ =
       java.util.Collections.emptyList();
     private void ensureAddedBlocksIsMutable() {
-      if (!((bitField0_ & 0x00000040) == 0x00000040)) {
+      if (!((bitField0_ & 0x00000040) != 0)) {
         addedBlocks_ = new java.util.ArrayList<alluxio.grpc.LocationBlockIdListEntry>(addedBlocks_);
         bitField0_ |= 0x00000040;
        }
@@ -2153,18 +2208,20 @@ private static final long serialVersionUID = 0L;
         addedBlocksBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
             alluxio.grpc.LocationBlockIdListEntry, alluxio.grpc.LocationBlockIdListEntry.Builder, alluxio.grpc.LocationBlockIdListEntryOrBuilder>(
                 addedBlocks_,
-                ((bitField0_ & 0x00000040) == 0x00000040),
+                ((bitField0_ & 0x00000040) != 0),
                 getParentForChildren(),
                 isClean());
         addedBlocks_ = null;
       }
       return addedBlocksBuilder_;
     }
+    @java.lang.Override
     public final Builder setUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.setUnknownFields(unknownFields);
     }
 
+    @java.lang.Override
     public final Builder mergeUnknownFields(
         final com.google.protobuf.UnknownFieldSet unknownFields) {
       return super.mergeUnknownFields(unknownFields);
@@ -2186,6 +2243,7 @@ private static final long serialVersionUID = 0L;
 
   @java.lang.Deprecated public static final com.google.protobuf.Parser<BlockHeartbeatPRequest>
       PARSER = new com.google.protobuf.AbstractParser<BlockHeartbeatPRequest>() {
+    @java.lang.Override
     public BlockHeartbeatPRequest parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2203,6 +2261,7 @@ private static final long serialVersionUID = 0L;
     return PARSER;
   }
 
+  @java.lang.Override
   public alluxio.grpc.BlockHeartbeatPRequest getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }

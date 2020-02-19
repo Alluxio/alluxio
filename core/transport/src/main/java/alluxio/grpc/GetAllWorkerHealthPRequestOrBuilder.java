@@ -9,10 +9,12 @@ public interface GetAllWorkerHealthPRequestOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.job.GetAllWorkerHealthPOptions options = 1;</code>
+   * @return Whether the options field is set.
    */
   boolean hasOptions();
   /**
    * <code>optional .alluxio.grpc.job.GetAllWorkerHealthPOptions options = 1;</code>
+   * @return The options.
    */
   alluxio.grpc.GetAllWorkerHealthPOptions getOptions();
   /**

@@ -9,10 +9,12 @@ public interface SetTaskPoolSizeCommandOrBuilder extends
 
   /**
    * <code>optional int32 taskPoolSize = 1;</code>
+   * @return Whether the taskPoolSize field is set.
    */
   boolean hasTaskPoolSize();
   /**
    * <code>optional int32 taskPoolSize = 1;</code>
+   * @return The taskPoolSize.
    */
   int getTaskPoolSize();
 }

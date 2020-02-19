@@ -9,10 +9,12 @@ public interface WriteRequestCommandOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.block.RequestType type = 1;</code>
+   * @return Whether the type field is set.
    */
   boolean hasType();
   /**
    * <code>optional .alluxio.grpc.block.RequestType type = 1;</code>
+   * @return The type.
    */
   alluxio.grpc.RequestType getType();
 
@@ -22,6 +24,7 @@ public interface WriteRequestCommandOrBuilder extends
    * </pre>
    *
    * <code>optional int64 id = 2;</code>
+   * @return Whether the id field is set.
    */
   boolean hasId();
   /**
@@ -30,15 +33,18 @@ public interface WriteRequestCommandOrBuilder extends
    * </pre>
    *
    * <code>optional int64 id = 2;</code>
+   * @return The id.
    */
   long getId();
 
   /**
    * <code>optional int64 offset = 3;</code>
+   * @return Whether the offset field is set.
    */
   boolean hasOffset();
   /**
    * <code>optional int64 offset = 3;</code>
+   * @return The offset.
    */
   long getOffset();
 
@@ -48,6 +54,7 @@ public interface WriteRequestCommandOrBuilder extends
    * </pre>
    *
    * <code>optional int32 tier = 4;</code>
+   * @return Whether the tier field is set.
    */
   boolean hasTier();
   /**
@@ -56,15 +63,18 @@ public interface WriteRequestCommandOrBuilder extends
    * </pre>
    *
    * <code>optional int32 tier = 4;</code>
+   * @return The tier.
    */
   int getTier();
 
   /**
    * <code>optional bool flush = 5;</code>
+   * @return Whether the flush field is set.
    */
   boolean hasFlush();
   /**
    * <code>optional bool flush = 5;</code>
+   * @return The flush.
    */
   boolean getFlush();
 
@@ -74,6 +84,7 @@ public interface WriteRequestCommandOrBuilder extends
    * </pre>
    *
    * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
+   * @return Whether the createUfsFileOptions field is set.
    */
   boolean hasCreateUfsFileOptions();
   /**
@@ -82,6 +93,7 @@ public interface WriteRequestCommandOrBuilder extends
    * </pre>
    *
    * <code>optional .alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;</code>
+   * @return The createUfsFileOptions.
    */
   alluxio.proto.dataserver.Protocol.CreateUfsFileOptions getCreateUfsFileOptions();
   /**
@@ -95,10 +107,12 @@ public interface WriteRequestCommandOrBuilder extends
 
   /**
    * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
+   * @return Whether the createUfsBlockOptions field is set.
    */
   boolean hasCreateUfsBlockOptions();
   /**
    * <code>optional .alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;</code>
+   * @return The createUfsBlockOptions.
    */
   alluxio.proto.dataserver.Protocol.CreateUfsBlockOptions getCreateUfsBlockOptions();
   /**
@@ -108,24 +122,29 @@ public interface WriteRequestCommandOrBuilder extends
 
   /**
    * <code>optional string medium_type = 8;</code>
+   * @return Whether the mediumType field is set.
    */
   boolean hasMediumType();
   /**
    * <code>optional string medium_type = 8;</code>
+   * @return The mediumType.
    */
   java.lang.String getMediumType();
   /**
    * <code>optional string medium_type = 8;</code>
+   * @return The bytes for mediumType.
    */
   com.google.protobuf.ByteString
       getMediumTypeBytes();
 
   /**
    * <code>optional bool pin_on_create = 9;</code>
+   * @return Whether the pinOnCreate field is set.
    */
   boolean hasPinOnCreate();
   /**
    * <code>optional bool pin_on_create = 9;</code>
+   * @return The pinOnCreate.
    */
   boolean getPinOnCreate();
 }

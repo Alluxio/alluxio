@@ -24,6 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockReadRequest extends ReadRequest {
   private final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
   private final boolean mPromote;
+  private final boolean mPositionShort;
 
   /**
    * Creates an instance of {@link BlockReadRequest}.
@@ -40,6 +41,7 @@ public final class BlockReadRequest extends ReadRequest {
       mOpenUfsBlockOptions = null;
     }
     mPromote = request.getPromote();
+    mPositionShort = request.getPositionShort();
     // Note that we do not need to seek to offset since the block worker is created at the offset.
   }
 
@@ -48,6 +50,13 @@ public final class BlockReadRequest extends ReadRequest {
    */
   public boolean isPromote() {
     return mPromote;
+  }
+
+  /**
+   * @return if this is a positioned read to a small buffer
+   */
+  public boolean isPositionShort() {
+    return mPositionShort;
   }
 
   /**
@@ -74,6 +83,7 @@ public final class BlockReadRequest extends ReadRequest {
         .add("promote", mPromote)
         .add("sessionId", getSessionId())
         .add("start", getStart())
+        .add("positionShort", isPositionShort())
         .toString();
   }
 }

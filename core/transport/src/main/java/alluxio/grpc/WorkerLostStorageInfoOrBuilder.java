@@ -9,10 +9,12 @@ public interface WorkerLostStorageInfoOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.WorkerNetAddress address = 1;</code>
+   * @return Whether the address field is set.
    */
   boolean hasAddress();
   /**
    * <code>optional .alluxio.grpc.WorkerNetAddress address = 1;</code>
+   * @return The address.
    */
   alluxio.grpc.WorkerNetAddress getAddress();
   /**

@@ -20,14 +20,17 @@ public final class Meta {
 
     /**
      * <code>optional string path = 1;</code>
+     * @return Whether the path field is set.
      */
     boolean hasPath();
     /**
      * <code>optional string path = 1;</code>
+     * @return The path.
      */
     java.lang.String getPath();
     /**
      * <code>optional string path = 1;</code>
+     * @return The bytes for path.
      */
     com.google.protobuf.ByteString
         getPathBytes();
@@ -87,6 +90,13 @@ public final class Meta {
     }
 
     @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new PathPropertiesEntry();
+    }
+
+    @java.lang.Override
     public final com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return this.unknownFields;
@@ -110,13 +120,6 @@ public final class Meta {
             case 0:
               done = true;
               break;
-            default: {
-              if (!parseUnknownField(
-                  input, unknownFields, extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
             case 10: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000001;
@@ -124,7 +127,7 @@ public final class Meta {
               break;
             }
             case 18: {
-              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+              if (!((mutable_bitField0_ & 0x00000002) != 0)) {
                 properties_ = com.google.protobuf.MapField.newMapField(
                     PropertiesDefaultEntryHolder.defaultEntry);
                 mutable_bitField0_ |= 0x00000002;
@@ -134,6 +137,13 @@ public final class Meta {
                   PropertiesDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
               properties_.getMutableMap().put(
                   properties__.getKey(), properties__.getValue());
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
               break;
             }
           }
@@ -154,6 +164,7 @@ public final class Meta {
     }
 
     @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
@@ -164,6 +175,7 @@ public final class Meta {
               "Invalid map field number: " + number);
       }
     }
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_PathPropertiesEntry_fieldAccessorTable
@@ -176,12 +188,14 @@ public final class Meta {
     private volatile java.lang.Object path_;
     /**
      * <code>optional string path = 1;</code>
+     * @return Whether the path field is set.
      */
     public boolean hasPath() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string path = 1;</code>
+     * @return The path.
      */
     public java.lang.String getPath() {
       java.lang.Object ref = path_;
@@ -199,6 +213,7 @@ public final class Meta {
     }
     /**
      * <code>optional string path = 1;</code>
+     * @return The bytes for path.
      */
     public com.google.protobuf.ByteString
         getPathBytes() {
@@ -291,6 +306,7 @@ public final class Meta {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -300,9 +316,10 @@ public final class Meta {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, path_);
       }
       com.google.protobuf.GeneratedMessageV3
@@ -314,12 +331,13 @@ public final class Meta {
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, path_);
       }
       for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
@@ -347,16 +365,15 @@ public final class Meta {
       }
       alluxio.proto.journal.Meta.PathPropertiesEntry other = (alluxio.proto.journal.Meta.PathPropertiesEntry) obj;
 
-      boolean result = true;
-      result = result && (hasPath() == other.hasPath());
+      if (hasPath() != other.hasPath()) return false;
       if (hasPath()) {
-        result = result && getPath()
-            .equals(other.getPath());
+        if (!getPath()
+            .equals(other.getPath())) return false;
       }
-      result = result && internalGetProperties().equals(
-          other.internalGetProperties());
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!internalGetProperties().equals(
+          other.internalGetProperties())) return false;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -449,6 +466,7 @@ public final class Meta {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -456,6 +474,7 @@ public final class Meta {
     public static Builder newBuilder(alluxio.proto.journal.Meta.PathPropertiesEntry prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -505,6 +524,7 @@ public final class Meta {
                 "Invalid map field number: " + number);
         }
       }
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_PathPropertiesEntry_fieldAccessorTable
@@ -527,6 +547,7 @@ public final class Meta {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         path_ = "";
@@ -535,15 +556,18 @@ public final class Meta {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_PathPropertiesEntry_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Meta.PathPropertiesEntry getDefaultInstanceForType() {
         return alluxio.proto.journal.Meta.PathPropertiesEntry.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Meta.PathPropertiesEntry build() {
         alluxio.proto.journal.Meta.PathPropertiesEntry result = buildPartial();
         if (!result.isInitialized()) {
@@ -552,11 +576,12 @@ public final class Meta {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Meta.PathPropertiesEntry buildPartial() {
         alluxio.proto.journal.Meta.PathPropertiesEntry result = new alluxio.proto.journal.Meta.PathPropertiesEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
           to_bitField0_ |= 0x00000001;
         }
         result.path_ = path_;
@@ -567,32 +592,39 @@ public final class Meta {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Meta.PathPropertiesEntry) {
           return mergeFrom((alluxio.proto.journal.Meta.PathPropertiesEntry)other);
@@ -616,10 +648,12 @@ public final class Meta {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -642,12 +676,14 @@ public final class Meta {
       private java.lang.Object path_ = "";
       /**
        * <code>optional string path = 1;</code>
+       * @return Whether the path field is set.
        */
       public boolean hasPath() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional string path = 1;</code>
+       * @return The path.
        */
       public java.lang.String getPath() {
         java.lang.Object ref = path_;
@@ -665,6 +701,7 @@ public final class Meta {
       }
       /**
        * <code>optional string path = 1;</code>
+       * @return The bytes for path.
        */
       public com.google.protobuf.ByteString
           getPathBytes() {
@@ -681,6 +718,8 @@ public final class Meta {
       }
       /**
        * <code>optional string path = 1;</code>
+       * @param value The path to set.
+       * @return This builder for chaining.
        */
       public Builder setPath(
           java.lang.String value) {
@@ -694,6 +733,7 @@ public final class Meta {
       }
       /**
        * <code>optional string path = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPath() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -703,6 +743,8 @@ public final class Meta {
       }
       /**
        * <code>optional string path = 1;</code>
+       * @param value The bytes for path to set.
+       * @return This builder for chaining.
        */
       public Builder setPathBytes(
           com.google.protobuf.ByteString value) {
@@ -837,11 +879,13 @@ public final class Meta {
             .putAll(values);
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -863,6 +907,7 @@ public final class Meta {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<PathPropertiesEntry>
         PARSER = new com.google.protobuf.AbstractParser<PathPropertiesEntry>() {
+      @java.lang.Override
       public PathPropertiesEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -880,6 +925,7 @@ public final class Meta {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.journal.Meta.PathPropertiesEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -892,14 +938,17 @@ public final class Meta {
 
     /**
      * <code>optional string path = 1;</code>
+     * @return Whether the path field is set.
      */
     boolean hasPath();
     /**
      * <code>optional string path = 1;</code>
+     * @return The path.
      */
     java.lang.String getPath();
     /**
      * <code>optional string path = 1;</code>
+     * @return The bytes for path.
      */
     com.google.protobuf.ByteString
         getPathBytes();
@@ -922,6 +971,13 @@ public final class Meta {
     }
     private RemovePathPropertiesEntry() {
       path_ = "";
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new RemovePathPropertiesEntry();
     }
 
     @java.lang.Override
@@ -948,17 +1004,17 @@ public final class Meta {
             case 0:
               done = true;
               break;
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              path_ = bs;
+              break;
+            }
             default: {
               if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
-              break;
-            }
-            case 10: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000001;
-              path_ = bs;
               break;
             }
           }
@@ -978,6 +1034,7 @@ public final class Meta {
       return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_RemovePathPropertiesEntry_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_RemovePathPropertiesEntry_fieldAccessorTable
@@ -990,12 +1047,14 @@ public final class Meta {
     private volatile java.lang.Object path_;
     /**
      * <code>optional string path = 1;</code>
+     * @return Whether the path field is set.
      */
     public boolean hasPath() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string path = 1;</code>
+     * @return The path.
      */
     public java.lang.String getPath() {
       java.lang.Object ref = path_;
@@ -1013,6 +1072,7 @@ public final class Meta {
     }
     /**
      * <code>optional string path = 1;</code>
+     * @return The bytes for path.
      */
     public com.google.protobuf.ByteString
         getPathBytes() {
@@ -1029,6 +1089,7 @@ public final class Meta {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -1038,20 +1099,22 @@ public final class Meta {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, path_);
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, path_);
       }
       size += unknownFields.getSerializedSize();
@@ -1069,14 +1132,13 @@ public final class Meta {
       }
       alluxio.proto.journal.Meta.RemovePathPropertiesEntry other = (alluxio.proto.journal.Meta.RemovePathPropertiesEntry) obj;
 
-      boolean result = true;
-      result = result && (hasPath() == other.hasPath());
+      if (hasPath() != other.hasPath()) return false;
       if (hasPath()) {
-        result = result && getPath()
-            .equals(other.getPath());
+        if (!getPath()
+            .equals(other.getPath())) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -1165,6 +1227,7 @@ public final class Meta {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -1172,6 +1235,7 @@ public final class Meta {
     public static Builder newBuilder(alluxio.proto.journal.Meta.RemovePathPropertiesEntry prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -1199,6 +1263,7 @@ public final class Meta {
         return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_RemovePathPropertiesEntry_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_RemovePathPropertiesEntry_fieldAccessorTable
@@ -1221,6 +1286,7 @@ public final class Meta {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         path_ = "";
@@ -1228,15 +1294,18 @@ public final class Meta {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_RemovePathPropertiesEntry_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Meta.RemovePathPropertiesEntry getDefaultInstanceForType() {
         return alluxio.proto.journal.Meta.RemovePathPropertiesEntry.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Meta.RemovePathPropertiesEntry build() {
         alluxio.proto.journal.Meta.RemovePathPropertiesEntry result = buildPartial();
         if (!result.isInitialized()) {
@@ -1245,11 +1314,12 @@ public final class Meta {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Meta.RemovePathPropertiesEntry buildPartial() {
         alluxio.proto.journal.Meta.RemovePathPropertiesEntry result = new alluxio.proto.journal.Meta.RemovePathPropertiesEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
           to_bitField0_ |= 0x00000001;
         }
         result.path_ = path_;
@@ -1258,32 +1328,39 @@ public final class Meta {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Meta.RemovePathPropertiesEntry) {
           return mergeFrom((alluxio.proto.journal.Meta.RemovePathPropertiesEntry)other);
@@ -1305,10 +1382,12 @@ public final class Meta {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1331,12 +1410,14 @@ public final class Meta {
       private java.lang.Object path_ = "";
       /**
        * <code>optional string path = 1;</code>
+       * @return Whether the path field is set.
        */
       public boolean hasPath() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional string path = 1;</code>
+       * @return The path.
        */
       public java.lang.String getPath() {
         java.lang.Object ref = path_;
@@ -1354,6 +1435,7 @@ public final class Meta {
       }
       /**
        * <code>optional string path = 1;</code>
+       * @return The bytes for path.
        */
       public com.google.protobuf.ByteString
           getPathBytes() {
@@ -1370,6 +1452,8 @@ public final class Meta {
       }
       /**
        * <code>optional string path = 1;</code>
+       * @param value The path to set.
+       * @return This builder for chaining.
        */
       public Builder setPath(
           java.lang.String value) {
@@ -1383,6 +1467,7 @@ public final class Meta {
       }
       /**
        * <code>optional string path = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearPath() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -1392,6 +1477,8 @@ public final class Meta {
       }
       /**
        * <code>optional string path = 1;</code>
+       * @param value The bytes for path to set.
+       * @return This builder for chaining.
        */
       public Builder setPathBytes(
           com.google.protobuf.ByteString value) {
@@ -1403,11 +1490,13 @@ public final class Meta {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -1429,6 +1518,7 @@ public final class Meta {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<RemovePathPropertiesEntry>
         PARSER = new com.google.protobuf.AbstractParser<RemovePathPropertiesEntry>() {
+      @java.lang.Override
       public RemovePathPropertiesEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1446,6 +1536,7 @@ public final class Meta {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.journal.Meta.RemovePathPropertiesEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -1458,14 +1549,17 @@ public final class Meta {
 
     /**
      * <code>optional string cluster_id = 1;</code>
+     * @return Whether the clusterId field is set.
      */
     boolean hasClusterId();
     /**
      * <code>optional string cluster_id = 1;</code>
+     * @return The clusterId.
      */
     java.lang.String getClusterId();
     /**
      * <code>optional string cluster_id = 1;</code>
+     * @return The bytes for clusterId.
      */
     com.google.protobuf.ByteString
         getClusterIdBytes();
@@ -1488,6 +1582,13 @@ public final class Meta {
     }
     private ClusterInfoEntry() {
       clusterId_ = "";
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new ClusterInfoEntry();
     }
 
     @java.lang.Override
@@ -1514,17 +1615,17 @@ public final class Meta {
             case 0:
               done = true;
               break;
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              clusterId_ = bs;
+              break;
+            }
             default: {
               if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
                 done = true;
               }
-              break;
-            }
-            case 10: {
-              com.google.protobuf.ByteString bs = input.readBytes();
-              bitField0_ |= 0x00000001;
-              clusterId_ = bs;
               break;
             }
           }
@@ -1544,6 +1645,7 @@ public final class Meta {
       return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_ClusterInfoEntry_descriptor;
     }
 
+    @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
       return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_ClusterInfoEntry_fieldAccessorTable
@@ -1556,12 +1658,14 @@ public final class Meta {
     private volatile java.lang.Object clusterId_;
     /**
      * <code>optional string cluster_id = 1;</code>
+     * @return Whether the clusterId field is set.
      */
     public boolean hasClusterId() {
-      return ((bitField0_ & 0x00000001) == 0x00000001);
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
      * <code>optional string cluster_id = 1;</code>
+     * @return The clusterId.
      */
     public java.lang.String getClusterId() {
       java.lang.Object ref = clusterId_;
@@ -1579,6 +1683,7 @@ public final class Meta {
     }
     /**
      * <code>optional string cluster_id = 1;</code>
+     * @return The bytes for clusterId.
      */
     public com.google.protobuf.ByteString
         getClusterIdBytes() {
@@ -1595,6 +1700,7 @@ public final class Meta {
     }
 
     private byte memoizedIsInitialized = -1;
+    @java.lang.Override
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
@@ -1604,20 +1710,22 @@ public final class Meta {
       return true;
     }
 
+    @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, clusterId_);
       }
       unknownFields.writeTo(output);
     }
 
+    @java.lang.Override
     public int getSerializedSize() {
       int size = memoizedSize;
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, clusterId_);
       }
       size += unknownFields.getSerializedSize();
@@ -1635,14 +1743,13 @@ public final class Meta {
       }
       alluxio.proto.journal.Meta.ClusterInfoEntry other = (alluxio.proto.journal.Meta.ClusterInfoEntry) obj;
 
-      boolean result = true;
-      result = result && (hasClusterId() == other.hasClusterId());
+      if (hasClusterId() != other.hasClusterId()) return false;
       if (hasClusterId()) {
-        result = result && getClusterId()
-            .equals(other.getClusterId());
+        if (!getClusterId()
+            .equals(other.getClusterId())) return false;
       }
-      result = result && unknownFields.equals(other.unknownFields);
-      return result;
+      if (!unknownFields.equals(other.unknownFields)) return false;
+      return true;
     }
 
     @java.lang.Override
@@ -1731,6 +1838,7 @@ public final class Meta {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
+    @java.lang.Override
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
@@ -1738,6 +1846,7 @@ public final class Meta {
     public static Builder newBuilder(alluxio.proto.journal.Meta.ClusterInfoEntry prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
+    @java.lang.Override
     public Builder toBuilder() {
       return this == DEFAULT_INSTANCE
           ? new Builder() : new Builder().mergeFrom(this);
@@ -1765,6 +1874,7 @@ public final class Meta {
         return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_ClusterInfoEntry_descriptor;
       }
 
+      @java.lang.Override
       protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
           internalGetFieldAccessorTable() {
         return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_ClusterInfoEntry_fieldAccessorTable
@@ -1787,6 +1897,7 @@ public final class Meta {
                 .alwaysUseFieldBuilders) {
         }
       }
+      @java.lang.Override
       public Builder clear() {
         super.clear();
         clusterId_ = "";
@@ -1794,15 +1905,18 @@ public final class Meta {
         return this;
       }
 
+      @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
         return alluxio.proto.journal.Meta.internal_static_alluxio_proto_journal_ClusterInfoEntry_descriptor;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Meta.ClusterInfoEntry getDefaultInstanceForType() {
         return alluxio.proto.journal.Meta.ClusterInfoEntry.getDefaultInstance();
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Meta.ClusterInfoEntry build() {
         alluxio.proto.journal.Meta.ClusterInfoEntry result = buildPartial();
         if (!result.isInitialized()) {
@@ -1811,11 +1925,12 @@ public final class Meta {
         return result;
       }
 
+      @java.lang.Override
       public alluxio.proto.journal.Meta.ClusterInfoEntry buildPartial() {
         alluxio.proto.journal.Meta.ClusterInfoEntry result = new alluxio.proto.journal.Meta.ClusterInfoEntry(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
           to_bitField0_ |= 0x00000001;
         }
         result.clusterId_ = clusterId_;
@@ -1824,32 +1939,39 @@ public final class Meta {
         return result;
       }
 
+      @java.lang.Override
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
+      @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
+      @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
+      @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
+      @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
+      @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
+      @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof alluxio.proto.journal.Meta.ClusterInfoEntry) {
           return mergeFrom((alluxio.proto.journal.Meta.ClusterInfoEntry)other);
@@ -1871,10 +1993,12 @@ public final class Meta {
         return this;
       }
 
+      @java.lang.Override
       public final boolean isInitialized() {
         return true;
       }
 
+      @java.lang.Override
       public Builder mergeFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -1897,12 +2021,14 @@ public final class Meta {
       private java.lang.Object clusterId_ = "";
       /**
        * <code>optional string cluster_id = 1;</code>
+       * @return Whether the clusterId field is set.
        */
       public boolean hasClusterId() {
-        return ((bitField0_ & 0x00000001) == 0x00000001);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
        * <code>optional string cluster_id = 1;</code>
+       * @return The clusterId.
        */
       public java.lang.String getClusterId() {
         java.lang.Object ref = clusterId_;
@@ -1920,6 +2046,7 @@ public final class Meta {
       }
       /**
        * <code>optional string cluster_id = 1;</code>
+       * @return The bytes for clusterId.
        */
       public com.google.protobuf.ByteString
           getClusterIdBytes() {
@@ -1936,6 +2063,8 @@ public final class Meta {
       }
       /**
        * <code>optional string cluster_id = 1;</code>
+       * @param value The clusterId to set.
+       * @return This builder for chaining.
        */
       public Builder setClusterId(
           java.lang.String value) {
@@ -1949,6 +2078,7 @@ public final class Meta {
       }
       /**
        * <code>optional string cluster_id = 1;</code>
+       * @return This builder for chaining.
        */
       public Builder clearClusterId() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -1958,6 +2088,8 @@ public final class Meta {
       }
       /**
        * <code>optional string cluster_id = 1;</code>
+       * @param value The bytes for clusterId to set.
+       * @return This builder for chaining.
        */
       public Builder setClusterIdBytes(
           com.google.protobuf.ByteString value) {
@@ -1969,11 +2101,13 @@ public final class Meta {
         onChanged();
         return this;
       }
+      @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.setUnknownFields(unknownFields);
       }
 
+      @java.lang.Override
       public final Builder mergeUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return super.mergeUnknownFields(unknownFields);
@@ -1995,6 +2129,7 @@ public final class Meta {
 
     @java.lang.Deprecated public static final com.google.protobuf.Parser<ClusterInfoEntry>
         PARSER = new com.google.protobuf.AbstractParser<ClusterInfoEntry>() {
+      @java.lang.Override
       public ClusterInfoEntry parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
@@ -2012,6 +2147,7 @@ public final class Meta {
       return PARSER;
     }
 
+    @java.lang.Override
     public alluxio.proto.journal.Meta.ClusterInfoEntry getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
@@ -2056,18 +2192,10 @@ public final class Meta {
       "esEntry\022\014\n\004path\030\001 \001(\t\"&\n\020ClusterInfoEntr" +
       "y\022\022\n\ncluster_id\030\001 \001(\t"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
-    com.google.protobuf.Descriptors.FileDescriptor
+    descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-        }, assigner);
+        });
     internal_static_alluxio_proto_journal_PathPropertiesEntry_descriptor =
       getDescriptor().getMessageTypes().get(0);
     internal_static_alluxio_proto_journal_PathPropertiesEntry_fieldAccessorTable = new

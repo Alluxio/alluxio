@@ -91,7 +91,10 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @return the file identifier
+   *  Similar to {@link #getFileId()}, but returns in a string form, allowing for the use of
+   *  non-long based ids.
+   *
+   *  @return the file identifier
    */
   public String getFileIdentifier() {
     return mFileIdentifier != null ? mFileIdentifier : Long.toString(mFileId);

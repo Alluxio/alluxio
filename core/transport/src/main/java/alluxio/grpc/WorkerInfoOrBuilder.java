@@ -9,19 +9,23 @@ public interface WorkerInfoOrBuilder extends
 
   /**
    * <code>optional int64 id = 1;</code>
+   * @return Whether the id field is set.
    */
   boolean hasId();
   /**
    * <code>optional int64 id = 1;</code>
+   * @return The id.
    */
   long getId();
 
   /**
    * <code>optional .alluxio.grpc.WorkerNetAddress address = 2;</code>
+   * @return Whether the address field is set.
    */
   boolean hasAddress();
   /**
    * <code>optional .alluxio.grpc.WorkerNetAddress address = 2;</code>
+   * @return The address.
    */
   alluxio.grpc.WorkerNetAddress getAddress();
   /**
@@ -31,51 +35,62 @@ public interface WorkerInfoOrBuilder extends
 
   /**
    * <code>optional int32 lastContactSec = 3;</code>
+   * @return Whether the lastContactSec field is set.
    */
   boolean hasLastContactSec();
   /**
    * <code>optional int32 lastContactSec = 3;</code>
+   * @return The lastContactSec.
    */
   int getLastContactSec();
 
   /**
    * <code>optional string state = 4;</code>
+   * @return Whether the state field is set.
    */
   boolean hasState();
   /**
    * <code>optional string state = 4;</code>
+   * @return The state.
    */
   java.lang.String getState();
   /**
    * <code>optional string state = 4;</code>
+   * @return The bytes for state.
    */
   com.google.protobuf.ByteString
       getStateBytes();
 
   /**
    * <code>optional int64 capacityBytes = 5;</code>
+   * @return Whether the capacityBytes field is set.
    */
   boolean hasCapacityBytes();
   /**
    * <code>optional int64 capacityBytes = 5;</code>
+   * @return The capacityBytes.
    */
   long getCapacityBytes();
 
   /**
    * <code>optional int64 usedBytes = 6;</code>
+   * @return Whether the usedBytes field is set.
    */
   boolean hasUsedBytes();
   /**
    * <code>optional int64 usedBytes = 6;</code>
+   * @return The usedBytes.
    */
   long getUsedBytes();
 
   /**
    * <code>optional int64 startTimeMs = 7;</code>
+   * @return Whether the startTimeMs field is set.
    */
   boolean hasStartTimeMs();
   /**
    * <code>optional int64 startTimeMs = 7;</code>
+   * @return The startTimeMs.
    */
   long getStartTimeMs();
 

@@ -13,6 +13,7 @@ public interface GetWorkerReportPOptionsOrBuilder extends
    * </pre>
    *
    * <code>repeated string addresses = 1;</code>
+   * @return A list containing the addresses.
    */
   java.util.List<java.lang.String>
       getAddressesList();
@@ -22,6 +23,7 @@ public interface GetWorkerReportPOptionsOrBuilder extends
    * </pre>
    *
    * <code>repeated string addresses = 1;</code>
+   * @return The count of addresses.
    */
   int getAddressesCount();
   /**
@@ -30,6 +32,8 @@ public interface GetWorkerReportPOptionsOrBuilder extends
    * </pre>
    *
    * <code>repeated string addresses = 1;</code>
+   * @param index The index of the element to return.
+   * @return The addresses at the given index.
    */
   java.lang.String getAddresses(int index);
   /**
@@ -38,29 +42,37 @@ public interface GetWorkerReportPOptionsOrBuilder extends
    * </pre>
    *
    * <code>repeated string addresses = 1;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the addresses at the given index.
    */
   com.google.protobuf.ByteString
       getAddressesBytes(int index);
 
   /**
    * <code>repeated .alluxio.grpc.block.WorkerInfoField fieldRanges = 2;</code>
+   * @return A list containing the fieldRanges.
    */
   java.util.List<alluxio.grpc.WorkerInfoField> getFieldRangesList();
   /**
    * <code>repeated .alluxio.grpc.block.WorkerInfoField fieldRanges = 2;</code>
+   * @return The count of fieldRanges.
    */
   int getFieldRangesCount();
   /**
    * <code>repeated .alluxio.grpc.block.WorkerInfoField fieldRanges = 2;</code>
+   * @param index The index of the element to return.
+   * @return The fieldRanges at the given index.
    */
   alluxio.grpc.WorkerInfoField getFieldRanges(int index);
 
   /**
    * <code>optional .alluxio.grpc.block.WorkerRange workerRange = 3;</code>
+   * @return Whether the workerRange field is set.
    */
   boolean hasWorkerRange();
   /**
    * <code>optional .alluxio.grpc.block.WorkerRange workerRange = 3;</code>
+   * @return The workerRange.
    */
   alluxio.grpc.WorkerRange getWorkerRange();
 }

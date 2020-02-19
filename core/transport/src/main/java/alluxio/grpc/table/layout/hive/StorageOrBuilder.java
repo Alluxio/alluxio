@@ -9,10 +9,12 @@ public interface StorageOrBuilder extends
 
   /**
    * <code>optional .alluxio.grpc.table.layout.StorageFormat storage_format = 1;</code>
+   * @return Whether the storageFormat field is set.
    */
   boolean hasStorageFormat();
   /**
    * <code>optional .alluxio.grpc.table.layout.StorageFormat storage_format = 1;</code>
+   * @return The storageFormat.
    */
   alluxio.grpc.table.layout.hive.StorageFormat getStorageFormat();
   /**
@@ -22,24 +24,29 @@ public interface StorageOrBuilder extends
 
   /**
    * <code>optional string location = 2;</code>
+   * @return Whether the location field is set.
    */
   boolean hasLocation();
   /**
    * <code>optional string location = 2;</code>
+   * @return The location.
    */
   java.lang.String getLocation();
   /**
    * <code>optional string location = 2;</code>
+   * @return The bytes for location.
    */
   com.google.protobuf.ByteString
       getLocationBytes();
 
   /**
    * <code>optional .alluxio.grpc.table.layout.HiveBucketProperty bucket_property = 3;</code>
+   * @return Whether the bucketProperty field is set.
    */
   boolean hasBucketProperty();
   /**
    * <code>optional .alluxio.grpc.table.layout.HiveBucketProperty bucket_property = 3;</code>
+   * @return The bucketProperty.
    */
   alluxio.grpc.table.layout.hive.HiveBucketProperty getBucketProperty();
   /**
@@ -49,10 +56,12 @@ public interface StorageOrBuilder extends
 
   /**
    * <code>optional bool skewed = 4;</code>
+   * @return Whether the skewed field is set.
    */
   boolean hasSkewed();
   /**
    * <code>optional bool skewed = 4;</code>
+   * @return The skewed.
    */
   boolean getSkewed();
 
