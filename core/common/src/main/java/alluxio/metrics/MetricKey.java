@@ -801,8 +801,8 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey CLIENT_CACHE_BYTES_WRITTEN_TO_CACHE =
-      new Builder(Name.CLIENT_CACHE_BYTES_WRITTEN_TO_CACHE)
+  public static final MetricKey CLIENT_CACHE_BYTES_WRITTEN_CACHE =
+      new Builder(Name.CLIENT_CACHE_BYTES_WRITTEN_CACHE)
           .setDescription("Total number of bytes written to the local cache.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
@@ -1005,8 +1005,8 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL
         = "Client.CacheBytesRequestedExternal";
     public static final String CLIENT_CACHE_BYTES_EVICTED = "Client.CacheBytesEvicted";
-    public static final String CLIENT_CACHE_BYTES_WRITTEN_TO_CACHE
-        = "Client.CacheBytesWrittenToCache";
+    public static final String CLIENT_CACHE_BYTES_WRITTEN_CACHE
+        = "Client.CacheBytesWrittenCache";
 
     private Name() {} // prevent instantiation
   }

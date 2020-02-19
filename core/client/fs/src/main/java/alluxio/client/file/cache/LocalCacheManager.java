@@ -19,6 +19,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 
+import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -261,7 +262,7 @@ public class LocalCacheManager implements CacheManager {
       return false;
     }
     mEvictor.updateOnPut(pageId);
-    MetricsSystem.counter(MetricKey.Name.CLIENT_CACHE_BYTES_WRITTEN_TO_CACHE).inc(page.length);
+    Metrics.BYTES_WRITTEN_CACHE.inc(page.length);
     return true;
   }
 
@@ -281,7 +282,7 @@ public class LocalCacheManager implements CacheManager {
       return false;
     }
     mEvictor.updateOnDelete(pageId);
-    MetricsSystem.counter(MetricKey.Name.CLIENT_CACHE_BYTES_EVICTED).inc(pageInfo.getPageSize());
+    Metrics.BYTES_EVICTED_CACHE.inc(pageInfo.getPageSize());
     return true;
   }
 
@@ -295,5 +296,14 @@ public class LocalCacheManager implements CacheManager {
     }
     mEvictor.updateOnGet(pageId);
     return ret;
+  }
+
+  private static final class Metrics {
+    /** Bytes written to the cache. */
+    private static final Counter BYTES_WRITTEN_CACHE =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName());
+    /** Bytes evicted from the cache. */
+    private static final Counter BYTES_EVICTED_CACHE =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_EVICTED.getName());
   }
 }
