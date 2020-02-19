@@ -144,7 +144,7 @@ public class LocalCacheManager implements CacheManager {
 
   @Override
   public boolean put(PageId pageId, byte[] page) throws IOException {
-    LOG.debug("put({},{} bytes)", pageId, page.length);
+    LOG.debug("put({},{} bytes) enters", pageId, page.length);
     PageId victim = null;
     PageInfo victimPageInfo = null;
     boolean enoughSpace;
@@ -208,7 +208,12 @@ public class LocalCacheManager implements CacheManager {
         mEvictor.updateOnPut(pageId);
       }
     }
-    LOG.debug("put({},{} bytes) exits with evicting ({})", pageId, page.length, victimPageInfo);
+    if (enoughSpace) {
+      LOG.debug("put({},{} bytes) exits after evicting ({})", pageId, page.length,
+          victimPageInfo);
+    } else {
+      LOG.debug("put({},{} bytes) fails after evicting ({})", pageId, page.length, victimPageInfo);
+    }
     return enoughSpace;
   }
 
@@ -222,7 +227,7 @@ public class LocalCacheManager implements CacheManager {
       throws IOException {
     Preconditions.checkArgument(pageOffset <= mPageSize,
         "Read exceeds page boundary: offset=%s size=%s", pageOffset, mPageSize);
-    LOG.debug("get({},pageOffset={})", pageId, pageOffset);
+    LOG.debug("get({},pageOffset={}) enters", pageId, pageOffset);
     boolean hasPage;
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.readLock())) {
@@ -245,7 +250,7 @@ public class LocalCacheManager implements CacheManager {
 
   @Override
   public void delete(PageId pageId) throws IOException, PageNotFoundException {
-    LOG.debug("delete({})", pageId);
+    LOG.debug("delete({}) enters", pageId);
     ReadWriteLock pageLock = getPageLock(pageId);
     PageInfo pageInfo;
     try (LockResource r = new LockResource(pageLock.writeLock())) {
