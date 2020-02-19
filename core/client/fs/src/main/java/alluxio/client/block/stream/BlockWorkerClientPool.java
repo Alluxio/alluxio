@@ -15,6 +15,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.resource.DynamicResourcePool;
+import alluxio.security.user.UserState;
 import alluxio.util.ThreadFactoryUtils;
 
 import io.netty.channel.EventLoopGroup;
@@ -26,7 +27,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.Subject;
 
 /**
  * Class for managing block worker clients. After obtaining a client with
@@ -36,7 +36,7 @@ import javax.security.auth.Subject;
 @ThreadSafe
 public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorkerClient> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerClientPool.class);
-  private final Subject mSubject;
+  private final UserState mUserState;
   private final GrpcServerAddress mAddress;
   private static final int WORKER_CLIENT_POOL_GC_THREADPOOL_SIZE = 10;
   private static final ScheduledExecutorService GC_EXECUTOR =
@@ -48,17 +48,17 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
   /**
    * Creates a new block master client pool.
    *
-   * @param subject the parent subject
+   * @param userState the parent userState
    * @param address address of the worker
    * @param maxCapacity the maximum capacity of the pool
    * @param alluxioConf Alluxio configuration
    * @param workerGroup netty event loop group to create clients with is above the minimum
    *        capacity(1), it is closed and removed from the pool.
    */
-  public BlockWorkerClientPool(Subject subject, GrpcServerAddress address, int maxCapacity,
+  public BlockWorkerClientPool(UserState userState, GrpcServerAddress address, int maxCapacity,
       AlluxioConfiguration alluxioConf, EventLoopGroup workerGroup) {
     super(Options.defaultOptions().setMaxCapacity(maxCapacity).setGcExecutor(GC_EXECUTOR));
-    mSubject = subject;
+    mUserState = userState;
     mAddress = address;
     mConf = alluxioConf;
     mWorkerGroup = workerGroup;
@@ -72,7 +72,7 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
 
   @Override
   protected BlockWorkerClient createNewResource() throws IOException {
-    return BlockWorkerClient.Factory.create(mSubject, mAddress, mConf, mWorkerGroup);
+    return BlockWorkerClient.Factory.create(mUserState, mAddress, mConf, mWorkerGroup);
   }
 
   /**
