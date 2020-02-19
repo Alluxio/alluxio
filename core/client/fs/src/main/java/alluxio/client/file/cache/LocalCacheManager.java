@@ -15,6 +15,8 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -165,9 +167,7 @@ public class LocalCacheManager implements CacheManager {
         throw new IllegalStateException("we shall not reach here");
       }
       if (enoughSpace) {
-        mPageStore.put(pageId, page);
-        mEvictor.updateOnPut(pageId);
-        return true;
+        return addPage(pageId, page);
       }
     }
 
@@ -194,18 +194,14 @@ public class LocalCacheManager implements CacheManager {
           mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
         }
       }
-      try {
-        mPageStore.delete(victim, victimPageInfo.getPageSize());
-        mEvictor.updateOnDelete(victim);
-      } catch (PageNotFoundException e) {
-        throw new IllegalStateException(String.format("Page store is missing page %s.", victim), e);
+      if (!deletePage(victim, victimPageInfo)) {
+        return false;
       }
       if (enoughSpace) {
-        mPageStore.put(pageId, page);
-        mEvictor.updateOnPut(pageId);
+        return addPage(pageId, page);
       }
     }
-    return enoughSpace;
+    return false;
   }
 
   @Override
@@ -227,12 +223,7 @@ public class LocalCacheManager implements CacheManager {
       if (!hasPage) {
         return null;
       }
-      ReadableByteChannel ret = mPageStore.get(pageId, pageOffset);
-      mEvictor.updateOnGet(pageId);
-      return ret;
-    } catch (PageNotFoundException e) {
-      throw new IllegalStateException(
-          String.format("Page store is missing page %s.", pageId), e);
+      return getPage(pageId, pageOffset);
     }
   }
 
@@ -245,13 +236,64 @@ public class LocalCacheManager implements CacheManager {
         pageInfo = mMetaStore.getPageInfo(pageId);
         mMetaStore.removePage(pageId);
       }
-      mPageStore.delete(pageId, pageInfo.getPageSize());
-      mEvictor.updateOnDelete(pageId);
+      deletePage(pageId, pageInfo);
     }
   }
 
   @Override
   public void close() throws Exception {
     mPageStore.close();
+  }
+
+  /**
+   * Attempts to add a page to the page store. The page lock must be acquired before calling this
+   * method. The metastore must be updated before calling this method.
+   *
+   * @param pageId page id
+   * @param page page data
+   * @return true if successful, false otherwise
+   */
+  private boolean addPage(PageId pageId, byte[] page) {
+    try {
+      mPageStore.put(pageId, page);
+    } catch (IOException e) {
+      LOG.error("Failed to add page {}: {}", pageId, e);
+      return false;
+    }
+    mEvictor.updateOnPut(pageId);
+    MetricsSystem.counter(MetricKey.Name.CLIENT_CACHE_BYTES_WRITTEN_TO_CACHE).inc(page.length);
+    return true;
+  }
+
+  /**
+   * Attempts to delete a page from the page store. The page lock must be acquired before calling
+   * this method. The metastore must be updated before calling this method.
+   *
+   * @param pageId page id
+   * @param pageInfo page info
+   * @return true if successful, false otherwise
+   */
+  private boolean deletePage(PageId pageId, PageInfo pageInfo) {
+    try {
+      mPageStore.delete(pageId, pageInfo.getPageSize());
+    } catch (IOException | PageNotFoundException e) {
+      LOG.error("Failed to delete page {}: {}", pageId, e);
+      return false;
+    }
+    mEvictor.updateOnDelete(pageId);
+    MetricsSystem.counter(MetricKey.Name.CLIENT_CACHE_BYTES_EVICTED).inc(pageInfo.getPageSize());
+    return true;
+  }
+
+  private ReadableByteChannel getPage(PageId pageId, int offset) {
+    ReadableByteChannel ret;
+    try {
+      ret = mPageStore.get(pageId, offset);
+    } catch (IOException | PageNotFoundException e) {
+      LOG.error("Failed to get existing page {}: {}", pageId, e);
+      return null;
+    }
+    mEvictor.updateOnGet(pageId);
+    return ret;
   }
 }
