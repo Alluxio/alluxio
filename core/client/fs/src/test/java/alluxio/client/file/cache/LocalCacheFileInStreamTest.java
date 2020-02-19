@@ -374,14 +374,14 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public boolean put(PageId pageId, byte[] page) throws IOException {
+    public boolean put(PageId pageId, byte[] page) {
       mPages.put(pageId, page);
       mPagesCached++;
       return true;
     }
 
     @Override
-    public ReadableByteChannel get(PageId pageId) throws IOException {
+    public ReadableByteChannel get(PageId pageId) {
       if (!mPages.containsKey(pageId)) {
         return null;
       }
@@ -400,8 +400,8 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public void delete(PageId pageId) throws IOException {
-      mPages.remove(pageId);
+    public boolean delete(PageId pageId) throws IOException {
+      return mPages.remove(pageId) != null;
     }
 
     @Override

@@ -12,7 +12,6 @@
 package alluxio.client.file.cache;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
@@ -33,45 +32,41 @@ public interface CacheManager extends AutoCloseable  {
   }
 
   /**
-   * Writes a new page from a source channel with best effort. It is possible that this put
-   * operation returns without page written due to transient behavior not due to failures writing
-   * to disks.
+   * Puts a page into the cache manager. This method is best effort. It is possible that this put
+   * operation returns without page written.
    *
    * @param pageId page identifier
    * @param page page data
-   * @throws IOException if error happens when writing the page to disk
-   * @return true on a successful put or false due to transient
+   * @return true if the put was successful, false otherwise
    */
-  boolean put(PageId pageId, byte[] page) throws IOException;
+  boolean put(PageId pageId, byte[] page);
 
   /**
-   * Wraps the page in a channel or null if the queried page is not found in the cache.
+   * Wraps the page in a channel or null if the queried page is not found in the cache or otherwise
+   * unable to be read from the cache.
    *
    * @param pageId page identifier
    * @return a channel to read the page
-   * @throws IOException if error happens when reading the page
    */
   @Nullable
-  ReadableByteChannel get(PageId pageId) throws IOException;
+  ReadableByteChannel get(PageId pageId);
 
   /**
-   * Wraps a part of the page in a channel or null if the queried page is not found
-   * in the cache.
+   * Wraps a part of the page in a channel or null if the queried page is not found in the cache or
+   * otherwise unable to be read from the cache.
    *
    * @param pageId page identifier
    * @param pageOffset offset into the page
    * @return a channel to read the page
-   * @throws IOException if error happens when reading the page
    */
   @Nullable
-  ReadableByteChannel get(PageId pageId, int pageOffset)
-      throws IOException;
+  ReadableByteChannel get(PageId pageId, int pageOffset);
 
   /**
    * Deletes a page from the cache.
    *
    * @param pageId page identifier
-   * @throws PageNotFoundException if page is not found in the store
+   * @return true if the page is successfully deleted, false otherwise
    */
-  void delete(PageId pageId) throws IOException, PageNotFoundException;
+  boolean delete(PageId pageId) throws IOException;
 }

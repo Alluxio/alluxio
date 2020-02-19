@@ -146,7 +146,7 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public boolean put(PageId pageId, byte[] page) throws IOException {
+  public boolean put(PageId pageId, byte[] page) {
     LOG.debug("put({},{} bytes) enters", pageId, page.length);
     PageId victim = null;
     PageInfo victimPageInfo = null;
@@ -164,11 +164,7 @@ public class LocalCacheManager implements CacheManager {
           mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
         } else {
           victim = mEvictor.evict();
-          victimPageInfo = mMetaStore.getPageInfo(victim);
         }
-      } catch (PageNotFoundException e) {
-        LOG.error("Page store is missing page {}: {}", victim, e);
-        return false;
       }
       if (enoughSpace) {
         boolean ret = addPage(pageId, page);
@@ -190,6 +186,7 @@ public class LocalCacheManager implements CacheManager {
           return false;
         }
         try {
+          victimPageInfo = mMetaStore.getPageInfo(victim);
           mMetaStore.removePage(victim);
         } catch (PageNotFoundException e) {
           LOG.error("Page store is missing page {}: {}", victim, e);
@@ -216,13 +213,12 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public ReadableByteChannel get(PageId pageId) throws IOException {
+  public ReadableByteChannel get(PageId pageId) {
     return get(pageId, 0);
   }
 
   @Override
-  public ReadableByteChannel get(PageId pageId, int pageOffset)
-      throws IOException {
+  public ReadableByteChannel get(PageId pageId, int pageOffset) {
     Preconditions.checkArgument(pageOffset <= mPageSize,
         "Read exceeds page boundary: offset=%s size=%s", pageOffset, mPageSize);
     LOG.debug("get({},pageOffset={}) enters", pageId, pageOffset);
@@ -243,18 +239,24 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public void delete(PageId pageId) throws IOException, PageNotFoundException {
+  public boolean delete(PageId pageId) {
     LOG.debug("delete({}) enters", pageId);
     ReadWriteLock pageLock = getPageLock(pageId);
     PageInfo pageInfo;
     try (LockResource r = new LockResource(pageLock.writeLock())) {
       try (LockResource r1 = new LockResource(mMetaLock.writeLock())) {
-        pageInfo = mMetaStore.getPageInfo(pageId);
-        mMetaStore.removePage(pageId);
+        try {
+          pageInfo = mMetaStore.getPageInfo(pageId);
+          mMetaStore.removePage(pageId);
+        } catch (PageNotFoundException e) {
+          LOG.error("Failed to delete page {}: {}", pageId, e);
+          return false;
+        }
       }
-      deletePage(pageId, pageInfo);
+      boolean ret = deletePage(pageId, pageInfo);
+      LOG.debug("delete({}) exits, success: {}", pageId, ret);
+      return ret;
     }
-    LOG.debug("delete({}) exits", pageId);
   }
 
   @Override
