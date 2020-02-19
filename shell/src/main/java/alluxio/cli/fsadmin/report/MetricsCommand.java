@@ -74,7 +74,7 @@ public class MetricsCommand {
           // Bytes long can be transformed to human-readable format
           strValue = FormatUtils.getSizeFromBytes((long) doubleValue);
           if (name.contains(THROUGHPUT_METRIC_IDENTIFIER)) {
-            strValue = strValue + "/SEC";
+            strValue = strValue + "/MIN";
           }
         } else if (DoubleMath.isMathematicalInteger(doubleValue)) {
           strValue = DECIMAL_FORMAT.format((long) doubleValue);

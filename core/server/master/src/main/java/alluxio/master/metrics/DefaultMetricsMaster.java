@@ -142,8 +142,8 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
           @Override
           public Object getValue() {
             long uptime = (System.currentTimeMillis() - mMetricsStore.getLastClearTime())
-                / Constants.SECOND_MS;
-            // The value is bytes per second
+                / Constants.MINUTE_MS;
+            // The value is bytes per minute
             return uptime == 0 ? 0 : MetricsSystem.counter(counterName).getCount() / uptime;
           }
         });
