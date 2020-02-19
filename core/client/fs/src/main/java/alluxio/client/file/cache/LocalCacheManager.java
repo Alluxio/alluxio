@@ -15,8 +15,11 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 
+import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -28,6 +31,7 @@ import java.util.Collection;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -143,7 +147,7 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public boolean put(PageId pageId, byte[] page) throws IOException {
+  public boolean put(PageId pageId, byte[] page) {
     LOG.debug("put({},{} bytes) enters", pageId, page.length);
     PageId victim = null;
     PageInfo victimPageInfo = null;
@@ -161,16 +165,12 @@ public class LocalCacheManager implements CacheManager {
           mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
         } else {
           victim = mEvictor.evict();
-          victimPageInfo = mMetaStore.getPageInfo(victim);
         }
-      } catch (PageNotFoundException e) {
-        throw new IllegalStateException("we shall not reach here");
       }
       if (enoughSpace) {
-        mPageStore.put(pageId, page);
-        mEvictor.updateOnPut(pageId);
-        LOG.debug("put({},{} bytes) exits without eviction", pageId, page.length);
-        return true;
+        boolean ret = addPage(pageId, page);
+        LOG.debug("put({},{} bytes) exits without eviction, success: {}", pageId, page.length, ret);
+        return ret;
       }
     }
 
@@ -187,44 +187,39 @@ public class LocalCacheManager implements CacheManager {
           return false;
         }
         try {
+          victimPageInfo = mMetaStore.getPageInfo(victim);
           mMetaStore.removePage(victim);
         } catch (PageNotFoundException e) {
-          throw new IllegalStateException(
-              String.format("Page store is missing page %s.", victim), e);
+          LOG.error("Page store is missing page {}: {}", victim, e);
+          return false;
         }
         enoughSpace = mPageStore.bytes() - victimPageInfo.getPageSize() + page.length <= mCacheSize;
         if (enoughSpace) {
           mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
         }
       }
-      try {
-        mPageStore.delete(victim, victimPageInfo.getPageSize());
-        mEvictor.updateOnDelete(victim);
-      } catch (PageNotFoundException e) {
-        throw new IllegalStateException(String.format("Page store is missing page %s.", victim), e);
+      if (!deletePage(victim, victimPageInfo)) {
+        LOG.debug("Failed to evict page: {}", victim);
+        return false;
       }
       if (enoughSpace) {
-        mPageStore.put(pageId, page);
-        mEvictor.updateOnPut(pageId);
+        boolean ret = addPage(pageId, page);
+        LOG.debug("put({},{} bytes) exits after evicting ({}), success: {}", pageId, page.length,
+            victimPageInfo, ret);
+        return ret;
       }
     }
-    if (enoughSpace) {
-      LOG.debug("put({},{} bytes) exits after evicting ({})", pageId, page.length,
-          victimPageInfo);
-    } else {
-      LOG.debug("put({},{} bytes) fails after evicting ({})", pageId, page.length, victimPageInfo);
-    }
-    return enoughSpace;
+    LOG.debug("put({},{} bytes) fails after evicting ({})", pageId, page.length, victimPageInfo);
+    return false;
   }
 
   @Override
-  public ReadableByteChannel get(PageId pageId) throws IOException {
+  public ReadableByteChannel get(PageId pageId) {
     return get(pageId, 0);
   }
 
   @Override
-  public ReadableByteChannel get(PageId pageId, int pageOffset)
-      throws IOException {
+  public ReadableByteChannel get(PageId pageId, int pageOffset) {
     Preconditions.checkArgument(pageOffset <= mPageSize,
         "Read exceeds page boundary: offset=%s size=%s", pageOffset, mPageSize);
     LOG.debug("get({},pageOffset={}) enters", pageId, pageOffset);
@@ -238,34 +233,97 @@ public class LocalCacheManager implements CacheManager {
         LOG.debug("get({},pageOffset={}) fails due to page not found", pageId, pageOffset);
         return null;
       }
-      ReadableByteChannel ret = mPageStore.get(pageId, pageOffset);
-      mEvictor.updateOnGet(pageId);
+      ReadableByteChannel ret = getPage(pageId, pageOffset);
       LOG.debug("get({},pageOffset={}) exits", pageId, pageOffset);
       return ret;
-    } catch (PageNotFoundException e) {
-      throw new IllegalStateException(
-          String.format("Page store is missing page %s.", pageId), e);
     }
   }
 
   @Override
-  public void delete(PageId pageId) throws IOException, PageNotFoundException {
+  public boolean delete(PageId pageId) {
     LOG.debug("delete({}) enters", pageId);
     ReadWriteLock pageLock = getPageLock(pageId);
     PageInfo pageInfo;
     try (LockResource r = new LockResource(pageLock.writeLock())) {
       try (LockResource r1 = new LockResource(mMetaLock.writeLock())) {
-        pageInfo = mMetaStore.getPageInfo(pageId);
-        mMetaStore.removePage(pageId);
+        try {
+          pageInfo = mMetaStore.getPageInfo(pageId);
+          mMetaStore.removePage(pageId);
+        } catch (PageNotFoundException e) {
+          LOG.error("Failed to delete page {}: {}", pageId, e);
+          return false;
+        }
       }
-      mPageStore.delete(pageId, pageInfo.getPageSize());
-      mEvictor.updateOnDelete(pageId);
+      boolean ret = deletePage(pageId, pageInfo);
+      LOG.debug("delete({}) exits, success: {}", pageId, ret);
+      return ret;
     }
-    LOG.debug("delete({}) exits", pageId);
   }
 
   @Override
   public void close() throws Exception {
     mPageStore.close();
+  }
+
+  /**
+   * Attempts to add a page to the page store. The page lock must be acquired before calling this
+   * method. The metastore must be updated before calling this method.
+   *
+   * @param pageId page id
+   * @param page page data
+   * @return true if successful, false otherwise
+   */
+  private boolean addPage(PageId pageId, byte[] page) {
+    try {
+      mPageStore.put(pageId, page);
+    } catch (IOException e) {
+      LOG.error("Failed to add page {}: {}", pageId, e);
+      return false;
+    }
+    mEvictor.updateOnPut(pageId);
+    Metrics.BYTES_WRITTEN_CACHE.inc(page.length);
+    return true;
+  }
+
+  /**
+   * Attempts to delete a page from the page store. The page lock must be acquired before calling
+   * this method. The metastore must be updated before calling this method.
+   *
+   * @param pageId page id
+   * @param pageInfo page info
+   * @return true if successful, false otherwise
+   */
+  private boolean deletePage(PageId pageId, PageInfo pageInfo) {
+    try {
+      mPageStore.delete(pageId, pageInfo.getPageSize());
+    } catch (IOException | PageNotFoundException e) {
+      LOG.error("Failed to delete page {}: {}", pageId, e);
+      return false;
+    }
+    mEvictor.updateOnDelete(pageId);
+    Metrics.BYTES_EVICTED_CACHE.inc(pageInfo.getPageSize());
+    return true;
+  }
+
+  @Nullable
+  private ReadableByteChannel getPage(PageId pageId, int offset) {
+    ReadableByteChannel ret;
+    try {
+      ret = mPageStore.get(pageId, offset);
+    } catch (IOException | PageNotFoundException e) {
+      LOG.error("Failed to get existing page {}: {}", pageId, e);
+      return null;
+    }
+    mEvictor.updateOnGet(pageId);
+    return ret;
+  }
+
+  private static final class Metrics {
+    /** Bytes written to the cache. */
+    private static final Counter BYTES_WRITTEN_CACHE =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName());
+    /** Bytes evicted from the cache. */
+    private static final Counter BYTES_EVICTED_CACHE =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_EVICTED.getName());
   }
 }
