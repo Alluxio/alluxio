@@ -63,7 +63,8 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
    */
   DefaultMetricsMaster(CoreMasterContext masterContext) {
     this(masterContext, new SystemClock(),
-        ExecutorServiceFactories.cachedThreadPool(Constants.METRICS_MASTER_NAME));
+        ExecutorServiceFactories.fixedThreadPool(Constants.METRICS_MASTER_NAME,
+            ServerConfiguration.getInt(PropertyKey.MASTER_METRICS_SERVICE_THREADS)));
   }
 
   /**
@@ -176,7 +177,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
 
   @Override
   public void clientHeartbeat(String source, List<Metric> metrics) {
-    mMetricsStore.putClientMetrics(source, metrics);
+    getExecutorService().submit(() -> mMetricsStore.putClientMetrics(source, metrics));
   }
 
   @Override
@@ -186,7 +187,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
 
   @Override
   public void workerHeartbeat(String source, List<Metric> metrics) {
-    mMetricsStore.putWorkerMetrics(source, metrics);
+    getExecutorService().submit(() -> mMetricsStore.putWorkerMetrics(source, metrics));
   }
 
   @Override
