@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -304,6 +305,7 @@ public class LocalCacheManager implements CacheManager {
     return true;
   }
 
+  @Nullable
   private ReadableByteChannel getPage(PageId pageId, int offset) {
     ReadableByteChannel ret;
     try {
