@@ -12,6 +12,7 @@
 package alluxio.client.block.stream;
 
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.conf.AlluxioConfiguration;
@@ -38,6 +39,9 @@ import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.grpc.GrpcSerializationUtils;
+import alluxio.retry.RetryPolicy;
+import alluxio.retry.RetryUtils;
+import alluxio.security.user.UserState;
 import alluxio.util.network.NettyUtils;
 
 import com.google.common.base.Preconditions;
@@ -73,24 +77,42 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   /**
    * Creates a client instance for communicating with block worker.
    *
-   * @param subject     the user subject, can be null if the user is not available
+   * @param userState     the user state
    * @param address     the address of the worker
    * @param alluxioConf Alluxio configuration
    * @param workerGroup The netty {@link EventLoopGroup} the channels are will utilize
    */
-  public DefaultBlockWorkerClient(Subject subject, GrpcServerAddress address,
+  public DefaultBlockWorkerClient(UserState userState, GrpcServerAddress address,
       AlluxioConfiguration alluxioConf, EventLoopGroup workerGroup) throws IOException {
-    try {
-      // Disables channel pooling for data streaming to achieve better throughput.
-      // Channel is still reused due to client pooling.
-      mStreamingChannel = buildChannel(subject, address,
-          GrpcChannelKey.PoolingStrategy.DISABLED, alluxioConf, workerGroup);
-      mStreamingChannel.intercept(new StreamSerializationClientInterceptor());
-      // Uses default pooling strategy for RPC calls for better scalability.
-      mRpcChannel = buildChannel(subject, address,
-          GrpcChannelKey.PoolingStrategy.DEFAULT, alluxioConf, workerGroup);
-    } catch (StatusRuntimeException e) {
-      throw AlluxioStatusException.fromStatusRuntimeException(e);
+    RetryPolicy retryPolicy = RetryUtils.defaultClientRetry(
+        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
+        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
+        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS));
+    UnauthenticatedException lastException = null;
+    // TODO(feng): unify worker client with AbstractClient
+    while (retryPolicy.attempt()) {
+      try {
+        // Disables channel pooling for data streaming to achieve better throughput.
+        // Channel is still reused due to client pooling.
+        mStreamingChannel = buildChannel(userState.getSubject(), address,
+            GrpcChannelKey.PoolingStrategy.DISABLED, alluxioConf, workerGroup);
+        mStreamingChannel.intercept(new StreamSerializationClientInterceptor());
+        // Uses default pooling strategy for RPC calls for better scalability.
+        mRpcChannel = buildChannel(userState.getSubject(), address,
+            GrpcChannelKey.PoolingStrategy.DEFAULT, alluxioConf, workerGroup);
+        lastException = null;
+        break;
+      } catch (StatusRuntimeException e) {
+        close();
+        throw AlluxioStatusException.fromStatusRuntimeException(e);
+      } catch (UnauthenticatedException e) {
+        close();
+        userState.relogin();
+        lastException = e;
+      }
+    }
+    if (lastException != null) {
+      throw lastException;
     }
     mStreamingAsyncStub = BlockWorkerGrpc.newStub(mStreamingChannel);
     mRpcBlockingStub = BlockWorkerGrpc.newBlockingStub(mRpcChannel);
@@ -112,8 +134,16 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   @Override
   public void close() throws IOException {
     try (Closer closer = Closer.create()) {
-      closer.register(() -> mStreamingChannel.shutdown());
-      closer.register(() -> mRpcChannel.shutdown());
+      closer.register(() -> {
+        if (mStreamingChannel != null) {
+          mStreamingChannel.shutdown();
+        }
+      });
+      closer.register(() -> {
+        if (mRpcChannel != null) {
+          mRpcChannel.shutdown();
+        }
+      });
     }
   }
 
