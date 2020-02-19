@@ -45,6 +45,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
@@ -65,15 +67,17 @@ public final class MetricsSystem {
   private static int sResolveTimeout =
       (int) new InstancedConfiguration(ConfigurationUtils.defaults())
           .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+  // A map from AlluxioURI to corresponding cached escaped path.
+  private static final ConcurrentHashMap<AlluxioURI, String> CACHED_ESCAPED_PATH
+      = new ConcurrentHashMap<>();
   // A map from the metric name to its previous reported value
   // This map is used for calculated the counter diff value that will be reported
   private static final Map<String, Long> LAST_REPORTED_METRICS = new HashMap<>();
   // A map that records all the metrics that should be reported and aggregated at leading master
   // from full metric name to its metric type
   private static final Map<String, MetricType> SHOULD_REPORT_METRICS = new HashMap<>();
-  // A map from AlluxioURI to corresponding cached escaped path.
-  private static final ConcurrentHashMap<AlluxioURI, String> CACHED_ESCAPED_PATH
-      = new ConcurrentHashMap<>();
+  // A pattern to get the <instance_type>.<metric_name> from the full metric name
+  private static final Pattern METRIC_NAME_PATTERN = Pattern.compile("^(.*?[.].*?)[.].*");
   // A flag telling whether metrics have been reported yet.
   // Using this prevents us from initializing {@link #SHOULD_REPORT_METRICS} more than once
   private static boolean sReported = false;
@@ -285,7 +289,7 @@ public final class MetricsSystem {
    * @param name the metric name
    * @return the metric registry name
    */
-  private static String getMasterMetricName(String name) {
+  public static String getMasterMetricName(String name) {
     String result = CACHED_METRICS.get(name);
     if (result != null) {
       return result;
@@ -635,19 +639,25 @@ public final class MetricsSystem {
   }
 
   /**
-   * Gets master metric with the given metric name.
+   * Gets all the master metrics belongs to the given metric names.
    *
-   * @param name the name of the metric to get
-   * @return a metric set with the master metric of the given metric name
+   * @param metricNames the name of the metrics to get
+   * @return a metric map from metric name to metrics with this name
    */
-  public static Set<Metric> getMasterMetric(String name) {
-    Set<Metric> set = new HashSet<>();
-    String fullName = getMasterMetricName(name);
-    Metric alluxioMetric = getMetricValue(fullName);
-    if (alluxioMetric != null) {
-      set.add(alluxioMetric);
+  public static Map<String, Set<Metric>> getMasterMetrics(Set<String> metricNames) {
+    Map<String, Set<Metric>> res = new HashMap<>();
+    for (Map.Entry<String, com.codahale.metrics.Metric> entry
+        : METRIC_REGISTRY.getMetrics().entrySet()) {
+      Matcher matcher = METRIC_NAME_PATTERN.matcher(entry.getKey());
+      if (matcher.matches()) {
+        String name = matcher.group(1);
+        if (metricNames.contains(name)) {
+          res.computeIfAbsent(name, m -> new HashSet<>())
+              .add(getAlluxioMetricFromCodahaleMetric(entry.getKey(), entry.getValue()));
+        }
+      }
     }
-    return set;
+    return res;
   }
 
   /**

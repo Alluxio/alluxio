@@ -79,6 +79,7 @@ public class LocalCacheManager implements CacheManager {
     PageStore pageStore = PageStore.create(conf);
     try {
       Collection<PageInfo> pageInfos = pageStore.getPages();
+      LOG.info("Creating LocalCacheManager with {} existing pages", pageInfos.size());
       for (PageInfo pageInfo : pageInfos) {
         PageId pageId = pageInfo.getPageId();
         metaStore.addPage(pageId, pageInfo);
@@ -146,6 +147,7 @@ public class LocalCacheManager implements CacheManager {
 
   @Override
   public boolean put(PageId pageId, byte[] page) throws IOException {
+    LOG.debug("put({},{} bytes) enters", pageId, page.length);
     PageId victim = null;
     PageInfo victimPageInfo = null;
     boolean enoughSpace;
@@ -168,7 +170,9 @@ public class LocalCacheManager implements CacheManager {
         throw new IllegalStateException("we shall not reach here");
       }
       if (enoughSpace) {
-        return addPage(pageId, page);
+        boolean ret = addPage(pageId, page);
+        LOG.debug("put({},{} bytes) exits without eviction, success: {}", pageId, page.length, ret);
+        return ret;
       }
     }
 
@@ -196,12 +200,17 @@ public class LocalCacheManager implements CacheManager {
         }
       }
       if (!deletePage(victim, victimPageInfo)) {
+        LOG.debug("Failed to evict page: {}", victim);
         return false;
       }
       if (enoughSpace) {
-        return addPage(pageId, page);
+        boolean ret = addPage(pageId, page);
+        LOG.debug("put({},{} bytes) exits after evicting ({}), success: {}", pageId, page.length,
+            victimPageInfo, ret);
+        return ret;
       }
     }
+    LOG.debug("put({},{} bytes) fails after evicting ({})", pageId, page.length, victimPageInfo);
     return false;
   }
 
@@ -215,6 +224,7 @@ public class LocalCacheManager implements CacheManager {
       throws IOException {
     Preconditions.checkArgument(pageOffset <= mPageSize,
         "Read exceeds page boundary: offset=%s size=%s", pageOffset, mPageSize);
+    LOG.debug("get({},pageOffset={}) enters", pageId, pageOffset);
     boolean hasPage;
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.readLock())) {
@@ -222,14 +232,18 @@ public class LocalCacheManager implements CacheManager {
         hasPage = mMetaStore.hasPage(pageId);
       }
       if (!hasPage) {
+        LOG.debug("get({},pageOffset={}) fails due to page not found", pageId, pageOffset);
         return null;
       }
-      return getPage(pageId, pageOffset);
+      ReadableByteChannel ret = getPage(pageId, pageOffset);
+      LOG.debug("get({},pageOffset={}) exits", pageId, pageOffset);
+      return ret;
     }
   }
 
   @Override
   public void delete(PageId pageId) throws IOException, PageNotFoundException {
+    LOG.debug("delete({}) enters", pageId);
     ReadWriteLock pageLock = getPageLock(pageId);
     PageInfo pageInfo;
     try (LockResource r = new LockResource(pageLock.writeLock())) {
@@ -239,6 +253,7 @@ public class LocalCacheManager implements CacheManager {
       }
       deletePage(pageId, pageInfo);
     }
+    LOG.debug("delete({}) exits", pageId);
   }
 
   @Override

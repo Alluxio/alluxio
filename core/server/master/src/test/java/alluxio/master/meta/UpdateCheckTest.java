@@ -14,8 +14,10 @@ package alluxio.master.meta;
 import alluxio.ProjectConstants;
 import alluxio.util.EnvironmentUtils;
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.util.EC2MetadataUtils;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -30,8 +32,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest({EnvironmentUtils.class, EC2MetadataUtils.class})
 public class UpdateCheckTest {
 
-  @Test
-  public void userAgentStringEmpty() throws Exception {
+  @Before
+  public void before() {
     PowerMockito.mockStatic(EnvironmentUtils.class);
     Mockito.when(EnvironmentUtils.isDocker()).thenReturn(false);
     Mockito.when(EnvironmentUtils.isKubernetes()).thenReturn(false);
@@ -40,8 +42,15 @@ public class UpdateCheckTest {
     Mockito.when(EnvironmentUtils.isEC2()).thenReturn(false);
     Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(false);
     Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(false);
+    PowerMockito.mockStatic(EC2MetadataUtils.class);
+  }
 
+  @Test
+  public void userAgentStringEmpty() throws Exception {
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
+    Mockito.when(EC2MetadataUtils.getUserData())
+        .thenThrow(new SdkClientException("Unable to contact EC2 metadata service."));
+
     System.out.println(userAgentString);
     Assert.assertTrue(
         userAgentString.equals(String.format("Alluxio/%s (cluster1)", ProjectConstants.VERSION)));
@@ -49,14 +58,9 @@ public class UpdateCheckTest {
 
   @Test
   public void userAgentStringDocker() throws Exception {
-    PowerMockito.mockStatic(EnvironmentUtils.class);
     Mockito.when(EnvironmentUtils.isDocker()).thenReturn(true);
-    Mockito.when(EnvironmentUtils.isKubernetes()).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isEC2()).thenReturn(false);
-    Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("");
-    Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(false);
+    Mockito.when(EC2MetadataUtils.getUserData())
+        .thenThrow(new SdkClientException("Unable to contact EC2 metadata service."));
 
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
     Assert.assertTrue(userAgentString
@@ -65,14 +69,10 @@ public class UpdateCheckTest {
 
   @Test
   public void userAgentStringK8s() throws Exception {
-    PowerMockito.mockStatic(EnvironmentUtils.class);
     Mockito.when(EnvironmentUtils.isDocker()).thenReturn(true);
     Mockito.when(EnvironmentUtils.isKubernetes()).thenReturn(true);
-    Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isEC2()).thenReturn(false);
-    Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("");
-    Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(false);
+    Mockito.when(EC2MetadataUtils.getUserData())
+        .thenThrow(new SdkClientException("Unable to contact EC2 metadata service."));
 
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
     Assert.assertTrue(userAgentString.equals(
@@ -81,15 +81,9 @@ public class UpdateCheckTest {
 
   @Test
   public void userAgentStringGCP() throws Exception {
-    PowerMockito.mockStatic(EnvironmentUtils.class);
-    Mockito.when(EnvironmentUtils.isDocker()).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isKubernetes()).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isEC2()).thenReturn(false);
-    Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("");
-    Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(false);
     Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(true);
+    Mockito.when(EC2MetadataUtils.getUserData())
+        .thenThrow(new SdkClientException("Unable to contact EC2 metadata service."));
 
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
     Assert.assertTrue(userAgentString.equals(
@@ -98,14 +92,10 @@ public class UpdateCheckTest {
 
   @Test
   public void userAgentStringEC2AMI() throws Exception {
-    PowerMockito.mockStatic(EnvironmentUtils.class);
-    Mockito.when(EnvironmentUtils.isDocker()).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isKubernetes()).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(false);
     Mockito.when(EnvironmentUtils.isEC2()).thenReturn(true);
     Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("random123code");
-    Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(false);
+    // When no user data in this ec2, null is returned
+    Mockito.when(EC2MetadataUtils.getUserData()).thenReturn(null);
 
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
     Assert.assertTrue(userAgentString.equals(
@@ -115,15 +105,9 @@ public class UpdateCheckTest {
 
   @Test
   public void userAgentStringEC2CFT() throws Exception {
-    PowerMockito.mockStatic(EnvironmentUtils.class);
-    Mockito.when(EnvironmentUtils.isDocker()).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isKubernetes()).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(false);
     Mockito.when(EnvironmentUtils.isEC2()).thenReturn(true);
     Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("random123code");
     Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(true);
-    Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(false);
-    PowerMockito.mockStatic(EC2MetadataUtils.class);
     Mockito.when(EC2MetadataUtils.getUserData()).thenReturn("{ \"cft_configure\": {}}");
 
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
@@ -134,15 +118,9 @@ public class UpdateCheckTest {
 
   @Test
   public void userAgentStringEC2EMR() throws Exception {
-    PowerMockito.mockStatic(EnvironmentUtils.class);
-    Mockito.when(EnvironmentUtils.isDocker()).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isKubernetes()).thenReturn(false);
-    Mockito.when(EnvironmentUtils.isGoogleComputeEngine()).thenReturn(false);
     Mockito.when(EnvironmentUtils.isEC2()).thenReturn(true);
     Mockito.when(EnvironmentUtils.getEC2ProductCode()).thenReturn("random123code");
-    Mockito.when(EnvironmentUtils.isCFT(Mockito.anyString())).thenReturn(false);
     Mockito.when(EnvironmentUtils.isEMR(Mockito.anyString())).thenReturn(true);
-    PowerMockito.mockStatic(EC2MetadataUtils.class);
     Mockito.when(EC2MetadataUtils.getUserData()).thenReturn("emr_apps");
 
     String userAgentString = UpdateCheck.getUserAgentString("cluster1");
