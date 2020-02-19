@@ -154,7 +154,7 @@ public class LocalCacheManager implements CacheManager {
           LOG.debug("{} is already inserted before", pageId);
           return false;
         }
-        enoughSpace = mPageStore.bytes() + page.length <= mCacheSize;
+        enoughSpace = mMetaStore.bytes() + page.length <= mCacheSize;
         if (enoughSpace) {
           mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
         } else {
@@ -189,7 +189,7 @@ public class LocalCacheManager implements CacheManager {
           throw new IllegalStateException(
               String.format("Page store is missing page %s.", victim), e);
         }
-        enoughSpace = mPageStore.bytes() - victimPageInfo.getPageSize() + page.length <= mCacheSize;
+        enoughSpace = mMetaStore.bytes() + page.length <= mCacheSize;
         if (enoughSpace) {
           mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
         }

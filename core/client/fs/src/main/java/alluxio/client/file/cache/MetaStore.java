@@ -51,4 +51,14 @@ public interface MetaStore {
    * @param pageId page identifier
    */
   void removePage(PageId pageId) throws PageNotFoundException;
+
+  /**
+   * @return the total size of pages stored in bytes
+   */
+  long bytes();
+
+  /**
+   * @return the number of pages stored
+   */
+  long pages();
 }

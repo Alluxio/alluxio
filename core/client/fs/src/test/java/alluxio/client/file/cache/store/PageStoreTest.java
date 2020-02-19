@@ -88,14 +88,12 @@ public class PageStoreTest {
     byte[] msgBytes = msg.getBytes();
     PageId id = new PageId("0", 0);
     mPageStore.put(id, msgBytes);
-    assertEquals(1, mPageStore.pages());
     ByteBuffer buf = ByteBuffer.allocate(1024);
     mPageStore.get(id).read(buf);
     buf.flip();
     String read = StandardCharsets.UTF_8.decode(buf).toString();
     assertEquals(msg, read);
     mPageStore.delete(id, msgBytes.length);
-    assertEquals(0, mPageStore.pages());
     try {
       buf.clear();
       mPageStore.get(id).read(buf);
@@ -146,26 +144,6 @@ public class PageStoreTest {
     mPageStore.close();
     try (PageStore store = PageStore.create(mOptions)) {
       assertEquals(pages, new HashSet<>(store.getPages()));
-    }
-  }
-
-  @Ignore
-  @Test
-  public void testPagesAndBytes() throws Exception {
-    long totalBytes = 0;
-    for (int i = 1; i <= 1024; i++) {
-      PageId id = new PageId(Integer.toString(i), 0);
-      mPageStore.put(id, new byte[i]);
-      totalBytes += i;
-      assertEquals(i, mPageStore.pages());
-      assertEquals(totalBytes, mPageStore.bytes());
-    }
-    for (int i = 1024; i >= 1; i--) {
-      PageId id = new PageId(Integer.toString(i), 0);
-      mPageStore.delete(id, i);
-      totalBytes -= i;
-      assertEquals(i - 1, mPageStore.pages());
-      assertEquals(totalBytes, mPageStore.bytes());
     }
   }
 
