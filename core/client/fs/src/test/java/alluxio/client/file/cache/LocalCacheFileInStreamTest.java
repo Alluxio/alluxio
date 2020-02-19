@@ -400,7 +400,7 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public boolean delete(PageId pageId) throws IOException {
+    public boolean delete(PageId pageId) {
       return mPages.remove(pageId) != null;
     }
 

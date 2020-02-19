@@ -68,5 +68,5 @@ public interface CacheManager extends AutoCloseable  {
    * @param pageId page identifier
    * @return true if the page is successfully deleted, false otherwise
    */
-  boolean delete(PageId pageId) throws IOException;
+  boolean delete(PageId pageId);
 }
