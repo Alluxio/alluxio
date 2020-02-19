@@ -17,6 +17,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.clock.ManualClock;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -76,9 +77,6 @@ public class MetricsMasterTest {
 
   @Test
   public void testThroughputGauge() throws Exception {
-    // Sleep the first second because gauge throughput will always return 0 in the first second
-    // after initializing or clearing the {@link MetricsStore}
-    Thread.sleep(1000);
     String counterName = "Master.counter";
     String throughputName = "Cluster.counterThroughput";
     mMetricsMaster.registerThroughputGauge("Master.counter", "Cluster.counterThroughput");
@@ -87,7 +85,7 @@ public class MetricsMasterTest {
     assertEquals(0, (long) metric.getValue());
 
     Counter masterCounter = MetricsSystem.counter(counterName);
-    masterCounter.inc(10000);
+    masterCounter.inc(100 * Constants.MINUTE_MS);
     Gauge gauge = MetricsSystem.METRIC_REGISTRY.getGauges().get(throughputName);
     assertNotNull(gauge);
     assertNotEquals(0, (long) gauge.getValue());
