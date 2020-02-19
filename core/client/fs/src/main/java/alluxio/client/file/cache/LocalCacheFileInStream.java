@@ -281,6 +281,11 @@ public class LocalCacheFileInStream extends FileInStream {
     return mExternalFileInStream;
   }
 
+  @VisibleForTesting
+  FileInStream getExternalFileInStream() {
+    return mExternalFileInStream;
+  }
+
   /**
    * Reads a cached page from a channel into a buffer.
    *
@@ -316,11 +321,6 @@ public class LocalCacheFileInStream extends FileInStream {
   protected void copyPage(byte[] page, int  pageOffset, byte[] buffer, int bufferOffset,
       int length) {
     System.arraycopy(page, pageOffset, buffer, bufferOffset, length);
-  }
-
-  @VisibleForTesting
-  FileInStream getExternalFileInStream() {
-    return mExternalFileInStream;
   }
 
   /**

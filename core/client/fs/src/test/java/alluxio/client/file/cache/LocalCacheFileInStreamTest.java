@@ -351,9 +351,10 @@ public class LocalCacheFileInStreamTest {
     readSize = 5;
     byte[] positionBuffer = new byte[readSize];
     stream.positionedRead(PAGE_SIZE * 4, positionBuffer, 0, 5);
-    Assert.assertEquals(0, MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
-    Assert.assertEquals(5,
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
+    Assert.assertEquals(0,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
+    Assert.assertEquals(5, MetricsSystem.counter(
+        MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(PAGE_SIZE,
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
 
@@ -363,9 +364,10 @@ public class LocalCacheFileInStreamTest {
 
     // position hit
     stream.positionedRead(PAGE_SIZE * 4 + 5, positionBuffer, 0, 5);
-    Assert.assertEquals(5, MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
-    Assert.assertEquals(0,
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
+    Assert.assertEquals(5,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
+    Assert.assertEquals(0, MetricsSystem.counter(
+        MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(0,
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
     Assert.assertEquals(lastRead + 5, externalStream.getBytesRead());

@@ -15,21 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
 import alluxio.grpc.OpenFilePOptions;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
-import alluxio.util.io.BufferUtils;
-
-import com.codahale.metrics.Counter;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Suppliers;
-import com.google.common.io.Closer;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -39,11 +27,28 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class DryRunLocalCacheFileInStream extends LocalCacheFileInStream {
+
+  /**
+   * Constructor when only path information is available.
+   *
+   * @param path path of the file
+   * @param options read options
+   * @param externalFs the external file system if a cache miss occurs
+   * @param cacheManager local cache manager
+   */
   public DryRunLocalCacheFileInStream(AlluxioURI path, OpenFilePOptions options,
       FileSystem externalFs, CacheManager cacheManager) {
     super(path, options, externalFs, cacheManager);
   }
 
+  /**
+   * Constructor when the {@link URIStatus} is already available.
+   *
+   * @param status file status
+   * @param options read options
+   * @param externalFs the external file system if a cache miss occurs
+   * @param cacheManager local cache manager
+   */
   public DryRunLocalCacheFileInStream(URIStatus status, OpenFilePOptions options,
       FileSystem externalFs, CacheManager cacheManager) {
     super(status, options, externalFs, cacheManager);
