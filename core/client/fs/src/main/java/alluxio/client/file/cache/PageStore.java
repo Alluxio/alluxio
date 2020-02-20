@@ -26,7 +26,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
@@ -142,12 +142,10 @@ public interface PageStore extends AutoCloseable {
    * @return true if successfully restored from previous state
    * @throws IOException if any error occurs
    */
-  boolean restore(Consumer<PageInfo> initFunc) throws IOException;
+  boolean restore(Predicate<PageInfo> initFunc) throws IOException;
 
   /**
-   * @return an estimated ratio between the overhead storage consumption and the actual data size
+   * @return an estimated cache size in bytes
    */
-  default double getOverheadRatio() {
-    return 0;
-  }
+  long getCacheSize();
 }

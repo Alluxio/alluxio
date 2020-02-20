@@ -33,7 +33,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.util.Iterator;
-import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -52,6 +52,7 @@ public class RocksPageStore implements PageStore {
   private static final double ROCKS_OVERHEAD_RATIO = 0.2;
 
   private final String mRoot;
+  private final long mCapacity;
   private final RocksDB mDb;
   private final RocksPageStoreOptions mOptions;
 
@@ -64,6 +65,7 @@ public class RocksPageStore implements PageStore {
     Preconditions.checkArgument(options.getMaxPageSize() > 0);
     mOptions = options;
     mRoot = options.getRootDir();
+    mCapacity = (long) (options.getCacheSize() / (1 + ROCKS_OVERHEAD_RATIO));
     RocksDB.loadLibrary();
     Options rocksOptions = new Options();
     rocksOptions.setCreateIfMissing(true);
@@ -144,7 +146,7 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public boolean restore(Consumer<PageInfo> initFunc) {
+  public boolean restore(Predicate<PageInfo> initFunc) {
     try {
       byte[] confData = mDb.get(CONF_KEY);
       Cache.PRocksPageStoreOptions pOptions = mOptions.toProto();
@@ -158,7 +160,7 @@ public class RocksPageStore implements PageStore {
       }
       mDb.put(CONF_KEY, pOptions.toByteArray());
       try (RocksIterator iter = mDb.newIterator()) {
-        Streams.stream(new PageIterator(iter)).forEach(initFunc);
+        Streams.stream(new PageIterator(iter)).forEach(pageInfo -> initFunc.test(pageInfo));
       }
     } catch (RocksDBException | IOException e) {
       return false;
@@ -167,8 +169,8 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public double getOverheadRatio() {
-    return ROCKS_OVERHEAD_RATIO;
+  public long getCacheSize() {
+    return mCapacity;
   }
 
   private class PageIterator implements Iterator<PageInfo>, AutoCloseable {

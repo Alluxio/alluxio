@@ -41,9 +41,8 @@ public abstract class PageStoreOptions {
         throw new IllegalArgumentException(String.format("Unrecognized store type %s",
             storeType.name()));
     }
-    String rootDir = conf.get(PropertyKey.USER_CLIENT_CACHE_DIR);
-    Path storePath = PageStore.getStorePath(storeType, rootDir);
-    options.setRootDir(storePath.toString());
+    Path rootDir = PageStore.getStorePath(storeType, conf.get(PropertyKey.USER_CLIENT_CACHE_DIR));
+    options.setRootDir(rootDir.toString());
     options.setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
     options.setCacheSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
     options.setAlluxioVersion(conf.get(PropertyKey.VERSION));

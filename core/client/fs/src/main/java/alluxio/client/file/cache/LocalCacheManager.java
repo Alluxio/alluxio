@@ -84,6 +84,7 @@ public class LocalCacheManager implements CacheManager {
       restored = pageStore.restore(pageInfo -> {
         metaStore.addPage(pageInfo.getPageId(), pageInfo);
         evictor.updateOnPut(pageInfo.getPageId());
+        return metaStore.bytes() <= pageStore.getCacheSize();
       });
     } catch (Exception e) {
       LOG.error("Failed to restore PageStore", e);
@@ -109,8 +110,7 @@ public class LocalCacheManager implements CacheManager {
     mPageStore = pageStore;
     mEvictor = evictor;
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
-    mCacheSize = (long) (conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE)
-        / (1.0 + pageStore.getOverheadRatio()));
+    mCacheSize = pageStore.getCacheSize();
     for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock();
     }

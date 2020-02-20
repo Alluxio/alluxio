@@ -29,8 +29,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
-import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -48,6 +47,7 @@ public class LocalPageStore implements PageStore {
 
   private final String mRoot;
   private final long mPageSize;
+  private final long mCacheSize;
   private final Pattern mPagePattern;
 
   /**
@@ -58,9 +58,9 @@ public class LocalPageStore implements PageStore {
   public LocalPageStore(LocalPageStoreOptions options) {
     mRoot = options.getRootDir();
     mPageSize = options.getPageSize();
-    Path rootDir = Paths.get(mRoot);
+    mCacheSize = options.getCacheSize();
     mPagePattern = Pattern.compile(
-        String.format("%s/%d/(\\d+)/(\\d+)", Pattern.quote(rootDir.toString()), mPageSize));
+        String.format("%s/%d/(\\d+)/(\\d+)", Pattern.quote(mRoot), mPageSize));
   }
 
   @Override
@@ -165,7 +165,7 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public boolean restore(Consumer<PageInfo> initFunc) throws IOException {
+  public boolean restore(Predicate<PageInfo> initFunc) throws IOException {
     Path rootDir = Paths.get(mRoot);
     if (!Files.exists(rootDir)) {
       return false;
@@ -174,11 +174,17 @@ public class LocalPageStore implements PageStore {
       return stream
           .filter(Files::isRegularFile)
           .map(this::getPageInfo)
-          .filter(Objects::nonNull)
-          .anyMatch(pageInfo -> {
-            initFunc.accept(pageInfo);
-            return pageInfo.getPageId() == null;
+          .noneMatch(pageInfo -> {
+            if (pageInfo == null) {
+              return true;
+            }
+            return !initFunc.test(pageInfo);
           });
     }
+  }
+
+  @Override
+  public long getCacheSize() {
+    return mCacheSize;
   }
 }
