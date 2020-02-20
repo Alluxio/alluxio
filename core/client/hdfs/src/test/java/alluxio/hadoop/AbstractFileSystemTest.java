@@ -533,9 +533,8 @@ public class AbstractFileSystemTest {
     List<String> ufsLocations = Arrays.asList("worker0", "worker3");
     List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
 
-    List<WorkerNetAddress> expectedWorkers = Collections.EMPTY_LIST;
-
-    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+    // When no matching, all workers will be returned
+    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, allWorkers);
   }
 
   @Test
@@ -564,9 +563,8 @@ public class AbstractFileSystemTest {
     List<String> ufsLocations = Arrays.asList();
     List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
 
-    List<WorkerNetAddress> expectedWorkers = Collections.EMPTY_LIST;
-
-    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+    // When no matching & no ufs locations, all workers will be returned
+    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, allWorkers);
   }
 
   @Test
