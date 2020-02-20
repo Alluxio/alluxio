@@ -104,6 +104,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void putEvict() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
+    mPageStore = PageStore.create(PageStoreOptions.create(mConf));
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));
@@ -115,6 +116,7 @@ public final class LocalCacheManagerTest {
   public void putSmallPages() throws Exception {
     // Cache size is only one full page, but should be able to store multiple small pages
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
+    mPageStore = PageStore.create(PageStoreOptions.create(mConf));
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
     int smallPageLen = 8;
     long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
@@ -132,6 +134,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void evictSmallPageByPutSmallPage() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
+    mPageStore = PageStore.create(PageStoreOptions.create(mConf));
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
     int smallPageLen = 8;
     long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
@@ -154,6 +157,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void evictSmallPagesByPutPigPage() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
+    mPageStore = PageStore.create(PageStoreOptions.create(mConf));
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
     int smallPageLen = 8;
     long numPages = mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE) / smallPageLen;
@@ -173,6 +177,7 @@ public final class LocalCacheManagerTest {
   @Test
   public void evictBigPagesByPutSmallPage() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
+    mPageStore = PageStore.create(PageStoreOptions.create(mConf));
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
     PageId bigPageId = pageId(-1, 0);
     assertTrue(mCacheManager.put(bigPageId, page(0, PAGE_SIZE_BYTES)));
