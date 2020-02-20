@@ -148,6 +148,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
       PropertyKey.Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, "10sec",
       "alluxio.worker.tieredstore.level0.watermark.high.ratio", "0.5",
       "alluxio.worker.tieredstore.level0.watermark.low.ratio", "0.25",
+      PropertyKey.Name.MASTER_WORKER_INFO_CACHE_REFRESH_TIME, "20ms"
       })
   public void asyncWriteNoEvictBeforeBlockCommit() throws Exception {
     long writeSize =
@@ -174,7 +175,8 @@ public final class FileOutStreamAsyncWriteIntegrationTest
       PropertyKey.Name.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME, "1min",
       PropertyKey.Name.WORKER_MEMORY_SIZE, TINY_WORKER_MEM,
       PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, TINY_BLOCK_SIZE,
-      PropertyKey.Name.USER_FILE_BUFFER_BYTES, "8k"
+      PropertyKey.Name.USER_FILE_BUFFER_BYTES, "8k",
+      PropertyKey.Name.MASTER_WORKER_INFO_CACHE_REFRESH_TIME, "20ms"
       })
   public void asyncWriteNoEvict() throws Exception {
     testLostAsyncBlocks();
@@ -186,7 +188,8 @@ public final class FileOutStreamAsyncWriteIntegrationTest
       PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "ASYNC_THROUGH",
       PropertyKey.Name.WORKER_MEMORY_SIZE, TINY_WORKER_MEM,
       PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, TINY_BLOCK_SIZE,
-      PropertyKey.Name.USER_FILE_BUFFER_BYTES, "8k"
+      PropertyKey.Name.USER_FILE_BUFFER_BYTES, "8k",
+      PropertyKey.Name.MASTER_WORKER_INFO_CACHE_REFRESH_TIME, "20ms"
       })
   public void asyncPersistNoAutoPersistNoEvict() throws Exception {
     testLostAsyncBlocks();

@@ -2083,7 +2083,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_WORKER_INFO_CACHE_REFRESH_TIME)
           .setDefaultValue("10sec")
           .setDescription("The worker information list will be refreshed "
-              + "after being cached for this time period. ")
+              + "after being cached for this time period.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();

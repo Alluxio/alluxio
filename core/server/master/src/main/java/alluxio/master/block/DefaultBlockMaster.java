@@ -434,7 +434,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     try {
       return mWorkerInfoCache.get(WORKER_INFO_CACHE_KEY);
     } catch (ExecutionException e) {
-      throw new UnavailableException("Unable to get worker info list from cache");
+      throw new UnavailableException("Unable to get worker info list from cache", e);
     }
   }
 
