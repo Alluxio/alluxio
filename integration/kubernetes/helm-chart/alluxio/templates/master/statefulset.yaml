@@ -202,7 +202,8 @@ spec:
         name: alluxio-journal
       spec:
         storageClassName: {{ .Values.journal.storageClass }}
-        accessModes: {{ .Values.journal.accessModes }}
+        accessModes:
+{{ toYaml .Values.journal.accessModes | indent 8 -}}
         resources:
           requests:
             storage: {{ .Values.journal.size }}

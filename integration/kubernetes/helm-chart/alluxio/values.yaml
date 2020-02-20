@@ -108,7 +108,8 @@ jobMaster:
 journal:
   storageClass: "standard"
   size: 1Gi
-  accessModes: ["ReadWriteMany"] # Use ReadWriteMany as the format job will access it
+  accessModes:
+    - ReadWriteMany # Use ReadWriteMany as the format job will access it
   type: "UFS" # "UFS" or "EMBEDDED"
   ufsType: "local" # Ignored if type is "EMBEDDED". "local" or "HDFS"
   folder: "/journal" # Master journal folder
