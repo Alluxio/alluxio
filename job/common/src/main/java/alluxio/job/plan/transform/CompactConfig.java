@@ -150,12 +150,12 @@ public final class CompactConfig implements PlanConfig {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("partitionInfo", mPartitionInfo)
         .add("input", mInput)
         .add("output", mOutput)
         .add("databaseType", mDatabaseType)
         .add("maxNumFiles", mMaxNumFiles)
         .add("minFileSize", mMinFileSize)
+        .add("partitionInfo", mPartitionInfo)
         .toString();
   }
 
