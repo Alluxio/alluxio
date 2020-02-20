@@ -43,6 +43,7 @@ public interface PageStore extends AutoCloseable {
    * @return a PageStore instance
    */
   static PageStore create(PageStoreOptions options) {
+    LOG.info("Create PageStore option={}", options.toString());
     switch (options.getType()) {
       case LOCAL:
         return new LocalPageStore(options.toOptions());
@@ -77,7 +78,7 @@ public interface PageStore extends AutoCloseable {
     PageStoreType storeType = options.getType();
     Path storePath = getStorePath(storeType, rootPath);
     Files.createDirectories(storePath);
-    LOG.info("Clean cache directory {}", rootPath);
+    LOG.debug("Clean cache directory {}", rootPath);
     try (Stream<Path> stream = Files.list(Paths.get(rootPath))) {
       stream.filter(path -> !storePath.equals(path))
           .forEach(path -> {

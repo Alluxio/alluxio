@@ -12,9 +12,10 @@
 package alluxio.client.file.cache.store;
 
 import alluxio.Constants;
-import alluxio.proto.client.Cache.PRocksPageStoreOptions;
 import alluxio.proto.client.Cache.PPageStoreCommonOptions;
+import alluxio.proto.client.Cache.PRocksPageStoreOptions;
 
+import com.google.common.base.MoreObjects;
 import org.rocksdb.CompressionType;
 
 /**
@@ -124,5 +125,19 @@ public class RocksPageStoreOptions extends PageStoreOptions {
             .setAlluxioVersion(getAlluxioVersion())
         )
         .build();
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("MaxPageSize", mMaxPageSize)
+        .add("WriteBufferSize", mWriteBufferSize)
+        .add("MaxBufferPoolSize", mMaxBufferPoolSize)
+        .add("CompressionType", mCompressionType)
+        .add("RootDir", mRootDir)
+        .add("PageSize", mPageSize)
+        .add("CacheSize", mCacheSize)
+        .add("AlluxioVersion", mAlluxioVersion)
+        .toString();
   }
 }

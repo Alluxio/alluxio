@@ -13,6 +13,8 @@ package alluxio.client.file.cache.store;
 
 import alluxio.Constants;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Options used to instantiate the {@link LocalPageStore}.
  */
@@ -73,5 +75,17 @@ public class LocalPageStoreOptions extends PageStoreOptions {
   @Override
   public PageStoreType getType() {
     return PageStoreType.LOCAL;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("BufferPoolSize", mBufferPoolSize)
+        .add("BufferSize", mBufferSize)
+        .add("RootDir", mRootDir)
+        .add("PageSize", mPageSize)
+        .add("CacheSize", mCacheSize)
+        .add("AlluxioVersion", mAlluxioVersion)
+        .toString();
   }
 }

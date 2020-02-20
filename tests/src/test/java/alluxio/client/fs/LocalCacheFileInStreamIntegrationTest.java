@@ -48,7 +48,7 @@ public final class LocalCacheFileInStreamIntegrationTest extends BaseIntegration
           .setProperty(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES)
           .setProperty(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Constants.MB)
-          .setProperty(PropertyKey.USER_LOCAL_CACHE_ENABLED, true)
+          .setProperty(PropertyKey.USER_CLIENT_CACHE_ENABLED, true)
           .build();
 
   @Rule

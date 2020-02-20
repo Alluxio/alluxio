@@ -1555,6 +1555,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METRICS_SERVICE_THREADS =
+      new Builder(Name.MASTER_METRICS_SERVICE_THREADS)
+          .setDefaultValue(5)
+          .setDescription("The number of threads in metrics master executor pool "
+              + "for parallel processing metrics submitted by workers or clients "
+              + "and update cluster metrics.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METRICS_TIME_SERIES_INTERVAL =
       new Builder(Name.MASTER_METRICS_TIME_SERIES_INTERVAL)
           .setDefaultValue("5min")
@@ -3184,6 +3193,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_CLIENT_CACHE_ENABLED)
           .setDefaultValue(false)
           .setDescription("If this is enabled, data will be cached on Alluxio client.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_EVICTOR_CLASS =
@@ -3192,12 +3202,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The strategy that client uses to evict local cached pages when running "
               + "out of space. Currently the only valid option provided is "
               + "`alluxio.client.file.cache.evictor.LRUCacheEvictor`.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_DIR =
       new Builder(Name.USER_CLIENT_CACHE_DIR)
           .setDefaultValue("/tmp/alluxio_cache")
           .setDescription("The directory where client-side cache is stored.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_STORE_TYPE =
@@ -3206,18 +3218,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The type of page store to use for client-side cache. Can be either "
               + "`LOCAL` or `ROCKS`. The `LOCAL` page store stores all pages in a directory, "
               + "the `ROCKS` page store utilizes rocksDB to persist the data.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_SIZE =
       new Builder(Name.USER_CLIENT_CACHE_SIZE)
           .setDefaultValue("512MB")
           .setDescription("The maximum size of the client-side cache.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_PAGE_SIZE =
       new Builder(Name.USER_CLIENT_CACHE_PAGE_SIZE)
           .setDefaultValue("1MB")
           .setDescription("Size of each page in client-side cache.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
@@ -3230,16 +3245,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "(no cache, write to UnderFS synchronously), `ASYNC_THROUGH` (write to cache, "
               + "write to UnderFS asynchronously, replicated %s times in Alluxio before data is "
               + "persisted.", USER_FILE_REPLICATION_DURABLE))
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_FILESYSTEM_CLASS =
-      new Builder(Name.USER_FILESYSTEM_CLASS)
-          .setDefaultValue("alluxio.client.file.BaseFileSystem")
-          .setDescription("Type of file system to use. Users can select augmented file systems "
-              + "based on the use case. For example, MetadataCachingBaseFileSystem is efficient "
-              + "for FUSE workloads. Possible values are alluxio.client.file.BaseFileSystem "
-              + "(default) and alluxio.client.file.MetadataCachingBaseFileSystem.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3262,13 +3267,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_LOCAL_CACHE_ENABLED =
-      new Builder(Name.USER_LOCAL_CACHE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("If this is enabled, data will be cached on Alluxio client.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_LOCAL_READER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_LOCAL_READER_CHUNK_SIZE_BYTES)
           .setDefaultValue("8MB")
@@ -3280,6 +3278,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES)
           .setDefaultValue("64KB")
           .setDescription("When a client writes to a local worker, the maximum data chunk size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_METADATA_CACHE_ENABLED =
+      new Builder(Name.USER_METADATA_CACHE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If this is enabled, metadata of paths will be cached. "
+              + "The cached metadata will be evicted when it expires after "
+              + Name.USER_METADATA_CACHE_EXPIRATION_TIME
+              + " or the cache size is over the limit of "
+              + Name.USER_METADATA_CACHE_MAX_SIZE + ".")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -4363,6 +4372,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.inherit.owner.and.group";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval";
+    public static final String MASTER_METRICS_SERVICE_THREADS =
+        "alluxio.master.metrics.service.threads";
     public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =
         "alluxio.master.metrics.time.series.interval";
     public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
@@ -4672,13 +4683,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";
-    public static final String USER_FILESYSTEM_CLASS = "alluxio.user.filesystem.class";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
-    public static final String USER_LOCAL_CACHE_ENABLED = "alluxio.user.local.cache.enabled";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.reader.chunk.size.bytes";
     public static final String USER_LOCAL_WRITER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.writer.chunk.size.bytes";
+    public static final String USER_METADATA_CACHE_ENABLED =
+        "alluxio.user.metadata.cache.enabled";
     public static final String USER_METADATA_CACHE_MAX_SIZE =
         "alluxio.user.metadata.cache.max.size";
     public static final String USER_METADATA_CACHE_EXPIRATION_TIME =

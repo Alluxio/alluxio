@@ -3817,21 +3817,36 @@ public final class DefaultFileSystemMaster extends CoreMaster
   @Override
   public void stopSync(AlluxioURI syncPoint)
       throws IOException, InvalidPathException, AccessControlException {
-    LockingScheme lockingScheme = new LockingScheme(syncPoint, LockPattern.WRITE_EDGE, false);
-    try (RpcContext rpcContext = createRpcContext();
-        LockedInodePath inodePath =
-            mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
-        FileSystemMasterAuditContext auditContext =
-             createAuditContext("stopSync", syncPoint, null,
-                 inodePath.getParentInodeOrNull())) {
+    try (RpcContext rpcContext = createRpcContext()) {
+      boolean isSuperUser = true;
       try {
-        mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
+        mPermissionChecker.checkSuperUser();
       } catch (AccessControlException e) {
-        auditContext.setAllowed(false);
-        throw e;
+        isSuperUser = false;
       }
-      mSyncManager.stopSyncAndJournal(rpcContext, inodePath.getUri());
-      auditContext.setSucceeded(true);
+      if (isSuperUser) {
+        // TODO(AM): Remove once we don't require a write lock on the sync point during a full sync
+        // Stop sync w/o acquiring an inode lock to terminate an initial full scan (if running)
+        mSyncManager.stopSyncAndJournal(rpcContext, syncPoint);
+      }
+      LockingScheme lockingScheme = new LockingScheme(syncPoint, LockPattern.READ, false);
+      try (LockedInodePath inodePath =
+               mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
+           FileSystemMasterAuditContext auditContext =
+               createAuditContext("stopSync", syncPoint, null,
+                   inodePath.getParentInodeOrNull())) {
+        try {
+          mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
+        } catch (AccessControlException e) {
+          auditContext.setAllowed(false);
+          throw e;
+        }
+        if (!isSuperUser) {
+          // Stop sync here only if not terminated w/o holding the inode lock
+          mSyncManager.stopSyncAndJournal(rpcContext, syncPoint);
+        }
+        auditContext.setSucceeded(true);
+      }
     }
   }
 

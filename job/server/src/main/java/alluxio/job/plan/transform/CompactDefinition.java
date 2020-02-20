@@ -17,9 +17,8 @@ import alluxio.collections.Pair;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
-import alluxio.job.plan.transform.compact.Compactor;
-import alluxio.job.plan.transform.compact.SequentialCompactor;
 import alluxio.job.plan.transform.format.TableReader;
+import alluxio.job.plan.transform.format.TableRow;
 import alluxio.job.plan.transform.format.TableSchema;
 import alluxio.job.plan.transform.format.TableWriter;
 import alluxio.job.util.SerializableVoid;
@@ -31,7 +30,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,14 +96,15 @@ public final class CompactDefinition
     Map<WorkerInfo, ArrayList<CompactTask>> assignments = Maps.newHashMap();
     int maxNumFiles = config.getMaxNumFiles();
     long groupMinSize = config.getMinFileSize();
-    if (totalFileSize / groupMinSize > maxNumFiles) {
-      groupMinSize = Math.round(totalFileSize / maxNumFiles);
-    }
 
     if (!files.isEmpty() && config.getPartitionInfo() != null) {
       // adjust the group minimum size for source compression ratio
       groupMinSize *= COMPRESSION_RATIO.get(
           config.getPartitionInfo().getFormat(files.get(0).getName()));
+    }
+
+    if (totalFileSize / groupMinSize > maxNumFiles) {
+      groupMinSize = Math.round(totalFileSize / maxNumFiles);
     }
 
     // Files to be compacted are grouped into different groups,
@@ -174,38 +173,35 @@ public final class CompactDefinition
   @Override
   public SerializableVoid runTask(CompactConfig config, ArrayList<CompactTask> tasks,
       RunTaskContext context) throws Exception {
-    Closer closer = Closer.create();
-    boolean closed = false;
-    Compactor compactor = new SequentialCompactor();
     for (CompactTask task : tasks) {
       ArrayList<String> inputs = task.getInputs();
       if (inputs.isEmpty()) {
         continue;
       }
       AlluxioURI output = new AlluxioURI(task.getOutput());
-      List<TableReader> readers = Lists.newArrayList();
-      TableWriter writer = null;
-      try {
+
+      TableSchema schema;
+      try (TableReader reader = TableReader.create(new AlluxioURI(inputs.get(0)),
+          config.getPartitionInfo())) {
+        schema = reader.getSchema();
+      }
+
+      try (TableWriter writer = TableWriter.create(schema, output)) {
         for (String input : inputs) {
-          readers.add(closer.register(TableReader.create(new AlluxioURI(input),
-              config.getPartitionInfo())));
+          try (TableReader reader = TableReader.create(new AlluxioURI(input),
+              config.getPartitionInfo())) {
+            for (TableRow row = reader.read(); row != null; row = reader.read()) {
+              writer.write(row);
+            }
+          }
         }
-        TableSchema schema = readers.get(0).getSchema();
-        writer = closer.register(TableWriter.create(schema, output));
-        compactor.compact(readers, writer);
-      } catch (Throwable t) {
-        closer.close();
-        closed = true;
+      } catch (Throwable e) {
         try {
-          context.getFileSystem().delete(output); // output is the compacted file
-        } catch (Throwable e) {
-          t.addSuppressed(e);
+          context.getFileSystem().delete(output); // outputUri is the output file
+        } catch (Throwable t) {
+          e.addSuppressed(t);
         }
-        closer.rethrow(t);
-      } finally {
-        if (!closed) {
-          closer.close();
-        }
+        throw e;
       }
     }
     return null;

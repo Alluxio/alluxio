@@ -32,6 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -112,9 +114,11 @@ public final class PlanCoordinator {
     SelectExecutorsContext context =
         new SelectExecutorsContext(mPlanInfo.getId(), mJobServerContext);
     Set<? extends Pair<WorkerInfo, ?>> taskAddressToArgs;
+    ArrayList<WorkerInfo> workersInfoListCopy = Lists.newArrayList(mWorkersInfoList);
+    Collections.shuffle(workersInfoListCopy);
     try {
       taskAddressToArgs =
-          definition.selectExecutors(mPlanInfo.getJobConfig(), mWorkersInfoList, context);
+          definition.selectExecutors(mPlanInfo.getJobConfig(), workersInfoListCopy, context);
     } catch (Exception e) {
       LOG.warn("Failed to select executor. {})", e.getMessage());
       LOG.debug("Exception: ", e);

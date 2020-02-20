@@ -22,13 +22,11 @@ import alluxio.Constants;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.PageNotFoundException;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
@@ -58,9 +56,6 @@ public final class LocalCacheManagerTest {
 
   @Rule
   public TemporaryFolder mTemp = new TemporaryFolder();
-
-  @Rule
-  public final ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
@@ -264,8 +259,7 @@ public final class LocalCacheManagerTest {
 
   @Test
   public void deleteNotExist() throws Exception {
-    mThrown.expect(PageNotFoundException.class);
-    mCacheManager.delete(PAGE_ID1);
+    assertFalse(mCacheManager.delete(PAGE_ID1));
   }
 
   /**
