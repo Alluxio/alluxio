@@ -17,7 +17,6 @@ import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,12 +29,10 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -53,35 +50,18 @@ public class LocalPageStore implements PageStore {
   private final long mPageSize;
   private final Pattern mPagePattern;
 
-  public static LocalPageStore create(LocalPageStoreOptions options) throws IOException {
-    LocalPageStore pageStore = new LocalPageStore(options);
-  }
-
   /**
    * Creates a new instance of {@link LocalPageStore}.
    *
    * @param options options for the local page store
    * @throws IOException when fails to create a {@link LocalPageStore}
    */
-  public LocalPageStore(LocalPageStoreOptions options) throws IOException {
+  public LocalPageStore(LocalPageStoreOptions options) {
     mRoot = options.getRootDir();
     mPageSize = options.getPageSize();
     Path rootDir = Paths.get(mRoot);
     mPagePattern = Pattern.compile(
         String.format("%s/%d/(\\d+)/(\\d+)", Pattern.quote(rootDir.toString()), mPageSize));
-    try {
-      boolean invalidPage = Files.exists(rootDir) && Files.walk(rootDir)
-          .filter(Files::isRegularFile)
-          .anyMatch(path -> {
-            return (getPageId(path, mPagePattern) == null);
-          });
-      if (invalidPage) {
-        LOG.warn("Cannot recover from cached data: Invalid page file found");
-        FileUtils.cleanDirectory(new File(mRoot));
-      }
-    } catch (IOException e) {
-      throw new IOException(String.format("can't initialize page store at %s", mRoot), e);
-    }
   }
 
   @Override
@@ -142,12 +122,11 @@ public class LocalPageStore implements PageStore {
 
   /**
    * @param path path of a file
-   * @param pagePattern page pattern to match
    * @return the corresponding page id, or null if the file name does not match the pattern
    */
   @Nullable
-  static private PageId getPageId(Path path, Pattern pagePattern) {
-    Matcher matcher = pagePattern.matcher(path.toString());
+  private PageId getPageId(Path path) {
+    Matcher matcher = mPagePattern.matcher(path.toString());
     if (!matcher.matches()) {
       return null;
     }
@@ -167,7 +146,7 @@ public class LocalPageStore implements PageStore {
    */
   @Nullable
   private PageInfo getPageInfo(Path path) {
-    PageId pageId = getPageId(path, mPagePattern);
+    PageId pageId = getPageId(path);
     long pageSize;
     if (pageId == null) {
       return null;
@@ -187,17 +166,20 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public Collection<PageInfo> getPages() throws IOException {
+  public boolean restore(Consumer<PageInfo> initFunc) throws IOException {
     Path rootDir = Paths.get(mRoot);
     if (!Files.exists(rootDir)) {
-      return Collections.emptyList();
+      return false;
     }
     try (Stream<Path> stream = Files.walk(rootDir)) {
       return stream
           .filter(Files::isRegularFile)
           .map(this::getPageInfo)
           .filter(Objects::nonNull)
-          .collect(Collectors.toList());
+          .anyMatch(pageInfo -> {
+            initFunc.accept(pageInfo);
+            return (pageInfo.getPageId() == null);
+          });
     }
   }
 }

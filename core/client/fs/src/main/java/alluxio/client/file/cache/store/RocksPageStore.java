@@ -19,7 +19,6 @@ import alluxio.proto.client.Cache;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Streams;
-import org.apache.commons.io.FileUtils;
 import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
@@ -28,16 +27,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -57,46 +53,27 @@ public class RocksPageStore implements PageStore {
 
   private final String mRoot;
   private final RocksDB mDb;
-  private final AtomicLong mSize = new AtomicLong(0);
-  private final AtomicLong mBytes = new AtomicLong(0);
+  private final RocksPageStoreOptions mOptions;
 
   /**
    * Creates a new instance of {@link PageStore} backed by RocksDB.
    *
    * @param options options for the rocks page store
-   * @throws IOException when fails to create a {@link RocksPageStore}
    */
-  public RocksPageStore(RocksPageStoreOptions options) throws IOException {
+  public RocksPageStore(RocksPageStoreOptions options) {
     Preconditions.checkArgument(options.getMaxPageSize() > 0);
+    mOptions = options;
     mRoot = options.getRootDir();
-    Cache.PRocksPageStoreOptions pOptions = options.toProto();
     RocksDB.loadLibrary();
-    RocksDB db = null;
     Options rocksOptions = new Options();
     rocksOptions.setCreateIfMissing(true);
     rocksOptions.setWriteBufferSize(options.getWriteBufferSize());
     rocksOptions.setCompressionType(options.getCompressionType());
     try {
-      db = RocksDB.open(rocksOptions, options.getRootDir());
-      byte[] confData = db.get(CONF_KEY);
-      if (confData != null) {
-        Cache.PRocksPageStoreOptions persistedOptions =
-            Cache.PRocksPageStoreOptions.parseFrom(confData);
-        if (!persistedOptions.equals(pOptions)) {
-          db.close();
-          db = null;
-          FileUtils.cleanDirectory(new File(mRoot));
-          db = RocksDB.open(rocksOptions, options.getRootDir());
-        }
-      }
-      db.put(CONF_KEY, pOptions.toByteArray());
-    } catch (RocksDBException | IOException e) {
-      if (db != null) {
-        db.close();
-      }
-      throw new IOException("Couldn't open rocksDB database", e);
+      mDb = RocksDB.open(rocksOptions, mRoot);
+    } catch (RocksDBException e) {
+      throw new RuntimeException("Couldn't open rocksDB database", e);
     }
-    mDb = db;
   }
 
   @Override
@@ -167,10 +144,26 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public Collection<PageInfo> getPages() {
-    try (RocksIterator iter = mDb.newIterator()) {
-      return Streams.stream(new PageIterator(iter)).collect(Collectors.toList());
+  public boolean restore(Consumer<PageInfo> initFunc) {
+    try {
+      byte[] confData = mDb.get(CONF_KEY);
+      Cache.PRocksPageStoreOptions pOptions = mOptions.toProto();
+      if (confData != null) {
+        Cache.PRocksPageStoreOptions persistedOptions =
+            Cache.PRocksPageStoreOptions.parseFrom(confData);
+        if (!persistedOptions.equals(pOptions)) {
+          mDb.close();
+          return false;
+        }
+      }
+      mDb.put(CONF_KEY, pOptions.toByteArray());
+      try (RocksIterator iter = mDb.newIterator()) {
+        Streams.stream(new PageIterator(iter)).forEach(initFunc);
+      }
+    } catch (RocksDBException | IOException e) {
+      return false;
     }
+    return true;
   }
 
   @Override

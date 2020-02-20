@@ -131,7 +131,7 @@ public class PageStoreTest {
   }
 
   @Test
-  public void getPages() throws Exception {
+  public void restore() throws Exception {
     int len = 32;
     int count = 16;
     byte[] data = BufferUtils.getIncreasingByteArray(len);
@@ -143,7 +143,9 @@ public class PageStoreTest {
     }
     mPageStore.close();
     try (PageStore store = PageStore.create(mOptions)) {
-      assertEquals(pages, new HashSet<>(store.getPages()));
+      HashSet<PageInfo> restored = new HashSet<>();
+      store.restore(restored::add);
+      assertEquals(pages, restored);
     }
   }
 

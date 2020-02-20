@@ -19,6 +19,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
@@ -67,7 +68,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getAbsolutePath());
     mMetaStore = MetaStore.create();
-    mPageStore = PageStore.create(mConf);
+    mPageStore = PageStore.create(PageStoreOptions.create(mConf));
     mEvictor = new FIFOEvictor(mMetaStore);
     mCacheManager = new LocalCacheManager(mConf, mMetaStore, mPageStore, mEvictor);
   }
@@ -305,6 +306,11 @@ public final class LocalCacheManagerTest {
         mQueue.poll();
       }
       return null;
+    }
+
+    @Override
+    public void reset() {
+      mQueue.clear();
     }
   }
 }

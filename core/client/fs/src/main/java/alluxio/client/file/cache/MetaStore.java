@@ -61,4 +61,9 @@ public interface MetaStore {
    * @return the number of pages stored
    */
   long pages();
+
+  /**
+   * Resets the meta store
+   */
+  void reset();
 }

@@ -68,4 +68,11 @@ public class DefaultMetaStore implements MetaStore {
   public long pages() {
     return mPages.get();
   }
+
+  @Override
+  public void reset() {
+    mPages.set(0);
+    mBytes.set(0);
+    mPageMap.clear();
+  }
 }

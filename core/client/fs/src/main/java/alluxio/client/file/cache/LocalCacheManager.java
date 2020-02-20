@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -24,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
-import java.util.Collection;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -73,23 +73,23 @@ public class LocalCacheManager implements CacheManager {
   public static LocalCacheManager create(AlluxioConfiguration conf) throws IOException {
     MetaStore metaStore = MetaStore.create();
     CacheEvictor evictor = CacheEvictor.create(conf);
-    PageStore pageStore = PageStore.create(conf);
+    PageStoreOptions options = PageStoreOptions.create(conf);
+    PageStore pageStore = PageStore.create(options);
+    boolean restored = false;
     try {
-      Collection<PageInfo> pageInfos = pageStore.getPages();
-      for (PageInfo pageInfo : pageInfos) {
-        PageId pageId = pageInfo.getPageId();
-        metaStore.addPage(pageId, pageInfo);
-        evictor.updateOnPut(pageId);
-      }
-      return new LocalCacheManager(conf, metaStore, pageStore, evictor);
+      restored = pageStore.restore(pageInfo -> {
+        metaStore.addPage(pageInfo.getPageId(), pageInfo);
+        evictor.updateOnPut(pageInfo.getPageId());
+      });
     } catch (Exception e) {
-      try {
-        pageStore.close();
-      } catch (Exception ex) {
-        e.addSuppressed(ex);
-      }
-      throw new IOException("failed to create local cache manager", e);
+      LOG.error("Failed to restore PageStore", e);
     }
+    if (!restored) {
+      metaStore.reset();
+      evictor.reset();
+      pageStore.initialize(options);
+    }
+    return new LocalCacheManager(conf, metaStore, pageStore, evictor);
   }
 
   /**

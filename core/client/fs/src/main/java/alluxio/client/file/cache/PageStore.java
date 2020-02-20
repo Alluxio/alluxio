@@ -12,13 +12,9 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.LocalPageStore;
-import alluxio.client.file.cache.store.LocalPageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.client.file.cache.store.RocksPageStore;
-import alluxio.client.file.cache.store.RocksPageStoreOptions;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 import alluxio.util.io.FileUtils;
 
@@ -30,7 +26,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -45,9 +41,8 @@ public interface PageStore extends AutoCloseable {
    *
    * @param options the options to instantiate the page store
    * @return a PageStore instance
-   * @throws IOException if failed to create a page store
    */
-  static PageStore create(PageStoreOptions options) throws IOException {
+  static PageStore create(PageStoreOptions options) {
     switch (options.getType()) {
       case LOCAL:
         return new LocalPageStore(options.toOptions());
@@ -57,37 +52,6 @@ public interface PageStore extends AutoCloseable {
         throw new IllegalArgumentException(
             "Incompatible PageStore " + options.getType() + " specified");
     }
-  }
-
-  /**
-   * Creates a new instance of {@link PageStore} based on configuration.
-   *
-   * @param conf configuration
-   * @return the {@link PageStore}
-   */
-  static PageStore create(AlluxioConfiguration conf) throws IOException {
-    PageStoreOptions options;
-    PageStoreType storeType = conf.getEnum(
-        PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);
-    switch (storeType) {
-      case LOCAL:
-        options = new LocalPageStoreOptions();
-        break;
-      case ROCKS:
-        options = new RocksPageStoreOptions();
-        break;
-      default:
-        throw new IllegalArgumentException(String.format("Unrecognized store type %s",
-            storeType.name()));
-    }
-    String rootDir = conf.get(PropertyKey.USER_CLIENT_CACHE_DIR);
-    initialize(rootDir, storeType);
-    Path storePath = getStorePath(storeType, rootDir);
-    options.setRootDir(storePath.toString());
-    options.setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
-    options.setCacheSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE));
-    options.setAlluxioVersion(conf.get(PropertyKey.VERSION));
-    return create(options);
   }
 
   /**
@@ -102,13 +66,15 @@ public interface PageStore extends AutoCloseable {
   }
 
   /**
-   * Initialize a page store at the configured location.
+   * Initializes a page store at the configured location.
    * Data from different store type will be removed.
    *
-   * @param rootPath root path of the page store
-   * @param storeType the page store type
+   * @param options initialize a new page store based on the options
+   * @throws IOException when failed to clean up the specific location
    */
-  static void initialize(String rootPath, PageStoreType storeType) throws IOException {
+  default void initialize(PageStoreOptions options) throws IOException {
+    String rootPath = options.getRootDir();
+    PageStoreType storeType = options.getType();
     Path storePath = getStorePath(storeType, rootPath);
     Files.createDirectories(storePath);
     LOG.info("Clean cache directory {}", rootPath);
@@ -169,12 +135,13 @@ public interface PageStore extends AutoCloseable {
   void delete(PageId pageId, long pageSize) throws IOException, PageNotFoundException;
 
   /**
-   * Gets all page ids.
+   * Restores the page store from a previous run.
    *
-   * @return collection of ids representing all pages loaded from disk
+   * @param initFunc function to apply during restore process
+   * @return true if successfully restored from previous state
    * @throws IOException if any error occurs
    */
-  Collection<PageInfo> getPages() throws IOException;
+  boolean restore(Consumer<PageInfo> initFunc) throws IOException;
 
   /**
    * @return an estimated ratio between the overhead storage consumption and the actual data size
