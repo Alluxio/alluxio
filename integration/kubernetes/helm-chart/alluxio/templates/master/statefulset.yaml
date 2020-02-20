@@ -201,9 +201,8 @@ spec:
     - metadata:
         name: alluxio-journal
       spec:
-        storageClassName: standard
-        accessModes:
-          - ReadWriteMany
+        storageClassName: {{ .Values.journal.storageClass }}
+        accessModes: {{ .Values.journal.accessModes }}
         resources:
           requests:
             storage: {{ .Values.journal.size }}

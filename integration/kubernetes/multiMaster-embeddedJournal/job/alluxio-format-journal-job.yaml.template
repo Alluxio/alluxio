@@ -19,7 +19,7 @@ metadata:
   labels:
     name: alluxio-format-master-0
     app: alluxio
-    chart: alluxio
+    chart: alluxio-0.5.3
     release: alluxio
     heritage: Tiller
     role: alluxio-master
@@ -51,13 +51,13 @@ spec:
             - name: ALLUXIO_MASTER_HOSTNAME
               value: alluxio-master-0
           volumeMounts:
-          - name: alluxio-journal
-            mountPath: /journal
-      restartPolicy: OnFailure
+            - name: alluxio-journal
+              mountPath: /journal
+      restartPolicy: Never
       volumes:
-      - name: alluxio-journal
-        persistentVolumeClaim:
-          claimName: alluxio-journal-alluxio-master-0
+        - name: alluxio-journal
+          persistentVolumeClaim:
+            claimName: alluxio-journal-alluxio-master-0
 ---
 apiVersion: batch/v1
 kind: Job
@@ -66,7 +66,7 @@ metadata:
   labels:
     name: alluxio-format-master-1
     app: alluxio
-    chart: alluxio
+    chart: alluxio-0.5.3
     release: alluxio
     heritage: Tiller
     role: alluxio-master
@@ -98,13 +98,13 @@ spec:
             - name: ALLUXIO_MASTER_HOSTNAME
               value: alluxio-master-1
           volumeMounts:
-          - name: alluxio-journal
-            mountPath: /journal
-      restartPolicy: OnFailure
+            - name: alluxio-journal
+              mountPath: /journal
+      restartPolicy: Never
       volumes:
-      - name: alluxio-journal
-        persistentVolumeClaim:
-          claimName: alluxio-journal-alluxio-master-1
+        - name: alluxio-journal
+          persistentVolumeClaim:
+            claimName: alluxio-journal-alluxio-master-1
 ---
 apiVersion: batch/v1
 kind: Job
@@ -113,7 +113,7 @@ metadata:
   labels:
     name: alluxio-format-master-2
     app: alluxio
-    chart: alluxio
+    chart: alluxio-0.5.3
     release: alluxio
     heritage: Tiller
     role: alluxio-master
@@ -145,12 +145,12 @@ spec:
             - name: ALLUXIO_MASTER_HOSTNAME
               value: alluxio-master-2
           volumeMounts:
-          - name: alluxio-journal
-            mountPath: /journal
-      restartPolicy: OnFailure
+            - name: alluxio-journal
+              mountPath: /journal
+      restartPolicy: Never
       volumes:
-      - name: alluxio-journal
-        persistentVolumeClaim:
-          claimName: alluxio-journal-alluxio-master-2
+        - name: alluxio-journal
+          persistentVolumeClaim:
+            claimName: alluxio-journal-alluxio-master-2
 ---
 

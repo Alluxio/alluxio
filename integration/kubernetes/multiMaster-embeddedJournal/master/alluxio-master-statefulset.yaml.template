@@ -130,8 +130,7 @@ spec:
         name: alluxio-journal
       spec:
         storageClassName: standard
-        accessModes:
-          - ReadWriteMany
+        accessModes: [ReadWriteMany]
         resources:
           requests:
             storage: 1Gi

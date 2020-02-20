@@ -20,6 +20,7 @@
 {{- $release := .Release }}
 {{- $name := include "alluxio.name" . }}
 {{- $fullName := include "alluxio.fullname" . }}
+{{- $chart := include "alluxio.chart" . }}
 {{- range $i := until $masterCount }}
 apiVersion: batch/v1
 kind: Job
@@ -28,7 +29,7 @@ metadata:
   labels:
     name: {{ $fullName }}-format-master-{{ $i }}
     app: {{ $name }}
-    chart: {{ $name }}
+    chart: {{ $chart }}
     release: {{ $release.Name }}
     heritage: {{ $release.Service }}
     role: alluxio-master
@@ -44,8 +45,8 @@ spec:
           securityContext:
             runAsUser: {{ $root.Values.user }}
             runAsGroup: {{ $root.Values.group }}
-          {{- if $root.Values.master.resources  }}
-{{ include "alluxio.master.resources" $root | indent 10 }}
+          {{- if $root.Values.journal.format.resources }}
+{{ include "alluxio.journal.format.resources" $root | indent 10 }}
           {{- end }}
           command: ["/opt/alluxio/bin/alluxio"]
           args: ["formatJournal"]
@@ -59,34 +60,39 @@ spec:
           {{- end }}
           volumeMounts:
           {{- if $needJournalVolume }}
-          - name: alluxio-journal
-            mountPath: {{ $root.Values.journal.folder }}
+            - name: alluxio-journal
+              mountPath: {{ $root.Values.journal.folder }}
           {{- end }}
           {{- if $root.Values.secrets }}
             {{- if $root.Values.secrets.master }}
               {{- range $key, $val := $root.Values.secrets.master }}
-          - name: secret-{{ $key }}-volume
-            mountPath: /secrets/{{ $val }}
-            readOnly: true
+            - name: secret-{{ $key }}-volume
+              mountPath: /secrets/{{ $val }}
+              readOnly: true
               {{- end }}
             {{- end }}
           {{- end }}
           {{- if $root.Values.mounts }}
             {{- range $root.Values.mounts }}
-          - name: "{{ .name }}"
-            mountPath: "{{ .path }}"
+            - name: "{{ .name }}"
+              mountPath: "{{ .path }}"
             {{- end }}
           {{- end }}
-      restartPolicy: OnFailure
+      restartPolicy: Never
       volumes:
       {{- if $needJournalVolume }}
-      - name: alluxio-journal
-        persistentVolumeClaim:
-          claimName: {{ printf "alluxio-journal-%v-master-%v" $fullName $i }}
+        - name: alluxio-journal
+          persistentVolumeClaim:
+            claimName: {{ printf "alluxio-journal-%v-master-%v" $fullName $i }}
       {{- end}}
       {{- if $root.Values.secrets }}
         {{- if $root.Values.secrets.master }}
-        {{- include "alluxio.master.secretVolumeMounts" $root }}
+          {{- range $key, $val := $root.Values.secrets.master }}
+        - name: secret-{{ $key }}-volume
+          secret:
+            secretName: {{ $key }}
+            defaultMode: 256
+          {{- end }}
         {{- end }}
       {{- end }}
 ---
