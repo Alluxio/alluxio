@@ -2079,6 +2079,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
               .build();
+  public static final PropertyKey MASTER_WORKER_INFO_CACHE_REFRESH_TIME =
+      new Builder(Name.MASTER_WORKER_INFO_CACHE_REFRESH_TIME)
+          .setDefaultValue("10sec")
+          .setDescription("The worker information list will be refreshed "
+              + "after being cached for this time period. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_WORKER_TIMEOUT_MS =
       new Builder(Name.MASTER_WORKER_TIMEOUT_MS)
           .setAlias("alluxio.master.worker.timeout.ms")
@@ -4460,6 +4468,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_WHITELIST = "alluxio.master.whitelist";
     public static final String MASTER_WORKER_CONNECT_WAIT_TIME =
         "alluxio.master.worker.connect.wait.time";
+    public static final String MASTER_WORKER_INFO_CACHE_REFRESH_TIME
+        = "alluxio.master.worker.info.cache.refresh.time";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout";
     public static final String MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
         "alluxio.master.journal.checkpoint.period.entries";
