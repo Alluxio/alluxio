@@ -54,7 +54,6 @@ public class LocalPageStore implements PageStore {
    * Creates a new instance of {@link LocalPageStore}.
    *
    * @param options options for the local page store
-   * @throws IOException when fails to create a {@link LocalPageStore}
    */
   public LocalPageStore(LocalPageStoreOptions options) {
     mRoot = options.getRootDir();
@@ -178,7 +177,7 @@ public class LocalPageStore implements PageStore {
           .filter(Objects::nonNull)
           .anyMatch(pageInfo -> {
             initFunc.accept(pageInfo);
-            return (pageInfo.getPageId() == null);
+            return pageInfo.getPageId() == null;
           });
     }
   }

@@ -63,7 +63,7 @@ public interface MetaStore {
   long pages();
 
   /**
-   * Resets the meta store
+   * Resets the meta store.
    */
   void reset();
 }
