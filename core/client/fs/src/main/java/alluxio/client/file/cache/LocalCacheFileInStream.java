@@ -286,7 +286,7 @@ public class LocalCacheFileInStream extends FileInStream {
   private FileInStream getExternalFileInStream(long pos) throws IOException {
     try {
       if (mExternalFileInStream == null) {
-        mExternalFileInStream = mExternalFs.openFile(mPath, mOpenOptions);
+        mExternalFileInStream = mExternalFs.openFile(mStatus, mOpenOptions);
         mCloser.register(mExternalFileInStream);
       }
     } catch (AlluxioException e) {
