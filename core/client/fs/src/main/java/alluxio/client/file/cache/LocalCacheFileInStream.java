@@ -23,6 +23,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.BufferUtils;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import com.google.common.io.Closer;
@@ -153,7 +154,7 @@ public class LocalCacheFileInStream extends FileInStream {
           Preconditions.checkState(buf.position() == buf.limit());
           bytesRead += bytesLeftInPage;
           mPosition += bytesLeftInPage;
-          Metrics.BYTES_READ_CACHE.inc(bytesLeftInPage);
+          Metrics.BYTES_READ_CACHE.mark(bytesLeftInPage);
         } else { // cache miss
           byte[] page = readExternalPage(mPosition);
           if (page.length > 0) {
@@ -229,7 +230,7 @@ public class LocalCacheFileInStream extends FileInStream {
           Preconditions.checkState(buf.position() == buf.limit());
           bytesRead += bytesLeftInPage;
           currentPosition += bytesLeftInPage;
-          Metrics.BYTES_READ_CACHE.inc(bytesLeftInPage);
+          Metrics.BYTES_READ_CACHE.mark(bytesLeftInPage);
         } else { // cache miss
           byte[] page = readExternalPage(currentPosition);
           mCacheManager.put(pageId, page);
@@ -327,7 +328,7 @@ public class LocalCacheFileInStream extends FileInStream {
       }
       totalBytesRead += bytesRead;
     }
-    Metrics.BYTES_READ_EXTERNAL.inc(totalBytesRead);
+    Metrics.BYTES_READ_EXTERNAL.mark(totalBytesRead);
     if (totalBytesRead != pageSize) {
       throw new IOException("Failed to read complete page from external storage. Bytes read: "
           + totalBytesRead + " Page size: " + pageSize);
@@ -337,11 +338,11 @@ public class LocalCacheFileInStream extends FileInStream {
 
   private static final class Metrics {
     /** Cache hits. */
-    private static final Counter BYTES_READ_CACHE =
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName());
+    private static final Meter BYTES_READ_CACHE =
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName());
     /** Bytes read from external, may be larger than requests due to reading complete pages. */
-    private static final Counter BYTES_READ_EXTERNAL =
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName());
+    private static final Meter BYTES_READ_EXTERNAL =
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName());
     /** Cache misses. */
     private static final Counter BYTES_REQUESTED_EXTERNAL =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName());
