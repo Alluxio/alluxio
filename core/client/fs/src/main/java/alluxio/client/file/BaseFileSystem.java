@@ -240,7 +240,7 @@ public class BaseFileSystem implements FileSystem {
   }
 
   private Map<String, WorkerNetAddress> getHostWorkerMap() throws IOException {
-    List<BlockWorkerInfo> workers = mFsContext.getEligibleWorkers();
+    List<BlockWorkerInfo> workers = mFsContext.getCachedWorkers();
     return workers.stream().collect(
         toMap(worker -> worker.getNetAddress().getHost(), BlockWorkerInfo::getNetAddress,
             (worker1, worker2) -> worker1));

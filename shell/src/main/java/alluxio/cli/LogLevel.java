@@ -146,7 +146,7 @@ public final class LogLevel {
         targetInfoList.add(new TargetInfo(masterHost, masterPort, ROLE_MASTER));
       } else if (target.equals(ROLE_WORKERS)) {
         List<BlockWorkerInfo> workerInfoList =
-            FileSystemContext.create(ClientContext.create(conf)).getEligibleWorkers();
+            FileSystemContext.create(ClientContext.create(conf)).getCachedWorkers();
         for (BlockWorkerInfo workerInfo : workerInfoList) {
           WorkerNetAddress netAddress = workerInfo.getNetAddress();
           targetInfoList.add(

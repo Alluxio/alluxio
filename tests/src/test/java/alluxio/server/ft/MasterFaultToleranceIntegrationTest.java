@@ -151,7 +151,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       int timeoutMs) throws TimeoutException, InterruptedException {
     CommonUtils.waitFor("Worker to register.", () -> {
       try {
-        return context.getEligibleWorkers().size() >= numWorkers;
+        return context.getCachedWorkers().size() >= numWorkers;
       } catch (Exception e) {
         return false;
       }

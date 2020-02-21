@@ -181,7 +181,7 @@ public final class AlluxioBlockStoreTest {
     when(mWorkerClient.openLocalBlock(any(StreamObserver.class)))
         .thenReturn(mStreamObserver);
     when(mStreamObserver.isReady()).thenReturn(true);
-    when(mContext.getEligibleWorkers()).thenReturn(Lists.newArrayList(
+    when(mContext.getCachedWorkers()).thenReturn(Lists.newArrayList(
         new BlockWorkerInfo(new WorkerNetAddress(), -1, -1)));
   }
 
@@ -274,7 +274,7 @@ public final class AlluxioBlockStoreTest {
           }
         });
 
-    when(mContext.getEligibleWorkers()).thenReturn(Lists
+    when(mContext.getCachedWorkers()).thenReturn(Lists
         .newArrayList(new BlockWorkerInfo(WORKER_NET_ADDRESS_LOCAL, -1, -1),
             new BlockWorkerInfo(WORKER_NET_ADDRESS_REMOTE, -1, -1)));
     OutStreamOptions options =
@@ -302,7 +302,7 @@ public final class AlluxioBlockStoreTest {
     ((MockBlockLocationPolicy) options.getUfsReadLocationPolicy())
         .setHosts(Arrays.asList(worker1, worker2));
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
-    when(mContext.getEligibleWorkers()).thenReturn(
+    when(mContext.getCachedWorkers()).thenReturn(
         Lists.newArrayList(new BlockWorkerInfo(worker1, -1, -1),
             new BlockWorkerInfo(worker2, -1, -1)));
 
@@ -320,7 +320,7 @@ public final class AlluxioBlockStoreTest {
         new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(sConf),
             sConf);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
-    when(mContext.getEligibleWorkers()).thenReturn(Collections.emptyList());
+    when(mContext.getCachedWorkers()).thenReturn(Collections.emptyList());
     mException.expect(UnavailableException.class);
     mException.expectMessage(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     mBlockStore.getInStream(BLOCK_ID, options).getAddress();
@@ -472,7 +472,7 @@ public final class AlluxioBlockStoreTest {
         new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(sConf), sConf);
     options.setUfsReadLocationPolicy(mockPolicy);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
-    when(mContext.getEligibleWorkers()).thenReturn(
+    when(mContext.getCachedWorkers()).thenReturn(
         Arrays.stream(workers)
             .map(x -> new BlockWorkerInfo(x, -1, -1)).collect((Collectors.toList())));
     Map<WorkerNetAddress, Long> failedWorkerAddresses = failedWorkers.entrySet().stream()
@@ -511,7 +511,7 @@ public final class AlluxioBlockStoreTest {
         new InStreamOptions(dummyStatus, FileSystemOptions.openFileDefaults(sConf), sConf);
     options.setUfsReadLocationPolicy(mockPolicy);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
-    when(mContext.getEligibleWorkers()).thenReturn(Arrays.stream(workers)
+    when(mContext.getCachedWorkers()).thenReturn(Arrays.stream(workers)
         .map(x -> new BlockWorkerInfo(x, -1, -1)).collect((Collectors.toList())));
     Map<WorkerNetAddress, Long> failedWorkerAddresses = failedWorkers.entrySet().stream()
         .map(x -> new AbstractMap.SimpleImmutableEntry<>(workers[x.getKey()], x.getValue()))

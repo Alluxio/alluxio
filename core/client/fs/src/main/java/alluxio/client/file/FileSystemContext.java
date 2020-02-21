@@ -581,7 +581,7 @@ public class FileSystemContext implements Closeable {
   /**
    * @return the info of all block workers eligible for reads and writes
    */
-  public synchronized List<BlockWorkerInfo> getEligibleWorkers() throws IOException {
+  public synchronized List<BlockWorkerInfo> getCachedWorkers() throws IOException {
     if (mWorkerInfoList == null || mWorkerRefreshPolicy.attempt()) {
       mWorkerInfoList = getAllWorkers();
     }

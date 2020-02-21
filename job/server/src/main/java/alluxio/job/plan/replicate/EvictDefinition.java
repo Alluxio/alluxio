@@ -104,7 +104,7 @@ public final class EvictDefinition
     long blockId = config.getBlockId();
     String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
         ServerConfiguration.global());
-    List<BlockWorkerInfo> workerInfoList = context.getFsContext().getEligibleWorkers();
+    List<BlockWorkerInfo> workerInfoList = context.getFsContext().getCachedWorkers();
     WorkerNetAddress localNetAddress = null;
 
     for (BlockWorkerInfo workerInfo : workerInfoList) {
