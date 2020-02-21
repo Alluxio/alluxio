@@ -73,8 +73,8 @@ public class LocalPageStore implements PageStore {
       boolean invalidPage = false;
 
       if (Files.exists(rootDir)) {
-        try (Stream<Path> pathStream = Files.walk(rootDir).filter(Files::isRegularFile)) {
-          invalidPage = pathStream.anyMatch(path -> {
+        try (Stream<Path> stream = Files.walk(rootDir)) {
+          invalidPage = stream.filter(Files::isRegularFile).anyMatch(path -> {
             if (getPageId(path) == null) {
               LOG.warn("Invalid page path {}", path);
               return true;
@@ -132,7 +132,7 @@ public class LocalPageStore implements PageStore {
     FileInputStream fis = new FileInputStream(p.toFile());
     try {
       fis.skip(pageOffset);
-      return new DelegatingFileChannel(fis.getChannel(), fis);
+      return fis.getChannel();
     } catch (Throwable t) {
       fis.close();
       throw t;
