@@ -11,10 +11,13 @@
 
 package alluxio.client.file;
 
+import static java.util.stream.Collectors.toList;
+
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
@@ -29,6 +32,8 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
+import alluxio.refresh.RefreshPolicy;
+import alluxio.refresh.TimeoutRefresh;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.security.authentication.AuthenticationUserUtils;
@@ -149,6 +154,14 @@ public class FileSystemContext implements Closeable {
   /** Whether to do URI scheme validation for file systems using this context.  */
   private boolean mUriValidationEnabled = true;
 
+  /** Cached map for workers. */
+  @GuardedBy("this")
+  private volatile List<BlockWorkerInfo> mWorkerInfoList = null;
+
+  /** The policy to refresh workers list. */
+  @GuardedBy("this")
+  private final RefreshPolicy mWorkerRefreshPolicy;
+
   /**
    * Creates a {@link FileSystemContext} with a null subject.
    *
@@ -167,10 +180,10 @@ public class FileSystemContext implements Closeable {
    */
   public static FileSystemContext create(@Nullable Subject subject,
       @Nullable AlluxioConfiguration conf) {
-    FileSystemContext context = new FileSystemContext();
     ClientContext ctx = ClientContext.create(subject, conf);
     MasterInquireClient inquireClient =
         MasterInquireClient.Factory.create(ctx.getClusterConf(), ctx.getUserState());
+    FileSystemContext context = new FileSystemContext(ctx.getClusterConf());
     context.init(ctx, inquireClient);
     return context;
   }
@@ -180,7 +193,7 @@ public class FileSystemContext implements Closeable {
    * @return the {@link alluxio.client.file.FileSystemContext}
    */
   public static FileSystemContext create(ClientContext clientContext) {
-    FileSystemContext ctx = new FileSystemContext();
+    FileSystemContext ctx = new FileSystemContext(clientContext.getClusterConf());
     ctx.init(clientContext, MasterInquireClient.Factory.create(clientContext.getClusterConf(),
         clientContext.getUserState()));
     return ctx;
@@ -200,7 +213,7 @@ public class FileSystemContext implements Closeable {
   @VisibleForTesting
   public static FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient,
       AlluxioConfiguration alluxioConf) {
-    FileSystemContext context = new FileSystemContext();
+    FileSystemContext context = new FileSystemContext(alluxioConf);
     ClientContext ctx = ClientContext.create(subject, alluxioConf);
     context.init(ctx, masterInquireClient);
     return context;
@@ -208,9 +221,12 @@ public class FileSystemContext implements Closeable {
 
   /**
    * Initializes FileSystemContext ID.
+   * @param conf Alluxio configuration
    */
-  private FileSystemContext() {
+  private FileSystemContext(AlluxioConfiguration conf) {
     mId = IdUtils.createFileSystemContextId();
+    mWorkerRefreshPolicy =
+        new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
   }
 
   /**
@@ -560,6 +576,28 @@ public class FileSystemContext implements Closeable {
       initializeLocalWorker();
     }
     return mLocalWorker;
+  }
+
+  /**
+   * @return the info of all block workers eligible for reads and writes
+   */
+  public synchronized List<BlockWorkerInfo> getEligibleWorkers() throws IOException {
+    if (mWorkerInfoList == null || mWorkerRefreshPolicy.attempt()) {
+      mWorkerInfoList = getAllWorkers();
+    }
+    return mWorkerInfoList;
+  }
+
+  /**
+   * @return the info of all block workers
+   */
+  public List<BlockWorkerInfo> getAllWorkers() throws IOException {
+    try (CloseableResource<BlockMasterClient> masterClientResource =
+             acquireBlockMasterClientResource()) {
+      return masterClientResource.get().getWorkerInfoList().stream()
+          .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
+          .collect(toList());
+    }
   }
 
   private void initializeLocalWorker() throws IOException {

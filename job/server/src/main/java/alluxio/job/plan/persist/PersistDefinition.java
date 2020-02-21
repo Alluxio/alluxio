@@ -76,8 +76,7 @@ public final class PersistDefinition
     }
 
     AlluxioURI uri = new AlluxioURI(config.getFilePath());
-    List<BlockWorkerInfo> alluxioWorkerInfoList =
-        AlluxioBlockStore.create(context.getFsContext()).getAllWorkers();
+    List<BlockWorkerInfo> alluxioWorkerInfoList = context.getFsContext().getAllWorkers();
     BlockWorkerInfo workerWithMostBlocks = JobUtils.getWorkerWithMostBlocks(alluxioWorkerInfoList,
         context.getFileSystem().getStatus(uri).getFileBlockInfos());
 

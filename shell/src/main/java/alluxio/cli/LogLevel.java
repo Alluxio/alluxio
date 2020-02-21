@@ -146,9 +146,8 @@ public final class LogLevel {
         int masterPort = NetworkAddressUtils.getPort(ServiceType.MASTER_WEB, conf);
         targetInfoList.add(new TargetInfo(masterHost, masterPort, ROLE_MASTER));
       } else if (target.equals(ROLE_WORKERS)) {
-        AlluxioBlockStore alluxioBlockStore =
-            AlluxioBlockStore.create(FileSystemContext.create(ClientContext.create(conf)));
-        List<BlockWorkerInfo> workerInfoList = alluxioBlockStore.getAllWorkers();
+        List<BlockWorkerInfo> workerInfoList =
+            FileSystemContext.create(ClientContext.create(conf)).getAllWorkers();
         for (BlockWorkerInfo workerInfo : workerInfoList) {
           WorkerNetAddress netAddress = workerInfo.getNetAddress();
           targetInfoList.add(

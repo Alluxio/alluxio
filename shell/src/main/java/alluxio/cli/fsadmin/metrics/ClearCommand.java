@@ -122,8 +122,7 @@ public final class ClearCommand extends AbstractFsAdminCommand {
       int globalParallelism = FileSystemShellUtils
           .getIntArg(cl, PARALLELISM_OPTION, DEFAULT_PARALLELISM);
       try (FileSystemContext context = FileSystemContext.create(mAlluxioConf)) {
-        AlluxioBlockStore store = AlluxioBlockStore.create(FileSystemContext.create(mAlluxioConf));
-        List<WorkerNetAddress> addressList = store.getEligibleWorkers().stream()
+        List<WorkerNetAddress> addressList = context.getEligibleWorkers().stream()
             .map(BlockWorkerInfo::getNetAddress).collect(Collectors.toList());
 
         if (cl.hasOption(WORKERS_OPTION_NAME)) {

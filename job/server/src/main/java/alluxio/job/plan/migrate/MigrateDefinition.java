@@ -181,8 +181,7 @@ public final class MigrateDefinition
     for (WorkerInfo workerInfo : jobWorkerInfoList) {
       hostnameToWorker.put(workerInfo.getAddress().getHost(), workerInfo);
     }
-    List<BlockWorkerInfo> alluxioWorkerInfoList =
-        AlluxioBlockStore.create(context.getFsContext()).getAllWorkers();
+    List<BlockWorkerInfo> alluxioWorkerInfoList = context.getFsContext().getAllWorkers();
     // Assign each file to the worker with the most block locality.
     for (URIStatus status : allPathStatuses) {
       if (status.isFolder()) {

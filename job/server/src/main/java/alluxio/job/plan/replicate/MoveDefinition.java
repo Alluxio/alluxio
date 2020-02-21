@@ -87,12 +87,10 @@ public final class MoveDefinition
   @Override
   public SerializableVoid runTask(MoveConfig config, SerializableVoid args, RunTaskContext context)
       throws Exception {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context.getFsContext());
-
     long blockId = config.getBlockId();
     String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
         ServerConfiguration.global());
-    List<BlockWorkerInfo> workerInfoList = blockStore.getAllWorkers();
+    List<BlockWorkerInfo> workerInfoList = context.getFsContext().getAllWorkers();
     WorkerNetAddress localNetAddress = null;
 
     for (BlockWorkerInfo workerInfo : workerInfoList) {

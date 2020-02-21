@@ -71,8 +71,7 @@ public final class LoadDefinition
     // Filter out workers which have no local job worker available.
     List<String> missingJobWorkerHosts = new ArrayList<>();
     List<BlockWorkerInfo> workers = new ArrayList<>();
-    for (BlockWorkerInfo worker :
-        AlluxioBlockStore.create(context.getFsContext()).getAllWorkers()) {
+    for (BlockWorkerInfo worker : context.getFsContext().getAllWorkers()) {
       if (jobWorkersByAddress.containsKey(worker.getNetAddress().getHost())) {
         workers.add(worker);
       } else {
