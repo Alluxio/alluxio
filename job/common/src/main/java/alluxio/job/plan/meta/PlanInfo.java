@@ -142,7 +142,10 @@ public final class PlanInfo implements Comparable<PlanInfo> {
     TaskInfo oldTaskInfo = mTaskIdToInfo.get(taskId);
 
     // Keep around the task description to avoid regenerating
-    taskInfo.setDescription(oldTaskInfo.getDescription());
+
+    if (oldTaskInfo != null) {
+      taskInfo.setDescription(oldTaskInfo.getDescription());
+    }
 
     mTaskIdToInfo.put(taskId, taskInfo);
   }
