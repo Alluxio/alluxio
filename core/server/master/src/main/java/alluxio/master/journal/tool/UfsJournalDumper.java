@@ -59,9 +59,9 @@ public class UfsJournalDumper extends AbstractJournalDumper {
 
   @Override
   public void dumpJournal() throws Throwable {
-    UfsJournal journal = new UfsJournalSystem(getJournalLocation(mInputDir), 0)
-        .createJournal(new NoopMaster(mMaster));
     try (
+        UfsJournal journal = new UfsJournalSystem(getJournalLocation(mInputDir), 0)
+            .createJournal(new NoopMaster(mMaster));
         PrintStream out =
             new PrintStream(new BufferedOutputStream(new FileOutputStream(mJournalEntryFile)));
         JournalReader reader = new UfsJournalReader(journal, mStart, true)) {
