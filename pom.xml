@@ -131,6 +131,7 @@
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <grpc.version>1.27.0</grpc.version>
     <netty.version>4.1.42.Final</netty.version>
+    <rocksdb.version>5.15.10</rocksdb.version>
     <hadoop.version>2.7.3</hadoop.version>
     <jacoco.version>0.8.5</jacoco.version>
     <java.version>1.8</java.version>
@@ -600,6 +601,11 @@
         <version>${jersey.version}</version>
       </dependency>
       <dependency>
+        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+        <artifactId>jackson-jaxrs-json-provider</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.gluster</groupId>
         <artifactId>glusterfs-hadoop</artifactId>
         <version>${glusterfs-hadoop.version}</version>
@@ -634,7 +640,7 @@
       <dependency>
         <groupId>org.rocksdb</groupId>
         <artifactId>rocksdbjni</artifactId>
-        <version>6.6.4</version>
+        <version>${rocksdb.version}</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
