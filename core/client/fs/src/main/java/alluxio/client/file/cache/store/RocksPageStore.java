@@ -36,6 +36,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -113,7 +114,7 @@ public class RocksPageStore implements PageStore {
       byte[] key = getKeyFromPageId(pageId);
       mDb.put(key, page);
       mSize.incrementAndGet();
-      mBytes.getAndAdd(page.length + key.length);
+      mBytes.getAndAdd((long) page.length + key.length);
     } catch (RocksDBException e) {
       throw new IOException("Failed to store page", e);
     }
@@ -217,6 +218,9 @@ public class RocksPageStore implements PageStore {
     @Override
     public PageInfo next() {
       PageInfo value = ensureValue();
+      if (value == null) {
+        throw new NoSuchElementException();
+      }
       mIter.next();
       mValue = null;
       return value;
