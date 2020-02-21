@@ -147,7 +147,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
                 / Constants.MINUTE_MS;
             long value = MetricsSystem.counter(counterName).getCount();
             // The value is bytes per minute
-            return uptime == 0 ? value : value / uptime;
+            return uptime <= 0 ? value : value / uptime;
           }
         });
   }
