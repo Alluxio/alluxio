@@ -60,12 +60,12 @@ public class TaskInfo implements JobInfo {
   }
 
   /**
-   * Constructs a new TaskInfo from jobId, taskId, Status, and workerAddress.
+   * Constructs a new TaskInfo from jobId, taskId, Status, workerAddress, and arguments.
    * @param jobId the job id
    * @param taskId the task id
    * @param status the status
    * @param workerAddress the worker address
-   * @param args the arguments
+   * @param args the (Serializable) arguments that were used to execute the task
    */
   public TaskInfo(long jobId, long taskId, Status status, WorkerNetAddress workerAddress,
                   Object args) {
