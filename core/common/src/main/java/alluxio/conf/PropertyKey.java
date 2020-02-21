@@ -2083,7 +2083,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_WORKER_INFO_CACHE_REFRESH_TIME)
           .setDefaultValue("10sec")
           .setDescription("The worker information list will be refreshed "
-              + "after being cached for this time period.")
+              + "after being cached for this time period. If the refresh time is too big, "
+              + "operations on the job servers or clients may fail because of "
+              + "the stale worker info. If it is too small, "
+              + "continuously updating worker information may case lock contention "
+              + "in the block master")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
