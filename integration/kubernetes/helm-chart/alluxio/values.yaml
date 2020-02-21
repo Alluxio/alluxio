@@ -106,9 +106,10 @@ jobMaster:
 #   type: "EMBEDDED"
 #   folder: "/journal"
 journal:
-  pvcName: alluxio-pv-claim
   storageClass: "standard"
   size: 1Gi
+  accessModes:
+    - ReadWriteOnce
   type: "UFS" # "UFS" or "EMBEDDED"
   ufsType: "local" # Ignored if type is "EMBEDDED". "local" or "HDFS"
   folder: "/journal" # Master journal folder
@@ -117,6 +118,13 @@ journal:
     job:
       activeDeadlineSeconds: 30
       ttlSecondsAfterFinished: 10
+    resources:
+      limits:
+        cpu: "1"
+        memory: "1G"
+      requests:
+        cpu: "1"
+        memory: "1G"
 
 
 ## Worker ##

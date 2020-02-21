@@ -10,14 +10,16 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
+
+
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: alluxio-format-master
+  name: alluxio-format-master-0
   labels:
-    name: alluxio-format-master
+    name: alluxio-format-master-0
     app: alluxio
-    chart: alluxio-0.5.3
+    chart: alluxio-0.5.4
     release: alluxio
     heritage: Tiller
     role: alluxio-master
@@ -30,6 +32,9 @@ spec:
         - name: alluxio-master
           image: alluxio/alluxio:2.3.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
           resources:
             limits:
               cpu: 1
@@ -38,16 +43,17 @@ spec:
               cpu: 1
               memory: 1G
           command: ["/opt/alluxio/bin/alluxio"]
-          args: ["formatMasters"]
+          args: ["formatJournal"]
           envFrom:
             - configMapRef:
                 name: alluxio-config
           volumeMounts:
-          - name: alluxio-journal
-            mountPath: /journal
-      restartPolicy: OnFailure
+            - name: alluxio-journal
+              mountPath: /journal
+      restartPolicy: Never
       volumes:
-      - name: alluxio-journal
-        persistentVolumeClaim:
-          claimName: alluxio-pv-claim
+        - name: alluxio-journal
+          persistentVolumeClaim:
+            claimName: alluxio-journal-alluxio-master-0
+---
 
