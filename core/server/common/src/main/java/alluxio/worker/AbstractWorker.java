@@ -31,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public abstract class AbstractWorker implements Worker {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractWorker.class);
-  private static final long SHUTDOWN_TIMEOUT_MS = 10 * Constants.SECOND_MS;
+  private static final long SHUTDOWN_TIMEOUT_MS = 10L * Constants.SECOND_MS;
 
   /** A factory for creating executor services when they are needed. */
   private final ExecutorServiceFactory mExecutorServiceFactory;

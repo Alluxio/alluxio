@@ -591,7 +591,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
               LOG.warn("HDFS recoverLease-1 success for: {}", path);
             } else {
               // try one more time, after waiting
-              CommonUtils.sleepMs(5 * Constants.SECOND_MS);
+              CommonUtils.sleepMs(5L * Constants.SECOND_MS);
               if (dfs.recoverLease(new Path(path))) {
                 LOG.warn("HDFS recoverLease-2 success for: {}", path);
               } else {
