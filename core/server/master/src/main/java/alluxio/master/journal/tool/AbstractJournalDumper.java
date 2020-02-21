@@ -112,9 +112,9 @@ public abstract class AbstractJournalDumper {
     Path dbPath = Paths.get(path.toFile().getPath() + "-rocks-db");
     // Create RocksInodeStore over checkpoint stream for extracting the inodes.
     try (PrintStream out =
-        new PrintStream(new BufferedOutputStream(new FileOutputStream(path.toFile())))) {
+             new PrintStream(new BufferedOutputStream(new FileOutputStream(path.toFile())));
+         RocksInodeStore inodeStore = new RocksInodeStore(dbPath.toAbsolutePath().toString())) {
       // Create and restore RocksInodeStore from the checkpoint.
-      RocksInodeStore inodeStore = new RocksInodeStore(dbPath.toAbsolutePath().toString());
       inodeStore.restoreFromCheckpoint(checkpoint);
       // Dump entries.
       final String ENTRY_SEPARATOR = Strings.repeat("-", 80);
