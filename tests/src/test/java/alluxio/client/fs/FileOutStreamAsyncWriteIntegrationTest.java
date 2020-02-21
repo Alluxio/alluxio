@@ -174,7 +174,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
       PropertyKey.Name.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME, "1min",
       PropertyKey.Name.WORKER_MEMORY_SIZE, TINY_WORKER_MEM,
       PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, TINY_BLOCK_SIZE,
-      PropertyKey.Name.USER_FILE_BUFFER_BYTES, "8k",
+      PropertyKey.Name.USER_FILE_BUFFER_BYTES, "8k"
       })
   public void asyncWriteNoEvict() throws Exception {
     testLostAsyncBlocks();
@@ -186,7 +186,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
       PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "ASYNC_THROUGH",
       PropertyKey.Name.WORKER_MEMORY_SIZE, TINY_WORKER_MEM,
       PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, TINY_BLOCK_SIZE,
-      PropertyKey.Name.USER_FILE_BUFFER_BYTES, "8k",
+      PropertyKey.Name.USER_FILE_BUFFER_BYTES, "8k"
       })
   public void asyncPersistNoAutoPersistNoEvict() throws Exception {
     testLostAsyncBlocks();
