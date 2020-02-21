@@ -479,8 +479,8 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
   private void waitForSnapshotting(JournalStateMachine stateMachine) throws IOException {
     try {
       CommonUtils.waitFor("snapshotting to finish", () -> !stateMachine.isSnapshotting(),
-          WaitForOptions.defaults().setTimeoutMs(Long.valueOf(ServerConfiguration.getMs(
-              PropertyKey.MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT)).intValue()));
+          WaitForOptions.defaults().setTimeoutMs((int) ServerConfiguration.getMs(
+              PropertyKey.MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT)));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new CancelledException("Interrupted when waiting for snapshotting to finish", e);
