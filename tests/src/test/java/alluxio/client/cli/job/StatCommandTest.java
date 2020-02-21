@@ -37,7 +37,6 @@ public final class StatCommandTest extends JobShellTest {
     assertEquals("Status: COMPLETED", output[3]);
     assertEquals("Task 0", output[4]);
     assertTrue(output[5].contains("\tWorker: "));
-    assertEquals("\tDescription: ", output[6]);
-    assertEquals("\tStatus: COMPLETED", output[7]);
+    assertEquals("\tStatus: COMPLETED", output[6]);
   }
 }
