@@ -82,6 +82,9 @@ public class LocalCacheManager implements CacheManager {
     boolean restored = false;
     try {
       restored = pageStore.restore(pageInfo -> {
+        if (pageInfo == null) {
+          return false;
+        }
         metaStore.addPage(pageInfo.getPageId(), pageInfo);
         evictor.updateOnPut(pageInfo.getPageId());
         return metaStore.bytes() <= pageStore.getCacheSize();

@@ -174,12 +174,7 @@ public class LocalPageStore implements PageStore {
       return stream
           .filter(Files::isRegularFile)
           .map(this::getPageInfo)
-          .noneMatch(pageInfo -> {
-            if (pageInfo == null) {
-              return true;
-            }
-            return !initFunc.test(pageInfo);
-          });
+          .allMatch(initFunc::test);
     }
   }
 

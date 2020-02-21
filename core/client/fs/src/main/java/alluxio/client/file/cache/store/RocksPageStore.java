@@ -48,7 +48,7 @@ public class RocksPageStore implements PageStore {
   private static final byte[] CONF_KEY = "CONF".getBytes();
   // TODO(feng): consider making the overhead ratio configurable
   // We assume 20% overhead using Rocksdb as a page store, i.e., with 1GB space allocated, we
-  // expect no more than 800MB logical data stored
+  // expect no more than 1024MB/(1+20%)=853MB logical data stored
   private static final double ROCKS_OVERHEAD_RATIO = 0.2;
 
   private final String mRoot;
@@ -160,12 +160,12 @@ public class RocksPageStore implements PageStore {
       }
       mDb.put(CONF_KEY, pOptions.toByteArray());
       try (RocksIterator iter = mDb.newIterator()) {
-        Streams.stream(new PageIterator(iter)).forEach(pageInfo -> initFunc.test(pageInfo));
+        return Streams.stream(new PageIterator(iter)).allMatch(initFunc::test);
       }
     } catch (RocksDBException | IOException e) {
+      LOG.error("Failed to restore RocksPageStore:", e);
       return false;
     }
-    return true;
   }
 
   @Override
