@@ -581,8 +581,8 @@ public class FileSystemContext implements Closeable {
   /**
    * Gets the cached worker information list.
    * This method is relatively cheap as the result is cached, but may not
-   * be update to date. If up-to-date worker info list is required, please
-   * use {@link #getAllWorkers()}.
+   * be up-to-date. If up-to-date worker info list is required,
+   * use {@link #getAllWorkers()} instead.
    *
    * @return the info of all block workers eligible for reads and writes
    */
