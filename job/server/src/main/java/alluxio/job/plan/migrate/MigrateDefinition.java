@@ -14,7 +14,6 @@ package alluxio.job.plan.migrate;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.WriteType;
-import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -181,7 +180,7 @@ public final class MigrateDefinition
     for (WorkerInfo workerInfo : jobWorkerInfoList) {
       hostnameToWorker.put(workerInfo.getAddress().getHost(), workerInfo);
     }
-    List<BlockWorkerInfo> alluxioWorkerInfoList = context.getFsContext().getAllWorkers();
+    List<BlockWorkerInfo> alluxioWorkerInfoList = context.getFsContext().getEligibleWorkers();
     // Assign each file to the worker with the most block locality.
     for (URIStatus status : allPathStatuses) {
       if (status.isFolder()) {

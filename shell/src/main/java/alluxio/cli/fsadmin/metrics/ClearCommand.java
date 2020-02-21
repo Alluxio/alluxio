@@ -15,7 +15,6 @@ import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
-import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;

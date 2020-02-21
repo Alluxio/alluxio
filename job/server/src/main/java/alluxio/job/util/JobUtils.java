@@ -111,7 +111,7 @@ public final class JobUtils {
 
     String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
         ServerConfiguration.global());
-    List<BlockWorkerInfo> workerInfoList = context.getAllWorkers();
+    List<BlockWorkerInfo> workerInfoList = context.getEligibleWorkers();
     WorkerNetAddress localNetAddress = null;
 
     for (BlockWorkerInfo workerInfo : workerInfoList) {
