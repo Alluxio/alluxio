@@ -141,7 +141,9 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
         new Gauge<Object>() {
           @Override
           public Object getValue() {
-            long uptime = (mClock.millis() - mMetricsStore.getLastClearTime())
+            // Divide into two lines so uptime is always zero or positive
+            long lastClearTime = mMetricsStore.getLastClearTime();
+            long uptime = (mClock.millis() - lastClearTime)
                 / Constants.MINUTE_MS;
             long value = MetricsSystem.counter(counterName).getCount();
             // The value is bytes per minute
