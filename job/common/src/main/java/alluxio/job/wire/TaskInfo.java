@@ -23,7 +23,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.ByteString;
 import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,8 +62,10 @@ public class TaskInfo implements JobInfo {
    * @param taskId the task id
    * @param status the status
    * @param workerAddress the worker address
+   * @param args the arguments
    */
-  public TaskInfo(long jobId, long taskId, Status status, WorkerNetAddress workerAddress, Object args) {
+  public TaskInfo(long jobId, long taskId, Status status, WorkerNetAddress workerAddress,
+                  Object args) {
     mJobId = jobId;
     mTaskId = taskId;
     mStatus = status;
@@ -166,6 +167,9 @@ public class TaskInfo implements JobInfo {
     return mDescription;
   }
 
+  /**
+   * @param description the description
+   */
   public void setDescription(String description) {
     mDescription = description;
   }
