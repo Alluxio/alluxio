@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.clock.SystemClock;
 import alluxio.grpc.MetricType;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
@@ -33,8 +34,8 @@ public class MetricsStoreTest {
   @Before
   public void before() {
     MetricsSystem.resetAllMetrics();
-    mMetricStore = new MetricsStore();
-    mMetricStore.init();
+    mMetricStore = new MetricsStore(new SystemClock());
+    mMetricStore.initCounterKeys();
   }
 
   @Test

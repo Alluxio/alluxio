@@ -78,7 +78,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   DefaultMetricsMaster(CoreMasterContext masterContext, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, clock, executorServiceFactory);
-    mMetricsStore = new MetricsStore();
+    mMetricsStore = new MetricsStore(mClock);
     registerAggregators();
   }
 
@@ -142,9 +142,13 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
         new Gauge<Object>() {
           @Override
           public Object getValue() {
-            long uptime = (System.currentTimeMillis() - mMetricsStore.getLastClearTime())
-                / Constants.SECOND_MS;
-            return uptime == 0 ? 0 : MetricsSystem.counter(counterName).getCount() / uptime;
+            // Divide into two lines so uptime is always zero or positive
+            long lastClearTime = mMetricsStore.getLastClearTime();
+            long uptime = (mClock.millis() - lastClearTime)
+                / Constants.MINUTE_MS;
+            long value = MetricsSystem.counter(counterName).getCount();
+            // The value is bytes per minute
+            return uptime <= 0 ? value : value / uptime;
           }
         });
   }
@@ -166,8 +170,8 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader) {
+      mMetricsStore.initCounterKeys();
       mMetricsStore.clear();
-      mMetricsStore.init();
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER, new ClusterMetricsUpdater(),
           ServerConfiguration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
