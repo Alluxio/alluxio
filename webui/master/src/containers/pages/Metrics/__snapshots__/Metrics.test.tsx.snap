@@ -68,7 +68,7 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
     className="col-12"
   >
     <h5>
-      Total IO Throughput (Last Minute)
+      Total IO Throughput (Per Minute)
     </h5>
     <Table
       hover={true}
