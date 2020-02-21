@@ -69,24 +69,25 @@ public class LocalPageStore implements PageStore {
     mPagePattern = Pattern.compile(
         String.format("%s/%d/(\\d+)/(\\d+)", Pattern.quote(rootDir.toString()), mPageSize));
     try {
-
       boolean invalidPage = false;
 
       if (Files.exists(rootDir)) {
         try (Stream<Path> stream = Files.walk(rootDir)) {
-          invalidPage = stream.filter(Files::isRegularFile).anyMatch(path -> {
-            if (getPageId(path) == null) {
-              LOG.warn("Invalid page path {}", path);
-              return true;
-            }
-            try {
-              mBytes.getAndAdd(Files.size(path));
-            } catch (IOException e) {
-              LOG.warn("Fail to get file size {}", e.toString());
-            }
-            mSize.incrementAndGet();
-            return false;
-          });
+          invalidPage = stream
+              .filter(Files::isRegularFile)
+              .anyMatch(path -> {
+                if (getPageId(path) == null) {
+                  LOG.warn("Invalid page path {}", path);
+                  return true;
+                }
+                try {
+                  mBytes.getAndAdd(Files.size(path));
+                } catch (IOException e) {
+                  LOG.warn("Fail to get file size {}", e.toString());
+                }
+                mSize.incrementAndGet();
+                return false;
+              });
         }
       }
 
