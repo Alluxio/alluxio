@@ -231,15 +231,6 @@ public class FileSystemContext implements Closeable {
         .setMasterInquireClient(masterInquireClient).build();
     mMetricsEnabled = getClusterConf().getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED);
     if (mMetricsEnabled) {
-      try {
-        InetSocketAddress masterAddr = masterInquireClient.getPrimaryRpcAddress();
-        mMasterClientContext.loadConf(masterAddr, true, true);
-      } catch (UnavailableException e) {
-        LOG.error("Failed to get master address during initialization", e);
-      } catch (AlluxioStatusException ae) {
-        LOG.error("Failed to load configuration from "
-            + "meta master during initialization", ae);
-      }
       MetricsSystem.startSinks(getClusterConf().get(PropertyKey.METRICS_CONF_FILE));
       MetricsHeartbeatContext.addHeartbeat(getClientContext(), masterInquireClient);
     }
