@@ -71,7 +71,14 @@ public final class ClientMasterSync {
    */
   public synchronized void heartbeat() {
     if (mMasterClient == null) {
-      loadConfAndInitClient();
+      if (loadConf()) {
+        mMasterClient = new RetryHandlingMetricsMasterClient(MasterClientContext
+            .newBuilder(mContext)
+            .setMasterInquireClient(mInquireClient)
+            .build());
+      } else {
+        return; // not heartbeat when failed to load conf
+      }
     }
     // TODO(zac): Support per FileSystem instance metrics
     // Currently we only support JVM-level metrics. A list is used here because in the near
@@ -105,21 +112,22 @@ public final class ClientMasterSync {
   }
 
   /**
-   * Loads configuration and initialize metrics master client.
+   * Loads configuration.
+   *
+   * @return true if successfully loaded configuration
    */
-  private void loadConfAndInitClient() {
+  private boolean loadConf() {
     try {
       InetSocketAddress masterAddr = mInquireClient.getPrimaryRpcAddress();
-      mContext.loadConf(masterAddr, true, true);
+      mContext.loadConf(masterAddr, true, false);
     } catch (UnavailableException e) {
       SAMPLING_LOG.error("Failed to get master address during initialization: {}", e.toString());
+      return false;
     } catch (AlluxioStatusException ae) {
       SAMPLING_LOG.error("Failed to load configuration from "
           + "meta master during initialization: {}", ae.toString());
+      return false;
     }
-    mMasterClient = new RetryHandlingMetricsMasterClient(MasterClientContext
-        .newBuilder(mContext)
-        .setMasterInquireClient(mInquireClient)
-        .build());
+    return true;
   }
 }
