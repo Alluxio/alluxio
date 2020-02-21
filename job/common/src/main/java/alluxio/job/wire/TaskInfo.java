@@ -54,7 +54,10 @@ public class TaskInfo implements JobInfo {
   /**
    * Default constructor.
    */
-  public TaskInfo() {}
+  public TaskInfo() {
+    mErrorMessage = "";
+    mDescription = "";
+  }
 
   /**
    * Constructs a new TaskInfo from jobId, taskId, Status, and workerAddress.
