@@ -132,7 +132,7 @@ public class LocalPageStore implements PageStore {
     FileInputStream fis = new FileInputStream(p.toFile());
     try {
       fis.skip(pageOffset);
-      return fis.getChannel();
+      return new DelegatingFileChannel(fis.getChannel(), fis);
     } catch (Throwable t) {
       fis.close();
       throw t;
