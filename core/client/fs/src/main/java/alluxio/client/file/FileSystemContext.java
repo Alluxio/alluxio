@@ -579,6 +579,11 @@ public class FileSystemContext implements Closeable {
   }
 
   /**
+   * Gets the cached worker information list.
+   * This method is relatively cheap as the result is cached, but may not
+   * be update to date. If up-to-date worker info list is required, please
+   * use {@link #getAllWorkers()}.
+   *
    * @return the info of all block workers eligible for reads and writes
    */
   public synchronized List<BlockWorkerInfo> getCachedWorkers() throws IOException {
@@ -589,6 +594,10 @@ public class FileSystemContext implements Closeable {
   }
 
   /**
+   * Gets the worker information list.
+   * This method is more expensive than {@link #getCachedWorkers()}.
+   * Used when more up-to-date data is needed.
+   *
    * @return the info of all block workers
    */
   private List<BlockWorkerInfo> getAllWorkers() throws IOException {
