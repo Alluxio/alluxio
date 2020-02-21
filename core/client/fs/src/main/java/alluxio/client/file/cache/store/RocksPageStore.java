@@ -33,6 +33,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
@@ -190,6 +191,9 @@ public class RocksPageStore implements PageStore {
     @Override
     public PageInfo next() {
       PageInfo value = ensureValue();
+      if (value == null) {
+        throw new NoSuchElementException();
+      }
       mIter.next();
       mValue = null;
       return value;
