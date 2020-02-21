@@ -69,9 +69,12 @@ public class LocalPageStore implements PageStore {
     mPagePattern = Pattern.compile(
         String.format("%s/%d/(\\d+)/(\\d+)", Pattern.quote(rootDir.toString()), mPageSize));
     try {
-      boolean invalidPage = Files.exists(rootDir) && Files.walk(rootDir)
-          .filter(Files::isRegularFile)
-          .anyMatch(path -> {
+
+      boolean invalidPage = false;
+
+      if (Files.exists(rootDir)) {
+        try (Stream<Path> pathStream = Files.walk(rootDir).filter(Files::isRegularFile)) {
+          invalidPage = pathStream.anyMatch(path -> {
             if (getPageId(path) == null) {
               LOG.warn("Invalid page path {}", path);
               return true;
@@ -84,6 +87,9 @@ public class LocalPageStore implements PageStore {
             mSize.incrementAndGet();
             return false;
           });
+        }
+      }
+
       if (invalidPage || mBytes.get() > options.getCacheSize()) {
         LOG.warn("Cannot recover from cached data: {}",
             invalidPage ? "Invalid page file found" : "Cached data size exceeded configured value");
