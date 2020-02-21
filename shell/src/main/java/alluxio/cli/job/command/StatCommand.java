@@ -107,7 +107,7 @@ public final class StatCommand extends AbstractFileSystemCommand {
             output.append("\t").append("Worker: ").append(taskInfo.getWorkerHost()).append("\n");
           }
         }
-        if (childInfo.getDescription() != null) {
+        if (!childInfo.getDescription().isEmpty()) {
           output.append("\t").append("Description: ").append(
               StringUtils.abbreviate(childInfo.getDescription(), 200)).append("\n");
         }

@@ -13,6 +13,7 @@ package alluxio.job.wire;
 
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.JobType;
+import alluxio.job.util.SerializableVoid;
 import alluxio.job.util.SerializationUtils;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -81,6 +82,9 @@ public class TaskInfo implements JobInfo {
   private static String createDescription(Object args) {
     if (args instanceof Collection) {
       return Arrays.toString(((Collection) args).toArray());
+    }
+    if (args instanceof SerializableVoid) {
+      return "";
     }
     return ObjectUtils.toString(args);
   }
