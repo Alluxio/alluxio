@@ -27,6 +27,7 @@ import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.io.Closer;
 import io.atomix.catalyst.concurrent.SingleThreadContext;
 import io.atomix.catalyst.concurrent.ThreadContext;
 import io.atomix.catalyst.serializer.Serializer;
@@ -144,6 +145,8 @@ public abstract class AbstractBackupRole implements BackupRole {
   protected AlluxioURI takeBackup(BackupPRequest request, AtomicLong entryCounter)
       throws IOException {
     AlluxioURI backupUri;
+
+    final Closer closer = Closer.create();
     // Acquire the UFS resource under which backup is being created.
     try (CloseableResource<UnderFileSystem> ufsResource =
         mUfsManager.getRoot().acquireUfsResource()) {
@@ -154,8 +157,8 @@ public abstract class AbstractBackupRole implements BackupRole {
       UnderFileSystem ufs = ufsResource.get();
       if (request.getOptions().getLocalFileSystem() && !ufs.getUnderFSType().equals("local")) {
         // TODO(lu) Support getting UFS based on type from UfsManager
-        ufs = UnderFileSystem.Factory.create("/",
-            UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
+        ufs = closer.register(UnderFileSystem.Factory.create("/",
+            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())));
       }
       // Ensure parent directory for backup.
       if (!ufs.isDirectory(backupParentDir)) {
@@ -193,6 +196,8 @@ public abstract class AbstractBackupRole implements BackupRole {
         throw new IOException(String.format("Backup failed. BackupUri: %s, LastEntryCount: %d",
             backupUri, entryCounter.get()), e);
       }
+    } finally {
+      closer.close();
     }
     return backupUri;
   }
