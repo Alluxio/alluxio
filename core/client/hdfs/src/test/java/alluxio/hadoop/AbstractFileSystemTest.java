@@ -616,7 +616,7 @@ public class AbstractFileSystemTest {
     doReturn(new URIStatus(fileInfo)).when(spyFs).getStatus(uri);
     List<BlockWorkerInfo> eligibleWorkerInfos = allWorkers.stream().map(worker ->
         new BlockWorkerInfo(worker, 0, 0)).collect(toList());
-    PowerMockito.when(blockStore.getEligibleWorkers()).thenReturn(eligibleWorkerInfos);
+    when(fsContext.getCachedWorkers()).thenReturn(eligibleWorkerInfos);
     List<HostAndPort> expectedWorkerNames = expectedWorkers.stream()
         .map(addr -> HostAndPort.fromParts(addr.getHost(), addr.getDataPort())).collect(toList());
     FileSystem alluxioHadoopFs = new FileSystem(spyFs);

@@ -13,7 +13,6 @@ package alluxio.job.plan.persist;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
@@ -76,8 +75,7 @@ public final class PersistDefinition
     }
 
     AlluxioURI uri = new AlluxioURI(config.getFilePath());
-    List<BlockWorkerInfo> alluxioWorkerInfoList =
-        AlluxioBlockStore.create(context.getFsContext()).getAllWorkers();
+    List<BlockWorkerInfo> alluxioWorkerInfoList = context.getFsContext().getCachedWorkers();
     BlockWorkerInfo workerWithMostBlocks = JobUtils.getWorkerWithMostBlocks(alluxioWorkerInfoList,
         context.getFileSystem().getStatus(uri).getFileBlockInfos());
 
