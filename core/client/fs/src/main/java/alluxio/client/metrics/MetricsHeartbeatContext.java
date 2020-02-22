@@ -14,7 +14,6 @@ package alluxio.client.metrics;
 import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -67,7 +66,6 @@ public class MetricsHeartbeatContext {
   private static ScheduledExecutorService sExecutorService;
 
   private final MasterInquireClient.ConnectDetails mConnectDetails;
-  private final RetryHandlingMetricsMasterClient mMetricsMasterClient;
   private final ClientMasterSync mClientMasterSync;
   private final AlluxioConfiguration mConf;
 
@@ -79,11 +77,7 @@ public class MetricsHeartbeatContext {
     mCtxCount = 0;
     mConnectDetails = inquireClient.getConnectDetails();
     mConf = ctx.getClusterConf();
-    mMetricsMasterClient = new RetryHandlingMetricsMasterClient(MasterClientContext
-        .newBuilder(ctx)
-        .setMasterInquireClient(inquireClient)
-        .build());
-    mClientMasterSync = new ClientMasterSync(sAppId, mMetricsMasterClient, mConf);
+    mClientMasterSync = new ClientMasterSync(sAppId, ctx, inquireClient);
   }
 
   private synchronized void addContext() {
@@ -129,7 +123,7 @@ public class MetricsHeartbeatContext {
     MASTER_METRICS_HEARTBEAT.remove(mConnectDetails);
     // Trigger the last heartbeat to preserve the client side metrics changes
     heartbeat();
-    mMetricsMasterClient.close();
+    mClientMasterSync.close();
   }
 
   /**

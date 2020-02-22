@@ -24,6 +24,7 @@ import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Clock;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -42,14 +43,16 @@ public class MetricsStore {
   private static final String BYTES_READ_UFS = "BytesReadPerUfs";
   private static final String BYTES_WRITTEN_UFS = "BytesWrittenPerUfs";
 
+  private final Clock mClock;
+
   // The lock to guarantee that only one thread is clearing the metrics
   // and no other interaction with worker/client metrics set is allowed during metrics clearing
-  private final ReentrantReadWriteLock mLock = new ReentrantReadWriteLock();
+  private final ReentrantReadWriteLock mLock;
 
   // The time of the most recent metrics store clearance.
   // This tracks when the cluster counters start aggregating from the reported metrics.
   @GuardedBy("mLock")
-  private long mLastClearTime = System.currentTimeMillis();
+  private long mLastClearTime;
 
   /**
    * A map from the cluster counter key representing the metrics to be aggregated
@@ -61,8 +64,19 @@ public class MetricsStore {
    * the actual cluster metrics name to its Counter directly.
    */
   @GuardedBy("mLock")
-  private final ConcurrentHashMap<ClusterCounterKey, Counter> mClusterCounters
-      = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<ClusterCounterKey, Counter> mClusterCounters;
+
+  /**
+   * Constructs a new {@link MetricsStore}.
+   *
+   * @param clock the clock to get time of
+   */
+  public MetricsStore(Clock clock) {
+    mClock = clock;
+    mLastClearTime = clock.millis();
+    mLock = new ReentrantReadWriteLock();
+    mClusterCounters = new ConcurrentHashMap<>();
+  }
 
   /**
    * Put the metrics from a worker with a source name.
@@ -160,36 +174,36 @@ public class MetricsStore {
    * Inits the metrics store.
    * Defines the cluster metrics counters.
    */
-  public void init() {
+  public void initCounterKeys() {
     try (LockResource r = new LockResource(mLock.readLock())) {
       // worker metrics
-      mClusterCounters.put(new ClusterCounterKey(InstanceType.WORKER,
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
           MetricKey.WORKER_BYTES_READ_ALLUXIO.getMetricName()),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_ALLUXIO.getName()));
-      mClusterCounters.put(new ClusterCounterKey(InstanceType.WORKER,
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
           MetricKey.WORKER_BYTES_READ_DOMAIN.getMetricName()),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()));
-      mClusterCounters.put(new ClusterCounterKey(InstanceType.WORKER,
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
           MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO.getMetricName()),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName()));
-      mClusterCounters.put(new ClusterCounterKey(InstanceType.WORKER,
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
           MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getMetricName()),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN.getName()));
 
       // client metrics
-      mClusterCounters.put(new ClusterCounterKey(InstanceType.CLIENT,
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.CLIENT,
           MetricKey.CLIENT_BYTES_READ_LOCAL.getMetricName()),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName()));
-      mClusterCounters.put(new ClusterCounterKey(InstanceType.CLIENT,
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.CLIENT,
           MetricKey.CLIENT_BYTES_WRITTEN_LOCAL.getMetricName()),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()));
 
       // special metrics that have multiple worker metrics to summarize from
       // always use the full name instead of metric name for those metrics
-      mClusterCounters.put(new ClusterCounterKey(InstanceType.CLUSTER,
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.CLUSTER,
           MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName()),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName()));
-      mClusterCounters.put(new ClusterCounterKey(InstanceType.CLUSTER,
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.CLUSTER,
           MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()));
     }
@@ -209,7 +223,7 @@ public class MetricsStore {
       for (Counter counter : mClusterCounters.values()) {
         counter.dec(counter.getCount());
       }
-      mLastClearTime = System.currentTimeMillis();
+      mLastClearTime = mClock.millis();
       MetricsSystem.resetAllMetrics();
     }
     LOG.info("Cleared the metrics store and metrics system in {} ms",
