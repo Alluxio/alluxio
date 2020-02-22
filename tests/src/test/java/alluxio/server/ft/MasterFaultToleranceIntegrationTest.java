@@ -143,15 +143,15 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
    * Wait for a number of workers to register. This call will block until the block master
    * detects the required number of workers or if the timeout is exceeded.
    *
-   * @param store the block store object which references the correct block master
+   * @param context the file system context
    * @param numWorkers the number of workers to wait for
    * @param timeoutMs the number of milliseconds to wait before timing out
    */
-  private void waitForWorkerRegistration(final AlluxioBlockStore store, final int numWorkers,
+  private void waitForWorkerRegistration(final FileSystemContext context, final int numWorkers,
       int timeoutMs) throws TimeoutException, InterruptedException {
     CommonUtils.waitFor("Worker to register.", () -> {
       try {
-        return store.getEligibleWorkers().size() >= numWorkers;
+        return context.getCachedWorkers().size() >= numWorkers;
       } catch (Exception e) {
         return false;
       }
@@ -170,8 +170,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-      waitForWorkerRegistration(AlluxioBlockStore
-              .create(FileSystemContext.create(ServerConfiguration.global())), 1,
+      waitForWorkerRegistration(FileSystemContext.create(ServerConfiguration.global()), 1,
           CLUSTER_WAIT_TIMEOUT_MS);
       faultTestDataCheck(answer);
       faultTestDataCreation(new AlluxioURI("/data_kills_" + kills), answer);
@@ -185,8 +184,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-      waitForWorkerRegistration(AlluxioBlockStore
-              .create(FileSystemContext.create(ServerConfiguration.global())), 1,
+      waitForWorkerRegistration(FileSystemContext.create(ServerConfiguration.global()), 1,
           CLUSTER_WAIT_TIMEOUT_MS);
 
       if (kills % 2 != 0) {
@@ -272,9 +270,9 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-      AlluxioBlockStore store =
-          AlluxioBlockStore.create(FileSystemContext.create(ServerConfiguration.global()));
-      waitForWorkerRegistration(store, 1, 1 * Constants.MINUTE_MS);
+      FileSystemContext context = FileSystemContext.create(ServerConfiguration.global());
+      AlluxioBlockStore store = AlluxioBlockStore.create(context);
+      waitForWorkerRegistration(context, 1, 1 * Constants.MINUTE_MS);
       // If worker is successfully re-registered, the capacity bytes should not change.
       long capacityFound = store.getCapacityBytes();
       assertEquals(WORKER_CAPACITY_BYTES, capacityFound);

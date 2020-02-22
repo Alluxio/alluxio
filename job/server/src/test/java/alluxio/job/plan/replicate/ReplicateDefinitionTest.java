@@ -158,7 +158,7 @@ public final class ReplicateDefinitionTest {
                 new FileBlockInfo().setBlockInfo(new BlockInfo().setBlockId(TEST_BLOCK_ID)))));
     when(mMockFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
 
-    when(mMockBlockStore.getAllWorkers()).thenReturn(blockWorkers);
+    when(mMockFileSystemContext.getCachedWorkers()).thenReturn(blockWorkers);
     when(mMockBlockStore.getInStream(anyLong(),
             any(InStreamOptions.class))).thenReturn(mockInStream);
     when(
