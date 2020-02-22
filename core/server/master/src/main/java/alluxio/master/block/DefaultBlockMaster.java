@@ -72,6 +72,9 @@ import alluxio.wire.WorkerNetAddress;
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.Striped;
@@ -95,7 +98,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -121,6 +126,9 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
    * the journal.
    */
   private static final long CONTAINER_ID_RESERVATION_SIZE = 1000;
+
+  /** The only valid key for {@link #mWorkerInfoCache}. */
+  private static final String WORKER_INFO_CACHE_KEY = "WorkerInfoKey";
 
   // Worker metadata management.
   private static final IndexDefinition<MasterWorkerInfo, Long> ID_INDEX =
@@ -228,6 +236,12 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   private long mJournaledNextContainerId = 0;
 
   /**
+   * A loading cache for worker info list, refresh periodically.
+   * This cache only has a single key {@link  #WORKER_INFO_CACHE_KEY}.
+   */
+  private LoadingCache<String, List<WorkerInfo>> mWorkerInfoCache;
+
+  /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
    * @param metricsMaster the metrics master
@@ -255,6 +269,16 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
     mMetricsMaster = metricsMaster;
     Metrics.registerGauges(this);
+
+    mWorkerInfoCache = CacheBuilder.newBuilder()
+        .refreshAfterWrite(ServerConfiguration
+            .getMs(PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME), TimeUnit.MILLISECONDS)
+        .build(new CacheLoader<String, List<WorkerInfo>>() {
+          @Override
+          public List<WorkerInfo> load(String key) {
+            return constructWorkerInfoList();
+          }
+        });
   }
 
   @Override
@@ -407,6 +431,14 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
+    try {
+      return mWorkerInfoCache.get(WORKER_INFO_CACHE_KEY);
+    } catch (ExecutionException e) {
+      throw new UnavailableException("Unable to get worker info list from cache", e);
+    }
+  }
+
+  private List<WorkerInfo> constructWorkerInfoList() {
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
     for (MasterWorkerInfo worker : mWorkers) {
       synchronized (worker) {
