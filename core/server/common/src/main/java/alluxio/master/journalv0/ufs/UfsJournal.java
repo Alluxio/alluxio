@@ -130,9 +130,12 @@ public class UfsJournal implements Journal {
 
   @Override
   public boolean isFormatted() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(mLocation.toString(),
-        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
-    UfsStatus[] files = ufs.listStatus(mLocation.toString());
+    UfsStatus[] files;
+    try (UnderFileSystem ufs = UnderFileSystem.Factory.create(mLocation.toString(),
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()))) {
+      files = ufs.listStatus(mLocation.toString());
+    }
+
     if (files == null) {
       return false;
     }
