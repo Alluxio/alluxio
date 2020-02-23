@@ -3492,7 +3492,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
       new Builder(Name.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether to return all workers as block location if ufs block locations "
               + "are not co-located with any Alluxio workers or is empty.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
