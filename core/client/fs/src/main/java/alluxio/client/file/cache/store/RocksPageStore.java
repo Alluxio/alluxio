@@ -32,9 +32,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -147,7 +148,7 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public boolean restore(Predicate<PageInfo> initFunc) {
+  public Collection<PageInfo> getPages() throws IOException {
     try {
       byte[] confData = mDb.get(CONF_KEY);
       Cache.PRocksPageStoreOptions pOptions = mOptions.toProto();
@@ -156,16 +157,16 @@ public class RocksPageStore implements PageStore {
             Cache.PRocksPageStoreOptions.parseFrom(confData);
         if (!persistedOptions.equals(pOptions)) {
           mDb.close();
-          return false;
+          throw new IOException("Inconsistent configuration for RocksPageStore");
         }
       }
       mDb.put(CONF_KEY, pOptions.toByteArray());
       try (RocksIterator iter = mDb.newIterator()) {
-        return Streams.stream(new PageIterator(iter)).allMatch(initFunc::test);
+        return Streams.stream(new PageIterator(iter)).collect(Collectors.toList());
       }
-    } catch (RocksDBException | IOException e) {
-      LOG.error("Failed to restore RocksPageStore:", e);
-      return false;
+    } catch (RocksDBException e) {
+      mDb.close();
+      throw new IOException("Failed to restore RocksPageStore:", e);
     }
   }
 

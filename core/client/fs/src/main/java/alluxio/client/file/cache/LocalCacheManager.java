@@ -78,24 +78,16 @@ public class LocalCacheManager implements CacheManager {
     MetaStore metaStore = MetaStore.create();
     CacheEvictor evictor = CacheEvictor.create(conf);
     PageStoreOptions options = PageStoreOptions.create(conf);
-    PageStore pageStore = PageStore.create(options);
-    boolean restored = false;
+    PageStore pageStore = null;
     try {
-      restored = pageStore.restore(pageInfo -> {
-        if (pageInfo == null) {
-          return false;
-        }
-        metaStore.addPage(pageInfo.getPageId(), pageInfo);
-        evictor.updateOnPut(pageInfo.getPageId());
-        return metaStore.bytes() <= pageStore.getCacheSize();
-      });
+      pageStore = PageStore.create(options, false, metaStore, evictor);
     } catch (Exception e) {
       LOG.error("Failed to restore PageStore", e);
     }
-    if (!restored) {
+    if (pageStore == null) {
       metaStore.reset();
       evictor.reset();
-      pageStore.initialize(options);
+      pageStore = PageStore.create(options);
     }
     return new LocalCacheManager(conf, metaStore, pageStore, evictor);
   }

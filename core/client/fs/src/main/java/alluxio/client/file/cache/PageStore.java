@@ -26,7 +26,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.function.Predicate;
+import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
@@ -42,17 +42,63 @@ public interface PageStore extends AutoCloseable {
    * @param options the options to instantiate the page store
    * @return a PageStore instance
    */
-  static PageStore create(PageStoreOptions options) {
+  static PageStore create(PageStoreOptions options) throws IOException {
+    return create(options, true, null, null);
+  }
+
+  /**
+   * Creates a {@link PageStore} by restoring from previous state.
+   *
+   * @param options the options to instantiate the page store
+   * @param ignorePages whether to ignore the previous state
+   * @param metaStore meta store
+   * @param evictor evictor
+   * @return a PageStore instance
+   * @throws IOException if I/O error happens
+   */
+  static PageStore create(PageStoreOptions options, boolean ignorePages, MetaStore metaStore,
+      CacheEvictor evictor) throws IOException {
     LOG.info("Create PageStore option={}", options.toString());
+    if (ignorePages) {
+      initialize(options);
+    }
+    final PageStore pageStore;
     switch (options.getType()) {
       case LOCAL:
-        return new LocalPageStore(options.toOptions());
+        pageStore = new LocalPageStore(options.toOptions());
+        break;
       case ROCKS:
-        return new RocksPageStore(options.toOptions());
+        pageStore = new RocksPageStore(options.toOptions());
+        break;
       default:
         throw new IllegalArgumentException(
             "Incompatible PageStore " + options.getType() + " specified");
     }
+    if (!ignorePages) {
+      Path rootDir = Paths.get(options.getRootDir());
+      if (!Files.exists(rootDir)) {
+        throw new IOException(String.format("Directory %s does not exist", rootDir));
+      }
+      Collection<PageInfo> pageInfos = pageStore.getPages();
+      LOG.info("Restoring PageStore with {} existing pages", pageInfos.size());
+      boolean restored = true;
+      for (PageInfo pageInfo : pageInfos) {
+        if (pageInfo == null) {
+          restored = false;
+          break;
+        }
+        metaStore.addPage(pageInfo.getPageId(), pageInfo);
+        evictor.updateOnPut(pageInfo.getPageId());
+        if (metaStore.bytes() > pageStore.getCacheSize()) {
+          restored = false;
+          break;
+        }
+      }
+      if (!restored) {
+       throw new IOException("Failed to restore PageStore");
+      }
+    }
+    return pageStore;
   }
 
   /**
@@ -73,21 +119,20 @@ public interface PageStore extends AutoCloseable {
    * @param options initialize a new page store based on the options
    * @throws IOException when failed to clean up the specific location
    */
-  default void initialize(PageStoreOptions options) throws IOException {
+  static void initialize(PageStoreOptions options) throws IOException {
     String rootPath = options.getRootDir();
     PageStoreType storeType = options.getType();
     Path storePath = getStorePath(storeType, rootPath);
     Files.createDirectories(storePath);
     LOG.debug("Clean cache directory {}", rootPath);
     try (Stream<Path> stream = Files.list(Paths.get(rootPath))) {
-      stream.filter(path -> !storePath.equals(path))
-          .forEach(path -> {
-            try {
-              FileUtils.deletePathRecursively(path.toString());
-            } catch (IOException e) {
-              LOG.warn("failed to delete {} in cache directory: {}", path, e.toString());
-            }
-          });
+      stream.filter(path -> !storePath.equals(path)).forEach(path -> {
+        try {
+          FileUtils.deletePathRecursively(path.toString());
+        } catch (IOException e) {
+          LOG.warn("failed to delete {} in cache directory: {}", path, e.toString());
+        }
+      });
     }
   }
 
@@ -107,8 +152,7 @@ public interface PageStore extends AutoCloseable {
    * @throws IOException when the store fails to read this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  default ReadableByteChannel get(PageId pageId) throws IOException,
-      PageNotFoundException {
+  default ReadableByteChannel get(PageId pageId) throws IOException, PageNotFoundException {
     return get(pageId, 0);
   }
 
@@ -122,8 +166,7 @@ public interface PageStore extends AutoCloseable {
    * @throws PageNotFoundException when the page isn't found in the store
    * @throws IllegalArgumentException when the page offset exceeds the page size
    */
-  ReadableByteChannel get(PageId pageId, int pageOffset) throws IOException,
-      PageNotFoundException;
+  ReadableByteChannel get(PageId pageId, int pageOffset) throws IOException, PageNotFoundException;
 
   /**
    * Deletes a page from the store.
@@ -136,13 +179,10 @@ public interface PageStore extends AutoCloseable {
   void delete(PageId pageId, long pageSize) throws IOException, PageNotFoundException;
 
   /**
-   * Restores the page store from a previous run.
-   *
-   * @param initFunc function to apply during restore process
-   * @return true if successfully restored from previous state
+   * @return the iterator of pages from page store
    * @throws IOException if any error occurs
    */
-  boolean restore(Predicate<PageInfo> initFunc) throws IOException;
+  Collection<PageInfo> getPages() throws IOException;
 
   /**
    * @return an estimated cache size in bytes

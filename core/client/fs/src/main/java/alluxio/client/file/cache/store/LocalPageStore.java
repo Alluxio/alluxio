@@ -29,9 +29,10 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.function.Predicate;
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -165,16 +166,13 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public boolean restore(Predicate<PageInfo> initFunc) throws IOException {
+  public Collection<PageInfo> getPages() throws IOException {
     Path rootDir = Paths.get(mRoot);
-    if (!Files.exists(rootDir)) {
-      return false;
-    }
     try (Stream<Path> stream = Files.walk(rootDir)) {
       return stream
           .filter(Files::isRegularFile)
           .map(this::getPageInfo)
-          .allMatch(initFunc::test);
+          .collect(Collectors.toList());
     }
   }
 
