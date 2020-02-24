@@ -40,6 +40,7 @@ function printUsage {
   echo -e "  copyDir <PATH>\t Copy the PATH to all master/worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
   echo -e "  confDocGen    \t Generate configuration docs."
+  echo -e "  metricsDocGen \t Generate metrics docs."
   echo -e "  version       \t Print Alluxio version and exit."
   echo -e "  validateConf  \t Validate Alluxio conf and exit."
   echo -e "  validateEnv   \t Validate Alluxio environment."
@@ -351,6 +352,12 @@ function main {
   ;;
   "clearCache")
     sync; echo 3 > /proc/sys/vm/drop_caches ;
+  ;;
+  "metricsDocGen")
+    CLASS="alluxio.cli.MetricsDocGenerator"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
   ;;
   "version")
     CLASS="alluxio.cli.Version"
