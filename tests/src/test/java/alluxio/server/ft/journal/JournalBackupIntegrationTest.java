@@ -284,15 +284,14 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     // Kill follower immediately before it sends the next heartbeat to leader.
     mCluster.stopMaster(followerIdx);
     // Wait until backup is abandoned.
-    CommonUtils.waitFor("Backup abandoned.", () -> {
+    CommonUtils.waitForResult("Backup abandoned.", () -> {
       try {
-        return mCluster.getMetaMasterClient().getBackupStatus(backupId)
-            .getError() instanceof BackupAbortedException;
+        return mCluster.getMetaMasterClient().getBackupStatus(backupId);
       } catch (Exception e) {
         throw new RuntimeException(
             String.format("Unexpected error while getting backup status: %s", e.toString()));
       }
-    });
+    }, (backupStatus) -> backupStatus.getError() instanceof BackupAbortedException);
 
     // Restart follower to restore HA.
     mCluster.startMaster(followerIdx);

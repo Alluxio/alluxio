@@ -17,6 +17,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.client.file.AlluxioFileInStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -118,7 +119,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     AlluxioURI filePath = new AlluxioURI("/test");
     createFileOnWorker(total, filePath, mResource.get().getWorkerAddress());
     FileSystem fs = mResource.get().getClient();
-    try (FileInStream in = fs.openFile(filePath, OpenFilePOptions.getDefaultInstance())) {
+    try (AlluxioFileInStream in = (AlluxioFileInStream) fs.openFile(filePath, OpenFilePOptions.getDefaultInstance())) {
       byte[] buf = new byte[total];
       int size = in.read(buf, 0, offset);
       replicateFileBlocks(filePath);
