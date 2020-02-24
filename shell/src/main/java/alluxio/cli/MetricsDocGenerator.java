@@ -38,12 +38,12 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class MetricsDocGenerator {
+  private static final String[] CATEGORIES = new String[]{"cluster", "master", "worker", "client"};
   private static final String CSV_FILE_DIR = "docs/_data/table/";
   private static final String YML_FILE_DIR = "docs/_data/table/en/";
   private static final String CSV_SUFFIX = "csv";
   private static final String YML_SUFFIX = "yml";
-  public static final String CSV_FILE_HEADER = "metricName,metricType";
-  public static final String[] CATEGORIES = new String[]{"cluster", "master", "worker", "client"};
+  private static final String CSV_FILE_HEADER = "metricName,metricType";
 
   /**
    * Writes the supported files for metrics system doc.
