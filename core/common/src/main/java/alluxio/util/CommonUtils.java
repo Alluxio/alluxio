@@ -329,7 +329,7 @@ public final class CommonUtils {
   /**
    * Waits for the object to meet a certain condition.
    *
-   * @param description a description of what causes condition to be met.
+   * @param description a description of what causes condition to be met
    * @param objectSupplier the object to check the condition for
    * @param condition the condition to wait on
    * @param <T> type of the object
@@ -346,7 +346,7 @@ public final class CommonUtils {
   /**
    * Waits for the object to meet a certain condition.
    *
-   * @param description a description of what causes condition to be met.
+   * @param description a description of what causes condition to be met
    * @param objectSupplier the object to check the condition for
    * @param condition the condition to wait on
    * @param options the options to use

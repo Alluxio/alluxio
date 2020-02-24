@@ -119,7 +119,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     AlluxioURI filePath = new AlluxioURI("/test");
     createFileOnWorker(total, filePath, mResource.get().getWorkerAddress());
     FileSystem fs = mResource.get().getClient();
-    try (AlluxioFileInStream in = (AlluxioFileInStream) fs.openFile(filePath, OpenFilePOptions.getDefaultInstance())) {
+    try (FileInStream in = fs.openFile(filePath, OpenFilePOptions.getDefaultInstance())) {
       byte[] buf = new byte[total];
       int size = in.read(buf, 0, offset);
       replicateFileBlocks(filePath);

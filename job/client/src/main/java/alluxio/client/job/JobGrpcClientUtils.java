@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -92,21 +91,21 @@ public final class JobGrpcClientUtils {
           return null;
         }
       }, (jobInfo) -> {
-        if (jobInfo != null) {
-          switch (jobInfo.getStatus()) {
-            case FAILED: // fall through
-            case CANCELED: // fall through
-            case COMPLETED:
-              return true;
-            case RUNNING: // fall through
-            case CREATED:
-              return false;
-            default:
-              throw new IllegalStateException("Unrecognized job status: " + jobInfo.getStatus());
+          if (jobInfo != null) {
+            switch (jobInfo.getStatus()) {
+              case FAILED: // fall through
+              case CANCELED: // fall through
+              case COMPLETED:
+                return true;
+              case RUNNING: // fall through
+              case CREATED:
+                return false;
+              default:
+                throw new IllegalStateException("Unrecognized job status: " + jobInfo.getStatus());
+            }
           }
-        }
-        return true;
-      }, WaitForOptions.defaults().setInterval(1000));
+          return true;
+        }, WaitForOptions.defaults().setInterval(1000));
     } catch (IOException e) {
       LOG.warn("Failed to close job master client: {}", e.toString());
     } catch (TimeoutException e) {
