@@ -115,6 +115,7 @@ journal:
   folder: "/journal" # Master journal folder
   # Configuration for journal formatting job
   format:
+    runFormat: false # Change to true to format journal
     job:
       activeDeadlineSeconds: 30
       ttlSecondsAfterFinished: 10
@@ -198,6 +199,9 @@ fuse:
   image: alluxio/alluxio-fuse
   imageTag: 2.3.0-SNAPSHOT
   imagePullPolicy: IfNotPresent
+  # Change both to true to deploy FUSE
+  enabled: false
+  clientEnabled: false
   # Properties for the jobWorker component
   properties:
   # Customize the MaxDirectMemorySize
