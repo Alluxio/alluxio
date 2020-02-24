@@ -9,7 +9,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-
+{{ if .Values.fuse.enabled -}}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -195,3 +195,4 @@ spec:
             {{- end }} 
           {{- end }} 
         {{- end }}
+{{- end }}
