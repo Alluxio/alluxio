@@ -64,16 +64,18 @@ public final class MetricsDocGenerator {
       metricTypeMap.put(typeStr, category);
     }
 
-    try (Closer closer = Closer.create()){
+    try (Closer closer = Closer.create()) {
       Map<FileWriterKey, FileWriter> fileWriterMap = new HashMap<>();
       String csvFolder = PathUtils.concatPath(homeDir, CSV_FILE_DIR);
       String ymlFolder = PathUtils.concatPath(homeDir, YML_FILE_DIR);
       FileWriter csvFileWriter;
       FileWriter ymlFileWriter;
       for (String category : CATEGORIES) {
-        csvFileWriter = new FileWriter(PathUtils.concatPath(csvFolder, category + "-metrics." + CSV_SUFFIX));
+        csvFileWriter = new FileWriter(PathUtils
+            .concatPath(csvFolder, category + "-metrics." + CSV_SUFFIX));
         csvFileWriter.append(CSV_FILE_HEADER + "\n");
-        ymlFileWriter = new FileWriter(PathUtils.concatPath(ymlFolder, category + "-metrics." + YML_SUFFIX));
+        ymlFileWriter = new FileWriter(PathUtils
+            .concatPath(ymlFolder, category + "-metrics." + YML_SUFFIX));
         fileWriterMap.put(new FileWriterKey(category, CSV_SUFFIX), csvFileWriter);
         fileWriterMap.put(new FileWriterKey(category, YML_SUFFIX), ymlFileWriter);
         //register file writer
@@ -86,13 +88,17 @@ public final class MetricsDocGenerator {
 
         String[] components = key.split("\\.");
         if (components.length < 2) {
-          throw new IOException(String.format("The given metric key %s doesn't have two or more components", key));
+          throw new IOException(String
+              .format("The given metric key %s doesn't have two or more components", key));
         }
         if (metricTypeMap.containsKey(components[0])) {
-          csvFileWriter = fileWriterMap.get(new FileWriterKey(metricTypeMap.get(components[0]), CSV_SUFFIX));
-          ymlFileWriter = fileWriterMap.get(new FileWriterKey(metricTypeMap.get(components[0]), YML_SUFFIX));
+          csvFileWriter = fileWriterMap.get(
+              new FileWriterKey(metricTypeMap.get(components[0]), CSV_SUFFIX));
+          ymlFileWriter = fileWriterMap.get(
+              new FileWriterKey(metricTypeMap.get(components[0]), YML_SUFFIX));
           csvFileWriter.append(String.format("%s,%s%n", key, metricKey.getMetricType().toString()));
-          ymlFileWriter.append(String.format("%s,%s%n", key, metricKey.getDescription().replace("'", "''")));
+          ymlFileWriter.append(String.format("%s,%s%n",
+              key, metricKey.getDescription().replace("'", "''")));
         } else {
           throw new IOException(String
               .format("The metric key starts with invalid instance type %s", components[0]));
@@ -119,7 +125,7 @@ public final class MetricsDocGenerator {
     String mFileType;
 
     /**
-     * Constructs a {@link FileWriterKey}
+     * Constructs a {@link FileWriterKey}.
      *
      * @param category the metric key category
      * @param fileType the file type to write to
