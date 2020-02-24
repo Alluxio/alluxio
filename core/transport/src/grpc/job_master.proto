@@ -34,7 +34,7 @@ message JobInfo {
   optional JobType type = 8;
   optional bytes result = 9;
 
-  // Some jobs don't have these do not have these
+  // Some jobs don't have these
   optional string name = 7;
   optional int64 parentId = 10;
   repeated JobInfo children = 11;

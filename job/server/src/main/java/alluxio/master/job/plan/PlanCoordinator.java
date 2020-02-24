@@ -135,7 +135,7 @@ public final class PlanCoordinator {
       LOG.debug("Selected executor {} with parameters {}.", pair.getFirst(), pair.getSecond());
       int taskId = mTaskIdToWorkerInfo.size();
       // create task
-      mPlanInfo.addTask(taskId, pair.getFirst());
+      mPlanInfo.addTask(taskId, pair.getFirst(), pair.getSecond());
       // submit commands
       mCommandManager.submitRunTaskCommand(mPlanInfo.getId(), taskId, mPlanInfo.getJobConfig(),
           pair.getSecond(), pair.getFirst().getId());
