@@ -108,6 +108,7 @@ public final class JobGrpcClientUtils {
         }, WaitForOptions.defaults().setInterval(1000));
     } catch (IOException e) {
       LOG.warn("Failed to close job master client: {}", e.toString());
+      return null;
     } catch (TimeoutException e) {
       // Should never happen since we use the default timeout of "never".
       throw new IllegalStateException(e);
