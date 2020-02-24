@@ -9,6 +9,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+{{ if .Values.journal.format.runFormat -}}
 {{ $root := . -}}
 {{- $masterCount := int .Values.master.count }}
 {{- $isSingleMaster := eq $masterCount 1 }}
@@ -96,4 +97,5 @@ spec:
         {{- end }}
       {{- end }}
 ---
+{{- end }}
 {{- end }}
