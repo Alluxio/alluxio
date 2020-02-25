@@ -2079,6 +2079,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
               .build();
+  public static final PropertyKey MASTER_WORKER_INFO_CACHE_REFRESH_TIME =
+      new Builder(Name.MASTER_WORKER_INFO_CACHE_REFRESH_TIME)
+          .setDefaultValue("10sec")
+          .setDescription("The worker information list will be refreshed "
+              + "after being cached for this time period. If the refresh time is too big, "
+              + "operations on the job servers or clients may fail because of "
+              + "the stale worker info. If it is too small, "
+              + "continuously updating worker information may case lock contention "
+              + "in the block master")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_WORKER_TIMEOUT_MS =
       new Builder(Name.MASTER_WORKER_TIMEOUT_MS)
           .setAlias("alluxio.master.worker.timeout.ms")
@@ -3480,7 +3492,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
       new Builder(Name.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether to return all workers as block location if ufs block locations "
               + "are not co-located with any Alluxio workers or is empty.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4460,6 +4472,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_WHITELIST = "alluxio.master.whitelist";
     public static final String MASTER_WORKER_CONNECT_WAIT_TIME =
         "alluxio.master.worker.connect.wait.time";
+    public static final String MASTER_WORKER_INFO_CACHE_REFRESH_TIME
+        = "alluxio.master.worker.info.cache.refresh.time";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout";
     public static final String MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
         "alluxio.master.journal.checkpoint.period.entries";

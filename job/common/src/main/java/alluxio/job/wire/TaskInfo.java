@@ -13,6 +13,7 @@ package alluxio.job.wire;
 
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.JobType;
+import alluxio.job.util.SerializableVoid;
 import alluxio.job.util.SerializationUtils;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -22,12 +23,15 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.ByteString;
+import org.apache.commons.lang.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -46,26 +50,43 @@ public class TaskInfo implements JobInfo {
   private Serializable mResult;
   private long mLastUpdated;
   private String mWorkerHost;
+  private String mDescription;
 
   /**
    * Default constructor.
    */
-  public TaskInfo() {}
+  public TaskInfo() {
+    mErrorMessage = "";
+    mDescription = "";
+  }
 
   /**
-   * Constructs a new TaskInfo from jobId, taskId, Status, and workerAddress.
+   * Constructs a new TaskInfo from jobId, taskId, Status, workerAddress, and arguments.
    * @param jobId the job id
    * @param taskId the task id
    * @param status the status
    * @param workerAddress the worker address
+   * @param args the (Serializable) arguments that were used to execute the task
    */
-  public TaskInfo(long jobId, long taskId, Status status, WorkerNetAddress workerAddress) {
+  public TaskInfo(long jobId, long taskId, Status status, WorkerNetAddress workerAddress,
+                  Object args) {
     mJobId = jobId;
     mTaskId = taskId;
     mStatus = status;
     mErrorMessage = "";
     mResult = null;
     mWorkerHost = workerAddress.getHost();
+    mDescription = createDescription(args);
+  }
+
+  private static String createDescription(Object args) {
+    if (args instanceof Collection) {
+      return Arrays.toString(((Collection) args).toArray());
+    }
+    if (args instanceof SerializableVoid) {
+      return "";
+    }
+    return ObjectUtils.toString(args);
   }
 
   /**
@@ -91,6 +112,7 @@ public class TaskInfo implements JobInfo {
       }
     }
     mLastUpdated = taskInfo.getLastUpdated();
+    mDescription = taskInfo.getDescription();
   }
 
   @Override
@@ -149,7 +171,14 @@ public class TaskInfo implements JobInfo {
 
   @Override
   public String getDescription() {
-    return "";
+    return mDescription;
+  }
+
+  /**
+   * @param description the description
+   */
+  public void setDescription(String description) {
+    mDescription = description;
   }
 
   @Override
@@ -239,7 +268,8 @@ public class TaskInfo implements JobInfo {
     alluxio.grpc.JobInfo.Builder taskInfoBuilder =
         alluxio.grpc.JobInfo.newBuilder().setParentId(mJobId).setId(mTaskId)
             .setStatus(mStatus.toProto()).setErrorMessage(mErrorMessage)
-            .setLastUpdated(mLastUpdated).setWorkerHost(mWorkerHost).setType(JobType.TASK);
+            .setLastUpdated(mLastUpdated).setWorkerHost(mWorkerHost).setType(JobType.TASK)
+            .setDescription(mDescription);
     if (result != null) {
       taskInfoBuilder.setResult(ByteString.copyFrom(result));
     }
@@ -258,19 +288,21 @@ public class TaskInfo implements JobInfo {
     return Objects.equal(mJobId, that.mJobId) && Objects.equal(mTaskId, that.mTaskId)
         && Objects.equal(mStatus, that.mStatus) && Objects.equal(mErrorMessage, that.mErrorMessage)
         && Objects.equal(mResult, that.mResult) && Objects.equal(mLastUpdated, that.mLastUpdated)
-        && Objects.equal(mWorkerHost, that.mWorkerHost);
+        && Objects.equal(mWorkerHost, that.mWorkerHost)
+        && Objects.equal(mDescription, that.mDescription);
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mJobId, mTaskId, mStatus, mErrorMessage, mResult, mLastUpdated,
-        mWorkerHost);
+        mWorkerHost, mDescription);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("jobId", mJobId).add("taskId", mTaskId)
         .add("status", mStatus).add("errorMessage", mErrorMessage).add("result", mResult)
-        .add("lastUpdated", mLastUpdated).add("workerHost", mWorkerHost).toString();
+        .add("lastUpdated", mLastUpdated).add("workerHost", mWorkerHost)
+        .add("description", mDescription).toString();
   }
 }

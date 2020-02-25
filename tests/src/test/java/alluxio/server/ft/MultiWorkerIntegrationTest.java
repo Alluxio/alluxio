@@ -197,7 +197,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     AlluxioBlockStore store = AlluxioBlockStore.create(fsContext);
     URIStatus status =  mResource.get().getClient().getStatus(filePath);
     List<FileBlockInfo> blocks = status.getFileBlockInfos();
-    List<BlockWorkerInfo> workers = store.getAllWorkers();
+    List<BlockWorkerInfo> workers = fsContext.getCachedWorkers();
 
     for (FileBlockInfo block : blocks) {
       BlockInfo blockInfo = block.getBlockInfo();

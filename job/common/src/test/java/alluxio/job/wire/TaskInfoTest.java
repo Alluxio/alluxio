@@ -39,6 +39,7 @@ public final class TaskInfoTest {
     result.setErrorMessage(CommonUtils.randomAlphaNumString(random.nextInt(10)));
     result.setStatus(Status.values()[random.nextInt(Status.values().length)]);
     result.setTaskId(random.nextInt());
+    result.setDescription(CommonUtils.randomAlphaNumString(random.nextInt(10)));
     result.setWorkerHost("test");
 
     return result;
