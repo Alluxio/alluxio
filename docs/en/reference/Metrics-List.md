@@ -10,13 +10,13 @@ priority: 1
 
 There are two types of metrics in Alluxio, cluster-wide aggregated metrics, and per-process detailed metrics.
 
-Cluster metrics are collected and calculated by the leading master and displayed in the metrics tab of the web UI. 
-These metrics are designed to provide a snapshot of the cluster state and the overall amount of data and metadata served by Alluxio.
+* Cluster metrics are collected and calculated by the leading master and displayed in the metrics tab of the web UI. 
+  These metrics are designed to provide a snapshot of the cluster state and the overall amount of data and metadata served by Alluxio.
 
-Process metrics are collected by each Alluxio process and exposed in a machine-readable format through any configured sinks. 
-Process metrics are highly detailed and are intended to be consumed by third-party monitoring tools. 
-Users can then view fine-grained dashboards with time-series graphs of each metric, 
-such as data transferred or the number of RPC invocations.
+* Process metrics are collected by each Alluxio process and exposed in a machine-readable format through any configured sinks.
+  Process metrics are highly detailed and are intended to be consumed by third-party monitoring tools.
+  Users can then view fine-grained dashboards with time-series graphs of each metric,
+  such as data transferred or the number of RPC invocations.
 
 Metrics in Alluxio have the following format for master node metrics:
 
@@ -40,6 +40,9 @@ Tags can be used to further filter or aggregate on various characteristics.
 Workers and clients send metrics data to the Alluxio master through heartbeats.
 The interval is defined by property `alluxio.master.worker.heartbeat.interval` and `alluxio.user.metrics.heartbeat.interval` respectively.
 
+Bytes metrics are aggregated value from workers or clients. Bytes throughput metrics are calculated on the leading master.
+The values of bytes throughput metrics equal to bytes metrics counter value divided by the metrics record time and shown as bytes per minute.
+
 <table class="table table-striped">
 <tr><th>Name</th><th>Type</th><th>Description</th></tr>
 {% for item in site.data.table.cluster-metrics %}
@@ -50,9 +53,6 @@ The interval is defined by property `alluxio.master.worker.heartbeat.interval` a
   </tr>
 {% endfor %}
 </table>
-
-Bytes metrics are aggregated value from workers or clients. Bytes throughput metrics are calculated on the leading master.
-The values of bytes throughput metrics equal to bytes metrics counter value divided by the metrics record time and shown as bytes per minute.
 
 ## Master Metrics
 
