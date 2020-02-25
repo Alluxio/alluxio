@@ -143,8 +143,7 @@ public class PageStoreTest {
     }
     mPageStore.close();
     try (PageStore store = PageStore.create(mOptions)) {
-      HashSet<PageInfo> restored = new HashSet<>();
-      store.restore(restored::add);
+      Collection<PageInfo> restored = store.getPages();
       assertEquals(pages, restored);
     }
   }
