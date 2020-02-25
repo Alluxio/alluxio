@@ -204,7 +204,7 @@ public class TaskExecutorManager {
         .submit(new TaskExecutor(jobId, taskId, runTaskCommand, context, this));
     Pair<Long, Long> id = new Pair<>(jobId, taskId);
     mTaskFutures.put(id, future);
-    TaskInfo taskInfo = new TaskInfo(jobId, taskId, Status.CREATED, mAddress);
+    TaskInfo taskInfo = new TaskInfo(jobId, taskId, Status.CREATED, mAddress, null);
 
     mUnfinishedTasks.put(id, taskInfo);
     mTaskUpdates.put(id, taskInfo);

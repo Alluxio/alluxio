@@ -15,7 +15,6 @@ import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
-import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
@@ -122,8 +121,7 @@ public final class ClearCommand extends AbstractFsAdminCommand {
       int globalParallelism = FileSystemShellUtils
           .getIntArg(cl, PARALLELISM_OPTION, DEFAULT_PARALLELISM);
       try (FileSystemContext context = FileSystemContext.create(mAlluxioConf)) {
-        AlluxioBlockStore store = AlluxioBlockStore.create(FileSystemContext.create(mAlluxioConf));
-        List<WorkerNetAddress> addressList = store.getEligibleWorkers().stream()
+        List<WorkerNetAddress> addressList = context.getCachedWorkers().stream()
             .map(BlockWorkerInfo::getNetAddress).collect(Collectors.toList());
 
         if (cl.hasOption(WORKERS_OPTION_NAME)) {

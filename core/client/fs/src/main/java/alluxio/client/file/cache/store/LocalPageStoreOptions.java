@@ -13,6 +13,8 @@ package alluxio.client.file.cache.store;
 
 import alluxio.Constants;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Options used to instantiate the {@link LocalPageStore}.
  */
@@ -31,11 +33,18 @@ public class LocalPageStoreOptions extends PageStoreOptions {
   private int mBufferSize;
 
   /**
+   * The number of file buckets. It is recommended to set this to a high value if the number of
+   * unique files is expected to be high (# files / file buckets <= 100,000).
+   */
+  private int mFileBuckets;
+
+  /**
    * Creates a new instance of {@link LocalPageStoreOptions}.
    */
   public LocalPageStoreOptions() {
     mBufferPoolSize = 32;
     mBufferSize = Constants.MB;
+    mFileBuckets = 1000;
   }
 
   /**
@@ -70,8 +79,37 @@ public class LocalPageStoreOptions extends PageStoreOptions {
     return mBufferSize;
   }
 
+  /**
+   * @param fileBuckets the number of buckets to place files in
+   * @return the updated options
+   */
+  public LocalPageStoreOptions setFileBuckets(int fileBuckets) {
+    mFileBuckets = fileBuckets;
+    return this;
+  }
+
+  /**
+   * @return the number of buckets to place files in
+   */
+  public int getFileBuckets() {
+    return mFileBuckets;
+  }
+
   @Override
   public PageStoreType getType() {
     return PageStoreType.LOCAL;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("AlluxioVersion", mAlluxioVersion)
+        .add("BufferPoolSize", mBufferPoolSize)
+        .add("CacheSize", mCacheSize)
+        .add("BufferSize", mBufferSize)
+        .add("FileBuckets", mFileBuckets)
+        .add("PageSize", mPageSize)
+        .add("RootDir", mRootDir)
+        .toString();
   }
 }

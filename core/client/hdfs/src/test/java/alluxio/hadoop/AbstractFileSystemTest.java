@@ -533,9 +533,8 @@ public class AbstractFileSystemTest {
     List<String> ufsLocations = Arrays.asList("worker0", "worker3");
     List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
 
-    List<WorkerNetAddress> expectedWorkers = Collections.EMPTY_LIST;
-
-    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+    // When no matching, all workers will be returned
+    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, allWorkers);
   }
 
   @Test
@@ -564,9 +563,8 @@ public class AbstractFileSystemTest {
     List<String> ufsLocations = Arrays.asList();
     List<WorkerNetAddress> allWorkers = Arrays.asList(worker1, worker2);
 
-    List<WorkerNetAddress> expectedWorkers = Collections.EMPTY_LIST;
-
-    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, expectedWorkers);
+    // When no matching & no ufs locations, all workers will be returned
+    verifyBlockLocations(blockWorkers, ufsLocations, allWorkers, allWorkers);
   }
 
   @Test
@@ -616,7 +614,7 @@ public class AbstractFileSystemTest {
     doReturn(new URIStatus(fileInfo)).when(spyFs).getStatus(uri);
     List<BlockWorkerInfo> eligibleWorkerInfos = allWorkers.stream().map(worker ->
         new BlockWorkerInfo(worker, 0, 0)).collect(toList());
-    PowerMockito.when(blockStore.getEligibleWorkers()).thenReturn(eligibleWorkerInfos);
+    when(fsContext.getCachedWorkers()).thenReturn(eligibleWorkerInfos);
     List<HostAndPort> expectedWorkerNames = expectedWorkers.stream()
         .map(addr -> HostAndPort.fromParts(addr.getHost(), addr.getDataPort())).collect(toList());
     FileSystem alluxioHadoopFs = new FileSystem(spyFs);

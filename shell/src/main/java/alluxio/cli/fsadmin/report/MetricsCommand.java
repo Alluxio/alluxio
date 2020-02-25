@@ -74,8 +74,7 @@ public class MetricsCommand {
           // Bytes long can be transformed to human-readable format
           strValue = FormatUtils.getSizeFromBytes((long) doubleValue);
           if (name.contains(THROUGHPUT_METRIC_IDENTIFIER)) {
-            // throughput is calculated as one-minute exponentially-weighted moving average rate
-            strValue = strValue + "/min";
+            strValue = strValue + "/MIN";
           }
         } else if (DoubleMath.isMathematicalInteger(doubleValue)) {
           strValue = DECIMAL_FORMAT.format((long) doubleValue);

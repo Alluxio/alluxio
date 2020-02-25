@@ -48,6 +48,7 @@ public interface PageStore extends AutoCloseable {
    * @throws IOException if failed to create a page store
    */
   static PageStore create(PageStoreOptions options) throws IOException {
+    LOG.info("Create PageStore option={}", options.toString());
     switch (options.getType()) {
       case LOCAL:
         return new LocalPageStore(options.toOptions());
@@ -71,7 +72,8 @@ public interface PageStore extends AutoCloseable {
         PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);
     switch (storeType) {
       case LOCAL:
-        options = new LocalPageStoreOptions();
+        options = new LocalPageStoreOptions()
+            .setFileBuckets(conf.getInt(PropertyKey.USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS));
         break;
       case ROCKS:
         options = new RocksPageStoreOptions();
@@ -111,7 +113,7 @@ public interface PageStore extends AutoCloseable {
   static void initialize(String rootPath, PageStoreType storeType) throws IOException {
     Path storePath = getStorePath(storeType, rootPath);
     Files.createDirectories(storePath);
-    LOG.info("Clean cache directory {}", rootPath);
+    LOG.debug("Clean cache directory {}", rootPath);
     try (Stream<Path> stream = Files.list(Paths.get(rootPath))) {
       stream.filter(path -> !storePath.equals(path))
           .forEach(path -> {

@@ -13,7 +13,6 @@ package alluxio.job.plan.replicate;
 
 import alluxio.collections.Pair;
 import alluxio.conf.ServerConfiguration;
-import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.exception.status.NotFoundException;
@@ -87,12 +86,10 @@ public final class MoveDefinition
   @Override
   public SerializableVoid runTask(MoveConfig config, SerializableVoid args, RunTaskContext context)
       throws Exception {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context.getFsContext());
-
     long blockId = config.getBlockId();
     String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
         ServerConfiguration.global());
-    List<BlockWorkerInfo> workerInfoList = blockStore.getAllWorkers();
+    List<BlockWorkerInfo> workerInfoList = context.getFsContext().getCachedWorkers();
     WorkerNetAddress localNetAddress = null;
 
     for (BlockWorkerInfo workerInfo : workerInfoList) {

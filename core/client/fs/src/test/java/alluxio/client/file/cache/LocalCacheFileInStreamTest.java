@@ -249,20 +249,20 @@ public class LocalCacheFileInStreamTest {
     byte[] cacheMiss = new byte[readSize];
     stream.read(cacheMiss);
     Assert.assertEquals(0,
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
     Assert.assertEquals(readSize, MetricsSystem.counter(
         MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(fileSize,
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
 
     // cache hit
     stream.read();
     Assert.assertEquals(1,
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
     Assert.assertEquals(readSize, MetricsSystem.counter(
         MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(fileSize,
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
   }
 
   @Test
@@ -374,14 +374,14 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public boolean put(PageId pageId, byte[] page) throws IOException {
+    public boolean put(PageId pageId, byte[] page) {
       mPages.put(pageId, page);
       mPagesCached++;
       return true;
     }
 
     @Override
-    public ReadableByteChannel get(PageId pageId) throws IOException {
+    public ReadableByteChannel get(PageId pageId) {
       if (!mPages.containsKey(pageId)) {
         return null;
       }
@@ -400,8 +400,8 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public void delete(PageId pageId) throws IOException {
-      mPages.remove(pageId);
+    public boolean delete(PageId pageId) {
+      return mPages.remove(pageId) != null;
     }
 
     @Override
