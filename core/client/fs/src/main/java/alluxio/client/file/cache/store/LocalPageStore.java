@@ -166,7 +166,7 @@ public class LocalPageStore implements PageStore {
   }
 
   private String getFileBucket(String fileId) {
-    return Integer.toString(fileId.hashCode() % mFileBuckets);
+    return Integer.toString(Math.floorMod(fileId.hashCode(), mFileBuckets));
   }
 
   /**
