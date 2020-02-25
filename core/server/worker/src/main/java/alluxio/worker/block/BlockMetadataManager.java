@@ -25,6 +25,9 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.order.BlockIterator;
+import alluxio.worker.block.order.DefaultBlockIterator;
+import alluxio.worker.block.order.EvictionOrderProvider;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -59,6 +62,9 @@ public final class BlockMetadataManager {
 
   private final StorageTierAssoc mStorageTierAssoc;
 
+  /** Used to get iterators per locations. */
+  private BlockIterator mBlockIterator;
+
   private BlockMetadataManager() {
     try {
       mStorageTierAssoc = new WorkerStorageTierAssoc();
@@ -69,9 +75,17 @@ public final class BlockMetadataManager {
         mTiers.add(tier);
         mAliasToTiers.put(tier.getTierAlias(), tier);
       }
+      mBlockIterator = new DefaultBlockIterator(this, EvictionOrderProvider.Factory.create());
     } catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * @return the configured iteration provider
+   */
+  public BlockIterator getBlockIterator() {
+    return mBlockIterator;
   }
 
   /**

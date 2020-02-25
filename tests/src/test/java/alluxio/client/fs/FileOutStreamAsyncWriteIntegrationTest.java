@@ -40,7 +40,6 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.worker.block.BlockMasterSync;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.SpaceReserver;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -165,7 +164,8 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     assertEquals(writeSize, getUsedWorkerSpace());
     fos.close();
     FileSystemUtils.persistAndWait(fs, p1, 0);
-    assertTrue(getUsedWorkerSpace() < writeSize);
+    // Try to create 1-byte file on top. Expect to succeed.
+    FileSystemTestUtils.createByteFile(fs, "/byte-file1", WritePType.MUST_CACHE, 1);
   }
 
   @Test
@@ -198,9 +198,9 @@ public final class FileOutStreamAsyncWriteIntegrationTest
    *
    * This test performs the following actions:
    * - creates a file with ASYNC_THROUGH which fills the entire capacity of a worker
-   * - Manually triggers an eviction, making sure that no blocks have been evicted
+   * - Tries to create another 1-byte file on top and expects it to fail
    * - persists the file to the UFS
-   * - triggers an eviction, checking that some of the blocks have been evicted from storage
+   * - Tries to create 1-byte file again and it should succeed this time
    */
   private void testLostAsyncBlocks() throws Exception {
     long cap = FormatUtils.parseSpaceSize(TINY_WORKER_MEM);
@@ -209,12 +209,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     String p1 = "/test";
     FileSystemTestUtils.createByteFile(fs, p1, WritePType.ASYNC_THROUGH, (int) cap);
 
-    BlockWorker blkWorker = mLocalAlluxioClusterResource.get().getWorkerProcess()
-        .getWorker(BlockWorker.class);
-    SpaceReserver reserver = Whitebox.getInternalState(blkWorker, SpaceReserver.class);
-
-    // Trigger worker eviction
-    reserver.heartbeat();
     URIStatus fstat = fs.listStatus(new AlluxioURI(p1)).get(0);
     int lostBlocks = fstat.getFileBlockInfos().stream()
         .map(FileBlockInfo::getBlockInfo)
@@ -227,6 +221,14 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     assertEquals(100, fstat.getInAlluxioPercentage());
     assertEquals(0, lostBlocks);
 
+    // Try to create 1-byte file on top. Expect to fail.
+    try {
+      FileSystemTestUtils.createByteFile(fs, "/byte-file1", WritePType.MUST_CACHE, 1);
+      assertTrue("Shouldn't reach here.", false);
+    } catch (Exception e) {
+      // expected.
+    }
+
     FileSystemUtils.persistAndWait(fs, new AlluxioURI(p1), 0);
     fstat = fs.listStatus(new AlluxioURI(p1)).get(0);
 
@@ -234,7 +236,9 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     assertEquals(0, mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class)
         .getPinIdList().size());
-    assertTrue(getUsedWorkerSpace() < getClusterCapacity());
+
+    // Try to create 1-byte file on top. Expect to succeed.
+    FileSystemTestUtils.createByteFile(fs, "/byte-file2", WritePType.MUST_CACHE, 1);
   }
 
   @Test
@@ -266,10 +270,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     BlockWorker blkWorker = mLocalAlluxioClusterResource.get().getWorkerProcess()
         .getWorker(BlockWorker.class);
     Whitebox.getInternalState(blkWorker, BlockMasterSync.class).heartbeat(); // heartbeat before
-    SpaceReserver reserver = Whitebox.getInternalState(blkWorker, SpaceReserver.class);
-    // free space, update master storage info and make sure eviction has occurred
-    reserver.heartbeat();
-    reserver.updateStorageInfo();
     Whitebox.getInternalState(blkWorker, BlockMasterSync.class).heartbeat(); // heartbeat before
     return mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
         .getMasterProcess().getMaster(BlockMaster.class)

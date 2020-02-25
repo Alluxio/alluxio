@@ -24,6 +24,9 @@ public abstract class AbstractBlockStoreEventListener implements BlockStoreEvent
   public void onAccessBlock(long sessionId, long blockId) {}
 
   @Override
+  public void onAccessBlock(long sessionId, long blockId, BlockStoreLocation location) {}
+
+  @Override
   public void onAbortBlock(long sessionId, long blockId) {}
 
   @Override
@@ -44,8 +47,14 @@ public abstract class AbstractBlockStoreEventListener implements BlockStoreEvent
   public void onRemoveBlockByWorker(long sessionId, long blockId) {}
 
   @Override
+  public void onRemoveBlock(long sessionId, long blockId, BlockStoreLocation location) {}
+
+  @Override
   public void onBlockLost(long blockId) {}
 
   @Override
   public void onStorageLost(String tierAlias, String dirPath) {}
+
+  @Override
+  public void onStorageLost(BlockStoreLocation dirLocation) {}
 }

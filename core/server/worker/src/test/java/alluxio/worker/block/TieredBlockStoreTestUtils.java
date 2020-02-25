@@ -249,17 +249,11 @@ public final class TieredBlockStoreTestUtils {
    */
   public static void cache(long sessionId, long blockId, long bytes, StorageDir dir,
       BlockMetadataManager meta, Evictor evictor) throws Exception {
-    TempBlockMeta tempBlockMeta = createTempBlock(sessionId, blockId, bytes, dir);
-
-    // commit block
-    FileUtils.move(tempBlockMeta.getPath(), tempBlockMeta.getCommitPath());
-    meta.commitTempBlockMeta(tempBlockMeta);
-
-    // update evictor
+    BlockStoreEventListener listener = null;
     if (evictor instanceof BlockStoreEventListener) {
-      ((BlockStoreEventListener) evictor)
-          .onCommitBlock(sessionId, blockId, dir.toBlockStoreLocation());
+      listener = (BlockStoreEventListener) evictor;
     }
+    cache2(sessionId, blockId, bytes, dir, meta, listener);
   }
 
   /**
@@ -274,10 +268,32 @@ public final class TieredBlockStoreTestUtils {
    */
   public static void cache(long sessionId, long blockId, long bytes, BlockStore blockStore,
       BlockStoreLocation location, boolean pinOnCreate) throws Exception {
-    TempBlockMeta tempBlockMeta = blockStore.createBlock(sessionId, blockId, location, bytes);
+    TempBlockMeta tempBlockMeta = blockStore.createBlock(sessionId, blockId,
+        BlockAllocationOptions.defaultsForCreate(bytes, location));
     // write data
     BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta.getPath());
     writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(bytes)));
+    writer.close();
+
+    // commit block
+    blockStore.commitBlock(sessionId, blockId, pinOnCreate);
+  }
+
+  /**
+   * Caches bytes into {@link BlockStore} at specific location.
+   *
+   * @param sessionId session who caches the data
+   * @param blockId id of the cached block
+   * @param options allocation options
+   * @param blockStore block store that the block is written into
+   * @param pinOnCreate whether to pin block on create
+   */
+  public static void cache(long sessionId, long blockId, BlockAllocationOptions options,
+      BlockStore blockStore, boolean pinOnCreate) throws Exception {
+    TempBlockMeta tempBlockMeta = blockStore.createBlock(sessionId, blockId, options);
+    // write data
+    BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta.getPath());
+    writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(options.getSize())));
     writer.close();
 
     // commit block
@@ -299,6 +315,30 @@ public final class TieredBlockStoreTestUtils {
       BlockMetadataManager meta, Evictor evictor) throws Exception {
     StorageDir dir = meta.getTiers().get(tierLevel).getDir(dirIndex);
     cache(sessionId, blockId, bytes, dir, meta, evictor);
+  }
+
+  /**
+   * Caches bytes into {@link StorageDir}.
+   *
+   * @param sessionId session who caches the data
+   * @param blockId id of the cached block
+   * @param bytes size of the block in bytes
+   * @param dir the {@link StorageDir} the block resides in
+   * @param meta the metadata manager to update meta of the block
+   * @param listener the listener to be informed of the new block
+   */
+  public static void cache2(long sessionId, long blockId, long bytes, StorageDir dir,
+      BlockMetadataManager meta, BlockStoreEventListener listener) throws Exception {
+    TempBlockMeta tempBlockMeta = createTempBlock(sessionId, blockId, bytes, dir);
+
+    // commit block.
+    FileUtils.move(tempBlockMeta.getPath(), tempBlockMeta.getCommitPath());
+    meta.commitTempBlockMeta(tempBlockMeta);
+
+    // update listener.
+    if (listener != null) {
+      listener.onCommitBlock(sessionId, blockId, dir.toBlockStoreLocation());
+    }
   }
 
   /**

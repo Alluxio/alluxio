@@ -86,9 +86,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   /** Runnable responsible for clean up potential zombie sessions. */
   private SessionCleaner mSessionCleaner;
 
-  /** Runnable responsible for reserving space for worker storage tiers. */
-  private SpaceReserver mSpaceReserver;
-
   /** Used to close resources during stop. */
   private Closer mResourceCloser;
   /**
@@ -238,13 +235,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
         .register(new SessionCleaner(mSessions, mBlockStore, mUnderFileSystemBlockStore));
     getExecutorService().submit(mSessionCleaner);
 
-    // Setup space reserver
-    mSpaceReserver = mResourceCloser.register(new SpaceReserver(this));
-    getExecutorService().submit(
-        new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, mSpaceReserver,
-            (int) ServerConfiguration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS),
-            ServerConfiguration.global(), ServerUserState.global()));
-
     // Setup storage checker
     if (ServerConfiguration.getBoolean(PropertyKey.WORKER_STORAGE_CHECKER_ENABLED)) {
       mStorageChecker = mResourceCloser.register(new StorageChecker());
@@ -283,10 +273,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException {
-    // NOTE: this may be invoked multiple times due to retry on client side.
-    // TODO(binfan): find a better way to handle retry logic
+    long lockId = -1;
     try {
-      mBlockStore.commitBlock(sessionId, blockId, pinOnCreate);
+      lockId = mBlockStore.commitBlockLocked(sessionId, blockId, pinOnCreate);
     } catch (BlockAlreadyExistsException e) {
       LOG.debug("Block {} has been in block store, this could be a retry due to master-side RPC "
           + "failure, therefore ignore the exception", blockId, e);
@@ -294,7 +283,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
     // TODO(calvin): Reconsider how to do this without heavy locking.
     // Block successfully committed, update master with new block metadata
-    Long lockId = mBlockStore.lockBlock(sessionId, blockId);
+    if (lockId == -1) {
+      lockId = mBlockStore.lockBlock(sessionId, blockId);
+    }
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
       BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);
@@ -337,7 +328,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     }
     TempBlockMeta createdBlock;
     try {
-      createdBlock = mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
+      createdBlock = mBlockStore.createBlock(sessionId, blockId,
+          BlockAllocationOptions.defaultsForCreate(initialBytes, loc));
     } catch (WorkerOutOfSpaceException e) {
       InetSocketAddress address =
           InetSocketAddress.createUnresolved(mAddress.getHost(), mAddress.getRpcPort());
@@ -357,7 +349,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     } else {
       loc = BlockStoreLocation.anyDirInTierWithMedium(medium);
     }
-    mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
+    mBlockStore.createBlock(sessionId, blockId,
+        BlockAllocationOptions.defaultsForCreate(initialBytes, loc));
   }
 
   @Override
@@ -569,7 +562,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   /**
    * This class contains some metrics related to the block worker.
    * This class is public because the metric names are referenced in
-   * {@link alluxio.web.WebInterfaceWorkerMetricsServlet}.
+   * {@link alluxio.web.WebInterfaceAbstractMetricsServlet}.
    */
   @ThreadSafe
   public static final class Metrics {
@@ -628,9 +621,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     @Override
     public void heartbeat() {
       try {
-        if (mBlockStore.checkStorage()) {
-          mSpaceReserver.updateStorageInfo();
-        }
+        mBlockStore.checkStorage();
       } catch (Exception e) {
         LOG.warn("Failed to check storage: {}", e.toString());
         LOG.debug("Exception: ", e);
