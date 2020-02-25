@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli;
+package alluxio.cli.docgen;
 
 import alluxio.annotation.PublicApi;
 import alluxio.conf.InstancedConfiguration;
@@ -21,6 +21,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.io.Closer;
+import org.apache.commons.lang.StringEscapeUtils;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -46,9 +47,9 @@ public final class MetricsDocGenerator {
   private static final String CSV_FILE_HEADER = "metricName,metricType";
 
   /**
-   * Writes the supported files for metrics system doc.
+   * Writes the supported files for metrics system docs.
    */
-  private static void writeDocFiles() throws IOException {
+  public static void generate() throws IOException {
     // Gets and sorts the metric keys
     List<MetricKey> defaultKeys = new ArrayList<>(MetricKey.allMetricKeys());
     Collections.sort(defaultKeys);
@@ -98,7 +99,7 @@ public final class MetricsDocGenerator {
               new FileWriterKey(metricTypeMap.get(components[0]), YML_SUFFIX));
           csvFileWriter.append(String.format("%s,%s%n", key, metricKey.getMetricType().toString()));
           ymlFileWriter.append(String.format("%s,%s%n",
-              key, metricKey.getDescription().replace("'", "''")));
+              key, StringEscapeUtils.escapeHtml(metricKey.getDescription().replace("'", "''"))));
         } else {
           throw new IOException(String
               .format("The metric key starts with invalid instance type %s", components[0]));
@@ -106,15 +107,6 @@ public final class MetricsDocGenerator {
       }
     }
     System.out.println("Successfully generated files for metric keys");
-  }
-
-  /**
-   * Main entry for this util class.
-   *
-   * @param args arguments for command line
-   */
-  public static void main(String[] args) throws IOException {
-    writeDocFiles();
   }
 
   /**

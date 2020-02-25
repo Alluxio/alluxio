@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.cli.ConfigurationDocGenerator;
+import alluxio.cli.docgen.ConfigurationDocGenerator;
 import alluxio.collections.Pair;
 import alluxio.util.io.PathUtils;
 
@@ -40,7 +40,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Tests for {@link alluxio.cli.ConfigurationDocGenerator}.
+ * Tests for {@link ConfigurationDocGenerator}.
  */
 @RunWith(Parameterized.class)
 public class ConfigurationDocGeneratorTest {
