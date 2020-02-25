@@ -45,6 +45,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 
 @RunWith(Parameterized.class)
 public class PageStoreTest {
@@ -140,6 +141,23 @@ public class PageStoreTest {
     Set<PageInfo> pages = new HashSet<>(count);
     for (int i = 0; i < count; i++) {
       PageId id = new PageId("0", i);
+      mPageStore.put(id, data);
+      pages.add(new PageInfo(id, data.length));
+    }
+    mPageStore.close();
+    try (PageStore store = PageStore.create(mOptions)) {
+      assertEquals(pages, new HashSet<>(store.getPages()));
+    }
+  }
+
+  @Test
+  public void getPagesUUID() throws Exception {
+    int len = 32;
+    int count = 16;
+    byte[] data = BufferUtils.getIncreasingByteArray(len);
+    Set<PageInfo> pages = new HashSet<>(count);
+    for (int i = 0; i < count; i++) {
+      PageId id = new PageId(UUID.randomUUID().toString(), i);
       mPageStore.put(id, data);
       pages.add(new PageInfo(id, data.length));
     }
