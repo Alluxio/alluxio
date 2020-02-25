@@ -124,15 +124,15 @@ The nick name and original metric name corresponding are shown:
 | Remote Alluxio Write | cluster.BytesWrittenAlluxio |
 | Under Filesystem Read | cluster.BytesReadUfsAll | 
 | Under Filesystem Write | cluster.BytesWrittenUfsAll |
-Detailed descriptions of those metrics are in [cluster metrics section](#cluster-metrics)
+
+Detailed descriptions of those metrics are in [cluster metrics]({{ '/en/reference/Metrics-List.html' | relativize_url }}#cluster-metrics).
 
 `Mounted Under FileSystem Read` shows the `cluster.BytesReadPerUfs.UFS:<UFS_ADDRESS>` of each Alluxio UFS.
 `Mounted Under FileSystem Write` shows the `cluster.BytesWrittenPerUfs.UFS:<UFS_ADDRESS>` of each Alluxio UFS.
 
-`Logical Operations` and `RPC Invocations` present [master logical operation metrics](#master-logical-operations-and-results).
+`Logical Operations` and `RPC Invocations` present parts of the [master metrics]({{ '/en/reference/Metrics-List.html' | relativize_url }}#master-metrics).
 
 ## References
 
 Detailed Alluxio metrics are listed in the [metrics list doc]({{ '/en/reference/Metrics-List.html' | relativize_url }}).
-
-Exposing metrics stored in the leading master via [fsadmin report metrics]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#report).
+Metrics stored in leading master is exposed via [fsadmin report metrics]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#report).
