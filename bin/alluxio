@@ -343,7 +343,7 @@ function main {
   "copyDir")
     copyDir "$@"
   ;;
-  "confDocGen")
+  "docGen")
     CLASS="alluxio.cli.DocGenerator"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
