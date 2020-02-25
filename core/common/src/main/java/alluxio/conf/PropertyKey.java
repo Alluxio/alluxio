@@ -3233,6 +3233,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =
+      new Builder(Name.USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS)
+          .setDefaultValue("1000")
+          .setDescription("The number of file buckets for the local page store of the client-side "
+              + "cache. It is recommended to set this to a high value if the number of unique "
+              + "files is expected to be high (# files / file buckets <= 100,000).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_SIZE =
       new Builder(Name.USER_CLIENT_CACHE_SIZE)
           .setDefaultValue("512MB")
@@ -4650,6 +4659,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.dir";
     public static final String USER_CLIENT_CACHE_PAGE_SIZE =
         "alluxio.user.client.cache.page.size";
+    public static final String USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =
+        "alluxio.user.client.cache.local.store.file.buckets";
     public static final String USER_CLIENT_CACHE_SIZE =
         "alluxio.user.client.cache.size";
     public static final String USER_CLIENT_CACHE_STORE_TYPE =
