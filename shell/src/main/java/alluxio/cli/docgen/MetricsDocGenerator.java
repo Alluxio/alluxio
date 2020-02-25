@@ -22,6 +22,8 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Objects;
 import com.google.common.io.Closer;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -39,6 +41,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class MetricsDocGenerator {
+  private static final Logger LOG = LoggerFactory.getLogger(MetricsDocGenerator.class);
   private static final String[] CATEGORIES = new String[]{"cluster", "master", "worker", "client"};
   private static final String CSV_FILE_DIR = "docs/_data/table/";
   private static final String YML_FILE_DIR = "docs/_data/table/en/";
@@ -106,7 +109,7 @@ public final class MetricsDocGenerator {
         }
       }
     }
-    System.out.println("Successfully generated files for metric keys");
+    LOG.info("Metrics CSV/YML files were created successfully.");
   }
 
   /**
