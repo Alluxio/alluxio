@@ -11,19 +11,17 @@
 
 package alluxio.worker.block.management;
 
-/**
- * An interface for BlockStore management task.
- */
-public interface BlockManagementTask {
-  /**
-   * Each management task reports its necessity.
-   *
-   * @return {@code true} if task needs to run
-   */
-  boolean needsToRun();
+import alluxio.worker.block.BlockStoreLocation;
 
+/**
+ * Interface for detecting user activity on worker locations.
+ */
+public interface StoreLoadTracker {
   /**
-   * Run management task.
+   * Used to detect load on particular location.
+   *
+   * @param location location
+   * @return {@code true} if load detected on target location
    */
-  void run();
+  boolean loadDetected(BlockStoreLocation location);
 }
