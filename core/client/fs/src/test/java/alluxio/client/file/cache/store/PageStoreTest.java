@@ -17,6 +17,8 @@ import static org.junit.Assert.fail;
 
 import alluxio.Constants;
 import alluxio.ProjectConstants;
+import alluxio.client.file.cache.CacheEvictor;
+import alluxio.client.file.cache.MetaStore;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
@@ -32,6 +34,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -142,8 +145,10 @@ public class PageStoreTest {
       pages.add(new PageInfo(id, data.length));
     }
     mPageStore.close();
-    try (PageStore store = PageStore.create(mOptions)) {
-      Collection<PageInfo> restored = store.getPages();
+    MetaStore metaStore = MetaStore.create();
+    CacheEvictor evictor = Mockito.mock(CacheEvictor.class);
+    try (PageStore store = PageStore.create(mOptions,  false, metaStore, evictor)) {
+      Set<PageInfo> restored = new HashSet<>(store.getPages());
       assertEquals(pages, restored);
     }
   }
