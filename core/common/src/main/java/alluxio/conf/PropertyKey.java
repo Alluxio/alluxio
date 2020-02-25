@@ -2271,6 +2271,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  /**
+   * @deprecated use eviction order providers instead
+   */
+  @Deprecated(message = "Use WORKER_EVICTION_ORDER_PROVIDER_CLASS instead.")
   public static final PropertyKey WORKER_EVICTOR_CLASS =
       new Builder(Name.WORKER_EVICTOR_CLASS)
           .setDefaultValue("alluxio.worker.block.evictor.LRUEvictor")
@@ -2283,14 +2287,26 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR =
-      new Builder(Name.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR)
+  public static final PropertyKey WORKER_EVICTION_ORDER_PROVIDER_CLASS =
+      new Builder(Name.WORKER_EVICTION_ORDER_PROVIDER_CLASS)
+          .setDefaultValue("alluxio.worker.block.order.LRUSorter")
+          .setDescription("The strategy that a worker uses to evict block files when a "
+              + "storage layer runs out of space. It is also used for moving blocks "
+              + "to maintain tier based layering of data. "
+              + " Valid options include: "
+              + "`alluxio.worker.block.order.LRFUSorter`, "
+              + "`alluxio.worker.block.order.LRUSorter`, ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_EVICTION_ORDER_LRFU_ATTENUATION_FACTOR =
+      new Builder(Name.WORKER_EVICTION_ORDER_LRFU_ATTENUATION_FACTOR)
           .setDefaultValue(2.0)
           .setDescription("A attenuation factor in [2, INF) to control the behavior of LRFU.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_EVICTOR_LRFU_STEP_FACTOR =
+  public static final PropertyKey WORKER_EVICTION_ORDER_LRFU_STEP_FACTOR =
       new Builder(Name.WORKER_EVICTOR_LRFU_STEP_FACTOR)
           .setDefaultValue(0.25)
           .setDescription("A factor in [0, 1] to control the behavior of LRFU: smaller value "
@@ -3003,6 +3019,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILE_TARGET_MEDIA =
+      new Builder(Name.USER_FILE_TARGET_MEDIA)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_BLOCK_SIZE_BYTES_DEFAULT =
       new Builder(Name.USER_BLOCK_SIZE_BYTES_DEFAULT)
           .setDefaultValue("64MB")
@@ -3036,6 +3056,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_FILE_BUFFER_BYTES)
           .setDefaultValue("8MB")
           .setDescription("The size of the file buffer to use for file system reads/writes.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_FILE_RESERVED_BYTES =
+      new Builder(Name.USER_FILE_RESERVED_BYTES)
+          .setDefaultValue(String.format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
+          .setDescription("The size to reserve on workers for file system writes."
+              + "Using smaller value will improve concurrency for writes smaller than block size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -4524,8 +4552,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.folder.tmp";
     public static final String WORKER_DATA_TMP_SUBDIR_MAX = "alluxio.worker.data.tmp.subdir.max";
     public static final String WORKER_EVICTOR_CLASS = "alluxio.worker.evictor.class";
-    public static final String WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR =
-        "alluxio.worker.evictor.lrfu.attenuation.factor";
+    public static final String WORKER_EVICTION_ORDER_PROVIDER_CLASS =
+        "alluxio.worker.eviction.order.provider.class";
+    public static final String WORKER_EVICTION_ORDER_LRFU_ATTENUATION_FACTOR =
+        "alluxio.worker.eviction.order.lrfu.attenuation.factor";
     public static final String WORKER_EVICTOR_LRFU_STEP_FACTOR =
         "alluxio.worker.evictor.lrfu.step.factor";
     public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
@@ -4670,6 +4700,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
+    public static final String USER_FILE_RESERVED_BYTES = "alluxio.user.file.reserved.bytes";
     public static final String USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY =
         "alluxio.user.file.copyfromlocal.block.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
@@ -4694,6 +4725,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.persistence.initial.wait.time";
     public static final String USER_FILE_REPLICATION_MAX = "alluxio.user.file.replication.max";
     public static final String USER_FILE_REPLICATION_MIN = "alluxio.user.file.replication.min";
+    public static final String USER_FILE_TARGET_MEDIA = "alluxio.user.file.target.media";
     public static final String USER_FILE_REPLICATION_DURABLE =
         "alluxio.user.file.replication.durable";
     public static final String USER_FILE_SEQUENTIAL_PREAD_THRESHOLD =

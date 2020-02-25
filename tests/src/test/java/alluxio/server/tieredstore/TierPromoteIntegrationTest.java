@@ -24,7 +24,9 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
@@ -83,6 +85,8 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
         .setProperty(PropertyKey.WORKER_MEMORY_SIZE, CAPACITY_BYTES)
         .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, shortCircuitEnabled)
         .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
+        .setProperty(PropertyKey.WORKER_MANAGEMENT_IDLE_SLEEP_TIME, "1s")
+        .setProperty(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME, "2s")
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD")
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
             Files.createTempDir().getAbsolutePath())
@@ -99,30 +103,25 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
     final int size = (int) CAPACITY_BYTES / 2;
     AlluxioURI path1 = new AlluxioURI(PathUtils.uniqPath());
     AlluxioURI path2 = new AlluxioURI(PathUtils.uniqPath());
-    AlluxioURI path3 = new AlluxioURI(PathUtils.uniqPath());
 
-    // Write three files, first file should be in ssd, the others should be in memory
-    FileOutStream os1 =
-        mFileSystem.createFile(path1, CreateFilePOptions.newBuilder().setRecursive(true).build());
+    // Write teo files, first file should be in memory, the second should be in ssd tier.
+    FileOutStream os1 = mFileSystem.createFile(path1,
+        CreateFilePOptions.newBuilder().setWriteTier(0).setRecursive(true).build());
     os1.write(BufferUtils.getIncreasingByteArray(size));
     os1.close();
-    FileOutStream os2 =
-        mFileSystem.createFile(path2, CreateFilePOptions.newBuilder().setRecursive(true).build());
+    FileOutStream os2 = mFileSystem.createFile(path2,
+        CreateFilePOptions.newBuilder().setWriteTier(1).setRecursive(true).build());
     os2.write(BufferUtils.getIncreasingByteArray(size));
     os2.close();
-    FileOutStream os3 =
-        mFileSystem.createFile(path3, CreateFilePOptions.newBuilder().setRecursive(true).build());
-    os3.write(BufferUtils.getIncreasingByteArray(size));
-    os3.close();
 
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
     // Not in memory but in Alluxio storage
-    Assert.assertEquals(0, mFileSystem.getStatus(path1).getInMemoryPercentage());
+    Assert.assertEquals(0, mFileSystem.getStatus(path2).getInMemoryPercentage());
     Assert.assertFalse(mFileSystem.getStatus(path1).getFileBlockInfos().isEmpty());
 
-    // After reading with CACHE_PROMOTE, the file should be in memory
-    FileInStream in = mFileSystem.openFile(path1,
+    // After reading the second file, it should be moved to memory tier as per LRU.
+    FileInStream in = mFileSystem.openFile(path2,
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build());
     byte[] buf = new byte[size];
     while (in.read(buf) != -1) {
@@ -130,9 +129,14 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
     }
     in.close();
 
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-
-    // In memory
-    Assert.assertEquals(100, mFileSystem.getStatus(path1).getInMemoryPercentage());
+    CommonUtils.waitFor("File getting promoted to memory tier.", () -> {
+      try {
+        HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+        // In memory
+        return 100 == mFileSystem.getStatus(path2).getInMemoryPercentage();
+      } catch (Exception e) {
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(60000));
   }
 }

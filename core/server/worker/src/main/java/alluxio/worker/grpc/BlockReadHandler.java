@@ -15,9 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ReadResponse;
@@ -71,8 +68,6 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   public final class BlockDataReader extends DataReader {
     /** The Block Worker. */
     private final BlockWorker mWorker;
-    /** An object storing the mapping of tier aliases to ordinals. */
-    private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
     BlockDataReader(BlockReadRequestContext context, StreamObserver<ReadResponse> response,
         BlockWorker blockWorker) {
@@ -129,16 +124,18 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       }
       BlockReadRequest request = context.getRequest();
       // TODO(calvin): Update the locking logic so this can be done better
-      if (request.isPromote()) {
-        try {
-          mWorker.moveBlock(request.getSessionId(), request.getId(), mStorageTierAssoc.getAlias(0));
-        } catch (BlockDoesNotExistException e) {
-          LOG.debug("Block {} to promote does not exist in Alluxio: {}", request.getId(),
-              e.getMessage());
-        } catch (Exception e) {
-          LOG.warn("Failed to promote block {}: {}", request.getId(), e.getMessage());
-        }
-      }
+      // TODO(ggezer): TV2 - Update public API.
+      // TODO(ggezer): TV2 - Might still be useful for forcing faster reads.
+      //if (request.isPromote()) {
+      //  try {
+      //  mWorker.moveBlock(request.getSessionId(), request.getId(), mStorageTierAssoc.getAlias(0));
+      //  } catch (BlockDoesNotExistException e) {
+      //    LOG.debug("Block {} to promote does not exist in Alluxio: {}", request.getId(),
+      //        e.getMessage());
+      //  } catch (Exception e) {
+      //    LOG.warn("Failed to promote block {}: {}", request.getId(), e.getMessage());
+      //  }
+      //}
 
       int retryInterval = Constants.SECOND_MS;
       RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);

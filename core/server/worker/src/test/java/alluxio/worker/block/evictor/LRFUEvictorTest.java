@@ -27,6 +27,7 @@ import alluxio.worker.block.allocator.MaxFreeAllocator;
 import alluxio.worker.block.meta.StorageDir;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -44,6 +45,7 @@ import java.util.Map.Entry;
  * Unit tests for specific behavior of {@link LRFUEvictor} such as evicting/moving blocks with
  * minimum CRF value and cascading LRFU eviction.
  */
+@Ignore
 public class LRFUEvictorTest {
   private static final long SESSION_ID = 2;
   private static final long BLOCK_ID = 10;
@@ -72,9 +74,9 @@ public class LRFUEvictorTest {
     ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
     ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(mMetadataView);
-    mStepFactor = ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_STEP_FACTOR);
+    mStepFactor = ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTION_ORDER_LRFU_STEP_FACTOR);
     mAttenuationFactor =
-        ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
+        ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTION_ORDER_LRFU_ATTENUATION_FACTOR);
     mEvictor = Evictor.Factory.create(mMetadataView, allocator);
   }
 
@@ -97,7 +99,8 @@ public class LRFUEvictorTest {
    * Access the block to update {@link Evictor}.
    */
   private void access(long blockId) {
-    ((BlockStoreEventListener) mEvictor).onAccessBlock(SESSION_ID, blockId);
+    ((BlockStoreEventListener) mEvictor).onAccessBlock(SESSION_ID, blockId,
+        BlockStoreLocation.anyTier());
   }
 
   private double calculateAccessWeight(long timeInterval) {

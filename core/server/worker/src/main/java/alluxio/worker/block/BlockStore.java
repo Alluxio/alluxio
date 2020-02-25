@@ -77,23 +77,22 @@ public interface BlockStore extends SessionCleanable {
    * location named after session id) to store its data. The location can be a location with
    * specific tier and dir, or {@link BlockStoreLocation#anyTier()}, or
    * {@link BlockStoreLocation#anyDirInTier(String)}.
+   *
    * <p>
    * Before commit, all the data written to this block will be stored in the temp path and the block
    * is only "visible" to its writer client.
    *
    * @param sessionId the id of the session
    * @param blockId the id of the block to create
-   * @param location location to create this block
-   * @param initialBlockSize initial size of this block in bytes
+   * @param options allocation options
    * @return metadata of the temp block created
    * @throws IllegalArgumentException if location does not belong to tiered storage
    * @throws BlockAlreadyExistsException if block id already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    */
-  TempBlockMeta createBlock(long sessionId, long blockId, BlockStoreLocation location,
-      long initialBlockSize) throws BlockAlreadyExistsException, WorkerOutOfSpaceException,
-      IOException;
+  TempBlockMeta createBlock(long sessionId, long blockId, BlockAllocationOptions options)
+      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
    * Gets the metadata of a block given its block id or throws {@link BlockDoesNotExistException}.
@@ -148,6 +147,23 @@ public interface BlockStore extends SessionCleanable {
    * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
   void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
+      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
+      IOException, WorkerOutOfSpaceException;
+
+  /**
+   * Similar to {@link #commitBlock(long, long, boolean)}. It returns the block locked,
+   * so the caller is required to explicitly unlock the block.
+   *
+   * @param sessionId the id of the session
+   * @param blockId the id of a temp block
+   * @param pinOnCreate whether to pin block on create
+   * @return the lock id
+   * @throws BlockAlreadyExistsException if block id already exists in committed blocks
+   * @throws BlockDoesNotExistException if the temporary block can not be found
+   * @throws InvalidWorkerStateException if block id does not belong to session id
+   * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
+   */
+  long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException;
 

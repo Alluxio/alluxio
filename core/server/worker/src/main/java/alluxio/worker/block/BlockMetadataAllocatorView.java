@@ -29,8 +29,12 @@ public class BlockMetadataAllocatorView extends BlockMetadataView {
    */
   public BlockMetadataAllocatorView(BlockMetadataManager manager) {
     super(manager);
+  }
+
+  @Override
+  public void initializeView() {
     // iteratively create all StorageTierViews and StorageDirViews
-    for (StorageTier tier : manager.getTiers()) {
+    for (StorageTier tier : mMetadataManager.getTiers()) {
       StorageTierAllocatorView tierView = new StorageTierAllocatorView(tier);
       mTierViews.add(tierView);
       mAliasToTierViews.put(tier.getTierAlias(), tierView);
