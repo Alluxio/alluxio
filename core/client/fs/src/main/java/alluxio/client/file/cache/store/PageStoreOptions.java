@@ -32,7 +32,8 @@ public abstract class PageStoreOptions {
         PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);
     switch (storeType) {
       case LOCAL:
-        options = new LocalPageStoreOptions();
+        options = new LocalPageStoreOptions()
+            .setFileBuckets(conf.getInt(PropertyKey.USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS));
         break;
       case ROCKS:
         options = new RocksPageStoreOptions();
