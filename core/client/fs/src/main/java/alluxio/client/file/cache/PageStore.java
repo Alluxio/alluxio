@@ -95,7 +95,7 @@ public interface PageStore extends AutoCloseable {
         }
       }
       if (!restored) {
-       throw new IOException("Failed to restore PageStore");
+        throw new IOException("Failed to restore PageStore");
       }
     }
     return pageStore;
