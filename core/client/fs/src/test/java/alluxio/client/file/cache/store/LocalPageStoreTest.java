@@ -24,6 +24,8 @@ import org.junit.rules.TemporaryFolder;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class LocalPageStoreTest {
 
@@ -51,7 +53,34 @@ public class LocalPageStoreTest {
     helloWorldTest(pageStore);
   }
 
-  void helloWorldTest(PageStore store) throws Exception {
+  @Test
+  public void testSingleFileBucket() throws Exception {
+    mOptions.setFileBuckets(1);
+    LocalPageStore pageStore = new LocalPageStore(mOptions);
+    long numFiles = 100;
+    for (int i = 0; i < numFiles; i++) {
+      PageId id = new PageId(Integer.toString(i), 0);
+      pageStore.put(id, "test".getBytes());
+    }
+    assertEquals(1, Files.list(
+        Paths.get(mOptions.getRootDir(), Long.toString(mOptions.getPageSize()))).count());
+  }
+
+  @Test
+  public void testMultiFileBucket() throws Exception {
+    int numBuckets = 10;
+    mOptions.setFileBuckets(numBuckets);
+    LocalPageStore pageStore = new LocalPageStore(mOptions);
+    long numFiles = numBuckets * 10;
+    for (int i = 0; i < numFiles; i++) {
+      PageId id = new PageId(Integer.toString(i), 0);
+      pageStore.put(id, "test".getBytes());
+    }
+    assertEquals(10, Files.list(
+        Paths.get(mOptions.getRootDir(), Long.toString(mOptions.getPageSize()))).count());
+  }
+
+  private void helloWorldTest(PageStore store) throws Exception {
     String msg = "Hello, World!";
     PageId id = new PageId("0", 0);
     store.put(id, msg.getBytes());

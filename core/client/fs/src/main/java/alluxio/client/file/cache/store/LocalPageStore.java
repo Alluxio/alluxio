@@ -54,6 +54,7 @@ public class LocalPageStore implements PageStore {
   private final AtomicLong mSize = new AtomicLong(0);
   private final AtomicLong mBytes = new AtomicLong(0);
   private final long mPageSize;
+  private final int mFileBuckets;
   private final Pattern mPagePattern;
 
   /**
@@ -65,9 +66,10 @@ public class LocalPageStore implements PageStore {
   public LocalPageStore(LocalPageStoreOptions options) throws IOException {
     mRoot = options.getRootDir();
     mPageSize = options.getPageSize();
+    mFileBuckets = options.getFileBuckets();
     Path rootDir = Paths.get(mRoot);
     mPagePattern = Pattern.compile(
-        String.format("%s/%d/(\\d+)/(\\d+)", Pattern.quote(rootDir.toString()), mPageSize));
+        String.format("%s/%d/(\\d+)/(\\d+)/(\\d+)", Pattern.quote(rootDir.toString()), mPageSize));
     try {
       boolean invalidPage = false;
 
@@ -159,8 +161,12 @@ public class LocalPageStore implements PageStore {
   }
 
   private Path getFilePath(PageId pageId) {
-    return Paths.get(mRoot, Long.toString(mPageSize), pageId.getFileId(),
-        Long.toString(pageId.getPageIndex()));
+    return Paths.get(mRoot, Long.toString(mPageSize), getFileBucket(pageId.getFileId()),
+        pageId.getFileId(), Long.toString(pageId.getPageIndex()));
+  }
+
+  private String getFileBucket(String fileId) {
+    return Integer.toString(fileId.hashCode() % mFileBuckets);
   }
 
   /**
@@ -174,8 +180,12 @@ public class LocalPageStore implements PageStore {
       return null;
     }
     try {
-      String fileId = Preconditions.checkNotNull(matcher.group(1));
-      String fileName = Preconditions.checkNotNull(matcher.group(2));
+      String fileBucket = Preconditions.checkNotNull(matcher.group(1));
+      String fileId = Preconditions.checkNotNull(matcher.group(2));
+      if (!fileBucket.equals(getFileBucket(fileId))) {
+        return null;
+      }
+      String fileName = Preconditions.checkNotNull(matcher.group(3));
       long pageIndex = Long.parseLong(fileName);
       return new PageId(fileId, pageIndex);
     } catch (NumberFormatException e) {
