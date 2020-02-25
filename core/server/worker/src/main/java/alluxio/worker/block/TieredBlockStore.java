@@ -24,8 +24,10 @@ import alluxio.util.io.FileUtils;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.block.io.LocalFileBlockReader;
-import alluxio.worker.block.io.LocalFileBlockWriter;
+import alluxio.worker.block.io.StoreBlockReader;
+import alluxio.worker.block.io.StoreBlockWriter;
+import alluxio.worker.block.management.ManagementTaskCoordinator;
+import alluxio.worker.block.management.DefaultStoreLoadTracker;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirView;
@@ -132,7 +134,10 @@ public class TieredBlockStore implements BlockStore {
     //   registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     // }
 
-    mStorageTierAssoc = new WorkerStorageTierAssoc();
+    // Initialize and start coordinator.
+    mTaskCoordinator = new ManagementTaskCoordinator(this, mMetaManager,
+        new DefaultStoreLoadTracker(), () -> getUpdatedView());
+    mTaskCoordinator.start();
   }
 
   @Override

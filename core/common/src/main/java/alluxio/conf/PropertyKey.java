@@ -2314,6 +2314,35 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME =
+          new Builder(Name.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME)
+          .setDefaultValue("10sec")
+          .setDescription("Management tasks will not run for this long after load detected.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_IDLE_SLEEP_TIME =
+      new Builder(Name.WORKER_MANAGEMENT_IDLE_SLEEP_TIME)
+          .setDefaultValue("10sec")
+          .setDescription("Management task coordinator will back-off for specified duration when"
+              + "no management task is pending.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_MERGE_ENABLED =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_MERGE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether to run management task for merging tiers.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_MERGE_MAX_INTERSECTION_WIDTH =
+          new Builder(Name.WORKER_MANAGEMENT_TIER_MERGE_MAX_INTERSECTION_WIDTH)
+          .setDefaultValue(100)
+          .setDescription("Maximum allowed width of intersection between two tiers.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_FILE_BUFFER_SIZE =
       new Builder(Name.WORKER_FILE_BUFFER_SIZE)
           .setDefaultValue("1MB")
@@ -4557,7 +4586,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_EVICTION_ORDER_LRFU_ATTENUATION_FACTOR =
         "alluxio.worker.eviction.order.lrfu.attenuation.factor";
     public static final String WORKER_EVICTOR_LRFU_STEP_FACTOR =
-        "alluxio.worker.evictor.lrfu.step.factor";
+        "alluxio.worker.eviction.order.lrfu.step.factor";
+    public static final String WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME =
+        "alluxio.worker.management.load.detection.cool.down.time";
+    public static final String WORKER_MANAGEMENT_IDLE_SLEEP_TIME =
+        "alluxio.worker.management.idle.sleep.time";
+    public static final String WORKER_MANAGEMENT_TIER_MERGE_ENABLED =
+        "alluxio.worker.management.tier.merge.enabled";
+    public static final String WORKER_MANAGEMENT_TIER_MERGE_MAX_INTERSECTION_WIDTH =
+        "alluxio.worker.management.tier.merge.max.intersection.width";
     public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
     public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
