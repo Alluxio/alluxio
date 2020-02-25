@@ -20,6 +20,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -115,6 +116,7 @@ public class LocalCacheManager implements CacheManager {
     for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock();
     }
+    Metrics.registerGauges(mCacheSize, mPageStore);
   }
 
   /**
@@ -259,6 +261,7 @@ public class LocalCacheManager implements CacheManager {
           mMetaStore.removePage(pageId);
         } catch (PageNotFoundException e) {
           LOG.error("Failed to delete page {}: {}", pageId, e);
+          Metrics.DELETE_ERRORS.inc();
           return false;
         }
       }
@@ -286,10 +289,11 @@ public class LocalCacheManager implements CacheManager {
       mPageStore.put(pageId, page);
     } catch (IOException e) {
       LOG.error("Failed to add page {}: {}", pageId, e);
+      Metrics.PUT_ERRORS.inc();
       return false;
     }
     mEvictor.updateOnPut(pageId);
-    Metrics.BYTES_WRITTEN_CACHE.inc(page.length);
+    Metrics.BYTES_WRITTEN_CACHE.mark(page.length);
     return true;
   }
 
@@ -306,10 +310,12 @@ public class LocalCacheManager implements CacheManager {
       mPageStore.delete(pageId, pageInfo.getPageSize());
     } catch (IOException | PageNotFoundException e) {
       LOG.error("Failed to delete page {}: {}", pageId, e);
+      Metrics.DELETE_ERRORS.inc();
       return false;
     }
     mEvictor.updateOnDelete(pageId);
-    Metrics.BYTES_EVICTED_CACHE.inc(pageInfo.getPageSize());
+    Metrics.BYTES_EVICTED_CACHE.mark(pageInfo.getPageSize());
+    Metrics.PAGES_EVICTED_CACHE.mark();
     return true;
   }
 
@@ -320,6 +326,7 @@ public class LocalCacheManager implements CacheManager {
       ret = mPageStore.get(pageId, offset);
     } catch (IOException | PageNotFoundException e) {
       LOG.error("Failed to get existing page {}: {}", pageId, e);
+      Metrics.GET_ERRORS.inc();
       return null;
     }
     mEvictor.updateOnGet(pageId);
@@ -328,10 +335,31 @@ public class LocalCacheManager implements CacheManager {
 
   private static final class Metrics {
     /** Bytes written to the cache. */
-    private static final Counter BYTES_WRITTEN_CACHE =
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName());
+    private static final Meter BYTES_WRITTEN_CACHE =
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName());
     /** Bytes evicted from the cache. */
-    private static final Counter BYTES_EVICTED_CACHE =
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_EVICTED.getName());
+    private static final Meter BYTES_EVICTED_CACHE =
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_EVICTED.getName());
+    /** Pages evicted from the cache. */
+    private static final Meter PAGES_EVICTED_CACHE =
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_EVICTED.getName());
+    /** Errors when deleting pages. */
+    private static final Counter DELETE_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_DELETE_ERRORS.getName());
+    /** Errors when getting pages. */
+    private static final Counter GET_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_ERRORS.getName());
+    /** Errors when adding pages. */
+    private static final Counter PUT_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_ERRORS.getName());
+
+    private static void registerGauges(long cacheSize, PageStore pageStore) {
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_SPACE_AVAILABLE.getName()),
+          () -> cacheSize - pageStore.bytes());
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_SPACE_USED.getName()),
+          pageStore::bytes);
+    }
   }
 }

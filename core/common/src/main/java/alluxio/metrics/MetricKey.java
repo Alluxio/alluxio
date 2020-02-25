@@ -773,18 +773,18 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
-  // Client local cache metrics
+  // Client cache metrics
   public static final MetricKey CLIENT_CACHE_BYTES_READ_CACHE =
       new Builder(Name.CLIENT_CACHE_BYTES_READ_CACHE)
-          .setDescription("Total number of bytes read from the local cache.")
-          .setMetricType(MetricType.COUNTER)
+          .setDescription("Total number of bytes read from the client cache.")
+          .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_BYTES_READ_EXTERNAL =
       new Builder(Name.CLIENT_CACHE_BYTES_READ_EXTERNAL)
           .setDescription("Total number of bytes read from external storage due to a cache miss "
-              + "on the local cache.")
-          .setMetricType(MetricType.COUNTER)
+              + "on the client cache.")
+          .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL =
@@ -792,21 +792,64 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of bytes the user requested to read which resulted in a "
               + "cache miss. This number may be smaller than "
               + Name.CLIENT_CACHE_BYTES_READ_EXTERNAL + " due to chunk reads.")
-          .setMetricType(MetricType.COUNTER)
+          .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_BYTES_EVICTED =
       new Builder(Name.CLIENT_CACHE_BYTES_EVICTED)
-          .setDescription("Total number of bytes evicted from the local cache.")
-          .setMetricType(MetricType.COUNTER)
+          .setDescription("Total number of bytes evicted from the client cache.")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_PAGES_EVICTED =
+      new Builder(Name.CLIENT_CACHE_PAGES_EVICTED)
+          .setDescription("Total number of pages evicted from the client cache.")
+          .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_BYTES_WRITTEN_CACHE =
       new Builder(Name.CLIENT_CACHE_BYTES_WRITTEN_CACHE)
-          .setDescription("Total number of bytes written to the local cache.")
+          .setDescription("Total number of bytes written to the client cache.")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_HIT_RATE =
+      new Builder(Name.CLIENT_CACHE_HIT_RATE)
+          .setDescription("Cache hit rate: (# bytes read from cache) / (# bytes requested).")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_SPACE_AVAILABLE =
+      new Builder(Name.CLIENT_CACHE_SPACE_AVAILABLE)
+          .setDescription("Amount of bytes available in the client cache.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_SPACE_USED =
+      new Builder(Name.CLIENT_CACHE_SPACE_USED)
+          .setDescription("Amount of bytes used by the client cache.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_DELETE_ERRORS =
+      new Builder(Name.CLIENT_CACHE_DELETE_ERRORS)
+          .setDescription("Number of failures when deleting cached data in the client cache.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_GET_ERRORS =
+      new Builder(Name.CLIENT_CACHE_GET_ERRORS)
+          .setDescription("Number of failures when getting cached data in the client cache.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_PUT_ERRORS =
+      new Builder(Name.CLIENT_CACHE_PUT_ERRORS)
+          .setDescription("Number of failures when putting cached data in the client cache.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+
 
   /**
    * Registers the given key to the global key map.
@@ -1005,8 +1048,15 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL
         = "Client.CacheBytesRequestedExternal";
     public static final String CLIENT_CACHE_BYTES_EVICTED = "Client.CacheBytesEvicted";
+    public static final String CLIENT_CACHE_PAGES_EVICTED = "Client.CachePagesEvicted";
     public static final String CLIENT_CACHE_BYTES_WRITTEN_CACHE
         = "Client.CacheBytesWrittenCache";
+    public static final String CLIENT_CACHE_HIT_RATE = "Client.CacheHitRate";
+    public static final String CLIENT_CACHE_SPACE_AVAILABLE = "Client.CacheSpaceAvailable";
+    public static final String CLIENT_CACHE_SPACE_USED = "Client.CacheSpaceUsed";
+    public static final String CLIENT_CACHE_DELETE_ERRORS = "Client.CacheDeleteErrors";
+    public static final String CLIENT_CACHE_GET_ERRORS = "Client.CacheGetErrors";
+    public static final String CLIENT_CACHE_PUT_ERRORS = "Client.CachePutErrors";
 
     private Name() {} // prevent instantiation
   }
