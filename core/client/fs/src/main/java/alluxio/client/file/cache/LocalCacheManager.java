@@ -118,6 +118,14 @@ public class LocalCacheManager implements CacheManager {
   }
 
   /**
+   * @param pageId page identifier
+   * @return the page lock id
+   */
+  private int getPageLockId(PageId pageId) {
+    return Math.floorMod((int) (pageId.getFileId().hashCode() + pageId.getPageIndex()), LOCK_SIZE);
+  }
+
+  /**
    * Gets the lock for a particular page. Note that multiple pages may share the same lock as lock
    * striping is used to reduce resource overhead for locks.
    *
@@ -125,24 +133,24 @@ public class LocalCacheManager implements CacheManager {
    * @return the corresponding page lock
    */
   private ReadWriteLock getPageLock(PageId pageId) {
-    return mPageLocks
-        [Math.floorMod((int) (pageId.getFileId().hashCode() + pageId.getPageIndex()), LOCK_SIZE)];
+    return mPageLocks[getPageLockId(pageId)];
   }
 
   /**
    * Gets a pair of locks to operate two given pages. One MUST acquire the first lock followed by
    * the second lock.
    *
-   * @param pageId page identifier
-   * @param pageId2 page identifier
+   * @param pageId1 first page identifier
+   * @param pageId2 second page identifier
    * @return the corresponding page lock pair
    */
-  private Pair<ReadWriteLock, ReadWriteLock> getPageLockPair(PageId pageId, PageId pageId2) {
-    if (pageId.getFileId().hashCode() + pageId.getPageIndex()
-        < pageId2.getFileId().hashCode() + pageId2.getPageIndex()) {
-      return new Pair<>(getPageLock(pageId), getPageLock(pageId2));
+  private Pair<ReadWriteLock, ReadWriteLock> getPageLockPair(PageId pageId1, PageId pageId2) {
+    int lockId1 = getPageLockId(pageId1);
+    int lockId2 = getPageLockId(pageId2);
+    if (lockId1 < lockId2) {
+      return new Pair<>(mPageLocks[lockId1], mPageLocks[lockId2]);
     } else {
-      return new Pair<>(getPageLock(pageId2), getPageLock(pageId));
+      return new Pair<>(mPageLocks[lockId2], mPageLocks[lockId1]);
     }
   }
 
