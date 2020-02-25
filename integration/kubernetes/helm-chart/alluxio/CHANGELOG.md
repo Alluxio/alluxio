@@ -48,3 +48,7 @@
 
 - Updated the journal formatting Job logic
 - Misc formatting and parameters updates
+
+0.5.5
+
+- Removed extra resources created by Helm install https://github.com/Alluxio/alluxio/issues/10321
