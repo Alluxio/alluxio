@@ -41,8 +41,9 @@ $ mvn clean install -DskipTests
 为了加速编译过程，你可以运行如下指令跳过不同的检查：
 
 ```console
-$ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip
+$ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip -Dcheckstyle.skip -Dlicense.skip  -Dskip.protoc
 ```
+注意：有`-Dskip.protoc`这个标志，说明不执行protoc，也就不会生成proto相关的源文件。因此，不应该在首次build的时候使用`-Dskip.protoc`。
 
 如果你看到了 `java.lang.OutOfMemoryError: Java heap space`，请设置如下变量增大maven可使用的内存空间：
 
