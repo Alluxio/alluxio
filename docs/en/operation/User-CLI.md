@@ -1097,16 +1097,22 @@ $ ./bin/alluxio fs unsetTtl /data/yesterday/data-not-yet-analyzed
 ```console
 $ ./bin/alluxio table
 Usage: alluxio table [generic options]
-	 [attachdb [-o|--option <key=value>] [--db <alluxio db name>] <udb type> <udb connection uri> <udb db name>]
+	 [attachdb [-o|--option <key=value>] [--db <alluxio db name>] [--ignore-sync-errors] <udb type> <udb connection uri> <udb db name>]
 	 [detachdb <db name>]
 	 [ls [<db name> [<table name>]]]
 	 [sync <db name>]
 	 [transform <db name> <table name>]
+	 [transformStatus [<job ID>]]
 ```
 
 The table subcommand manages the structured data service of Alluxio.
 
 ### attachdb
+
+Syntax:
+```
+attachdb [-o|--option <key=value>] [--db <alluxio db name>] [--ignore-sync-errors] <udb type> <udb connection uri> <udb db name>
+```
 
 The `attachdb` command attaches an existing "under database" to the Alluxio catalog. This is
 analogous to mounting a under filesystem to the Alluxio filesystem namespace. Once a database is
@@ -1120,8 +1126,18 @@ $ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name
 This command will attach the database `hive_db_name` (of type `hive`) from the URI
 `thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `hive_db_name`.
 
-You can use a different Alluxio database name with the `--db <alluxio db name>` option.
+Here are the attach command options:
+  * `--db <alluxio db name>`: specify a different Alluxio database name
+  * `--ignore-sync-errors`: ignore sync errors, and keeps the database attached
+  * `-o|--option <key=value>`: (multiple) additional properties associated with the attached db and UDB
 
+Here are the additional properties possible for the `-o` options:
+  * `udb-<UDB_TYPE>.mount-option.{<UFS_PREFIX>}.<MOUNT_PROPERTY>`: specify a mount option for a
+  particular UFS path
+    * `<UDB_TYPE>`: the UDB type
+    * `<UFS_PREFIX>`: the UFS path prefix that the mount properties are for
+    * `<MOUNT_PROPERTY>`: an Alluxio mount property
+  * `catalog.db.ignore.udb.tables`: comma-separated list of table names to ignore from the UDB
 
 For the `hive` udb type, during the attach process, the Alluxio catalog will auto-mount all the
 table/partition locations in the specified database, to Alluxio. You can supply the mount options
@@ -1182,9 +1198,8 @@ $ ./bin/alluxio table sync db_name
 ```
 
 This will sync the `db_name` database name with the under database.
-
-> In 2.1.0, `sync` will only discover new information (new tables, new partitions) and not update
-> existing metadata. The full sync feature will be implemented in future versions.
+The sync will update, add, remove catalog metadata according to the changes found in the underlying
+database and tables.
 
 ### transform
 
