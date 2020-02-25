@@ -68,8 +68,9 @@ public class LocalPageStore implements PageStore {
     mPageSize = options.getPageSize();
     mFileBuckets = options.getFileBuckets();
     Path rootDir = Paths.get(mRoot);
+    // pattern encoding root_path/page_size(ulong)/bucket(uint)/file_id(str)/page_idx(ulong)/
     mPagePattern = Pattern.compile(
-        String.format("%s/%d/(\\d+)/(\\d+)/(\\d+)", Pattern.quote(rootDir.toString()), mPageSize));
+        String.format("%s/%d/(\\d+)/([^/]+)/(\\d+)", Pattern.quote(rootDir.toString()), mPageSize));
     try {
       boolean invalidPage = false;
 
@@ -161,6 +162,7 @@ public class LocalPageStore implements PageStore {
   }
 
   private Path getFilePath(PageId pageId) {
+    // TODO(feng): encode fileId with URLEncoder to escape invalid characters for file name
     return Paths.get(mRoot, Long.toString(mPageSize), getFileBucket(pageId.getFileId()),
         pageId.getFileId(), Long.toString(pageId.getPageIndex()));
   }
