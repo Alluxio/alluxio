@@ -121,7 +121,7 @@ public final class DuCommand extends AbstractFileSystemCommand {
           long size = status.getLength();
           totalSize += size;
           sizeInMem += size * status.getInMemoryPercentage();
-          sizeInAlluxio += size * status.getInMemoryPercentage();
+          sizeInAlluxio += size * status.getInAlluxioPercentage();
         }
       }
       String sizeMessage = readable ? FormatUtils.getSizeFromBytes(totalSize)
