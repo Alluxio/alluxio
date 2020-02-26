@@ -1,0 +1,11 @@
+metricName,metricType
+Client.BytesReadLocal,COUNTER
+Client.BytesReadLocalThroughput,METER
+Client.BytesWrittenLocal,COUNTER
+Client.BytesWrittenLocalThroughput,METER
+Client.BytesWrittenUfs,COUNTER
+Client.CacheBytesEvicted,COUNTER
+Client.CacheBytesReadCache,COUNTER
+Client.CacheBytesReadExternal,COUNTER
+Client.CacheBytesRequestedExternal,COUNTER
+Client.CacheBytesWrittenCache,COUNTER
