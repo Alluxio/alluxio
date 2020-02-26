@@ -159,6 +159,7 @@ public class LocalPageStore implements PageStore {
     PageId pageId = getPageId(path);
     long pageSize;
     if (pageId == null) {
+      LOG.error("Unrecognized page file" + path);
       return null;
     }
     try {

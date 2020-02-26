@@ -85,6 +85,9 @@ public interface PageStore extends AutoCloseable {
         Iterator<PageInfo> iterator = stream.iterator();
         while (iterator.hasNext()) {
           PageInfo pageInfo = iterator.next();
+          if (pageInfo == null) {
+            throw new IOException("Invalid page info");
+          }
           metaStore.addPage(pageInfo.getPageId(), pageInfo);
           evictor.updateOnPut(pageInfo.getPageId());
           if (metaStore.bytes() > pageStore.getCacheSize()) {
@@ -180,7 +183,10 @@ public interface PageStore extends AutoCloseable {
   void delete(PageId pageId, long pageSize) throws IOException, PageNotFoundException;
 
   /**
-   * @return a new iterator of all pages from page store
+   * Gets a stream of all pages from the page store. This stream needs to be closed as it may
+   * open IO resources.
+   *
+   * @return a stream of all pages from page store
    * @throws IOException if any error occurs
    */
   Stream<PageInfo> getPages() throws IOException;
