@@ -22,7 +22,6 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.BufferUtils;
 
-import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;

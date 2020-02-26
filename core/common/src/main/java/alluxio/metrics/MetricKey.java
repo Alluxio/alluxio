@@ -850,7 +850,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
 
-
   /**
    * Registers the given key to the global key map.
    *
