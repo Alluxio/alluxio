@@ -84,7 +84,7 @@ public class LocalCacheFileInStreamTest {
 
   @Before
   public void before() {
-    MetricsSystem.resetCountersAndGauges();
+    MetricsSystem.clearAllMetrics();
   }
 
   @Test
@@ -250,7 +250,7 @@ public class LocalCacheFileInStreamTest {
     stream.read(cacheMiss);
     Assert.assertEquals(0,
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
-    Assert.assertEquals(readSize, MetricsSystem.counter(
+    Assert.assertEquals(readSize, MetricsSystem.meter(
         MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(fileSize,
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
@@ -259,7 +259,7 @@ public class LocalCacheFileInStreamTest {
     stream.read();
     Assert.assertEquals(1,
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
-    Assert.assertEquals(readSize, MetricsSystem.counter(
+    Assert.assertEquals(readSize, MetricsSystem.meter(
         MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(fileSize,
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
