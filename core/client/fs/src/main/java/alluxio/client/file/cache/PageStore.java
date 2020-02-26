@@ -29,6 +29,8 @@ import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
+
 /**
  * A simple abstraction on the storage to put, get and delete pages. The implementation of this
  * class does not need to provide thread-safety.
@@ -43,23 +45,23 @@ public interface PageStore extends AutoCloseable {
    * @return a PageStore instance
    */
   static PageStore create(PageStoreOptions options) throws IOException {
-    return create(options, true, null, null);
+    return create(options, null, null);
   }
 
   /**
-   * Creates a {@link PageStore} by restoring from previous state.
+   * Creates a {@link PageStore} by restoring from previous state (when metastore and evictor are
+   * not null).
    *
    * @param options the options to instantiate the page store
-   * @param ignorePages whether to ignore the previous state
    * @param metaStore meta store
    * @param evictor evictor
    * @return a PageStore instance
    * @throws IOException if I/O error happens
    */
-  static PageStore create(PageStoreOptions options, boolean ignorePages, MetaStore metaStore,
-      CacheEvictor evictor) throws IOException {
+  static PageStore create(PageStoreOptions options, @Nullable MetaStore metaStore,
+        @Nullable CacheEvictor evictor) throws IOException {
     LOG.info("Create PageStore option={}", options.toString());
-    if (ignorePages) {
+    if (metaStore == null || evictor == null) {
       initialize(options);
     }
     final PageStore pageStore;
@@ -74,7 +76,7 @@ public interface PageStore extends AutoCloseable {
         throw new IllegalArgumentException(
             "Incompatible PageStore " + options.getType() + " specified");
     }
-    if (!ignorePages) {
+    if (metaStore != null && evictor != null) {
       Path rootDir = Paths.get(options.getRootDir());
       if (!Files.exists(rootDir)) {
         throw new IOException(String.format("Directory %s does not exist", rootDir));

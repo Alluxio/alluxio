@@ -149,7 +149,7 @@ public class PageStoreTest {
     mPageStore.close();
     MetaStore metaStore = MetaStore.create();
     CacheEvictor evictor = Mockito.mock(CacheEvictor.class);
-    try (PageStore store = PageStore.create(mOptions, false, metaStore, evictor)) {
+    try (PageStore store = PageStore.create(mOptions, metaStore, evictor)) {
       Set<PageInfo> restored = store.getPages().collect(Collectors.toSet());
       assertEquals(pages, restored);
     }
@@ -169,7 +169,7 @@ public class PageStoreTest {
     mPageStore.close();
     MetaStore metaStore = MetaStore.create();
     CacheEvictor evictor = Mockito.mock(CacheEvictor.class);
-    try (PageStore store = PageStore.create(mOptions, false, metaStore, evictor)) {
+    try (PageStore store = PageStore.create(mOptions, metaStore, evictor)) {
       Set<PageInfo> restored = store.getPages().collect(Collectors.toSet());
       assertEquals(pages, restored);
     }

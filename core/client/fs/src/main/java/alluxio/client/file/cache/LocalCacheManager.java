@@ -80,7 +80,7 @@ public class LocalCacheManager implements CacheManager {
     PageStoreOptions options = PageStoreOptions.create(conf);
     PageStore pageStore = null;
     try {
-      pageStore = PageStore.create(options, false, metaStore, evictor);
+      pageStore = PageStore.create(options, metaStore, evictor);
     } catch (Exception e) {
       LOG.error("Failed to restore PageStore", e);
     }
