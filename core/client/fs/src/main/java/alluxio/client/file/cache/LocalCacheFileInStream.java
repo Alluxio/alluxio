@@ -22,7 +22,6 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.BufferUtils;
 
-import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
@@ -85,6 +84,7 @@ public class LocalCacheFileInStream extends FileInStream {
         throw new RuntimeException(e);
       }
     }).get();
+    Metrics.registerGauges();
   }
 
   /**
@@ -104,6 +104,7 @@ public class LocalCacheFileInStream extends FileInStream {
     mCacheManager = cacheManager;
     // Lazy init of status object
     mStatus = status;
+    Metrics.registerGauges();
   }
 
   @Override
@@ -162,7 +163,7 @@ public class LocalCacheFileInStream extends FileInStream {
             System.arraycopy(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
             bytesRead += bytesLeftInPage;
             mPosition += bytesLeftInPage;
-            Metrics.BYTES_REQUESTED_EXTERNAL.inc(bytesLeftInPage);
+            Metrics.BYTES_REQUESTED_EXTERNAL.mark(bytesLeftInPage);
           }
         }
       }
@@ -237,7 +238,7 @@ public class LocalCacheFileInStream extends FileInStream {
           System.arraycopy(page, currentPageOffset, b, off + bytesRead, bytesLeftInPage);
           bytesRead += bytesLeftInPage;
           currentPosition += bytesLeftInPage;
-          Metrics.BYTES_REQUESTED_EXTERNAL.inc(bytesLeftInPage);
+          Metrics.BYTES_REQUESTED_EXTERNAL.mark(bytesLeftInPage);
         }
       }
     }
@@ -344,7 +345,22 @@ public class LocalCacheFileInStream extends FileInStream {
     private static final Meter BYTES_READ_EXTERNAL =
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName());
     /** Cache misses. */
-    private static final Counter BYTES_REQUESTED_EXTERNAL =
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName());
+    private static final Meter BYTES_REQUESTED_EXTERNAL =
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName());
+
+    private static void registerGauges() {
+      // Cache hit rate = Cache hits / (Cache hits + Cache misses).
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_HIT_RATE.getName()),
+          () -> {
+            long cacheHits = BYTES_READ_CACHE.getCount();
+            long cacheMisses = BYTES_REQUESTED_EXTERNAL.getCount();
+            long total = cacheHits + cacheMisses;
+            if (total > 0) {
+              return cacheHits / (1.0 * total);
+            }
+            return 0;
+          });
+    }
   }
 }
