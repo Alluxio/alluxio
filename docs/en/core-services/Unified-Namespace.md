@@ -6,7 +6,8 @@ group: Core Services
 priority: 3
 ---
 
-This page summarizes how to manage different under storage systems in Alluxio namespace.
+This page summarizes how to manage different under storage systems in the Alluxio file system
+namespace.
 
 * Table of Contents
 {:toc}
@@ -15,7 +16,7 @@ This page summarizes how to manage different under storage systems in Alluxio na
 Alluxio enables effective data management across different storage systems through its use of
 transparent naming and mounting API.
 
-### Unified namespace
+### Unified Namespace
 One of the key benefits that Alluxio provides is a unified namespace to the applications.
 This is an abstraction that allows applications to access multiple independent storage systems
 through the same namespace and interface.
@@ -25,8 +26,9 @@ systems.
 
 ![unified]({{ '/img/screenshot_unified.png' | relativize_url }})
 
-The directory specified by the `alluxio.master.mount.table.root.ufs` is mounted to the root of the
-Alluxio namespace. This directory identifies the "primary storage" for Alluxio.
+The directory specified by the master configuration property `alluxio.master.mount.table.root.ufs`
+is mounted to the root of the Alluxio namespace.
+This directory identifies the "primary storage" for Alluxio.
 In addition, users can use the mounting API to add and remove data sources:
 
 ```java
@@ -41,7 +43,7 @@ For example, mount a S3 bucket to the `Data` directory through
 mount(new AlluxioURI("alluxio://host:port/Data"), new AlluxioURI("s3://bucket/directory"));
 ```
 
-### UFS namespace
+### UFS Namespace
 In addition to the unified namespace Alluxio provides, each underlying file system that is mounted
 in Alluxio namespace has its own namespace; this is referred to as the UFS namespace.
 If a file in the UFS namespace is changed without going through Alluxio,
@@ -68,17 +70,20 @@ Alluxio transparently discovers content present in the underlying storage system
 was not created through Alluxio. For instance, if the underlying storage system contains a directory
 `Data` with files `Reports` and `Sales`, all of which were not created through Alluxio, their
 metadata will be loaded into Alluxio the first time they are accessed, such as when a user requests to
-open a file. The data of the file is not loaded to Alluxio during this process. To load the data into
-Alluxio, one can read the data using `FileInStream` or use the `load` command of the Alluxio shell.
-
+open a file. The contents of the file is not loaded to Alluxio during this process. To load the
+file contents into Alluxio, one can read the data using `FileInStream` or use the `load` command
+of the Alluxio shell.
 
 ## Mounting Under Storage Systems
+Mounting an Under storage system to the Alluxio file system namespace is the mechanism for
+defining the association between the Alluxio namespace and the UFS namespace.
 Mounting in Alluxio works similarly to mounting a volume in a Linux file system.
-The mount command attaches a UFS to the file system tree in the Alluxio namespace.
+The `mount` command attaches a UFS to the file system tree in the Alluxio namespace.
 
 ### Root Mount Point
 The root mount point of the Alluxio namespace can be specified in `conf/alluxio-site.properties`.
-The following line is an example configuration where a HDFS path is at the root of the Alluxio namespace.
+The following line is an example configuration where an HDFS path is mounted to the root of the
+Alluxio namespace.
 
 ```
 alluxio.master.mount.table.root.ufs=hdfs://HDFS_HOSTNAME:8020
@@ -88,7 +93,7 @@ Mount options for the root mount point can be configured using the configuration
 
 `alluxio.master.mount.table.root.option.<some alluxio property>`
 
-The following configuration adds AWS credentials for the root mount point.
+For example, the following configuration adds AWS credentials for the root mount point.
 
 ```
 alluxio.master.mount.table.root.option.aws.accessKeyId=<AWS_ACCESS_KEY_ID>
@@ -107,7 +112,7 @@ alluxio.master.mount.table.root.option.alluxio.underfs.version=2.7
 ### Nested Mount Points
 In addition to the root mount point, other under file systems can be mounted into Alluxio namespace
 by using the mount command. The `--option` flag allows the user to pass additional parameters
-to the mount operation, such as credentials for S3 storage.
+to the mount operation, such as credentials.
 
 ```console
 $ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
@@ -151,11 +156,11 @@ the metadata sync feature is used to synchronize the two namespaces.
 
 When Alluxio scans a UFS directory and loads metadata for its sub-paths,
 it creates a copy of the metadata so that future operations do not need to load from the UFS.
-By default, the cached copy lives forever but its lifetime can be configured using the
-`alluxio.user.file.metadata.sync.interval` property.
+The cached copy of the metadata is refreshed according to the
+`alluxio.user.file.metadata.sync.interval` client configuration property.
 This property applies to client side operations.
 For example, if a client executes an operation with the interval set to one minute,
-all relevant metadata must be synced within the past minute.
+the relevant metadata will be refreshed from the UFS if the last refresh was over a minute ago.
 A value of `0` indicates that the metadata will always be synced for every operation,
 whereas the default value of `-1` indicates the metadata is never synced again after the initial load.
 
@@ -176,11 +181,8 @@ If the UFS updates at a scheduled interval, you can manually trigger the sync co
 Set the sync interval to `0` by running the command:
 
 ```console
-$ ./bin/alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=0
+$ ./bin/alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=0 /path/to/sync
 ```
-
-Then reset the sync interval back to the default value of `-1`,
-since it is known that there will be no further external changes to the UFS until the next update.
 
 #### Centralized Configuration
 
@@ -196,10 +198,10 @@ Note master nodes need to be restarted to pick up configuration changes.
 
 ### Other Methods for Loading New UFS Files
 
-The UFS sync discussed previously is the recommended method for loading files from the UFS.
+The UFS sync discussed previously is the recommended method for synchronizing changes from the UFS.
 Here are some other methods for loading files:
 
-* `alluxio.user.file.metadata.load.type`: This property can be set to either
+* `alluxio.user.file.metadata.load.type`: This client property can be set to either
 `ALWAYS`, `ONCE`, or `NEVER`. It acts similar to `alluxio.user.file.metadata.sync.interval`,
 but with two caveats:
     1. It only discovers new files and does not reload modified or deleted files.
@@ -209,10 +211,10 @@ but with two caveats:
 behavior of only scanning each directory once ever, and `NEVER` will prevent Alluxio
 from scanning for new files at all.
 
-* `alluxio fs ls -f /path`: The `-f` option to `ls` acts the same as setting
+* `alluxio fs ls -f /path`: The `-f` option to `ls` acts is equivalent to setting
 `alluxio.user.file.metadata.load.type` to `ALWAYS`. It discovers new files but
 does not detect modified or deleted UFS files.
-The only way to detect these types of changes is to pass the
+The only way to detect modified or deleted UFS files is to pass the
 `-Dalluxio.user.file.metadata.sync.interval=0` option to `ls`.
 
 ## Examples
@@ -290,13 +292,12 @@ hello
 In version 2.0, we introduced a new feature for maintaining synchronization between Alluxio space and the UFS when the UFS is HDFS.
 The feature, called active sync, listens for HDFS events and periodically synchronizes the metadata between the UFS and Alluxio namespace as a background task on the master. 
 Because active sync feature depends on HDFS events, this feature is only available when the UFS HDFS versions is later than 2.6.1.
-You might need to change the value for `alluxio.underfs.version` in your configuration file.
+You may need to change the value for `alluxio.underfs.version` in your configuration file.
 Please refer to [HDFS Under Store]({{ '/en/ufs/HDFS.html#supported-hdfs-versions' | relativize_url }}) for a list of supported Hdfs versions.
 
 To enable active sync on a directory, issue the following Alluxio command.
 
 ```console
-$ ./bin/alluxio fs mkdir /syncdir
 $ ./bin/alluxio fs startSync /syncdir
 ```
 
@@ -307,6 +308,7 @@ To disable active sync on a directory, issue the following Alluxio command.
 ```console
 $ ./bin/alluxio fs stopSync /syncdir
 ```
+
 > Note: When `startSync` is issued, a full scan of the sync point is scheduled.
 > If run as the Alluxio superuser, `stopSync` will interrupt any full scans which have not yet ended.
 > If run as any other user, `stopSync` will wait for the full scan to finish before completing.
@@ -339,7 +341,14 @@ alluxio.master.ufs.active.sync.max.activities=100
 alluxio.master.ufs.active.sync.max.age=5
 ```
 
-means that every 30 seconds, the system will count the number of events in the directory and calculate its activity. If the activity is less than 100, it will be considered a quiet period, and syncing will start for that directory. If the activity is greater than 100, and it has not synced for the last 5 intervals, or 5 * 30 = 150 seconds, it will start syncing the directory. It will not perform active sync if the activity is greater than 100 and it has synced at least once in the last 5 intervals.
+means that every 30 seconds, the system will count the number of events in the directory and
+calculate its activity.
+If the activity is less than 100, it will be considered a quiet period, and syncing will start
+for that directory.
+If the activity is greater than 100, and it has not synced for the last 5 intervals, or
+5 * 30 = 150 seconds, it will start syncing the directory.
+It will not perform active sync if the activity is greater than 100 and it has synced at least
+once in the last 5 intervals.
 
 ### Unified Namespace
 
@@ -349,9 +358,12 @@ accounts and a HDFS service.
 
 Mount the first S3 bucket into Alluxio using its corresponding credentials `<accessKeyId1>` and `<secretKey1>` :
 
-```java
-./bin/alluxio fs mkdir /mnt
-./bin/alluxio fs mount --option aws.accessKeyId=<accessKeyId1> --option aws.secretKey=<secretKey1>  /mnt/s3bucket1 s3://data-bucket1/
+```console
+$ ./bin/alluxio fs mkdir /mnt
+$ ./bin/alluxio fs mount \
+  --option aws.accessKeyId=<accessKeyId1> \
+  --option aws.secretKey=<secretKey1> \
+  /mnt/s3bucket1 s3://data-bucket1/
 ```
 
 Mount the second S3 bucket into Alluxio using its corresponding credentials `<accessKeyId2>` and `<secretKey2>`:
@@ -375,7 +387,6 @@ All three directories are all contained in one space in Alluxio:
 $ ./bin/alluxio fs ls -R /
 ... # should contain /mnt/s3bucket1, /mnt/s3bucket2, /mnt/hdfs
 ```
-
 
 ## Resources
 
