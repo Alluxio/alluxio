@@ -55,11 +55,11 @@ public final class HiveClientPool extends DynamicResourcePool<IMetaStoreClient> 
     super(Options.defaultOptions()
         .setMinCapacity(16)
         .setMaxCapacity(128)
-        .setGcIntervalMs(5 * Constants.MINUTE_MS)
+        .setGcIntervalMs(5L * Constants.MINUTE_MS)
         .setGcExecutor(GC_EXECUTOR));
     mConnectionUri = connectionUri;
     mHiveDbName = hiveDbName;
-    mGcThresholdMs = 5 * Constants.MINUTE_MS;
+    mGcThresholdMs = 5L * Constants.MINUTE_MS;
   }
 
   @Override

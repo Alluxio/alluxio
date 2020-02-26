@@ -25,7 +25,7 @@ import java.util.concurrent.RejectedExecutionException;
  */
 public class ForkJoinPoolHelper {
   private static final Logger SAMPLING_LOG = new SamplingLogger(
-      LoggerFactory.getLogger(ForkJoinPoolHelper.class), 30 * Constants.SECOND_MS);
+      LoggerFactory.getLogger(ForkJoinPoolHelper.class), 30L * Constants.SECOND_MS);
 
   /**
    * Does managed blocking on ForkJoinPool. This helper is guaranteed to block even when
