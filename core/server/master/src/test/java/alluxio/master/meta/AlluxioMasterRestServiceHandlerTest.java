@@ -70,7 +70,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Response;
@@ -195,7 +194,8 @@ public final class AlluxioMasterRestServiceHandlerTest {
     try {
       assertNotNull("Response must be not null!", response);
       assertNotNull("Response must have a entry!", response.getEntity());
-      assertTrue("Entry must be an AlluxioMasterInfo!", (response.getEntity() instanceof AlluxioMasterInfo));
+      assertTrue("Entry must be an AlluxioMasterInfo!",
+              (response.getEntity() instanceof AlluxioMasterInfo));
       AlluxioMasterInfo info = (AlluxioMasterInfo) response.getEntity();
 
       // Validate configuration
