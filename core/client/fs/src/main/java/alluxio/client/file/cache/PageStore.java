@@ -26,7 +26,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
+import java.util.Iterator;
 import java.util.stream.Stream;
 
 /**
@@ -79,24 +79,23 @@ public interface PageStore extends AutoCloseable {
       if (!Files.exists(rootDir)) {
         throw new IOException(String.format("Directory %s does not exist", rootDir));
       }
-      Collection<PageInfo> pageInfos = pageStore.getPages();
-      LOG.info("Restoring PageStore with {} existing pages", pageInfos.size());
-      boolean restored = true;
-      for (PageInfo pageInfo : pageInfos) {
-        if (pageInfo == null) {
-          restored = false;
-          break;
+      try (Stream<PageInfo> stream = pageStore.getPages()) {
+        Iterator<PageInfo> iterator = stream.iterator();
+        while (iterator.hasNext()) {
+          PageInfo pageInfo = iterator.next();
+          metaStore.addPage(pageInfo.getPageId(), pageInfo);
+          evictor.updateOnPut(pageInfo.getPageId());
+          if (metaStore.bytes() > pageStore.getCacheSize()) {
+            throw new IOException(
+                String.format("Loaded pages exceed cache capacity (%d bytes)",
+                    pageStore.getCacheSize()));
+          }
         }
-        metaStore.addPage(pageInfo.getPageId(), pageInfo);
-        evictor.updateOnPut(pageInfo.getPageId());
-        if (metaStore.bytes() > pageStore.getCacheSize()) {
-          restored = false;
-          break;
-        }
+      } catch (Exception e) {
+        throw new IOException("Failed to restore PageStore", e);
       }
-      if (!restored) {
-        throw new IOException("Failed to restore PageStore");
-      }
+      LOG.info("Restored PageStore with {} existing pages and {} bytes",
+          metaStore.pages(), metaStore.bytes());
     }
     return pageStore;
   }
@@ -179,10 +178,10 @@ public interface PageStore extends AutoCloseable {
   void delete(PageId pageId, long pageSize) throws IOException, PageNotFoundException;
 
   /**
-   * @return the iterator of pages from page store
+   * @return a new iterator of all pages from page store
    * @throws IOException if any error occurs
    */
-  Collection<PageInfo> getPages() throws IOException;
+  Stream<PageInfo> getPages() throws IOException;
 
   /**
    * @return an estimated cache size in bytes

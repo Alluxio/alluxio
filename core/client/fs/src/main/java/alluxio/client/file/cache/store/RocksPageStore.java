@@ -32,10 +32,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -148,7 +147,7 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public Collection<PageInfo> getPages() throws IOException {
+  public Stream<PageInfo> getPages() throws IOException {
     try {
       byte[] confData = mDb.get(CONF_KEY);
       Cache.PRocksPageStoreOptions pOptions = mOptions.toProto();
@@ -161,9 +160,7 @@ public class RocksPageStore implements PageStore {
         }
       }
       mDb.put(CONF_KEY, pOptions.toByteArray());
-      try (RocksIterator iter = mDb.newIterator()) {
-        return Streams.stream(new PageIterator(iter)).collect(Collectors.toList());
-      }
+      return Streams.stream(new PageIterator(mDb.newIterator()));
     } catch (RocksDBException e) {
       mDb.close();
       throw new IOException("Failed to restore RocksPageStore:", e);

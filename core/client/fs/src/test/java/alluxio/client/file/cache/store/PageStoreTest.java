@@ -48,6 +48,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RunWith(Parameterized.class)
 public class PageStoreTest {
@@ -148,7 +149,7 @@ public class PageStoreTest {
     MetaStore metaStore = MetaStore.create();
     CacheEvictor evictor = Mockito.mock(CacheEvictor.class);
     try (PageStore store = PageStore.create(mOptions,  false, metaStore, evictor)) {
-      Set<PageInfo> restored = new HashSet<>(store.getPages());
+      Set<PageInfo> restored = store.getPages().collect(Collectors.toSet());
       assertEquals(pages, restored);
     }
   }
