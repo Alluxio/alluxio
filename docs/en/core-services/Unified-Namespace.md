@@ -59,20 +59,22 @@ system namespace.
 ![transparent]({{ '/img/screenshot_transparent.png' | relativize_url }})
 
 When a user creates objects in the Alluxio namespace, they can choose whether these objects should
-be persisted in the underlying storage system. For objects that are persisted, Alluxio preserves the
-object paths, relative to the underlying storage system directory in which Alluxio objects are
-stored. For instance, if a user creates a top-level directory `Users` with subdirectories `Alice`
+be persisted in the underlying storage system.
+For objects that are persisted, Alluxio preserves the object paths, relative to the underlying
+storage system directory in which Alluxio objects are stored.
+For instance, if a user creates a top-level directory `Users` with subdirectories `Alice`
 and `Bob`, the directory structure and naming is preserved in the underlying storage system.
 Similarly, when a user renames or deletes a persisted object in the Alluxio namespace,
 it is renamed or deleted in the underlying storage system.
 
 Alluxio transparently discovers content present in the underlying storage system which
-was not created through Alluxio. For instance, if the underlying storage system contains a directory
-`Data` with files `Reports` and `Sales`, all of which were not created through Alluxio, their
-metadata will be loaded into Alluxio the first time they are accessed, such as when a user requests to
-open a file. The contents of the file is not loaded to Alluxio during this process. To load the
-file contents into Alluxio, one can read the data using `FileInStream` or use the `load` command
-of the Alluxio shell.
+was not created through Alluxio.
+For instance, if the underlying storage system contains a directory `Data` with files `Reports`
+and `Sales`, all of which were not created through Alluxio, their metadata will be loaded into
+Alluxio the first time they are accessed, such as when a user requests to open a file.
+The contents of the file is not loaded to Alluxio during this process.
+To load the file contents into Alluxio, one can read the data using `FileInStream` or use
+the `load` command of the Alluxio shell.
 
 ## Mounting Under Storage Systems
 Mounting an Under storage system to the Alluxio file system namespace is the mechanism for
