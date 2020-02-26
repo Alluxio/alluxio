@@ -50,22 +50,21 @@ their input and output files.
 In order for the MapReduce applications to read and write files in Alluxio, the Alluxio client jar
 must be distributed on the classpath of the application across different nodes.
 
-You can use the `-libjars` command line option when using `hadoop jar ...`,
-specifying `{{site.ALLUXIO_CLIENT_JAR_PATH}}`
-as the argument of `-libjars`. Hadoop will place the jar in the Hadoop DistributedCache, making it
-available to all the nodes. For example, the following command adds the Alluxio client jar to the
-`-libjars` option:
-
-```console
-$ ./bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
-  -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
-```
-
 The Alluxio client jar should also be added to the `HADOOP_CLASSPATH` environment variable.
 This makes the Alluxio client available to JVMs which are created when running `hadoop jar` command:
 
 ```console
 $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
+```
+
+You can use the `-libjars` command line option when using `hadoop jar ...`,
+specifying `{{site.ALLUXIO_CLIENT_JAR_PATH}}` as the argument of `-libjars`.
+Hadoop will place the jar in the Hadoop DistributedCache, making it available to all the nodes.
+For example, the following command adds the Alluxio client jar to the `-libjars` option:
+
+```console
+$ ./bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount \
+  -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
 ```
 
 Alternative configurations are described in the [Advanced Setup](#advanced-setup) section.
@@ -108,7 +107,8 @@ $ ./bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wo
 ```
 
 After this job completes, the result of the wordcount will be in the `/wordcount/output` directory
-in Alluxio. You can see the resulting files by running:
+in Alluxio.
+You can see the resulting files by running:
 
 ```console
 $ ./bin/alluxio fs ls /wordcount/output
