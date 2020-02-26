@@ -169,7 +169,7 @@ public class AsyncCacheRequestManager {
       // memory when concurrent async requests are received and thus trigger GC.
       long offset = 0;
       while (offset < blockSize) {
-        long bufferSize = Math.min(8 * Constants.MB, blockSize - offset);
+        long bufferSize = Math.min(8L * Constants.MB, blockSize - offset);
         reader.read(offset, bufferSize);
         offset += bufferSize;
       }

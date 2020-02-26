@@ -56,7 +56,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class ReplicationChecker implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(ReplicationChecker.class);
-  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10 * Constants.MINUTE_MS);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
   private static final long MAX_QUIET_PERIOD_SECONDS = 64;
 
   /** Handler to the inode tree. */

@@ -93,7 +93,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
    * Only parts bigger than 5MB could be uploaded through S3A low-level multipart upload,
    * except the last part.
    */
-  private static final long UPLOAD_THRESHOLD = 5 * Constants.MB;
+  private static final long UPLOAD_THRESHOLD = 5L * Constants.MB;
 
   /** Bucket name of the Alluxio S3 bucket. */
   private final String mBucketName;

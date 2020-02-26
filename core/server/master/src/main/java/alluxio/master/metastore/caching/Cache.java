@@ -267,7 +267,7 @@ public abstract class Cache<K, V> implements Closeable {
   public void close() {
     mEvictionThread.interrupt();
     try {
-      mEvictionThread.join(10 * Constants.SECOND_MS);
+      mEvictionThread.join(10L * Constants.SECOND_MS);
       if (mEvictionThread.isAlive()) {
         LOG.warn("Failed to stop eviction thread");
       }
@@ -286,7 +286,7 @@ public abstract class Cache<K, V> implements Closeable {
     // to keep re-allocating the list.
     private final List<Entry> mEvictionCandidates = new ArrayList<>(mEvictBatchSize);
     private final List<Entry> mDirtyEvictionCandidates = new ArrayList<>(mEvictBatchSize);
-    private final Logger mCacheFullLogger = new SamplingLogger(LOG, 10 * Constants.SECOND_MS);
+    private final Logger mCacheFullLogger = new SamplingLogger(LOG, 10L * Constants.SECOND_MS);
 
     private Iterator<Entry> mEvictionHead = Collections.emptyIterator();
 

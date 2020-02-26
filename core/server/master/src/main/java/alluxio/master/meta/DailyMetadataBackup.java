@@ -47,7 +47,7 @@ import java.util.regex.Matcher;
  */
 public final class DailyMetadataBackup {
   private static final Logger LOG = LoggerFactory.getLogger(DailyMetadataBackup.class);
-  private static final long SHUTDOWN_TIMEOUT_MS = 5 * Constants.SECOND_MS;
+  private static final long SHUTDOWN_TIMEOUT_MS = 5L * Constants.SECOND_MS;
 
   private final String mBackupDir;
   private final boolean mIsLocal;
