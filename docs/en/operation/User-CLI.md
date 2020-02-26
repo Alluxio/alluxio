@@ -1191,15 +1191,26 @@ the `db_name` database.
 
 ### sync
 
-The `sync` command syncs the given database name with the under database. Here is an example:
+The `sync` command syncs the metadata of specified database name with the under database.
+Here is an example:
 
 ```console
 $ ./bin/alluxio table sync db_name
 ```
 
-This will sync the `db_name` database name with the under database.
+This will sync the metadata of `db_name` database name with its under database.
 The sync will update, add, remove catalog metadata according to the changes found in the underlying
 database and tables.
+For example, if the under database is `hive`, and the metadata of its tables is updated
+in the Hive Metastore (like `MSCK REPAIR` or other commands), then this `sync` command will
+update the Alluxio metadata with the updated Hive metadata. 
+If an existing Alluxio partition or table is updated and previously had a transformation, then the
+transformation is invalidated, and must be re-triggered via the `transform` command.
+
+> If the metadata is NOT updated in the under database, then this sync command will not update
+> the Alluxio catalog metadata, even if the data of the table has been updated. For example,
+> if files are added to a Hive table but the Hive Metastore is not updated, the sync will not
+> detect changes to the metadata.
 
 ### transform
 
