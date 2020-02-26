@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 @RunWith(Parameterized.class)
 public class PageStoreTest {
@@ -135,7 +136,7 @@ public class PageStoreTest {
   }
 
   @Test
-  public void restore() throws Exception {
+  public void getPages() throws Exception {
     int len = 32;
     int count = 16;
     byte[] data = BufferUtils.getIncreasingByteArray(len);
@@ -148,7 +149,27 @@ public class PageStoreTest {
     mPageStore.close();
     MetaStore metaStore = MetaStore.create();
     CacheEvictor evictor = Mockito.mock(CacheEvictor.class);
-    try (PageStore store = PageStore.create(mOptions,  false, metaStore, evictor)) {
+    try (PageStore store = PageStore.create(mOptions, false, metaStore, evictor)) {
+      Set<PageInfo> restored = store.getPages().collect(Collectors.toSet());
+      assertEquals(pages, restored);
+    }
+  }
+
+  @Test
+  public void getPagesUUID() throws Exception {
+    int len = 32;
+    int count = 16;
+    byte[] data = BufferUtils.getIncreasingByteArray(len);
+    Set<PageInfo> pages = new HashSet<>(count);
+    for (int i = 0; i < count; i++) {
+      PageId id = new PageId(UUID.randomUUID().toString(), i);
+      mPageStore.put(id, data);
+      pages.add(new PageInfo(id, data.length));
+    }
+    mPageStore.close();
+    MetaStore metaStore = MetaStore.create();
+    CacheEvictor evictor = Mockito.mock(CacheEvictor.class);
+    try (PageStore store = PageStore.create(mOptions, false, metaStore, evictor)) {
       Set<PageInfo> restored = store.getPages().collect(Collectors.toSet());
       assertEquals(pages, restored);
     }
