@@ -159,7 +159,7 @@ public class LocalCacheManager implements CacheManager {
     for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock();
     }
-    Metrics.registerGauges(mCacheSize, mPageStore);
+    Metrics.registerGauges(mCacheSize, mMetaStore);
   }
 
   /**
@@ -396,13 +396,13 @@ public class LocalCacheManager implements CacheManager {
     private static final Counter PUT_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_ERRORS.getName());
 
-    private static void registerGauges(long cacheSize, PageStore pageStore) {
+    private static void registerGauges(long cacheSize, MetaStore metaStore) {
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_SPACE_AVAILABLE.getName()),
-          () -> cacheSize - pageStore.bytes());
+          () -> cacheSize - metaStore.bytes());
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_SPACE_USED.getName()),
-          pageStore::bytes);
+          metaStore::bytes);
     }
   }
 }
