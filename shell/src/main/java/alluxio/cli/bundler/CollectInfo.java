@@ -30,6 +30,7 @@ import com.google.common.io.Files;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -60,6 +61,20 @@ import java.util.stream.Collectors;
  */
 public class CollectInfo extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(CollectInfo.class);
+  private static final String USAGE =
+          "USAGE: collectInfo [--max-threads <threadNum>] [--local]\n\n"
+                  + "collectInfo runs a set of sub-commands which collect information"
+                  + "about your Alluxio cluster. In the end of the run, "
+                  + "the collected information will be written to files "
+                  + "and bundled into one tarball.\n"
+                  + "[--max-threads <threadNum>] controlls how many threads this command uses. "
+                  + "By default it allocates one thread for each host."
+                  + "Use a smaller number to constrain the network IO when transmitting tarballs.\n"
+                  + "[--local] specifies this command should only collect "
+                  + "information about the localhost.\n"
+                  + "WARNING: This command MAY bundle credentials. To understand the risks refer "
+                  + "to the docs here.\nhttps://docs.alluxio.io/os/user/edge/en/operation/"
+                  + "Troubleshooting.html#collect-alluxio-cluster-information";
   private static final String FINAL_TARBALL_NAME =  "alluxio-cluster-info-%s.tar.gz";
 
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.of();
@@ -115,6 +130,17 @@ public class CollectInfo extends AbstractShell {
   }
 
   /**
+   * Prints the help message.
+   *
+   * @param message message before standard usage information
+   */
+  public static void printHelp(String message) {
+    System.err.println(message);
+    HelpFormatter help = new HelpFormatter();
+    help.printHelp(USAGE, OPTIONS);
+  }
+
+  /**
    * Main method, starts a new CollectInfo shell.
    * CollectInfo will SSH to all hosts and invoke {@link CollectInfo} with --local option.
    * Then collect the tarballs generated on each of the hosts to the localhost.
@@ -142,14 +168,9 @@ public class CollectInfo extends AbstractShell {
 
     // Validate command args
     if (args.length < 2) {
-      System.out.format("Command %s requires at least %s arguments (%s provided)%n",
-              2, argv.length);
-      shell.printUsage();
+      printHelp(String.format("Command %s requires at least %s arguments (%s provided)%n",
+              2, argv.length));
       System.exit(-1);
-    } else if (shell.findCommand(args[0]) == null) {
-      System.out.format("Command %s is not recognized.%n", args[0]);
-      shell.printUsage();
-      System.exit(-2);
     }
 
     // Choose mode based on option
@@ -360,8 +381,7 @@ public class CollectInfo extends AbstractShell {
 
     if (cmd == null) {
       // Unknown command (we did not find the cmd in our dict)
-      System.err.format("%s is an unknown command.%n", subCommand);
-      printUsage();
+      printHelp(String.format("%s is an unknown command.%n", subCommand));
       return 1;
     }
     int ret = run(argv);
