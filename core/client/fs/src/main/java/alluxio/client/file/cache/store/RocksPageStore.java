@@ -57,9 +57,9 @@ public class RocksPageStore implements PageStore {
   private final RocksPageStoreOptions mOptions;
 
   /**
-   * Creates a new instance of {@link PageStore} backed by RocksDB.
-   *
    * @param options options for the rocks page store
+   * @return a new instance of {@link PageStore} backed by RocksDB.
+   * @throws IOException if I/O error happens
    */
   public static RocksPageStore create(RocksPageStoreOptions options) throws IOException {
     Preconditions.checkArgument(options.getMaxPageSize() > 0);
