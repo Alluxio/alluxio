@@ -124,7 +124,7 @@ If you see the following error, follow the given URL to request for a limit incr
 
 Limit values can be found in the `Limits` page from the left sidebar. 
 
-![presto_sandbox_ec2_launched_instance]({{ '/img/presto_sandbox_ec2_launched_instance.png' | relativize_url }})
+![presto_sandbox_ec2_limits]({{ '/img/presto_sandbox_ec2_limits.png' | relativize_url }})
 
   {% endcollapsible %}
   {% collapsible SSH into the instance %}
@@ -132,7 +132,7 @@ Navigate to the Instances page if not already open and find the entry for the ne
 Select the row and find the instance’s `Public DNS`; it should start with `ec2-` and end in `.amazonaws.com`.
 This is the hostname used to SSH into the instance.
 
-![presto_sandbox_ec2_limits]({{ '/img/presto_sandbox_ec2_limits.png' | relativize_url }})
+![presto_sandbox_ec2_launched_instance]({{ '/img/presto_sandbox_ec2_launched_instance.png' | relativize_url }})
 
 Open a terminal window and use the `ssh` command to connect to the launched instance.
 In the command below, replace:
@@ -201,7 +201,7 @@ You’ll use Presto through the command line;
 however, you can also use the Presto UI at **http://EC2_PUBLIC_DNS:8080** to view the status of your queries.
 Note that the last step `Rerunning the Query` will show you the performance results.
 
-{% accordion run queries %}
+{% accordion queries %}
   {% collapsible Open Presto CLI with alluxio schema %}
 From within the instance, launch the Presto CLI:
 ```console
@@ -209,7 +209,7 @@ presto --catalog hive --debug
 presto>
 ```
 
-> **Tip:** YOu can exit at any time by typing `exit;`
+> **Tip:** You can exit at any time by typing `exit;`
 
 The instance comes pre-loaded with tables in Presto. A schema named `alluxio` has already been defined.
 The database contains the tables from the TPC-DS benchmark.
