@@ -21,9 +21,7 @@ The two major components to configure are
 Customizing how an application interacts with Alluxio is specific to each application.
 The following are recommendations for some common applications.
 
-Note that properties prefixes with `alluxio.user` are only valid to be set on machines which are
-running compute applications.
-They will not affect server operation.
+Note that properties prefixes with `alluxio.user` only affect Alluxio client operations.
 
 Similarly, setting server-side properties prefixed with `alluxio.master` or `alluxio.worker` will
 only affect Alluxio server settings and does not affect compute applications.
@@ -132,10 +130,10 @@ When different client applications (Alluxio Shell CLI, Spark jobs, MapReduce job
 or Alluxio workers connect to an Alluxio master, they will initialize their own Alluxio
 configuration properties with the default values supplied by the masters based on the master-side
 `${ALLUXIO_HOME}/conf/alluxio-site.properties` files.
-As a result, cluster admins can set client-side settings (e.g., `alluxio.user.*`), or network
-transport settings (e.g., `alluxio.security.authentication.type`), or worker settings
-(e.g., `alluxio.worker.*`) in `${ALLUXIO_HOME}/conf/alluxio-site.properties` on all the masters,
-which will be distributed and become cluster-wide default values when clients and workers connect.
+As a result, cluster admins can set default client-side settings (e.g., `alluxio.user.*`), or
+network transport settings (e.g., `alluxio.security.authentication.type`) in
+`${ALLUXIO_HOME}/conf/alluxio-site.properties` on all the masters, which will be distributed and
+become cluster-wide default values when clients and workers connect.
 
 For example, the property `alluxio.user.file.writetype.default` defaults to `ASYNC_THROUGH`, which
 first writes to Alluxio and then asynchronously writes to the UFS.
