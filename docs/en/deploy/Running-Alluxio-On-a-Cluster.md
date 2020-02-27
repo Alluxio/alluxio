@@ -14,7 +14,7 @@ priority: 2
 This section describes the basic setup to run Alluxio with a single master in a cluster.
 This is the simplest way to deploy Alluxio on a cluster, meanwhile this single master may also 
 become the single point of failure (SPOF) in an Alluxio cluster.
-If that machine or process became unavailable, the cluster as a whole would be unavailable.
+If that machine or process becomes unavailable, the cluster as a whole would become unavailable.
 To deploy Alluxio in production, we highly recommend running Alluxio masters in
 [High Availability]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}) mode.
 
@@ -30,7 +30,7 @@ To deploy Alluxio in production, we highly recommend running Alluxio masters in
   
 * Enable SSH login without password from master node to worker nodes.
   You can add a public SSH key for the host into `~/.ssh/authorized_keys`.
-  See [this tutorial] (http://www.linuxproblem.org/art_9.html) for more details.
+  See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
 * TCP traffic across all nodes is allowed.
   For basic functionality make sure RPC port (default :19998) is open on all nodes.
 * Allow `sudo` privilege for the OS user that Alluxio will be running as.
@@ -61,7 +61,7 @@ alluxio.master.mount.table.root.ufs=<STORAGE_URI>
 
 Next, copy configuration files to all the other Alluxio nodes.
 By adding the IP addresses or hostnames of all the worker nodes to the `conf/workers` file, an 
-operator can make use of in-built utilities to copy configurations to remote nodes such as below.
+operator can make use of built-in utilities to copy configurations to remote nodes such as below.
 
 ```console
 $ ./bin/alluxio copyDir conf/
@@ -184,7 +184,7 @@ Formatting the journal will delete all metadata from Alluxio. However, the data 
 ### Add/Remove Workers Dynamically
 
 Adding a worker to an Alluxio cluster dynamically is as simple as starting a new Alluxio worker
-process, with the appropriate configuration.
+process with the appropriate configuration.
 In most cases, the new worker's configuration should be the same as all the other workers'
 configuration.
 Run the following command on the new worker to add it to the cluster.
