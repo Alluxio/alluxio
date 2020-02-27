@@ -72,9 +72,9 @@ public class CollectInfo extends AbstractShell {
                   + "Use a smaller number to constrain the network IO when transmitting tarballs.\n"
                   + "[--local] specifies this command should only collect "
                   + "information about the localhost.\n"
-                  + "NOTE: You should ALWAYS check the credential risk about this command at\n"
-                  + "https://docs.alluxio.io/os/user/edge/en/operation/Troubleshooting.html"
-                  + "#collect-alluxio-cluster-information";
+                  + "WARNING: This command MAY bundle credentials. To understand the risks refer "
+                  + "to the docs here.\nhttps://docs.alluxio.io/os/user/edge/en/operation/"
+                  + "Troubleshooting.html#collect-alluxio-cluster-information";
   private static final String FINAL_TARBALL_NAME =  "alluxio-cluster-info-%s.tar.gz";
 
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.of();
