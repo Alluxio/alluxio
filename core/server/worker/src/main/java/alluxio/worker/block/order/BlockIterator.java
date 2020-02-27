@@ -33,7 +33,7 @@ public interface BlockIterator extends BlockStoreEventListener {
   Iterator<Long> getIterator(BlockStoreLocation location, BlockOrder order);
 
   /**
-   * Used to iterate blocks within an intersection of locations in sorted order.
+   * Used to get blocks within an intersection of locations in sorted order.
    *
    * It receives a filter using which certain blocks could be excluded from intersection iterator.
    *
@@ -44,9 +44,9 @@ public interface BlockIterator extends BlockStoreEventListener {
    * @param intersectionWidth width of intersection
    * @param intersectionOrder the order of intersected blocks
    * @param blockFilterFunc a filter for blocks
-   * @return iterator for blocks in intersection
+   * @return list of blocks in intersection
    */
-  List<Long> getIntersectionIterator(BlockStoreLocation srcLocation, BlockOrder srcOrder,
+  List<Long> getIntersectionList(BlockStoreLocation srcLocation, BlockOrder srcOrder,
       BlockStoreLocation dstLocation, BlockOrder dstOrder, int intersectionWidth,
       BlockOrder intersectionOrder, Function<Long, Boolean> blockFilterFunc);
 

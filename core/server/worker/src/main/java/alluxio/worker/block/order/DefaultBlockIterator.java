@@ -193,7 +193,7 @@ public class DefaultBlockIterator extends AbstractBlockStoreEventListener
   }
 
   @Override
-  public List<Long> getIntersectionIterator(BlockStoreLocation srcLocation, BlockOrder srcOrder,
+  public List<Long> getIntersectionList(BlockStoreLocation srcLocation, BlockOrder srcOrder,
       BlockStoreLocation dstLocation, BlockOrder dstOrder, int intersectionWidth,
       BlockOrder intersectionOrder, Function<Long, Boolean> blockFilterFunc) {
 
@@ -262,25 +262,8 @@ public class DefaultBlockIterator extends AbstractBlockStoreEventListener
       }
     }
 
-    /**
-     * Overlap result below is modified in order to favor moving blocks to higher tiers
-     * even when there is no overlap.
-     *
-     * To achieve this, overlap returns positive when:
-     * - Source is empty while destination is not. (srcItem == null && dstItem != null).
-     * - Compare result is taken with <=0, which treats equality as overlap as well.
-     *
-     * TODO(ggezer): TV2 - Figure out a way to leave this decision to callers.
-     */
-    if (dstItem == null) {
-      return false;
-    } else {
-      if (srcItem == null) {
-        return true;
-      } else {
-        return order.comparator().compare(srcItem.getSecond(), dstItem.getSecond()) <= 0;
-      }
-    }
+    return (srcItem != null && dstItem != null
+        && order.comparator().compare(srcItem.getSecond(), dstItem.getSecond()) < 0);
   }
 
   /**

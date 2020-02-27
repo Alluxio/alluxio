@@ -12,12 +12,11 @@
 package alluxio.worker.block.management;
 
 /**
- * An interface for BlockStore management task.
+ * Used as factory interface of management tasks for particular management functions.
  */
-public interface BlockManagementTask {
-
+public interface ManagementTaskProvider {
   /**
-   * Run management task.
+   * @return the next management task from this provider
    */
-  void run();
+  BlockManagementTask getTask();
 }

@@ -12,7 +12,6 @@
 package alluxio.worker.block.management;
 
 import alluxio.Sessions;
-import alluxio.StorageTierAssoc;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -26,7 +25,6 @@ import alluxio.worker.block.order.BlockOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -60,13 +58,14 @@ public class TierMergeTask extends AbstractBlockManagementTask {
         ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_MERGE_MAX_INTERSECTION_WIDTH);
 
     // Iterate each tier intersection and merge overlaps.
-    for (Pair<BlockStoreLocation, BlockStoreLocation> intersection : intersectionList()) {
+    for (Pair<BlockStoreLocation, BlockStoreLocation> intersection : mMetadataManager
+        .getStorageTierAssoc().intersectionList()) {
       BlockStoreLocation tierUpLocation = intersection.getFirst();
       BlockStoreLocation tierDownLocation = intersection.getSecond();
 
       // Get sorted iterator for the current intersection.
-      List<Long> overlapIterator =
-          mMetadataManager.getBlockIterator().getIntersectionIterator(tierUpLocation,
+      List<Long> intersectionList =
+          mMetadataManager.getBlockIterator().getIntersectionList(tierUpLocation,
               BlockOrder.Natural, tierDownLocation, BlockOrder.Reverse, maxIntersectionWidth,
               BlockOrder.Reverse, (blockId) -> !mEvictorView.isBlockEvictable(blockId));
 
@@ -80,7 +79,7 @@ public class TierMergeTask extends AbstractBlockManagementTask {
        */
       BlockStoreLocation moveLocation = tierUpLocation;
       int currentBlockIdx = 0;
-      while (currentBlockIdx < overlapIterator.size()) {
+      while (currentBlockIdx < intersectionList.size()) {
         if (Thread.interrupted()) {
           LOG.warn("Tier merge task interrupted.");
           return;
@@ -96,7 +95,7 @@ public class TierMergeTask extends AbstractBlockManagementTask {
         }
 
         // Grab current block to place.
-        Long blockId = overlapIterator.get(currentBlockIdx);
+        Long blockId = intersectionList.get(currentBlockIdx);
         try {
           // This might be a noop in the store, if the block already in target location.
           mBlockStore.moveBlock(Sessions.createInternalSessionId(), blockId, moveLocation);
@@ -115,47 +114,7 @@ public class TierMergeTask extends AbstractBlockManagementTask {
         }
       }
       LOG.info("Merging task completed between {} - {}. Merge range: {}", tierUpLocation,
-          tierDownLocation, overlapIterator.size());
+          tierDownLocation, intersectionList.size());
     }
-  }
-
-  @Override
-  public boolean needsToRun() {
-    // This method will return {@code false} if there are no overlaps between any tier intersection.
-    // The decision can be made by taking free spaces into account in order to utilize merge run
-    // to move content upwards.
-
-    for (Pair<BlockStoreLocation, BlockStoreLocation> intersection : intersectionList()) {
-      // Query the overlap for the current intersection.
-      if (mMetadataManager.getBlockIterator().overlaps(intersection.getFirst(),
-          intersection.getSecond(), BlockOrder.Natural,
-          (blockId) -> !mEvictorView.isBlockEvictable(blockId))) {
-        // TODO(ggezer): TV2 - Remove after swap support.
-        long blockSize = ServerConfiguration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-        if (mEvictorView.getAvailableBytes(intersection.getFirst()) < blockSize
-            && mEvictorView.getAvailableBytes(intersection.getSecond()) < blockSize) {
-          return false;
-        }
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * @return iterator for each intersection of tiers
-   */
-  private List<Pair<BlockStoreLocation, BlockStoreLocation>> intersectionList() {
-    final StorageTierAssoc storageTierAssoc = mMetadataManager.getStorageTierAssoc();
-    List<Pair<BlockStoreLocation, BlockStoreLocation>> intersectionLocations =
-        new ArrayList<>(storageTierAssoc.size() - 1);
-
-    for (int tierUp = 0, tierDown = tierUp + 1; tierDown < storageTierAssoc
-        .size(); tierUp++, tierDown++) {
-      intersectionLocations
-          .add(new Pair<>(BlockStoreLocation.anyDirInTier(storageTierAssoc.getAlias(tierUp)),
-              BlockStoreLocation.anyDirInTier(storageTierAssoc.getAlias(tierDown))));
-    }
-    return intersectionLocations;
   }
 }

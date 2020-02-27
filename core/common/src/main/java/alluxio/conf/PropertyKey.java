@@ -2343,6 +2343,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_MERGE_PROMOTION_LIMIT =
+          new Builder(Name.WORKER_MANAGEMENT_TIER_MERGE_PROMOTION_LIMIT)
+          .setDefaultValue(0.1)
+          .setDescription("Ratio of free space per-tier for promotion. When under this value,"
+              + "promotions to that tier will be stopped.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_FILE_BUFFER_SIZE =
       new Builder(Name.WORKER_FILE_BUFFER_SIZE)
           .setDefaultValue("1MB")
@@ -4595,6 +4603,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.management.tier.merge.enabled";
     public static final String WORKER_MANAGEMENT_TIER_MERGE_MAX_INTERSECTION_WIDTH =
         "alluxio.worker.management.tier.merge.max.intersection.width";
+    public static final String WORKER_MANAGEMENT_TIER_MERGE_PROMOTION_LIMIT =
+        "alluxio.worker.management.tier.merge.max.promotion.limit";
     public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
     public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";

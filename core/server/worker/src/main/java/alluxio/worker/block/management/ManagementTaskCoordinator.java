@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -52,6 +54,9 @@ public class ManagementTaskCoordinator implements Closeable {
   /** This coordinator requires to calculate eviction view per each task. */
   private final Supplier<BlockMetadataEvictorView> mEvictionViewSupplier;
 
+  /** List of management task providers. */
+  private List<ManagementTaskProvider> mTaskProviders;
+
   /**
    * Creates management coordinator.
    *
@@ -66,6 +71,8 @@ public class ManagementTaskCoordinator implements Closeable {
     mMetadataManager = metadataManager;
     mLoadTracker = loadTracker;
     mEvictionViewSupplier = evictionViewSupplier;
+
+    initializeTaskProviders();
 
     // Read configs.
     mLoadDetectionCoolDownMs =
@@ -90,27 +97,33 @@ public class ManagementTaskCoordinator implements Closeable {
   }
 
   /**
-   * TODO(ggezer): TV2 - Dynamic BlockManagementTask instantiation with static methods.
-   * TODO(ggezer): TV2 - Layout infra for choosing among management tasks using priority.
+   * Register known task providers by priority order.
+   *
    * TODO(ggezer): TV2 - Implement pin enforcer as {@link BlockManagementTask}.
    * TODO(ggezer): TV2 - Re-implement async-cache as {@link BlockManagementTask}.
-   *
-   * @return the next management task to run
+   */
+  private void initializeTaskProviders() {
+    mTaskProviders = new ArrayList<>(1);
+    mTaskProviders.add(new TierManagementTaskProvider(mBlockStore, mMetadataManager,
+        mEvictionViewSupplier, mLoadTracker));
+  }
+
+  /**
+   * @return the next management task to run, {@code null} if none pending
    */
   private BlockManagementTask getNextTask() {
-    // Only merge task enabled for now.
-    if (!ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_MERGE_ENABLED)) {
-      return null;
+    /**
+     * Order of providers in the registered list imposes an implicit priority of tasks.
+     * As long as a provider gives a task, providers next to it won't be consulted.
+     */
+    for (ManagementTaskProvider taskProvider : mTaskProviders) {
+      BlockManagementTask task = taskProvider.getTask();
+      if (task != null) {
+        return task;
+      }
     }
-
-    BlockManagementTask task =
-        new TierMergeTask(mBlockStore, mMetadataManager, mEvictionViewSupplier.get(), mLoadTracker);
-
-    if (!task.needsToRun()) {
-      return null;
-    }
-
-    return task;
+    // No task provided.
+    return null;
   }
 
   /**
