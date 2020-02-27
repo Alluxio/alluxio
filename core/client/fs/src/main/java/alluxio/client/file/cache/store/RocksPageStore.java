@@ -171,7 +171,9 @@ public class RocksPageStore implements PageStore {
 
   @Override
   public Stream<PageInfo> getPages() {
-    return Streams.stream(new PageIterator(mDb.newIterator()));
+    RocksIterator iter = mDb.newIterator();
+    iter.seekToFirst();
+    return Streams.stream(new PageIterator(iter)).onClose(iter::close);
   }
 
   @Override
@@ -179,13 +181,12 @@ public class RocksPageStore implements PageStore {
     return mCapacity;
   }
 
-  private class PageIterator implements Iterator<PageInfo>, AutoCloseable {
+  private class PageIterator implements Iterator<PageInfo> {
     private final RocksIterator mIter;
     private PageInfo mValue;
 
     PageIterator(RocksIterator iter) {
       mIter = iter;
-      mIter.seekToFirst();
     }
 
     @Override
@@ -217,11 +218,6 @@ public class RocksPageStore implements PageStore {
         }
       }
       return mValue;
-    }
-
-    @Override
-    public void close() throws Exception {
-      mIter.close();
     }
   }
 }
