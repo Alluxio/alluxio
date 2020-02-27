@@ -20,6 +20,22 @@ latency especially when data is remote or network is slow or congested.
 * Table of Contents
 {:toc}
 
+## Using Presto with the Alluxio Catalog Service
+Currently, there are 2 ways to enable Presto to interact with Alluxio:
+* Presto interacts with the [Alluxio Catalog Service]({{ '/en/core-services/Catalog.html' | relativize_url }})
+* Presto interacts with the Hive Metastore (updated with Alluxio locations)
+
+The primary benefits for using Presto with the Alluxio Catalog Service are simpler deployments
+of Alluxio with Presto (no modifications to the Hive Metastore), and enabling schema-aware
+optimizations (transformations like coalescing and file conversions).
+However, currently, the catalog service is limited to read-only workloads.
+
+For more details and instructions on how to use the Alluxio Catalog Service with Presto, please
+visit the [Alluxio Catalog Service documentation]({{ '/en/core-services/Catalog.html' | relativize_url }}).
+
+The rest of this page discusses the alternative approach of Presto interacting with the
+Hive Metastore with updated with Alluxio locations.
+
 ## Prerequisites
 
 * Setup Java for Java 8 Update 161 or higher (8u161+), 64-bit.
@@ -35,9 +51,10 @@ This guide is tested with `presto-315`.
 
 ### Configure Presto to connect to Hive Metastore
 
-Presto gets the database and table metadata information, as well as
-the file system location of table data from Hive Metastore.
-Edit the Presto configuration `${PRESTO_HOME}/etc/catalog/hive.properties`:
+Presto gets the database and table metadata information (including file system locations)from
+Hive Metastore, via the presto-hive-connector.
+Here is a example Presto configuration file `${PRESTO_HOME}/etc/catalog/hive.properties`,
+for a catalog using the hive-connector.
 
 ```properties
 connector.name=hive-hadoop2
@@ -46,6 +63,8 @@ hive.metastore.uri=thrift://localhost:9083
 
 ### Distribute the Alluxio client jar to all Presto servers
 
+In order for Presto to be able to communicate with the Alluxio servers, the Alluxio client
+jar must be in the classpath of Presto servers.
 Put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into directory
 `${PRESTO_HOME}/plugin/hive-hadoop2/`
 (this directory may differ across versions) on all Presto servers. Restart Presto service:
@@ -73,7 +92,7 @@ $ ./bin/alluxio fs mkdir /ml-100k
 $ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
 ```
 
-Create an external Hive table from existing files in Alluxio.
+Create an external Hive table pointing to the Alluxio file location.
 
 ```
 hive> CREATE TABLE u_user (
@@ -103,7 +122,7 @@ $ ${HIVE_HOME}/bin/hive --service metastore
 
 ### Start Presto server
 
-Start your Presto server. Presto server runs on port `8080` by default (set by
+Start your Presto server. Presto server runs on port `8080` by default (configurable with
 `http-server.http.port` in `${PRESTO_HOME}/etc/config.properties` ):
 
 ```console
@@ -112,7 +131,8 @@ $ ${PRESTO_HOME}/bin/launcher run
 
 ### Query tables using Presto
 
-Follow [Presto CLI guidence](https://prestosql.io/docs/current/installation/cli.html) to download the `presto-cli-<PRESTO_VERSION>-executable.jar`,
+Follow [Presto CLI instructions](https://prestosql.io/docs/current/installation/cli.html)
+to download the `presto-cli-<PRESTO_VERSION>-executable.jar`,
 rename it to `presto`, and make it executable with `chmod +x`
 (sometimes the executable `presto` exists in `${PRESTO_HOME}/bin/presto` and you can use it
 directly).
@@ -120,7 +140,7 @@ directly).
 Run a single query (replace `localhost:8080` with your actual Presto server hostname and port):
 
 ```console
-$ ./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" \
+$ ./presto --server localhost:8080 --execute "use default; select * from u_user limit 10;" \
   --catalog hive --debug
 ```
 
@@ -128,7 +148,7 @@ And you can see the query results from console:
 
 ![PrestoQueryResult]({{ '/img/screenshot_presto_query_result.png' | relativize_url }})
 
-Presto Server log:
+You can also find some of the Alluxio client log messages in the Presto Server log:
 
 ![PrestoQueryLog]({{ '/img/screenshot_presto_query_log.png' | relativize_url }})
 
@@ -187,13 +207,13 @@ For example, change
 `alluxio.user.file.writetype.default` from default `ASYNC_THROUGH` to `CACHE_THROUGH`.
 
 One can specify the property in `alluxio-site.properties` and distribute this file to the classpath
-of each Hive node:
+of each Presto node:
 
 ```properties
 alluxio.user.file.writetype.default=CACHE_THROUGH
 ```
 
-Alternatively, modify `conf/hive-site.xml` to have:
+Alternatively, modify `conf/hive-site.xml` to include:
 
 ```xml
 <property>
@@ -204,16 +224,17 @@ Alternatively, modify `conf/hive-site.xml` to have:
 
 ### Increase parallelism
 
-Presto's Hive integration uses the config [`hive.max-split-size`](https://teradata.github.io/presto/docs/141t/connector/hive.html) to control the parallelism of the query.
-For Alluxio 1.6 or earlier,
-it is recommended to set this size no less than Alluxio's block size to avoid the read contention within the same block. For later Alluxio versions, this is no more an issue due to
-async cache on Alluxio workers.
+Presto's hive-connector uses the config `hive.max-split-size` to control the parallelism of the
+query.
+For Alluxio 1.6 or earlier, it is recommended to set this size no less than Alluxio's block
+size to avoid the read contention within the same block.
+For later Alluxio versions, this is no longer an issue because of Alluxio's async caching abilities.
 
 ### Avoid Presto timeout reading large files
 
 It is recommended to increase `alluxio.user.network.data.timeout` to a bigger value (e.g
 `10min`) to avoid a timeout
- failure when reading large files from remote worker.
+ failure when reading large files from remote workers.
 
 ## Troubleshooting
 
