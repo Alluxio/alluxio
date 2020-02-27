@@ -19,11 +19,14 @@ import static org.junit.Assert.assertTrue;
 import alluxio.Constants;
 import alluxio.client.file.cache.LocalCacheManager;
 import alluxio.client.file.cache.PageId;
+import alluxio.client.file.cache.PageStore;
+import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.io.BufferUtils;
+import alluxio.util.io.FileUtils;
 
 import com.google.common.io.ByteStreams;
 import org.junit.After;
@@ -36,6 +39,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Paths;
 
 public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest {
   private static final int PAGE_SIZE_BYTES = Constants.KB;
@@ -186,6 +190,21 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     mCacheManager.close();
     // creates with different configuration
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES / 2);
+    mCacheManager = LocalCacheManager.create(mConf);
+    try (ReadableByteChannel channel = mCacheManager.get(PAGE_ID)) {
+      assertNull(channel);
+    }
+  }
+
+  @Test
+  public void loadCacheWithInvalidPageFile() throws Exception {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "LOCAL");
+    loadFullCache();
+    mCacheManager.close();
+    // creates with an invalid page file stored
+    String rootDir = PageStore.getStorePath(PageStoreType.LOCAL,
+        mConf.get(PropertyKey.USER_CLIENT_CACHE_DIR)).toString();
+    FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
     mCacheManager = LocalCacheManager.create(mConf);
     try (ReadableByteChannel channel = mCacheManager.get(PAGE_ID)) {
       assertNull(channel);
