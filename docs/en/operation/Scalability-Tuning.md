@@ -55,7 +55,7 @@ as set by `alluxio.master.rpc.executor.max.pool.size`.
 
 ### Heartbeat Intervals and Timeouts
 
-The frequency in which the master checks for lost workers is set by the
+The frequency with which the master checks for lost workers is set by the
 `alluxio.master.worker.heartbeat.interval` property, with a default value of `10s`.
 Increase the interval to reduce the number of heartbeat checks.
 
@@ -72,13 +72,13 @@ ALLUXIO_WORKER_JAVA_OPTS+=" -Xms4g -Xmx4g"
 
 ### Heartbeat Intervals and Timeouts
 
-The frequency in which a worker checks in with the master is set by the following properties:
+The frequency with which a worker checks in with the master is set by the following property:
 ```properties
 alluxio.worker.block.heartbeat.interval=1s
 ```
 
-`alluxio.worker.block.heartbeat.interval` controls the heartbeat intervals for the block service in
-Alluxio
+`alluxio.worker.block.heartbeat.interval` controls the heartbeat interval for the block service in
+Alluxio.
 Again, increase the interval to reduce the number of heartbeat checks.
 
 ### Keepalive Time and Timeout
