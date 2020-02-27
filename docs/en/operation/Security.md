@@ -36,8 +36,8 @@ for different security properties.
 
 ## Authentication
 
-The authentication protocol is determined by the configuration property `alluxio.security.authentication.type`,
-with a default value of `SIMPLE`.
+The authentication protocol is determined by the configuration property
+`alluxio.security.authentication.type`, with a default value of `SIMPLE`.
 
 ### SIMPLE
 
@@ -95,7 +95,7 @@ For directories:
 - Write permissions are required to create, rename, or delete files or directories under it
 - Execute permissions are required to access a child of the directory
 
-The output of the `ls` shell command when authorization is enabled is:
+The output of the `ls` shell command when authorization is enabled looks like:
 
 ```console
 $ ./bin/alluxio fs ls /
@@ -130,7 +130,8 @@ When a file is created, it is initially assigned fully opened permissions of `66
 Similarly, a directory is initially assigned with `777` permissions.
 A umask is applied on the initial permissions; this is configured by the
 `alluxio.security.authorization.permission.umask` property, with a default of `022`.
-Without any property modifications, files and directories are created with `644` and `755` permissions respectively.
+Without any property modifications, files and directories are created with `644` and `755`
+permissions respectively.
 
 ### Update directory and file permission model
 
@@ -147,9 +148,11 @@ The group and permission attributes can be changed by a super user or the owner 
 
 ## Access Control Lists
 
-The POSIX permissions model allows administrators to grant permissions to owners, owning groups and other users.
+The POSIX permissions model allows administrators to grant permissions to owners, owning groups
+and other users.
 The permission bits model is sufficient for most cases. 
-However, to help administrators express more complicated security policies, Alluxio also supports Access Control Lists (ACLs).
+However, to help administrators express more complicated security policies, Alluxio also supports
+Access Control Lists (ACLs).
 ACLs allow administrators to grant permissions to any user or group.
 
 A file or directory's Access Control List consists of multiple entries.
@@ -187,7 +190,8 @@ These three entries are always present in each file and directory.
 When there are entries in addition to these standard entries, the ACL is considered an extended ACL. 
 
 A mask entry is automatically generated when an ACL becomes extended.
-Unless specifically set by the user, the mask's value is adjusted to be the union of all permissions affected by the mask entry.
+Unless specifically set by the user, the mask's value is adjusted to be the union of all
+permissions affected by the mask entry.
 This includes all the user entries other than the owner and all group entries. 
 	
 For the ACL entry `user::rw-`:
@@ -201,13 +205,16 @@ For the ACL entry `group:interns:rwx` and mask `mask::r--`:
 - the entry grants all permissions to the group `interns`
 - the mask only allows `read` permissions
 
-This culminates to the `interns` group having only `read` access because the mask disallows all other permissions.  
+This culminates to the `interns` group having only `read` access because the mask disallows all
+other permissions.  
 
 ### 2. Default ACL Entries:
 
 **Default ACLs only apply to directories.**
-Any new file or directory created within a directory with a default ACL will inherit the default ACL as its access ACL. 
-Any new directory created within a directory with a default ACL will also inherit the default ACL as its default ACL. 
+Any new file or directory created within a directory with a default ACL will inherit the
+default ACL as its access ACL. 
+Any new directory created within a directory with a default ACL will also inherit the default ACL
+as its default ACL. 
 
 **Default ACLs also consists of ACL entries, similar to those found in access ACLs.** 
 The are distinguished by the `default` keyword as the prefix.
@@ -222,8 +229,9 @@ Note that the ACL does not grant the user `alluxiouser` any additional permissio
 
 ACLs can be managed by two ways:
 
-1. User application invokes the `setFacl(...)` method of `FileSystem API` or `Hadoop API` to change the ACL and invokes the `getFacl(...)` to obtain the current ACL. 
-2. CLI command in shell. See
+1. User application invokes the `setFacl(...)` method of `FileSystem API` or `Hadoop API` to
+change the ACL and invokes the `getFacl(...)` to obtain the current ACL. 
+1. CLI command in shell. See
 [getfacl]({{ '/en/operation/User-CLI.html' | relativize_url }}#getfacl)
 [setfacl]({{ '/en/operation/User-CLI.html' | relativize_url }}#setfacl),
 
@@ -255,8 +263,8 @@ configurations (master and worker) are required.
 
 To enable a particular Alluxio client user to impersonate other users server (master and worker)
 configuration are required.
-Set the `alluxio.master.security.impersonation.<USERNAME>.users` property, where `<USERNAME>` is the name
-of the Alluxio client user.
+Set the `alluxio.master.security.impersonation.<USERNAME>.users` property,
+where `<USERNAME>` is the name of the Alluxio client user.
 
 The property value is a comma-separated list of users that `<USERNAME>` is allowed to impersonate.
 The wildcard value `*` can be used to indicate the user can impersonate any other user.
@@ -300,15 +308,18 @@ client.
 The most common impersonation error applications may see is something like
 `User yarn is not configured for any impersonation. impersonationUser: foo`. This is most likely
 due to the fact that the Alluxio servers have not been configured to enable impersonation for that
-user. To fix this, the Alluxio servers must be configured to enable impersonation for the user in question (yarn in the example error message).
+user. To fix this, the Alluxio servers must be configured to enable impersonation for the user
+in question (yarn in the example error message).
 
 Please read this [blog post](https://www.alluxio.io/blog/alluxio-developer-tip-why-am-i-seeing-the-error-user-yarn-is-not-configured-for-any-impersonation-impersonationuser-foo/) for more tips.
 
 ## Auditing
 
-Alluxio supports audit logging to allow system administrators to track users' access to file metadata.
+Alluxio supports audit logging to allow system administrators to track users' access to file
+metadata.
 
-The audit log file at `master_audit.log` contains entries corresponding to file metadata access operations.
+The audit log file at `master_audit.log` contains entries corresponding to file metadata access
+operations.
 The format of Alluxio audit log entry is shown in the table below:
 
 <table class="table table-striped">
@@ -347,8 +358,8 @@ The format of Alluxio audit log entry is shown in the table below:
 </tr>
 </table>
 
-This is similar to the format of HDFS audit log
-[wiki](https://cwiki.apache.org/confluence/display/HADOOP2/HowToConfigure#HowToConfigure-AuditLogging).
+This is similar to the format of
+[HDFS audit log](https://cwiki.apache.org/confluence/display/HADOOP2/HowToConfigure#HowToConfigure-AuditLogging).
 
 To enable Alluxio audit logging, set the JVM property
 `alluxio.master.audit.logging.enabled` to `true` in `alluxio-env.sh`.
@@ -362,6 +373,7 @@ respective under file system, such as HDFS transparent encryption or Linux disk 
 
 ## Deployment
 
-It is required to start Alluxio master and workers using the same operating system user.
-In the case where there is a user mismatch, secondary master healthcheck, the command `alluxio-start.sh all`
-and certain file operations may fail because of permission checks.
+It is required to start Alluxio masters and workers using the same operating system user.
+In the case where there is a user mismatch, secondary master health check,
+the command `alluxio-start.sh all`, and certain file operations may fail because of
+permission checks.
