@@ -204,7 +204,7 @@ $ ./bin/alluxio-stop.sh worker # stops the local worker
 
 Once the worker is stopped,the master will flag the worker as lost after a predetermined timeout 
 value (configured by master parameter `alluxio.master.worker.timeout`).
-The master will consider the worker as "lost", and no longer consider it as part of the cluster.
+The master will consider the worker as "lost", and no longer include it as part of the cluster.
 
 ### Update Master-side Configuration
 
