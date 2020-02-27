@@ -468,7 +468,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
-    Set<WorkerNetAddress> workerAddresses = new HashSet<>();
+    Set<WorkerNetAddress> workerAddresses = new HashSet<>(mWorkers.size());
     for (MasterWorkerInfo worker : mWorkers) {
       // worker net address is unmodifiable after initialization, no locking is needed
       workerAddresses.add(worker.getWorkerAddress());
