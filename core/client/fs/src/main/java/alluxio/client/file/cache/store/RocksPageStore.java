@@ -58,7 +58,7 @@ public class RocksPageStore implements PageStore {
 
   /**
    * @param options options for the rocks page store
-   * @return a new instance of {@link PageStore} backed by RocksDB.
+   * @return a new instance of {@link PageStore} backed by RocksDB
    * @throws IOException if I/O error happens
    */
   public static RocksPageStore create(RocksPageStoreOptions options) throws IOException {
