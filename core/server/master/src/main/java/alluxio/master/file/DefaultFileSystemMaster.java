@@ -4326,7 +4326,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           .get(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName()).getValue();
       Long masterUnderfsCapacityUsed =
           (Long) gauges
-              .get(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName()).getValue();
+              .get(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_USED.getName()).getValue();
       int percentUfsSpaceUsed =
           (masterUnderfsCapacityTotal > 0) ? (int) (100L * masterUnderfsCapacityUsed
               / masterUnderfsCapacityTotal) : 0;
