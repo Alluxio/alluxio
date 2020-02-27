@@ -61,7 +61,7 @@ alluxio.master.mount.table.root.ufs=<STORAGE_URI>
 
 Next, copy configuration files to all the other Alluxio nodes.
 By adding the IP addresses or hostnames of all the worker nodes to the `conf/workers` file, an 
-operator can make use of in-built utilities to copy configurations to remote nodes such as below.
+operator can make use of built-in utilities to copy configurations to remote nodes such as below.
 
 ```console
 $ ./bin/alluxio copyDir conf/
