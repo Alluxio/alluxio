@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli;
+package alluxio.cli.docgen;
 
 import alluxio.annotation.PublicApi;
 import alluxio.conf.InstancedConfiguration;
@@ -205,11 +205,9 @@ public final class ConfigurationDocGenerator {
   }
 
   /**
-   * Main entry for this util class.
-   *
-   * @param args arguments for command line
+   * Generates the configuration docs.
    */
-  public static void main(String[] args) throws IOException {
+  public static void generate() throws IOException {
     Collection<? extends PropertyKey> defaultKeys = PropertyKey.defaultKeys();
     defaultKeys.removeIf(key -> key.isHidden());
     String homeDir = new InstancedConfiguration(ConfigurationUtils.defaults())

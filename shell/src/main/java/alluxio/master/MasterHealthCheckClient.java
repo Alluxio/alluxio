@@ -283,7 +283,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
           }
         }
         // Check after a 7 second period if the process is is still alive
-        CommonUtils.sleepMs(7 * Constants.SECOND_MS);
+        CommonUtils.sleepMs(7L * Constants.SECOND_MS);
         LOG.debug("Checking the master processes one more time...");
         return !processCheckFuture.isDone();
       } else {

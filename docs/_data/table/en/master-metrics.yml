@@ -1,0 +1,76 @@
+Master.CompleteFileOps:
+  'Total number of the CompleteFile operations'
+Master.CreateDirectoryOps:
+  'Total number of the CreateDirectory operations'
+Master.CreateFileOps:
+  'Total number of the CreateFile operations'
+Master.DeletePathOps:
+  'Total number of the Delete operations'
+Master.DirectoriesCreated:
+  'Total number of the succeed CreateDirectory operations'
+Master.EdgeCacheSize:
+  'Total number of edges (inode metadata) cached. The edge cache is responsible for managing the mapping from (parentId, childName) to childId.'
+Master.FileBlockInfosGot:
+  'Total number of succeed GetFileBlockInfo operations'
+Master.FileInfosGot:
+  'Total number of the succeed GetFileInfo operations'
+Master.FilesCompleted:
+  'Total number of the succeed CompleteFile operations'
+Master.FilesCreated:
+  'Total number of the succeed CreateFile operations'
+Master.FilesFreed:
+  'Total number of succeed FreeFile operations'
+Master.FilesPersisted:
+  'Total number of successfully persisted files'
+Master.FilesPinned:
+  'Total number of currently pinned files'
+Master.FreeFileOps:
+  'Total number of FreeFile operations'
+Master.GetFileBlockInfoOps:
+  'Total number of GetFileBlockInfo operations'
+Master.GetFileInfoOps:
+  'Total number of the GetFileInfo operations'
+Master.GetNewBlockOps:
+  'Total number of the GetNewBlock operations'
+Master.InodeCacheSize:
+  'Total number of inodes (inode metadata) cached'
+Master.JournalFlushFailure:
+  'Total number of failed journal flush'
+Master.JournalFlushTimer:
+  'The timer statistics of journal flush'
+Master.JournalGainPrimacyTimer:
+  'The timer statistics of journal gain primacy'
+Master.LastBackupEntriesCount:
+  'The total number of entries written in the last leading master metadata backup'
+Master.LastBackupRestoreCount:
+  'The total number of entries restored from backup when a leading master initializes its metadata'
+Master.LastBackupRestoreTimeMs:
+  'The process time of the last restore from backup'
+Master.LastBackupTimeMs:
+  'The process time of the last backup'
+Master.ListingCacheSize:
+  'The size of master listing cache'
+Master.MountOps:
+  'Total number of Mount operations'
+Master.NewBlocksGot:
+  'Total number of the succeed GetNewBlock operations'
+Master.PathsDeleted:
+  'Total number of the succeed Delete operations'
+Master.PathsMounted:
+  'Total number of succeed Mount operations'
+Master.PathsRenamed:
+  'Total number of succeed Rename operations'
+Master.PathsUnmounted:
+  'Total number of succeed Unmount operations'
+Master.RenamePathOps:
+  'Total number of Rename operations'
+Master.SetAclOps:
+  'Total number of SetAcl operations'
+Master.SetAttributeOps:
+  'Total number of SetAttribute operations'
+Master.TotalPaths:
+  'Total number of files and directory in Alluxio namespace'
+Master.UfsJournalFailureRecoverTime:
+  'The timer statistics of ufs journal failure recover'
+Master.UnmountOps:
+  'Total number of Unmount operations'

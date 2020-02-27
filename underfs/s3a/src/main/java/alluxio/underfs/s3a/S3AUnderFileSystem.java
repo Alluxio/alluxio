@@ -83,7 +83,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private static final String DIR_HASH;
 
   /** Threshold to do multipart copy. */
-  private static final long MULTIPART_COPY_THRESHOLD = 100 * Constants.MB;
+  private static final long MULTIPART_COPY_THRESHOLD = 100L * Constants.MB;
 
   /** Default owner of objects if owner cannot be determined. */
   private static final String DEFAULT_OWNER = "";

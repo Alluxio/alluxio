@@ -1,0 +1,34 @@
+Client.BytesReadLocal:
+  'Total number of bytes short-circuit read from local storage by this client'
+Client.BytesReadLocalThroughput:
+  'Bytes throughput short-circuit read from local storage by this client'
+Client.BytesWrittenLocal:
+  'Total number of bytes short-circuit written to local storage by this client'
+Client.BytesWrittenLocalThroughput:
+  'Bytes throughput short-circuit written to local storage by this client'
+Client.BytesWrittenUfs:
+  'Total number of bytes write to Alluxio UFS by this client'
+Client.CacheBytesEvicted:
+  'Total number of bytes evicted from the client cache.'
+Client.CacheBytesReadCache:
+  'Total number of bytes read from the client cache.'
+Client.CacheBytesReadExternal:
+  'Total number of bytes read from external storage due to a cache miss on the client cache.'
+Client.CacheBytesRequestedExternal:
+  'Total number of bytes the user requested to read which resulted in a cache miss. This number may be smaller than Client.CacheBytesReadExternal due to chunk reads.'
+Client.CacheBytesWrittenCache:
+  'Total number of bytes written to the client cache.'
+Client.CacheDeleteErrors:
+  'Number of failures when deleting cached data in the client cache.'
+Client.CacheGetErrors:
+  'Number of failures when getting cached data in the client cache.'
+Client.CacheHitRate:
+  'Cache hit rate: (# bytes read from cache) / (# bytes requested).'
+Client.CachePagesEvicted:
+  'Total number of pages evicted from the client cache.'
+Client.CachePutErrors:
+  'Number of failures when putting cached data in the client cache.'
+Client.CacheSpaceAvailable:
+  'Amount of bytes available in the client cache.'
+Client.CacheSpaceUsed:
+  'Amount of bytes used by the client cache.'
