@@ -9,7 +9,8 @@ priority: 0
 {:toc}
 
 An Alluxio cluster can be configured by setting the values of Alluxio
-[configuration properties]({{ '/en/reference/Properties-List.html' | relativize_url }}) within `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
+[configuration properties]({{ '/en/reference/Properties-List.html' | relativize_url }}) within
+`${ALLUXIO_HOME}/conf/alluxio-site.properties`.
 
 The two major components to configure are
 - [Alluxio servers](#configure-an-alluxio-cluster), consisting of masters and workers
@@ -20,16 +21,19 @@ The two major components to configure are
 Customizing how an application interacts with Alluxio is specific to each application.
 The following are recommendations for some common applications.
 
-Note that it is only valid to set client-side configurations for applications,
-such as properties prefixed with `alluxio.user`.
-Similarly, setting server-side properties on a compute application has no effect,
-such as properties prefixed with either `alluxio.master` or `alluxio.worker`.
+Note that properties prefixes with `alluxio.user` are only valid to be set on machines which are
+running compute applications.
+They will not affect server operation.
+
+Similarly, setting server-side properties prefixed with `alluxio.master` or `alluxio.worker` will
+only affect Alluxio server settings and does not affect compute applications.
 
 ### Alluxio Shell Commands
 
 Alluxio shell users can put JVM system properties `-Dproperty=value` after the `fs` command and
 before the subcommand to specify Alluxio user properties from the command line.
-For example, the following Alluxio shell command sets the write type to `CACHE_THROUGH` when copying files to Alluxio:
+For example, the following Alluxio shell command sets the write type to `CACHE_THROUGH` when copying
+files to Alluxio:
 
 ```console
 $ ./bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH \
@@ -125,13 +129,12 @@ $ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
 with the cluster-wide configuration values retrieved from Alluxio masters.
 
 When different client applications (Alluxio Shell CLI, Spark jobs, MapReduce jobs)
-or Alluxio workers connect to an Alluxio master,
-they will initialize their own Alluxio configuration properties with the default values
-supplied by the masters based on the master-side `${ALLUXIO_HOME}/conf/alluxio-site.properties` files.
-As a result, cluster admins can set client-side settings (e.g., `alluxio.user.*`),
-or network transport settings (e.g., `alluxio.security.authentication.type`),
-or worker settings (e.g., `alluxio.worker.*`)
-in `${ALLUXIO_HOME}/conf/alluxio-site.properties` on all the masters,
+or Alluxio workers connect to an Alluxio master, they will initialize their own Alluxio
+configuration properties with the default values supplied by the masters based on the master-side
+`${ALLUXIO_HOME}/conf/alluxio-site.properties` files.
+As a result, cluster admins can set client-side settings (e.g., `alluxio.user.*`), or network
+transport settings (e.g., `alluxio.security.authentication.type`), or worker settings
+(e.g., `alluxio.worker.*`) in `${ALLUXIO_HOME}/conf/alluxio-site.properties` on all the masters,
 which will be distributed and become cluster-wide default values when clients and workers connect.
 
 For example, the property `alluxio.user.file.writetype.default` defaults to `ASYNC_THROUGH`, which
@@ -142,8 +145,8 @@ master's `alluxio-site.properties` file.
 After restarting the cluster, all jobs will automatically set `alluxio.user.file.writetype.default`
 to `CACHE_THROUGH`.
 
-Clients can ignore or overwrite the cluster-wide default values by following the approaches described in
-[Configure Alluxio for Applications](#configure-applications) to overwrite the same properties.
+Clients can ignore or overwrite the cluster-wide default values by following the approaches
+described in [Configure Applications](#configure-applications) to overwrite the same properties.
 
 > Note that, before version 1.8, `${ALLUXIO_HOME}/conf/alluxio-site.properties` file is only loaded
 by Alluxio server processes and will be ignored by applications interacting with Alluxio service
@@ -151,23 +154,35 @@ through Alluxio client, unless `${ALLUXIO_HOME}/conf` is on applications' classp
 
 ### Path Defaults
 
-Since version 2.0, Alluxio administrators can set default client side configurations for Alluxio paths.
-FileSystem client operations have options, FileSystem options are derived from client side configuration
-properties. Only these configuration properties can be set as as path defaults.
+Since version 2.0, Alluxio administrators can set default client side configurations for Alluxio
+paths.
+Filesystem client operations have options, Filesystem options are derived from client side
+configuration properties.
+Only these configuration properties can be set as as path defaults.
 
-For example, `createFile` has an option to specify write type. By default, the write type is
-the value of the configuration key `alluxio.user.file.writetype.default`.
+For example, `createFile` has an option to specify write type. By default, the write type is the
+value of the configuration key `alluxio.user.file.writetype.default`.
 The administrator can set default value of `alluxio.user.file.write.type.default` to `MUST_CACHE`
-for all paths with prefix `/tmp` by
-`bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.default=MUST_CACHE /tmp`.
-Then for any `createFile` on paths with prefix `/tmp`, by default, the write type will be `MUST_CACHE`.
+for all paths with prefix `/tmp` by running:
+
+```console
+bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.default=MUST_CACHE /tmp`
+```
+
+After executing this command any create operations on paths with prefix `/tmp` will use the
+`MUST_CACHE` write type by default unless the application configuration overrides the cluster
+defaults.
 
 Path defaults will be automatically propagated to long running clients if they are updated.
-If the administrator updates path defaults by
-`bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.default=THROUGH /tmp`,
-afterwards, all `createFile` will by default have write type `THROUGH`.
+If the administrator updates path defaults using
 
-See [fsadmin pathConf]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#pathconf) on how to
+```console
+$ bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.default=THROUGH /tmp
+```
+
+afterwards, all write operations will use the `THROUGH` write type by default.
+
+See [`fsadmin pathConf`]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#pathconf) on how to
 show, add, update, and remove path defaults.
 
 ## Configuration Sources
