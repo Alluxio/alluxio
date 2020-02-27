@@ -79,10 +79,11 @@ public final class PlanInfo implements Comparable<PlanInfo> {
    *
    * @param taskId the task id
    * @param workerInfo the worker info
+   * @param args the arguments
    */
-  public void addTask(long taskId, WorkerInfo workerInfo) {
+  public void addTask(long taskId, WorkerInfo workerInfo, Object args) {
     TaskInfo oldValue = mTaskIdToInfo.putIfAbsent(taskId,
-        new TaskInfo(mId, taskId, Status.CREATED, workerInfo.getAddress()));
+        new TaskInfo(mId, taskId, Status.CREATED, workerInfo.getAddress(), args));
     // the task is expected to not exist in the map.
     Preconditions.checkState(oldValue == null,
         String.format("JobId %d cannot add duplicate taskId %d", mId, taskId));
@@ -138,6 +139,14 @@ public final class PlanInfo implements Comparable<PlanInfo> {
    * @param taskInfo the task information
    */
   public void setTaskInfo(long taskId, TaskInfo taskInfo) {
+    TaskInfo oldTaskInfo = mTaskIdToInfo.get(taskId);
+
+    // Keep around the task description to avoid regenerating
+
+    if (oldTaskInfo != null) {
+      taskInfo.setDescription(oldTaskInfo.getDescription());
+    }
+
     mTaskIdToInfo.put(taskId, taskInfo);
   }
 

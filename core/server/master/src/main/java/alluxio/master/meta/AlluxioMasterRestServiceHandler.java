@@ -414,7 +414,7 @@ public final class AlluxioMasterRestServiceHandler {
               OpenFilePOptions options =
                   OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
               try (FileInStream is = fs.openFile(absolutePath, options)) {
-                int len = (int) Math.min(5 * Constants.KB, status.getLength() - offset);
+                int len = (int) Math.min(5L * Constants.KB, status.getLength() - offset);
                 byte[] data = new byte[len];
                 long skipped = is.skip(offset);
                 if (skipped < 0) {
@@ -732,7 +732,7 @@ public final class AlluxioMasterRestServiceHandler {
           String fileData;
           try (InputStream is = new FileInputStream(logFile)) {
             fileSize = logFile.length();
-            int len = (int) Math.min(5 * Constants.KB, fileSize - offset);
+            int len = (int) Math.min(5L * Constants.KB, fileSize - offset);
             byte[] data = new byte[len];
             long skipped = is.skip(offset);
             if (skipped < 0) {

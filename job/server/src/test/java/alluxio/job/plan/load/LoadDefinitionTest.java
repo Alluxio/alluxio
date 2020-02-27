@@ -85,7 +85,7 @@ public class LoadDefinitionTest {
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(any(FileSystemContext.class)))
         .thenReturn(mMockBlockStore);
-    Mockito.when(mMockBlockStore.getAllWorkers()).thenReturn(BLOCK_WORKERS);
+    Mockito.when(mMockFsContext.getCachedWorkers()).thenReturn(BLOCK_WORKERS);
     PowerMockito.when(mMockFsContext.getClientContext())
         .thenReturn(ClientContext.create(ServerConfiguration.global()));
     PowerMockito.when(mMockFsContext.getClusterConf()).thenReturn(ServerConfiguration.global());
@@ -117,7 +117,7 @@ public class LoadDefinitionTest {
   public void skipJobWorkersWithoutLocalBlockWorkers() throws Exception {
     List<BlockWorkerInfo> blockWorkers =
         Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress().setHost("host0"), 0, 0));
-    Mockito.when(mMockBlockStore.getAllWorkers()).thenReturn(blockWorkers);
+    Mockito.when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 10);
     LoadConfig config = new LoadConfig(TEST_URI, 1);
     Set<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
@@ -146,7 +146,7 @@ public class LoadDefinitionTest {
     List<BlockWorkerInfo> blockWorkers =
         Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress().setHost("host0"), 0, 0),
             new BlockWorkerInfo(new WorkerNetAddress().setHost("otherhost"), 0, 0));
-    Mockito.when(mMockBlockStore.getAllWorkers()).thenReturn(blockWorkers);
+    Mockito.when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 1);
     LoadConfig config = new LoadConfig(TEST_URI, 2); // set replication to 2
     try {

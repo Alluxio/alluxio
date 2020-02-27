@@ -92,7 +92,7 @@ export class MetricsPresenter extends React.Component<AllProps> {
           </Table>
         </div>
         <div className="col-12">
-          <h5>Total IO Throughput (Last Minute)</h5>
+          <h5>Total IO Throughput (Per Minute)</h5>
           <Table hover={true}>
             <tbody>
               <tr>

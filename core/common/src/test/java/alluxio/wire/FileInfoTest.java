@@ -27,7 +27,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class FileInfoTest {
@@ -95,6 +97,10 @@ public class FileInfoTest {
     Assert.assertEquals(a.getUfsFingerprint(), b.getUfsFingerprint());
     Assert.assertEquals(a.getReplicationMax(), b.getReplicationMax());
     Assert.assertEquals(a.getReplicationMin(), b.getReplicationMin());
+    Assert.assertEquals(a.getXAttr().size(), b.getXAttr().size());
+    for (Map.Entry<String, byte[]> entry : a.getXAttr().entrySet()) {
+      Assert.assertArrayEquals(entry.getValue(), b.getXAttr().get(entry.getKey()));
+    }
     Assert.assertEquals(a, b);
   }
 
@@ -137,6 +143,11 @@ public class FileInfoTest {
     }
     int replicationMax = random.nextInt(10);
     int replicationMin = random.nextInt(10);
+    Map<String, byte[]> xttrs = new HashMap<>();
+    for (int i = 0; i < random.nextInt(10); i++) {
+      xttrs.put(CommonUtils.randomAlphaNumString(random.nextInt(10)),
+          CommonUtils.randomBytes(random.nextInt(10)));
+    }
 
     result.setBlockIds(blockIds);
     result.setBlockSizeBytes(blockSizeBytes);
@@ -174,6 +185,7 @@ public class FileInfoTest {
         Arrays.asList("default:user::rw-", "default:group::r--", "default:other::rwx");
     result.setDefaultAcl((DefaultAccessControlList) AccessControlList
         .fromStringEntries(userName, groupName, defaultStringEntries));
+    result.setXAttr(xttrs);
     return result;
   }
 }

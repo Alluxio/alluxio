@@ -17,7 +17,7 @@ fullnameOverride: alluxio
 
 # Docker Image
 image: alluxio/alluxio
-imageTag: 2.2.0-SNAPSHOT
+imageTag: 2.3.0-SNAPSHOT
 imagePullPolicy: IfNotPresent
 
 # Security Context
@@ -106,17 +106,26 @@ jobMaster:
 #   type: "EMBEDDED"
 #   folder: "/journal"
 journal:
-  pvcName: alluxio-pv-claim
   storageClass: "standard"
   size: 1Gi
+  accessModes:
+    - ReadWriteOnce
   type: "UFS" # "UFS" or "EMBEDDED"
   ufsType: "local" # Ignored if type is "EMBEDDED". "local" or "HDFS"
   folder: "/journal" # Master journal folder
   # Configuration for journal formatting job
   format:
+    runFormat: false # Change to true to format journal
     job:
       activeDeadlineSeconds: 30
       ttlSecondsAfterFinished: 10
+    resources:
+      limits:
+        cpu: "1"
+        memory: "1G"
+      requests:
+        cpu: "1"
+        memory: "1G"
 
 
 ## Worker ##
@@ -188,8 +197,11 @@ jobWorker:
 
 fuse:
   image: alluxio/alluxio-fuse
-  imageTag: 2.2.0-SNAPSHOT
+  imageTag: 2.3.0-SNAPSHOT
   imagePullPolicy: IfNotPresent
+  # Change both to true to deploy FUSE
+  enabled: false
+  clientEnabled: false
   # Properties for the jobWorker component
   properties:
   # Customize the MaxDirectMemorySize

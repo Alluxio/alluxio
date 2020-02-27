@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -81,39 +80,39 @@ public final class JobGrpcClientUtils {
    */
   private static JobInfo waitFor(final long jobId, AlluxioConfiguration alluxioConf)
       throws InterruptedException {
-    final AtomicReference<JobInfo> finishedJobInfo = new AtomicReference<>();
     try (final JobMasterClient client =
         JobMasterClient.Factory.create(JobMasterClientContext
             .newBuilder(ClientContext.create(alluxioConf)).build())) {
-      CommonUtils.waitFor("Job to finish", ()-> {
-        JobInfo jobInfo;
+      return CommonUtils.waitForResult("Job to finish", ()-> {
         try {
-          jobInfo = client.getJobStatus(jobId);
+          return client.getJobStatus(jobId);
         } catch (Exception e) {
           LOG.warn("Failed to get status for job (jobId={})", jobId, e);
+          return null;
+        }
+      }, (jobInfo) -> {
+          if (jobInfo != null) {
+            switch (jobInfo.getStatus()) {
+              case FAILED: // fall through
+              case CANCELED: // fall through
+              case COMPLETED:
+                return true;
+              case RUNNING: // fall through
+              case CREATED:
+                return false;
+              default:
+                throw new IllegalStateException("Unrecognized job status: " + jobInfo.getStatus());
+            }
+          }
           return true;
-        }
-        switch (jobInfo.getStatus()) {
-          case FAILED: // fall through
-          case CANCELED: // fall through
-          case COMPLETED:
-            finishedJobInfo.set(jobInfo);
-            return true;
-          case RUNNING: // fall through
-          case CREATED:
-            return false;
-          default:
-            throw new IllegalStateException("Unrecognized job status: " + jobInfo.getStatus());
-        }
-      }, WaitForOptions.defaults().setInterval(1000));
+        }, WaitForOptions.defaults().setInterval(1000));
     } catch (IOException e) {
       LOG.warn("Failed to close job master client: {}", e.toString());
+      return null;
     } catch (TimeoutException e) {
       // Should never happen since we use the default timeout of "never".
       throw new IllegalStateException(e);
     }
-
-    return finishedJobInfo.get();
   }
 
   private JobGrpcClientUtils() {} // prevent instantiation

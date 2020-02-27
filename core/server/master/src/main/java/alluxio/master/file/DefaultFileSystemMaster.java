@@ -171,6 +171,7 @@ import alluxio.wire.WorkerInfo;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -3816,21 +3817,36 @@ public final class DefaultFileSystemMaster extends CoreMaster
   @Override
   public void stopSync(AlluxioURI syncPoint)
       throws IOException, InvalidPathException, AccessControlException {
-    LockingScheme lockingScheme = new LockingScheme(syncPoint, LockPattern.WRITE_EDGE, false);
-    try (RpcContext rpcContext = createRpcContext();
-        LockedInodePath inodePath =
-            mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
-        FileSystemMasterAuditContext auditContext =
-             createAuditContext("stopSync", syncPoint, null,
-                 inodePath.getParentInodeOrNull())) {
+    try (RpcContext rpcContext = createRpcContext()) {
+      boolean isSuperUser = true;
       try {
-        mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
+        mPermissionChecker.checkSuperUser();
       } catch (AccessControlException e) {
-        auditContext.setAllowed(false);
-        throw e;
+        isSuperUser = false;
       }
-      mSyncManager.stopSyncAndJournal(rpcContext, inodePath.getUri());
-      auditContext.setSucceeded(true);
+      if (isSuperUser) {
+        // TODO(AM): Remove once we don't require a write lock on the sync point during a full sync
+        // Stop sync w/o acquiring an inode lock to terminate an initial full scan (if running)
+        mSyncManager.stopSyncAndJournal(rpcContext, syncPoint);
+      }
+      LockingScheme lockingScheme = new LockingScheme(syncPoint, LockPattern.READ, false);
+      try (LockedInodePath inodePath =
+               mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
+           FileSystemMasterAuditContext auditContext =
+               createAuditContext("stopSync", syncPoint, null,
+                   inodePath.getParentInodeOrNull())) {
+        try {
+          mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
+        } catch (AccessControlException e) {
+          auditContext.setAllowed(false);
+          throw e;
+        }
+        if (!isSuperUser) {
+          // Stop sync here only if not terminated w/o holding the inode lock
+          mSyncManager.stopSyncAndJournal(rpcContext, syncPoint);
+        }
+        auditContext.setSucceeded(true);
+      }
     }
   }
 
@@ -4294,22 +4310,23 @@ public final class DefaultFileSystemMaster extends CoreMaster
     public void heartbeat() throws InterruptedException {
       // TODO(calvin): Provide a better way to keep track of metrics collected as time series
       MetricRegistry registry = MetricsSystem.METRIC_REGISTRY;
+      SortedMap<String, Gauge> gauges = registry.getGauges();
 
       // % Alluxio space used
-      Long masterCapacityTotal = (Long) registry.getGauges()
+      Long masterCapacityTotal = (Long) gauges
           .get(MetricKey.CLUSTER_CAPACITY_TOTAL.getName()).getValue();
-      Long masterCapacityUsed = (Long) registry.getGauges()
+      Long masterCapacityUsed = (Long) gauges
           .get(MetricKey.CLUSTER_CAPACITY_USED.getName()).getValue();
       int percentAlluxioSpaceUsed =
           (masterCapacityTotal > 0) ? (int) (100L * masterCapacityUsed / masterCapacityTotal) : 0;
       mTimeSeriesStore.record("% Alluxio Space Used", percentAlluxioSpaceUsed);
 
       // % UFS space used
-      Long masterUnderfsCapacityTotal = (Long) registry.getGauges()
+      Long masterUnderfsCapacityTotal = (Long) gauges
           .get(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName()).getValue();
       Long masterUnderfsCapacityUsed =
-          (Long) registry.getGauges()
-              .get(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName()).getValue();
+          (Long) gauges
+              .get(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_USED.getName()).getValue();
       int percentUfsSpaceUsed =
           (masterUnderfsCapacityTotal > 0) ? (int) (100L * masterUnderfsCapacityUsed
               / masterUnderfsCapacityTotal) : 0;

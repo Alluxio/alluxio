@@ -389,7 +389,7 @@ public final class AlluxioWorkerRestServiceHandler {
           (workerCapacityTotal > 0) ? (int) (100L * workerCapacityUsed / workerCapacityTotal) : 0;
 
       response.setWorkerCapacityUsedPercentage(workerCapacityUsedPercentage);
-      response.setWorkerCapacityFreePercentage(100 - workerCapacityUsedPercentage);
+      response.setWorkerCapacityFreePercentage(100L - workerCapacityUsedPercentage);
 
       Map<String, Metric> operations = new TreeMap<>();
       // Remove the instance name from the metrics.
@@ -510,7 +510,7 @@ public final class AlluxioWorkerRestServiceHandler {
           String fileData;
           try (InputStream is = new FileInputStream(logFile)) {
             fileSize = logFile.length();
-            int len = (int) Math.min(5 * Constants.KB, fileSize - offset);
+            int len = (int) Math.min(5L * Constants.KB, fileSize - offset);
             byte[] data = new byte[len];
             long skipped = is.skip(offset);
             if (skipped < 0) {

@@ -97,7 +97,7 @@ public class AlluxioFileInStream extends FileInStream {
   private Closer mCloser;
 
   protected AlluxioFileInStream(URIStatus status, InStreamOptions options,
-      FileSystemContext context) throws IOException {
+      FileSystemContext context) {
     mCloser = Closer.create();
     // Acquire a resource to block FileSystemContext reinitialization, this needs to be done before
     // using mContext.
@@ -121,7 +121,7 @@ public class AlluxioFileInStream extends FileInStream {
       // If there is any exception, including RuntimeException such as thrown by conf.getBoolean,
       // release the acquired resource, otherwise, FileSystemContext reinitialization will be
       // blocked forever.
-      throw CommonUtils.closeAndRethrow(mCloser, t);
+      throw CommonUtils.closeAndRethrowRuntimeException(mCloser, t);
     }
   }
 

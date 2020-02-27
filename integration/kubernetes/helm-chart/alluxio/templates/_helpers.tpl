@@ -119,6 +119,28 @@ resources:
     {{- end }}
 {{- end -}}
 
+{{- define "alluxio.journal.format.resources" -}}
+resources:
+  limits:
+    {{- if .Values.journal.format.resources.limits }}
+      {{- if .Values.journal.format.resources.limits.cpu  }}
+    cpu: {{ .Values.journal.format.resources.limits.cpu }}
+      {{- end }}
+      {{- if .Values.journal.format.resources.limits.memory  }}
+    memory: {{ .Values.journal.format.resources.limits.memory }}
+      {{- end }}
+    {{- end }}
+  requests:
+    {{- if .Values.journal.format.resources.requests }}
+      {{- if .Values.journal.format.resources.requests.cpu  }}
+    cpu: {{ .Values.journal.format.resources.requests.cpu }}
+      {{- end }}
+      {{- if .Values.journal.format.resources.requests.memory  }}
+    memory: {{ .Values.journal.format.resources.requests.memory }}
+      {{- end }}
+    {{- end }}
+{{- end -}}
+
 {{- define "alluxio.master.secretVolumeMounts" -}}
   {{- range $key, $val := .Values.secrets.master }}
             - name: secret-{{ $key }}-volume

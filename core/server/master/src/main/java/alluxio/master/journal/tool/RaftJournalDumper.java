@@ -30,6 +30,7 @@ import io.atomix.copycat.server.storage.Storage;
 import io.atomix.copycat.server.storage.entry.CommandEntry;
 import io.atomix.copycat.server.storage.snapshot.Snapshot;
 import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
+import io.atomix.copycat.server.storage.snapshot.SnapshotStore;
 import io.atomix.copycat.server.storage.util.StorageSerialization;
 import io.atomix.copycat.server.util.ServerSerialization;
 import io.atomix.copycat.util.ProtocolSerialization;
@@ -129,11 +130,15 @@ public class RaftJournalDumper extends AbstractJournalDumper {
 
   private void readCopycatSnapshotFromDir() {
     Storage journalStorage = Storage.builder().withDirectory(mInputDir).build();
-    if (journalStorage.openSnapshotStore("copycat").snapshots().isEmpty()) {
-      LOG.debug("No snapshot found.");
-      return;
+    Snapshot currentSnapshot;
+    try (final SnapshotStore copycat = journalStorage.openSnapshotStore("copycat")) {
+      if (copycat.snapshots().isEmpty()) {
+        LOG.debug("No snapshot found.");
+        return;
+      }
+      currentSnapshot = copycat.currentSnapshot();
     }
-    Snapshot currentSnapshot = journalStorage.openSnapshotStore("copycat").currentSnapshot();
+
     SnapshotReader snapshotReader = currentSnapshot.reader();
     String checkpointPath = String.format("%s-%s-%s", mCheckpointsDir, currentSnapshot.index(),
         currentSnapshot.timestamp());

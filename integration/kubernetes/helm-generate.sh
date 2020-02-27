@@ -55,7 +55,7 @@ function generateMasterTemplates {
 
 function generateFormatJournalJobTemplates {
   echo "Generating format journal job templates into $dir"
-  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/job/format-journal-job.yaml -f $dir/config.yaml > "$dir/job/alluxio-format-journal-job.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ --set journal.format.runFormat=true -x templates/job/format-journal-job.yaml -f $dir/config.yaml > "$dir/job/alluxio-format-journal-job.yaml.template"
 
 }
 
@@ -66,8 +66,8 @@ function generateWorkerTemplates {
 
 function generateFuseTemplates {
   echo "Generating fuse templates"
-  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/fuse/daemonset.yaml -f $dir/config.yaml > "alluxio-fuse.yaml.template"
-  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/fuse/client-daemonset.yaml -f $dir/config.yaml > "alluxio-fuse-client.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ --set fuse.enabled=true -x templates/fuse/daemonset.yaml -f $dir/config.yaml > "alluxio-fuse.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ --set fuse.clientEnabled=true -x templates/fuse/client-daemonset.yaml -f $dir/config.yaml > "alluxio-fuse-client.yaml.template"
 }
 
 function generateMasterServiceTemplates {

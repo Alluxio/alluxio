@@ -142,6 +142,9 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, "20ms");
     conf.put(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "20ms");
 
+    // faster refresh
+    conf.put(PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME, "20ms");
+
     return conf;
   }
 

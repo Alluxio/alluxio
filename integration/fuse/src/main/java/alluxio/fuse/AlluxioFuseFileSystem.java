@@ -741,7 +741,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
 
       // although user may set different block size for different files,
       // small block size can result more accurate compute.
-      long blockSize = 4 * Constants.KB;
+      long blockSize = 4L * Constants.KB;
       // fs block size
       // The size in bytes of the minimum unit of allocation on this file system
       stbuf.f_bsize.set(blockSize);

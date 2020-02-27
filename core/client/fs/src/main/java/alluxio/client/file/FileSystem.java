@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.annotation.PublicApi;
+import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -43,7 +44,6 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
-import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
@@ -129,9 +129,9 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context) {
+      AlluxioConfiguration conf = context.getClusterConf();
       if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
         // Sort properties by name to keep output ordered.
-        AlluxioConfiguration conf = context.getClusterConf();
         List<PropertyKey> keys = new ArrayList<>(conf.keySet());
         keys.sort(Comparator.comparing(PropertyKey::getName));
         for (PropertyKey key : keys) {
@@ -140,16 +140,12 @@ public interface FileSystem extends Closeable {
           LOG.debug("{}={} ({})", key.getName(), value, source);
         }
       }
-      Class fsClass = context.getClusterConf().getClass(PropertyKey.USER_FILESYSTEM_CLASS);
-      Class[] ctorArgClasses = new Class[] {FileSystemContext.class};
-      Object[] ctorArgs = new Object[] {context};
-      FileSystem fs =
-          (FileSystem) CommonUtils.createNewClassInstance(fsClass, ctorArgClasses, ctorArgs);
-      if (context.getClusterConf().getBoolean(PropertyKey.USER_LOCAL_CACHE_ENABLED)) {
-        return new LocalCacheFileSystem(fs);
-      } else {
-        return fs;
+      FileSystem fs = conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)
+          ? new MetadataCachingBaseFileSystem(context) : new BaseFileSystem(context);
+      if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)) {
+        return new LocalCacheFileSystem(fs, conf);
       }
+      return fs;
     }
   }
 

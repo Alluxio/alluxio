@@ -44,6 +44,7 @@ public final class FileInfo implements Serializable {
   private String mName = "";
   private String mPath = "";
   private String mUfsPath = "";
+  private String mFileIdentifier;
   private long mLength;
   private long mBlockSizeBytes;
   private long mCreationTimeMs;
@@ -87,6 +88,16 @@ public final class FileInfo implements Serializable {
    */
   public long getFileId() {
     return mFileId;
+  }
+
+  /**
+   *  Similar to {@link #getFileId()}, but returns in a string form, allowing for the use of
+   *  non-long based ids.
+   *
+   *  @return the file identifier
+   */
+  public String getFileIdentifier() {
+    return mFileIdentifier != null ? mFileIdentifier : Long.toString(mFileId);
   }
 
   /**
@@ -344,6 +355,15 @@ public final class FileInfo implements Serializable {
    */
   public FileInfo setFileId(long fileId) {
     mFileId = fileId;
+    return this;
+  }
+
+  /**
+   * @param fileIdentifier the file id to use
+   * @return the file information
+   */
+  public FileInfo setFileIdentifier(String fileIdentifier) {
+    mFileIdentifier = fileIdentifier;
     return this;
   }
 
@@ -668,6 +688,7 @@ public final class FileInfo implements Serializable {
         && mFileBlockInfoList.equals(that.mFileBlockInfoList) && mTtlAction == that.mTtlAction
         && mMountId == that.mMountId && mInAlluxioPercentage == that.mInAlluxioPercentage
         && mUfsFingerprint.equals(that.mUfsFingerprint)
+        && Objects.equal(getFileIdentifier(), that.getFileIdentifier())
         && Objects.equal(mAcl, that.mAcl)
         && Objects.equal(mDefaultAcl, that.mDefaultAcl)
         && Objects.equal(mMediumTypes, that.mMediumTypes);
@@ -679,13 +700,15 @@ public final class FileInfo implements Serializable {
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mLastAccessTimeMs, mTtl, mOwner, mGroup,
         mMode, mReplicationMax, mReplicationMin, mPersistenceState, mMountPoint, mFileBlockInfoList,
-        mTtlAction, mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl, mMediumTypes);
+        mTtlAction, mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl, mMediumTypes,
+        getFileIdentifier());
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("fileId", mFileId)
+        .add("fileIdentifier", mFileIdentifier)
         .add("name", mName)
         .add("path", mPath)
         .add("ufsPath", mUfsPath).add("length", mLength).add("blockSizeBytes", mBlockSizeBytes)

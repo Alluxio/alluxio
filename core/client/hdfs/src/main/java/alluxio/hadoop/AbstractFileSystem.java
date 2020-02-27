@@ -259,10 +259,11 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   @Override
   public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len)
       throws IOException {
-    LOG.debug("getFileBlockLocations({}, {}, {})", file.getPath().getName(), start, len);
+    LOG.debug("getFileBlockLocations({}, {}, {})",
+        (file == null) ? null : file.getPath().getName(), start, len);
     if (file == null) {
       LOG.debug("getFileBlockLocations({}, {}, {}) returned null",
-          file.getPath().getName(), start, len);
+          null, start, len);
       return null;
     }
     if (mStatistics != null) {
@@ -491,7 +492,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     // Create FileSystem for accessing Alluxio.
     // Disable URI validation for non-Alluxio schemes.
     boolean disableUriValidation =
-        (uri.getScheme() != null) ? uri.getScheme().equals(Constants.SCHEME) : true;
+        (uri.getScheme() == null) || uri.getScheme().equals(Constants.SCHEME);
     mFileSystem = FileSystem.Factory.create(
         ClientContext.create(subject, alluxioConf).setUriValidationEnabled(disableUriValidation));
   }

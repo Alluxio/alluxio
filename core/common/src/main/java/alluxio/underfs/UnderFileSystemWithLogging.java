@@ -57,6 +57,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   private final UnderFileSystem mUnderFileSystem;
   private final UnderFileSystemConfiguration mConf;
   private final String mPath;
+  private final String mEscapedPath;
 
   /**
    * Creates a new {@link UnderFileSystemWithLogging} which forwards all calls to the provided
@@ -73,6 +74,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     mPath = path;
     mUnderFileSystem = ufs;
     mConf = conf;
+    mEscapedPath = MetricsSystem.escape(new AlluxioURI(path));
   }
 
   @Override
@@ -967,15 +969,19 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
           && AuthenticatedClientUser.get(mConf) != null) {
         return Metric.getMetricNameWithTags(metricName, MetricInfo.TAG_USER,
             AuthenticatedClientUser.get(mConf).getName(), MetricInfo.TAG_UFS,
-            MetricsSystem.escape(new AlluxioURI(mPath)), MetricInfo.TAG_UFS_TYPE,
+            mEscapedPath, MetricInfo.TAG_UFS_TYPE,
             mUnderFileSystem.getUnderFSType());
       }
     } catch (IOException e) {
       // fall through
     }
     return Metric.getMetricNameWithTags(metricName, MetricInfo.TAG_UFS,
-        MetricsSystem.escape(new AlluxioURI(mPath)), MetricInfo.TAG_UFS_TYPE,
+        mEscapedPath, MetricInfo.TAG_UFS_TYPE,
         mUnderFileSystem.getUnderFSType());
+  }
+
+  private String escapePath() {
+    return MetricsSystem.escape(new AlluxioURI(mPath));
   }
 
   // TODO(calvin): This should not be in this class

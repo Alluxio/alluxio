@@ -11,10 +11,11 @@
 
 package alluxio.job.wire;
 
+import static org.junit.Assert.assertEquals;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,9 +41,16 @@ public class JobServiceSummaryTest {
     jobInfos.add(createPlanInfo(4, Status.FAILED, 9997L));
     jobInfos.add(createPlanInfo(5, Status.RUNNING, 10000L));
     jobInfos.add(createPlanInfo(6, Status.FAILED, 10002L));
-    jobInfos.add(createWorkflowInfo(7, Status.COMPLETED, 9996L));
+    jobInfos.add(createWorkflowInfo(7, Status.RUNNING, 9996L));
 
     mSummary = new JobServiceSummary(jobInfos);
+  }
+
+  @Test
+  public void toProto() throws Exception {
+    final JobServiceSummary summary = new JobServiceSummary(mSummary.toProto());
+
+    assertEquals(mSummary, summary);
   }
 
   @Test
@@ -50,7 +58,7 @@ public class JobServiceSummaryTest {
 
     Collection<StatusSummary> summaryPerStatus = mSummary.getSummaryPerStatus();
 
-    Assert.assertEquals("Unexpected length of summaryPerStatus",
+    assertEquals("Unexpected length of summaryPerStatus",
             Status.values().length, summaryPerStatus.size());
 
     Map<Status, Long> groupByStatus = Maps.newHashMap();
@@ -59,7 +67,7 @@ public class JobServiceSummaryTest {
       groupByStatus.put(statusSummary.getStatus(), statusSummary.getCount());
     }
 
-    Assert.assertEquals("Unexpected length after grouping by status, "
+    assertEquals("Unexpected length after grouping by status, "
                     + "perhaps there were duplicate status in StatusSummary",
             Status.values().length, summaryPerStatus.size());
 
@@ -67,16 +75,16 @@ public class JobServiceSummaryTest {
       long count = groupByStatus.get(status);
       switch (status) {
         case COMPLETED:
-          Assert.assertEquals("COMPLETED count unexpected", 3L, count);
+          assertEquals("COMPLETED count unexpected", 2L, count);
           break;
         case FAILED:
-          Assert.assertEquals("FAILED count unexpected", 3L, count);
+          assertEquals("FAILED count unexpected", 3L, count);
           break;
         case RUNNING:
-          Assert.assertEquals("RUNNING count unexpected", 1L, count);
+          assertEquals("RUNNING count unexpected", 2L, count);
           break;
         default:
-          Assert.assertEquals("Unexpected status having count value: " + status, 0L, count);
+          assertEquals("Unexpected status having count value: " + status, 0L, count);
       }
     }
   }
@@ -85,34 +93,48 @@ public class JobServiceSummaryTest {
   public void testRecentActivities() {
     Collection<JobInfo> recentActivities = mSummary.getRecentActivities();
 
-    Assert.assertEquals("Unexpected length of recent activities", 7, recentActivities.size());
+    assertEquals("Unexpected length of recent activities", 7, recentActivities.size());
 
     JobInfo[] recentActvitiesArray = new JobInfo[7];
 
     recentActivities.toArray(recentActvitiesArray);
 
-    Assert.assertEquals(1, recentActvitiesArray[0].getId());
-    Assert.assertEquals(6, recentActvitiesArray[1].getId());
-    Assert.assertEquals(5, recentActvitiesArray[2].getId());
-    Assert.assertEquals(3, recentActvitiesArray[3].getId());
-    Assert.assertEquals(2, recentActvitiesArray[4].getId());
-    Assert.assertEquals(4, recentActvitiesArray[5].getId());
-    Assert.assertEquals(7, recentActvitiesArray[6].getId());
+    assertEquals(1, recentActvitiesArray[0].getId());
+    assertEquals(6, recentActvitiesArray[1].getId());
+    assertEquals(5, recentActvitiesArray[2].getId());
+    assertEquals(3, recentActvitiesArray[3].getId());
+    assertEquals(2, recentActvitiesArray[4].getId());
+    assertEquals(4, recentActvitiesArray[5].getId());
+    assertEquals(7, recentActvitiesArray[6].getId());
   }
 
   @Test
   public void testRecentFailures() {
     Collection<JobInfo> recentFailures = mSummary.getRecentFailures();
 
-    Assert.assertEquals("Unexpected length of last activities", 3, recentFailures.size());
+    assertEquals("Unexpected length of last activities", 3, recentFailures.size());
 
     JobInfo[] recentFailuresArray = new JobInfo[3];
 
     recentFailures.toArray(recentFailuresArray);
 
-    Assert.assertEquals(1, recentFailuresArray[0].getId());
-    Assert.assertEquals(6, recentFailuresArray[1].getId());
-    Assert.assertEquals(4, recentFailuresArray[2].getId());
+    assertEquals(1, recentFailuresArray[0].getId());
+    assertEquals(6, recentFailuresArray[1].getId());
+    assertEquals(4, recentFailuresArray[2].getId());
+  }
+
+  @Test
+  public void testLongestRunning() {
+    Collection<JobInfo> longestRunning = mSummary.getLongestRunning();
+
+    assertEquals("Unexpected length of longest running", 2, longestRunning.size());
+
+    JobInfo[] longestRunningArray = new JobInfo[2];
+
+    longestRunning.toArray(longestRunningArray);
+
+    assertEquals(7, longestRunningArray[0].getId());
+    assertEquals(5, longestRunningArray[1].getId());
   }
 
   private PlanInfo createPlanInfo(int id, Status status, long lastStatusChangeMs) {
