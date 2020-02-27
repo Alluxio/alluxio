@@ -168,7 +168,7 @@ public class CollectInfo extends AbstractShell {
 
     // Validate command args
     if (args.length < 2) {
-      printHelp(String.format("Command %s requires at least %s arguments (%s provided)%n",
+      printHelp(String.format("Command requires at least %s arguments (%s provided)%n",
               2, argv.length));
       System.exit(-1);
     }
