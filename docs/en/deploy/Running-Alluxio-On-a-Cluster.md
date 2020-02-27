@@ -179,8 +179,7 @@ On any master node, format the Alluxio journal with the following command:
 $ ./bin/alluxio formatMaster
 ```
 
-> Formatting the journal will delete all metadata from Alluxio. However, the data in under storage
-will be untouched.
+Formatting the journal will delete all metadata from Alluxio. However, the data in under storage will be untouched.
 
 ### Add/Remove Workers Dynamically
 
