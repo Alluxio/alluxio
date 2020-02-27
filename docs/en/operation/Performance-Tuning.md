@@ -192,7 +192,7 @@ There are 3 options for loading a missing path: `Never`, `Once`, `Always`.
 `ONCE` will use the default behavior of only scanning each directory once ever, and `NEVER` will never consult the UFS
 and thus prevent Alluxio from scanning for new files at all.
 
-The Alluxio master maintains a cache to approximate which UFS paths have been previously loaded,
+The Alluxio master maintains a cache to keep track of which UFS paths have been previously loaded,
 to approximate the `Once` behavior.
 The parameter `alluxio.master.ufs.path.cache.capacity` controls the number of paths to store in the cache.
 A larger cache size will consume more memory, but will better approximate the `Once` behavior.
@@ -320,6 +320,6 @@ persist.
 This works because eventually these temporary files will be deleted or renamed to permanent files.
 Because `alluxio.user.file.persist.on.rename=true` is set, the files will be considered for
 persistence again when renamed.
-Note that persist on rename works for directories as well as files - if a top level directory is
-renamed with the persist on rename option, all its not yet persisted files will be scanned for
-eligibility for persist.
+Note that persist on rename works for directories as well as files - if a top-level directory is
+renamed with the persist on rename option, any files underneath the top-level directory will be
+considered for persistence.
