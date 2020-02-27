@@ -60,4 +60,9 @@ public interface CacheEvictor {
    */
   @Nullable
   PageId evict();
+
+  /**
+   * Resets the evictor.
+   */
+  void reset();
 }
