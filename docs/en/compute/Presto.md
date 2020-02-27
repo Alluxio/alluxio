@@ -23,7 +23,7 @@ latency especially when data is remote or network is slow or congested.
 ## Using Presto with the Alluxio Catalog Service
 Currently, there are 2 ways to enable Presto to interact with Alluxio:
 * Presto interacts with the [Alluxio Catalog Service]({{ '/en/core-services/Catalog.html' | relativize_url }})
-* Presto interacts with the Hive Metastore (updated with Alluxio locations)
+* Presto interacts with the Hive Metastore (with table definitions updated to use Alluxio paths)
 
 The primary benefits for using Presto with the Alluxio Catalog Service are simpler deployments
 of Alluxio with Presto (no modifications to the Hive Metastore), and enabling schema-aware
@@ -34,7 +34,7 @@ For more details and instructions on how to use the Alluxio Catalog Service with
 visit the [Alluxio Catalog Service documentation]({{ '/en/core-services/Catalog.html' | relativize_url }}).
 
 The rest of this page discusses the alternative approach of Presto interacting with the
-Hive Metastore with updated with Alluxio locations.
+Hive Metastore.
 
 ## Prerequisites
 
@@ -51,10 +51,10 @@ This guide is tested with `presto-315`.
 
 ### Configure Presto to connect to Hive Metastore
 
-Presto gets the database and table metadata information (including file system locations)from
-Hive Metastore, via the presto-hive-connector.
+Presto gets the database and table metadata information (including file system locations) from
+the Hive Metastore, via Presto's Hive connector.
 Here is a example Presto configuration file `${PRESTO_HOME}/etc/catalog/hive.properties`,
-for a catalog using the hive-connector.
+for a catalog using the Hive connector.
 
 ```properties
 connector.name=hive-hadoop2
@@ -224,7 +224,7 @@ Alternatively, modify `conf/hive-site.xml` to include:
 
 ### Increase parallelism
 
-Presto's hive-connector uses the config `hive.max-split-size` to control the parallelism of the
+Presto's Hive connector uses the config `hive.max-split-size` to control the parallelism of the
 query.
 For Alluxio 1.6 or earlier, it is recommended to set this size no less than Alluxio's block
 size to avoid the read contention within the same block.
