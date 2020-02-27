@@ -166,7 +166,7 @@ The administrator can set default value of `alluxio.user.file.write.type.default
 for all paths with prefix `/tmp` by running:
 
 ```console
-bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.default=MUST_CACHE /tmp`
+$ bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.default=MUST_CACHE /tmp`
 ```
 
 After executing this command any create operations on paths with prefix `/tmp` will use the
