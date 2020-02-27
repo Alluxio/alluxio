@@ -101,7 +101,7 @@ public final class MetricsDocGenerator {
           ymlFileWriter = fileWriterMap.get(
               new FileWriterKey(metricTypeMap.get(components[0]), YML_SUFFIX));
           csvFileWriter.append(String.format("%s,%s%n", key, metricKey.getMetricType().toString()));
-          ymlFileWriter.append(String.format("%s,%s%n",
+          ymlFileWriter.append(String.format("%s:%n  '%s'%n",
               key, StringEscapeUtils.escapeHtml(metricKey.getDescription().replace("'", "''"))));
         } else {
           throw new IOException(String
