@@ -34,6 +34,7 @@ To deploy Alluxio in production, we highly recommend running Alluxio masters in
 * TCP traffic across all nodes is allowed.
   For basic functionality make sure RPC port (default :19998) is open on all nodes.
 * Allow `sudo` privilege for the OS user that Alluxio will be running as.
+  This is only needed if you expect Alluxio to automatically mount a RAMFS on the workers.
 
 ## Basic Setup
 
