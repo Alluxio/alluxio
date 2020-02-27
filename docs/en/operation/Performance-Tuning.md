@@ -9,7 +9,7 @@ priority: 8
 * Table of Contents
 {:toc}
 
-This document goes over various knobs that can be used to tune Alluxio performance.
+This document goes over various tips and configuration to tune Alluxio performance.
 
 ## Common Performance Issues
 
@@ -36,8 +36,9 @@ The following is a checklist to run through to address common problems when tuni
    Configuring `alluxio.user.hostname` and `alluxio.worker.hostname` sets the client and worker
    hostnames respectively.
 
-   Note: In order to retrieve metrics for short circuit IO, the client metrics collection need to be enabled by setting
-   `alluxio.user.metrics.collection.enabled=true` in `alluxio-site.properties` or corresponding application configuration.
+   Note: In order to retrieve metrics for short circuit IO, the client metrics collection need to
+   be enabled by setting `alluxio.user.metrics.collection.enabled=true` in
+   `alluxio-site.properties` or corresponding application configuration.
 
 1. Is data is well-distributed across Alluxio workers?
 
@@ -46,17 +47,6 @@ The following is a checklist to run through to address common problems when tuni
    In a scenario where all data is written from a single node, its local worker will be filled,
    leaving the remaining workers empty.
    See [this page][1] for discussion of the different location policies and how to configure them.
-
-1. Are there warnings or errors in the master or worker logs related to thread pool exhaustion?
-
-   Alluxio clients maintain a connection to the master to avoid using a new connection each time.
-   Each client will occupy a server thread while an RPC request is pending.
-   This may deplete the master's thread pool; its size can be increased by setting
-   `alluxio.master.rpc.executor.max.pool.size`, which has a default value of 500.
-   The file descriptor limit may also need to be increased to allow the desired number of open connections.
-   The default number of threads used by a client can be decreased by setting
-   `alluxio.user.file.master.client.threads` and `alluxio.user.block.master.client.threads`,
-   both of which have a default value of `10`.
 
 1. Are there error messages containing "DeadlineExceededException" in the user logs?
 
@@ -76,10 +66,10 @@ The following is a checklist to run through to address common problems when tuni
 ALLUXIO_JAVA_OPTS=" -XX:+PrintGCDetails -XX:+PrintTenuringDistribution -XX:+PrintGCTimeStamps"
 ```
 
-   Restart the Alluxio service and check the output in `logs/master.out` or `logs/worker.out`
+   Restart the Alluxio servers and check the output in `logs/master.out` or `logs/worker.out`
    for masters and workers respectively.
 
-Also check out the [metrics system][2] for better insight in how jobs are performing.
+Also check out the [metrics system][2] for better insight in how the Alluxio service is performing.
 
 [1]: {{ '/en/api/FS-API.html' | relativize_url }}#location-policy
 [2]: {{ '/en/operation/Metrics-System.html' | relativize_url }}
@@ -116,9 +106,11 @@ The following parameters tune the behavior of the monitor thread:
 ### Improve Cold Read Performance
 
 When the application reads directly from the UFS, multiple clients may try to read the same portion
-of the input data simultaneously. For example, at the start of a SparkSQL query, all Spark executors
-will read the same parquet header. This results in Alluxio caching the same block on every node,
-which is potentially a waste of both UFS bandwidth and Alluxio storage capacity.
+of the input data simultaneously.
+For example, at the start of a SparkSQL query, all Spark executors will read the same parquet
+footer metadata.
+This potentially results in Alluxio caching the same block on every node, which is potentially a
+waste of both UFS bandwidth and Alluxio storage capacity.
 
 One way to avoid this situation is to apply a deterministic hashing policy by specifying the
 following configuration property:
@@ -128,12 +120,16 @@ alluxio.user.ufs.block.read.location.policy=alluxio.client.block.policy.Determin
 ```
 
 This will cause Alluxio to select a single random worker to read the given block from the UFS
-and cause any other worker requesting the same block to instead read from the selected worker.
+and cause any other clients requesting the same block to instead read from the selected worker.
 To increase the number of workers allowed to simultaneously read the same block from the UFS,
 update the following configuration property to a value greater than the default of `1`:
+
 ```
 alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards=3
 ```
+
+Setting this to 3 means there will be 3 Alluxio workers responsible for reading a particular
+UFS block, and all clients will read that UFS block from one of those 3 workers.
 
 ## Master Tuning
 
@@ -152,9 +148,10 @@ alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards=3
 </tr>
 </table>
 
-Increasing the batch time can improve metadata throughput but reduce metadata latency.
-Setting a larger timeout value helps keep the master alive if the journal source is unavailable for
-an extended duration.
+Increasing the batch time can improve master throughput for update/write RPCs, but may also
+increase the latency for those update/write RPCs.
+Setting a larger timeout value helps keep the master alive if the journal writing location is
+unavailable for an extended duration.
 
 ### Journal garbage collection
 
@@ -173,8 +170,8 @@ consider reducing this value so that checkpoints happen more often.
 
 ### UFS block locations cache
 
-Alluxio provides block locations, similar to the HDFS client.
-If a file block is stored in Alluxio, Alluxio will consult the UFS for its block locations,
+The Alluxio client provides block locations, similar to the HDFS client.
+If a file block is not stored in Alluxio, Alluxio will consult the UFS for its block locations,
 requiring an additional RPC.
 This extra overhead can be avoided by caching the UFS block locations.
 The size of this cache is determined by the value of `alluxio.master.ufs.block.location.cache.capacity`.
@@ -195,7 +192,8 @@ There are 3 options for loading a missing path: `Never`, `Once`, `Always`.
 `ONCE` will use the default behavior of only scanning each directory once ever, and `NEVER` will never consult the UFS
 and thus prevent Alluxio from scanning for new files at all.
 
-The Alluxio master maintains a cache to approximate which UFS paths have been previously loaded, to approximate the `Once` behavior.
+The Alluxio master maintains a cache to approximate which UFS paths have been previously loaded,
+to approximate the `Once` behavior.
 The parameter `alluxio.master.ufs.path.cache.capacity` controls the number of paths to store in the cache.
 A larger cache size will consume more memory, but will better approximate the `Once` behavior.
 The Alluxio master maintains the UFS path cache asynchronously.
@@ -234,8 +232,8 @@ Alluxio workers use a pool of open input streams to the UFS controlled by the pa
 stream to the UFS. However, it also places greater load on the UFS. For HDFS as the UFS, the
 parameter should be set based on `dfs.datanode.handler.count`. For instance, if the number of
 Alluxio workers matches the the number of HDFS datanodes, set
-`alluxio.worker.ufs.instream.cache.max.size=dfs.datanode.handler.count` under the assumption
-that the workload is spread evenly over Alluxio workers.
+`alluxio.worker.ufs.instream.cache.max.size=<value of HDFS setting dfs.datanode.handler.count>`
+under the assumption that the workload is spread evenly over Alluxio workers.
 
 ## Client Tuning
 
@@ -288,7 +286,7 @@ alluxio.user.file.persist.on.rename=true
 # Determines the number of copies in Alluxio when files are not yet persisted, increase this to
 # a larger number to ensure fault tolerance in case of Alluxio worker failures
 alluxio.user.file.replication.durable=1
-# blacklist files which contain the string "_temporary" anywhere in their path
+# Blacklists persisting files which contain the string "_temporary" anywhere in their path
 alluxio.master.persistence.blacklist=_temporary
 ```
 
@@ -299,10 +297,10 @@ With this configuration, the protocol translates to the following:
     - Rename within Alluxio is fast because it is a metadata operation
     - An asynchronous persist task is launched
 1. Job completes to the user
-1. Write final output to object store
+1. Asynchronously write final output to object store
     - Data is written to object store slowly
 
-Overall, a copy and delete operation in the object store is saved, and the slow portion of writing
+Overall, a copy and delete operation in the object store is avoided, and the slow portion of writing
 to the object store is moved off the critical path.
 
 In some cases, the compute framework's commit protocol involves multiple renames or temporary files.
@@ -320,8 +318,8 @@ alluxio.master.persistence.blacklist=.staging,_temporary
 Files such as `/data/_temporary/part-00001`, `/data/temporary.staging` will not be considered for
 persist.
 This works because eventually these temporary files will be deleted or renamed to permanent files.
-Because `alluxio.user.file.persist.on.rename=true` is set, the files will be considered for persist
-again when renamed.
+Because `alluxio.user.file.persist.on.rename=true` is set, the files will be considered for
+persistence again when renamed.
 Note that persist on rename works for directories as well as files - if a top level directory is
 renamed with the persist on rename option, all its not yet persisted files will be scanned for
-eligbility for persist.
+eligibility for persist.
