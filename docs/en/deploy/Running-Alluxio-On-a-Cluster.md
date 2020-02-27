@@ -184,7 +184,7 @@ Formatting the journal will delete all metadata from Alluxio. However, the data 
 ### Add/Remove Workers Dynamically
 
 Adding a worker to an Alluxio cluster dynamically is as simple as starting a new Alluxio worker
-process, with the appropriate configuration.
+process with the appropriate configuration.
 In most cases, the new worker's configuration should be the same as all the other workers'
 configuration.
 Run the following command on the new worker to add it to the cluster.
