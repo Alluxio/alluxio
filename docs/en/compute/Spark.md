@@ -176,7 +176,7 @@ Note that in client mode you need to set `--driver-java-options "-Dalluxio.user.
 ### Access Data from Alluxio in HA Mode
 
 If Spark is set up by the instructions in [Configure Spark to find Alluxio cluster in HA mode](#configure-spark-to-find-alluxio-cluster-in-ha-mode),
-you can write URIs using the "`alluxio://`" scheme without specifying cluster
+you can write URIs using the `alluxio://` scheme without specifying cluster
 information in the authority.
 This is because in HA mode, the address of leader Alluxio master will be served
 by the internal leader election or by the configured Zookeeper service.
