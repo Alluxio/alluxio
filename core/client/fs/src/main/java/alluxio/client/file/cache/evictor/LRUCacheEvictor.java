@@ -58,4 +58,9 @@ public class LRUCacheEvictor implements CacheEvictor {
       return mLRUCache.isEmpty() ? null : mLRUCache.keySet().iterator().next();
     }
   }
+
+  @Override
+  public void reset() {
+    mLRUCache.clear();
+  }
 }
