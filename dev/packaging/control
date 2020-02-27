@@ -1,0 +1,10 @@
+Package: alluxio
+Source: alluxio-src
+Version: 2.3.0-SNAPSHOT
+Section: base
+Priority: optional
+Architecture: all
+Depends: openjdk-8-jre, openjdk-8-jdk
+Maintainer: Zachary Blanco <zac@alluxio.com>
+Description: Alluxio debian distribution
+ This is a debian-packaged version of Alluxio (https://alluxio.io)
