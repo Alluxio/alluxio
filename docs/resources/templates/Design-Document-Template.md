@@ -2,9 +2,6 @@ Design Title:
 Authors: 
 Date: 
 
-* Table of Contents
-{:toc}
-
 ## Overview
 This section explains the motivation of the work, providing the status QUO and the problems associated with it. This section also proposes the high level solution to the problem.
 
