@@ -60,9 +60,11 @@ public class LocalPageStore implements PageStore {
     mPageSize = options.getPageSize();
     mCacheSize = options.getCacheSize();
     mFileBuckets = options.getFileBuckets();
+    // normalize the path to deal with trailing slash
+    Path rootDir = Paths.get(mRoot);
     // pattern encoding root_path/page_size(ulong)/bucket(uint)/file_id(str)/page_idx(ulong)/
     mPagePattern = Pattern.compile(
-        String.format("%s/%d/(\\d+)/([^/]+)/(\\d+)", Pattern.quote(mRoot), mPageSize));
+        String.format("%s/%d/(\\d+)/([^/]+)/(\\d+)", Pattern.quote(rootDir.toString()), mPageSize));
   }
 
   @Override

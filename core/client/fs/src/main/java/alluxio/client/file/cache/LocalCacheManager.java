@@ -135,6 +135,13 @@ public class LocalCacheManager implements CacheManager {
       LOG.error("Failed to restore PageStore", e);
     }
     if (!restored) {
+      if (pageStore != null) {
+        try {
+          pageStore.close();
+        } catch (Exception e) {
+          LOG.error("Failed to close PageStore", e);
+        }
+      }
       metaStore.reset();
       evictor.reset();
       pageStore = PageStore.create(options, true);

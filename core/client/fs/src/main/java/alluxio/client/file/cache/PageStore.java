@@ -89,7 +89,7 @@ public interface PageStore extends AutoCloseable {
     Files.createDirectories(storePath);
     LOG.debug("Clean cache directory {}", rootPath);
     try (Stream<Path> stream = Files.list(Paths.get(rootPath))) {
-      stream.filter(path -> !storePath.equals(path)).forEach(path -> {
+      stream.forEach(path -> {
         try {
           FileUtils.deletePathRecursively(path.toString());
         } catch (IOException e) {
