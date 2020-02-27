@@ -30,7 +30,6 @@ import com.google.common.io.Files;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -130,17 +129,6 @@ public class CollectInfo extends AbstractShell {
   }
 
   /**
-   * Prints the help message.
-   *
-   * @param message message before standard usage information
-   */
-  public static void printHelp(String message) {
-    System.err.println(message);
-    HelpFormatter help = new HelpFormatter();
-    help.printHelp(USAGE, OPTIONS);
-  }
-
-  /**
    * Main method, starts a new CollectInfo shell.
    * CollectInfo will SSH to all hosts and invoke {@link CollectInfo} with --local option.
    * Then collect the tarballs generated on each of the hosts to the localhost.
@@ -169,6 +157,7 @@ public class CollectInfo extends AbstractShell {
     // Validate command args
     if (args.length < 2) {
 <<<<<<< HEAD
+<<<<<<< HEAD
       printHelp(String.format("Command requires at least %s arguments (%s provided)%n",
               2, argv.length));
 ||||||| merged common ancestors
@@ -179,7 +168,19 @@ public class CollectInfo extends AbstractShell {
       printHelp(String.format("Command %s requires at least %s arguments (%s provided)%n",
               2, argv.length));
 >>>>>>> improve description and log
+||||||| merged common ancestors
+      printHelp(String.format("Command %s requires at least %s arguments (%s provided)%n",
+              2, argv.length));
+=======
+      System.out.format("Command %s requires at least %s arguments (%s provided)%n",
+              2, argv.length);
+      shell.printUsage();
+>>>>>>> resolve comments
       System.exit(-1);
+    } else if (shell.findCommand(args[0]) == null) {
+      System.out.format("Command %s is not recognized.%n", args[0]);
+      shell.printUsage();
+      System.exit(-2);
     }
 
     // Choose mode based on option
@@ -390,7 +391,8 @@ public class CollectInfo extends AbstractShell {
 
     if (cmd == null) {
       // Unknown command (we did not find the cmd in our dict)
-      printHelp(String.format("%s is an unknown command.%n", subCommand));
+      System.err.format("%s is an unknown command.%n", subCommand);
+      printUsage();
       return 1;
     }
     int ret = run(argv);
