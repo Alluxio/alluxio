@@ -152,11 +152,11 @@ through Alluxio client, unless `${ALLUXIO_HOME}/conf` is on applications' classp
 
 ### Path Defaults
 
-Since version 2.0, Alluxio administrators can set default client side configurations for Alluxio
+Since version 2.0, Alluxio administrators can set default client-side configurations for Alluxio
 paths.
-Filesystem client operations have options, Filesystem options are derived from client side
-configuration properties.
-Only these configuration properties can be set as as path defaults.
+Filesystem client operations have options which are derived from client side configuration
+properties.
+Only client-side configuration properties can be set as as path defaults.
 
 For example, `createFile` has an option to specify write type. By default, the write type is the
 value of the configuration key `alluxio.user.file.writetype.default`.
@@ -178,7 +178,8 @@ If the administrator updates path defaults using
 $ bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.default=THROUGH /tmp
 ```
 
-afterwards, all write operations will use the `THROUGH` write type by default.
+afterwards, all write operations with that occur on a path with the prefix `/tmp` prefix will use
+the `THROUGH` write type by default.
 
 See [`fsadmin pathConf`]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#pathconf) on how to
 show, add, update, and remove path defaults.
