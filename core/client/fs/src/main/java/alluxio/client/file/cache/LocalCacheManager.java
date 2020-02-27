@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -28,9 +29,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
-import java.util.Collection;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Iterator;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -72,30 +77,76 @@ public class LocalCacheManager implements CacheManager {
   private final MetaStore mMetaStore;
 
   /**
+   * Restores a page store a the configured location, updating meta store and evictor.
+   *
+   * @param pageStore page store
+   * @param options page store options
+   * @param metaStore meta store
+   * @param evictor evictor
+   * @return whether the restore succeeds or not
+   */
+  private static boolean restore(
+      PageStore pageStore, PageStoreOptions options, MetaStore metaStore, CacheEvictor evictor) {
+    LOG.info("Restore PageStore with {}", options);
+    Path rootDir = Paths.get(options.getRootDir());
+    if (!Files.exists(rootDir)) {
+      LOG.error("Directory {} does not exist", rootDir);
+      return false;
+    }
+    try (Stream<PageInfo> stream = pageStore.getPages()) {
+      Iterator<PageInfo> iterator = stream.iterator();
+      while (iterator.hasNext()) {
+        PageInfo pageInfo = iterator.next();
+        if (pageInfo == null) {
+          LOG.error("Invalid page info");
+          return false;
+        }
+        metaStore.addPage(pageInfo.getPageId(), pageInfo);
+        evictor.updateOnPut(pageInfo.getPageId());
+        if (metaStore.bytes() > pageStore.getCacheSize()) {
+          LOG.error("Loaded pages exceed cache capacity ({} bytes)",
+                  pageStore.getCacheSize());
+          return false;
+        }
+      }
+    } catch (Exception e) {
+      LOG.error("Failed to restore PageStore", e);
+      return false;
+    }
+    LOG.info("Restored PageStore with {} existing pages and {} bytes",
+        metaStore.pages(), metaStore.bytes());
+    return true;
+  }
+
+  /**
    * @param conf the Alluxio configuration
    * @return an instance of {@link LocalCacheManager}
    */
   public static LocalCacheManager create(AlluxioConfiguration conf) throws IOException {
     MetaStore metaStore = MetaStore.create();
     CacheEvictor evictor = CacheEvictor.create(conf);
-    PageStore pageStore = PageStore.create(conf);
+    PageStoreOptions options = PageStoreOptions.create(conf);
+    PageStore pageStore = null;
+    boolean restored = false;
     try {
-      Collection<PageInfo> pageInfos = pageStore.getPages();
-      LOG.info("Creating LocalCacheManager with {} existing pages", pageInfos.size());
-      for (PageInfo pageInfo : pageInfos) {
-        PageId pageId = pageInfo.getPageId();
-        metaStore.addPage(pageId, pageInfo);
-        evictor.updateOnPut(pageId);
-      }
-      return new LocalCacheManager(conf, metaStore, pageStore, evictor);
+      pageStore = PageStore.create(options, false);
+      restored = restore(pageStore, options, metaStore, evictor);
     } catch (Exception e) {
-      try {
-        pageStore.close();
-      } catch (Exception ex) {
-        e.addSuppressed(ex);
-      }
-      throw new IOException("failed to create local cache manager", e);
+      LOG.error("Failed to restore PageStore", e);
     }
+    if (!restored) {
+      if (pageStore != null) {
+        try {
+          pageStore.close();
+        } catch (Exception e) {
+          LOG.error("Failed to close PageStore", e);
+        }
+      }
+      metaStore.reset();
+      evictor.reset();
+      pageStore = PageStore.create(options, true);
+    }
+    return new LocalCacheManager(conf, metaStore, pageStore, evictor);
   }
 
   /**
@@ -111,12 +162,11 @@ public class LocalCacheManager implements CacheManager {
     mPageStore = pageStore;
     mEvictor = evictor;
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
-    mCacheSize = (long) (conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE)
-        / (1.0 + pageStore.getOverheadRatio()));
+    mCacheSize = pageStore.getCacheSize();
     for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock();
     }
-    Metrics.registerGauges(mCacheSize, mPageStore);
+    Metrics.registerGauges(mCacheSize, mMetaStore);
   }
 
   /**
@@ -170,7 +220,7 @@ public class LocalCacheManager implements CacheManager {
           LOG.debug("{} is already inserted before", pageId);
           return false;
         }
-        enoughSpace = mPageStore.bytes() + page.length <= mCacheSize;
+        enoughSpace = mMetaStore.bytes() + page.length <= mCacheSize;
         if (enoughSpace) {
           mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
         } else {
@@ -203,7 +253,7 @@ public class LocalCacheManager implements CacheManager {
           LOG.error("Page store is missing page {}: {}", victim, e);
           return false;
         }
-        enoughSpace = mPageStore.bytes() - victimPageInfo.getPageSize() + page.length <= mCacheSize;
+        enoughSpace = mMetaStore.bytes() + page.length <= mCacheSize;
         if (enoughSpace) {
           mMetaStore.addPage(pageId, new PageInfo(pageId, page.length));
         }
@@ -353,13 +403,13 @@ public class LocalCacheManager implements CacheManager {
     private static final Counter PUT_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_ERRORS.getName());
 
-    private static void registerGauges(long cacheSize, PageStore pageStore) {
+    private static void registerGauges(long cacheSize, MetaStore metaStore) {
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_SPACE_AVAILABLE.getName()),
-          () -> cacheSize - pageStore.bytes());
+          () -> cacheSize - metaStore.bytes());
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_SPACE_USED.getName()),
-          pageStore::bytes);
+          metaStore::bytes);
     }
   }
 }

@@ -19,7 +19,6 @@ import alluxio.proto.client.Cache;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Streams;
-import org.apache.commons.io.FileUtils;
 import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
@@ -28,17 +27,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -51,61 +46,60 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class RocksPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
-  public static final int KEY_LEN = Long.BYTES * 2;
   private static final byte[] CONF_KEY = "CONF".getBytes();
+  // TODO(feng): consider making the overhead ratio configurable
+  // We assume 20% overhead using Rocksdb as a page store, i.e., with 1GB space allocated, we
+  // expect no more than 1024MB/(1+20%)=853MB logical data stored
+  private static final double ROCKS_OVERHEAD_RATIO = 0.2;
 
-  private final String mRoot;
+  private final long mCapacity;
   private final RocksDB mDb;
-  private final AtomicLong mSize = new AtomicLong(0);
-  private final AtomicLong mBytes = new AtomicLong(0);
-  private final double mOverheadRatio;
+  private final RocksPageStoreOptions mOptions;
 
   /**
-   * Creates a new instance of {@link PageStore} backed by RocksDB.
-   *
    * @param options options for the rocks page store
-   * @throws IOException when fails to create a {@link RocksPageStore}
+   * @return a new instance of {@link PageStore} backed by RocksDB
+   * @throws IOException if I/O error happens
    */
-  public RocksPageStore(RocksPageStoreOptions options) throws IOException {
+  public static RocksPageStore create(RocksPageStoreOptions options) throws IOException {
     Preconditions.checkArgument(options.getMaxPageSize() > 0);
-    mRoot = options.getRootDir();
-    // TODO(feng): consider making the overhead ratio configurable
-    mOverheadRatio = (double) KEY_LEN / options.getMaxPageSize();
-    Cache.PRocksPageStoreOptions pOptions = options.toProto();
     RocksDB.loadLibrary();
-    RocksDB db = null;
     Options rocksOptions = new Options();
     rocksOptions.setCreateIfMissing(true);
     rocksOptions.setWriteBufferSize(options.getWriteBufferSize());
     rocksOptions.setCompressionType(options.getCompressionType());
+    RocksDB db = null;
     try {
       db = RocksDB.open(rocksOptions, options.getRootDir());
       byte[] confData = db.get(CONF_KEY);
+      Cache.PRocksPageStoreOptions pOptions = options.toProto();
       if (confData != null) {
         Cache.PRocksPageStoreOptions persistedOptions =
             Cache.PRocksPageStoreOptions.parseFrom(confData);
-        if (persistedOptions.equals(pOptions)) {
-          try (Stream<PageInfo> stream = Streams.stream(new PageIterator(db.newIterator()))) {
-            stream.forEach(pageInfo -> {
-              mSize.incrementAndGet();
-              mBytes.getAndAdd(pageInfo.getPageSize());
-            });
-          }
-        } else {
+        if (!persistedOptions.equals(pOptions)) {
           db.close();
-          db = null;
-          FileUtils.cleanDirectory(new File(mRoot));
-          db = RocksDB.open(rocksOptions, options.getRootDir());
+          throw new IOException("Inconsistent configuration for RocksPageStore");
         }
       }
       db.put(CONF_KEY, pOptions.toByteArray());
-    } catch (RocksDBException | IOException e) {
+    } catch (RocksDBException e) {
       if (db != null) {
         db.close();
       }
       throw new IOException("Couldn't open rocksDB database", e);
     }
-    mDb = db;
+    return new RocksPageStore(options, db);
+  }
+
+  /**
+   * Creates a new instance of {@link PageStore} backed by RocksDB.
+   *
+   * @param options options for the rocks page store
+   */
+  private RocksPageStore(RocksPageStoreOptions options, RocksDB rocksDB) {
+    mOptions = options;
+    mCapacity = (long) (options.getCacheSize() / (1 + ROCKS_OVERHEAD_RATIO));
+    mDb = rocksDB;
   }
 
   @Override
@@ -113,8 +107,6 @@ public class RocksPageStore implements PageStore {
     try {
       byte[] key = getKeyFromPageId(pageId);
       mDb.put(key, page);
-      mSize.incrementAndGet();
-      mBytes.getAndAdd((long) page.length + key.length);
     } catch (RocksDBException e) {
       throw new IOException("Failed to store page", e);
     }
@@ -144,8 +136,6 @@ public class RocksPageStore implements PageStore {
     try {
       byte[] key = getKeyFromPageId(pageId);
       mDb.delete(key);
-      mSize.decrementAndGet();
-      mBytes.getAndAdd(-(key.length + pageSize));
     } catch (RocksDBException e) {
       throw new PageNotFoundException("Failed to remove page", e);
     }
@@ -180,34 +170,23 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public long pages() {
-    return mSize.get();
+  public Stream<PageInfo> getPages() {
+    RocksIterator iter = mDb.newIterator();
+    iter.seekToFirst();
+    return Streams.stream(new PageIterator(iter)).onClose(iter::close);
   }
 
   @Override
-  public long bytes() {
-    return mBytes.get();
+  public long getCacheSize() {
+    return mCapacity;
   }
 
-  @Override
-  public Collection<PageInfo> getPages() {
-    try (RocksIterator iter = mDb.newIterator()) {
-      return Streams.stream(new PageIterator(iter)).collect(Collectors.toList());
-    }
-  }
-
-  @Override
-  public double getOverheadRatio() {
-    return mOverheadRatio;
-  }
-
-  private class PageIterator implements Iterator<PageInfo>, AutoCloseable {
+  private class PageIterator implements Iterator<PageInfo> {
     private final RocksIterator mIter;
     private PageInfo mValue;
 
     PageIterator(RocksIterator iter) {
       mIter = iter;
-      mIter.seekToFirst();
     }
 
     @Override
@@ -239,11 +218,6 @@ public class RocksPageStore implements PageStore {
         }
       }
       return mValue;
-    }
-
-    @Override
-    public void close() throws Exception {
-      mIter.close();
     }
   }
 }
