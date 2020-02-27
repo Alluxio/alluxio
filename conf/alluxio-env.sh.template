@@ -25,6 +25,9 @@
 # The directory where log files are stored. (Default: ${ALLUXIO_HOME}/logs).
 # ALLUXIO_LOGS_DIR
 
+# The directory where remote logging server log files are stored. (Default: ${ALLUXIO_HOME}/logs).
+# ALLUXIO_LOGSERVER_LOGS_DIR
+
 # Config properties set for Alluxio master, worker and shell. (Default: "")
 # E.g. "-Dalluxio.master.rpc.port=39999"
 # ALLUXIO_JAVA_OPTS
