@@ -26,10 +26,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Iterator;
 import java.util.stream.Stream;
-
-import javax.annotation.Nullable;
 
 /**
  * A simple abstraction on the storage to put, get and delete pages. The implementation of this
@@ -39,29 +36,17 @@ public interface PageStore extends AutoCloseable {
   Logger LOG = LoggerFactory.getLogger(PageStore.class);
 
   /**
-   * Creates a new {@link PageStore}.
+   * Creates a {@link PageStore}. When init is false, restore from previous state; clean up the
+   * cache dir otherwise.
    *
    * @param options the options to instantiate the page store
-   * @return a PageStore instance
-   */
-  static PageStore create(PageStoreOptions options) throws IOException {
-    return create(options, null, null);
-  }
-
-  /**
-   * Creates a {@link PageStore} by restoring from previous state (when metastore and evictor are
-   * not null).
-   *
-   * @param options the options to instantiate the page store
-   * @param metaStore meta store
-   * @param evictor evictor
+   * @param init whether to init the cache dir
    * @return a PageStore instance
    * @throws IOException if I/O error happens
    */
-  static PageStore create(PageStoreOptions options, @Nullable MetaStore metaStore,
-        @Nullable CacheEvictor evictor) throws IOException {
+  static PageStore create(PageStoreOptions options, boolean init) throws IOException {
     LOG.info("Create PageStore option={}", options.toString());
-    if (metaStore == null || evictor == null) {
+    if (init) {
       initialize(options);
     }
     final PageStore pageStore;
@@ -70,37 +55,11 @@ public interface PageStore extends AutoCloseable {
         pageStore = new LocalPageStore(options.toOptions());
         break;
       case ROCKS:
-        pageStore = new RocksPageStore(options.toOptions());
+        pageStore = RocksPageStore.create(options.toOptions());
         break;
       default:
         throw new IllegalArgumentException(
             "Incompatible PageStore " + options.getType() + " specified");
-    }
-    if (metaStore != null && evictor != null) {
-      Path rootDir = Paths.get(options.getRootDir());
-      if (!Files.exists(rootDir)) {
-        throw new IOException(String.format("Directory %s does not exist", rootDir));
-      }
-      try (Stream<PageInfo> stream = pageStore.getPages()) {
-        Iterator<PageInfo> iterator = stream.iterator();
-        while (iterator.hasNext()) {
-          PageInfo pageInfo = iterator.next();
-          if (pageInfo == null) {
-            throw new IOException("Invalid page info");
-          }
-          metaStore.addPage(pageInfo.getPageId(), pageInfo);
-          evictor.updateOnPut(pageInfo.getPageId());
-          if (metaStore.bytes() > pageStore.getCacheSize()) {
-            throw new IOException(
-                String.format("Loaded pages exceed cache capacity (%d bytes)",
-                    pageStore.getCacheSize()));
-          }
-        }
-      } catch (Exception e) {
-        throw new IOException("Failed to restore PageStore", e);
-      }
-      LOG.info("Restored PageStore with {} existing pages and {} bytes",
-          metaStore.pages(), metaStore.bytes());
     }
     return pageStore;
   }

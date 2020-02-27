@@ -17,8 +17,6 @@ import static org.junit.Assert.fail;
 
 import alluxio.Constants;
 import alluxio.ProjectConstants;
-import alluxio.client.file.cache.CacheEvictor;
-import alluxio.client.file.cache.MetaStore;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
@@ -34,7 +32,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -48,8 +45,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RunWith(Parameterized.class)
 public class PageStoreTest {
@@ -79,7 +76,7 @@ public class PageStoreTest {
     mOptions.setCacheSize(65536);
     mOptions.setAlluxioVersion(ProjectConstants.VERSION);
     mOptions.setRootDir(mTemp.getRoot().getAbsolutePath());
-    mPageStore = PageStore.create(mOptions);
+    mPageStore = PageStore.create(mOptions, true);
   }
 
   @After
@@ -146,13 +143,8 @@ public class PageStoreTest {
       mPageStore.put(id, data);
       pages.add(new PageInfo(id, data.length));
     }
-    mPageStore.close();
-    MetaStore metaStore = MetaStore.create();
-    CacheEvictor evictor = Mockito.mock(CacheEvictor.class);
-    try (PageStore store = PageStore.create(mOptions, metaStore, evictor)) {
-      Set<PageInfo> restored = store.getPages().collect(Collectors.toSet());
-      assertEquals(pages, restored);
-    }
+    Set<PageInfo> restored = mPageStore.getPages().collect(Collectors.toSet());
+    assertEquals(pages, restored);
   }
 
   @Test
@@ -166,13 +158,8 @@ public class PageStoreTest {
       mPageStore.put(id, data);
       pages.add(new PageInfo(id, data.length));
     }
-    mPageStore.close();
-    MetaStore metaStore = MetaStore.create();
-    CacheEvictor evictor = Mockito.mock(CacheEvictor.class);
-    try (PageStore store = PageStore.create(mOptions, metaStore, evictor)) {
-      Set<PageInfo> restored = store.getPages().collect(Collectors.toSet());
-      assertEquals(pages, restored);
-    }
+    Set<PageInfo> restored = mPageStore.getPages().collect(Collectors.toSet());
+    assertEquals(pages, restored);
   }
 
   @Ignore

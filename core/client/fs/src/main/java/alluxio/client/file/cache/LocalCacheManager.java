@@ -28,8 +28,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Iterator;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -71,6 +76,48 @@ public class LocalCacheManager implements CacheManager {
   private final MetaStore mMetaStore;
 
   /**
+   * Restores a page store a the configured location, updating meta store and evictor.
+   *
+   * @param pageStore page store
+   * @param options page store options
+   * @param metaStore meta store
+   * @param evictor evictor
+   * @return whether the restore succeeds or not
+   */
+  private static boolean restore(
+      PageStore pageStore, PageStoreOptions options, MetaStore metaStore, CacheEvictor evictor) {
+    LOG.info("Restore PageStore with {}", options);
+    Path rootDir = Paths.get(options.getRootDir());
+    if (!Files.exists(rootDir)) {
+      LOG.error("Directory {} does not exist", rootDir);
+      return false;
+    }
+    try (Stream<PageInfo> stream = pageStore.getPages()) {
+      Iterator<PageInfo> iterator = stream.iterator();
+      while (iterator.hasNext()) {
+        PageInfo pageInfo = iterator.next();
+        if (pageInfo == null) {
+          LOG.error("Invalid page info");
+          return false;
+        }
+        metaStore.addPage(pageInfo.getPageId(), pageInfo);
+        evictor.updateOnPut(pageInfo.getPageId());
+        if (metaStore.bytes() > pageStore.getCacheSize()) {
+          LOG.error("Loaded pages exceed cache capacity ({} bytes)",
+                  pageStore.getCacheSize());
+          return false;
+        }
+      }
+    } catch (Exception e) {
+      LOG.error("Failed to restore PageStore", e);
+      return false;
+    }
+    LOG.info("Restored PageStore with {} existing pages and {} bytes",
+        metaStore.pages(), metaStore.bytes());
+    return true;
+  }
+
+  /**
    * @param conf the Alluxio configuration
    * @return an instance of {@link LocalCacheManager}
    */
@@ -79,15 +126,17 @@ public class LocalCacheManager implements CacheManager {
     CacheEvictor evictor = CacheEvictor.create(conf);
     PageStoreOptions options = PageStoreOptions.create(conf);
     PageStore pageStore = null;
+    boolean restored = false;
     try {
-      pageStore = PageStore.create(options, metaStore, evictor);
+      pageStore = PageStore.create(options, false);
+      restored = restore(pageStore, options, metaStore, evictor);
     } catch (Exception e) {
       LOG.error("Failed to restore PageStore", e);
     }
-    if (pageStore == null) {
+    if (!restored) {
       metaStore.reset();
       evictor.reset();
-      pageStore = PageStore.create(options);
+      pageStore = PageStore.create(options, true);
     }
     return new LocalCacheManager(conf, metaStore, pageStore, evictor);
   }

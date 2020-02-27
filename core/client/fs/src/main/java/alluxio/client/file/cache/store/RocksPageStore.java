@@ -52,7 +52,6 @@ public class RocksPageStore implements PageStore {
   // expect no more than 1024MB/(1+20%)=853MB logical data stored
   private static final double ROCKS_OVERHEAD_RATIO = 0.2;
 
-  private final String mRoot;
   private final long mCapacity;
   private final RocksDB mDb;
   private final RocksPageStoreOptions mOptions;
@@ -62,21 +61,45 @@ public class RocksPageStore implements PageStore {
    *
    * @param options options for the rocks page store
    */
-  public RocksPageStore(RocksPageStoreOptions options) {
+  public static RocksPageStore create(RocksPageStoreOptions options) throws IOException {
     Preconditions.checkArgument(options.getMaxPageSize() > 0);
-    mOptions = options;
-    mRoot = options.getRootDir();
-    mCapacity = (long) (options.getCacheSize() / (1 + ROCKS_OVERHEAD_RATIO));
     RocksDB.loadLibrary();
     Options rocksOptions = new Options();
     rocksOptions.setCreateIfMissing(true);
     rocksOptions.setWriteBufferSize(options.getWriteBufferSize());
     rocksOptions.setCompressionType(options.getCompressionType());
+    RocksDB db = null;
     try {
-      mDb = RocksDB.open(rocksOptions, mRoot);
+      db = RocksDB.open(rocksOptions, options.getRootDir());
+      byte[] confData = db.get(CONF_KEY);
+      Cache.PRocksPageStoreOptions pOptions = options.toProto();
+      if (confData != null) {
+        Cache.PRocksPageStoreOptions persistedOptions =
+            Cache.PRocksPageStoreOptions.parseFrom(confData);
+        if (!persistedOptions.equals(pOptions)) {
+          db.close();
+          throw new IOException("Inconsistent configuration for RocksPageStore");
+        }
+      }
+      db.put(CONF_KEY, pOptions.toByteArray());
     } catch (RocksDBException e) {
-      throw new RuntimeException("Couldn't open rocksDB database", e);
+      if (db != null) {
+        db.close();
+      }
+      throw new IOException("Couldn't open rocksDB database", e);
     }
+    return new RocksPageStore(options, db);
+  }
+
+  /**
+   * Creates a new instance of {@link PageStore} backed by RocksDB.
+   *
+   * @param options options for the rocks page store
+   */
+  private RocksPageStore(RocksPageStoreOptions options, RocksDB rocksDB) {
+    mOptions = options;
+    mCapacity = (long) (options.getCacheSize() / (1 + ROCKS_OVERHEAD_RATIO));
+    mDb = rocksDB;
   }
 
   @Override
@@ -147,24 +170,8 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public Stream<PageInfo> getPages() throws IOException {
-    try {
-      byte[] confData = mDb.get(CONF_KEY);
-      Cache.PRocksPageStoreOptions pOptions = mOptions.toProto();
-      if (confData != null) {
-        Cache.PRocksPageStoreOptions persistedOptions =
-            Cache.PRocksPageStoreOptions.parseFrom(confData);
-        if (!persistedOptions.equals(pOptions)) {
-          mDb.close();
-          throw new IOException("Inconsistent configuration for RocksPageStore");
-        }
-      }
-      mDb.put(CONF_KEY, pOptions.toByteArray());
-      return Streams.stream(new PageIterator(mDb.newIterator()));
-    } catch (RocksDBException e) {
-      mDb.close();
-      throw new IOException("Failed to restore RocksPageStore:", e);
-    }
+  public Stream<PageInfo> getPages() {
+    return Streams.stream(new PageIterator(mDb.newIterator()));
   }
 
   @Override
