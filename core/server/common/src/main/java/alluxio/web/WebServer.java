@@ -16,6 +16,8 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 
 import com.google.common.base.Preconditions;
+import org.eclipse.jetty.security.ConstraintMapping;
+import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -24,6 +26,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +47,8 @@ public abstract class WebServer {
   private final String mServiceName;
   private final InetSocketAddress mAddress;
   private final ServerConnector mServerConnector;
+  private final ConstraintSecurityHandler mSecurityHandler;
+  private static final String DISABLED_METHODS = "TRACE,OPTIONS";
   protected final ServletContextHandler mServletContextHandler;
 
   /**
@@ -86,9 +91,14 @@ public abstract class WebServer {
     }
 
     System.setProperty("org.apache.jasper.compiler.disablejsr199", "false");
-
-    mServletContextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+    mServletContextHandler = new ServletContextHandler(ServletContextHandler.SECURITY);
     mServletContextHandler.setContextPath(AlluxioURI.SEPARATOR);
+
+    // Disable specified methods on REST services
+    mSecurityHandler = (ConstraintSecurityHandler) mServletContextHandler.getSecurityHandler();
+    for (String s :DISABLED_METHODS.split(",")) {
+      disableHandler(s);
+    }
 
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mServletContextHandler, new DefaultHandler()});
@@ -114,6 +124,21 @@ public abstract class WebServer {
    */
   public void setHandler(AbstractHandler handler) {
     mServer.setHandler(handler);
+  }
+
+  /**
+   * @param method to disable
+   */
+  private void disableHandler(String method) {
+    Constraint constraint = new Constraint();
+    constraint.setAuthenticate(true);
+    constraint.setName("Disable " + method);
+    ConstraintMapping disableMapping = new ConstraintMapping();
+    disableMapping.setConstraint(constraint);
+    disableMapping.setMethod(method.toUpperCase());
+    disableMapping.setPathSpec("/");
+
+    mSecurityHandler.addConstraintMapping(disableMapping);
   }
 
   /**
