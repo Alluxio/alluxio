@@ -40,6 +40,8 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          // These are in common with PinCommandIntegrationTest, which sets properties in
+          // AbstractShellIntegrationTest.
           .setProperty(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "10ms")
           .setProperty(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "10ms")
           .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "200ms")

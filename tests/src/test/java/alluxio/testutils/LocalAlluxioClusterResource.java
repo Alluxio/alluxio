@@ -170,23 +170,14 @@ public final class LocalAlluxioClusterResource implements TestRule {
             Annotation configAnnotation;
             configAnnotation = description.getAnnotation(ServerConfig.class);
             if (configAnnotation != null) {
-              ServerConfig config = (ServerConfig) configAnnotation;
-              // Override the configuration parameters with any configuration params
-              for (int i = 0; i < config.confParams().length; i += 2) {
-                mConfiguration.put(PropertyKey.fromString(config.confParams()[i]),
-                    config.confParams()[i + 1]);
-              }
+              overrideConfiguration(((ServerConfig) configAnnotation).confParams());
             }
 
             boolean startCluster = mStartCluster;
             configAnnotation = description.getAnnotation(Config.class);
             if (configAnnotation != null) {
               Config config = (Config) configAnnotation;
-              // Override the configuration parameters with any configuration params
-              for (int i = 0; i < config.confParams().length; i += 2) {
-                mConfiguration.put(PropertyKey.fromString(config.confParams()[i]),
-                    config.confParams()[i + 1]);
-              }
+              overrideConfiguration(config.confParams());
               // Override startCluster
               startCluster = config.startCluster();
             }
@@ -206,6 +197,16 @@ public final class LocalAlluxioClusterResource implements TestRule {
         }
       }
     };
+  }
+
+  /**
+   * @param config the array of strings for the configuration values to override
+   */
+  private void overrideConfiguration(String[] config) {
+    // Override the configuration parameters with any configuration params
+    for (int i = 0; i < config.length; i += 2) {
+      mConfiguration.put(PropertyKey.fromString(config[i]), config[i + 1]);
+    }
   }
 
   /**
@@ -307,6 +308,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
       if (!mCluster.get().getLocalAlluxioMaster().isServing()) {
         // Restart the masters if they are not serving.
         mCluster.mLocalAlluxioCluster.startMasters();
+        // use the newly created/started file system master
         fsm = mCluster.mLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
             .getMaster(FileSystemMaster.class);
       }
@@ -314,7 +316,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
         // Wait for the workers to be considered "lost"
         BlockMaster bm =
             mCluster.get().getLocalAlluxioMaster().getMasterProcess().getMaster(BlockMaster.class);
-        CommonUtils.waitFor("", () -> {
+        CommonUtils.waitFor("all workers to be considered lost by the master", () -> {
           try {
             return bm.getWorkerInfoList().isEmpty();
           } catch (Exception e) {
