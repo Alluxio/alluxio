@@ -92,7 +92,7 @@ public abstract class WebServer {
 
     System.setProperty("org.apache.jasper.compiler.disablejsr199", "false");
     mServletContextHandler = new ServletContextHandler(ServletContextHandler.SECURITY
-        | ServletContextHandler.NO_SECURITY);
+        | ServletContextHandler.NO_SESSIONS);
     mServletContextHandler.setContextPath(AlluxioURI.SEPARATOR);
 
     // Disable specified methods on REST services
