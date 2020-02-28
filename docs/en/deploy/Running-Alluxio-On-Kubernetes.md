@@ -73,7 +73,7 @@ spec:
   capacity:
     storage: 1Gi
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   hostPath:
     path: /tmp/alluxio-journal-0
 ```
@@ -92,18 +92,24 @@ There are other ways to create Persistent Volumes as documented [here](https://k
 
 #### Prerequisites
 
-A helm repo with the Alluxio helm chart must be available.
+A. Install the Helm CLI
 
-(Optional) To prepare a local helm repository:
+Follow instructions as documented [here](https://helm.sh/docs/intro/install/) to install the helm
+CLI.
+
+> Note: If using Helm 2 or lower, initialize the Tiller server component. Note this component has
+> been removed in Helm 3.
+
 ```console
 $ helm init
-$ helm package helm-chart/alluxio/
-$ mkdir -p helm-chart/charts/
-$ cp alluxio-{{site.ALLUXIO_HELM_VERSION_STRING}}.tgz helm-chart/charts/
-$ helm repo index helm-chart/charts/
-$ helm serve --repo-path helm-chart/charts
-$ helm repo add alluxio-local http://127.0.0.1:8879
-$ helm repo update alluxio-local
+```
+
+B. A helm repo with the Alluxio helm chart must be available.
+
+(Optional) Add the public Alluxio helm chart repository.
+Further instructions can be found [here](https://helm.sh/docs/topics/chart_repository/).
+```console
+$ helm repo add alluxio-charts https://alluxio-charts.storage.googleapis.com
 ```
 
 #### Configuration
@@ -118,7 +124,7 @@ properties:
 
 To view the complete list of supported properties run the `helm inspect` command:
 ```console
-$ helm inspect values alluxio-local/alluxio
+$ helm inspect values alluxio-charts/alluxio
 ```
 
 The remainder of this section describes various configuration options with examples.
@@ -298,9 +304,16 @@ tieredstore:
 
 #### Install
 
-Once the configuration is finalized in a file named `config.yaml`, install as follows:
+Once the configuration is finalized in a file named `config.yaml`, you can install Alluxio.
+
+With Helm 3:
 ```console
-helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_HELM_VERSION_STRING}}
+$ helm install alluxio alluxio-charts/alluxio -f config.yaml
+```
+
+With Helm 2 or older:
+```console
+$ helm install --name alluxio -f config.yaml alluxio-charts/alluxio
 ```
 
 #### Uninstall
