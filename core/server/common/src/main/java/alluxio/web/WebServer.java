@@ -42,13 +42,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public abstract class WebServer {
   private static final Logger LOG = LoggerFactory.getLogger(WebServer.class);
+  private static final String DISABLED_METHODS = "TRACE,OPTIONS";
 
   private final Server mServer;
   private final String mServiceName;
   private final InetSocketAddress mAddress;
   private final ServerConnector mServerConnector;
   private final ConstraintSecurityHandler mSecurityHandler;
-  private static final String DISABLED_METHODS = "TRACE,OPTIONS";
   protected final ServletContextHandler mServletContextHandler;
 
   /**
@@ -91,7 +91,8 @@ public abstract class WebServer {
     }
 
     System.setProperty("org.apache.jasper.compiler.disablejsr199", "false");
-    mServletContextHandler = new ServletContextHandler(ServletContextHandler.SECURITY);
+    mServletContextHandler = new ServletContextHandler(ServletContextHandler.SECURITY
+        | ServletContextHandler.NO_SECURITY);
     mServletContextHandler.setContextPath(AlluxioURI.SEPARATOR);
 
     // Disable specified methods on REST services
