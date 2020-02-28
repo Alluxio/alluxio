@@ -4,7 +4,6 @@ Version: ${version}
 Section: base
 Priority: optional
 Architecture: all
-Depends: openjdk-8-jre, openjdk-8-jdk
-Maintainer: Zachary Blanco <zac@alluxio.com>
+Maintainer: Alluxio Maintainers <alluxio-maintainers@alluxio.com>
 Description: Alluxio debian distribution
  This is a debian-packaged version of Alluxio (https://alluxio.io)
