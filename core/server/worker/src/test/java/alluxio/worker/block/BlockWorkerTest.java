@@ -303,7 +303,7 @@ public class BlockWorkerTest {
     String tierAlias = "MEM";
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
     mBlockWorker.freeSpace(sessionId, availableBytes, tierAlias);
-    verify(mBlockStore).freeSpace(sessionId, availableBytes, location);
+    verify(mBlockStore).freeSpace(sessionId, availableBytes, availableBytes, location);
   }
 
   /**

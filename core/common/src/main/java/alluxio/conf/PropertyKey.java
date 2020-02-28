@@ -2595,6 +2595,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_TIERED_STORE_FREE_AHEAD_BYTES =
+      new Builder(Name.WORKER_TIERED_STORE_FREE_AHEAD_BYTES)
+          .setDefaultValue(0)
+          .setDescription("Amount to free ahead when worker storage is full. "
+              + "Higher values will help decrease CPU utilization under peak storage. "
+              + "Lower values will increase storage utilization.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   // TODO(binfan): Use alluxio.worker.tieredstore.level0.dirs.mediumtype instead
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_ALIAS =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 0)
@@ -4659,6 +4668,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.tieredstore.block.lock.readers";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
         "alluxio.worker.tieredstore.block.locks";
+    public static final String WORKER_TIERED_STORE_FREE_AHEAD_BYTES =
+        "alluxio.worker.tieredstore.free.ahead.bytes";
     public static final String WORKER_TIERED_STORE_LEVELS = "alluxio.worker.tieredstore.levels";
     public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
         "alluxio.worker.tieredstore.reserver.interval";

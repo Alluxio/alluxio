@@ -358,7 +358,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       throws WorkerOutOfSpaceException, BlockDoesNotExistException, IOException,
       BlockAlreadyExistsException, InvalidWorkerStateException {
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
-    mBlockStore.freeSpace(sessionId, availableBytes, location);
+    mBlockStore.freeSpace(sessionId, availableBytes, availableBytes, location);
   }
 
   @Override

@@ -426,12 +426,12 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public synchronized void freeSpace(long sessionId, long availableBytes,
+  public synchronized void freeSpace(long sessionId, long minAvailableBytes, long maxAvailableBytes,
       BlockStoreLocation location)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
-    LOG.debug("freeSpace: sessionId={}, availableBytes={}, location={}", sessionId, availableBytes,
-        location);
-    freeSpaceInternal(sessionId, availableBytes, location);
+    LOG.debug("freeSpace: sessionId={}, minAvailableBytes={}, maxAvailableBytes={}, location={}",
+        sessionId, minAvailableBytes, maxAvailableBytes, location);
+    freeSpaceInternal(sessionId, minAvailableBytes, maxAvailableBytes, location);
   }
 
   @Override
@@ -626,7 +626,7 @@ public class TieredBlockStore implements BlockStore {
 
       if (options.isForceLocation()) {
         if (options.isEvictionAllowed()) {
-          freeSpace(sessionId, options.getSize(), options.getLocation());
+          freeSpace(sessionId, options.getSize(), options.getSize(), options.getLocation());
           dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
               options.getLocation(), allocatorView.refreshView());
 
@@ -649,8 +649,13 @@ public class TieredBlockStore implements BlockStore {
         }
 
         if (options.isEvictionAllowed()) {
-          // TODO(ggezer): TV2 - Allocate more than requested.
-          freeSpace(sessionId, options.getSize(), BlockStoreLocation.anyTier());
+          // There is no space left on worker.
+          // Free more than requested by configured free-ahead size.
+          long freeAheadBytes =
+              ServerConfiguration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
+          freeSpace(sessionId, options.getSize(), options.getSize() + freeAheadBytes,
+              BlockStoreLocation.anyTier());
+
           dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
               BlockStoreLocation.anyTier(), allocatorView.refreshView());
         }
@@ -710,25 +715,32 @@ public class TieredBlockStore implements BlockStore {
   /**
    * Tries to free a certain amount of space in the given location.
    *
-   *
    * @param sessionId the session id
-   * @param availableBytes amount of space in bytes to set available
+   * @param minAvailableBytes the minimum amount of space in bytes to set available
+   * @param maxAvailableBytes the maximum amount of space in bytes to set available
    * @param location location of space
-   * @throws WorkerOutOfSpaceException if it is impossible to achieve the free requirement
+   * @throws WorkerOutOfSpaceException if it is impossible to achieve minimum space requirement
    */
-  private void freeSpaceInternal(long sessionId, long availableBytes, BlockStoreLocation location)
-      throws WorkerOutOfSpaceException, IOException {
+  private void freeSpaceInternal(long sessionId, long minAvailableBytes, long maxAvailableBytes,
+      BlockStoreLocation location) throws WorkerOutOfSpaceException, IOException {
     // TODO(ggezer): TV2 - Too much memory pressure when pinned-inodes list is large.
     BlockMetadataEvictorView evictorView = getUpdatedView();
-    long bytesToFree = availableBytes - evictorView.getAvailableBytes(location);
+    long minBytesToFree = minAvailableBytes - evictorView.getAvailableBytes(location);
+    long maxBytesToFree = maxAvailableBytes - evictorView.getAvailableBytes(location);
 
     int blocksIterated = 0;
     int blocksRemoved = 0;
     int spaceFreed = 0;
 
+    LOG.debug(
+        "Failed to free space. Space requested: {}-{}, Blocks iterated: {}, Blocks removed: {},"
+            + " Freed Space: {}, Remaining: {}",
+        minAvailableBytes, maxAvailableBytes, blocksIterated, blocksRemoved, spaceFreed,
+        maxBytesToFree);
+
     Iterator<Long> evictionCandidates =
         mIterationProvider.getIterator(location, BlockOrder.Natural);
-    while (evictionCandidates.hasNext() && bytesToFree > 0) {
+    while (evictionCandidates.hasNext() && maxBytesToFree > 0) {
       long blockToDelete = evictionCandidates.next();
       blocksIterated++;
       if (evictorView.isBlockEvictable(blockToDelete)) {
@@ -743,7 +755,8 @@ public class TieredBlockStore implements BlockStore {
                   blockMeta.getBlockLocation());
             }
           }
-          bytesToFree -= blockMeta.getBlockSize();
+          minBytesToFree -= blockMeta.getBlockSize();
+          maxBytesToFree -= blockMeta.getBlockSize();
           spaceFreed += blockMeta.getBlockSize();
         } catch (BlockDoesNotExistException e) {
           LOG.info("Failed to evict blockId {}, it could be already deleted", blockToDelete);
@@ -752,14 +765,14 @@ public class TieredBlockStore implements BlockStore {
       }
     }
 
-    if (bytesToFree > 0) {
-      LOG.debug(
-          "Failed to free space. Space requested: {}, Blocks iterated: {}, Blocks removed: {},"
-              + " Freed Space: {}, Remaining: {}",
-          availableBytes, blocksIterated, blocksRemoved, spaceFreed, bytesToFree);
+    if (minBytesToFree > 0) {
+      LOG.debug("Failed to free minimum requested space. "
+              + "Space requested: {}, Blocks iterated: {}, Blocks removed: {}, "
+              + "Freed Space: {}, Remaining: {}",
+          minAvailableBytes, blocksIterated, blocksRemoved, spaceFreed, minBytesToFree);
 
       throw new WorkerOutOfSpaceException(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE
-          .getMessage(availableBytes, location.tierAlias()));
+          .getMessage(minAvailableBytes, location.tierAlias()));
     }
   }
 

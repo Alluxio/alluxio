@@ -310,12 +310,29 @@ public final class TieredBlockStoreTest {
   public void freeSpace() throws Exception {
     TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mBlockIterator);
-    mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(),
+    mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(), mTestDir1.getCapacityBytes(),
         mTestDir1.toBlockStoreLocation());
     // Expect BLOCK_ID1 to be moved out of mTestDir1
     assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());
     assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
     assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID1)));
+  }
+
+  @Test
+  public void freeSpaceAhead() throws Exception {
+    long halfCapacityBytes = mTestDir1.getCapacityBytes() / 2;
+    TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, halfCapacityBytes, mTestDir1,
+        mMetaManager, mBlockIterator);
+    TieredBlockStoreTestUtils.cache2(SESSION_ID2, BLOCK_ID2, halfCapacityBytes, mTestDir1,
+        mMetaManager, mBlockIterator);
+    mBlockStore.freeSpace(SESSION_ID1, halfCapacityBytes, 2 * halfCapacityBytes,
+        mTestDir1.toBlockStoreLocation());
+    // Expect BLOCK_ID1 and BLOCK_ID2 to be moved out of mTestDir1
+    assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());
+    assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
+    assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID2));
+    assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID1)));
+    assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID2)));
   }
 
   /**
@@ -337,7 +354,7 @@ public final class TieredBlockStoreTest {
     for (int i = 0; i < threadAmount; i++) {
       runnables.add(() -> {
         try {
-          mBlockStore.freeSpace(SESSION_ID1, 0,
+          mBlockStore.freeSpace(SESSION_ID1, 0, 0,
               new BlockStoreLocation("MEM", 0, BlockStoreLocation.ANY_MEDIUM));
         } catch (Exception e) {
           fail();
@@ -363,7 +380,7 @@ public final class TieredBlockStoreTest {
     mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(
         mTestDir1.getCapacityBytes(), mTestDir1.toBlockStoreLocation().tierAlias()));
-    mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(),
+    mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(), mTestDir1.getCapacityBytes(),
         mTestDir1.toBlockStoreLocation());
   }
 
@@ -512,12 +529,12 @@ public final class TieredBlockStoreTest {
     mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage(
         mTestDir1.getCapacityBytes(), mTestDir1.toBlockStoreLocation().tierAlias()));
-    mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(),
+    mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(), mTestDir1.getCapacityBytes(),
         mTestDir1.toBlockStoreLocation());
 
     // Expect freeSpace to succeed after unlock this block.
     mBlockStore.unlockBlock(lockId);
-    mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(),
+    mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(), mTestDir1.getCapacityBytes(),
         mTestDir1.toBlockStoreLocation());
     assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());
   }
