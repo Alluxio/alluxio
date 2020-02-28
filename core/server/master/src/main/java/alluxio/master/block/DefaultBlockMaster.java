@@ -464,6 +464,19 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   }
 
   @Override
+  public Set<WorkerNetAddress> getWorkerAddresses() throws UnavailableException {
+    if (mSafeModeManager.isInSafeMode()) {
+      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
+    }
+    Set<WorkerNetAddress> workerAddresses = new HashSet<>(mWorkers.size());
+    for (MasterWorkerInfo worker : mWorkers) {
+      // worker net address is unmodifiable after initialization, no locking is needed
+      workerAddresses.add(worker.getWorkerAddress());
+    }
+    return workerAddresses;
+  }
+
+  @Override
   public List<WorkerInfo> getWorkerReport(GetWorkerReportOptions options)
       throws UnavailableException, InvalidArgumentException {
     if (mSafeModeManager.isInSafeMode()) {
@@ -891,7 +904,8 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     }
 
     registerWorkerInternal(workerId);
-
+    // Invalidate cache to trigger new build of worker info list
+    mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
     LOG.info("registerWorker(): {}", worker);
   }
 

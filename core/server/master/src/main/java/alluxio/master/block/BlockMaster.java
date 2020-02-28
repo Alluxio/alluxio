@@ -78,6 +78,11 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   List<WorkerInfo> getLostWorkersInfoList() throws UnavailableException;
 
   /**
+   * @return a set of live worker addresses
+   */
+  Set<WorkerNetAddress> getWorkerAddresses() throws UnavailableException;
+
+  /**
    * Gets the worker information list for report CLI.
    *
    * @param options the GetWorkerReportOptions defines the info range
