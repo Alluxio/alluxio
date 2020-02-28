@@ -96,8 +96,8 @@ public abstract class WebServer {
 
     // Disable specified methods on REST services
     mSecurityHandler = (ConstraintSecurityHandler) mServletContextHandler.getSecurityHandler();
-    for (String s :DISABLED_METHODS.split(",")) {
-      disableHandler(s);
+    for (String s : DISABLED_METHODS.split(",")) {
+      disableMethod(s);
     }
 
     HandlerList handlers = new HandlerList();
@@ -129,7 +129,7 @@ public abstract class WebServer {
   /**
    * @param method to disable
    */
-  private void disableHandler(String method) {
+  private void disableMethod(String method) {
     Constraint constraint = new Constraint();
     constraint.setAuthenticate(true);
     constraint.setName("Disable " + method);
