@@ -9,6 +9,7 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
+set -eux
 
 SCRIPT_DIR=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
@@ -24,9 +25,9 @@ build_debian() {
         build_docker_image
     fi
 
-    local tarball="$(basename "$(realpath ${alluxio_tarball})")"
-    local version="${tarball#alluxio-}"
-    version="${version%%-bin.tar.gz}"
+    local tarball_name="$(basename "$(realpath ${alluxio_tarball})")"
+    local version="${tarball_name#alluxio-}"
+    version="${version%%-bin*.tar.gz}"
 
     local package_name="alluxio_${version}-0"
 
