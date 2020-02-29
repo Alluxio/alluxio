@@ -31,7 +31,7 @@ You may also have to add the classpath variable `M2_REPO` by running:
 $ mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
 ```
 
-> Note: Alluxio 2.2 moved generated gRPC proto source files into `alluxio/core/transport/target`.
+> Note: Alluxio 2.2 moved generated gRPC proto source files into `alluxio/core/transport/target/generated-sources/protobuf/`.
 You will need to mark the directory as a source folder for Eclipse to resolve the sources files.
 
 ### IntelliJ IDEA
@@ -49,7 +49,7 @@ You can do this by going to
 
 And then checking the box next to "developer" in the window pane. 
 
-> Note: Alluxio 2.2 moved generated gRPC proto source files into `alluxio/core/transport/target`.
+> Note: Alluxio 2.2 moved generated gRPC proto source files into `alluxio/core/transport/target/generated-sources/protobuf/`.
 You will need to mark the directory as "Generated Sources Root" for IntelliJ to resolve the sources files.
 
 ## Maven Targets and Plugins
