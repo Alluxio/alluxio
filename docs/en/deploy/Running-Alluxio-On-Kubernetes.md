@@ -92,6 +92,8 @@ There are other ways to create Persistent Volumes as documented [here](https://k
 
 #### Prerequisites
 
+You should have helm 2.X installed. You can install helm following instructions [here](https://v2.helm.sh/docs/using_helm/#install-helm).
+
 A helm repo with the Alluxio helm chart must be available.
 
 (Optional) To prepare a local helm repository:
@@ -310,6 +312,25 @@ Uninstall Alluxio as follows:
 $ helm delete alluxio
 ```
 
+#### Format Journal
+
+The helm chart contains one Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
+template that can be used for formatting the Alluxio journal. The template contains one Job for each Alluxio master.
+Each Job runs `alluxio formatJournal` and formats the journal for that master.
+
+You can manually trigger the journal formatting by applying the Job template.
+```console
+# Generate the YAML definition for the journal formatting Job(s)
+$ helm template --name alluxio helm-chart/alluxio/ --set journal.format.runFormat=true -x templates/job/format-journal-job.yaml -f ./config.yaml > alluxio-format-journal-job.yaml
+# Create the Jobs(s) with kubectl
+$ kubectl create -f alluxio-format-journal-job.yaml
+```
+
+After the Job completes, it will be deleted by Kubernetes after the defined `ttlSecondsAfterFinished`.
+Then the clean journal will be ready for a new Alluxio master(s) to start with.
+
+> Note: You should make sure the master(s) are turned off while formatting their journals.
+
 ### Deploy Using `kubectl`
 
 #### Choose the Sample YAML Template
@@ -455,6 +476,24 @@ $ kubectl delete configmap alluxio-config
 > Note: This will delete all resources under `./master/` and `./worker/`. 
 Be careful if you have persistent volumes or other important resources you want to keep under those directories.  
 
+#### Format Journal
+
+The helm chart contains one Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
+template that can be used for formatting the Alluxio journal. The template contains one Job for each Alluxio master.
+Each Job runs `alluxio formatJournal` and formats the journal for that master.
+
+You can manually trigger the journal formatting by applying the Job template.
+```console
+$ cp ./job/alluxio-format-journal-job.yaml.template ./job/alluxio-format-journal-job.yaml
+# Apply the YAML file manually
+$ kubectl apply -f ./job/alluxio-format-journal-job.yaml
+```
+
+After the Job completes, it will be deleted by Kubernetes after the defined `ttlSecondsAfterFinished`.
+Then the clean journal will be ready for a new Alluxio master(s) to start with.
+
+> Note: You should make sure the master(s) are turned off while formatting their journals.
+
 #### Upgrade
 
 This section will go over how to upgrade Alluxio in your Kubernetes cluster with `kubectl`.
@@ -502,18 +541,8 @@ Make sure all the Pods have been terminated before you move on to the next step.
 Check the Alluxio upgrade guide page for whether the Alluxio master journal has to be formatted.
 If no format is needed, you are ready to skip the rest of this section and move on to restart all Alluxio master and worker Pods.
 
-There is a single Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
-template that can be used for only formatting the master.
-The Job runs `alluxio formatMasters` and formats the journal for all masters.
-You should make sure the Job runs with the same configMap with all your other Alluxio masters so it's able to find the journal persistent storage and format it.
-
-```console
-$ cp ./job/alluxio-format-journal-job.yaml.template ./job/alluxio-format-journal-job.yaml
-$ kubectl apply -f ./job/alluxio-format-journal-job.yaml
-```
-
-After the Job completes, it will be deleted by Kubernetes after the defined `ttlSecondsAfterFinished`.
-Then the clean journal will be ready for a new Alluxio master(s) to start with.
+You can follow [formatting journal with kubectl]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#format-journal-1' | relativize_url }})
+to format the Alluxio journals. 
 
 If you are running Alluxio workers with [tiered storage]({{ '/en/core-services/Caching.html#multiple-tier-storage' | relativize_url }}),
 and you have Persistent Volumes configured for Alluxio, the storage should be cleaned up too.
@@ -603,6 +632,26 @@ $ kubectl create -f alluxio-fuse-client.yaml
 
 If using the template, Alluxio is mounted at `/alluxio-fuse` and can be accessed via the POSIX-API
 across multiple containers.
+
+***Using `helm`***
+You can deploy the FUSE daemon by configuring the following properties:
+```properties
+fuse:
+  enabled: true
+  clientEnabled: true
+```
+
+Then follow the steps to install Alluxio with helm [here]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#deploy-using-helm' | relativize_url }}).
+
+If Alluxio has already been deployed with helm and now you want to enable FUSE, you can manually add the FUSE daemons.
+```console
+# Generate YAML resources with helm template
+$ helm template --name alluxio helm-chart/alluxio/ --set fuse.enabled=true -x templates/fuse/daemonset.yaml -f ./config.yaml > "alluxio-fuse.yaml"
+$ helm template --name alluxio helm-chart/alluxio/ --set fuse.clientEnabled=true -x templates/fuse/client-daemonset.yaml -f ./config.yaml > "alluxio-fuse-client.yaml"
+# Manually apply the YAML files using kubectl
+$ kubectl create -f alluxio-fuse.yaml
+$ kubectl create -f alluxio-fuse-client.yaml
+```
 
 ## Troubleshooting
 
