@@ -76,6 +76,9 @@ spec:
           envFrom:
           - configMapRef:
               name: alluxio-config
+          readinessProbe:
+            exec:
+              command: ["alluxio", "fsadmin", "report"]
           ports:
           - containerPort: 29999
             name: rpc
@@ -113,6 +116,9 @@ spec:
           envFrom:
           - configMapRef:
               name: alluxio-config
+          readinessProbe:
+            exec:
+              command: ["alluxio", "fsadmin", "report"]
           ports:
           - containerPort: 30001
             name: job-rpc

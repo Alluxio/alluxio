@@ -256,3 +256,9 @@ resources:
             defaultMode: 256
   {{- end }}
 {{- end -}}
+
+{{- define "alluxio.readinessProbe" -}}
+readinessProbe:
+  exec:
+    command: ["alluxio", "fsadmin", "report"]
+{{- end -}}

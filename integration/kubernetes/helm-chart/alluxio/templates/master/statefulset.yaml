@@ -97,6 +97,7 @@ spec:
           envFrom:
           - configMapRef:
               name: {{ $fullName }}-config
+{{ include "alluxio.readinessProbe" . | indent 10 }}
           ports:
           - containerPort: {{ .Values.master.ports.rpc }}
             name: rpc
@@ -150,6 +151,7 @@ spec:
           envFrom:
           - configMapRef:
               name: {{ $fullName }}-config
+{{ include "alluxio.readinessProbe" . | indent 10 }}
           ports:
           - containerPort: {{ .Values.jobMaster.ports.rpc }}
             name: job-rpc
