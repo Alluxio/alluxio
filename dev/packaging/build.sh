@@ -9,33 +9,58 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
-set -eux
+set -eu
 
 SCRIPT_DIR=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
+USAGE="Usage: build.sh <alluxio tarball>
+
+This command uses a path to an alluxio tarball as an input and creates a debian-
+compatible package from it.
+
+Arguments:
+
+<alluxio tarball>           A path to an alluxio tarball.
+
+"
+
+print_usage() {
+    echo "${USAGE}"
+}
+
 build_docker_image() {
-    pushd "${SCRIPT_DIR}/debian"
-    docker build -t deb-builder:latest .
-    popd
+    pushd "${SCRIPT_DIR}/debian" > /dev/null
+    printf "Building docker container ... "
+    # supress output
+    docker build -t deb-builder:latest . > /dev/null
+    printf "done\n"
+    popd > /dev/null
 }
 
 build_debian() {
     local alluxio_tarball="${1}"
-    if ! docker image inspect deb-builder:latest || true; then
+    if ! docker image inspect deb-builder:latest > /dev/null || true; then
         build_docker_image
     fi
 
-    local tarball_name="$(basename "$(realpath ${alluxio_tarball})")"
+    if [[ ! -f "${alluxio_tarball}" ]]; then
+        print_usage
+        exit
+    fi
+
+    local tarball_name="$(basename "${alluxio_tarball}")"
     local version="${tarball_name#alluxio-}"
     version="${version%%-bin*.tar.gz}"
 
     local package_name="alluxio_${version}-0"
 
+    printf "Building debian package ... "
     cat ${alluxio_tarball} | \
     docker run --rm -i \
     -v "${SCRIPT_DIR}/debian":/data \
     deb-builder:latest "${package_name}" "${version}" \
     > "${package_name}.deb"
+    printf "done\n"
 }
 
 main() {

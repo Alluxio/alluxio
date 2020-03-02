@@ -10,7 +10,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-set -eux
+set -eu
 
 main () {
     local pkg_name="${1}"
@@ -18,8 +18,6 @@ main () {
 
     tee "alluxio.tar.gz" > /dev/null
     local pkg_dir="/${pkg_name}"
-    ls /data >&2
-    ls /data/DEBIAN >&2
     mkdir -p "${pkg_dir}/DEBIAN"
     local template="$(cat /data/DEBIAN/control)"
     local control="$(eval "echo \"${template}\"")"
