@@ -375,6 +375,11 @@ $ ./bin/alluxio validateEnv local ma
 `-<optionName> [optionValue]` For example, `[-hadoopConfDir <arg>]` could set the path to
 server-side hadoop configuration directory when running validating tasks.
 
+### collectInfo
+
+The `collectInfo` command collects information to troubleshoot an Alluxio cluster.
+For more information see the [collectInfo command page]({{ '/en/operation/Troubleshooting.html#alluxio-collectinfo-command' | relativize_url }}).
+
 ## File System Operations
 
 ```

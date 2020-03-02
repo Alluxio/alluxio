@@ -43,6 +43,7 @@ function printUsage {
   echo -e "  version       \t Print Alluxio version and exit."
   echo -e "  validateConf  \t Validate Alluxio conf and exit."
   echo -e "  validateEnv   \t Validate Alluxio environment."
+  echo -e "  collectInfo   \t Collects information to troubleshoot an Alluxio cluster."
   echo
   echo "GENERIC_COMMAND_OPTIONS supports:"
   echo -e "  -D<property=value>\t Use a value for a given Alluxio property"
