@@ -690,7 +690,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_WEB_TITLES =
       new Builder(Name.UNDERFS_WEB_TITLES)
-          .setDefaultValue("Index of ,Directory listing for ")
+          .setDefaultValue("Index of,Directory listing for")
           .setDescription("The title of the content for a http url.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
