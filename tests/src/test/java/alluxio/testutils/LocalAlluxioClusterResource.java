@@ -17,13 +17,16 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.DeletePOptions;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UfsMode;
+import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.wire.FileInfo;
 
 import org.junit.rules.TestRule;
@@ -164,15 +167,17 @@ public final class LocalAlluxioClusterResource implements TestRule {
             .getTestName(description.getTestClass().getSimpleName(), description.getMethodName());
         try {
           try {
+            Annotation configAnnotation;
+            configAnnotation = description.getAnnotation(ServerConfig.class);
+            if (configAnnotation != null) {
+              overrideConfiguration(((ServerConfig) configAnnotation).confParams());
+            }
+
             boolean startCluster = mStartCluster;
-            Annotation configAnnotation = description.getAnnotation(Config.class);
+            configAnnotation = description.getAnnotation(Config.class);
             if (configAnnotation != null) {
               Config config = (Config) configAnnotation;
-              // Override the configuration parameters with any configuration params
-              for (int i = 0; i < config.confParams().length; i += 2) {
-                mConfiguration.put(PropertyKey.fromString(config.confParams()[i]),
-                    config.confParams()[i + 1]);
-              }
+              overrideConfiguration(config.confParams());
               // Override startCluster
               startCluster = config.startCluster();
             }
@@ -192,6 +197,16 @@ public final class LocalAlluxioClusterResource implements TestRule {
         }
       }
     };
+  }
+
+  /**
+   * @param config the array of strings for the configuration values to override
+   */
+  private void overrideConfiguration(String[] config) {
+    // Override the configuration parameters with any configuration params
+    for (int i = 0; i < config.length; i += 2) {
+      mConfiguration.put(PropertyKey.fromString(config[i]), config[i + 1]);
+    }
   }
 
   /**
@@ -290,6 +305,28 @@ public final class LocalAlluxioClusterResource implements TestRule {
     }
 
     private void resetCluster(FileSystemMaster fsm) throws Exception {
+      if (!mCluster.get().getLocalAlluxioMaster().isServing()) {
+        // Restart the masters if they are not serving.
+        mCluster.mLocalAlluxioCluster.startMasters();
+        // use the newly created/started file system master
+        fsm = mCluster.mLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
+            .getMaster(FileSystemMaster.class);
+      }
+      if (!mCluster.get().isStartedWorkers()) {
+        // Wait for the workers to be considered "lost"
+        BlockMaster bm =
+            mCluster.get().getLocalAlluxioMaster().getMasterProcess().getMaster(BlockMaster.class);
+        CommonUtils.waitFor("all workers to be considered lost by the master", () -> {
+          try {
+            return bm.getWorkerInfoList().isEmpty();
+          } catch (Exception e) {
+            return false;
+          }
+        }, WaitForOptions.defaults().setInterval(10).setTimeoutMs(1000));
+
+        // Start the new workers
+        mCluster.get().startWorkers();
+      }
       fsm.updateUfsMode(new AlluxioURI(fsm.getUfsAddress()), UfsMode.READ_WRITE);
       for (FileInfo fileInfo : fsm
           .listStatus(new AlluxioURI("/"), ListStatusContext.defaults())) {
@@ -307,5 +344,13 @@ public final class LocalAlluxioClusterResource implements TestRule {
   public @interface Config {
     String[] confParams() default {};
     boolean startCluster() default true;
+  }
+
+  /**
+   * Class-level annotations that can override the configuration for static class rules.
+   */
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface ServerConfig {
+    String[] confParams() default {};
   }
 }

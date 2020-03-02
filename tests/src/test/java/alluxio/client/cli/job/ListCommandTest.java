@@ -25,7 +25,7 @@ public final class ListCommandTest extends JobShellTest {
 
     waitForJobToFinish(jobId);
 
-    mJobShell.run("ls");
+    sJobShell.run("ls");
     String output = mOutput.toString();
 
     assertTrue(output.contains(String.valueOf(jobId)));

@@ -25,7 +25,7 @@ import java.io.IOException;
 public final class LocationCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void locationNotExist() throws IOException {
-    int ret = mFsShell.run("location", "/NotExistFile");
+    int ret = sFsShell.run("location", "/NotExistFile");
     Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/NotExistFile") + "\n",
         mOutput.toString());
     Assert.assertEquals(-1, ret);
