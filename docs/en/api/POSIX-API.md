@@ -9,7 +9,7 @@ priority: 3
 * Table of Contents
 {:toc}
 
-Alluxio POSIX API is a feature that allows mounting an Alluxio File System as a standard file system
+The Alluxio POSIX API is a feature that allows mounting an Alluxio File System as a standard file system
 on most flavors of Unix.
 By using this feature, standard tools (for example, `ls`, `cat` or `mkdir`) will have basic access
 to the Alluxio namespace.
@@ -21,8 +21,7 @@ Note that Alluxio-FUSE is different from projects like [s3fs](https://s3fs.readt
 [mountableHdfs](https://cwiki.apache.org/confluence/display/HADOOP2/MountableHDFS) which mount
 specific storage services like S3 or HDFS to the local filesystem.
 The Alluxio POSIX API is a generic solution for the many storage systems supported by Alluxio.
-The data orchestration and caching features from Alluxio speeds up the I/O access to frequently used
-data.
+Data orchestration and caching features from Alluxio speed up I/O access to frequently used data.
 
 <p align="center">
 <img src="{{ '/img/stack-posix.png' | relativize_url }}" alt="Alluxio stack with its POSIX API"/>
@@ -103,7 +102,7 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse stat
 
 This outputs the `pid, mount_point, alluxio_path` of all the running Alluxio-FUSE processes.
 
-For example, the output will be like:
+For example, the output could be:
 
 ```
 pid	mount_point	alluxio_path
