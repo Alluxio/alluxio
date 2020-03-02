@@ -203,7 +203,6 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/kubernetes/helm-chart/alluxio/templates/_helpers.tpl",
 		"integration/kubernetes/helm-chart/alluxio/templates/service-account.yaml",
 		"integration/kubernetes/helm-chart/alluxio/templates/config/alluxio-conf.yaml",
-		"integration/kubernetes/helm-chart/alluxio/templates/format/master.yaml",
 		"integration/kubernetes/helm-chart/alluxio/templates/fuse/client-daemonset.yaml",
 		"integration/kubernetes/helm-chart/alluxio/templates/fuse/daemonset.yaml",
 		"integration/kubernetes/helm-chart/alluxio/templates/job/format-journal-job.yaml",
