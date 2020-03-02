@@ -12,7 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
@@ -163,6 +162,6 @@ public final class FileSystemUtils {
         throw new RuntimeException(e);
       }
     }, (status) -> status.isPersisted(),
-        WaitForOptions.defaults().setTimeoutMs(timeoutMs).setInterval(Constants.SECOND_MS));
+        WaitForOptions.defaults().setTimeoutMs(timeoutMs).setInterval(100));
   }
 }

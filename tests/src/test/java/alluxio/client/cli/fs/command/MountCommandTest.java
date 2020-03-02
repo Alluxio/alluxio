@@ -47,7 +47,7 @@ public final class MountCommandTest extends AbstractFileSystemShellTest {
     Assert.assertTrue(fileExists(testFile));
     // Dir in Alluxio can be persisted to UFS
     AlluxioURI testDir = mountPoint.join("testDir");
-    mFileSystem.createDirectory(testDir,
+    sFileSystem.createDirectory(testDir,
         CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build());
     Assert.assertTrue(fileExists(testDir));
     Assert.assertTrue(Files.exists(Paths.get(ufsPath, "testDir")));
@@ -57,7 +57,7 @@ public final class MountCommandTest extends AbstractFileSystemShellTest {
   public void mount() throws Exception {
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = mFolder.getRoot().getAbsolutePath();
-    Assert.assertEquals(0, mFsShell.run("mount", mountPoint.toString(), ufsPath));
+    Assert.assertEquals(0, sFsShell.run("mount", mountPoint.toString(), ufsPath));
     checkMountPoint(mountPoint, ufsPath);
   }
 
@@ -66,12 +66,12 @@ public final class MountCommandTest extends AbstractFileSystemShellTest {
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = mFolder.getRoot().getAbsolutePath();
     // ufs missing
-    Assert.assertEquals(-1, mFsShell.run("mount", mountPoint.toString()));
+    Assert.assertEquals(-1, sFsShell.run("mount", mountPoint.toString()));
     // extra arg
-    Assert.assertEquals(-1, mFsShell.run("mount", mountPoint.toString(), ufsPath, "extraArg"));
+    Assert.assertEquals(-1, sFsShell.run("mount", mountPoint.toString(), ufsPath, "extraArg"));
     // --option with wrong argument format
     Assert.assertEquals(-1,
-        mFsShell.run("mount", "--option", "wrongArgFormat", mountPoint.toString(), ufsPath));
+        sFsShell.run("mount", "--option", "wrongArgFormat", mountPoint.toString(), ufsPath));
   }
 
   @Test
@@ -82,12 +82,12 @@ public final class MountCommandTest extends AbstractFileSystemShellTest {
         new UnderFileSystemFactoryRegistryRule(factory).toResource()) {
       AlluxioURI mountPoint = new AlluxioURI("/mnt");
       String ufsPath = "ufs://" + mFolder.getRoot().getAbsolutePath();
-      Assert.assertEquals(0, mFsShell
+      Assert.assertEquals(0, sFsShell
           .run("mount", "--option", "k1=v1", "--option", "k2=v2", mountPoint.toString(), ufsPath));
-      FileSystemTestUtils.createByteFile(mFileSystem,
+      FileSystemTestUtils.createByteFile(sFileSystem,
           "/mnt/testFile1", WritePType.CACHE_THROUGH, 20);
-      Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/mnt/testFile1")));
-      URIStatus status = mFileSystem.getStatus(new AlluxioURI("/mnt/testFile1"));
+      Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/mnt/testFile1")));
+      URIStatus status = sFileSystem.getStatus(new AlluxioURI("/mnt/testFile1"));
       Assert.assertTrue(status.isPersisted());
     }
   }
@@ -101,14 +101,14 @@ public final class MountCommandTest extends AbstractFileSystemShellTest {
       AlluxioURI mountPoint = new AlluxioURI("/mnt");
       String ufsPath = "ufs://" + mFolder.getRoot().getAbsolutePath();
       // one property is wrong
-      Assert.assertEquals(-1, mFsShell
+      Assert.assertEquals(-1, sFsShell
           .run("mount", "--option", "k1=not_v1", "--option", "k2=v2", mountPoint.toString(),
               ufsPath));
       // one property is missing
       Assert.assertEquals(-1,
-          mFsShell.run("mount", "--option", "k1=v1", mountPoint.toString(), ufsPath));
+          sFsShell.run("mount", "--option", "k1=v1", mountPoint.toString(), ufsPath));
       // one property is unnecessary
-      Assert.assertEquals(-1, mFsShell
+      Assert.assertEquals(-1, sFsShell
           .run("mount", "--option", "k1=v1", "--option", "k2=v2", "--option", "k3=v3",
               mountPoint.toString(), ufsPath));
     }
@@ -118,7 +118,7 @@ public final class MountCommandTest extends AbstractFileSystemShellTest {
   public void mountWithSpaceInOptionValues() throws Exception {
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = mFolder.getRoot().getAbsolutePath();
-    Assert.assertEquals(0, mFsShell
+    Assert.assertEquals(0, sFsShell
         .run("mount", "--option", "key=\" value with spaces\"", mountPoint.toString(), ufsPath));
   }
 
@@ -126,7 +126,7 @@ public final class MountCommandTest extends AbstractFileSystemShellTest {
   public void mountWithQuotesInOptionValues() throws Exception {
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = mFolder.getRoot().getAbsolutePath();
-    Assert.assertEquals(0, mFsShell
+    Assert.assertEquals(0, sFsShell
         .run("mount", "--option", "key=valueWith\"Quotes\"", mountPoint.toString(), ufsPath));
   }
 
@@ -135,13 +135,13 @@ public final class MountCommandTest extends AbstractFileSystemShellTest {
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = mFolder.getRoot().getAbsolutePath();
     Assert.assertEquals(0,
-        mFsShell.run("mount", "--option", "key=k=v", mountPoint.toString(), ufsPath));
+        sFsShell.run("mount", "--option", "key=k=v", mountPoint.toString(), ufsPath));
   }
 
   @Test
   public void mountToRootFailed() throws Exception {
     String ufsPath = mFolder.getRoot().getAbsolutePath();
-    Assert.assertEquals(-1, mFsShell.run("mount", "/", ufsPath));
+    Assert.assertEquals(-1, sFsShell.run("mount", "/", ufsPath));
   }
 
   @Test
@@ -149,15 +149,15 @@ public final class MountCommandTest extends AbstractFileSystemShellTest {
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath1 = mFolder.newFolder().getAbsolutePath();
     String ufsPath2 = mFolder.newFolder().getAbsolutePath();
-    Assert.assertEquals(0, mFsShell.run("mount", mountPoint.toString(), ufsPath1));
-    Assert.assertEquals(-1, mFsShell.run("mount", mountPoint.toString(), ufsPath2));
+    Assert.assertEquals(0, sFsShell.run("mount", mountPoint.toString(), ufsPath1));
+    Assert.assertEquals(-1, sFsShell.run("mount", mountPoint.toString(), ufsPath2));
   }
 
   @Test
   public void mountTwiceFailed() throws Exception {
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
     String ufsPath = mFolder.getRoot().getAbsolutePath();
-    Assert.assertEquals(0, mFsShell.run("mount", mountPoint.toString(), ufsPath));
-    Assert.assertEquals(-1, mFsShell.run("mount", mountPoint.toString(), ufsPath));
+    Assert.assertEquals(0, sFsShell.run("mount", mountPoint.toString(), ufsPath));
+    Assert.assertEquals(-1, sFsShell.run("mount", mountPoint.toString(), ufsPath));
   }
 }

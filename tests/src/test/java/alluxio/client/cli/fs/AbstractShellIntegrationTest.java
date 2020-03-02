@@ -18,8 +18,10 @@ import alluxio.conf.PropertyKey;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TestRule;
 
 import java.io.ByteArrayOutputStream;
 
@@ -29,8 +31,8 @@ import java.io.ByteArrayOutputStream;
 public abstract class AbstractShellIntegrationTest extends BaseIntegrationTest {
   protected static final int SIZE_BYTES = Constants.MB * 16;
 
-  @Rule
-  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+  @ClassRule
+  public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "10ms")
           .setProperty(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "10ms")
@@ -40,6 +42,9 @@ public abstract class AbstractShellIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.MAX_VALUE)
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
           .build();
+
+  @Rule
+  public TestRule mResetRule = sLocalAlluxioClusterResource.getResetResource();
 
   public ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
   public ByteArrayOutputStream mErrOutput = new ByteArrayOutputStream();

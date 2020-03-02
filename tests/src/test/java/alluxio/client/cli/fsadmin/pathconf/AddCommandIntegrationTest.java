@@ -132,7 +132,7 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
       Assert.assertEquals(0,
           fsAdminShell.run("pathConf", "add", "--property", WRITE_TYPE_CACHE_THROUGH, PATH2));
 
-      FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
+      FileSystem fs = sLocalAlluxioClusterResource.get().getClient();
       String file = "/file";
       FileSystemTestUtils.createByteFile(fs, file, 100, CreateFilePOptions.getDefaultInstance());
 
