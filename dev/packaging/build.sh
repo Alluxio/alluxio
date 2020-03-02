@@ -9,6 +9,7 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
+
 set -eu
 
 SCRIPT_DIR=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
