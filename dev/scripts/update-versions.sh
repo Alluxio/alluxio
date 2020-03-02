@@ -22,7 +22,8 @@ HELP=$(cat <<EOF
 Usage: update-version.sh [-s] <old version> <new version>
 
     <old version>    The version to replace throughout the codebase
-    <new version>    The new version in the codebase
+                     (i.e. 2.2.0-SNAPSHOT)
+    <new version>    The new version in the codebase (i.e. 2.2.0-RC1)
 
     -s               Skips updating maven pom versions. This should mainly be
                      used when cutting a final release where pom versions are
