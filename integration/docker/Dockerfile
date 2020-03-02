@@ -16,7 +16,8 @@
 # - https://github.com/moby/moby/issues/5505
 # - https://github.com/moby/moby/issues/6119
 FROM alpine:3.10.2 AS extractor
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.1.0/alluxio-2.1.0-bin.tar.gz
+# Note that downloads for *-SNAPSHOT tarballs are not available
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.3.0-SNAPSHOT/alluxio-2.3.0-SNAPSHOT-bin.tar.gz
 
 ADD ${ALLUXIO_TARBALL} /opt/
 # if the tarball was remote, it needs to be untarred
