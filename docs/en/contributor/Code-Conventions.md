@@ -29,8 +29,8 @@ difficult to merge in a large change with a lot of disjoint features.
 - We track issues and features in our [Github Issues](https://github.com/alluxio/alluxio/issues).
 Open a ticket detailing the proposed change and what purpose it serves.
 - Submit the patch as a GitHub pull request.
-- If your pull request aims to solve an existing Github issue,
-please include a link to the Github Issue in the last line of the description field of the pull request,
+- If your pull request aims to solve an existing Github issue, please include a link to the Github
+issue in the last line of the description field of the pull request,
 like `Fixes #1234`, `Fixed #1234`, `Fix #1234`, `Closes #1234`, `Closed #1234`, or `Close #1234`.
 - Please read our
 [pull request guidelines]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }}#sending-a-pull-request)
@@ -46,7 +46,7 @@ with the following changes or deviations:
   - Class member variable names should be prefixed with `m`
     - example: `private WorkerClient mWorkerClient;`
   - Static variable names should be prefixed with `s`
-    - example: `public static String sUnderFSAddress;`
+    - example: `private static String sUnderFSAddress;`
 - Bash scripts follow [Google Shell style](https://google.github.io/styleguide/shell.xml), and
 must be compatible with Bash 3.x
 - If you use Eclipse:
@@ -129,7 +129,7 @@ messages.
 * Clearly indicate if a variable reference is being printed by formatting the output as `variable: value`
 * Ensure objects being logged have appropriate `toString()` implementations
 * Use appropriate logger names
-  * Provides a key based on class name which can easily be grepped on
+  * Provides a key based on class name which can easily be searched for
   * Example: `private static final Logger LOG = LoggerFactory.getLogger(AlluxioMaster.class);`
 
 ### Log Level Guidelines
@@ -189,7 +189,7 @@ and stack traces are never associated with info level logs. Note that, this leve
 not be used on critical path of operations that may happen frequently to prevent negative performance
 impact.
 ```java
-LOG.info("Master started.");
+LOG.info("Master started with address: {}.", address);
 ```
 
 **When to Use**
@@ -676,12 +676,13 @@ If you need to change a system property for the duration of a test suite, use `S
 public SystemPropertyRule mSystemPropertyRule = new SystemPropertyRule("propertyName", "value");
 ```
 
-To set a system property during a specific test, use `SetAndRestoreSystemProperty` in a try-catch statement:
+To set a system property during a specific test, use the `SystemPropertyRule#toResource()` method
+to get a `Closeable` for a try-catch statement:
 
 ```java
 @Test
 public void test() {
-  try (SetAndRestorySystemProperty p = new SetAndRestorySystemProperty("propertyKey", "propertyValue")) {
+  try (Closeable p = new SystemPropertyRule("propertyKey", "propertyValue").toResource()) {
     // Test something with propertyKey set to propertyValue.
   }
 }
@@ -691,9 +692,10 @@ public void test() {
 
 If a test needs to modify other types of global state, create a new `@Rule` for managing the
 state so that it can be shared across tests.
-One example of this is [`TtlIntervalRule`](https://github.com/Alluxio/alluxio/blob/master/core/server/master/src/test/java/alluxio/master/file/meta/TtlIntervalRule.java).
+One example of this is
+[`TtlIntervalRule`](https://github.com/Alluxio/alluxio/blob/master/core/server/master/src/test/java/alluxio/master/file/meta/TtlIntervalRule.java).
 
-### System Settings for Unit Tests
+### MacOS System Settings for Unit Tests
 
 Sometimes you will need to play with a few system settings in order to have the unit tests pass
 locally. A common setting that may need to be set is `ulimit`.
