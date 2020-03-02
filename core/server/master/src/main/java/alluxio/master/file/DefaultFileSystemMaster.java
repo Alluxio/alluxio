@@ -3396,6 +3396,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
     // Update metadata for all the mount points
     for (String mountPoint : pathsToLoad) {
+      if (Thread.currentThread().isInterrupted()) {
+        LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
+        return false;
+      }
       AlluxioURI mountPointUri = new AlluxioURI(mountPoint);
       try {
         if (PathUtils.hasPrefix(inodePath.getUri().getPath(), mountPointUri.getPath())) {
