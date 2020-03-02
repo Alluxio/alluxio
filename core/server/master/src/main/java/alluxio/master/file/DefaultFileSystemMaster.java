@@ -3416,7 +3416,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
             // This may be expected. For example, when creating a new file, the UFS file is not
             // expected to exist.
             LOG.debug("Failed to load metadata for path: {}", inodePath.getUri(), e);
-            continue;
           }
         } else {
           try (LockedInodePath descendantPath =
@@ -3431,6 +3430,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
             }
             mUfsSyncPathCache.notifySyncedPath(mountPoint, syncDescendantType);
           }
+        }
+        if (Thread.currentThread().isInterrupted()) {
+          LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
+          return false;
         }
       } catch (InvalidPathException e) {
         LOG.warn("Tried to update metadata from an invalid path : {}", mountPointUri.getPath(), e);
