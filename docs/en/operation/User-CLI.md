@@ -586,7 +586,8 @@ $ ./bin/alluxio fs cp /hdfs/file1 /s3/
 
 ### distributedCp
 
-The `distributedCp` command copies a file or directory in the Alluxio file system distributed across workers.
+The `distributedCp` command copies a file or directory in the Alluxio file system distributed across workers
+using the job service.
 
 If the source designates a directory, `distributedCp` copies the entire subtree at source to the destination.
 
@@ -596,8 +597,8 @@ $ ./bin/alluxio fs distributedCp /data/1023 /data/1024
 
 ### distributedLoad
 
-The `distributedLoad` command moves a file or directory from the under storage system into Alluxio storage distributed 
-across workers. The job is a no-op if the file is already loaded into Alluxio.
+The `distributedLoad` command loads a file or directory from the under storage system into Alluxio storage distributed 
+across workers using the job service. The job is a no-op if the file is already loaded into Alluxio.
 
 If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
 on a random worker.
@@ -609,7 +610,8 @@ $ ./bin/alluxio fs distributedLoad --replication 2 /data/today
 
 ### distributedMv
 
-The `distributedMv` command moves a file or directory in the Alluxio file system distributed across workers.
+The `distributedMv` command moves a file or directory in the Alluxio file system distributed across workers
+using the job service.
 
 If the source designates a directory, `distributedMv` moves the entire subtree at source to the destination.
 
