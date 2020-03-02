@@ -356,7 +356,7 @@ public final class ConfigurationUtils {
    */
   public static List<ConfigProperty> getConfiguration(AlluxioConfiguration conf, Scope scope) {
     ConfigurationValueOptions useRawDisplayValue =
-        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true);
+        ConfigurationValueOptions.defaults().useDisplayValue(true);
 
     List<ConfigProperty> configs = new ArrayList<>();
     List<PropertyKey> selectedKeys =
