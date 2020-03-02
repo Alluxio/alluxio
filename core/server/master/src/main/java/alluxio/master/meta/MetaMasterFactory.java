@@ -13,7 +13,6 @@ package alluxio.master.meta;
 
 import alluxio.Constants;
 import alluxio.master.CoreMasterContext;
-import alluxio.master.Master;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 import alluxio.master.block.BlockMaster;
@@ -46,7 +45,7 @@ public final class MetaMasterFactory implements MasterFactory<CoreMasterContext>
   }
 
   @Override
-  public Master create(MasterRegistry registry, CoreMasterContext context) {
+  public MetaMaster create(MasterRegistry registry, CoreMasterContext context) {
     LOG.info("Creating {} ", MetaMaster.class.getName());
     MetaMaster metaMaster = new DefaultMetaMaster(registry.get(BlockMaster.class), context);
     registry.add(MetaMaster.class, metaMaster);
