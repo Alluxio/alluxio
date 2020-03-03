@@ -22,6 +22,8 @@ import alluxio.client.util.ClientTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.block.BlockMaster;
+import alluxio.master.block.DefaultBlockMaster;
 import alluxio.proxy.ProxyProcess;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.underfs.UnderFileSystem;
@@ -255,6 +257,11 @@ public abstract class AbstractLocalAlluxioCluster {
       }
     }
     mWorkerThreads.clear();
+
+    // forget all the workers in the master
+    DefaultBlockMaster bm = (DefaultBlockMaster) getLocalAlluxioMaster().getMasterProcess()
+        .getMaster(BlockMaster.class);
+    bm.forgetAllWorkers();
   }
 
   /**

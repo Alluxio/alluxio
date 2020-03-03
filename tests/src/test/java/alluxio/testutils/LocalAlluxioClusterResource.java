@@ -17,16 +17,13 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.DeletePOptions;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UfsMode;
-import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
-import alluxio.util.WaitForOptions;
 import alluxio.wire.FileInfo;
 
 import org.junit.rules.TestRule;
@@ -313,17 +310,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
             .getMaster(FileSystemMaster.class);
       }
       if (!mCluster.get().isStartedWorkers()) {
-        // Wait for the workers to be considered "lost"
-        BlockMaster bm =
-            mCluster.get().getLocalAlluxioMaster().getMasterProcess().getMaster(BlockMaster.class);
-        CommonUtils.waitFor("all workers to be considered lost by the master", () -> {
-          try {
-            return bm.getWorkerInfoList().isEmpty();
-          } catch (Exception e) {
-            return false;
-          }
-        }, WaitForOptions.defaults().setInterval(10).setTimeoutMs(1000));
-
         // Start the new workers
         mCluster.get().startWorkers();
       }
