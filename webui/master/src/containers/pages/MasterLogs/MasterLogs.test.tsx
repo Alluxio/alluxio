@@ -9,35 +9,29 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import { configure, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import {createBrowserHistory, History, LocationState} from 'history';
+import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
-import {Provider} from 'react-redux';
-import {Store} from 'redux';
 import sinon from 'sinon';
 
-import {AllProps} from '@alluxio/common-ui/src/components';
-import configureStore from '../../../configureStore'
-import {initialState, IApplicationState} from '../../../store';
-import ConnectedApp from '../../App/App';
-import {routePaths} from "../../../constants";
-import MasterLogs from "./MasterLogs";
-import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
+import { AllProps } from '@alluxio/common-ui/src/components';
+import { initialState } from '../../../store';
+import { routePaths } from '../../../constants';
+import MasterLogs from './MasterLogs';
+import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('MasterLogs', () => {
   let history: History<LocationState>;
-  let store: Store<IApplicationState>;
   let props: AllProps;
 
   beforeAll(() => {
-    history = createBrowserHistory({keyLength: 0});
+    history = createBrowserHistory({ keyLength: 0 });
     history.push(routePaths.logs);
-    store = configureStore(history, initialState);
     props = {
-      location: {search: ''},
+      location: { search: '' },
       history: history,
       fetchRequest: sinon.spy(() => {}),
       data: initialState.logs.data,
@@ -48,7 +42,7 @@ describe('MasterLogs', () => {
       queryStringSuffix: '',
       errors: createAlertErrors(false),
       loading: false,
-      class: ''
+      class: '',
     };
   });
 
@@ -60,7 +54,7 @@ describe('MasterLogs', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<MasterLogs {...props}/>);
+      shallowWrapper = shallow(<MasterLogs {...props} />);
     });
 
     it('Renders without crashing', () => {

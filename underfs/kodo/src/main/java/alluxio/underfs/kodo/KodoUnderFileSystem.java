@@ -170,7 +170,7 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
     try {
       return mKodoClinet.listFiles(prefix, null, limit, delimiter);
     } catch (QiniuException e) {
-      LOG.error("list objects failed ,Msg:{}", e);
+      LOG.error("list objects failed:", e);
       return null;
     }
   }
@@ -192,9 +192,8 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
       }
       return new ObjectStatus(key, fileInfo.hash, fileInfo.fsize, fileInfo.putTime / 10000);
     } catch (QiniuException e) {
-      LOG.warn("Failed to get Object {}, Msg: {}", key, e);
+      return null;
     }
-    return null;
   }
 
   // No ACL integration currently, returns default empty value

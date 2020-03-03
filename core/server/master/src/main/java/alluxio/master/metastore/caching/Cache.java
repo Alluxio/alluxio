@@ -13,6 +13,7 @@ package alluxio.master.metastore.caching;
 
 import alluxio.Constants;
 import alluxio.master.metastore.ReadOption;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
 
@@ -22,8 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.lang.Thread.State;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,8 +73,9 @@ public abstract class Cache<K, V> implements Closeable {
   /**
    * @param conf cache configuration
    * @param name a name for the cache
+   * @param metricKey the metric key of the cache
    */
-  public Cache(CacheConfiguration conf, String name) {
+  public Cache(CacheConfiguration conf, String name, MetricKey metricKey) {
     mMaxSize = conf.getMaxSize();
     mHighWaterMark = conf.getHighWaterMark();
     mLowWaterMark = conf.getLowWaterMark();
@@ -86,7 +86,7 @@ public abstract class Cache<K, V> implements Closeable {
     mEvictionThread.setDaemon(true);
     // The eviction thread is started lazily when we first reach the high water mark.
 
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(mName + "-size"), mMap::size);
+    MetricsSystem.registerGaugeIfAbsent(metricKey.getName(), mMap::size);
   }
 
   /**
@@ -267,7 +267,7 @@ public abstract class Cache<K, V> implements Closeable {
   public void close() {
     mEvictionThread.interrupt();
     try {
-      mEvictionThread.join(10 * Constants.SECOND_MS);
+      mEvictionThread.join(10L * Constants.SECOND_MS);
       if (mEvictionThread.isAlive()) {
         LOG.warn("Failed to stop eviction thread");
       }
@@ -286,7 +286,7 @@ public abstract class Cache<K, V> implements Closeable {
     // to keep re-allocating the list.
     private final List<Entry> mEvictionCandidates = new ArrayList<>(mEvictBatchSize);
     private final List<Entry> mDirtyEvictionCandidates = new ArrayList<>(mEvictBatchSize);
-    private final Logger mCacheFullLogger = new SamplingLogger(LOG, 10 * Constants.SECOND_MS);
+    private final Logger mCacheFullLogger = new SamplingLogger(LOG, 10L * Constants.SECOND_MS);
 
     private Iterator<Entry> mEvictionHead = Collections.emptyIterator();
 
@@ -322,7 +322,7 @@ public abstract class Cache<K, V> implements Closeable {
     }
 
     private void evictToLowWaterMark() {
-      Instant evictionStart = Instant.now();
+      long evictionStart = System.nanoTime();
       int toEvict = mMap.size() - mLowWaterMark;
       int evictionCount = 0;
       while (evictionCount < toEvict) {
@@ -334,7 +334,7 @@ public abstract class Cache<K, V> implements Closeable {
       }
       if (evictionCount > 0) {
         LOG.debug("{}: Evicted {} entries in {}ms", mName, evictionCount,
-            Duration.between(evictionStart, Instant.now()).toMillis());
+            (System.nanoTime() - evictionStart) / Constants.MS_NANO);
       }
     }
 

@@ -13,6 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemContext;
@@ -35,6 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Loads a file or directory in Alluxio space, making it resident in Alluxio.
  */
 @ThreadSafe
+@PublicApi
 public final class LoadCommand extends AbstractFileSystemCommand {
   private static final Option LOCAL_OPTION =
       Option.builder()

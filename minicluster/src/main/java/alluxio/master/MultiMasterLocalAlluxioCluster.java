@@ -20,6 +20,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.journal.JournalType;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
@@ -81,8 +82,8 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   @Override
-  public void initConfiguration() throws IOException {
-    setAlluxioWorkDirectory();
+  public void initConfiguration(String name) throws IOException {
+    setAlluxioWorkDirectory(name);
     setHostname();
     for (Map.Entry<PropertyKey, String> entry : ConfigurationTestUtils
         .testConfigurationDefaults(ServerConfiguration.global(),
@@ -91,6 +92,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     }
     ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, 0);
     ServerConfiguration.set(PropertyKey.TEST_MODE, true);
+    ServerConfiguration.set(PropertyKey.JOB_WORKER_THROTTLING, false);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, 0);
     ServerConfiguration.set(PropertyKey.PROXY_WEB_PORT, 0);
@@ -208,7 +210,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       try {
         getClient().getStatus(new AlluxioURI("/"));
         return true;
-      } catch (AlluxioException e) {
+      } catch (AlluxioException | AlluxioStatusException e) {
         LOG.error("Failed to get status of /:", e);
         return false;
       } catch (Exception e) {

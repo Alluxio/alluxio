@@ -14,6 +14,7 @@ package alluxio.master.job.command;
 import alluxio.grpc.CancelTaskCommand;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.RunTaskCommand;
+import alluxio.grpc.SetTaskPoolSizeCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
 
@@ -54,7 +55,7 @@ public final class CommandManager {
    * @param taskArgs the arguments passed to the executor on the worker
    * @param workerId the id of the worker
    */
-  public synchronized void submitRunTaskCommand(long jobId, int taskId, JobConfig jobConfig,
+  public synchronized void submitRunTaskCommand(long jobId, long taskId, JobConfig jobConfig,
       Object taskArgs, long workerId) {
     RunTaskCommand.Builder runTaskCommand = RunTaskCommand.newBuilder();
     runTaskCommand.setJobId(jobId);
@@ -71,10 +72,7 @@ public final class CommandManager {
     }
     JobCommand.Builder command = JobCommand.newBuilder();
     command.setRunTaskCommand(runTaskCommand);
-    if (!mWorkerIdToPendingCommands.containsKey(workerId)) {
-      mWorkerIdToPendingCommands.put(workerId, Lists.<JobCommand>newArrayList());
-    }
-    mWorkerIdToPendingCommands.get(workerId).add(command.build());
+    submit(workerId, command);
   }
 
   /**
@@ -84,14 +82,33 @@ public final class CommandManager {
    * @param taskId the task id
    * @param workerId the worker id
    */
-  public synchronized void submitCancelTaskCommand(long jobId, int taskId, long workerId) {
+  public synchronized void submitCancelTaskCommand(long jobId, long taskId, long workerId) {
     CancelTaskCommand.Builder cancelTaskCommand = CancelTaskCommand.newBuilder();
     cancelTaskCommand.setJobId(jobId);
     cancelTaskCommand.setTaskId(taskId);
     JobCommand.Builder command = JobCommand.newBuilder();
     command.setCancelTaskCommand(cancelTaskCommand);
+    submit(workerId, command);
+  }
+
+  /**
+   * Submits a set thread pool size command to specific worker.
+   *
+   * @param workerId the worker id
+   * @param taskPoolSize the task pool size
+   */
+  public synchronized void submitSetTaskPoolSizeCommand(long workerId, int taskPoolSize) {
+    SetTaskPoolSizeCommand.Builder setTaskPoolSizeCommand = SetTaskPoolSizeCommand.newBuilder();
+    setTaskPoolSizeCommand.setTaskPoolSize(taskPoolSize);
+
+    JobCommand.Builder command = JobCommand.newBuilder();
+    command.setSetTaskPoolSizeCommand(setTaskPoolSizeCommand);
+    submit(workerId, command);
+  }
+
+  private synchronized void submit(long workerId, JobCommand.Builder command) {
     if (!mWorkerIdToPendingCommands.containsKey(workerId)) {
-      mWorkerIdToPendingCommands.put(workerId, Lists.<JobCommand>newArrayList());
+      mWorkerIdToPendingCommands.put(workerId, Lists.newArrayList());
     }
     mWorkerIdToPendingCommands.get(workerId).add(command.build());
   }

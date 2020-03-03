@@ -14,21 +14,29 @@ package alluxio.client.job;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.grpc.CancelPRequest;
+import alluxio.grpc.GetAllWorkerHealthPRequest;
+import alluxio.grpc.GetJobServiceSummaryPRequest;
 import alluxio.grpc.GetJobStatusPRequest;
 import alluxio.grpc.JobMasterClientServiceGrpc;
 import alluxio.grpc.ListAllPRequest;
 import alluxio.grpc.RunPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.job.JobConfig;
+import alluxio.job.ProtoUtils;
 import alluxio.job.util.SerializationUtils;
+import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.JobWorkerHealth;
 import alluxio.worker.job.JobMasterClientContext;
 
+import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import io.grpc.StatusRuntimeException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -66,13 +74,6 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  protected void beforeConnect()
-      throws IOException {
-    // Job master client does not load cluster-default configuration because only the master
-    // will use this client
-  }
-
-  @Override
   protected void afterConnect() throws IOException {
     mClient = JobMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
@@ -86,12 +87,20 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public JobInfo getStatus(final long jobId) throws IOException {
-    return new JobInfo(retryRPC(new RpcCallable<alluxio.grpc.JobInfo>() {
+  public JobInfo getJobStatus(final long id) throws IOException {
+    return ProtoUtils.fromProto(retryRPC(new RpcCallable<alluxio.grpc.JobInfo>() {
       public alluxio.grpc.JobInfo call() throws StatusRuntimeException {
-        return mClient.getJobStatus(GetJobStatusPRequest.newBuilder().setJobId(jobId).build())
+        return mClient.getJobStatus(GetJobStatusPRequest.newBuilder().setJobId(id).build())
             .getJobInfo();
       }
+    }));
+  }
+
+  @Override
+  public JobServiceSummary getJobServiceSummary() throws IOException {
+    return new JobServiceSummary(retryRPC((RpcCallable<alluxio.grpc.JobServiceSummary>) () -> {
+      return mClient.getJobServiceSummary(
+              GetJobServiceSummaryPRequest.newBuilder().build()).getSummary();
     }));
   }
 
@@ -105,11 +114,40 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
+  public List<JobInfo> listDetailed() throws IOException {
+    List<alluxio.grpc.JobInfo> jobProtoInfos = retryRPC(
+        new RpcCallable<List<alluxio.grpc.JobInfo>>() {
+          public List<alluxio.grpc.JobInfo> call() {
+            return mClient.listAll(ListAllPRequest.getDefaultInstance())
+                .getJobInfosList();
+          }
+        });
+    ArrayList<JobInfo> result = Lists.newArrayList();
+    for (alluxio.grpc.JobInfo jobProtoInfo : jobProtoInfos) {
+      result.add(ProtoUtils.fromProto(jobProtoInfo));
+    }
+    return result;
+  }
+
+  @Override
   public long run(final JobConfig jobConfig) throws IOException {
     final ByteString jobConfigStr = ByteString.copyFrom(SerializationUtils.serialize(jobConfig));
     return retryRPC(new RpcCallable<Long>() {
       public Long call() throws StatusRuntimeException {
         return mClient.run(RunPRequest.newBuilder().setJobConfig(jobConfigStr).build()).getJobId();
+      }
+    });
+  }
+
+  @Override
+  public List<JobWorkerHealth> getAllWorkerHealth() throws IOException {
+    return retryRPC(new RpcCallable<List<JobWorkerHealth>>() {
+      public List<JobWorkerHealth> call() throws StatusRuntimeException {
+        List<alluxio.grpc.JobWorkerHealth> workerHealthsList = mClient
+            .getAllWorkerHealth(GetAllWorkerHealthPRequest.newBuilder().build())
+            .getWorkerHealthsList();
+
+        return workerHealthsList.stream().map(JobWorkerHealth::new).collect(Collectors.toList());
       }
     });
   }

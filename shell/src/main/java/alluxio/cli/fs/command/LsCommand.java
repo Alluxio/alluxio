@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -47,6 +48,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * can also display the information for all directly children under the path, or recursively.
  */
 @ThreadSafe
+@PublicApi
 public final class LsCommand extends AbstractFileSystemCommand {
   public static final String IN_ALLUXIO_STATE_DIR = "DIR";
   public static final String IN_ALLUXIO_STATE_FILE_FORMAT = "%d%%";
@@ -323,20 +325,21 @@ public final class LsCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    AlluxioURI path = new AlluxioURI(args[0]);
-    runWildCardCmd(path, cl);
-
+    for (String dirArg : args) {
+      AlluxioURI path = new AlluxioURI(dirArg);
+      runWildCardCmd(path, cl);
+    }
     return 0;
   }
 
   @Override
   public String getUsage() {
-    return "ls [-d|-f|-p|-R|-h|--sort=option|--timestamp=option|-r] <path>";
+    return "ls [-d|-f|-p|-R|-h|--sort=option|--timestamp=option|-r] <path> ...";
   }
 
   @Override
   public String getDescription() {
-    return "Displays information for all files and directories directly under the specified path, "
+    return "Displays information for all files and directories directly under the specified paths, "
         + "including permission, owner, group, size (bytes for files or the number of children "
         + "for directories, persistence state, last modified time, the percentage of content"
         + " already in Alluxio and the path in order.";

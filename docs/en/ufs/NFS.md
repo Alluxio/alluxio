@@ -2,7 +2,7 @@
 layout: global
 title: NFS
 nickname: NFS
-group: Under Stores
+group: Storage Integrations
 priority: 10
 ---
 * Table of Contents

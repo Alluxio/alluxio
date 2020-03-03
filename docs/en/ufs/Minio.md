@@ -2,7 +2,7 @@
 layout: global
 title: MinIO
 nickname: MinIO
-group: Under Stores
+group: Storage Integrations
 priority: 10
 ---
 
@@ -10,8 +10,9 @@ priority: 10
 {:toc}
 
 This guide describes how to configure Alluxio with [MinIO](https://min.io/) as the
-under storage system. Alluxio natively provides the `s3://` scheme (recommended for better
-performance). You can use this scheme to connect Alluxio with a MinIO server.
+under storage system.
+Alluxio natively provides the `s3://` scheme (recommended for better performance).
+You can use this scheme to connect Alluxio with a MinIO server.
 
 ## Prerequisites
 
@@ -31,8 +32,9 @@ Then, either create a new bucket or use an existing one.
 Once the MinIO server is launched, keep a note of the server endpoint, accessKey and secretKey.
 
 You should also note the directory you want to use in that bucket, either by creating
-a new directory in the bucket or using an existing one. For the purposes of this guide, the MinIO
-bucket name is called `MINIO_BUCKET`, and the directory in that bucket is called `MINIO_DIRECTORY`.
+a new directory in the bucket or using an existing one.
+For the purposes of this guide, the MinIO bucket name is called `MINIO_BUCKET`, and the directory in
+that bucket is called `MINIO_DIRECTORY`.
 
 ## Configuring Alluxio
 
@@ -77,7 +79,7 @@ $ ./bin/alluxio runTests
 
 If there are no errors then MinIO is configured properly!
 
-## Troubleshooting 
+## Troubleshooting
 
 There are a few variations of errors which might appear if Alluxio is incorrectly configured.
 See below for a few common cases and their resolutions.
@@ -112,7 +114,7 @@ Exception in thread "main" alluxio.exception.DirectoryNotEmptyException: Failed 
 
 ### Connection Refused - Unable to execute HTTP request
 
-If an exception occurs where the client returns an error with information about a refused connection 
+If an exception occurs where the client returns an error with information about a refused connection
 then Alluxio most likely cannot contact the MinIO server.
 Make sure that the value of
 [`alluxio.underfs.s3.endpoint`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.underfs.s3.endpoint)

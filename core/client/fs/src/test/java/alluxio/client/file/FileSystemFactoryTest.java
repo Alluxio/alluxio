@@ -122,23 +122,34 @@ public class FileSystemFactoryTest {
     FileSystem fs2 = FileSystem.Factory.create(conf);
     fs2.close();
     FileSystem fs3 = FileSystem.Factory.get();
-    assertSame("closing custom config should result in same FileSystem", fs1, fs3);
+    assertSame("closing custom config should result in same FileSystem",
+        getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs3));
     assertFalse("FileSystem should not be closed", fs1.isClosed());
   }
 
-  public void fileSystemCacheTest()  {
+  // Helper method to get the underlying delegated file system from cache
+  private FileSystem getDelegatedFileSystem(FileSystem fs) {
+    return ((FileSystemCache.InstanceCachingFileSystem) fs).mDelegatedFileSystem;
+  }
+
+  private void fileSystemCacheTest()  {
     FileSystem.Factory.FILESYSTEM_CACHE.purge();
     FileSystem fs1 = FileSystem.Factory.get();
     FileSystem fs2 = FileSystem.Factory.get();
-    assertSame("Second client should have been retrieved from cache.", fs1, fs2);
+    assertSame("Second client should have been retrieved from cache.",
+        getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs2));
     fs2 = FileSystem.Factory.get(new Subject());
-    assertSame("Passing empty subject should have given the same cached client", fs1, fs2);
+    assertSame("Passing empty subject should have given the same cached client",
+        getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs2));
     fs2 = FileSystem.Factory.get(createTestSubject("alluxio-test"));
-    assertNotSame("Passing filled subject should have given a new client", fs1, fs2);
+    assertNotSame("Passing filled subject should have given a new client",
+        getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs2));
     fs1 = FileSystem.Factory.get(createTestSubject("alluxio-test"));
-    assertSame("Second subject with same credentials should return cached client", fs1, fs2);
+    assertSame("Second subject with same credentials should return cached client",
+        getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs2));
     fs2 = FileSystem.Factory.get(createTestSubject("alluxio-test-2"));
-    assertNotSame("Passing filled subject should have given a new client", fs1, fs2);
+    assertNotSame("Passing filled subject should have given a new client",
+        getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs2));
   }
 
   private Subject createTestSubject(String username) {

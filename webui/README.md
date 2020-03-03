@@ -84,6 +84,18 @@ NOTE: `coverage-ci` is meant to run tests once and quit (for continuous integrat
 
     This will also generate a coverage report within each package: `common/coverage/lcov-report/index.html`, `master/coverage/lcov-report/index.html`, `worker/coverage/lcov-report/index.html`. You may also run `coverage-ci` instead of `coverage` in this step if you would like this to execute only once.
 
+#### Formatting and linting .tsx files
+
+This will format .tsx files based on `.prettierrc.js` and return errors based on rules defined in `.eslintrc.js`.
+
+This can be done in two ways:
+
+1. Let lerna format and lint everything: `npm run format`
+1. Build everything independently:
+    1. common-ui: `cd webui/common-ui && npm run format`
+    1. master-ui: `cd webui/master-ui && npm run format`
+    1. worker-ui: `cd webui/worker-ui && npm run format`
+
 #### Shrinkwrapping dependencies
 
 It is sometimes necessary to bump package dependency versions for various reasons:

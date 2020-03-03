@@ -43,6 +43,8 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -565,5 +567,63 @@ public class CommonUtilsTest {
     CountCondition cond = new CountCondition(100);
     WaitForOptions opts = WaitForOptions.defaults().setInterval(3).setTimeoutMs(100);
     CommonUtils.waitFor("", cond, opts);
+  }
+
+  @Test(timeout = 10000)
+  public void interruptInvokeAll() throws Exception {
+    // this should be significantly longer than the test timeout (10s)
+    long longWaitMs = 1000000;
+    List<Callable<Void>> tasks = new ArrayList<>();
+    for (int i = 0; i < 10; i++) {
+      tasks.add(() -> {
+        CommonUtils.sleepMs(longWaitMs);
+        return null;
+      });
+    }
+
+    Thread waiting = new Thread(() -> {
+      try {
+        CommonUtils.invokeAll(tasks, longWaitMs);
+      } catch (RuntimeException e) {
+        // expected, since it is interrupted
+      } catch (Exception e) {
+        fail("invokeAll threw unexpected exception: " + e);
+      }
+    });
+    try {
+      waiting.start();
+      waiting.interrupt();
+    } finally {
+      waiting.join();
+    }
+  }
+
+  @Test(timeout = 10000)
+  public void invokeAllTimeoutCleanup() throws Exception {
+    // this should be significantly longer than the test timeout (10s)
+    long longWaitMs = 1000000;
+    ThreadPoolExecutor service = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+
+    try {
+      List<Callable<Void>> tasks = new ArrayList<>();
+      for (int i = 0; i < 10; i++) {
+        tasks.add(() -> {
+          CommonUtils.sleepMs(longWaitMs);
+          return null;
+        });
+      }
+
+      try {
+        CommonUtils.invokeAll(service, tasks, 10);
+        fail("invokeAll is expected to timeout, not succeed");
+      } catch (TimeoutException e) {
+        // expected
+      }
+
+      CommonUtils.waitFor("all threads to stop after timeout", () -> service.getActiveCount() == 0,
+          WaitForOptions.defaults().setInterval(10).setTimeoutMs(1000));
+    } finally {
+      service.shutdownNow();
+    }
   }
 }

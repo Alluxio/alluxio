@@ -17,10 +17,9 @@ import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.exception.status.UnimplementedException;
 import alluxio.security.authorization.AccessControlList;
-import alluxio.metrics.CommonMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.WorkerMetrics;
+import alluxio.metrics.MetricInfo;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -58,6 +57,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   private final UnderFileSystem mUnderFileSystem;
   private final UnderFileSystemConfiguration mConf;
   private final String mPath;
+  private final String mEscapedPath;
 
   /**
    * Creates a new {@link UnderFileSystemWithLogging} which forwards all calls to the provided
@@ -74,6 +74,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     mPath = path;
     mUnderFileSystem = ufs;
     mConf = conf;
+    mEscapedPath = MetricsSystem.escape(new AlluxioURI(path));
   }
 
   @Override
@@ -966,17 +967,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     try {
       if (SecurityUtils.isAuthenticationEnabled(mConf)
           && AuthenticatedClientUser.get(mConf) != null) {
-        return Metric.getMetricNameWithTags(metricName, CommonMetrics.TAG_USER,
-            AuthenticatedClientUser.get(mConf).getName(), WorkerMetrics.TAG_UFS,
-            MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
+        return Metric.getMetricNameWithTags(metricName, MetricInfo.TAG_USER,
+            AuthenticatedClientUser.get(mConf).getName(), MetricInfo.TAG_UFS,
+            mEscapedPath, MetricInfo.TAG_UFS_TYPE,
             mUnderFileSystem.getUnderFSType());
       }
     } catch (IOException e) {
       // fall through
     }
-    return Metric.getMetricNameWithTags(metricName, WorkerMetrics.TAG_UFS,
-        MetricsSystem.escape(new AlluxioURI(mPath)), WorkerMetrics.TAG_UFS_TYPE,
+    return Metric.getMetricNameWithTags(metricName, MetricInfo.TAG_UFS,
+        mEscapedPath, MetricInfo.TAG_UFS_TYPE,
         mUnderFileSystem.getUnderFSType());
+  }
+
+  private String escapePath() {
+    return MetricsSystem.escape(new AlluxioURI(mPath));
   }
 
   // TODO(calvin): This should not be in this class

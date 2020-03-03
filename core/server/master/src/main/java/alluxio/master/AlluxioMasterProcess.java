@@ -34,8 +34,10 @@ import alluxio.resource.CloseableResource;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.JvmPauseMonitor;
+import alluxio.util.URIUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
 
@@ -173,7 +175,18 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   private void initFromBackup(AlluxioURI backup) throws IOException {
-    try (CloseableResource<UnderFileSystem> closeUfs = mUfsManager.getRoot().acquireUfsResource();
+    CloseableResource<UnderFileSystem> ufsResource;
+    if (URIUtils.isLocalFilesystem(backup.toString())) {
+      UnderFileSystem ufs = UnderFileSystem.Factory.create("/",
+          UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
+      ufsResource = new CloseableResource<UnderFileSystem>(ufs) {
+        @Override
+        public void close() { }
+      };
+    } else {
+      ufsResource = mUfsManager.getRoot().acquireUfsResource();
+    }
+    try (CloseableResource<UnderFileSystem> closeUfs = ufsResource;
          InputStream ufsIn = closeUfs.get().open(backup.getPath())) {
       LOG.info("Initializing metadata from backup {}", backup);
       mBackupManager.initFromBackup(ufsIn);
@@ -270,6 +283,8 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
+    LOG.info("Alluxio master web server version {} starting{}. webAddress={}",
+        RuntimeConstants.VERSION, startMessage, mWebBindAddress);
     startServingWebServer();
     startJvmMonitorProcess();
     LOG.info(
@@ -287,7 +302,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   protected void startServingRPCServer() {
     try {
       stopRejectingRpcServer();
-      LOG.info("Starting gRPC server on address {}", mRpcBindAddress);
+      LOG.info("Starting Alluxio master gRPC server on address {}", mRpcBindAddress);
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
           GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
           ServerConfiguration.global(), ServerUserState.global());
@@ -316,7 +331,7 @@ public class AlluxioMasterProcess extends MasterProcess {
 
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();
-      LOG.info("Started gRPC server on address {}", mRpcConnectAddress);
+      LOG.info("Started Alluxio master gRPC server on address {}", mRpcConnectAddress);
 
       // Wait until the server is shut down.
       mGrpcServer.awaitTermination();
@@ -332,19 +347,17 @@ public class AlluxioMasterProcess extends MasterProcess {
   protected void stopServing() throws Exception {
     if (isServing()) {
       if (!mGrpcServer.shutdown()) {
-        LOG.warn("RPC Server shutdown timed out.");
+        LOG.warn("Alluxio master RPC server shutdown timed out.");
       }
     }
     if (mRPCExecutor != null) {
-      mRPCExecutor.shutdown();
+      mRPCExecutor.shutdownNow();
       try {
         mRPCExecutor.awaitTermination(
             ServerConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT),
             TimeUnit.MILLISECONDS);
       } catch (InterruptedException ie) {
         Thread.currentThread().interrupt();
-      } finally {
-        mRPCExecutor.shutdownNow();
       }
     }
     if (mJvmPauseMonitor != null) {

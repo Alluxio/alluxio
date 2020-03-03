@@ -329,9 +329,13 @@ public interface UnderFileSystem extends Closeable {
   /**
    * Gets the block size of a file in under file system, in bytes.
    *
+   * @deprecated block size should be returned as part of the {@link UfsFileStatus} from
+   * {@link #getFileStatus(String)} or {@link #getExistingFileStatus(String)}
+   *
    * @param path the file name
    * @return the block size in bytes
    */
+  @Deprecated
   long getBlockSizeByte(String path) throws IOException;
 
   /**

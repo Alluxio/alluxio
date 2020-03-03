@@ -13,6 +13,7 @@ package alluxio.cli;
 
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
 import alluxio.examples.RelatedS3Operations;
 import alluxio.examples.S3ASpecificOperations;
 import alluxio.examples.UnderFileSystemCommonOperations;
@@ -33,7 +34,9 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Integration tests for Alluxio under filesystems. It describes the contract of Alluxio
@@ -61,8 +64,8 @@ public final class UnderFileSystemContractTest {
   private UnderFileSystemContractTest() {}
 
   private void run() throws Exception {
-    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find(mUfsPath,
-        UnderFileSystemConfiguration.defaults(mConf));
+    UnderFileSystemConfiguration ufsConf = getUfsConf();
+    UnderFileSystemFactory factory = UnderFileSystemFactoryRegistry.find(mUfsPath, ufsConf);
     // Check if the ufs path is valid
     if (factory == null || !factory.supportsPath(mUfsPath)) {
       System.out.printf("%s is not a valid path", mUfsPath);
@@ -75,8 +78,7 @@ public final class UnderFileSystemContractTest {
     // Increase the buffer time of journal writes to speed up tests
     mConf.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "1sec");
 
-    mUfs = UnderFileSystem.Factory.create(mUfsPath,
-        UnderFileSystemConfiguration.defaults(mConf));
+    mUfs = UnderFileSystem.Factory.create(mUfsPath, ufsConf);
 
     runCommonOperations();
 
@@ -84,6 +86,14 @@ public final class UnderFileSystemContractTest {
       runS3Operations();
     }
     System.out.println("All tests passed!");
+  }
+
+  private UnderFileSystemConfiguration getUfsConf() {
+    return UnderFileSystemConfiguration.defaults(mConf)
+        .createMountSpecificConf(mConf.copyProperties().entrySet().stream()
+            .filter(entry -> mConf.getSource(entry.getKey()) == Source.SYSTEM_PROPERTY)
+            .filter(entry -> mConf.isSet(entry.getKey()) && !entry.getValue().isEmpty())
+            .collect(Collectors.toMap(entry -> entry.getKey().getName(), Map.Entry::getValue)));
   }
 
   private void runCommonOperations() throws Exception {
@@ -98,8 +108,7 @@ public final class UnderFileSystemContractTest {
     mConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE, "5MB");
     mConf.set(PropertyKey.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE, "0");
 
-    mUfs = UnderFileSystem.Factory.create(mUfsPath,
-        UnderFileSystemConfiguration.defaults(mConf));
+    mUfs = UnderFileSystem.Factory.create(mUfsPath, getUfsConf());
 
     String testDir = createTestDirectory();
     loadAndRunTests(new S3ASpecificOperations(testDir, mUfs, mConf), testDir);

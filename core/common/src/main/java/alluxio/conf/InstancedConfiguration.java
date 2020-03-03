@@ -19,8 +19,6 @@ import alluxio.util.FormatUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -36,6 +34,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nonnull;
 
 /**
  * Alluxio configuration.
@@ -199,7 +199,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param value the value for the key
    * @param source the source of the the properties (e.g., system property, default and etc)
    */
-  public void set(PropertyKey key, Object value, Source source) {
+  public void set(@Nonnull PropertyKey key, @Nonnull Object value, @Nonnull Source source) {
     Preconditions.checkArgument(key != null && value != null && !value.equals(""),
         String.format("The key value pair (%s, %s) cannot be null", key, value));
     Preconditions.checkArgument(!value.equals(""),
@@ -246,7 +246,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     try {
       return Integer.parseInt(rawValue);
     } catch (NumberFormatException e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_INTEGER.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_INTEGER.getMessage(rawValue, key));
     }
   }
 
@@ -257,7 +257,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     try {
       return Long.parseLong(rawValue);
     } catch (NumberFormatException e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_LONG.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_LONG.getMessage(rawValue, key));
     }
   }
 
@@ -268,7 +268,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     try {
       return Double.parseDouble(rawValue);
     } catch (NumberFormatException e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_DOUBLE.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_DOUBLE.getMessage(rawValue, key));
     }
   }
 
@@ -279,7 +279,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     try {
       return Float.parseFloat(rawValue);
     } catch (NumberFormatException e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_FLOAT.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_FLOAT.getMessage(rawValue, key));
     }
   }
 
@@ -292,7 +292,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     } else if (rawValue.equalsIgnoreCase("false")) {
       return false;
     } else {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_BOOLEAN.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_BOOLEAN.getMessage(rawValue, key));
     }
   }
 
@@ -302,8 +302,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
         "Illegal separator for Alluxio properties as list");
     String rawValue = get(key);
 
-    return Lists.newArrayList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
-        .split(rawValue));
+    return ConfigurationUtils.parseAsList(rawValue, delimiter);
   }
 
   @Override
@@ -313,7 +312,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     try {
       return Enum.valueOf(enumType, rawValue);
     } catch (IllegalArgumentException e) {
-      throw new RuntimeException(ExceptionMessage.UNKNOWN_ENUM.getMessage(rawValue,
+      throw new RuntimeException(ExceptionMessage.UNKNOWN_ENUM.getMessage(rawValue, key,
           Arrays.toString(enumType.getEnumConstants())));
     }
   }
@@ -325,7 +324,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     try {
       return FormatUtils.parseSpaceSize(rawValue);
     } catch (Exception ex) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_BYTES.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_BYTES.getMessage(rawValue, key));
     }
   }
 
@@ -335,7 +334,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     try {
       return FormatUtils.parseTimeSize(rawValue);
     } catch (Exception e) {
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_MS.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_MS.getMessage(rawValue, key));
     }
   }
 

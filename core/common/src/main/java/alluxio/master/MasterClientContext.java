@@ -42,4 +42,11 @@ public class MasterClientContext extends ClientContext {
   public MasterInquireClient getMasterInquireClient() {
     return mMasterInquireClient;
   }
+
+  /**
+   * @return the master inquire client for configuration
+   */
+  public MasterInquireClient getConfMasterInquireClient() {
+    return mMasterInquireClient;
+  }
 }

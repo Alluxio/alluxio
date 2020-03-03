@@ -9,11 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {IAlertErrors} from "./IAlertErrors";
+import { IAlertErrors } from './IAlertErrors';
 
 export interface ICommonState {
-    class: string,
-    errors: IAlertErrors,
-    loading: boolean,
-    refresh: boolean
+  class: string;
+  errors: IAlertErrors;
+  loading: boolean;
+  refresh: boolean;
 }

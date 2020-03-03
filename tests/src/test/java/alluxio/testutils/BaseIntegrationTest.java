@@ -53,8 +53,9 @@ public abstract class BaseIntegrationTest {
           mLogPath = logPath(description);
           // In case the file already exists, truncate it.
           new FileWriter(mLogPath).close();
-          mAppender = new FileAppender(new PatternLayout("%d{ISO8601} %-5p %c{2} (%F:%M) - %m%n"),
-              mLogPath);
+          mAppender =
+              new FileAppender(new PatternLayout("%d{ISO8601} [%t] %-5p %c{2} (%F:%M) - %m%n"),
+                  mLogPath);
           LogManager.getRootLogger().addAppender(mAppender);
         } catch (IOException e) {
           throw new RuntimeException(e);

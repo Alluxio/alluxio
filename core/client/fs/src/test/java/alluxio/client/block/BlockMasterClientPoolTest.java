@@ -44,7 +44,8 @@ public class BlockMasterClientPoolTest {
         .thenReturn(expectedClient);
     BlockMasterClient client;
     ClientContext clientContext = ClientContext.create(mConf);
-    MasterInquireClient masterInquireClient = MasterInquireClient.Factory.create(mConf);
+    MasterInquireClient masterInquireClient = MasterInquireClient.Factory
+        .create(mConf, clientContext.getUserState());
     MasterClientContext masterClientContext = MasterClientContext.newBuilder(clientContext)
         .setMasterInquireClient(masterInquireClient).build();
     try (BlockMasterClientPool pool = new BlockMasterClientPool(masterClientContext)) {

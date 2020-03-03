@@ -28,8 +28,8 @@ public final class TouchCommandIntegrationTest extends AbstractFileSystemShellTe
   @Test
   public void touch() throws IOException, AlluxioException {
     String[] argv = new String[] {"touch", "/testFile"};
-    mFsShell.run(argv);
-    URIStatus status = mFileSystem.getStatus(new AlluxioURI("/testFile"));
+    sFsShell.run(argv);
+    URIStatus status = sFileSystem.getStatus(new AlluxioURI("/testFile"));
     Assert.assertNotNull(status);
     Assert.assertEquals(getCommandOutput(argv), mOutput.toString());
     Assert.assertFalse(status.isFolder());
@@ -38,13 +38,13 @@ public final class TouchCommandIntegrationTest extends AbstractFileSystemShellTe
   @Test
   public void touchTestWithFullURI() throws IOException, AlluxioException {
     String alluxioURI =
-        "alluxio://" + mLocalAlluxioCluster.getHostname() + ":" + mLocalAlluxioCluster
+        "alluxio://" + sLocalAlluxioCluster.getHostname() + ":" + sLocalAlluxioCluster
             .getMasterRpcPort() + "/destFileURI";
     // when
     String[] argv = new String[] {"touch", alluxioURI};
-    mFsShell.run(argv);
+    sFsShell.run(argv);
     // then
-    URIStatus status = mFileSystem.getStatus(new AlluxioURI("/destFileURI"));
+    URIStatus status = sFileSystem.getStatus(new AlluxioURI("/destFileURI"));
     Assert.assertNotNull(status);
     Assert.assertEquals(getCommandOutput(argv), mOutput.toString());
     Assert.assertFalse(status.isFolder());

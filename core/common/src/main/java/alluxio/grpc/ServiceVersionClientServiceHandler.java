@@ -47,7 +47,9 @@ public final class ServiceVersionClientServiceHandler
 
     ServiceType serviceType = request.getServiceType();
     if (serviceType != ServiceType.UNKNOWN_SERVICE && !mServices.contains(serviceType)) {
-      responseObserver.onError(Status.NOT_FOUND.asException());
+      responseObserver.onError(Status.NOT_FOUND
+          .withDescription(String.format("Service %s is not found.", serviceType.name()))
+          .asException());
       return;
     }
 
@@ -88,6 +90,9 @@ public final class ServiceVersionClientServiceHandler
         break;
       case JOURNAL_MASTER_CLIENT_SERVICE:
         serviceVersion = Constants.JOURNAL_MASTER_CLIENT_SERVICE_VERSION;
+        break;
+      case TABLE_MASTER_CLIENT_SERVICE:
+        serviceVersion = Constants.TABLE_MASTER_CLIENT_SERVICE_VERSION;
         break;
       default:
         serviceVersion = Constants.UNKNOWN_SERVICE_VERSION;

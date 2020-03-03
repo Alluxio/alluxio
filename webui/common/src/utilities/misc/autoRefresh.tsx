@@ -9,29 +9,29 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {triggerRefresh} from "../../store/refresh/actions";
+import { triggerRefresh } from '../../store/refresh/actions';
 
 export interface IAutoRefresh {
-    setAutoRefresh: (should: boolean) => void
+  setAutoRefresh: (should: boolean) => void;
 }
 
 export class AutoRefresh implements IAutoRefresh {
-    private intervalHandle: any;
-    private readonly refreshCallback: typeof triggerRefresh;
-    private readonly interval: number;
+  private intervalHandle: NodeJS.Timeout | null = null;
+  private readonly refreshCallback: typeof triggerRefresh;
+  private readonly interval: number;
 
-    constructor(callback: typeof triggerRefresh, interval: number) {
-        this.setAutoRefresh = this.setAutoRefresh.bind(this);
-        this.refreshCallback = callback;
-        this.interval = interval;
-    }
+  constructor(callback: typeof triggerRefresh, interval: number) {
+    this.setAutoRefresh = this.setAutoRefresh.bind(this);
+    this.refreshCallback = callback;
+    this.interval = interval;
+  }
 
-    public setAutoRefresh(enable: boolean) {
-        if (enable && !this.intervalHandle) {
-            this.intervalHandle = setInterval(this.refreshCallback, this.interval);
-        } else if (this.intervalHandle) {
-            clearInterval(this.intervalHandle);
-            this.intervalHandle = null;
-        }
+  public setAutoRefresh(enable: boolean): void {
+    if (enable && !this.intervalHandle) {
+      this.intervalHandle = setInterval(this.refreshCallback, this.interval);
+    } else if (this.intervalHandle) {
+      clearInterval(this.intervalHandle);
+      this.intervalHandle = null;
     }
+  }
 }

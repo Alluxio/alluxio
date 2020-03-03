@@ -59,8 +59,8 @@ public final class FileSystemContextReinitializer implements Closeable {
         "config-hash-master-heartbeat-%d", true));
     mExecutorService.submit(
         new HeartbeatThread(HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC, mContext.getId(),
-            mExecutor, (int) mContext.getClientContext().getClusterConf()
-            .getMs(PropertyKey.USER_CONF_SYNC_INTERVAL),
+            mExecutor, mContext.getClientContext().getClusterConf().getMs(
+                PropertyKey.USER_CONF_SYNC_INTERVAL),
             mContext.getClientContext().getClusterConf(),
             mContext.getClientContext().getUserState()));
   }

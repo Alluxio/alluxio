@@ -26,6 +26,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -137,6 +138,38 @@ public interface JournalSystem {
    * Transitions the journal to secondary mode.
    */
   void losePrimacy();
+
+  /**
+   * Suspends applying for all journals.
+   *
+   */
+  void suspend() throws IOException;
+
+  /**
+   * Resumes applying for all journals.
+   * Note: Journal system should have been suspended prior to calling this.
+   *
+   */
+  void resume() throws IOException;
+
+  /**
+   * Initiates a catching up of journals to given sequences.
+   * Note: Journal system should have been suspended prior to calling this.
+   *
+   * @param journalSequenceNumbers sequence to advance per each journal
+   * @return the future to track when catching up is completed
+   */
+  CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) throws IOException;
+
+  /**
+   * Used to get the current state from a leader journal system.
+   *
+   * Note: State changes to journals must have been effectively blocked by a state-lock
+   * before calling this method.
+   *
+   * @return the current map of sequences for each master
+   */
+  Map<String, Long> getCurrentSequenceNumbers();
 
   /**
    * Formats the journal system.

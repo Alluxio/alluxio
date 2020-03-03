@@ -12,17 +12,20 @@
 package alluxio.client.file;
 
 import alluxio.annotation.PublicApi;
+import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
-import alluxio.grpc.TtlAction;
 
 import com.google.common.base.Preconditions;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -60,6 +63,16 @@ public class URIStatus {
   }
 
   /**
+   * @param blockId the block ID
+   * @return the corresponding block info or null
+   */
+  @Nullable
+  public BlockInfo getBlockInfo(long blockId) {
+    FileBlockInfo info = mInfo.getFileBlockInfo(blockId);
+    return info == null ? null : info.getBlockInfo();
+  }
+
+  /**
    * @return a list of block ids belonging to the file, empty for directories, immutable
    */
   public List<Long> getBlockIds() {
@@ -81,11 +94,19 @@ public class URIStatus {
   }
 
   /**
-   * @return the unique identifier of the entity referenced by this uri used by Alluxio servers,
-   *         immutable
+   * @return the unique long identifier of the entity referenced by this uri used by Alluxio
+   *         servers, immutable
    */
   public long getFileId() {
     return mInfo.getFileId();
+  }
+
+  /**
+   * @return the unique string identifier of the entity referenced by this uri used by Alluxio
+   *         servers, immutable
+   */
+  public String getFileIdentifier() {
+    return mInfo.getFileIdentifier();
   }
 
   /**
@@ -277,6 +298,23 @@ public class URIStatus {
    */
   public String getUfsFingerprint() {
     return mInfo.getUfsFingerprint();
+  }
+
+  /**
+   * @return the extended attributes
+   */
+  public Map<String, byte[]> getXAttr() {
+    return mInfo.getXAttr();
+  }
+
+  /**
+   * This is an experimental API. The returned {@link FileInfo} object does not have a stable API.
+   * Make modifications to the returned file info object at your own risk.
+   *
+   * @return the underlying file info object
+   */
+  public FileInfo getFileInfo() {
+    return mInfo;
   }
 
   @Override

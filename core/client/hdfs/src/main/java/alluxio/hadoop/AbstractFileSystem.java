@@ -35,16 +35,12 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.CurrentUser;
 import alluxio.security.authorization.Mode;
-import alluxio.uri.MultiMasterAuthority;
-import alluxio.uri.SingleMasterAuthority;
-import alluxio.uri.ZookeeperAuthority;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.net.HostAndPort;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -64,7 +60,6 @@ import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -81,11 +76,12 @@ import javax.security.auth.Subject;
  * used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
  */
 @NotThreadSafe
-abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
+public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystem.class);
 
   public static final String FIRST_COM_PATH = "alluxio_dep/";
 
+  protected AlluxioConfiguration mAlluxioConf = null;
   protected FileSystem mFileSystem = null;
 
   private URI mUri = null;
@@ -99,15 +95,14 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *
    * @param fileSystem handler to file system
    */
-  @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
-  AbstractFileSystem(FileSystem fileSystem) {
+  protected AbstractFileSystem(FileSystem fileSystem) {
     mFileSystem = fileSystem;
   }
 
   /**
    * Constructs a new {@link AbstractFileSystem} instance.
    */
-  AbstractFileSystem() {}
+  protected AbstractFileSystem() {}
 
   @Override
   public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)
@@ -264,10 +259,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len)
       throws IOException {
-    LOG.debug("getFileBlockLocations({}, {}, {})", file.getPath().getName(), start, len);
+    LOG.debug("getFileBlockLocations({}, {}, {})",
+        (file == null) ? null : file.getPath().getName(), start, len);
     if (file == null) {
       LOG.debug("getFileBlockLocations({}, {}, {}) returned null",
-          file.getPath().getName(), start, len);
+          null, start, len);
       return null;
     }
     if (mStatistics != null) {
@@ -475,16 +471,18 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
 
-    if (mFileSystem != null) {
-      return;
-    }
-
     Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
 
     AlluxioProperties alluxioProps =
         (alluxioConfiguration != null) ? alluxioConfiguration.copyProperties()
             : ConfigurationUtils.defaults();
     AlluxioConfiguration alluxioConf = mergeConfigurations(uriConfProperties, conf, alluxioProps);
+    mAlluxioConf = alluxioConf;
+
+    if (mFileSystem != null) {
+      return;
+    }
+
     Subject subject = getHadoopSubject();
     LOG.debug("Using Hadoop subject: {}", subject);
 
@@ -494,7 +492,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Create FileSystem for accessing Alluxio.
     // Disable URI validation for non-Alluxio schemes.
     boolean disableUriValidation =
-        (uri.getScheme() != null) ? uri.getScheme().equals(Constants.SCHEME) : true;
+        (uri.getScheme() == null) || uri.getScheme().equals(Constants.SCHEME);
     mFileSystem = FileSystem.Factory.create(
         ClientContext.create(subject, alluxioConf).setUriValidationEnabled(disableUriValidation));
   }
@@ -517,41 +515,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     // Connection details in the URI has the highest priority
     newConf.merge(uriConfProperties, Source.RUNTIME);
     return newConf;
-  }
-
-  /**
-   * Gets the connection configuration from the input uri.
-   *
-   * @param uri a Alluxio Uri that may contain connection configuration
-   */
-  private Map<String, Object> getConfigurationFromUri(URI uri) {
-    AlluxioURI alluxioUri = new AlluxioURI(uri.toString());
-    Map<String, Object> alluxioConfProperties = new HashMap<>();
-
-    if (alluxioUri.getAuthority() instanceof ZookeeperAuthority) {
-      ZookeeperAuthority authority = (ZookeeperAuthority) alluxioUri.getAuthority();
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(),
-          authority.getZookeeperAddress());
-    } else if (alluxioUri.getAuthority() instanceof SingleMasterAuthority) {
-      SingleMasterAuthority authority = (SingleMasterAuthority) alluxioUri.getAuthority();
-      alluxioConfProperties.put(PropertyKey.MASTER_HOSTNAME.getName(), authority.getHost());
-      alluxioConfProperties.put(PropertyKey.MASTER_RPC_PORT.getName(), authority.getPort());
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
-      // Unset the embedded journal related configuration
-      // to support alluxio URI has the highest priority
-      alluxioConfProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES.getName(), null);
-      alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(), null);
-    } else if (alluxioUri.getAuthority() instanceof MultiMasterAuthority) {
-      MultiMasterAuthority authority = (MultiMasterAuthority) alluxioUri.getAuthority();
-      alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
-          authority.getMasterAddresses());
-      // Unset the zookeeper configuration to support alluxio URI has the highest priority
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
-    }
-    return alluxioConfProperties;
   }
 
   private Subject getSubjectFromUGI(UserGroupInformation ugi)
@@ -738,6 +701,13 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       throw new IOException(e);
     }
   }
+
+  /**
+   * Gets the connection configuration from the input uri.
+   *
+   * @param uri a Alluxio Uri that may contain connection configuration
+   */
+  protected abstract Map<String, Object> getConfigurationFromUri(URI uri);
 
   /**
    * Validates given FS base URI for scheme and authority.

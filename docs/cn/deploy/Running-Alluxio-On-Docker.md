@@ -2,7 +2,7 @@
 layout: global
 title: 在Docker上运行Alluxio
 nickname: 在Docker上运行Alluxio
-group: Deploying Alluxio
+group: Install Alluxio
 priority: 3
 ---
 
@@ -141,7 +141,7 @@ $ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
 
 远程压缩包:
 ```console
-$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz .
+$ docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/{{site.ALLUXIO_VERSION_STRING}}/alluxio-{{site.ALLUXIO_VERSION_STRING}}-bin.tar.gz .
 ```
 
 # Alluxio配置属性

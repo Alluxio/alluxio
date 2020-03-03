@@ -2,7 +2,7 @@
 layout: global
 title: Deploy Alluxio Locally
 nickname: Local Machine
-group: Deploying Alluxio
+group: Install Alluxio
 priority: 1
 ---
 
@@ -17,8 +17,7 @@ The prerequisite for this part is that you have
 [Java](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) (JDK 8
 or above) installed.
 
-[Download](https://alluxio.io/download) the binary distribution of Alluxio
-{{site.ALLUXIO_RELEASED_VERSION}}
+[Download](https://alluxio.io/download) the binary distribution of Alluxio.
 
 To run in standalone mode, do the following:
 

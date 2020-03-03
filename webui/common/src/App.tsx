@@ -12,14 +12,15 @@
 import React from 'react';
 
 export class App extends React.Component {
-  public render() {
+  public render(): JSX.Element {
     return (
       <div className="App">
         <header className="App-header">
           <h1 className="App-title">Welcome to the Alluxio Shared Web Application</h1>
         </header>
         <div className="App-intro">
-          This package contains reusable components for other web applications. It is not meant to be viewed via a web browser.
+          This package contains reusable components for other web applications. It is not meant to be viewed via a web
+          browser.
         </div>
       </div>
     );

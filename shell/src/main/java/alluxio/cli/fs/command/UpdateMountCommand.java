@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -31,6 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Update options for an Alluxio mount point.
  */
 @ThreadSafe
+@PublicApi
 public final class UpdateMountCommand extends AbstractFileSystemCommand {
 
   private static final Option READONLY_OPTION =

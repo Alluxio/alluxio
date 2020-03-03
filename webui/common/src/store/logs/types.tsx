@@ -9,25 +9,25 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
+import { AxiosResponse } from 'axios';
 
-import {IFileInfo, ICommonState} from '../../constants';
+import { IFileInfo } from '../../constants';
 
 export interface ILogs {
-  'currentPath': string;
-  'debug': boolean;
-  'fatalError': string;
-  'fileData': string | null;
-  'fileInfos': IFileInfo[] | null;
-  'invalidPathError': string;
-  'ntotalFile': number;
-  'viewingOffset': number;
+  currentPath: string;
+  debug: boolean;
+  fatalError: string;
+  fileData: string | null;
+  fileInfos: IFileInfo[] | null;
+  invalidPathError: string;
+  ntotalFile: number;
+  viewingOffset: number;
 }
 
 export enum LogsActionTypes {
   FETCH_REQUEST = '@@logs/FETCH_REQUEST',
   FETCH_SUCCESS = '@@logs/FETCH_SUCCESS',
-  FETCH_ERROR = '@@logs/FETCH_ERROR'
+  FETCH_ERROR = '@@logs/FETCH_ERROR',
 }
 
 export interface ILogsState {

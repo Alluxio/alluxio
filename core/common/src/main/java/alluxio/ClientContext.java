@@ -11,11 +11,13 @@
 
 package alluxio;
 
+import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetConfigurationPResponse;
+import alluxio.grpc.Scope;
 import alluxio.security.user.UserState;
 import alluxio.util.ConfigurationUtils;
 
@@ -41,6 +43,7 @@ import javax.security.auth.Subject;
  * Ideally only a single {@link ClientContext} should be needed when initializing an application.
  * This will use as few network resources as possible.
  */
+@PublicApi
 public class ClientContext {
   private volatile AlluxioConfiguration mClusterConf;
   private volatile String mClusterConfHash;
@@ -87,6 +90,7 @@ public class ClientContext {
     mUserState = ctx.getUserState();
     mClusterConfHash = ctx.getClusterConfHash();
     mPathConfHash = ctx.getPathConfHash();
+    mUriValidationEnabled = ctx.getUriValidationEnabled();
   }
 
   private ClientContext(@Nullable Subject subject, @Nullable AlluxioConfiguration alluxioConf) {
@@ -130,7 +134,7 @@ public class ClientContext {
     GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
         conf, !loadClusterConf, !loadPathConf);
     if (loadClusterConf) {
-      mClusterConf = ConfigurationUtils.getClusterConf(response, conf);
+      mClusterConf = ConfigurationUtils.getClusterConf(response, conf, Scope.CLIENT);
       mClusterConfHash = response.getClusterConfigHash();
     }
     if (loadPathConf) {

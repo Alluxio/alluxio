@@ -81,9 +81,8 @@ public class StorageTierViewTest {
    */
   @Test
   public void getDirViewBadIndex() {
-    mThrown.expect(IndexOutOfBoundsException.class);
     int badDirIndex = TieredBlockStoreTestUtils.TIER_PATH[TEST_TIER_LEVEL].length;
-    Assert.assertEquals(badDirIndex, mTestTierView.getDirView(badDirIndex).getDirViewIndex());
+    Assert.assertNull(mTestTierView.getDirView(badDirIndex));
   }
 
   /**

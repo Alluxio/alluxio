@@ -2,8 +2,8 @@
 layout: global
 title: 在Alluxio上运行Hadoop MapReduce
 nickname: Apache Hadoop MapReduce
-group: Data Applications
-priority: 1
+group: Compute Integrations
+priority: 2
 ---
 
 * 内容列表
@@ -14,8 +14,8 @@ priority: 1
 ## 初始化设置
 
 该文档的先决条件包括：
-- 你已安装了[Java](Java-Setup.html)。
-- 你已经按照这些文档建立了一个Alluxio集群：[本地模式](Running-Alluxio-Locally.html)或[集群](Running-Alluxio-on-a-Cluster.html)。
+- 你已安装了Java。
+- 你已经按照这些文档建立了一个Alluxio集群: [本地模式]({{ '/cn/deploy/Running-Alluxio-Locally.html' | relativize_url }})或[集群模式]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }})。
 - 为了运行一些简单的map-reduce实例，我们也推荐你下载根据你的hadoop版本对应的[map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1)，或者如果你正在使用Hadoop 1，下载这个[examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1)。
 
 ## 编译Alluxio客户端
@@ -23,7 +23,7 @@ priority: 1
 为了使MapReduce应用可以与Alluxio进行通信，你需要将Alluxio Client的Jar包包含在MapReduce的classpaths中。我们建议你从Alluxio [download page](http://www.alluxio.io/download) 下载压缩包。
 
 同时，高级用户可以选择使用源代码来编译生成Alluxio Client的Jar包。
-你可以运行以下命令[here](Building-Alluxio-From-Source.html#compute-framework-support)。
+你可以运行以下命令[编译Alluxio源代码]({{ '/cn/contributor/Building-Alluxio-From-Source.html' | relativize_url }}#compute-framework-support)。
 
 新的Alluxio客户端Jar包可以在`{{site.ALLUXIO_CLIENT_JAR_PATH}}`中发现。
 

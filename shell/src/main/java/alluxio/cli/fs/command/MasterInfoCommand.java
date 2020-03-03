@@ -11,6 +11,7 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -30,6 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * addresses, and the configured Zookeeper address.
  */
 @ThreadSafe
+@PublicApi
 public final class MasterInfoCommand extends AbstractFileSystemCommand {
   /**
    * @param fsContext the {@link FileSystem}
@@ -51,7 +53,8 @@ public final class MasterInfoCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) {
     MasterInquireClient inquireClient =
-        MasterInquireClient.Factory.create(mFsContext.getClusterConf());
+        MasterInquireClient.Factory
+            .create(mFsContext.getClusterConf(), mFsContext.getClientContext().getUserState());
     try {
       InetSocketAddress leaderAddress = inquireClient.getPrimaryRpcAddress();
       System.out.println("Current leader master: " + leaderAddress.toString());

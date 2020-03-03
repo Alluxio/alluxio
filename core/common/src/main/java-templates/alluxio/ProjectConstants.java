@@ -17,6 +17,8 @@ package alluxio;
 public final class ProjectConstants {
   /* Project version, specified in maven property. **/
   public static final String VERSION = "${project.version}";
+  /* The latest git revision of at the time of building**/
+  public static final String REVISION = "${git.revision}";
   /* Hadoop version, specified in maven property. **/
   public static final String HADOOP_VERSION = "${hadoop.version}";
   /* Whether update check is enabled. **/

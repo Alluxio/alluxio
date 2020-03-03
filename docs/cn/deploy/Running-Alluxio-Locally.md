@@ -2,7 +2,7 @@
 layout: global
 title: 本地运行Alluxio
 nickname: 本地机器上运行Alluxio
-group: Deploying Alluxio
+group: Install Alluxio
 priority: 1
 ---
 
@@ -13,7 +13,7 @@ priority: 1
 
 这部分的前提条件是你安装了[Java](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)(JDK 8或更高版本)。
 
-下载 [Alluxio](https://alluxio.io/download) 二进制发行版 {{site.ALLUXIO_RELEASED_VERSION}}:
+下载 [Alluxio](https://alluxio.io/download) 二进制发行版。
 
 在独立模式下运行，请执行以下操作：
 
@@ -46,7 +46,7 @@ $ ./bin/alluxio-start.sh local
 
 > 注意：用户在linux系统下运行上述命令需要输入密码来获取sudo权限,
 > 以便启动RAMFS。如果用户不想每次运行命令输入密码，
-> 或者没有sudo权限，可以使用[FAQ](#faq)中介绍的其他方法。
+> 或者没有sudo权限，可以使用[常见问题]({{ '/cn/overview/FAQ.html' | relativize_url }})中介绍的其他方法。
 
 ## 验证Alluxio是否运行
 

@@ -18,6 +18,5 @@ export * from './misc/bytesToString';
 export * from './misc/disableFormSubmit';
 export * from './misc/renderFileNameLink';
 export * from './misc/createAlertErrors';
-export * from './misc/renderView';
 export * from './misc/getDisplayName';
 export * from './nivo/transformToNivoFormat';

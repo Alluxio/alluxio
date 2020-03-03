@@ -11,12 +11,7 @@
 
 package alluxio.client.rest;
 
-import alluxio.conf.PropertyKey;
-import alluxio.security.authentication.AuthType;
 import alluxio.testutils.BaseIntegrationTest;
-import alluxio.testutils.LocalAlluxioClusterResource;
-
-import org.junit.Rule;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,14 +22,6 @@ public abstract class RestApiTest extends BaseIntegrationTest {
   protected String mHostname;
   protected int mPort;
   protected String mServicePrefix;
-
-  // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to
-  // fix the test setup in SIMPLE mode.
-  @Rule
-  public LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource.Builder()
-      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
-      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
-      .build();
 
   protected String getEndpoint(String suffix) {
     return mServicePrefix + "/" + suffix;

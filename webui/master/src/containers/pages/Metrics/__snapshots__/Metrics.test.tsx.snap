@@ -35,15 +35,11 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
           <th>
             Local Alluxio (Short-circuit) Read
           </th>
-          <td>
-            N/A
-          </td>
+          <td />
           <th>
             Local Alluxio (Short-circuit) Write
           </th>
-          <td>
-            N/A
-          </td>
+          <td />
         </tr>
         <tr>
           <th>
@@ -72,7 +68,7 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
     className="col-12"
   >
     <h5>
-      Total IO Throughput (Last Minute)
+      Total IO Throughput (Per Minute)
     </h5>
     <Table
       hover={true}
@@ -94,15 +90,11 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
           <th>
             Local Alluxio (Short-circuit) Read
           </th>
-          <td>
-            N/A
-          </td>
+          <td />
           <th>
             Local Alluxio (Short-circuit) Write
           </th>
-          <td>
-            N/A
-          </td>
+          <td />
         </tr>
         <tr>
           <th>

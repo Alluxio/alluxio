@@ -72,7 +72,10 @@ import javax.ws.rs.HttpMethod;
  * Actual owner of Alluxio running on Yarn. The YARN ResourceManager will launch this
  * ApplicationMaster on an allocated container. The ApplicationMaster communicates with the YARN
  * cluster, and handles application execution. It performs operations asynchronously.
+ *
+ * @deprecated since 2.0
  */
+@Deprecated
 @NotThreadSafe
 public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler {
   private static final Logger LOG = LoggerFactory.getLogger(ApplicationMaster.class);

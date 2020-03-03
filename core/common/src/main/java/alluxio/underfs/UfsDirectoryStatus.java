@@ -33,7 +33,7 @@ public class UfsDirectoryStatus extends UfsStatus {
    * @param xAttr extended attributes, if any
    */
   public UfsDirectoryStatus(String name, String owner, String group, short mode,
-      long lastModifiedTimeMs, @Nullable Map<String, byte[]> xAttr) {
+      Long lastModifiedTimeMs, @Nullable Map<String, byte[]> xAttr) {
     super(name, true, owner, group, mode, lastModifiedTimeMs, xAttr);
   }
 
@@ -47,7 +47,7 @@ public class UfsDirectoryStatus extends UfsStatus {
    * @param lastModifiedTimeMs of the directory
    */
   public UfsDirectoryStatus(String name, String owner, String group, short mode,
-      long lastModifiedTimeMs) {
+      Long lastModifiedTimeMs) {
     super(name, true, owner, group, mode, lastModifiedTimeMs, null);
   }
 

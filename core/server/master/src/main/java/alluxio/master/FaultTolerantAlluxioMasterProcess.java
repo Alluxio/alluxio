@@ -17,11 +17,14 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.interfaces.Scoped;
 
+import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -111,7 +114,10 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       }
       stopMasters();
       LOG.info("Secondary stopped");
-      mJournalSystem.gainPrimacy();
+      try (Timer.Context ctx = MetricsSystem
+          .timer(MetricKey.MASTER_JOURNAL_GAIN_PRIMACY_TIMER.getName()).time()) {
+        mJournalSystem.gainPrimacy();
+      }
       // We only check unstable here because mJournalSystem.gainPrimacy() is the only slow method
       if (unstable.get()) {
         losePrimacy();

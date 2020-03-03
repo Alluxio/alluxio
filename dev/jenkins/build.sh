@@ -20,10 +20,27 @@ myuid=$(id -u)
 mygid=$(id -g)
 echo "$myuid:x:$myuid:$mygid:anonymous uid:/home/jenkins:/bin/false" >> /etc/passwd
 
+export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
+
 if [ -z ${ALLUXIO_BUILD_FORKCOUNT} ]
 then
   ALLUXIO_BUILD_FORKCOUNT=4
 fi
 
-git clean -fdx
+if [ -n "${ALLUXIO_GIT_CLEAN}" ]
+then
+  git clean -fdx
+fi
 mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -Dmaven.javadoc.skip -Dsurefire.forkCount=${ALLUXIO_BUILD_FORKCOUNT} $@
+
+if [ -n "${ALLUXIO_SONAR_ARGS}" ]
+then
+  # A separate step to run jacoco report, with all the generated coverage data. This requires the
+  # previous 'install' step to generate the jacoco exec data with the 'jacoco' profile.
+  #
+  # Must exclude some of the modules that fail to run verify again without a clean step. This is ok
+  # since these modules do not contain any source code to track for code coverage.
+  mvn -T 4C -Dfindbugs.skip -Dcheckstyle.skip -DskipTests -Dmaven.javadoc.skip -Dlicense.skip -PjacocoReport verify -pl '!webui,!shaded,!shaded/client,!shaded/hadoop'
+  # run sonar analysis
+  mvn $(echo "${ALLUXIO_SONAR_ARGS}") sonar:sonar
+fi

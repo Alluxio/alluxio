@@ -9,21 +9,21 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import { configure, mount, ReactWrapper, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import React from 'react';
-import {StaticRouter} from 'react-router';
+import { StaticRouter } from 'react-router';
 
-import {Footer, IFooterProps} from './Footer';
+import { Footer, IFooterProps } from './Footer';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('Footer', () => {
   let props: IFooterProps;
 
   beforeAll(() => {
     props = {
-      data: []
+      data: [],
     };
   });
 
@@ -31,7 +31,7 @@ describe('Footer', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<Footer {...props}/>);
+      shallowWrapper = shallow(<Footer {...props} />);
     });
 
     it('Renders without crashing', () => {
@@ -45,13 +45,13 @@ describe('Footer', () => {
 
   describe('React component', () => {
     let reactWrapper: ReactWrapper;
-    let context = {};
+    const context = {};
 
     beforeAll(() => {
       reactWrapper = mount(
         <StaticRouter location="someLocation" context={context}>
-          <Footer {...props}/>
-        </StaticRouter>
+          <Footer {...props} />
+        </StaticRouter>,
       );
     });
 

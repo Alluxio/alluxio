@@ -9,34 +9,28 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import { configure, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import {createBrowserHistory, History, LocationState} from 'history';
+import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
-import {Provider} from 'react-redux';
-import {Store} from 'redux';
-import sinon, {SinonSpy} from 'sinon';
+import sinon from 'sinon';
 
-import configureStore from '../../../configureStore'
-import {initialState, IApplicationState} from '../../../store';
-import ConnectedApp from '../../App/App'
-import Browse, {AllProps, BrowsePresenter} from './Browse';
-import {routePaths} from "../../../constants";
-import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
+import { initialState } from '../../../store';
+import { AllProps, BrowsePresenter } from './Browse';
+import { routePaths } from '../../../constants';
+import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('Browse', () => {
   let history: History<LocationState>;
-  let store: Store<IApplicationState>;
   let props: AllProps;
 
   beforeAll(() => {
-    history = createBrowserHistory({keyLength: 0});
+    history = createBrowserHistory({ keyLength: 0 });
     history.push(routePaths.browse);
-    store = configureStore(history, initialState);
     props = {
-      location: {search: ''},
+      location: { search: '' },
       fetchRequest: sinon.spy(),
       history: history,
       browseData: initialState.browse.data,
@@ -48,7 +42,7 @@ describe('Browse', () => {
       loading: false,
       textAreaHeight: 0,
       request: {},
-      upateRequestParameter: sinon.spy()
+      upateRequestParameter: sinon.spy(),
     };
   });
 
@@ -79,9 +73,9 @@ describe('Browse', () => {
 
     describe('Renders FileView', () => {
       beforeAll(() => {
-        const data = {...props.browseData};
+        const data = { ...props.browseData };
         data.currentDirectory.isDirectory = false;
-        shallowWrapper.setProps({browseData: data});
+        shallowWrapper.setProps({ browseData: data });
       });
 
       it('Matches snapshot with File', () => {

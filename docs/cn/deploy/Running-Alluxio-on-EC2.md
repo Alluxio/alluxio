@@ -2,8 +2,8 @@
 layout: global
 title: 在EC2上运行Alluxio
 nickname: 在EC2上运行Alluxio
-group: Deploying Alluxio
-priority: 3
+group: Install Alluxio
+priority: 5
 ---
 
 * 内容列表

@@ -12,28 +12,31 @@
 package alluxio.master.metrics;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.clock.ManualClock;
-import alluxio.grpc.MetricType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.aggregator.SingleTagValueAggregator;
-import alluxio.metrics.aggregator.SumInstancesAggregator;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
-import com.google.common.collect.Lists;
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -52,6 +55,7 @@ public class MetricsMasterTest {
 
   @Before
   public void before() throws Exception {
+    MetricsSystem.clearAllMetrics();
     mRegistry = new MasterRegistry();
     mClock = new ManualClock();
     mExecutorService =
@@ -71,80 +75,99 @@ public class MetricsMasterTest {
   }
 
   @Test
-  public void testAggregator() {
-    mMetricsMaster.addAggregator(
-        new SumInstancesAggregator("metricA", MetricsSystem.InstanceType.WORKER, "metricA"));
-    mMetricsMaster.addAggregator(
-        new SumInstancesAggregator("metricB", MetricsSystem.InstanceType.WORKER, "metricB"));
+  public void testThroughputGauge() throws Exception {
+    String counterName = "Master.counter";
+    String throughputName = "Cluster.counterThroughput";
+    mMetricsMaster.registerThroughputGauge("Master.counter", "Cluster.counterThroughput");
+    Metric metric = MetricsSystem.getMetricValue(throughputName);
+    assertNotNull(metric);
+    assertEquals(0, (long) metric.getValue());
 
-    List<Metric> metrics1 = Lists.newArrayList(
-        Metric.from("worker.192_1_1_1.metricA", 10, MetricType.GAUGE),
-        Metric.from("worker.192_1_1_1.metricB", 20, MetricType.GAUGE));
-    mMetricsMaster.workerHeartbeat("192_1_1_1", metrics1);
+    Counter masterCounter = MetricsSystem.counter(counterName);
+    masterCounter.inc(100);
+    Gauge gauge = MetricsSystem.METRIC_REGISTRY.getGauges().get(throughputName);
+    assertNotNull(gauge);
+    assertEquals(100, (long) gauge.getValue());
 
-    List<Metric> metrics2 = Lists.newArrayList(
-        Metric.from("worker.192_1_1_2.metricA", 1, MetricType.GAUGE),
-        Metric.from("worker.192_1_1_2.metricB", 2, MetricType.GAUGE));
-    mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
-    assertEquals(11L, getGauge("metricA"));
-    assertEquals(22L, getGauge("metricB"));
+    masterCounter.inc(200);
+    mClock.addTimeMs(2 * Constants.MINUTE_MS);
+    System.out.println(gauge.getValue());
+    assertEquals(150, (long) gauge.getValue());
+  }
 
-    // override metrics from hostname 192_1_1_2
-    List<Metric> metrics3 = Lists.newArrayList(
-        Metric.from("worker.192_1_1_2.metricA", 3, MetricType.GAUGE));
-    mMetricsMaster.workerHeartbeat("192_1_1_2", metrics3);
-    assertEquals(13L, getGauge("metricA"));
-    assertEquals(20L, getGauge("metricB"));
+  @Test
+  public void testRegisteredAggregator() throws Exception {
+    String ufsOp = MetricInfo.UfsOps.values().clone()[0].toString();
+    String masterUfsOpName = MetricsSystem.getMasterMetricName(ufsOp);
+    String ufs = MetricsSystem.escape(new AlluxioURI("hdfs://name:9000/alluxio_storage"));
+
+    String counterName = Metric.getMetricNameWithTags(masterUfsOpName,
+        MetricInfo.TAG_UFS, ufs, MetricInfo.TAG_UFS_TYPE, "hdfs");
+    MetricsSystem.counter(counterName).inc(2333);
+
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER);
+
+    String clusterMetricName = Metric.getMetricNameWithTags(
+        MetricInfo.UFS_OP_PREFIX + ufsOp, MetricInfo.TAG_UFS, ufs);
+    Metric clusterMetric = MetricsSystem.getMetricValue(clusterMetricName);
+    assertNotNull(clusterMetric);
+    assertEquals(2333, (long) clusterMetric.getValue());
+
+    String timerNameOne = Metric.getMetricNameWithTags(masterUfsOpName,
+        MetricInfo.TAG_UFS, ufs, MetricInfo.TAG_USER, "userA");
+    MetricsSystem.timer(timerNameOne).time().close();
+    String timerNameTwo = Metric.getMetricNameWithTags(masterUfsOpName,
+        MetricInfo.TAG_UFS, ufs, MetricInfo.TAG_USER, "userB");
+    MetricsSystem.timer(timerNameTwo).time().close();
+
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER);
+
+    clusterMetric = MetricsSystem.getMetricValue(clusterMetricName);
+    assertNotNull(clusterMetric);
+    assertEquals(2335, (long) clusterMetric.getValue());
   }
 
   @Test
   public void testMultiValueAggregator() throws Exception {
+    // Add user tag
+    String masterMetricName = "Master.TestMetric";
+    String clusterMetricName = "Cluster.TestMetric";
     mMetricsMaster.addAggregator(
-        new SingleTagValueAggregator("metric", MetricsSystem.InstanceType.WORKER, "metric", "tag"));
-    List<Metric> metrics1 = Lists.newArrayList(
-        Metric.from("worker.192_1_1_1.metric.tag:v1", 10, MetricType.GAUGE),
-        Metric.from("worker.192_1_1_1.metric.tag:v2", 20, MetricType.GAUGE));
-    mMetricsMaster.workerHeartbeat("192_1_1_1", metrics1);
-    List<Metric> metrics2 = Lists.newArrayList(
-        Metric.from("worker.192_1_1_2.metric.tag:v1", 1, MetricType.GAUGE),
-        Metric.from("worker.192_1_1_2.metric.tag:v2", 2, MetricType.GAUGE));
-    mMetricsMaster.workerHeartbeat("192_1_1_2", metrics2);
+        new SingleTagValueAggregator(clusterMetricName, masterMetricName, MetricInfo.TAG_UFS));
+
+    String ufsOne = MetricsSystem.escape(new AlluxioURI("/path/to/ufs"));
+    String counterNameOne = Metric
+        .getMetricNameWithTags(masterMetricName, MetricInfo.TAG_UFS, ufsOne);
+    Counter counterOne = MetricsSystem.counter(counterNameOne);
+    counterOne.inc(10);
+    String clusterMetricNameOne = Metric
+        .getMetricNameWithTags(clusterMetricName, MetricInfo.TAG_UFS, ufsOne);
+
+    assertTrue(MetricsSystem.getMetricValue(clusterMetricNameOne) == null);
+
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER);
-    assertEquals(11L, getGauge("metric", "tag", "v1"));
-    assertEquals(22L, getGauge("metric", "tag", "v2"));
-  }
 
-  @Test
-  public void testClientHeartbeat() {
-    mMetricsMaster.addAggregator(
-        new SumInstancesAggregator("metric1", MetricsSystem.InstanceType.CLIENT, "metric1"));
-    mMetricsMaster.addAggregator(
-        new SumInstancesAggregator("metric2", MetricsSystem.InstanceType.CLIENT, "metric2"));
-    List<Metric> metrics1 = Lists.newArrayList(
-        Metric.from("client.192_1_1_1:A.metric1", 10, MetricType.GAUGE),
-        Metric.from("client.192_1_1_1:A.metric2", 20, MetricType.GAUGE));
-    mMetricsMaster.clientHeartbeat("A", "192.1.1.1", metrics1);
-    List<Metric> metrics2 = Lists.newArrayList(
-        Metric.from("client.192_1_1_1:B.metric1", 15, MetricType.GAUGE),
-        Metric.from("client.192_1_1_1:B.metric2", 25, MetricType.GAUGE));
-    mMetricsMaster.clientHeartbeat("B", "192.1.1.1", metrics2);
-    List<Metric> metrics3 = Lists.newArrayList(
-        Metric.from("client.192_1_1_2:C.metric1", 1, MetricType.GAUGE),
-        Metric.from("client.192_1_1_2:C.metric2", 2, MetricType.GAUGE));
-    mMetricsMaster.clientHeartbeat("C", "192.1.1.2", metrics3);
-    assertEquals(26L, getGauge("metric1"));
-    assertEquals(47L, getGauge("metric2"));
-  }
+    Metric clusterMetricOne = MetricsSystem.getMetricValue(clusterMetricNameOne);
+    assertNotNull(clusterMetricOne);
+    assertEquals(10, (long) clusterMetricOne.getValue());
 
-  private Object getGauge(String name) {
-    return MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricsSystem.getClusterMetricName(name))
-        .getValue();
-  }
+    counterOne.inc(7);
 
-  private Object getGauge(String metricName, String tagName, String tagValue) {
-    return MetricsSystem.METRIC_REGISTRY.getGauges()
-        .get(MetricsSystem
-            .getClusterMetricName(Metric.getMetricNameWithTags(metricName, tagName, tagValue)))
-        .getValue();
+    String ufsTwo = MetricsSystem.escape(new AlluxioURI("s3://alluxio-test-metrics/metrics"));
+    String counterNameTwo = Metric
+        .getMetricNameWithTags(masterMetricName, MetricInfo.TAG_UFS, ufsTwo);
+    Counter counterTwo = MetricsSystem.counter(counterNameTwo);
+    counterTwo.inc(50);
+
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER);
+
+    Metric clusterMetricOne2 = MetricsSystem.getMetricValue(clusterMetricNameOne);
+    assertNotNull(clusterMetricOne2);
+    assertEquals(17, (long) clusterMetricOne2.getValue());
+
+    Metric clusterMetricTwo = MetricsSystem.getMetricValue(Metric
+        .getMetricNameWithTags(clusterMetricName, MetricInfo.TAG_UFS, ufsTwo));
+    assertNotNull(clusterMetricTwo);
+    assertEquals(50, (long) clusterMetricTwo.getValue());
   }
 }

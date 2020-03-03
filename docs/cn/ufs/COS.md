@@ -2,8 +2,8 @@
 layout: global
 title: 在COS上配置Alluxio
 nickname: Alluxio使用COS
-group: Under Stores
-priority: 4
+group: Storage Integrations
+priority: 5
 ---
 
 * 内容列表
@@ -42,7 +42,7 @@ fs.cos.app.id=<COS_APP_ID>
 
 ### 嵌套目录安装
 
-COS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多个存储系统。 [Mount命令]({{ '/cn/basic/Command-Line-Interface.html' | relativize_url }}#mount)可以实现这一目的。例如，下面的命令将COS实例内部的目录挂载到Alluxio的/cos目录
+COS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多个存储系统。 [Mount命令]({{ '/cn/operation/User-CLI.html' | relativize_url }}#mount)可以实现这一目的。例如，下面的命令将COS实例内部的目录挂载到Alluxio的/cos目录
 
 ```console
 $ ./bin/alluxio fs mount --option fs.cos.access.key=<COS_SECRET_ID> \

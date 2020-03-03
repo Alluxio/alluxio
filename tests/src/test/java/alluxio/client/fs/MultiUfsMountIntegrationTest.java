@@ -12,9 +12,9 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.MountPOptions;
@@ -81,7 +81,7 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
-          .setStartCluster(false).build();
+          .setStartCluster(true).build();
 
   @Before
   public void before() throws Exception {
@@ -100,7 +100,6 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
     mUfsUri4 = "ufs4://" + mFolder.newFolder().getAbsoluteFile();
     mLocalUfs = new LocalUnderFileSystemFactory().create(mFolder.getRoot().getAbsolutePath(),
         UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
-    mLocalAlluxioClusterResource.start();
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalAlluxioCluster.getClient();
     // Mount ufs1 to /mnt1 with specified options.

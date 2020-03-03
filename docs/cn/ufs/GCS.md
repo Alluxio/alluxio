@@ -2,8 +2,8 @@
 layout: global
 title: 在GCS上配置Alluxio
 nickname: Alluxio使用GCS
-group: Under Stores
-priority: 0
+group: Storage Integrations
+priority: 1
 ---
 
 * 内容列表
@@ -46,26 +46,6 @@ fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY>
 注意: GCS的可互操作性默认是未启用的。请在[GCS 设置](https://console.cloud.google.com/storage/settings) 中点击可互操作按键来启用可互操作性。然后点击`创建一个新的key`来获得the Access Key和Secret pair.
 
 执行完以上步骤后，Alluxio应该已经配置GCS作为其底层文件系统，然后你可以尝试[使用GCS本地运行Alluxio](#running-alluxio-locally-with-gcs).
-
-## 配置应用依赖
-
-当使用Alluxio构建你的应用时，你的应用需要包含一个client模块，如果要使用[Alluxio file system interface](File-System-API.html)，那么需要配置`alluxio-core-client-fs`模块，如果需要使用[Hadoop file system interface](https://wiki.apache.org/hadoop/HCFS)，则需要使用`alluxio-core-client-hdfs`模块。
-举例来说，如果你正在使用 [maven](https://maven.apache.org/)，你可以通过添加以下代码来添加你的应用的依赖：
-
-```xml
-<!-- Alluxio file system interface -->
-<dependency>
-  <groupId>org.alluxio</groupId>
-  <artifactId>alluxio-core-client-fs</artifactId>
-  <version>{{site.ALLUXIO_RELEASED_VERSION}}</version>
-</dependency>
-<!-- HDFS file system interface -->
-<dependency>
-  <groupId>org.alluxio</groupId>
-  <artifactId>alluxio-core-client-hdfs</artifactId>
-  <version>{{site.ALLUXIO_RELEASED_VERSION}}</version>
-</dependency>
-```
 
 ## 使用GCS本地运行Alluxio
 

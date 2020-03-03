@@ -10,8 +10,8 @@
  */
 
 export interface IRequest {
-    end?: string;
-    limit?: string;
-    offset?: string;
-    path?: string;
+  end?: string;
+  limit?: string;
+  offset?: string;
+  path?: string;
 }

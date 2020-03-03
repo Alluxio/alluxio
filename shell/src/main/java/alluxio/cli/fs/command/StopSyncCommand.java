@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
@@ -24,7 +25,7 @@ import java.io.IOException;
 /**
  * This class represents a stop sync command.
  */
-
+@PublicApi
 public class StopSyncCommand extends AbstractFileSystemCommand {
   /**
    * Create a StopSync Command object.

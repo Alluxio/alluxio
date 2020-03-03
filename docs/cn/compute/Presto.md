@@ -2,8 +2,8 @@
 layout: global
 title: Presto 使用 Alluxio
 nickname: Presto
-group: Data Applications
-priority: 2
+group: Compute Integrations
+priority: 1
 ---
 
 [Presto](https://prestosql.io/) 是一个开源的分布式 SQL 查询引擎，用于对数据进行大规模的交互式分析查询。
@@ -117,7 +117,7 @@ Presto 服务器日志：
 
 ### 自定义 Alluxio 用户属性
 
-要配置其他 Alluxio 属性，可以将包含[`alluxio-site.properties`]({{ '/en/basic/Configuration-Settings.html' | relativize_url }})的配置路径（即`${ALLUXIO_HOME}/conf`）追加到 Presto 文件夹下的`etc/jvm.config`的 JVM 配置中。
+要配置其他 Alluxio 属性，可以将包含[`alluxio-site.properties`]({{ '/cn/operation/Configuration.html' | relativize_url }})的配置路径（即`${ALLUXIO_HOME}/conf`）追加到 Presto 文件夹下的`etc/jvm.config`的 JVM 配置中。
 这种方法的优点是能够在同一个`alluxio-site.properties`文件中设置所有的 Alluxio 属性。
 
 ```bash
@@ -173,12 +173,6 @@ alluxio.user.file.writetype.default=CACHE_THROUGH
   <value>CACHE_THROUGH</value>
 </property>
 ```
-
-### 启用数据本地性
-
-建议将 Presto worker 与 Alluxio worker 同置部署，以便 Presto worker 可以在本地读取数据。
-在 Presto 中启用数据本地性的一个重要选项是`hive.force-local-scheduling`，该选项会强制在与提供数据分片的 Alluxio worker 相同的节点上调度数据分片。
-默认情况下，Presto 中的`hive.force-local-scheduling`为`false`，Presto 不会尝试在与 Alluxio worker 节点相同的机器上安排工作。
 
 ### 提高并行度
 

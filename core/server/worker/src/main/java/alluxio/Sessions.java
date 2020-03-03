@@ -33,12 +33,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class Sessions {
   private static final Logger LOG = LoggerFactory.getLogger(Sessions.class);
 
-  public static final int DATASERVER_SESSION_ID = -1;
-  public static final int CHECKPOINT_SESSION_ID = -2;
   public static final int MIGRATE_DATA_SESSION_ID = -3;
   public static final int MASTER_COMMAND_SESSION_ID = -4;
-  public static final int ACCESS_BLOCK_SESSION_ID = -5;
-  public static final int ASYNC_CACHE_SESSION_ID = -7;
+  public static final int ASYNC_CACHE_WORKER_SESSION_ID = -7;
+  public static final int ASYNC_CACHE_UFS_SESSION_ID = -8;
 
   // internal session id base should be smaller than all predefined session ids
   public static final long INTERNAL_SESSION_ID_BASE = -8;

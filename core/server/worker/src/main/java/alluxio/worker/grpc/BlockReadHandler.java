@@ -21,9 +21,9 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ReadResponse;
-import alluxio.metrics.Metric;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.WorkerMetrics;
+import alluxio.metrics.MetricInfo;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.proto.dataserver.Protocol;
@@ -167,30 +167,33 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
 
         // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
         Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
-        if (mWorker.openUfsBlock(request.getSessionId(), request.getId(),
+        try {
+          if (mWorker.openUfsBlock(request.getSessionId(), request.getId(),
                 Protocol.OpenUfsBlockOptions.parseFrom(openUfsBlockOptions.toByteString()))) {
-          try {
             BlockReader reader =
-                mWorker.readUfsBlock(request.getSessionId(), request.getId(), request.getStart());
+                mWorker.readUfsBlock(request.getSessionId(), request.getId(), request.getStart(),
+                    request.isPositionShort());
             AlluxioURI ufsMountPointUri =
                 ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();
             String ufsString = MetricsSystem.escape(ufsMountPointUri);
-            String counterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_READ_UFS,
-                WorkerMetrics.TAG_UFS, ufsString);
             context.setBlockReader(reader);
-            context.setCounter(MetricsSystem.counter(counterName));
-            String meterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT,
-                WorkerMetrics.TAG_UFS, ufsString);
-            context.setMeter(MetricsSystem.meter(meterName));
+
+            MetricKey counterKey = MetricKey.WORKER_BYTES_READ_UFS;
+            MetricKey meterKey = MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT;
+            context.setCounter(MetricsSystem.counterWithTags(counterKey.getName(),
+                counterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString));
+            context.setMeter(MetricsSystem.meterWithTags(meterKey.getName(),
+                meterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString));
             return;
-          } catch (Exception e) {
-            // TODO(binfan): remove the closeUfsBlock here as the exception will be handled in
-            // AbstractReadHandler. Current approach to use context.blockReader as a flag is a
-            // workaround.
-            mWorker.closeUfsBlock(request.getSessionId(), request.getId());
-            context.setBlockReader(null);
-            throw e;
           }
+        } catch (Exception e) {
+          // TODO(binfan): remove the closeUfsBlock here as the exception will be handled in
+          // AbstractReadHandler. Current approach to use context.blockReader as a flag is a
+          // workaround.
+          mWorker.closeUfsBlock(request.getSessionId(), request.getId());
+          context.setBlockReader(null);
+          throw new UnavailableException(String.format("Failed to read block ID=%s from tiered "
+              + "storage and UFS tier: %s", request.getId(), e.getMessage()));
         }
       }
       throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
@@ -219,11 +222,13 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   protected BlockReadRequestContext createRequestContext(alluxio.grpc.ReadRequest request) {
     BlockReadRequestContext context = new BlockReadRequestContext(request);
     if (mDomainSocketEnabled) {
-      context.setCounter(MetricsSystem.counter(WorkerMetrics.BYTES_READ_DOMAIN));
-      context.setMeter(MetricsSystem.meter(WorkerMetrics.BYTES_READ_DOMAIN_THROUGHPUT));
+      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_READ_DOMAIN.getName()));
+      context.setMeter(MetricsSystem
+          .meter(MetricKey.WORKER_BYTES_READ_DOMAIN_THROUGHPUT.getName()));
     } else {
-      context.setCounter(MetricsSystem.counter(WorkerMetrics.BYTES_READ_ALLUXIO));
-      context.setMeter(MetricsSystem.meter(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT));
+      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_READ_ALLUXIO.getName()));
+      context.setMeter(MetricsSystem
+          .meter(MetricKey.WORKER_BYTES_READ_ALLUXIO_THROUGHPUT.getName()));
     }
     return context;
   }

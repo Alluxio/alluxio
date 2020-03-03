@@ -17,6 +17,7 @@ import java.security.Principal;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
@@ -87,15 +88,8 @@ public final class AlluxioLoginModule implements LoginModule {
       return true;
     }
 
-    Principal user = null;
-
-    // TODO(dong): get a Kerberos user if we are using Kerberos.
-    // user = getKerberosUser();
-
     // get a OS user
-    if (user == null) {
-      user = getPrincipalUser(LoginModuleConfigurationUtils.OS_PRINCIPAL_CLASS_NAME);
-    }
+    Principal user = getPrincipalUser(LoginModuleConfigurationUtils.OS_PRINCIPAL_CLASS_NAME);
 
     // if a user is found, convert it to an Alluxio user and save it.
     if (user != null) {
@@ -135,6 +129,7 @@ public final class AlluxioLoginModule implements LoginModule {
    * @throws LoginException if the specified class can not be found,
    * or there are are more than one instance of Principal
    */
+  @Nullable
   private Principal getPrincipalUser(String className) throws LoginException {
     // load the principal class
     ClassLoader loader = Thread.currentThread().getContextClassLoader();

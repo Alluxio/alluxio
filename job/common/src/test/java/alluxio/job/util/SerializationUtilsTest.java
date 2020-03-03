@@ -11,7 +11,7 @@
 
 package alluxio.job.util;
 
-import alluxio.job.TestJobConfig;
+import alluxio.job.TestPlanConfig;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,10 +22,10 @@ import org.junit.Test;
 public final class SerializationUtilsTest {
   @Test
   public void basicTest() throws Exception {
-    TestJobConfig config = new TestJobConfig("test");
+    TestPlanConfig config = new TestPlanConfig("test");
     byte[] bytes = SerializationUtils.serialize(config);
     Object deserialized = SerializationUtils.deserialize(bytes);
-    Assert.assertTrue(deserialized instanceof TestJobConfig);
+    Assert.assertTrue(deserialized instanceof TestPlanConfig);
     Assert.assertEquals(config, deserialized);
   }
 }

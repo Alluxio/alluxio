@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CreateDirectoryContext;
@@ -30,6 +31,8 @@ import alluxio.proxy.s3.ListBucketResult;
 import alluxio.proxy.s3.ListPartsResult;
 import alluxio.proxy.s3.S3Constants;
 import alluxio.proxy.s3.S3RestUtils;
+import alluxio.security.authentication.AuthType;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 
@@ -39,9 +42,11 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.rules.TestRule;
 
 import java.io.ByteArrayInputStream;
 import java.net.HttpURLConnection;
@@ -58,6 +63,11 @@ import javax.ws.rs.core.Response;
  * Test cases for {@link S3RestServiceHandler}.
  */
 public final class S3ClientRestApiTest extends RestApiTest {
+  private static final int DATA_SIZE = 16 * Constants.KB;
+  // cannot be too large, since all block streams are open until file is closed, and may run out of
+  // block worker clients.
+  private static final int LARGE_DATA_SIZE = 256 * Constants.KB;
+
   private static final GetStatusContext GET_STATUS_CONTEXT = GetStatusContext.defaults();
   private static final Map<String, String> NO_PARAMS = new HashMap<>();
   private static final XmlMapper XML_MAPPER = new XmlMapper();
@@ -68,16 +78,28 @@ public final class S3ClientRestApiTest extends RestApiTest {
   private FileSystem mFileSystem;
   private FileSystemMaster mFileSystemMaster;
 
+  // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to
+  // fix the test setup in SIMPLE mode.
+  @ClassRule
+  public static LocalAlluxioClusterResource sResource = new LocalAlluxioClusterResource.Builder()
+      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
+      .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
+      .build();
+
+  @Rule
+  public TestRule mResetRule = sResource.getResetResource();
+
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Before
   public void before() throws Exception {
-    mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getProxyProcess().getWebLocalPort();
-    mFileSystemMaster = mResource.get().getLocalAlluxioMaster().getMasterProcess()
+    mHostname = sResource.get().getHostname();
+    mPort = sResource.get().getProxyProcess().getWebLocalPort();
+    mFileSystemMaster = sResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class);
-    mFileSystem = mResource.get().getClient();
+    mFileSystem = sResource.get().getClient();
   }
 
   @Test
@@ -269,7 +291,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void putSmallObject() throws Exception {
-    final String bucketName = "bucket";
+    final String bucketName = "small-object-bucket";
     createBucketRestCall(bucketName);
 
     final String objectName = "object";
@@ -278,11 +300,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void putLargeObject() throws Exception {
-    final String bucketName = "bucket";
+    final String bucketName = "large-object-bucket";
     createBucketRestCall(bucketName);
 
     final String objectName = "object";
-    final byte[] object = CommonUtils.randomAlphaNumString(Constants.MB).getBytes();
+    final byte[] object = CommonUtils.randomAlphaNumString(LARGE_DATA_SIZE).getBytes();
     putObjectTest(bucketName, objectName, object, null, null);
   }
 
@@ -584,7 +606,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void getLargeObject() throws Exception {
-    getObjectTest(CommonUtils.randomAlphaNumString(Constants.MB).getBytes());
+    getObjectTest(CommonUtils.randomAlphaNumString(LARGE_DATA_SIZE).getBytes());
   }
 
   @Test
@@ -748,7 +770,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
 
     final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
-    final byte[] object = CommonUtils.randomAlphaNumString(Constants.MB).getBytes();
+    final byte[] object = CommonUtils.randomAlphaNumString(DATA_SIZE).getBytes();
     putObjectTest(bucketName, objectName, object, uploadId, 1);
   }
 
@@ -764,7 +786,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
 
     final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
-    final byte[] object = CommonUtils.randomAlphaNumString(Constants.MB).getBytes();
+    final byte[] object = CommonUtils.randomAlphaNumString(DATA_SIZE).getBytes();
     try {
       putObjectTest(bucketName, objectName, object, uploadId + 1, 1);
     } catch (AssertionError e) {
@@ -781,7 +803,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     try {
       final String objectName = "object";
-      final byte[] object = CommonUtils.randomAlphaNumString(Constants.MB).getBytes();
+      final byte[] object = CommonUtils.randomAlphaNumString(DATA_SIZE).getBytes();
       putObjectTest(bucketName, objectName, object, 1L, 1);
     } catch (AssertionError e) {
       // Expected because there is no such upload ID.
@@ -814,8 +836,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.assertEquals(0, listPartsResult.getParts().size());
 
     // Upload 2 parts.
-    String object1 = CommonUtils.randomAlphaNumString(Constants.MB);
-    String object2 = CommonUtils.randomAlphaNumString(Constants.MB);
+    String object1 = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    String object2 = CommonUtils.randomAlphaNumString(DATA_SIZE);
     createObject(objectKey, object1.getBytes(), uploadId, 1);
     createObject(objectKey, object2.getBytes(), uploadId, 2);
 
@@ -904,8 +926,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
 
     // Upload parts.
-    String object1 = CommonUtils.randomAlphaNumString(Constants.MB);
-    String object2 = CommonUtils.randomAlphaNumString(Constants.MB);
+    String object1 = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    String object2 = CommonUtils.randomAlphaNumString(DATA_SIZE);
     createObject(objectKey, object1.getBytes(), uploadId, 1);
     createObject(objectKey, object2.getBytes(), uploadId, 2);
 

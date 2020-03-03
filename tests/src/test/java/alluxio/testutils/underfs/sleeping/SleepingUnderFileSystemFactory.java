@@ -12,6 +12,7 @@
 package alluxio.testutils.underfs.sleeping;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -46,6 +47,8 @@ public class SleepingUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
+    // Managed blocking should be enabled when using Sleeping UFS.
+    conf.set(PropertyKey.MASTER_UFS_MANAGED_BLOCKING_ENABLED, true);
     if (mUfs == null) {
       Preconditions.checkArgument(path != null, "path may not be null");
       return new SleepingUnderFileSystem(new AlluxioURI(path), mOptions, conf);

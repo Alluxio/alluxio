@@ -7,12 +7,12 @@ Type: Release
 # github repo and version(can be branch, commit hash)
 Github:
   Repo: https://github.com/alluxio/alluxio
-  Version: branch-2.0
+  Version: master
 
 Release:
   # Version should match one of the versions at
   # https://downloads.alluxio.io/downloads/files/.
-  Version: 2.0.0
+  Version: 2.1.0
 
 # how much memory to use (e.g. 1000MB, 2GB) per worker
 # make sure your virtual machine has more memory than what is specified here

@@ -3,7 +3,7 @@ layout: global
 title: 异常诊断与调试
 group: Resources
 group: Operations
-priority: 0
+priority: 8
 ---
 
 * 内容列表
@@ -44,7 +44,7 @@ $ export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server
 
 ### 问题: 在本地机器上初次安装使用Alluxio失败，应该怎么办？
 
-解决办法: 首先检查目录`{ALLUXIO_HOME}/logs`下是否存在master和worker日志，然后按照日志提示的错误信息进行操作。否则，再次检查是否遗漏了[本地运行Alluxio](Running-Alluxio-Locally.html)里的配置步骤
+解决办法: 首先检查目录`{ALLUXIO_HOME}/logs`下是否存在master和worker日志，然后按照日志提示的错误信息进行操作。否则，再次检查是否遗漏了[本地运行Alluxio]({{ '/cn/deploy/Running-Alluxio-Locally.html' | relativize_url }})里的配置步骤
 
 典型问题:
 
@@ -53,8 +53,8 @@ $ export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server
 
 ### 问题: 打算在Spark/HDFS集群中部署Alluxio，有什么建议？
 
-解决办法: 按照[集群环境运行Alluxio](Running-Alluxio-on-a-Cluster.html),
- [Alluxio配置HDFS](Configuring-Alluxio-with-HDFS.html)提示操作。
+解决办法: 按照[集群环境运行Alluxio]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }}),
+ [Alluxio配置HDFS]({{ '/cn/ufs/HDFS.html' | relativize_url }})提示操作。
 
 提示:
 
@@ -64,7 +64,7 @@ $ export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server
 
 ### 问题: 在EC2上安装Alluxio遇到问题，有什么建议？
 
-解决办法: 可按照[EC2上运行Alluxio](Running-Alluxio-on-EC2.html)提示操作。
+解决办法: 可按照[EC2上运行Alluxio]({{ '/cn/deploy/Running-Alluxio-on-EC2.html' | relativize_url }})提示操作。
 
 典型问题:
 
@@ -123,19 +123,19 @@ $ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 - 请仔细检查Alluxio的master节点的端口(port)是否正确，Alluxio的master节点默认的监听端口号为19998。
 通常情况下master地址的端口号错误会导致这种错误提示的出现(例如端口号写成了19999,而19999是Alluxio的master节点的web用户界面的端口号)
 - 请确保Alluxio的master节点和client节点的安全设置保持一致.
-Alluxio通过配置`alluxio.security.authentication.type`来提供不同的用户身份验证(Security.html#authentication)的方法。
+Alluxio通过配置`alluxio.security.authentication.type`来提供不同的[用户身份验证]({{ '/cn/operation/Security.html' | relativize_url }}#authentication)的方法。
 如果客户端和服务器的这项配置属性不一致，这种错误将会发生。(例如，客户端的属性为默认值`NOSASL`,而服务器端设为`SIMPLE`)
-有关如何设定Alluxio的集群和应用的问题，用户请参照[Configuration-Settings](Configuration-Settings.html)
+有关如何设定Alluxio的集群和应用的问题，用户请参照[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }})
 - Spark调用Alluxio-1.3.0文件时报错，如果是直接下载编译好的alluxio文件进行安装的，一般会出现该错误。
-解决办法：需要Alluxio client需要在编译时指定Spark选项，具体参考[Running-Spark-on-Alluxio](Running-Spark-on-Alluxio.html)；
+解决办法：需要Alluxio client需要在编译时指定Spark选项，具体参考[Spark应用配置文档]({{ '/cn/compute/Spark.html' | relativize_url }})；
 编译好的依赖包也可以直接下载，下载地址：<a href="http://downloads.alluxio.io/downloads/files/1.3.0/alluxio-1.3.0-spark-client-jar-with-dependencies.jar"> 依赖包下载 </a>。
 
 ### 问题: 向Alluxio拷贝数据或者写数据时出现如下问题 "Failed to cache: Not enough space to store block on worker",为什么？
 
 解决办法: 这种错误说明alluxio空间不足，无法完成用户写请求。
 
-- 检查一下内存中是否有多余的文件并从内存中释放这些文件。查看[Command-Line-Interface](Command-Line-Interface.html)获取更多信息。
-- 通过改变`alluxio.worker.memory.size`属性值增加worker节点可用内存的容量，查看[Configuration](Configuration-Settings.html#common-configuration) 获取更多信息。
+- 检查一下内存中是否有多余的文件并从内存中释放这些文件。查看[用户CLI]({{ '/cn/operation/User-CLI.html' | relativize_url }})获取更多信息。
+- 通过改变`alluxio.worker.memory.size`属性值增加worker节点可用内存的容量，查看[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }}#common-configuration) 获取更多信息。
 
 ### 问题： 当我正在写一个新的文件/目录，我的应用程序中出现日志错误。
 

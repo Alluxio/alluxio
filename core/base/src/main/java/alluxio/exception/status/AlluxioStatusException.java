@@ -13,6 +13,9 @@ package alluxio.exception.status;
 
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.BackupAbortedException;
+import alluxio.exception.BackupDelegationException;
+import alluxio.exception.BackupException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.BlockInfoException;
@@ -26,6 +29,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 
@@ -34,6 +38,7 @@ import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 
+import javax.security.sasl.SaslException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -223,7 +228,7 @@ public class AlluxioStatusException extends IOException {
     } catch (BlockAlreadyExistsException | FileAlreadyCompletedException
         | FileAlreadyExistsException e) {
       return new AlreadyExistsException(e);
-    } catch (BlockDoesNotExistException | FileDoesNotExistException e) {
+    } catch (BlockDoesNotExistException | FileDoesNotExistException | JobDoesNotExistException e) {
       return new NotFoundException(e);
     } catch (BlockInfoException | InvalidFileSizeException | InvalidPathException e) {
       return new InvalidArgumentException(e);
@@ -235,6 +240,12 @@ public class AlluxioStatusException extends IOException {
       return new FailedPreconditionException(e);
     } catch (WorkerOutOfSpaceException e) {
       return new ResourceExhaustedException(e);
+    } catch (BackupDelegationException e) {
+      return new FailedPreconditionException(e);
+    } catch (BackupAbortedException e) {
+      return new AbortedException(e);
+    } catch (BackupException e) {
+      return new InternalException(e);
     } catch (AlluxioException e) {
       return new UnknownException(e);
     }
@@ -260,6 +271,8 @@ public class AlluxioStatusException extends IOException {
       return new FailedPreconditionException(e);
     } catch (AlluxioStatusException e) {
       return e;
+    } catch (SaslException e) {
+      return new UnauthenticatedException(e);
     } catch (IOException e) {
       return new UnknownException(e);
     }

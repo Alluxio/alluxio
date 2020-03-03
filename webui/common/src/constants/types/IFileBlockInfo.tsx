@@ -10,10 +10,10 @@
  */
 
 export interface IFileBlockInfo {
-  'blockLength': number;
-  'id': number;
-  'inTier': boolean;
-  'isInHighestTier': boolean;
-  'lastAccessTimeMs': number;
-  'locations': string[];
+  blockLength: number;
+  id: number;
+  inTier: boolean;
+  isInHighestTier: boolean;
+  lastAccessTimeMs: number;
+  locations: string[];
 }

@@ -1,8 +1,8 @@
 ---
 layout: global
-title: Overview
-group: Home
-priority: 0
+title: Introduction
+group: Overview
+priority: 1
 ---
 
 * Table of Contents
@@ -20,26 +20,13 @@ magnitude faster than existing solutions.
 In the data ecosystem, Alluxio lies between data driven applications, such as Apache Spark, Presto,
 Tensorflow, Apache HBase, Apache Hive, or Apache Flink, and various persistent storage systems, such
 as Amazon S3, Google Cloud Storage, OpenStack Swift, HDFS, GlusterFS, IBM Cleversafe, EMC ECS, Ceph,
-NFS, Minio, and Alibaba OSS. Alluxio unifes the data stored in these different storage systems,
+NFS, Minio, and Alibaba OSS. Alluxio unifies the data stored in these different storage systems,
 presenting unified client APIs and a global namespace to its upper layer data driven applications.
 
 The Alluxio project originated from [the UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/software/) (see [papers](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2018/EECS-2018-29.html)) as
 the data access layer of the Berkeley Data Analytics Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)).
 It is open source under [Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE).
-Alluxio is one of the fastest growing open source projects that has attracted more than [1000 contributors](https://github.com/alluxio/alluxio/graphs/contributors)
-from over 300 institutions including
-[Alibaba](http://www.alibaba.com),
-[Alluxio](https://www.alluxio.io/),
-[Baidu](https://www.baidu.com),
-[CMU](https://www.cmu.edu/),
-[Google](https://www.google.com),
-[IBM](https://www.ibm.com),
-[Intel](http://www.intel.com/),
-[NJU](http://www.nju.edu.cn/english/),
-[Red Hat](https://www.redhat.com/),
-[Tencent](https://www.tencent.com),
-[UC Berkeley](https://amplab.cs.berkeley.edu/),
-and [Yahoo](https://www.yahoo.com/).
+Alluxio is one of the fastest growing open source projects that has attracted more than [1000 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 300 institutions including Alibaba, Alluxio, Baidu, CMU, Google, IBM, Intel, NJU, Red Hat, Tencent, UC Berkeley, and Yahoo.
 
 Today, Alluxio is deployed in production by [hundreds of organizations](https://www.alluxio.io/powered-by-alluxio)
 with the largest deployment exceeding 1,500 nodes.
@@ -82,13 +69,13 @@ Alluxio brings three key areas of innovation together to provide a unique set of
 1. **Global Namespace**: Alluxio serves as a single point of access to multiple independent storage
 systems regardless of physical location. This provides a unified view of all data sources and a
 standard interface for applications. See
-[Namespace Management]({{ '/en/advanced/Namespace-Management.html' | relativize_url }}) for more details.
+[Namespace Management]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}) for more details.
 
 1. **Intelligent Multi-tiering Caching**: Alluxio clusters act as a read and write cache for data in
 connected storage systems. Configurable policies automatically optimize data placement for
 performance and reliability across both memory and disk (SSD/HDD). Caching is transparent to the
 user and uses buffering to maintain consistency with persistent storage. See
-[Alluxio Storage Management]({{ '/en/advanced/Alluxio-Storage-Management.html' | relativize_url }}) for more details.
+[Alluxio Storage Management]({{ '/en/core-services/Caching.html' | relativize_url }}) for more details.
 
 1. **Server-Side API Translation**: Alluxio supports industry common APIs, such as HDFS API, S3 API,
 FUSE API, REST API. It transparently converts from a standard client-side interface to any storage
@@ -97,12 +84,12 @@ eliminating the need for complex system configuration and management. File data 
 data and vice versa.
 
 To understand more details on Alluxio internals, please read
-[Alluxio architecture and data flow]({{ '/en/Architecture-DataFlow.html' | relativize_url }}).
+[Alluxio architecture and data flow]({{ '/en/overview/Architecture.html' | relativize_url }}).
 
 ## Getting Started
 
 To quickly get Alluxio up and running, take a look at our
-[Getting Started]({{ '/en/Getting-Started.html' | relativize_url }}) page,
+[Getting Started]({{ '/en/overview/Getting-Started.html' | relativize_url }}) page,
 which explains how to deploy Alluxio and run examples in a local environment.
 
 Also try our getting started tutorials for Presto & Alluxio via:
@@ -128,7 +115,7 @@ explains how to build the project from source code. Questions can be directed to
 or our [Community Slack Channel](https://alluxio.io/slack).
 
 [Downloads](https://www.alluxio.io/download/)
-| [User Guide]({{ '/en/Getting-Started.html' | relativize_url }})
+| [User Guide]({{ '/en/overview/Getting-Started.html' | relativize_url }})
 | [Developer Guide]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }})
 | [Meetup Group](https://www.meetup.com/Alluxio/)
 | [Issue Tracking](https://github.com/Alluxio/alluxio/issues)

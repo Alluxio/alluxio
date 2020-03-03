@@ -9,14 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import { configure, mount, ReactWrapper, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import React from 'react';
-import {StaticRouter} from 'react-router';
+import { StaticRouter } from 'react-router';
 
-import {IPaginatorProps, Paginator} from './Paginator';
+import { IPaginatorProps, Paginator } from './Paginator';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('Paginator', () => {
   let props: IPaginatorProps;
@@ -24,7 +24,7 @@ describe('Paginator', () => {
   beforeAll(() => {
     props = {
       baseUrl: '',
-      total: 0
+      total: 0,
     };
   });
 
@@ -32,7 +32,7 @@ describe('Paginator', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<Paginator {...props}/>);
+      shallowWrapper = shallow(<Paginator {...props} />);
     });
 
     it('Renders without crashing', () => {
@@ -46,13 +46,13 @@ describe('Paginator', () => {
 
   describe('React component', () => {
     let reactWrapper: ReactWrapper;
-    let context = {};
+    const context = {};
 
     beforeAll(() => {
       reactWrapper = mount(
         <StaticRouter location="someLocation" context={context}>
-          <Paginator {...props}/>
-        </StaticRouter>
+          <Paginator {...props} />
+        </StaticRouter>,
       );
     });
 

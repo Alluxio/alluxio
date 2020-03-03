@@ -26,7 +26,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.block.BlockId;
-import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
@@ -48,13 +48,11 @@ import alluxio.wire.WorkerWebUIMetrics;
 import alluxio.wire.WorkerWebUIOverview;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.meta.BlockMeta;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -323,7 +321,9 @@ public final class AlluxioWorkerRestServiceHandler {
       try {
         int offset = Integer.parseInt(requestOffset);
         int limit = Integer.parseInt(requestLimit);
+        // make the limit the total number of files if request limit is > than what is available
         limit = offset == 0 && limit > fileIds.size() ? fileIds.size() : limit;
+        // offset+limit can't be greater than the size of the list
         limit = offset + limit > fileIds.size() ? fileIds.size() - offset : limit;
         int sum = Math.addExact(offset, limit);
         List<Long> subFileIds = fileIds.subList(offset, sum);
@@ -344,7 +344,7 @@ public final class AlluxioWorkerRestServiceHandler {
                     .addBlock(blockMeta.getBlockLocation().tierAlias(), blockId, blockSize, -1);
               }
             }
-            if (uiFileInfo.getBlockIds().isEmpty()) {
+            if (!uiFileInfo.getBlockIds().isEmpty()) {
               uiFileInfos.add(uiFileInfo);
             }
           } catch (Exception e) {
@@ -378,50 +378,26 @@ public final class AlluxioWorkerRestServiceHandler {
       WorkerWebUIMetrics response = new WorkerWebUIMetrics();
 
       MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
+      SortedMap<String, Gauge> gauges = mr.getGauges();
 
-      Long workerCapacityTotal = (Long) mr.getGauges()
-          .get(MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.CAPACITY_TOTAL)).getValue();
-      Long workerCapacityUsed = (Long) mr.getGauges()
-          .get(MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.CAPACITY_USED)).getValue();
+      Long workerCapacityTotal = (Long) gauges.get(MetricsSystem
+          .getMetricName(MetricKey.WORKER_CAPACITY_TOTAL.getName())).getValue();
+      Long workerCapacityUsed = (Long) gauges.get(MetricsSystem
+          .getMetricName(MetricKey.WORKER_CAPACITY_USED.getName())).getValue();
 
       int workerCapacityUsedPercentage =
           (workerCapacityTotal > 0) ? (int) (100L * workerCapacityUsed / workerCapacityTotal) : 0;
 
       response.setWorkerCapacityUsedPercentage(workerCapacityUsedPercentage);
-      response.setWorkerCapacityFreePercentage(100 - workerCapacityUsedPercentage);
-
-      Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
-        @Override
-        public boolean matches(String name, Metric metric) {
-          return !(name.endsWith("Ops"));
-        }
-      });
-
-      Map<String, Counter> rpcInvocations = mr.getCounters(new MetricFilter() {
-        @Override
-        public boolean matches(String name, Metric metric) {
-          return name.endsWith("Ops");
-        }
-      });
+      response.setWorkerCapacityFreePercentage(100L - workerCapacityUsedPercentage);
 
       Map<String, Metric> operations = new TreeMap<>();
       // Remove the instance name from the metrics.
-      for (Map.Entry<String, Counter> entry : counters.entrySet()) {
+      for (Map.Entry<String, Counter> entry : mr.getCounters().entrySet()) {
         operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
       }
-      String filesPinnedProperty = MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
-      operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
-          mr.getGauges().get(filesPinnedProperty));
 
       response.setOperationMetrics(operations);
-
-      Map<String, Counter> rpcInvocationsUpdated = new TreeMap<>();
-      for (Map.Entry<String, Counter> entry : rpcInvocations.entrySet()) {
-        rpcInvocationsUpdated
-            .put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
-      }
-
-      response.setRpcInvocationMetrics(rpcInvocations);
 
       return response;
     }, ServerConfiguration.global());
@@ -534,7 +510,7 @@ public final class AlluxioWorkerRestServiceHandler {
           String fileData;
           try (InputStream is = new FileInputStream(logFile)) {
             fileSize = logFile.length();
-            int len = (int) Math.min(5 * Constants.KB, fileSize - offset);
+            int len = (int) Math.min(5L * Constants.KB, fileSize - offset);
             byte[] data = new byte[len];
             long skipped = is.skip(offset);
             if (skipped < 0) {
@@ -748,7 +724,7 @@ public final class AlluxioWorkerRestServiceHandler {
     // Only the gauge for cached blocks is retrieved here, other gauges are statistics of
     // free/used spaces, those statistics can be gotten via other REST apis.
     String blocksCachedProperty =
-        MetricsSystem.getMetricName(DefaultBlockWorker.Metrics.BLOCKS_CACHED);
+        MetricsSystem.getMetricName(MetricKey.WORKER_BLOCKS_CACHED.getName());
     @SuppressWarnings("unchecked") Gauge<Integer> blocksCached =
         (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);
 

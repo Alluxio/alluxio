@@ -12,26 +12,23 @@
 package alluxio.server.tieredstore;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatScheduler;
-import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.io.Files;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,13 +44,11 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
   private static final String BLOCK_SIZE_BYTES = "1KB";
   private static final long CAPACITY_BYTES =
       BLOCKS_PER_TIER * FormatUtils.parseSpaceSize(BLOCK_SIZE_BYTES);
+  private static final WaitForOptions WAIT_OPTIONS =
+      WaitForOptions.defaults().setTimeoutMs(2000).setInterval(10);
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource;
-
-  @ClassRule
-  public static ManuallyScheduleHeartbeat sManuallySchedule =
-      new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
 
   private FileSystem mFileSystem = null;
 
@@ -115,11 +110,21 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
     os3.write(BufferUtils.getIncreasingByteArray(size));
     os3.close();
 
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-
     // Not in memory but in Alluxio storage
-    Assert.assertEquals(0, mFileSystem.getStatus(path1).getInMemoryPercentage());
-    Assert.assertFalse(mFileSystem.getStatus(path1).getFileBlockInfos().isEmpty());
+    CommonUtils.waitFor("file is not in memory", () -> {
+      try {
+        return 0 == mFileSystem.getStatus(path1).getInMemoryPercentage();
+      } catch (Exception e) {
+        return false;
+      }
+    }, WAIT_OPTIONS);
+    CommonUtils.waitFor("file has block locations", () -> {
+      try {
+        return !mFileSystem.getStatus(path1).getFileBlockInfos().isEmpty();
+      } catch (Exception e) {
+        return false;
+      }
+    }, WAIT_OPTIONS);
 
     // After reading with CACHE_PROMOTE, the file should be in memory
     FileInStream in = mFileSystem.openFile(path1,
@@ -130,9 +135,13 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
     }
     in.close();
 
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-
     // In memory
-    Assert.assertEquals(100, mFileSystem.getStatus(path1).getInMemoryPercentage());
+    CommonUtils.waitFor("file is not in memory", () -> {
+      try {
+        return 100 == mFileSystem.getStatus(path1).getInMemoryPercentage();
+      } catch (Exception e) {
+        return false;
+      }
+    }, WAIT_OPTIONS);
   }
 }

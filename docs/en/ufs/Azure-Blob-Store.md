@@ -2,7 +2,7 @@
 layout: global
 title: Azure Blob Store
 nickname: Azure Blob Store
-group: Under Stores
+group: Storage Integrations
 priority: 2
 ---
 
@@ -56,7 +56,7 @@ alluxio.master.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.blob
 ### Nested Mount
 An Azure blob store location can be mounted at a nested directory in the Alluxio namespace to have unified access
 to multiple under storage systems. Alluxio's
-[Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) can be used for this purpose.
+[Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
 
 ```console
 $ ./bin/alluxio fs mount \

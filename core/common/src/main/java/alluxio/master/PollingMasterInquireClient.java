@@ -23,8 +23,8 @@ import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
-import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
 import alluxio.uri.MultiMasterAuthority;
@@ -56,11 +56,16 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   /**
    * @param masterAddresses the potential master addresses
    * @param alluxioConf Alluxio configuration
+   * @param userState user state
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
-      AlluxioConfiguration alluxioConf) {
-    this(masterAddresses, () -> new ExponentialBackoffRetry(20, 2000, 30),
-        alluxioConf);
+      AlluxioConfiguration alluxioConf,
+      UserState userState) {
+    this(masterAddresses, () -> RetryUtils.defaultClientRetry(
+        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
+        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
+        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)),
+        alluxioConf, userState);
   }
 
   /**
@@ -75,6 +80,22 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     mRetryPolicySupplier = retryPolicySupplier;
     mConfiguration = alluxioConf;
     mUserState = UserState.Factory.create(mConfiguration);
+  }
+
+  /**
+   * @param masterAddresses the potential master addresses
+   * @param retryPolicySupplier the retry policy supplier
+   * @param alluxioConf Alluxio configuration
+   * @param userState user state
+   */
+  public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
+      Supplier<RetryPolicy> retryPolicySupplier,
+      AlluxioConfiguration alluxioConf,
+      UserState userState) {
+    mConnectDetails = new MultiMasterConnectDetails(masterAddresses);
+    mRetryPolicySupplier = retryPolicySupplier;
+    mConfiguration = alluxioConf;
+    mUserState = userState;
   }
 
   @Override
@@ -111,9 +132,11 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   }
 
   private void pingMetaService(InetSocketAddress address) throws AlluxioStatusException {
+    // disable authentication in the channel since version service does not require authentication
     GrpcChannel channel =
         GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), mConfiguration)
-            .setSubject(mUserState.getSubject()).setClientType("MasterInquireClient").build();
+            .setSubject(mUserState.getSubject()).setClientType("MasterInquireClient")
+            .disableAuthentication().build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
         ServiceVersionClientServiceGrpc.newBlockingStub(channel);
     ServiceType serviceType

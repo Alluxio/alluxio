@@ -19,11 +19,14 @@ import alluxio.exception.JournalClosedException;
 import alluxio.exception.JournalClosedException.IOJournalClosedException;
 import alluxio.master.journal.JournalEntryStreamReader;
 import alluxio.master.journal.JournalWriter;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.OpenOptions;
 
+import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
@@ -158,40 +161,43 @@ final class UfsJournalLogWriter implements JournalWriter {
       return;
     }
 
-    long lastPersistSeq = recoverLastPersistedJournalEntry();
-    if (lastPersistSeq == -1) {
-      throw new RuntimeException("Cannot find any journal entry to recover from.");
-    }
-
-    createNewLogFile(lastPersistSeq + 1);
-    if (!mEntriesToFlush.isEmpty()) {
-      JournalEntry firstEntryToFlush = mEntriesToFlush.peek();
-      if (firstEntryToFlush.getSequenceNumber() > lastPersistSeq + 1) {
-        throw new RuntimeException(ExceptionMessage.JOURNAL_ENTRY_MISSING.getMessageWithUrl(
-            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
-            lastPersistSeq + 1, firstEntryToFlush.getSequenceNumber()));
+    try (Timer.Context ctx = MetricsSystem
+        .timer(MetricKey.MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER.getName()).time()) {
+      long lastPersistSeq = recoverLastPersistedJournalEntry();
+      if (lastPersistSeq == -1) {
+        throw new RuntimeException("Cannot find any journal entry to recover from.");
       }
-      long retryEndSeq = lastPersistSeq;
-      LOG.info("Retry writing unwritten journal entries from seq {}", lastPersistSeq + 1);
-      for (JournalEntry entry : mEntriesToFlush) {
-        if (entry.getSequenceNumber() > lastPersistSeq) {
-          try {
-            entry.toBuilder().build().writeDelimitedTo(mJournalOutputStream);
-            retryEndSeq = entry.getSequenceNumber();
-          } catch (IOJournalClosedException e) {
-            throw e.toJournalClosedException();
-          } catch (IOException e) {
-            throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
-                .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
-                    mJournalOutputStream.currentLog(), e.getMessage()), e);
+
+      createNewLogFile(lastPersistSeq + 1);
+      if (!mEntriesToFlush.isEmpty()) {
+        JournalEntry firstEntryToFlush = mEntriesToFlush.peek();
+        if (firstEntryToFlush.getSequenceNumber() > lastPersistSeq + 1) {
+          throw new RuntimeException(ExceptionMessage.JOURNAL_ENTRY_MISSING.getMessageWithUrl(
+              RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+              lastPersistSeq + 1, firstEntryToFlush.getSequenceNumber()));
+        }
+        long retryEndSeq = lastPersistSeq;
+        LOG.info("Retry writing unwritten journal entries from seq {}", lastPersistSeq + 1);
+        for (JournalEntry entry : mEntriesToFlush) {
+          if (entry.getSequenceNumber() > lastPersistSeq) {
+            try {
+              entry.toBuilder().build().writeDelimitedTo(mJournalOutputStream);
+              retryEndSeq = entry.getSequenceNumber();
+            } catch (IOJournalClosedException e) {
+              throw e.toJournalClosedException();
+            } catch (IOException e) {
+              throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
+                  .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+                      mJournalOutputStream.currentLog(), e.getMessage()), e);
+            }
           }
         }
-      }
-      LOG.info("Finished writing unwritten journal entries from {} to {}.",
-          lastPersistSeq + 1, retryEndSeq);
-      if (retryEndSeq != mNextSequenceNumber - 1) {
-        throw new RuntimeException("Failed to recover all entries to flush, expecting "
-            + (mNextSequenceNumber - 1) + " but only found entry " + retryEndSeq);
+        LOG.info("Finished writing unwritten journal entries from {} to {}.",
+            lastPersistSeq + 1, retryEndSeq);
+        if (retryEndSeq != mNextSequenceNumber - 1) {
+          throw new RuntimeException("Failed to recover all entries to flush, expecting "
+              + (mNextSequenceNumber - 1) + " but only found entry " + retryEndSeq);
+        }
       }
     }
     mNeedsRecovery = false;

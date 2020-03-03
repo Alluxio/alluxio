@@ -16,6 +16,8 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalEntryStreamReader;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.ThreadFactoryUtils;
 
@@ -70,11 +72,25 @@ public class BackupManager {
 
   private final MasterRegistry mRegistry;
 
+  // Set initial values to -1 to indicate no backup or restore happened
+  private long mBackupEntriesCount = -1;
+  private long mRestoreEntriesCount = -1;
+  private long mBackupTimeMs = -1;
+  private long mRestoreTimeMs = -1;
+
   /**
    * @param registry a master registry containing the masters to backup or restore
    */
   public BackupManager(MasterRegistry registry) {
     mRegistry = registry;
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_ENTRIES_COUNT.getName(),
+        () -> mBackupEntriesCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_RESTORE_COUNT.getName(),
+        () -> mRestoreEntriesCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_RESTORE_TIME_MS.getName(),
+        () -> mRestoreTimeMs);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_TIME_MS.getName(),
+        () -> mBackupTimeMs);
   }
 
   /**
@@ -104,6 +120,9 @@ public class BackupManager {
 
     // Whether buffering is still active.
     AtomicBoolean bufferingActive = new AtomicBoolean(true);
+
+    // Start the timer for backup metrics.
+    long startBackupTime = System.currentTimeMillis();
 
     // Submit master reader task.
     activeTasks.add(completionService.submit(() -> {
@@ -160,6 +179,10 @@ public class BackupManager {
     // Wait until backup tasks are completed.
     safeWaitTasks(activeTasks, completionService);
 
+    // Close timer and update entry count.
+    mBackupTimeMs = System.currentTimeMillis() - startBackupTime;
+    mBackupEntriesCount = entryCount.get();
+
     // finish() instead of close() since close would close os, which is owned by the caller.
     zipStream.finish();
     LOG.info("Created backup with {} entries", entryCount.get());
@@ -201,6 +224,9 @@ public class BackupManager {
       traceExecutor.scheduleAtFixedRate(() -> {
         LOG.info("{} entries from backup applied so far...", appliedEntryCount.get());
       }, 30, 30, TimeUnit.SECONDS);
+
+      // Start the timer for backup metrics.
+      long startRestoreTime = System.currentTimeMillis();
 
       // Create backup reader task.
       activeTasks.add(completionService.submit(() -> {
@@ -276,10 +302,12 @@ public class BackupManager {
         }
       }));
 
-      // Wait until backup tasks are completed.
+      // Wait until backup tasks are completed and stop metrics timer.
       try {
         safeWaitTasks(activeTasks, completionService);
       } finally {
+        mRestoreTimeMs = System.currentTimeMillis() - startRestoreTime;
+        mRestoreEntriesCount = appliedEntryCount.get();
         traceExecutor.shutdownNow();
       }
 

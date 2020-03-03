@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
@@ -36,6 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * folder).
  */
 @ThreadSafe
+@PublicApi
 public final class FreeCommand extends AbstractFileSystemCommand {
 
   private static final Option FORCE_OPTION =
@@ -93,7 +95,7 @@ public final class FreeCommand extends AbstractFileSystemCommand {
     } catch (TimeoutException e) {
       throw new RuntimeException(e);
     }
-    System.out.println(path + " was successfully freed from memory.");
+    System.out.println(path + " was successfully freed from Alluxio space.");
   }
 
   @Override

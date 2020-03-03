@@ -9,35 +9,41 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {Reducer} from 'redux';
+import { Reducer } from 'redux';
 
-import {IOverviewState, OverviewActionTypes} from './types';
+import { IOverviewState, OverviewActionTypes } from './types';
 
 export const initialOverviewState: IOverviewState = {
   data: {
-    'capacityBytes': '',
-    'storageDirs': [],
-    'usageOnTiers': [],
-    'usedBytes': '',
-    'version': '',
-    'workerInfo': {
-      'startTime': '',
-      'uptime': '',
-      'workerAddress': ''
-    }
+    capacityBytes: '',
+    storageDirs: [],
+    usageOnTiers: [],
+    usedBytes: '',
+    version: '',
+    workerInfo: {
+      startTime: '',
+      uptime: '',
+      workerAddress: '',
+    },
   },
   errors: undefined,
-  loading: false
+  loading: false,
 };
 
 export const overviewReducer: Reducer<IOverviewState> = (state = initialOverviewState, action) => {
   switch (action.type) {
     case OverviewActionTypes.FETCH_REQUEST:
-      return {...state, loading: true};
+      return { ...state, loading: true };
     case OverviewActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
+      return {
+        ...state,
+        loading: false,
+        data: action.payload.data,
+        response: action.payload,
+        errors: undefined,
+      };
     case OverviewActionTypes.FETCH_ERROR:
-      return {...state, loading: false, errors: action.payload};
+      return { ...state, loading: false, errors: action.payload };
     default:
       return state;
   }

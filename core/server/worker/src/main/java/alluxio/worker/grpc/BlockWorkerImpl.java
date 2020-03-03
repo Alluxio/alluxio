@@ -18,6 +18,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.ClearMetricsRequest;
+import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.MoveBlockRequest;
@@ -176,6 +178,16 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
           request.getBlockId(), request.getMediumType());
       return MoveBlockResponse.getDefaultInstance();
     }, "moveBlock", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void clearMetrics(ClearMetricsRequest request,
+      StreamObserver<ClearMetricsResponse> responseObserver) {
+    long sessionId = IdUtils.createSessionId();
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<ClearMetricsResponse>) () -> {
+      mWorkerProcess.getWorker(BlockWorker.class).clearMetrics();
+      return ClearMetricsResponse.getDefaultInstance();
+    }, "clearMetrics", "request=%s", responseObserver, request);
   }
 
   /**

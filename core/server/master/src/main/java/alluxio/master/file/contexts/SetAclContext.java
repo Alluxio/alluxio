@@ -26,9 +26,10 @@ public class SetAclContext extends OperationContext<SetAclPOptions.Builder> {
    * Creates context with given option data.
    *
    * @param optionsBuilder options builder
+   * @param callTracker client call tracker
    */
-  private SetAclContext(SetAclPOptions.Builder optionsBuilder) {
-    super(optionsBuilder);
+  private SetAclContext(SetAclPOptions.Builder optionsBuilder, CallTracker callTracker) {
+    super(optionsBuilder, callTracker);
   }
 
   /**
@@ -36,7 +37,17 @@ public class SetAclContext extends OperationContext<SetAclPOptions.Builder> {
    * @return the instance of {@link SetAclContext} with the given options
    */
   public static SetAclContext create(SetAclPOptions.Builder optionsBuilder) {
-    return new SetAclContext(optionsBuilder);
+    return new SetAclContext(optionsBuilder, CallTracker.NOOP_TRACKER);
+  }
+
+  /**
+   * @param optionsBuilder Builder for proto {@link SetAclPOptions}
+   * @param callTracker client call tracker
+   * @return the instance of {@link SetAclContext} with the given options
+   */
+  public static SetAclContext create(SetAclPOptions.Builder optionsBuilder,
+      CallTracker callTracker) {
+    return new SetAclContext(optionsBuilder, callTracker);
   }
 
   /**

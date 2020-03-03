@@ -19,6 +19,7 @@ import alluxio.worker.block.meta.StorageTierView;
 import com.google.common.base.Preconditions;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -107,7 +108,7 @@ public final class RoundRobinAllocator implements Allocator {
     } else {
       StorageTierView tierView = mMetadataView.getTierView(location.tierAlias());
       StorageDirView dirView = tierView.getDirView(location.dir());
-      if (dirView.getAvailableBytes() >= blockSize) {
+      if (dirView != null && dirView.getAvailableBytes() >= blockSize) {
         return dirView;
       }
     }
@@ -125,12 +126,14 @@ public final class RoundRobinAllocator implements Allocator {
    */
   private int getNextAvailDirInTier(StorageTierView tierView, long blockSize, String mediumType) {
     int dirIndex = mTierAliasToLastDirMap.get(tierView.getTierViewAlias());
-    for (int i = 0; i < tierView.getDirViews().size(); i++) { // try this many times
-      dirIndex = (dirIndex + 1) % tierView.getDirViews().size();
+    List<StorageDirView> dirs = tierView.getDirViews();
+    for (int i = 0; i < dirs.size(); i++) { // try this many times
+      dirIndex = (dirIndex + 1) % dirs.size();
+      StorageDirView dir = dirs.get(dirIndex);
       if ((mediumType.equals(BlockStoreLocation.ANY_MEDIUM)
-          || tierView.getDirView(dirIndex).getMediumType().equals(mediumType))
-          && tierView.getDirView(dirIndex).getAvailableBytes() >= blockSize) {
-        return dirIndex;
+          || dir.getMediumType().equals(mediumType))
+          && dir.getAvailableBytes() >= blockSize) {
+        return dir.getDirViewIndex();
       }
     }
     return -1;

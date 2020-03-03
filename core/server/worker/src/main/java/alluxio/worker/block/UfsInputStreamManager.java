@@ -111,8 +111,8 @@ public class UfsInputStreamManager {
             try {
               inputStream.close();
             } catch (IOException e) {
-              LOG.warn("Failed to close the input stream resource of file {} with file id {}",
-                  " and resource id {}", inputStream.getFilePath(), inputStream.getFileId(),
+              LOG.warn("Failed to close the input stream resource of file {} with file id {}"
+                  + " and resource id {}", inputStream.getFilePath(), inputStream.getFileId(),
                   removal.getKey());
             }
           }
@@ -242,13 +242,15 @@ public class UfsInputStreamManager {
           inputStream = mUnderFileInputStreamCache.get(nextId, () -> {
             SeekableUnderFileInputStream ufsStream
                 = (SeekableUnderFileInputStream) ufs.openExistingFile(path,
-                OpenOptions.defaults().setOffset(openOptions.getOffset()));
+                OpenOptions.defaults()
+                    .setPositionShort(openOptions.getPositionShort())
+                    .setOffset(openOptions.getOffset()));
             LOG.debug("Created the under file input stream resource of {}", newId);
             return new CachedSeekableInputStream(ufsStream, newId, fileId, path);
           });
         } catch (ExecutionException e) {
           LOG.warn("Failed to create a new cached ufs instream of file id {} and path {}", fileId,
-              path);
+              path, e);
           // fall back to a ufs creation.
           return ufs.openExistingFile(path,
               OpenOptions.defaults().setOffset(openOptions.getOffset()));

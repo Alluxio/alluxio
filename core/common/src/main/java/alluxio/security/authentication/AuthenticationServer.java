@@ -17,12 +17,14 @@ import alluxio.grpc.ChannelAuthenticationScheme;
 import io.grpc.BindableService;
 
 import javax.security.sasl.SaslException;
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.UUID;
 
 /**
  * Interface for authentication server implementations.
  */
-public interface AuthenticationServer extends BindableService {
+public interface AuthenticationServer extends BindableService, Closeable {
   /**
    * Registers new user against given channel.
    *
@@ -31,7 +33,7 @@ public interface AuthenticationServer extends BindableService {
    * @param saslDriver sasl server driver
    */
   void registerChannel(UUID channelId, AuthenticatedUserInfo userInfo,
-      SaslStreamServerDriver saslDriver);
+      AuthenticatedChannelServerDriver saslDriver);
 
   /**
    * @param channelId channel id
@@ -44,9 +46,8 @@ public interface AuthenticationServer extends BindableService {
    * Unregisters given channel.
    *
    * @param channelId channel id
-   * @return {@code true} if channel was registered
    */
-  boolean unregisterChannel(UUID channelId);
+  void unregisterChannel(UUID channelId);
 
   /**
    * Creates server-side Sasl handler for given scheme.
@@ -54,13 +55,11 @@ public interface AuthenticationServer extends BindableService {
    * @param scheme the authentication scheme
    * @return the created {@link SaslServerHandler} instance
    * @throws SaslException
-   * @throws UnauthenticatedException
    */
-  SaslServerHandler createSaslHandler(ChannelAuthenticationScheme scheme)
-      throws SaslException, UnauthenticatedException;
+  SaslServerHandler createSaslHandler(ChannelAuthenticationScheme scheme) throws SaslException;
 
   /**
    * Closes the server, releases all authentication sessions.
    */
-  void close();
+  void close() throws IOException;
 }

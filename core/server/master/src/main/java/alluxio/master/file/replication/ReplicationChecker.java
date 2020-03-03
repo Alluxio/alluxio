@@ -20,8 +20,8 @@ import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.job.replicate.DefaultReplicationHandler;
-import alluxio.job.replicate.ReplicationHandler;
+import alluxio.job.plan.replicate.DefaultReplicationHandler;
+import alluxio.job.plan.replicate.ReplicationHandler;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.InodeFile;
@@ -56,7 +56,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class ReplicationChecker implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(ReplicationChecker.class);
-  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10 * Constants.MINUTE_MS);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
   private static final long MAX_QUIET_PERIOD_SECONDS = 64;
 
   /** Handler to the inode tree. */

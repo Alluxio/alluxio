@@ -3,7 +3,7 @@ layout: global
 title: Journal Management
 nickname: Journal Management
 group: Operations
-priority: 0
+priority: 5
 ---
 
 * Table of Contents
@@ -22,16 +22,11 @@ an external Zookeeper cluster for coordination, and relies on a UFS for persiste
 To get reasonable performance, the UFS journal requires a UFS that supports fast streaming writes, 
 such as HDFS or NFS.
 
-The embedded journal does its own coordination and persistent storage, but has a few limitations:
-* `n` masters using the embedded journal can tolerate only `floor(n/2)` master failures, 
+The embedded journal does its own coordination and persistent storage, which comes with a limitation on fault tolerance.
+`n` masters using the embedded journal can tolerate only `floor(n/2)` master failures, 
 compared to `n-1` for UFS journal. For example, With `3` masters, UFS journal can tolerate `2` failures, 
 while embedded journal can only tolerate `1`. However, UFS journal depends on Zookeeper, 
 which similarly only supports `floor(#zookeeper_nodes / 2)` failures.
-
-* embedded journal does not support dynamically changing master membership. 
-With UFS journal, replacing a master on `host1` with a new master on `host2` is as simple as starting a new master on `host2`, 
-then killing the master on `host1`. Changing the masters in an embedded journal cluster requires [backing up](#backing-up-the-journal) 
-the cluster, shutting it down, and then starting up again with the new masters using the backup.
 
 If a fast UFS and Zookeeper cluster are readily available and stable, it is recommended to use the UFS journal. 
 Otherwise, we recommend using the embedded journal.
@@ -82,6 +77,15 @@ when using multiple masters without Zookeeper. This property is not used when Zo
 If this is not set, clients will look for masters using the hostnames from `alluxio.master.embedded.journal.addresses` 
 and the master rpc port (Default:`19998`).
 
+### Advanced configuration
+* `alluxio.master.embedded.journal.transport.request.timeout.ms`: The duration after which embedded journal masters will timeout messages sent between each other.
+ Lower values might cause leadership instability when network is slow. Default: `5s`.
+* `alluxio.master.embedded.journal.appender.batch.size`: Size of a single internal knowledge batch sent from leader to secondary masters.
+ Lower values could potentially slow down secondary masters' catching up with the leader. Higher values might be reasonable in the network environment so that packets
+ don't get timed out. Default: `512KB`.
+* `alluxio.master.embedded.journal.transport.max.inbound.message.size`: Maximum allowed size for a network message between embedded journal masters.
+The configured value should allow for appending batches to all secondary masters. Default: `100MB`.
+
 ### Job service configuration
 
 It is usually best not to set any of these - by default the job master will use the same hostnames as the Alluxio master, 
@@ -112,7 +116,8 @@ $ ./bin/alluxio formatMasters
 
 Alluxio supports taking journal backups so that Alluxio metadata can be restored
 to a previous point in time. Generating a backup causes temporary service
-unavailability while the backup is written.
+unavailability while the backup is written. 
+(See [Backup delegation on HA cluster](#backup-delegation-on-ha-cluster) section for overcoming this limitation.)
 
 To generate a backup, use the `fsadmin backup` CLI command.
 ```console
@@ -154,6 +159,27 @@ the default backup directory would be `hdfs://192.168.1.1:9000/alluxio_backups`.
 The files to retain in the backup directory is limited by `alluxio.master.daily.backup.files.retained`.
 Users can set this property to the number of backup files they want to keep in the backup directory.
 
+### Backup delegation on HA cluster
+Alluxio supports taking backup without causing service unavailability on a HA cluster configuration.
+When enabled, Alluxio leading master delegates backups to backup masters in cluster.
+After configuring backup delegation, both manual and scheduled backups will run in delegated mode.
+
+Backup delegation can be configured with below properties:
+- `alluxio.master.backup.delegation.enabled`: Whether to delegate backups to backup masters. Default: `false`.
+- `alluxio.master.backup.heartbeat.interval`: Interval at which backup master that is taking the backup will update the leading master with current backup status. Default: `1sec`.
+
+There are some advanced properties that controls the communication between Alluxio masters for coordinating the backup:
+- `alluxio.master.backup.transport.timeout`: Communication timeout for messaging between masters for coordinating backup. Default: `5sec`.
+- `alluxio.master.backup.connect.interval.min`: Minimum duration to sleep before retrying after unsuccessful handshake between backup master and leading master. Default: `1sec`.
+- `alluxio.master.backup.connect.interval.max`: Maximum duration to sleep before retrying after unsuccessful handshake between backup master and leading master. Default: `10sec`.
+- `alluxio.master.backup.abandon.timeout`: Specifies how long the leading master waits for a heart-beat before abandoning the backup. Default: `2min`.
+
+Since it is uncertain which host will take the backup, it is suggested to use shared paths for taking backups with backup delegation.
+
+Backup attempt will fail if delegation fails to find a backup master, thus favoring service availability.
+For manual backups, you can pass `--allow-leader` option to allow leading master to take backup when there are no backup masters to delegate the backup. 
+This will causes temporary service unavailability while the backup is written on leading master. 
+
 ### Restoring from a backup
 
 To restore the Alluxio system from a journal backup, stop the system, format the
@@ -168,6 +194,8 @@ $ ./bin/alluxio-start.sh -i <backup_uri> masters
 
 The `<backup_uri>` should be a full URI path that is available to all masters, e.g.
 `hdfs://[namenodeserver]:[namenodeport]/alluxio_backups/alluxio-journal-YYYY-MM-DD-timestamp.gz`
+If backups to the local disk of the leader master, copy the backup file to the same location in each master 
+and pass in the local backup file path.
 
 If starting up masters individually, pass the `-i` argument to each one. The master which
 becomes leader first will import the journal backup, and the rest will ignore the `-i`.
@@ -180,16 +208,75 @@ in the leading master logs.
 
 ### Changing masters
 
-If the journal is stored in a shared storage system like HDFS, changing masters is easy.
-As long as the new master sets `alluxio.master.journal.folder` the same as the old
-master, it will start up in the same state that the old master left off.
+#### Embedded Journal Cluster
+When internal leader election is used, Alluxio masters are determined with a quorum. Adding or removing
+masters requires to keep this quorum in a consistent state. 
 
-If the journal is stored on the local filesystem, the journal folder needs to be
-copied to the new master.
+##### Adding a new master
+In order to prevent inconsistencies in the cluster configuration across masters, only a single master
+should be added to an existing embedded journal cluster. 
+
+Below are the steps to add a new master to a live cluster:
+* Prepare the new master.
+    * New master should contain all existing masters in its embedded journal configuration, complete with its own address.
+* Start new master.
+    * This will introduce the new master to existing cluster.
+    * New master will catch up with cluster's state in the background.
+* Update existing masters' configuration with the new master address.
+    * This is in order to make sure existing members will connect the new member directly upon restart.
+
+Note: Adding to an already shut down cluster still requires adding only single master at a time.
+
+Note: When adding a master to a single master cluster, you should shut down and update configuration for the existing master.
+Then both masters could be started together.
+
+See [here]({{ '/en/operation/Journal.html' | relativize_url }}) for configuring embedded journal.
+
+##### Removing a master
+Embedded journal cluster will take a notice when a member is not available anymore. Such masters will count
+against failure tolerance of the cluster based on the initial member count. In order to resize the cluster
+after a node failure an explicit action is required.
+
+`Please note -domain parameter in below commands. This is because embedded journal based leader election is supported
+for both regular masters and job service masters. You should supply correct value based on which cluster you intend to work on.` 
+
+
+1- Check current quorum state:
+
+```console
+$ ./bin/alluxio fsadmin journal quorum info -domain <MASTER | JOB_MASTER>
+```
+
+This will print out node status for all currently participating members of the embedded journal cluster. You should verify 
+that the removed master is shown as `UNAVAILABLE`.
+
+2- Remove member from quorum:
+
+`-address` option below should reflect the exact address that is returned by the `.. quorum info` command provided above. 
+```console
+$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <address>
+```
+
+3- Verify that removed member is no longer shown in the quorum info.
+
+#### UFS Journal Cluster
+
+To add a master to an HA Alluxio cluster, you can simply start a new Alluxio master process, with
+the appropriate configuration. The configuration for the new master should be the same as other masters,
+except that the parameter `alluxio.master.hostname=<MASTER_HOSTNAME>` should reflect the new hostname.
+Once the new master is started, it will start interacting with ZooKeeper to participate in leader election.
+
+Removing a master is as simple as stopping the master process. If the cluster is a single master cluster,
+stopping the master will essentially shutdown the cluster, since the single master is down. If the
+Alluxio cluster is an HA cluster, stopping the leading master will force ZooKeeper to elect a new leading master
+and failover to that new leader. If a standby master is stopped, then the operation of the cluster is
+unaffected. Keep in mind, Alluxio masters high availability depends on the availability on standby
+masters. If there are not enough standby masters, the availability of the leading master will be affected.
+It is recommended to have at least 3 masters for an HA Alluxio cluster.
 
 ## Advanced
 
-### Managing the journal size
+### Managing the UFS journal size
 
 When running with a single master, the journal folder size will grow indefinitely
 as metadata operations are written to journal log files. To address this, production
@@ -204,6 +291,7 @@ By default, checkpoints are automatically taken every 2 million entries. This ca
 setting `alluxio.master.journal.checkpoint.period.entries` on the masters. Setting
 the value lower will reduce the amount of disk space needed by the journal at the
 cost of additional work for the standby masters.
+
 
 #### Checkpointing on secondary master
 
@@ -230,7 +318,7 @@ can help avoiding primary master journal logs from growing unbounded when Alluxi
 If HA mode is not an option, the following command can be used to manually trigger the checkpoint:
 
 ```console
-$ ./bin/alluxio fsadmin checkpoint
+$ ./bin/alluxio fsadmin journal checkpoint
 ```
 
 Similar to the `backup` command, `checkpoint` command should 

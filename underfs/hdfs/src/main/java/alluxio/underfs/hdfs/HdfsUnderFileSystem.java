@@ -361,7 +361,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         Collections.addAll(ret, names);
       }
     } catch (IOException e) {
-      LOG.warn("Unable to get file location for {} : {}", path, e.getMessage());
+      LOG.debug("Unable to get file location for {} : {}", path, e.getMessage());
     }
     return ret;
   }
@@ -373,8 +373,8 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     FileStatus fs = hdfs.getFileStatus(tPath);
     String contentHash =
         UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
-    return new UfsFileStatus(path, contentHash, fs.getLen(),
-        fs.getModificationTime(), fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
+    return new UfsFileStatus(path, contentHash, fs.getLen(), fs.getModificationTime(),
+        fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(), fs.getBlockSize());
   }
 
   @Override
@@ -425,7 +425,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       String contentHash =
           UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
       return new UfsFileStatus(path, contentHash, fs.getLen(), fs.getModificationTime(),
-          fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
+          fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(), fs.getBlockSize());
     }
     // Return directory status.
     return new UfsDirectoryStatus(path, fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(),
@@ -461,7 +461,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
             .approximateContentHash(status.getLen(), status.getModificationTime());
         retStatus = new UfsFileStatus(status.getPath().getName(), contentHash, status.getLen(),
             status.getModificationTime(), status.getOwner(), status.getGroup(),
-            status.getPermission().toShort());
+            status.getPermission().toShort(), status.getBlockSize());
       } else {
         retStatus = new UfsDirectoryStatus(status.getPath().getName(), status.getOwner(),
             status.getGroup(), status.getPermission().toShort(), status.getModificationTime());
@@ -563,6 +563,13 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     while (retryPolicy.attempt()) {
       try {
         FSDataInputStream inputStream = hdfs.open(new Path(path));
+        if (options.getPositionShort()) {
+          LOG.debug("Using pread API to HDFS");
+          // pread API instead of seek is more efficient for FSDataInputStream.
+          // A seek on FSDataInputStream uses a skip op which is implemented as read + discard
+          // and hence ends up reading extra data from the datanode.
+          return new HdfsPositionedUnderFileInputStream(inputStream, options.getOffset());
+        }
         try {
           inputStream.seek(options.getOffset());
         } catch (IOException e) {
@@ -584,7 +591,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
               LOG.warn("HDFS recoverLease-1 success for: {}", path);
             } else {
               // try one more time, after waiting
-              CommonUtils.sleepMs(5 * Constants.SECOND_MS);
+              CommonUtils.sleepMs(5L * Constants.SECOND_MS);
               if (dfs.recoverLease(new Path(path))) {
                 LOG.warn("HDFS recoverLease-2 success for: {}", path);
               } else {

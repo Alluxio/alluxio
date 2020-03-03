@@ -2,7 +2,7 @@
 layout: global
 title: 在OBS上配置Alluxio
 nickname: Alluxio使用OBS
-group: Under Stores
+group: Storage Integrations
 priority: 5
 ---
 
@@ -54,7 +54,7 @@ fs.obs.endpoint=<OBS_ENDPOINT>
 
 ### 嵌套目录安装
 
-OBS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多个存储系统。[Mount 命令](Command-Line-Interface.html#mount)可以实现这一目的。例如，下面的命令将OBS容器内部的目录挂载到Alluxio的`/obs`目录：
+OBS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多个存储系统。[Mount 命令]({{ '/cn/operation/User-CLI.html' | relativize_url }}#mount)可以实现这一目的。例如，下面的命令将OBS容器内部的目录挂载到Alluxio的`/obs`目录：
 
 ```console
 $ ./bin/alluxio fs mount --option fs.obs.accessKey=<OBS_ACCESS_KEY> \

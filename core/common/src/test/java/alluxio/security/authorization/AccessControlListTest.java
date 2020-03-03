@@ -16,6 +16,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
 import com.google.common.collect.Lists;
+import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -214,5 +215,22 @@ public class AccessControlListTest {
     assertMode(Mode.Bits.ALL, acl, OTHER_USER, Lists.newArrayList(NAMED_GROUP, NAMED_GROUP2));
     assertMode(Mode.Bits.EXECUTE, acl, OTHER_USER, Collections.emptyList());
     assertMode(Mode.Bits.EXECUTE, acl, OTHER_USER, Lists.newArrayList(OTHER_GROUP));
+  }
+
+  /**
+   * Basic equality test to make sure that subclasses are only equal to their respective types.
+   */
+  @Test
+  public void checkEquals() {
+    AccessControlList a1 = new AccessControlList();
+    a1.setOwningUser("test1");
+    DefaultAccessControlList a2 = new DefaultAccessControlList();
+    a2.setOwningUser("test2");
+    new EqualsTester()
+        .addEqualityGroup(new DefaultAccessControlList(), new DefaultAccessControlList())
+        .addEqualityGroup(new AccessControlList(), new AccessControlList())
+        .addEqualityGroup(a1)
+        .addEqualityGroup(a2)
+        .testEquals();
   }
 }

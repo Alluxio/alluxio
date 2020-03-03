@@ -2,8 +2,8 @@
 layout: global
 title: 在Alluxio上运行Apache Flink
 nickname: Apache Flink
-group: Data Applications
-priority: 2
+group: Compute Integrations
+priority: 6
 ---
 
 * 内容列表
@@ -13,7 +13,7 @@ priority: 2
 
 ## 前期准备
 
-开始之前你需要安装好[Java](Java-Setup.html)。同时使用[本地模式](Running-Alluxio-Locally.html)或[集群模式](Running-Alluxio-on-a-Cluster.html)构建好Alluxio。
+开始之前你需要安装好Java。同时使用[本地模式]({{ '/cn/deploy/Running-Alluxio-Locally.html' | relativize_url }})或[集群模式]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }})构建好Alluxio。
 
 请在[Apache Flink](http://flink.apache.org/)网站上阅读Flink安装说明。
 

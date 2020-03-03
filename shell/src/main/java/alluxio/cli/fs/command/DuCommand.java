@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -35,6 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Displays the size of a file or a directory specified by argv.
  */
 @ThreadSafe
+@PublicApi
 public final class DuCommand extends AbstractFileSystemCommand {
   private static final String LONG_INFO_FORMAT = "%-13s %-16s %-16s %s";
   private static final String SHORT_INFO_FORMAT = "%-13s %-16s %s";
@@ -108,7 +110,7 @@ public final class DuCommand extends AbstractFileSystemCommand {
    * @param summarize whether to display the aggregate summary lengths
    * @param addMemory whether to display the memory size and percentage information
    */
-  private void getSizeInfo(AlluxioURI path, List<URIStatus> statuses,
+  protected static void getSizeInfo(AlluxioURI path, List<URIStatus> statuses,
       boolean readable, boolean summarize, boolean addMemory) {
     if (summarize) {
       long totalSize = 0;
@@ -119,7 +121,7 @@ public final class DuCommand extends AbstractFileSystemCommand {
           long size = status.getLength();
           totalSize += size;
           sizeInMem += size * status.getInMemoryPercentage();
-          sizeInAlluxio += size * status.getInMemoryPercentage();
+          sizeInAlluxio += size * status.getInAlluxioPercentage();
         }
       }
       String sizeMessage = readable ? FormatUtils.getSizeFromBytes(totalSize)
@@ -153,7 +155,7 @@ public final class DuCommand extends AbstractFileSystemCommand {
    * @param totalSize the total size to calculate percentage information
    * @return the formatted value and percentage information
    */
-  private String getFormattedValues(boolean readable, long size, long totalSize) {
+  private static String getFormattedValues(boolean readable, long size, long totalSize) {
     // If size is 1, total size is 5, and readable is true, it will
     // return a string as "1B (20%)"
     int percent = totalSize == 0 ? 0 : (int) (size * 100 / totalSize);
@@ -170,7 +172,7 @@ public final class DuCommand extends AbstractFileSystemCommand {
    * @param inMemMessage the in memory size message to print
    * @param path the path to print
    */
-  private void printInfo(String sizeMessage,
+  private static void printInfo(String sizeMessage,
       String inAlluxioMessage, String inMemMessage, String path) {
     System.out.println(inMemMessage.isEmpty()
         ? String.format(SHORT_INFO_FORMAT, sizeMessage, inAlluxioMessage, path)

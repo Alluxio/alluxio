@@ -11,25 +11,42 @@
 
 package alluxio.client.fs;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientContext;
+import alluxio.master.block.BlockMaster;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.WorkerInfo;
+import alluxio.worker.block.BlockMasterSync;
+import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.SpaceReserver;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.powermock.reflect.Whitebox;
+
+import java.util.Arrays;
 
 /**
  * Integration tests for {@link alluxio.client.file.FileOutStream} of under storage type being async
@@ -37,6 +54,9 @@ import org.junit.Test;
  */
 public final class FileOutStreamAsyncWriteIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {
+
+  private static final String TINY_WORKER_MEM = "512k";
+  private static final String TINY_BLOCK_SIZE = "16k";
 
   @Test
   public void asyncWrite() throws Exception {
@@ -72,7 +92,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     CommonUtils.sleepMs(1);
     // check the file is completed but not persisted
     URIStatus srcStatus = mFileSystem.getStatus(srcPath);
-    Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), srcStatus.getPersistenceState());
+    assertEquals(PersistenceState.TO_BE_PERSISTED.toString(), srcStatus.getPersistenceState());
     Assert.assertTrue(srcStatus.isCompleted());
 
     mFileSystem.rename(srcPath, dstPath);
@@ -88,7 +108,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     CommonUtils.sleepMs(1);
     // check the file is completed but not persisted
     URIStatus srcStatus = mFileSystem.getStatus(filePath);
-    Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), srcStatus.getPersistenceState());
+    assertEquals(PersistenceState.TO_BE_PERSISTED.toString(), srcStatus.getPersistenceState());
     Assert.assertTrue(srcStatus.isCompleted());
 
     mFileSystem.persist(filePath);
@@ -113,10 +133,108 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     alluxio.worker.file.FileSystemMasterClient fsMasterClient = new
         alluxio.worker.file.FileSystemMasterClient(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
-
     Assert.assertTrue(fsMasterClient.getPinList().contains(status.getFileId()));
     IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, filePath);
     Assert.assertFalse(fsMasterClient.getPinList().contains(status.getFileId()));
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME, "-1",
+      PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "ASYNC_THROUGH",
+      PropertyKey.Name.WORKER_MEMORY_SIZE, TINY_WORKER_MEM,
+      PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, TINY_BLOCK_SIZE,
+      PropertyKey.Name.USER_FILE_BUFFER_BYTES, TINY_BLOCK_SIZE,
+      PropertyKey.Name.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS, "10sec",
+      "alluxio.worker.tieredstore.level0.watermark.high.ratio", "0.5",
+      "alluxio.worker.tieredstore.level0.watermark.low.ratio", "0.25",
+      })
+  public void asyncWriteNoEvictBeforeBlockCommit() throws Exception {
+    long writeSize =
+        FormatUtils.parseSpaceSize(TINY_WORKER_MEM) - FormatUtils.parseSpaceSize(TINY_BLOCK_SIZE);
+    FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
+    AlluxioURI p1 = new AlluxioURI("/p1");
+    FileOutStream fos = fs.createFile(p1, CreateFilePOptions.newBuilder()
+        .setWriteType(WritePType.ASYNC_THROUGH)
+        .setPersistenceWaitTime(-1).build());
+    byte[] arr = new byte[(int) writeSize];
+    Arrays.fill(arr, (byte) 0x7a);
+    fos.write(arr);
+    assertEquals(writeSize + FormatUtils.parseSpaceSize(TINY_BLOCK_SIZE), getClusterCapacity());
+    // subtract block size since the last block hasn't been committed yet
+    assertEquals(writeSize, getUsedWorkerSpace());
+    fos.close();
+    FileSystemUtils.persistAndWait(fs, p1, 0);
+    assertTrue(getUsedWorkerSpace() < writeSize);
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "ASYNC_THROUGH",
+      PropertyKey.Name.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME, "1min",
+      PropertyKey.Name.WORKER_MEMORY_SIZE, TINY_WORKER_MEM,
+      PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, TINY_BLOCK_SIZE,
+      PropertyKey.Name.USER_FILE_BUFFER_BYTES, "8k"
+      })
+  public void asyncWriteNoEvict() throws Exception {
+    testLostAsyncBlocks();
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME, "-1",
+      PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "ASYNC_THROUGH",
+      PropertyKey.Name.WORKER_MEMORY_SIZE, TINY_WORKER_MEM,
+      PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, TINY_BLOCK_SIZE,
+      PropertyKey.Name.USER_FILE_BUFFER_BYTES, "8k"
+      })
+  public void asyncPersistNoAutoPersistNoEvict() throws Exception {
+    testLostAsyncBlocks();
+  }
+
+  /**
+   * Test eviction against a file that is slow to persist in Alluxio. The test cluster should be
+   * configured with a high initial wait time, or -1
+   *
+   * This test performs the following actions:
+   * - creates a file with ASYNC_THROUGH which fills the entire capacity of a worker
+   * - Manually triggers an eviction, making sure that no blocks have been evicted
+   * - persists the file to the UFS
+   * - triggers an eviction, checking that some of the blocks have been evicted from storage
+   */
+  private void testLostAsyncBlocks() throws Exception {
+    long cap = FormatUtils.parseSpaceSize(TINY_WORKER_MEM);
+    FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
+    // Create a large-ish file in the UFS (relative to memory size)
+    String p1 = "/test";
+    FileSystemTestUtils.createByteFile(fs, p1, WritePType.ASYNC_THROUGH, (int) cap);
+
+    BlockWorker blkWorker = mLocalAlluxioClusterResource.get().getWorkerProcess()
+        .getWorker(BlockWorker.class);
+    SpaceReserver reserver = Whitebox.getInternalState(blkWorker, SpaceReserver.class);
+
+    // Trigger worker eviction
+    reserver.heartbeat();
+    URIStatus fstat = fs.listStatus(new AlluxioURI(p1)).get(0);
+    int lostBlocks = fstat.getFileBlockInfos().stream()
+        .map(FileBlockInfo::getBlockInfo)
+        .filter(blk -> blk.getLocations().size() <= 0)
+        .mapToInt(blk -> 1)
+        .sum();
+
+    assertEquals(cap, getClusterCapacity());
+    assertEquals(cap, getUsedWorkerSpace());
+    assertEquals(100, fstat.getInAlluxioPercentage());
+    assertEquals(0, lostBlocks);
+
+    FileSystemUtils.persistAndWait(fs, new AlluxioURI(p1), 0);
+    fstat = fs.listStatus(new AlluxioURI(p1)).get(0);
+
+    assertTrue(fstat.isPersisted());
+    assertEquals(0, mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+        .getMaster(FileSystemMaster.class)
+        .getPinIdList().size());
+    assertTrue(getUsedWorkerSpace() < getClusterCapacity());
   }
 
   @Test
@@ -126,6 +244,39 @@ public final class FileOutStreamAsyncWriteIntegrationTest
         .setWriteType(WritePType.ASYNC_THROUGH).setRecursive(true).build()).close();
 
     checkPersistStateAndWaitForPersist(filePath, 0);
+  }
+
+  private long getClusterCapacity() throws UnavailableException {
+    // This value shouldn't ever change, so we don't need to trigger eviction or heartbeats
+    return mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+        .getMaster(BlockMaster.class)
+        .getWorkerInfoList()
+        .stream()
+        .map(WorkerInfo::getCapacityBytes)
+        .mapToLong(Long::new).sum();
+  }
+
+  /**
+   * Executing this will trigger an eviction on the worker, force a sync of storage info to the
+   * master, and then retrieve the updated storage value from the master.
+   *
+   * @return the amount of space used in the cluster
+   */
+  private long getUsedWorkerSpace() throws UnavailableException {
+    BlockWorker blkWorker = mLocalAlluxioClusterResource.get().getWorkerProcess()
+        .getWorker(BlockWorker.class);
+    Whitebox.getInternalState(blkWorker, BlockMasterSync.class).heartbeat(); // heartbeat before
+    SpaceReserver reserver = Whitebox.getInternalState(blkWorker, SpaceReserver.class);
+    // free space, update master storage info and make sure eviction has occurred
+    reserver.heartbeat();
+    reserver.updateStorageInfo();
+    Whitebox.getInternalState(blkWorker, BlockMasterSync.class).heartbeat(); // heartbeat before
+    return mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
+        .getMasterProcess().getMaster(BlockMaster.class)
+        .getWorkerInfoList()
+        .stream()
+        .map(WorkerInfo::getUsedBytes)
+        .mapToLong(Long::new).sum();
   }
 
   private void createTwoBytesFile(AlluxioURI path, long persistenceWaitTime) throws Exception {
@@ -140,14 +291,14 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   private void checkPersistStateAndWaitForPersist(AlluxioURI path, int length) throws Exception {
     // check the file is completed but not persisted
     URIStatus status = mFileSystem.getStatus(path);
-    Assert.assertEquals(PersistenceState.TO_BE_PERSISTED.toString(),
+    assertEquals(PersistenceState.TO_BE_PERSISTED.toString(),
         status.getPersistenceState());
     Assert.assertTrue(status.isCompleted());
 
     IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, path);
 
     status = mFileSystem.getStatus(path);
-    Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
+    assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
     checkFileInAlluxio(path, length);
     checkFileInUnderStorage(path, length);

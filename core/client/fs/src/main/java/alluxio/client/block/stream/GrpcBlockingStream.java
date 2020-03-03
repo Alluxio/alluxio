@@ -117,15 +117,17 @@ public class GrpcBlockingStream<ReqT, ResT> {
   }
 
   /**
-   * Sends a request. Will not wait for the stream to be ready.
+   * Sends a request. Will not wait for the stream to be ready. If the stream is closed or cancelled
+   * this method will return without an error.
    *
    * @param request the request
    * @throws IOException if any error occurs
    */
   public void send(ReqT request) throws IOException {
     if (mClosed || mCanceled || mClosedFromRemote) {
-      throw new CancelledException(formatErrorMessage(
-          "Failed to send request %s: stream is already closed or canceled.", request));
+      LOG.debug("Failed to send request {}: stream is already closed or canceled. ({})",
+          request, mDescription);
+      return;
     }
     try (LockResource lr = new LockResource(mLock)) {
       checkError();
@@ -169,7 +171,8 @@ public class GrpcBlockingStream<ReqT, ResT> {
   }
 
   /**
-   * Closes the outbound stream.
+   * Closes the outbound stream. If the stream is already closed then invoking this method has no
+   * effect.
    */
   public void close() {
     if (isOpen()) {
@@ -180,7 +183,8 @@ public class GrpcBlockingStream<ReqT, ResT> {
   }
 
   /**
-   * Cancels the stream.
+   * Cancels the stream. If the stream is already cancelled then invoking this method has no
+   * effect.
    */
   public void cancel() {
     if (isOpen()) {

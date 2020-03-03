@@ -9,33 +9,29 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, shallow, ShallowWrapper} from 'enzyme';
+import { configure, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import {createBrowserHistory, History, LocationState} from 'history';
+import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
-import {Store} from 'redux';
 import sinon from 'sinon';
 
-import {AllProps} from '@alluxio/common-ui/src/components';
-import configureStore from '../../../configureStore'
-import {initialState, IApplicationState} from '../../../store';
+import { AllProps } from '@alluxio/common-ui/src/components';
+import { initialState } from '../../../store';
 import WorkerLogs from './WorkerLogs';
-import {routePaths} from "../../../constants";
-import {createAlertErrors} from "@alluxio/common-ui/src/utilities";
+import { routePaths } from '../../../constants';
+import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('Logs', () => {
   let history: History<LocationState>;
-  let store: Store<IApplicationState>;
   let props: AllProps;
 
   beforeAll(() => {
-    history = createBrowserHistory({keyLength: 0});
+    history = createBrowserHistory({ keyLength: 0 });
     history.push(routePaths.logs);
-    store = configureStore(history, initialState);
     props = {
-      location: {search: ''},
+      location: { search: '' },
       history: history,
       fetchRequest: sinon.spy(() => {}),
       data: initialState.logs.data,
@@ -46,7 +42,7 @@ describe('Logs', () => {
       queryStringSuffix: '',
       class: '',
       errors: createAlertErrors(false),
-      loading: false
+      loading: false,
     };
   });
 
@@ -58,7 +54,7 @@ describe('Logs', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<WorkerLogs {...props}/>);
+      shallowWrapper = shallow(<WorkerLogs {...props} />);
     });
 
     it('Renders without crashing', () => {

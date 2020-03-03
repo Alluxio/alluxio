@@ -262,8 +262,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       if (mJvmPauseMonitor != null) {
         mJvmPauseMonitor.stop();
       }
-      stopWorkers();
     }
+    stopWorkers();
   }
 
   private boolean isServing() {
@@ -331,6 +331,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public String toString() {
-    return "Alluxio worker";
+    return "Alluxio worker @" + mRpcConnectAddress;
   }
 }

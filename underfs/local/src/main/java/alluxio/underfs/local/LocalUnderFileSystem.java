@@ -218,7 +218,8 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
           UnderFileSystemUtils.approximateContentHash(file.length(), file.lastModified());
       return new UfsFileStatus(path, contentHash, file.length(), file.lastModified(),
           attr.owner().getName(), attr.group().getName(),
-          FileUtils.translatePosixPermissionToMode(attr.permissions()));
+          FileUtils.translatePosixPermissionToMode(attr.permissions()),
+          mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     } catch (FileSystemException e) {
       throw new FileNotFoundException(e.getMessage());
     }
@@ -253,7 +254,8 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
             UnderFileSystemUtils.approximateContentHash(file.length(), file.lastModified());
         return new UfsFileStatus(path, contentHash, file.length(), file.lastModified(),
             attr.owner().getName(), attr.group().getName(),
-            FileUtils.translatePosixPermissionToMode(attr.permissions()));
+            FileUtils.translatePosixPermissionToMode(attr.permissions()),
+            mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
       }
       // Return directory status.
       return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
@@ -298,7 +300,8 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
           String contentHash =
               UnderFileSystemUtils.approximateContentHash(f.length(), f.lastModified());
           retStatus = new UfsFileStatus(f.getName(), contentHash, f.length(), f.lastModified(),
-              attr.owner().getName(), attr.group().getName(), mode);
+              attr.owner().getName(), attr.group().getName(), mode,
+              mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
         }
         rtn[i++] = retStatus;
       }
@@ -330,7 +333,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
     Stack<File> dirsToMake = new Stack<>();
     dirsToMake.push(file);
     File parent = file.getParentFile();
-    while (!parent.exists()) {
+    while (parent != null && !parent.exists()) {
       dirsToMake.push(parent);
       parent = parent.getParentFile();
     }

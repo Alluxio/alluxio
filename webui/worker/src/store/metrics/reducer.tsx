@@ -9,30 +9,35 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {Reducer} from 'redux';
+import { Reducer } from 'redux';
 
-import {IMetricsState, MetricsActionTypes} from './types';
+import { IMetricsState, MetricsActionTypes } from './types';
 
 export const initialMetricsState: IMetricsState = {
   data: {
-    'operationMetrics': {},
-    'rpcInvocationMetrics': {},
-    'timeSeriesMetrics': {},
-    'workerCapacityFreePercentage': 0,
-    'workerCapacityUsedPercentage': 0
+    operationMetrics: {},
+    timeSeriesMetrics: {},
+    workerCapacityFreePercentage: 0,
+    workerCapacityUsedPercentage: 0,
   },
   errors: undefined,
-  loading: false
+  loading: false,
 };
 
 export const metricsReducer: Reducer<IMetricsState> = (state = initialMetricsState, action) => {
   switch (action.type) {
     case MetricsActionTypes.FETCH_REQUEST:
-      return {...state, loading: true};
+      return { ...state, loading: true };
     case MetricsActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
+      return {
+        ...state,
+        loading: false,
+        data: action.payload.data,
+        response: action.payload,
+        errors: undefined,
+      };
     case MetricsActionTypes.FETCH_ERROR:
-      return {...state, loading: false, errors: action.payload};
+      return { ...state, loading: false, errors: action.payload };
     default:
       return state;
   }

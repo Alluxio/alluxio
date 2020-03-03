@@ -72,7 +72,7 @@ public final class GreedyEvictor implements Evictor {
       } else {
         int dirIndex = location.dir();
         StorageDirEvictorView dir = (StorageDirEvictorView) tierView.getDirView(dirIndex);
-        if (canEvictBlocksFromDir(dir, availableBytes)) {
+        if (dir != null && canEvictBlocksFromDir(dir, availableBytes)) {
           selectedDirView = dir;
         }
       }

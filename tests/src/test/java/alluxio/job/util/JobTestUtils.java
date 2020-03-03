@@ -20,7 +20,10 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Sets;
 
+import java.util.Arrays;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -39,16 +42,30 @@ public final class JobTestUtils {
    */
   public static JobInfo waitForJobStatus(final JobMaster jobMaster, final long jobId,
       final Status status) throws InterruptedException, TimeoutException {
+    return waitForJobStatus(jobMaster, jobId, Sets.newHashSet(status));
+  }
+
+  /**
+   * Waits for the job with the given job ID to be in the one of given states.
+   *
+   * @param jobMaster the job master running the job
+   * @param jobId the ID of the job
+   * @param statuses set of statuses to wait for
+   * @return the status of the job waited for
+   */
+  public static JobInfo waitForJobStatus(final JobMaster jobMaster, final long jobId,
+      final Set<Status> statuses) throws InterruptedException, TimeoutException {
     final AtomicReference<JobInfo> singleton = new AtomicReference<>();
-    CommonUtils.waitFor(String.format("job %d to be in status %s", jobId, status.toString()),
+    CommonUtils.waitFor(
+        String.format("job %d to be one of status %s", jobId, Arrays.toString(statuses.toArray())),
         () -> {
           JobInfo info;
           try {
             info = jobMaster.getStatus(jobId);
-            if (info.getStatus().equals(status)) {
+            if (statuses.contains(info.getStatus())) {
               singleton.set(info);
             }
-            return info.getStatus().equals(status);
+            return statuses.contains(info.getStatus());
           } catch (JobDoesNotExistException e) {
             throw Throwables.propagate(e);
           }

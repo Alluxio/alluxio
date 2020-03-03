@@ -2,8 +2,8 @@
 layout: global
 title: Deploy Alluxio on a Cluster with HA
 nickname: Cluster with HA
-group: Deploying Alluxio
-priority: 2.5
+group: Install Alluxio
+priority: 3
 ---
 
 * Table of Contents
@@ -121,19 +121,32 @@ Zookeeper cannot work with journal type `EMBEDDED` (use a journal embedded in th
   accessible by all master nodes.
   Examples include `alluxio.master.journal.folder=hdfs://1.2.3.4:9000/alluxio/journal/`
 
-For clusters with large namespaces, increased CPU overhead on leader could cause delays on Zookeeper client heartbeats.
-For this reason, we recommend setting Zookeeper client session timeout to at least 2 minutes on large clusters with namespace
-size more than several hundred millions of files.
-- `alluxio.zookeeper.session.timeout=120s`
-  - Zookeeper server's tick time must also be configured as such to allow
-    this timeout. The current implementation requires that the timeout be a minimum of 2 times the tickTime (as set in the server configuration)
-    and a maximum of 20 times the tickTime.
-
 Make sure all master nodes and all worker nodes have configured their respective
 `conf/alluxio-site.properties` configuration file appropriately.
 
 Once all the Alluxio masters and workers are configured in this way, Alluxio is ready to
 be formatted started.
+
+#### Advanced Zookeeper setup
+For clusters with large namespaces, increased CPU overhead on leader could cause delays on Zookeeper client heartbeats.
+For this reason, we recommend setting Zookeeper client session timeout to at least 2 minutes on large clusters with namespace
+size more than several hundred millions of files.
+- `alluxio.zookeeper.session.timeout=120s`
+  - Zookeeper server's min/max session timeout values must also be configured as such to allow
+    this timeout. The defaults requires that the timeout be a minimum of 2 times the `tickTime` (as set in the server configuration)
+    and a maximum of 20 times the tickTime. You could also manually configure `minSessionTimeout` and `maxSessionTimeout`.
+
+Alluxio supports pluggable error handling policy on zookeeper leader election.
+- `alluxio.zookeeper.leader.connection.error.policy` specifies how connection errors are handled.
+It can be either `SESSION` or `STANDARD`. It is set `SESSION` as default.
+ 
+The `SESSION` policy makes use of Zookeeper sessions to determine whether leader state is dirty. 
+This means suspended connections won't trigger stepping down of a current leader as long as it was able to reestablish the zookeeper connection with the same session.
+It provides more stability in maintaining the leadership state.
+
+The `STANDARD` policy treats any interruption to zookeeper server as an error. 
+Thus leader will step down upon missing a heartbeat, even though its internal zookeeper session was still intact with the zookeeper server.
+It provides more security against bugs and issues in zookeeper setup.
 
 ## Start an Alluxio Cluster with HA
 
@@ -328,38 +341,11 @@ a timeout on the master (configured by master parameter `alluxio.master.worker.t
 will consider the worker as "lost", and no longer consider it as part of the cluster.
 
 ### Add/Remove Masters
-
 In order to add a master, the Alluxio cluster must operate in HA mode. If you are running the cluster as
 a single master cluster, you must configure it to be an HA cluster before having more than one master.
 
-#### Alluxio HA cluster with embedded journal
-
-When internal leader election is used, Alluxio masters are determined. Adding or removing
-master nodes requires:
-
-* Shut down the whole cluster
-* Add/remove one or more Alluxio master
-* Format the whole cluster
-* Update the cluster-wide embedded journal configuration
-* Start the whole cluster
-
-Note that all previously stored data and metadata in Alluxio filesystem will be erased.
-If you are using embedded journal, you should not plan to add new masters.
-
-#### Alluxio HA cluster with Zookeeper and Shared Journal
-
-To add a master to an HA Alluxio cluster, you can simply start a new Alluxio master process, with
-the appropriate configuration. The configuration for the new master should be the same as other masters,
-except that the parameter `alluxio.master.hostname=<MASTER_HOSTNAME>` should reflect the new hostname.
-Once the new master is started, it will start interacting with ZooKeeper to participate in leader election.
-
-Removing a master is as simple as stopping the master process. If the cluster is a single master cluster,
-stopping the master will essentially shutdown the cluster, since the single master is down. If the
-Alluxio cluster is an HA cluster, stopping the leading master will force ZooKeeper to elect a new leading master
-and failover to that new leader. If a standby master is stopped, then the operation of the cluster is
-unaffected. Keep in mind, Alluxio masters high availability depends on the availability on standby
-masters. If there are not enough standby masters, the availability of the leading master will be affected.
-It is recommended to have at least 3 masters for an HA Alluxio cluster.
+See [journal management documentation]({{ '/en/operation/Journal.html' | relativize_url }}) for more information about 
+adding and removing masters.
 
 ### Update Master-side Configuration
 

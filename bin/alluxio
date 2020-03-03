@@ -21,6 +21,7 @@ function printUsage {
   echo -e "  bootstrapConf \t Generate a config file if one doesn't exist"
   echo -e "  fs            \t Command line tool for interacting with the Alluxio filesystem."
   echo -e "  fsadmin       \t Command line tool for use by Alluxio filesystem admins."
+  echo -e "  table         \t Command line tool for interacting with the Alluxio table service."
   echo -e "  getConf [key] \t Look up a configuration key, or print all configuration."
   echo -e "  job           \t Command line tool for interacting with the job service."
   echo -e "  logLevel      \t Set or get log level of Alluxio servers."
@@ -38,7 +39,7 @@ function printUsage {
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
   echo -e "  copyDir <PATH>\t Copy the PATH to all master/worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
-  echo -e "  confDocGen    \t Generate configuration docs."
+  echo -e "  docGen        \t Generate docs automatically."
   echo -e "  version       \t Print Alluxio version and exit."
   echo -e "  validateConf  \t Validate Alluxio conf and exit."
   echo -e "  validateEnv   \t Validate Alluxio environment."
@@ -217,7 +218,7 @@ function main {
           shift # remove -s param
         fi
       else
-        echo "{Usage} $0 format [-s]"
+        echo "${Usage} $0 format [-s]"
         exit 2
       fi
     elif [[ $# -gt 1 ]]; then
@@ -263,8 +264,18 @@ function main {
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.conf.validation.enabled=false"
     runJavaClass "$@"
   ;;
+  "collectInfo")
+    CLASS="alluxio.cli.bundler.CollectInfo"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
   "job")
     CLASS="alluxio.cli.job.JobShell"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "table")
+    CLASS="alluxio.cli.table.TableShell"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
@@ -332,8 +343,8 @@ function main {
   "copyDir")
     copyDir "$@"
   ;;
-  "confDocGen")
-    CLASS="alluxio.cli.ConfigurationDocGenerator"
+  "docGen")
+    CLASS="alluxio.cli.DocGenerator"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"

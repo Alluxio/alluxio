@@ -35,6 +35,13 @@ import java.util.List;
 /**
  * Tests for setfacl command.
  */
+@LocalAlluxioClusterResource.ServerConfig(
+    confParams = {
+        PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+        PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+        PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
+        "alluxio.security.group.provider.IdentityUserGroupsMapping",
+        PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "setfacl_test_user"})
 public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShellTest {
   private static final List<String> FACL_STRING_ENTRIES
       = Arrays.asList("user::rw-", "group::r--", "other::r--");
@@ -49,19 +56,13 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
    * Tests setfacl command.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-          PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
-          "alluxio.security.group.provider.IdentityUserGroupsMapping",
-          PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_setfacl"})
   public void setfacl() throws Exception {
-    String testOwner = "test_user_setfacl";
+    String testOwner = "setfacl_test_user";
     String expected = "";
     URIStatus[] files = createFiles(testOwner);
 
-    mFsShell.run("setfacl", "-m", "user:testuser:rwx", "/testRoot/testFileA");
-    mFsShell.run("getfacl", "/testRoot/testFileA");
+    sFsShell.run("setfacl", "-m", "user:testuser:rwx", "/testRoot/testFileA");
+    sFsShell.run("getfacl", "/testRoot/testFileA");
 
     List<String> stringEntries = new ArrayList<>(FACL_STRING_ENTRIES);
     stringEntries.add("user:testuser:rwx");
@@ -70,8 +71,8 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
 
     Assert.assertEquals(expected, mOutput.toString());
 
-    mFsShell.run("setfacl", "-m", "user::rwx", "/testRoot/testFileC");
-    mFsShell.run("getfacl", "/testRoot/testFileC");
+    sFsShell.run("setfacl", "-m", "user::rwx", "/testRoot/testFileC");
+    sFsShell.run("getfacl", "/testRoot/testFileC");
 
     stringEntries = new ArrayList<>(FACL_STRING_ENTRIES);
     stringEntries.set(0, "user::rwx");
@@ -83,18 +84,11 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
    * Tests setfacl command to set default facl.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-          PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
-          "alluxio.security.group.provider.IdentityUserGroupsMapping",
-          PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP,
-          "test_user_setDefaultFacl"})
   public void setDefaultFacl() throws Exception {
-    String testOwner = "test_user_setDefaultFacl";
+    String testOwner = "setfacl_test_user";
     URIStatus[] files = createFiles(testOwner);
-    mFsShell.run("setfacl", "-m", "default:user:testuser:rwx", "/testRoot/testDir");
-    mFsShell.run("getfacl", "/testRoot/testDir");
+    sFsShell.run("setfacl", "-m", "default:user:testuser:rwx", "/testRoot/testDir");
+    sFsShell.run("getfacl", "/testRoot/testDir");
 
     List<String> stringEntries = new ArrayList<>(DIR_FACL_STRING_ENTRIES);
     stringEntries.addAll(DEFAULT_FACL_STRING_ENTRIES);
@@ -104,10 +98,10 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
 
     Assert.assertEquals(expected, mOutput.toString());
 
-    FileSystemTestUtils.createByteFile(mFileSystem,
+    FileSystemTestUtils.createByteFile(sFileSystem,
         "/testRoot/testDir/testDir2/testFileD", WritePType.MUST_CACHE, 10);
 
-    mFsShell.run("getfacl", "/testRoot/testDir/testDir2");
+    sFsShell.run("getfacl", "/testRoot/testDir/testDir2");
     stringEntries = new ArrayList<>(DIR_FACL_STRING_ENTRIES);
     stringEntries.add("user:testuser:rwx");
     stringEntries.add("mask::r-x");
@@ -119,7 +113,7 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
 
     Assert.assertEquals(expected, mOutput.toString());
 
-    mFsShell.run("getfacl", "/testRoot/testDir/testDir2/testFileD");
+    sFsShell.run("getfacl", "/testRoot/testDir/testDir2/testFileD");
     stringEntries = new ArrayList<>(FILE_FACL_STRING_ENTRIES);
     stringEntries.add("user:testuser:rwx");
     stringEntries.add("mask::r--");
@@ -148,9 +142,9 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
 
   // Helper function to create a set of files in the file system
   private URIStatus[] createFiles(String user) throws IOException, AlluxioException {
-    FileSystem fs = mFileSystem;
+    FileSystem fs = sFileSystem;
     if (user != null) {
-      fs = mLocalAlluxioCluster.getClient(FileSystemContext
+      fs = sLocalAlluxioCluster.getClient(FileSystemContext
           .create(new TestUserState(user, ServerConfiguration.global()).getSubject(),
               ServerConfiguration.global()));
     }

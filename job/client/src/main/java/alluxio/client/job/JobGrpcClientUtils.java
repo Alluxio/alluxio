@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -49,6 +48,7 @@ public final class JobGrpcClientUtils {
   public static void run(JobConfig config, int attempts, AlluxioConfiguration alluxioConf)
       throws InterruptedException {
     CountingRetry retryPolicy = new CountingRetry(attempts);
+    String errorMessage = "";
     while (retryPolicy.attempt()) {
       long jobId;
       try (JobMasterClient client = JobMasterClient.Factory.create(
@@ -67,50 +67,52 @@ public final class JobGrpcClientUtils {
       if (jobInfo.getStatus() == Status.COMPLETED || jobInfo.getStatus() == Status.CANCELED) {
         return;
       }
-      LOG.warn("Job {} failed to complete: {}", jobId, jobInfo.getErrorMessage());
+      errorMessage = jobInfo.getErrorMessage();
+      LOG.warn("Job {} failed to complete with attempt {}. error: {}",
+          jobId, retryPolicy.getAttemptCount(), errorMessage);
     }
-    throw new RuntimeException("Failed to successfully complete the job.");
+    throw new RuntimeException("Failed to successfully complete the job: " + errorMessage);
   }
 
   /**
    * @param jobId the ID of the job to wait for
-   * @return the job info for the job once it finishes or null if the job status cannot be fetched
+   * @return the job info once it finishes or null if the status cannot be fetched
    */
   private static JobInfo waitFor(final long jobId, AlluxioConfiguration alluxioConf)
       throws InterruptedException {
-    final AtomicReference<JobInfo> finishedJobInfo = new AtomicReference<>();
     try (final JobMasterClient client =
         JobMasterClient.Factory.create(JobMasterClientContext
             .newBuilder(ClientContext.create(alluxioConf)).build())) {
-      CommonUtils.waitFor("Job to finish", ()-> {
-        JobInfo jobInfo;
+      return CommonUtils.waitForResult("Job to finish", ()-> {
         try {
-          jobInfo = client.getStatus(jobId);
+          return client.getJobStatus(jobId);
         } catch (Exception e) {
           LOG.warn("Failed to get status for job (jobId={})", jobId, e);
+          return null;
+        }
+      }, (jobInfo) -> {
+          if (jobInfo != null) {
+            switch (jobInfo.getStatus()) {
+              case FAILED: // fall through
+              case CANCELED: // fall through
+              case COMPLETED:
+                return true;
+              case RUNNING: // fall through
+              case CREATED:
+                return false;
+              default:
+                throw new IllegalStateException("Unrecognized job status: " + jobInfo.getStatus());
+            }
+          }
           return true;
-        }
-        switch (jobInfo.getStatus()) {
-          case FAILED: // fall through
-          case CANCELED: // fall through
-          case COMPLETED:
-            finishedJobInfo.set(jobInfo);
-            return true;
-          case RUNNING: // fall through
-          case CREATED:
-            return false;
-          default:
-            throw new IllegalStateException("Unrecognized job status: " + jobInfo.getStatus());
-        }
-      }, WaitForOptions.defaults().setInterval(1000));
+        }, WaitForOptions.defaults().setInterval(1000));
     } catch (IOException e) {
       LOG.warn("Failed to close job master client: {}", e.toString());
+      return null;
     } catch (TimeoutException e) {
       // Should never happen since we use the default timeout of "never".
       throw new IllegalStateException(e);
     }
-
-    return finishedJobInfo.get();
   }
 
   private JobGrpcClientUtils() {} // prevent instantiation

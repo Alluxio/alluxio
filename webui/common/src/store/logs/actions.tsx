@@ -9,14 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
-import {action} from 'typesafe-actions';
+import { AxiosResponse } from 'axios';
+import { AnyAction } from 'redux';
+import { action } from 'typesafe-actions';
 
-import {LogsActionTypes} from './types';
-import {IRequest} from "../../constants";
+import { LogsActionTypes } from './types';
+import { IRequest } from '../../constants';
 
-export const fetchRequest = ({path, offset, limit, end}: IRequest) => action(LogsActionTypes.FETCH_REQUEST,
-  {queryString: {end, limit, offset, path}}
-);
-export const fetchSuccess = (response: AxiosResponse) => action(LogsActionTypes.FETCH_SUCCESS, response);
-export const fetchError = (message: string) => action(LogsActionTypes.FETCH_ERROR, message);
+export const fetchRequest = ({ path, offset, limit, end }: IRequest): AnyAction =>
+  action(LogsActionTypes.FETCH_REQUEST, { queryString: { end, limit, offset, path } });
+export const fetchSuccess = (response: AxiosResponse): AnyAction => action(LogsActionTypes.FETCH_SUCCESS, response);
+export const fetchError = (message: string): AnyAction => action(LogsActionTypes.FETCH_ERROR, message);

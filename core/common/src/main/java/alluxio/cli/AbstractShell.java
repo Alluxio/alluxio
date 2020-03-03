@@ -61,6 +61,8 @@ public abstract class AbstractShell implements Closeable {
     mUnstableAlias = unstableAlias;
     mCommandAlias = commandAlias;
     mCommands = loadCommands();
+    // Register all loaded commands under closer.
+    mCommands.values().stream().forEach((cmd) -> mCloser.register(cmd));
   }
 
   /**
@@ -122,6 +124,8 @@ public abstract class AbstractShell implements Closeable {
 
       cmdline = command.parseAndValidateArgs(currArgs);
     } catch (InvalidArgumentException e) {
+      // It outputs a prompt message when passing wrong args to CLI
+      System.out.println(e.getMessage());
       System.out.println("Usage: " + command.getUsage());
       System.out.println(command.getDescription());
       LOG.error("Invalid arguments for command {}:", command.getCommandName(), e);

@@ -217,7 +217,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
         LOG.error("Source path {} does not exist", source);
         return false;
       } catch (Exception e) {
-        LOG.error("Failed to copy file {} to {}", source, destination, e.getMessage());
+        LOG.error("Failed to copy file {} to {}", source, destination, e);
         if (i != NUM_RETRIES - 1) {
           LOG.error("Retrying copying file {} to {}", source, destination);
         }

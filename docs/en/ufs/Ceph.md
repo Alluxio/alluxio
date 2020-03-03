@@ -2,7 +2,7 @@
 layout: global
 title: Ceph
 nickname: Ceph
-group: Under Stores
+group: Storage Integrations
 priority: 10
 ---
 
@@ -70,14 +70,17 @@ as `http://<rgw-hostname>:<rgw-port>/auth/1.0`.
 ### Nested Mount Point
 
 An Ceph location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) can be used for this purpose.
+to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
 
 Issue the following command to use the S3 interface:
 ```console
 $ ./bin/alluxio fs mount \
-  --option aws.accessKeyId=<CEPH_ACCESS_KEY_ID> --option aws .secretKey=<CEPH_SECRET_ACCESS_KEY>\
-  --option alluxio.underfs.s3.endpoint=<HTTP_ENDPOINT> --option alluxio.underfs.s3.disable.dns.buckets=true \
-  --option alluxio.underfs.s3.inherit_acl=false /mnt/ceph s3://<BUCKET>/<FOLDER>
+  --option aws.accessKeyId=<CEPH_ACCESS_KEY_ID> \
+  --option aws.secretKey=<CEPH_SECRET_ACCESS_KEY> \
+  --option alluxio.underfs.s3.endpoint=<HTTP_ENDPOINT> \
+  --option alluxio.underfs.s3.disable.dns.buckets=true \
+  --option alluxio.underfs.s3.inherit.acl=false \
+  /mnt/ceph s3://<BUCKET>/<FOLDER>
 ```
 
 Similarly, to use the Swift interface:
@@ -85,7 +88,8 @@ Similarly, to use the Swift interface:
 $ ./bin/alluxio fs mount \
   --option fs.swift.user=<SWIFT_USER> \
   --option fs.swift.tenant=<SWIFT_TENANT> \
-  --option fs.swift.password=<SWIFT_PASSWORD> --option fs.swift.auth.url=<AUTH_URL> \
+  --option fs.swift.password=<SWIFT_PASSWORD> \
+  --option fs.swift.auth.url=<AUTH_URL> \
   --option fs.swift.auth.method=<AUTH_METHOD> \
   /mnt/ceph swift://<BUCKET>/<FOLDER>
 ```

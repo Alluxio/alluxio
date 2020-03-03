@@ -3,7 +3,7 @@ alluxio.worker.allocator.class:
 alluxio.worker.bind.host:
   'The hostname Alluxio''s worker node binds to.'
 alluxio.worker.block.heartbeat.interval:
-  'The interval between block workers'' heartbeats.'
+  'The interval between block workers'' heartbeats to update block status, storage health and other workers'' information to Alluxio Master.'
 alluxio.worker.block.heartbeat.timeout:
   'The timeout value of block workers'' heartbeats. If the worker can''t connect to master before this interval expires, the worker will exit.'
 alluxio.worker.block.master.client.pool.size:
@@ -30,14 +30,6 @@ alluxio.worker.evictor.lrfu.step.factor:
   'A factor in [0, 1] to control the behavior of LRFU: smaller value makes LRFU more similar to LFU; and larger value makes LRFU closer to LRU.'
 alluxio.worker.file.buffer.size:
   'The buffer size for worker to write data into the tiered storage.'
-alluxio.worker.file.persist.pool.size:
-  'The size of the thread pool per worker, in which the thread persists an ASYNC_THROUGH file to under storage.'
-alluxio.worker.file.persist.rate.limit:
-  'The rate limit of asynchronous persistence per second.'
-alluxio.worker.file.persist.rate.limit.enabled:
-  'Whether to enable rate limiting when performing asynchronous persistence.'
-alluxio.worker.filesystem.heartbeat.interval:
-  'The heartbeat interval between the worker and file system master.'
 alluxio.worker.free.space.timeout:
   'The duration for which a worker will wait for eviction to make space available for a client write request.'
 alluxio.worker.hostname:

@@ -22,6 +22,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
@@ -91,8 +92,12 @@ public class AsyncCacheRequestManager {
       mAsyncCacheExecutor.submit(() -> {
         boolean result = false;
         try {
+          boolean isSourceLocal = mLocalWorkerHostname.equals(request.getSourceHost());
+          long sessionId = isSourceLocal ? Sessions.ASYNC_CACHE_UFS_SESSION_ID
+              : Sessions.ASYNC_CACHE_WORKER_SESSION_ID;
           // Check if the block has already been cached on this worker
-          long lockId = mBlockWorker.lockBlockNoException(Sessions.ASYNC_CACHE_SESSION_ID, blockId);
+          long lockId =
+              mBlockWorker.lockBlockNoException(sessionId, blockId);
           if (lockId != BlockLockManager.INVALID_LOCK_ID) {
             try {
               mBlockWorker.unlockBlock(lockId);
@@ -103,7 +108,6 @@ public class AsyncCacheRequestManager {
             return;
           }
           Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
-          boolean isSourceLocal = mLocalWorkerHostname.equals(request.getSourceHost());
           // Depends on the request, cache the target block from different sources
           if (isSourceLocal) {
             ASYNC_CACHE_UFS_BLOCKS.inc();
@@ -150,7 +154,7 @@ public class AsyncCacheRequestManager {
     // Check if the block has been requested in UFS block store
     try {
       if (!mBlockWorker
-          .openUfsBlock(Sessions.ASYNC_CACHE_SESSION_ID, blockId, openUfsBlockOptions)) {
+          .openUfsBlock(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, openUfsBlockOptions)) {
         LOG.warn("Failed to async cache block {} from UFS on opening the block", blockId);
         return false;
       }
@@ -159,13 +163,13 @@ public class AsyncCacheRequestManager {
       return true;
     }
     try (BlockReader reader = mBlockWorker
-        .readUfsBlock(Sessions.ASYNC_CACHE_SESSION_ID, blockId, 0)) {
+        .readUfsBlock(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0, false)) {
       // Read the entire block, caching to block store will be handled internally in UFS block store
       // Note that, we read from UFS with a smaller buffer to avoid high pressure on heap
       // memory when concurrent async requests are received and thus trigger GC.
       long offset = 0;
       while (offset < blockSize) {
-        long bufferSize = Math.min(8 * Constants.MB, blockSize - offset);
+        long bufferSize = Math.min(8L * Constants.MB, blockSize - offset);
         reader.read(offset, bufferSize);
         offset += bufferSize;
       }
@@ -175,7 +179,7 @@ public class AsyncCacheRequestManager {
       return false;
     } finally {
       try {
-        mBlockWorker.closeUfsBlock(Sessions.ASYNC_CACHE_SESSION_ID, blockId);
+        mBlockWorker.closeUfsBlock(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId);
       } catch (AlluxioException | IOException ee) {
         LOG.warn("Failed to close UFS block {}: {}", blockId, ee);
         return false;
@@ -196,7 +200,7 @@ public class AsyncCacheRequestManager {
   private boolean cacheBlockFromRemoteWorker(long blockId, long blockSize,
       InetSocketAddress sourceAddress, Protocol.OpenUfsBlockOptions openUfsBlockOptions) {
     try {
-      mBlockWorker.createBlockRemote(Sessions.ASYNC_CACHE_SESSION_ID, blockId,
+      mBlockWorker.createBlockRemote(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId,
           mStorageTierAssoc.getAlias(0), "", blockSize);
     } catch (BlockAlreadyExistsException e) {
       // It is already cached
@@ -209,16 +213,16 @@ public class AsyncCacheRequestManager {
     }
     try (BlockReader reader =
         new RemoteBlockReader(mFsContext, blockId, blockSize, sourceAddress, openUfsBlockOptions);
-        BlockWriter writer =
-            mBlockWorker.getTempBlockWriterRemote(Sessions.ASYNC_CACHE_SESSION_ID, blockId)) {
+         BlockWriter writer = mBlockWorker
+             .getTempBlockWriterRemote(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId)) {
       BufferUtils.fastCopy(reader.getChannel(), writer.getChannel());
-      mBlockWorker.commitBlock(Sessions.ASYNC_CACHE_SESSION_ID, blockId, false);
+      mBlockWorker.commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, false);
       return true;
     } catch (AlluxioException | IOException e) {
       LOG.warn("Failed to async cache block {} from remote worker ({}) on copying the block: {}",
           blockId, sourceAddress, e.getMessage());
       try {
-        mBlockWorker.abortBlock(Sessions.ASYNC_CACHE_SESSION_ID, blockId);
+        mBlockWorker.abortBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId);
       } catch (AlluxioException | IOException ee) {
         LOG.warn("Failed to abort block {}: {}", blockId, ee.getMessage());
       }
@@ -227,15 +231,16 @@ public class AsyncCacheRequestManager {
   }
 
   // Metrics
-  private static final Counter ASYNC_CACHE_REQUESTS = MetricsSystem.counter("AsyncCacheRequests");
+  private static final Counter ASYNC_CACHE_REQUESTS
+      = MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_REQUESTS.getName());
   private static final Counter ASYNC_CACHE_DUPLICATE_REQUESTS =
-      MetricsSystem.counter("AsyncCacheDuplicateRequests");
+      MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS.getName());
   private static final Counter ASYNC_CACHE_FAILED_BLOCKS =
-      MetricsSystem.counter("AsyncCacheFailedBlocks");
+      MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_FAILED_BLOCKS.getName());
   private static final Counter ASYNC_CACHE_REMOTE_BLOCKS =
-      MetricsSystem.counter("AsyncCacheRemoteBlocks");
+      MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_REMOTE_BLOCKS.getName());
   private static final Counter ASYNC_CACHE_SUCCEEDED_BLOCKS =
-      MetricsSystem.counter("AsyncCacheSucceededBlocks");
+      MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_SUCCEEDED_BLOCKS.getName());
   private static final Counter ASYNC_CACHE_UFS_BLOCKS =
-      MetricsSystem.counter("AsyncCacheUfsBlocks");
+      MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_UFS_BLOCKS.getName());
 }

@@ -1,11 +1,20 @@
 # Alluxio Helm Chart
 
 ## Pre-requisites
+### Helm installation
 Refer to the [helm](https://helm.sh/docs/using_helm/#installing-helm) documentation to install helm locally.
 For example, on Mac OS X install as follows:
 ```bash
 brew install kubernetes-helm
 ```
+
+### Persistent volume for Alluxio master journal
+If you are using local UFS journal or embedded journals, Alluxio masters need persistent volumes for storing the journals.
+In that case, you will need to provision one persistent volume for one master replica.
+Alluxio master Pods defined in `{templicateDir}/master/alluxio-master-statefulset.yaml.template`
+will need existing PVs to run.
+
+For details of the persistent volumes please refer to `./helm-chart/alluxio/README.md`.
 
 ## Generate kubectl yaml templates from Helm chart
 

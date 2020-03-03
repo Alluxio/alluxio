@@ -14,17 +14,13 @@ package alluxio.security.authentication;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.security.authentication.plain.PlainSaslServerProvider;
 import alluxio.security.authentication.plain.SaslClientHandlerPlain;
-import alluxio.security.authentication.plain.SaslServerHandlerPlain;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import javax.security.auth.Subject;
-import javax.security.sasl.SaslException;
 
 /**
  * Tests {@link SaslClientHandler} and {@link SaslServerHandler} implementations.
@@ -68,13 +64,5 @@ public class SaslHandlersTest {
     mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     SaslClientHandler client = new SaslClientHandlerPlain("test", null, null);
-  }
-
-  @Test
-  public void testCreateServerSimple() throws UnauthenticatedException, SaslException {
-    SaslServerHandler serverHandler = new SaslServerHandlerPlain("test", mConfiguration);
-    Assert.assertNotNull(serverHandler);
-    Assert.assertEquals(PlainSaslServerProvider.MECHANISM,
-        serverHandler.getSaslServer().getMechanismName());
   }
 }

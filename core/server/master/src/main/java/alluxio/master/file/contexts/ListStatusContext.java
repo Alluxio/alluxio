@@ -26,9 +26,10 @@ public class ListStatusContext extends OperationContext<ListStatusPOptions.Build
    * Creates context with given option data.
    *
    * @param optionsBuilder options builder
+   * @param callTracker client call tracker
    */
-  private ListStatusContext(ListStatusPOptions.Builder optionsBuilder) {
-    super(optionsBuilder);
+  private ListStatusContext(ListStatusPOptions.Builder optionsBuilder, CallTracker callTracker) {
+    super(optionsBuilder, callTracker);
   }
 
   /**
@@ -36,7 +37,17 @@ public class ListStatusContext extends OperationContext<ListStatusPOptions.Build
    * @return the instance of {@link ListStatusContext} with the given options
    */
   public static ListStatusContext create(ListStatusPOptions.Builder optionsBuilder) {
-    return new ListStatusContext(optionsBuilder);
+    return new ListStatusContext(optionsBuilder, CallTracker.NOOP_TRACKER);
+  }
+
+  /**
+   * @param optionsBuilder Builder for proto {@link ListStatusPOptions}
+   * @param callTracker client call tracker
+   * @return the instance of {@link ListStatusContext} with the given options
+   */
+  public static ListStatusContext create(ListStatusPOptions.Builder optionsBuilder,
+      CallTracker callTracker) {
+    return new ListStatusContext(optionsBuilder, callTracker);
   }
 
   /**

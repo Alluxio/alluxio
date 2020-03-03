@@ -2,7 +2,7 @@
 layout: global
 title: Google Cloud Storage
 nickname: Google Cloud Storage
-group: Under Stores
+group: Storage Integrations
 priority: 2
 ---
 
@@ -69,7 +69,7 @@ you can [Run Alluxio Locally with GCS](#running-alluxio-locally-with-gcs).
 ### Nested Mount Point
 
 An GCS location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) can be used for this purpose.
+to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
 
 First, within `conf/alluxio-site.properties`, specify the master host:
 ```properties
@@ -122,30 +122,6 @@ $ ./bin/alluxio-stop.sh local
 Directories are represented in GCS as zero-byte objects named with a specified suffix. The
 directory suffix can be updated with the configuration parameter
 [alluxio.underfs.gcs.directory.suffix]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.underfs.gcs.directory.suffix).
-
-### Configuring Application Dependency
-
-When building your application to use Alluxio, your application should include a client module, the
-`alluxio-core-client-fs` module to use the
-[Alluxio file system interface]({{ '/en/api/FS-API.html' | relativize_url }}) or the
-`alluxio-core-client-hdfs` module to use the
-[Hadoop file system interface](https://wiki.apache.org/hadoop/HCFS). For example, if you
-are using [maven](https://maven.apache.org/), you can add the dependency to your application with:
-
-```xml
-<!-- Alluxio file system interface -->
-<dependency>
-  <groupId>org.alluxio</groupId>
-  <artifactId>alluxio-core-client-fs</artifactId>
-  <version>{{site.ALLUXIO_RELEASED_VERSION}}</version>
-</dependency>
-<!-- HDFS file system interface -->
-<dependency>
-  <groupId>org.alluxio</groupId>
-  <artifactId>alluxio-core-client-hdfs</artifactId>
-  <version>{{site.ALLUXIO_RELEASED_VERSION}}</version>
-</dependency>
-```
 
 ## GCS Access Control
 

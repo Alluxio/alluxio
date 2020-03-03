@@ -13,24 +13,22 @@ package alluxio.client.meta;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.exception.status.AlluxioStatusException;
-import alluxio.grpc.BackupPOptions;
+import alluxio.grpc.BackupPRequest;
+import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.CheckpointPOptions;
 import alluxio.grpc.GetConfigReportPOptions;
 import alluxio.grpc.GetMasterInfoPOptions;
-import alluxio.grpc.GetMetricsPOptions;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
-import alluxio.grpc.MetricValue;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
-import alluxio.wire.BackupResponse;
+import alluxio.wire.BackupStatus;
 import alluxio.wire.ConfigCheckReport;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -72,8 +70,14 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public BackupResponse backup(BackupPOptions options) throws IOException {
-    return retryRPC(() -> BackupResponse.fromProto(mClient.backup(options)));
+  public BackupStatus backup(BackupPRequest backupRequest) throws IOException {
+    return retryRPC(() -> BackupStatus.fromProto(mClient.backup(backupRequest)));
+  }
+
+  @Override
+  public BackupStatus getBackupStatus(UUID backupId) throws IOException {
+    return retryRPC(() -> BackupStatus.fromProto(mClient.getBackupStatus(
+        BackupStatusPRequest.newBuilder().setBackupId(backupId.toString()).build())));
   }
 
   @Override
@@ -88,12 +92,6 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
     return retryRPC(() -> mClient
         .getMasterInfo(GetMasterInfoPOptions.newBuilder().addAllFilter(fields).build())
         .getMasterInfo());
-  }
-
-  @Override
-  public Map<String, MetricValue> getMetrics() throws AlluxioStatusException {
-    return retryRPC(
-        () -> mClient.getMetrics(GetMetricsPOptions.getDefaultInstance()).getMetricsMap());
   }
 
   @Override

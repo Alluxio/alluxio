@@ -14,7 +14,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>2.1.0-SNAPSHOT</version>
+  <version>2.3.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -89,21 +89,10 @@
       </snapshots>
     </repository>
     <repository>
-      <id>mapr-repo</id>
-      <name>MapR Repository</name>
-      <url>http://repository.mapr.com/maven/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
       <!-- for Pivotal's distribution -->
       <id>spring-releases</id>
       <name>Spring Release Repository</name>
-      <url>http://repo.spring.io/libs-release</url>
+      <url>https://repo.spring.io/libs-release</url>
       <releases>
         <enabled>true</enabled>
       </releases>
@@ -114,7 +103,7 @@
     <repository>
       <id>HDPReleases</id>
       <name>HDP Releases</name>
-      <url>http://repo.hortonworks.com/content/repositories/releases/</url>
+      <url>https://repo.hortonworks.com/content/repositories/releases/</url>
       <layout>default</layout>
       <releases>
         <enabled>true</enabled>
@@ -134,37 +123,40 @@
   </repositories>
 
   <properties>
+    <argLine></argLine>
     <apache.curator.version>4.2.0</apache.curator.version>
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
     <copycat.version>1.2.14</copycat.version>
-    <cxf.version>2.7.0</cxf.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
-    <gmetric4j.version>1.0.7</gmetric4j.version>
-    <grpc.version>1.17.1</grpc.version>
-    <netty.version>4.1.30.Final</netty.version>
+    <grpc.version>1.27.0</grpc.version>
+    <netty.version>4.1.42.Final</netty.version>
+    <rocksdb.version>5.15.10</rocksdb.version>
     <hadoop.version>2.7.3</hadoop.version>
-    <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
+    <jacoco.version>0.8.5</jacoco.version>
     <java.version>1.8</java.version>
-    <jersey.version>2.22</jersey.version>
-    <jetty.version>9.2.16.v20160414</jetty.version>
+    <jersey.version>2.29.1</jersey.version>
+    <jetty.version>9.2.28.v20190418</jetty.version>
     <junit.version>4.12</junit.version>
     <log4j.version>1.2.17</log4j.version>
     <maven.version>3.3.9</maven.version>
     <metrics.version>3.1.2</metrics.version>
-    <powermock.version>1.6.1</powermock.version>
-    <prometheus.version>0.3.0</prometheus.version>
+    <oshi.version>4.2.0</oshi.version>
+    <powermock.version>1.6.2</powermock.version>
+    <prometheus.version>0.8.0</prometheus.version>
     <guava.version>27.0.1-jre</guava.version>
-    <protobuf.version>3.5.1</protobuf.version>
+    <parquet.version>1.10.0</parquet.version>
+    <protobuf.version>3.11.0</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
-    <jackson.version>2.9.7</jackson.version>
+    <jackson.version>2.10.1</jackson.version>
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <surefire.excludesFile>slow-tests</surefire.excludesFile>
     <surefire.rerunFailingTestsCount>1</surefire.rerunFailingTestsCount>
     <test.output.redirect>true</test.output.redirect>
     <update.check.enabled>false</update.check.enabled>
+    <findbugs.skip>false</findbugs.skip>
   </properties>
 
   <modules>
@@ -177,6 +169,7 @@
     <module>job</module>
     <module>shaded</module>
     <module>shell</module>
+    <module>table</module>
     <module>tests</module>
     <module>underfs</module>
     <module>webui</module>
@@ -188,7 +181,7 @@
       <dependency>
         <groupId>com.aliyun.oss</groupId>
         <artifactId>aliyun-sdk-oss</artifactId>
-        <version>2.0.7</version>
+        <version>3.7.0</version>
       </dependency>
       <dependency>
         <groupId>com.amazonaws</groupId>
@@ -233,7 +226,7 @@
       <dependency>
         <groupId>com.github.serceman</groupId>
         <artifactId>jnr-fuse</artifactId>
-        <version>0.5.1</version>
+        <version>0.5.3</version>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
@@ -260,12 +253,12 @@
       <dependency>
         <groupId>commons-cli</groupId>
         <artifactId>commons-cli</artifactId>
-        <version>1.3.1</version>
+        <version>1.4</version>
       </dependency>
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
-        <version>1.10</version>
+        <version>1.13</version>
       </dependency>
       <dependency>
         <groupId>commons-httpclient</groupId>
@@ -275,7 +268,7 @@
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.4</version>
+        <version>2.6</version>
       </dependency>
       <dependency>
         <groupId>commons-lang</groupId>
@@ -286,11 +279,6 @@
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
         <version>1.1.1</version>
-      </dependency>
-      <dependency>
-        <groupId>info.ganglia.gmetric4j</groupId>
-        <artifactId>gmetric4j</artifactId>
-        <version>${gmetric4j.version}</version>
       </dependency>
       <dependency>
         <groupId>io.dropwizard.metrics</groupId>
@@ -326,11 +314,23 @@
         <groupId>io.grpc</groupId>
         <artifactId>grpc-netty</artifactId>
         <version>${grpc.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>*</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
         <artifactId>grpc-protobuf</artifactId>
         <version>${grpc.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.google.api.grpc</groupId>
+            <artifactId>proto-google-common-protos</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
@@ -340,6 +340,11 @@
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-all</artifactId>
+        <version>${netty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-transport-native-unix-common</artifactId>
         <version>${netty.version}</version>
       </dependency>
       <dependency>
@@ -504,6 +509,16 @@
         <version>4.4.6</version>
       </dependency>
       <dependency>
+        <groupId>org.apache.parquet</groupId>
+        <artifactId>parquet-avro</artifactId>
+        <version>${parquet.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.parquet</groupId>
+        <artifactId>parquet-cli</artifactId>
+        <version>${parquet.version}</version>
+      </dependency>
+      <dependency>
         <groupId>io.atomix.copycat.alluxio</groupId>
         <artifactId>copycat-server</artifactId>
         <version>${copycat.version}</version>
@@ -576,9 +591,19 @@
         <version>${jersey.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.glassfish.jersey.inject</groupId>
+        <artifactId>jersey-hk2</artifactId>
+        <version>${jersey.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.glassfish.jersey.media</groupId>
         <artifactId>jersey-media-json-jackson</artifactId>
         <version>${jersey.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+        <artifactId>jackson-jaxrs-json-provider</artifactId>
+        <version>${jackson.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gluster</groupId>
@@ -610,12 +635,12 @@
       <dependency>
         <groupId>org.reflections</groupId>
         <artifactId>reflections</artifactId>
-        <version>0.9.10</version>
+        <version>0.9.12</version>
       </dependency>
       <dependency>
         <groupId>org.rocksdb</groupId>
         <artifactId>rocksdbjni</artifactId>
-        <version>5.15.10</version>
+        <version>${rocksdb.version}</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
@@ -645,6 +670,12 @@
         <artifactId>junit</artifactId>
         <version>${junit.version}</version>
         <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.curator</groupId>
@@ -658,17 +689,16 @@
         <version>${hadoop.version}</version>
         <scope>test</scope>
       </dependency>
-      <!-- TODO(andrew): Update to a non-rc version before final Alluxio release -->
       <dependency>
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest</artifactId>
-        <version>2.1-rc4</version>
+        <version>2.2</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-all</artifactId>
-        <version>1.10.8</version>
+        <version>1.10.19</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -836,7 +866,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.2</version>
+          <version>3.8.1</version>
           <configuration>
             <source>${java.version}</source>
             <target>${java.version}</target>
@@ -898,7 +928,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.19.1</version>
           <configuration>
-            <argLine>-Djava.net.preferIPv4Stack=true</argLine>
+            <argLine>@{argLine} -Djava.net.preferIPv4Stack=true</argLine>
             <excludesFile>${build.path}/surefire/${surefire.excludesFile}</excludesFile>
             <forkCount>${surefire.forkCount}</forkCount>
             <rerunFailingTestsCount>${surefire.rerunFailingTestsCount}</rerunFailingTestsCount>
@@ -907,6 +937,8 @@
             <runOrder>alphabetical</runOrder>
             <systemPropertyVariables>
               <alluxio.test.mode>true</alluxio.test.mode>
+              <jacoco-agent.append>true</jacoco-agent.append>
+              <jacoco-agent.destfile>${build.path}/../target/jacoco-combined.exec</jacoco-agent.destfile>
             </systemPropertyVariables>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
@@ -918,13 +950,23 @@
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
+          <artifactId>buildnumber-maven-plugin</artifactId>
+          <version>1.4</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
           <version>1.4.0</version>
         </plugin>
         <plugin>
+          <groupId>com.github.spotbugs</groupId>
+          <artifactId>spotbugs-maven-plugin</artifactId>
+          <version>3.1.12.2</version>
+        </plugin>
+        <plugin>
           <groupId>org.codehaus.mojo</groupId>
-          <artifactId>findbugs-maven-plugin</artifactId>
-          <version>3.0.5</version>
+          <artifactId>properties-maven-plugin</artifactId>
+          <version>1.0.0</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -944,6 +986,13 @@
               </goals>
             </execution>
           </executions>
+          <dependencies>
+            <dependency>
+              <groupId>javax.xml.bind</groupId>
+              <artifactId>jaxb-api</artifactId>
+              <version>2.3.1</version>
+            </dependency>
+          </dependencies>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -1022,10 +1071,10 @@
         </executions>
       </plugin>
 
-      <!-- FindBugs -->
+      <!-- SpotBugs -->
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>findbugs-maven-plugin</artifactId>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
         <configuration>
           <excludeFilterFile>${build.path}/findbugs/findbugs-exclude.xml</excludeFilterFile>
           <!--
@@ -1034,9 +1083,10 @@
               to 'Low'.
             -->
           <effort>Max</effort>
+          <skip>${findbugs.skip}</skip>
           <failOnError>true</failOnError>
           <threshold>Low</threshold>
-          <findbugsXmlOutput>true</findbugsXmlOutput>
+          <spotbugsXmlOutput>true</spotbugsXmlOutput>
           <xmlOutput>true</xmlOutput>
         </configuration>
         <executions>
@@ -1241,6 +1291,36 @@
       </modules>
     </profile>
 
+    <profile>
+      <id>java11</id>
+      <activation>
+        <jdk>11</jdk>
+      </activation>
+      <properties>
+        <java.version>11</java.version>
+      </properties>
+      <dependencyManagement>
+        <dependencies>
+          <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+          </dependency>
+        </dependencies>
+      </dependencyManagement>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <source>8</source>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
     <!-- profile that Alluxio developers should use -->
     <profile>
       <id>developer</id>
@@ -1277,6 +1357,83 @@
                     <argument>--destination</argument>
                     <argument>docs/_site</argument>
                   </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>jacoco</id>
+      <dependencies>
+        <dependency>
+          <!-- to use instrument, jacoco must be on the classpath -->
+          <groupId>org.jacoco</groupId>
+          <artifactId>org.jacoco.agent</artifactId>
+          <classifier>runtime</classifier>
+          <version>0.8.5</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+            <configuration>
+              <!--
+                  Append all coverage data into a single .exec file, so the reports include
+                  integration test results. The report generation should happen in a separate,
+                  later stage, so the coverage data is complete with the results of all the tests
+                  in the project.
+               -->
+              <append>true</append>
+              <destFile>${build.path}/../target/jacoco-combined.exec</destFile>
+            </configuration>
+            <executions>
+              <execution>
+                <!-- offline instrumentation is required, for jacoco to work with powermock tests -->
+                <id>jacoco-unit-instrument-classes</id>
+                <goals>
+                  <goal>instrument</goal>
+                </goals>
+              </execution>
+              <execution>
+                <!-- offline instrumentation is required, for jacoco to work with powermock tests -->
+                <id>jacoco-unit-restore-instrumented-classes</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>restore-instrumented-classes</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>jacocoReport</id>
+      <!--
+          This profile depends on the generated coverage data from the jacoco profile (test phase).
+          This should be run as a separate step, since the generated coverage data should include
+          the results from all the tests in the project.
+       -->
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+            <executions>
+              <execution>
+                <id>jacoco-coverage-report</id>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+                <configuration>
+                  <dataFile>${build.path}/../target/jacoco-combined.exec</dataFile>
                 </configuration>
               </execution>
             </executions>

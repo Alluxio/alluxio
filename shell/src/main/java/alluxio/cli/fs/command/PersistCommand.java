@@ -13,6 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
@@ -47,13 +48,14 @@ import javax.annotation.concurrent.ThreadSafe;
  * Persists files or directories currently stored only in Alluxio to the UnderFileSystem.
  */
 @ThreadSafe
+@PublicApi
 public final class PersistCommand extends AbstractFileSystemCommand {
   private static final Logger LOG = LoggerFactory.getLogger(PersistCommand.class);
   private static final int DEFAULT_PARALLELISM = 4;
   private static final Option PARALLELISM_OPTION =
       Option.builder("p")
           .longOpt("parallelism")
-          .argName("# threads")
+          .argName("# concurrent operations")
           .numberOfArgs(1)
           .desc("Number of concurrent persist operations, default: " + DEFAULT_PARALLELISM)
           .required(false)

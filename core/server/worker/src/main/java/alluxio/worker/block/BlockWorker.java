@@ -91,7 +91,8 @@ public interface BlockWorker extends Worker, SessionCleanable {
   void commitBlockInUfs(long blockId, long length) throws IOException;
 
   /**
-   * Creates a block in Alluxio managed space. The block will be temporary until it is committed.
+   * Creates a block in Alluxio managed space for short-circuit writes.
+   * The block will be temporary until it is committed.
    * Throws an {@link IllegalArgumentException} if the location does not belong to tiered storage.
    *
    * @param sessionId the id of the client
@@ -110,7 +111,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
-   * Creates a block. This method is only called from a data server.
+   * Creates a block for non short-circuit writes or caching requests.
    * Calls {@link #getTempBlockWriterRemote(long, long)} to get a writer for writing to the
    * block. Throws an {@link IllegalArgumentException} if the location does not belong to tiered
    * storage.
@@ -146,11 +147,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
       BlockAlreadyExistsException, InvalidWorkerStateException;
 
   /**
-   * Opens a {@link BlockWriter} for an existing temporary block. This method is only called from a
-   * data server.
-   *
-   * The temporary block must already exist with
-   * {@link #createBlockRemote(long, long, String, long)}.
+   * Opens a {@link BlockWriter} for an existing temporary block for non short-circuit writes or
+   * cache requests. The temporary block must already exist with
+   * {@link #createBlockRemote(long, long, String, String, long)}.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to be opened for writing
@@ -299,7 +298,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
       throws BlockDoesNotExistException, InvalidWorkerStateException;
 
   /**
-   * Gets the block reader for the block. This method is only called by a data server.
+   * Gets the block reader for the block for non short-circuit reads.
    *
    * @param sessionId the id of the client
    * @param blockId the id of the block to read
@@ -313,15 +312,16 @@ public interface BlockWorker extends Worker, SessionCleanable {
       throws BlockDoesNotExistException, InvalidWorkerStateException, IOException;
 
   /**
-   * Gets a block reader to read a UFS block. This method is only called by the data server.
+   * Gets a block reader to read a UFS block for non short-circuit reads.
    *
    * @param sessionId the client session ID
    * @param blockId the ID of the UFS block to read
    * @param offset the offset within the block
+   * @param positionShort whether the operation is using positioned read to a small buffer size
    * @return the block reader instance
    * @throws BlockDoesNotExistException if the block does not exist in the UFS block store
    */
-  BlockReader readUfsBlock(long sessionId, long blockId, long offset)
+  BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean positionShort)
       throws BlockDoesNotExistException, IOException;
 
   /**
@@ -419,4 +419,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
   void closeUfsBlock(long sessionId, long blockId)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, IOException,
       WorkerOutOfSpaceException;
+
+  /**
+   * Clears the worker metrics.
+   */
+  void clearMetrics();
 }

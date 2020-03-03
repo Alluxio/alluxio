@@ -9,35 +9,35 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {Reducer} from 'redux';
+import { Reducer } from 'redux';
 
-import {IInitState, InitActionTypes} from './types';
+import { IInitState, InitActionTypes } from './types';
 
 export const initialInitState: IInitState = {
   data: {
-    'debug': false,
-    'newerVersionAvailable': false,
-    'proxyDownloadFileApiUrl': {
-      'prefix': 'http://192.168.1.6:39999/api/v1/paths/',
-      'suffix': '/download-file/'
+    debug: false,
+    newerVersionAvailable: false,
+    proxyDownloadFileApiUrl: {
+      prefix: 'http://192.168.1.6:39999/api/v1/paths/',
+      suffix: '/download-file/',
     },
-    'refreshInterval': 15000,
-    'securityAuthorizationPermissionEnabled': false,
-    'webFileInfoEnabled': false,
-    'workerPort': 30000
+    refreshInterval: 15000,
+    securityAuthorizationPermissionEnabled: false,
+    webFileInfoEnabled: false,
+    workerPort: 30000,
   },
   errors: undefined,
-  loading: false
+  loading: false,
 };
 
 export const initReducer: Reducer<IInitState> = (state = initialInitState, action) => {
   switch (action.type) {
     case InitActionTypes.FETCH_REQUEST:
-      return {...state, loading: true};
+      return { ...state, loading: true };
     case InitActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
+      return { ...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined };
     case InitActionTypes.FETCH_ERROR:
-      return {...state, loading: false, errors: action.payload};
+      return { ...state, loading: false, errors: action.payload };
     default:
       return state;
   }

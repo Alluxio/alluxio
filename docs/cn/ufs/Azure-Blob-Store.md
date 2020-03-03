@@ -2,8 +2,8 @@
 layout: global
 title: Configuring Alluxio with Azure Blob Store
 nickname: Alluxio使用Azure Blob Store
-group: Under Stores
-priority: 0
+group: Storage Integrations
+priority: 2
 ---
 
 * 内容列表
@@ -42,7 +42,7 @@ alluxio.master.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.blob
 ```
 
 ### 嵌套挂载
- Azure blob store位置可以挂载在Alluxio命名空间中的嵌套目录中，以便统一访问到多个底层存储系统。Alluxio的[Command Line Interface](Command-Line-Interface.html)可以用于此目的。
+ Azure blob store位置可以挂载在Alluxio命名空间中的嵌套目录中，以便统一访问到多个底层存储系统。Alluxio的[用户CLI]({{ '/cn/operation/User-CLI.html' | relativize_url }})可以用于此目的。
 
 ```console
 $ ./bin/alluxio fs mount \

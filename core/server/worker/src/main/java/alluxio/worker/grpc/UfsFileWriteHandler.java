@@ -14,9 +14,9 @@ package alluxio.worker.grpc;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
-import alluxio.metrics.Metric;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.WorkerMetrics;
+import alluxio.metrics.MetricInfo;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
@@ -27,7 +27,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.proto.ProtoUtils;
 
-import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -162,12 +161,12 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
     context.setOutputStream(ufs.createNonexistingFile(request.getUfsPath(), createOptions));
     context.setCreateOptions(createOptions);
     String ufsString = MetricsSystem.escape(ufsClient.getUfsMountPointUri());
-    String counterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_WRITTEN_UFS,
-        WorkerMetrics.TAG_UFS, ufsString);
-    Counter counter = MetricsSystem.counter(counterName);
-    context.setCounter(counter);
-    String meterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT,
-        WorkerMetrics.TAG_UFS, ufsString);
-    context.setMeter(MetricsSystem.meter(meterName));
+
+    MetricKey counterKey = MetricKey.WORKER_BYTES_WRITTEN_UFS;
+    MetricKey meterKey = MetricKey.WORKER_BYTES_WRITTEN_UFS_THROUGHPUT;
+    context.setCounter(MetricsSystem.counterWithTags(counterKey.getName(),
+        counterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString));
+    context.setMeter(MetricsSystem.meterWithTags(meterKey.getName(),
+        meterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString));
   }
 }

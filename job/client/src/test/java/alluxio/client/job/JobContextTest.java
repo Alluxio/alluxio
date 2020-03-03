@@ -17,6 +17,7 @@ import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.security.user.UserState;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Rule;
@@ -36,7 +37,8 @@ public final class JobContextTest {
 
   @Test
   public void getAddress() throws Exception {
-    try (JobContext context = JobContext.create(sConf)) {
+    UserState userState = UserState.Factory.create(sConf);
+    try (JobContext context = JobContext.create(sConf, userState)) {
       assertEquals("host2", context.getJobMasterAddress().getHostName());
     }
   }

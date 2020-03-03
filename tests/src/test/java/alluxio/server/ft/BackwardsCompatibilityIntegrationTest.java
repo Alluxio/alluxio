@@ -101,7 +101,7 @@ public final class BackwardsCompatibilityIntegrationTest extends BaseIntegration
         .collect(Collectors.toList());
     for (Journal journal : journals) {
       System.out.printf("Checking journal %s\n", journal.getDir());
-      LOG.info("Checking journal %s\n", journal.getDir());
+      LOG.info("Checking journal {}", journal.getDir());
       Builder builder = MultiProcessCluster.newBuilder(PortCoordination.BACKWARDS_COMPATIBILITY)
           .setClusterName("BackwardsCompatibility")
           .setNumMasters(1)

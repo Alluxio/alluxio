@@ -2,7 +2,7 @@
 layout: global
 title: Third-party Under Storage Extensions
 nickname: Third-party UFS
-group: Under Stores
+group: Storage Integrations
 priority: 100
 ---
 

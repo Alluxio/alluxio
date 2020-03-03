@@ -9,7 +9,7 @@ priority: 2
 * 内容列表
 {:toc}
 
-> 如果您是一名新的开源贡献者，请先浏览[Alluxio开发新手指南](Contributing-Getting-Started.html)以熟悉如何向Alluxio贡献源码。
+> 如果您是一名新的开源贡献者，请先浏览[Alluxio开发新手指南]({{ '/cn/contributor/Contributor-Getting-Started.html' | relativize_url }})以熟悉如何向Alluxio贡献源码。
 
 我们非常感谢您对Alluxio的关注与兴趣！特别感谢您对Alluxio开源社区作出的贡献！
 
@@ -82,7 +82,7 @@ $ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/a
 - 要以交互的方式快速运行某些API测试，你可能需要使用Scala shell，这在
 [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding)有详细说明。
 
-- 如果libfuse库丢失，其测试将被忽略。要运行这些测试，请安装[FUSE](Mounting-Alluxio-FS-with-FUSE.html#requirements)中所提到的正确的库。
+- 如果libfuse库丢失，其测试将被忽略。要运行这些测试，请安装[FUSE]({{ '/cn/api/POSIX-API.html' | relativize_url }}#requirements)中所提到的正确的库。
 
 ### 系统设置
 
@@ -146,7 +146,7 @@ LOG.error("Failed to do something due to an exception", e);
 ```
 * 警告级别日志（`LOG.warn`）常用于描述用户预期行为与Alluxio实践行为之间的差异。警告级别日志伴有异常消息。相关的堆栈跟踪信息可能在调试级日志中记录。
 ```java
-LOG.warm("Failed to do something due to {}", e.getMessage());
+LOG.warm("Failed to do something: {}", e.toString());
 ```
 * 信息级别日志（`LOG.info`）记录了重要系统状态的更改信息。当有错误消息或需要记录堆栈跟踪信息时，请不要使用信息级别日志。需要注意的是，该日志级别不应该出现在频繁使用的关键路径上的程序中以避免对性能的不利影响。
 ```java
@@ -215,4 +215,4 @@ $ mvn compile -Pgenerate
 {% endfor %}
 </table>
 
-此外，这些命令的执行有不同的先决条件。`format`，`formatWorker`，`journalCrashTest`，`readJournal`，`version`，`validateConf`和`validateEnv`命令的先决条件是你已经编译了Alluxio（见[编译Alluxio源代码](Building-Alluxio-From-Source.html)其介绍了如何手动构建Alluxio)。而`fs`，`logLevel`, `runTest`和`runTests`命令的先决条件是你已经运行了Alluxio系统。
+此外，这些命令的执行有不同的先决条件。`format`，`formatWorker`，`journalCrashTest`，`readJournal`，`version`，`validateConf`和`validateEnv`命令的先决条件是你已经编译了Alluxio（见[编译Alluxio源代码]({{ '/cn/contributor/Building-Alluxio-From-Source.html' | relativize_url }})其介绍了如何手动构建Alluxio)。而`fs`，`logLevel`, `runTest`和`runTests`命令的先决条件是你已经运行了Alluxio系统。

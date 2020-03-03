@@ -390,7 +390,7 @@ public final class ValidateEnv {
       System.err.format("Invalid argument: %s.%n", e.getMessage());
       return -1;
     }
-    if (command != null && command.equals("list")) {
+    if (command.equals("list")) {
       printTasks();
       return 0;
     }

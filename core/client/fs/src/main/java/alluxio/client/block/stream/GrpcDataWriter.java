@@ -26,6 +26,7 @@ import alluxio.grpc.WriteRequestMarshaller;
 import alluxio.grpc.WriteResponse;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.CloseableResource;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -67,7 +68,7 @@ public final class GrpcDataWriter implements DataWriter {
   private final long mWriterFlushTimeoutMs;
 
   private final FileSystemContext mContext;
-  private final BlockWorkerClient mClient;
+  private final CloseableResource<BlockWorkerClient> mClient;
   private final WorkerNetAddress mAddress;
   private final long mLength;
   private final WriteRequestCommand mPartialRequest;
@@ -92,14 +93,13 @@ public final class GrpcDataWriter implements DataWriter {
   public static GrpcDataWriter create(FileSystemContext context, WorkerNetAddress address,
       long id, long length, RequestType type, OutStreamOptions options)
       throws IOException {
-    long chunkSize = context.getClusterConf().getBytes(
-        PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES);
-    BlockWorkerClient grpcClient = context.acquireBlockWorkerClient(address);
+    long chunkSize = context.getClusterConf()
+        .getBytes(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES);
+    CloseableResource<BlockWorkerClient> grpcClient = context.acquireBlockWorkerClient(address);
     try {
-      return new GrpcDataWriter(context, address, id, length, chunkSize, type, options,
-          grpcClient);
+      return new GrpcDataWriter(context, address, id, length, chunkSize, type, options, grpcClient);
     } catch (Exception e) {
-      context.releaseBlockWorkerClient(address, grpcClient);
+      grpcClient.close();
       throw e;
     }
   }
@@ -118,7 +118,7 @@ public final class GrpcDataWriter implements DataWriter {
    */
   private GrpcDataWriter(FileSystemContext context, final WorkerNetAddress address, long id,
       long length, long chunkSize, RequestType type, OutStreamOptions options,
-      BlockWorkerClient client) throws IOException {
+      CloseableResource<BlockWorkerClient> client) throws IOException {
     mContext = context;
     mAddress = address;
     mLength = length;
@@ -163,13 +163,13 @@ public final class GrpcDataWriter implements DataWriter {
     mMarshaller = new WriteRequestMarshaller();
     if (conf.getBoolean(PropertyKey.USER_NETWORK_ZEROCOPY_ENABLED)) {
       mStream = new GrpcDataMessageBlockingStream<>(
-          mClient::writeBlock, mWriterBufferSizeMessages,
+          mClient.get()::writeBlock, mWriterBufferSizeMessages,
           MoreObjects.toStringHelper(this)
               .add("request", mPartialRequest)
               .add("address", address)
               .toString(), mMarshaller, null);
     } else {
-      mStream = new GrpcBlockingStream<>(mClient::writeBlock, mWriterBufferSizeMessages,
+      mStream = new GrpcBlockingStream<>(mClient.get()::writeBlock, mWriterBufferSizeMessages,
           MoreObjects.toStringHelper(this)
               .add("request", mPartialRequest)
               .add("address", address)
@@ -222,7 +222,7 @@ public final class GrpcDataWriter implements DataWriter {
 
   @Override
   public void cancel() {
-    if (mClient.isShutdown()) {
+    if (mClient.get().isShutdown()) {
       return;
     }
     mStream.cancel();
@@ -251,13 +251,13 @@ public final class GrpcDataWriter implements DataWriter {
   @Override
   public void close() throws IOException {
     try {
-      if (mClient.isShutdown()) {
+      if (mClient.get().isShutdown()) {
         return;
       }
       mStream.close();
       mStream.waitForComplete(mWriterCloseTimeoutMs);
     } finally {
-      mContext.releaseBlockWorkerClient(mAddress, mClient);
+      mClient.close();
     }
   }
 

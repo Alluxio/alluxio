@@ -108,13 +108,20 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         ReadRequest.newBuilder().setBlockId(blockId).setPromote(readType.isPromote());
     // Add UFS fallback options
     builder.setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId));
+    builder.setPositionShort(options.getPositionShort());
     AlluxioConfiguration alluxioConf = context.getClusterConf();
     boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
+    boolean shortCircuitPreferred =
+        alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
     boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.LOCAL;
 
-    // Short circuit
-    if (sourceIsLocal && shortCircuit && !sourceSupportsDomainSocket) {
+    // Short circuit is enabled when
+    // 1. data source is local node
+    // 2. alluxio.user.short.circuit.enabled is true
+    // 3. the worker's domain socket is not configuered
+    //      OR alluxio.user.short.circuit.preferred is true
+    if (sourceIsLocal && shortCircuit && (shortCircuitPreferred || !sourceSupportsDomainSocket)) {
       LOG.debug("Creating short circuit input stream for block {} @ {}", blockId, dataSource);
       try {
         return createLocalBlockInStream(context, dataSource, blockId, blockSize, options);

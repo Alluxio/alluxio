@@ -20,6 +20,7 @@ import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
+import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -51,7 +52,7 @@ public final class GrpcDataReader implements DataReader {
   private final int mReaderBufferSizeMessages;
   private final long mDataTimeoutMs;
   private final FileSystemContext mContext;
-  private final BlockWorkerClient mClient;
+  private final CloseableResource<BlockWorkerClient> mClient;
   private final ReadRequest mReadRequest;
   private final WorkerNetAddress mAddress;
 
@@ -83,22 +84,30 @@ public final class GrpcDataReader implements DataReader {
 
     try {
       if (alluxioConf.getBoolean(PropertyKey.USER_NETWORK_ZEROCOPY_ENABLED)) {
-        mStream = new GrpcDataMessageBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
-            MoreObjects.toStringHelper(this)
-                .add("request", mReadRequest)
-                .add("address", address)
-                .toString(),
-            null, mMarshaller);
+        String desc = "Zero Copy GrpcDataReader";
+        if (LOG.isDebugEnabled()) { // More detailed description when debug logging is enabled
+          desc = MoreObjects.toStringHelper(this)
+              .add("request", mReadRequest)
+              .add("address", address)
+              .toString();
+        }
+        mStream = new GrpcDataMessageBlockingStream<>(mClient.get()::readBlock,
+            mReaderBufferSizeMessages,
+            desc, null, mMarshaller);
       } else {
-        mStream = new GrpcBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
-            MoreObjects.toStringHelper(this)
-                .add("request", mReadRequest)
-                .add("address", address)
-                .toString());
+        String desc = "GrpcDataReader";
+        if (LOG.isDebugEnabled()) { // More detailed description when debug logging is enabled
+          desc = MoreObjects.toStringHelper(this)
+              .add("request", mReadRequest)
+              .add("address", address)
+              .toString();
+        }
+        mStream = new GrpcBlockingStream<>(mClient.get()::readBlock, mReaderBufferSizeMessages,
+            desc);
       }
       mStream.send(mReadRequest, mDataTimeoutMs);
     } catch (Exception e) {
-      mContext.releaseBlockWorkerClient(address, mClient);
+      mClient.close();
       throw e;
     }
   }
@@ -110,7 +119,7 @@ public final class GrpcDataReader implements DataReader {
 
   @Override
   public DataBuffer readChunk() throws IOException {
-    Preconditions.checkState(!mClient.isShutdown(),
+    Preconditions.checkState(!mClient.get().isShutdown(),
         "Data reader is closed while reading data chunks.");
     DataBuffer buffer = null;
     ReadResponse response = null;
@@ -155,14 +164,14 @@ public final class GrpcDataReader implements DataReader {
   @Override
   public void close() throws IOException {
     try {
-      if (mClient.isShutdown()) {
+      if (mClient.get().isShutdown()) {
         return;
       }
       mStream.close();
       mStream.waitForComplete(mDataTimeoutMs);
     } finally {
       mMarshaller.close();
-      mContext.releaseBlockWorkerClient(mAddress, mClient);
+      mClient.close();
     }
   }
 

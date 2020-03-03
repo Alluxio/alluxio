@@ -16,7 +16,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.ConfigurationUtils;
 
-import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.ObjectMetadata;
 import org.junit.Before;
@@ -44,7 +44,7 @@ import java.security.DigestOutputStream;
  */
 @RunWith(PowerMockRunner.class)
 public class OSSOutputStreamTest {
-  private OSSClient mOssClient;
+  private OSS mOssClient;
   private File mFile;
   private BufferedOutputStream mLocalOutputStream;
   private static AlluxioConfiguration sConf =
@@ -61,7 +61,7 @@ public class OSSOutputStreamTest {
    */
   @Before
   public void before() throws Exception {
-    mOssClient = Mockito.mock(OSSClient.class);
+    mOssClient = Mockito.mock(OSS.class);
     mFile = Mockito.mock(File.class);
     mLocalOutputStream = Mockito.mock(BufferedOutputStream.class);
   }
@@ -138,7 +138,7 @@ public class OSSOutputStreamTest {
 
   /**
    * Tests to ensure IOException is thrown if
-   * {@link OSSClient#putObject(String, String, InputStream, ObjectMetadata)} throws an
+   * {@link OSS#putObject(String, String, InputStream, ObjectMetadata)} throws an
    * OSSException.
    */
   @Test

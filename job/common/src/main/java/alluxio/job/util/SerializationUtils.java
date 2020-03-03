@@ -11,7 +11,6 @@
 
 package alluxio.job.util;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 
 import java.io.ByteArrayInputStream;
@@ -111,11 +110,6 @@ public final class SerializationUtils {
    */
   public static <S, T extends Serializable> Map<S, ArrayList<T>> makeValuesSerializable(
       Map<S, Collection<T>> map) {
-    return Maps.transformValues(map, new Function<Collection<T>, ArrayList<T>>() {
-      @Override
-      public ArrayList<T> apply(Collection<T> input) {
-        return new ArrayList<>(input);
-      }
-    });
+    return Maps.transformValues(map, ArrayList::new);
   }
 }

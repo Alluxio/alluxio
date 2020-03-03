@@ -34,7 +34,7 @@ public final class MetricTest {
 
   @Test
   public void testFullNameParsing() {
-    String fullName = "Client.192_1_1_1|A.metric.tag1:A::/.tag2:B:/";
+    String fullName = "Client.metric.tag1:A::/.tag2:B:/.192_1_1_1|A";
     Metric metric = Metric.from(fullName, 1, MetricType.COUNTER);
     assertEquals(fullName, metric.getFullMetricName());
   }
@@ -49,7 +49,7 @@ public final class MetricTest {
     assertEquals(a.getName(), b.getName());
     assertEquals(a.getInstanceType(), b.getInstanceType());
     assertEquals(a.getValue(), b.getValue(), 1e-15);
-    assertEquals(a.getHostname(), b.getHostname());
+    assertEquals(a.getSource(), b.getSource());
     assertEquals(a.getFullMetricName(), b.getFullMetricName());
   }
 

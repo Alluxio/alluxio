@@ -33,11 +33,21 @@ import java.util.List;
  * Tests loading UFS metadata many times concurrently.
  */
 public final class ConcurrentFileSystemMasterLoadMetadataTest {
+  private static final int CONCURRENCY_FACTOR = 20;
   private FileSystem mFileSystem;
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX, CONCURRENCY_FACTOR)
+          .setProperty(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX, CONCURRENCY_FACTOR)
+          /**
+           * This is to make sure master executor has enough thread to being with. Otherwise, delay
+           * on master ForkJoinPool's internal thread count adjustment might take several seconds.
+           * This can interfere with this test's timing expectations.
+           */
+          .setProperty(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE, CONCURRENCY_FACTOR)
+          .build();
 
   @Before
   public void before() {
@@ -51,8 +61,8 @@ public final class ConcurrentFileSystemMasterLoadMetadataTest {
       Files.createDirectory(Paths.get(ufsPath, "a" + i));
     }
 
-    // Run 20 concurrent listStatus calls on the root.
-    List<AlluxioURI> paths = Collections.nCopies(20, new AlluxioURI("/"));
+    // Run concurrent listStatus calls on the root.
+    List<AlluxioURI> paths = Collections.nCopies(CONCURRENCY_FACTOR, new AlluxioURI("/"));
 
     List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.LIST_STATUS,
@@ -67,8 +77,8 @@ public final class ConcurrentFileSystemMasterLoadMetadataTest {
       Files.createFile(Paths.get(ufsPath, "a" + i));
     }
 
-    // Run 20 concurrent listStatus calls on the root.
-    List<AlluxioURI> paths = Collections.nCopies(20, new AlluxioURI("/"));
+    // Run concurrent listStatus calls on the root.
+    List<AlluxioURI> paths = Collections.nCopies(CONCURRENCY_FACTOR, new AlluxioURI("/"));
 
     List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.LIST_STATUS,

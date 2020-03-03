@@ -26,7 +26,6 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
-import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
@@ -79,7 +78,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   /** The root key of an object fs. */
   protected final Supplier<String> mRootKeySupplier =
-      UnderFileSystemUtils.memoize(this::getRootKey);
+      CommonUtils.memoize(this::getRootKey);
 
   /**
    * Constructs an {@link ObjectUnderFileSystem}.
@@ -531,7 +530,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       ObjectPermissions permissions = getPermissions();
       return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
           details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-          permissions.getMode());
+          permissions.getMode(), mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     } else {
       LOG.warn("Error fetching file status, assuming file {} does not exist", path);
       throw new FileNotFoundException(path);
@@ -553,7 +552,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       ObjectPermissions permissions = getPermissions();
       return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
           details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-          permissions.getMode());
+          permissions.getMode(), mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     }
     return getDirectoryStatus(path);
   }
@@ -880,14 +879,16 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
-   * Checks if the path is the root.
+   * Checks if the path is the root. This method supports full path (e.g. s3://bucket_name/dir)
+   * and stripped path (e.g. /dir).
    *
    * @param path ufs path including scheme and bucket
    * @return true if the path is the root, false otherwise
    */
   protected boolean isRoot(String path) {
-    return PathUtils.normalizePath(path, PATH_SEPARATOR).equals(
-        PathUtils.normalizePath(mRootKeySupplier.get(), PATH_SEPARATOR));
+    String normalizePath = PathUtils.normalizePath(path, PATH_SEPARATOR);
+    return normalizePath.equals(PATH_SEPARATOR)
+        || normalizePath.equals(PathUtils.normalizePath(mRootKeySupplier.get(), PATH_SEPARATOR));
   }
 
   /**
@@ -1012,7 +1013,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           children.put(child,
               new UfsFileStatus(child, status.getContentHash(), status.getContentLength(),
                   status.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-                  permissions.getMode()));
+                  permissions.getMode(),
+                  mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT)));
         }
       }
       // Handle case (2)

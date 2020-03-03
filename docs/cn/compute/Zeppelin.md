@@ -2,8 +2,8 @@
 layout: global
 title: 通过Zeppelin访问Alluxio
 nickname: Apache Zeppelin
-group: Data Applications
-priority: 10
+group: Compute Integrations
+priority: 7
 ---
 
 [Apache Zeppelin](https://zeppelin.apache.org/) 是一个基于Web的记事本，它支持交互式数据分析。

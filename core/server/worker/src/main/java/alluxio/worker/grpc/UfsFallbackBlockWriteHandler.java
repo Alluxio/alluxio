@@ -19,9 +19,9 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
-import alluxio.metrics.Metric;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.WorkerMetrics;
+import alluxio.metrics.MetricInfo;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authentication.AuthenticatedUserInfo;
@@ -63,6 +63,7 @@ public final class UfsFallbackBlockWriteHandler
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   private final UfsManager mUfsManager;
   private final BlockWriteHandler mBlockWriteHandler;
+  private final boolean mDomainSocketEnabled;
 
   /**
    * Creates an instance of {@link UfsFallbackBlockWriteHandler}.
@@ -79,12 +80,22 @@ public final class UfsFallbackBlockWriteHandler
     mUfsManager = ufsManager;
     mBlockWriteHandler =
         new BlockWriteHandler(blockWorker, responseObserver, userInfo, domainSocketEnabled);
+    mDomainSocketEnabled = domainSocketEnabled;
   }
 
   @Override
   protected BlockWriteRequestContext createRequestContext(alluxio.grpc.WriteRequest msg)
       throws Exception {
     BlockWriteRequestContext context = new BlockWriteRequestContext(msg, FILE_BUFFER_SIZE);
+    if (mDomainSocketEnabled) {
+      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName()));
+      context.setMeter(MetricsSystem
+          .meter(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()));
+    } else {
+      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO.getName()));
+      context.setMeter(MetricsSystem
+          .meter(MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName()));
+    }
     BlockWriteRequest request = context.getRequest();
     Preconditions.checkState(request.hasCreateUfsBlockOptions());
     // if it is already a UFS fallback from short-circuit write, avoid writing to local again
@@ -229,12 +240,12 @@ public final class UfsFallbackBlockWriteHandler
     context.setOutputStream(ufsOutputStream);
     context.setUfsPath(ufsPath);
 
-    String counterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_WRITTEN_UFS,
-        WorkerMetrics.TAG_UFS, ufsString);
-    String meterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT,
-        WorkerMetrics.TAG_UFS, ufsString);
-    context.setCounter(MetricsSystem.counter(counterName));
-    context.setMeter(MetricsSystem.meter(meterName));
+    MetricKey counterKey = MetricKey.WORKER_BYTES_WRITTEN_UFS;
+    MetricKey meterKey = MetricKey.WORKER_BYTES_WRITTEN_UFS_THROUGHPUT;
+    context.setCounter(MetricsSystem.counterWithTags(counterKey.getName(),
+        counterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString));
+    context.setMeter(MetricsSystem.meterWithTags(meterKey.getName(),
+        meterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString));
   }
 
   /**

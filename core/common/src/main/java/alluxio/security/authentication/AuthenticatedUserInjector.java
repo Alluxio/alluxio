@@ -81,7 +81,7 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
   private <ReqT, RespT> boolean authenticateCall(ServerCall<ReqT, RespT> call, Metadata headers) {
     // Fail validation for cancelled server calls.
     if (call.isCancelled()) {
-      LOG.debug("Server call has been cancelled: %s",
+      LOG.debug("Server call has been cancelled: {}",
           call.getMethodDescriptor().getFullMethodName());
       return false;
     }
@@ -125,7 +125,7 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
   private <ReqT, RespT> void closeQuietly(ServerCall<ReqT, RespT> call, Status status,
       Metadata headers) {
     try {
-      LOG.debug("Closing the call:{} with Status:{}: {}",
+      LOG.debug("Closing the call:{} with Status:{}",
           call.getMethodDescriptor().getFullMethodName(), status);
       call.close(status, headers);
     } catch (RuntimeException exc) {

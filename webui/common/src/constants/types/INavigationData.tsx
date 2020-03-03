@@ -14,9 +14,8 @@ export interface INavigationDataCallbackParameters {
 }
 
 export interface INavigationData {
-  attributes?: any;
+  attributes?: { target: string };
   innerNavs?: INavigationData[];
   innerText: string;
   url?: string | ((parameters: INavigationDataCallbackParameters) => string);
 }
-

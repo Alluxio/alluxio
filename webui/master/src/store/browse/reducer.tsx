@@ -9,48 +9,48 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {Reducer} from 'redux';
+import { Reducer } from 'redux';
 
-import {BrowseActionTypes, IBrowseState} from './types';
+import { BrowseActionTypes, IBrowseState } from './types';
 
 export const initialBrowseState: IBrowseState = {
   data: {
-    'accessControlException': '',
-    'blockSizeBytes': '',
-    'currentDirectory': {
-      'absolutePath': '',
-      'blockSizeBytes': '',
-      'blocksOnTier': {},
-      'creationTime': '',
-      'fileLocations': [],
-      'group': '',
-      'id': 0,
-      'inAlluxio': false,
-      'inAlluxioPercentage': 0,
-      'isDirectory': true,
-      'mode': '',
-      'modificationTime': '',
-      'name': '',
-      'owner': '',
-      'persistenceState': '',
-      'pinned': false,
-      'size': ''
+    accessControlException: '',
+    blockSizeBytes: '',
+    currentDirectory: {
+      absolutePath: '',
+      blockSizeBytes: '',
+      blocksOnTier: {},
+      creationTime: '',
+      fileLocations: [],
+      group: '',
+      id: 0,
+      inAlluxio: false,
+      inAlluxioPercentage: 0,
+      isDirectory: true,
+      mode: '',
+      modificationTime: '',
+      name: '',
+      owner: '',
+      persistenceState: '',
+      pinned: false,
+      size: '',
     },
-    'currentPath': '',
-    'debug': false,
-    'fatalError': '',
-    'fileBlocks': [],
-    'fileData': '',
-    'fileDoesNotExistException': '',
-    'fileInfos': [],
-    'highestTierAlias': '',
-    'invalidPathError': '',
-    'invalidPathException': '',
-    'masterNodeAddress': '',
-    'ntotalFile': 0,
-    'pathInfos': [],
-    'showPermissions': true,
-    'viewingOffset': 0
+    currentPath: '',
+    debug: false,
+    fatalError: '',
+    fileBlocks: [],
+    fileData: '',
+    fileDoesNotExistException: '',
+    fileInfos: [],
+    highestTierAlias: '',
+    invalidPathError: '',
+    invalidPathException: '',
+    masterNodeAddress: '',
+    ntotalFile: 0,
+    pathInfos: [],
+    showPermissions: true,
+    viewingOffset: 0,
   },
   errors: undefined,
   loading: false,
@@ -59,11 +59,11 @@ export const initialBrowseState: IBrowseState = {
 export const browseReducer: Reducer<IBrowseState> = (state = initialBrowseState, action) => {
   switch (action.type) {
     case BrowseActionTypes.FETCH_REQUEST:
-      return {...state, loading: true};
+      return { ...state, loading: true };
     case BrowseActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
+      return { ...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined };
     case BrowseActionTypes.FETCH_ERROR:
-      return {...state, loading: false, errors: action.payload};
+      return { ...state, loading: false, errors: action.payload };
     default:
       return state;
   }

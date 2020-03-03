@@ -79,7 +79,7 @@ public abstract class AbstractJournalDumper {
    * @throws IOException
    */
   protected void readCheckpoint(CheckpointInputStream checkpoint, Path path) throws IOException {
-    LOG.debug("Reading checkpoint of type %s to %s%n", checkpoint.getType().name(), path);
+    LOG.debug("Reading checkpoint of type {} to {}", checkpoint.getType().name(), path);
     switch (checkpoint.getType()) {
       case COMPOUND:
         readCompoundCheckpoint(checkpoint, path);
@@ -102,7 +102,7 @@ public abstract class AbstractJournalDumper {
     while ((entryOpt = reader.nextCheckpoint()).isPresent()) {
       CompoundCheckpointFormat.CompoundCheckpointReader.Entry entry = entryOpt.get();
       Path checkpointPath = path.resolve(entry.getName().toString());
-      LOG.debug("Reading checkpoint for %s to %s%n", entry.getName(), checkpointPath);
+      LOG.debug("Reading checkpoint for {} to {}", entry.getName(), checkpointPath);
       readCheckpoint(entry.getStream(), checkpointPath);
     }
   }
@@ -112,9 +112,9 @@ public abstract class AbstractJournalDumper {
     Path dbPath = Paths.get(path.toFile().getPath() + "-rocks-db");
     // Create RocksInodeStore over checkpoint stream for extracting the inodes.
     try (PrintStream out =
-        new PrintStream(new BufferedOutputStream(new FileOutputStream(path.toFile())))) {
+             new PrintStream(new BufferedOutputStream(new FileOutputStream(path.toFile())));
+         RocksInodeStore inodeStore = new RocksInodeStore(dbPath.toAbsolutePath().toString())) {
       // Create and restore RocksInodeStore from the checkpoint.
-      RocksInodeStore inodeStore = new RocksInodeStore(dbPath.toAbsolutePath().toString());
       inodeStore.restoreFromCheckpoint(checkpoint);
       // Dump entries.
       final String ENTRY_SEPARATOR = Strings.repeat("-", 80);

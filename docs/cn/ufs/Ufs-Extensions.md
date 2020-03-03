@@ -2,14 +2,14 @@
 layout: global
 group: Under Store
 title: 底层存储扩展
-group: Under Stores
+group: Storage Integrations
 priority: 100
 ---
 
 * 内容列表
 {:toc}
 
-这篇文档是帮助用户进行文件系统的扩展，请查看[开发扩展](DevelopingUFSExtensions.html)来阅读扩展开发文档。
+这篇文档是帮助用户进行文件系统的扩展，请查看[创建新Alluxio底层存储系统文档]({{ '/cn/storage/Ufs-Extension-API.html' | relativize_url }})来阅读扩展开发文档。
 
 Alluxio可以在运行时扩展额外的底层存储模块，底层存储模块的扩展（通过JARs包进行编译）可以被包括在一个Alluxio Core中具体的位置，
 不需要重启运行的进程。对于没有现有原生支持的存储系统，添加与Alluxio相连的底层存储模块可以使其与Alluxio一起工作。

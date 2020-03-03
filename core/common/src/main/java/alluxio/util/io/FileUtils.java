@@ -283,7 +283,10 @@ public final class FileUtils {
    */
   public static void createFile(String filePath) throws IOException {
     Path storagePath = Paths.get(filePath);
-    Files.createDirectories(storagePath.getParent());
+    Path parent = storagePath.getParent();
+    if (parent != null) {
+      Files.createDirectories(parent);
+    }
     Files.createFile(storagePath);
   }
 

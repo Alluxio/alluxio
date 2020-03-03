@@ -3,7 +3,7 @@ layout: global
 title: Admin Command Line Interface
 nickname: Admin CLI
 group: Operations
-priority: 0
+priority: 2
 ---
 
 * Table of Contents
@@ -27,35 +27,52 @@ Usage: alluxio fsadmin [generic options]
 
 ### backup
 
-The `backup` command creates a backup of Alluxio metadata. By default, this is the '$ALLUXIO_HOME/alluxio_backups'
-on the primary Alluxio Master.
+The `backup` command backs up all Alluxio metadata to the backup directory configured on the leader master.
 
-Back up to the default backup folder (this default can be configured by setting `alluxio.master.backup.directory`)
+Back up to the default backup folder `/alluxio_backups` of the root under storage system. 
+This default backup directory can be configured by setting `alluxio.master.backup.directory`. 
 ```
 ./bin/alluxio fsadmin backup
-Successfully backed up journal to /opt/alluxio/alluxio_backups/alluxio-backup-2019-06-13-1560446387260.gz
+Successfully backed up journal to hdfs://host:port/alluxio_backups/alluxio-backup-2018-5-29-1527644810.gz
 ```
-Back up to a specific directory in the under storage.
+Note that the user running the `backup` command need to have write permission to the backup folder of root under storage system.
+
+Back up to a specific directory in the root under storage system.
 ```
 ./bin/alluxio fsadmin backup /alluxio/special_backups
-Successfully backed up journal to hdfs://mycluster/alluxio/special_backups/alluxio-backup-2018-5-29-1527644810.gz
+Successfully backed up journal to hdfs://host:port/alluxio/special_backups/alluxio-backup-2018-5-29-1527644810.gz
 ```
+
 Back up to a specific directory on the leading master's local filesystem.
 ```
 ./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
 Successfully backed up journal to /opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz on master Master2
 ```
 
-### checkpoint 
+### journal
+The `journal` command provides several sub-commands for journal management.
 
-The `checkpoint` command creates a checkpoint in the primary master journal system.
+**quorum:** is used to query and manage embedded journal powered leader election.
+
+```console
+# Get information on existing state of the `MASTER` or `JOB_MASTER` leader election quorum.
+$ ./bin/alluxio fsadmin journal quorum info -domain <MASTER | JOB_MASTER>
+```
+
+```console
+# Remove a member from leader election quorum.
+$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <Member_Address>
+```
+
+**checkpoint:** is used to create a checkpoint in the primary master journal system.
 
 This command is mainly used for debugging and to avoid master journal logs from growing unbounded.
+
 Checkpointing requires a pause in master metadata changes, so use this command sparingly to avoid 
 interfering with other users of the system.
 
-```
-./bin/alluxio fsadmin checkpoint
+```console
+$ ./bin/alluxio fsadmin journal checkpoint
 ```
 
 ### doctor
@@ -67,7 +84,7 @@ across different Alluxio nodes as well as alert the operator when worker storage
 # shows server-side configuration errors and warnings
 $ ./bin/alluxio fsadmin doctor configuration
 # shows worker storage health errors and warnings
-$ ./bin/alluixo fsadmin doctor storage
+$ ./bin/alluxio fsadmin doctor storage
 ```
 
 ### getBlockInfo
@@ -79,6 +96,33 @@ It is primarily intended to assist power users in debugging their system.
 $ ./bin/alluxio fsadmin getBlockInfo <block_id>
 BlockInfo{id=16793993216, length=6, locations=[BlockLocation{workerId=8265394007253444396, address=WorkerNetAddress{host=local-mbp, rpcPort=29999, dataPort=29999, webPort=30000, domainSocketPath=, tieredIdentity=TieredIdentity(node=local-mbp, rack=null)}, tierAlias=MEM, mediumType=MEM}]}
 This block belongs to file {id=16810770431, path=/test2}
+```
+
+### metrics
+
+The `metrics` command provides operations for Alluxio metrics system.
+
+`metrics clear` will clear the metrics stored in the whole alluxio cluster.
+This command is useful when getting metrics information in short-term testing.
+It should be used sparingly as it may affect the current metrics recording and reporting which may lead to metrics incorrectness 
+and affect worker/client heartbeats with leading master.
+
+If `--master` option is used, all the metrics stored in Alluxio leading master will be cleared.
+If `--workers <WORKER_HOSTNAME_1>,<WORKER_HOSTNAME_2>` is used, metrics in specific workers will be cleared.
+
+If you are clearing metrics of a large Alluxio cluster with many workers, you can use the `--parallelism <#>` option to submit `#` of
+worker metrics clearance job in parallel. For example, if your cluster has 200 workers, persisting with a
+parallelism factor of 10 will clear metrics of 10 workers at a time until all metrics in 200 workers are cleared.
+
+```console
+# Clear metrics of the whole alluxio cluster including leading master and workers
+$ ./bin/alluxio fsadmin metrics clear
+# Clear metrics of alluxio leading master
+$ ./bin/alluxio fsadmin metrics clear --master
+# Clear metrics of specific workers
+$ ./bin/alluxio fsadmin metrics clear --workers <WORKER_HOSTNAME_1>,<WORKER_HOSTNAME_2>
+# Clear metrics of an alluxio cluster with many workers in parallel
+$ ./bin/alluxio fsadmin metrics clear --parallelism 10
 ```
 
 ### report
@@ -113,7 +157,8 @@ $ ./bin/alluxio fsadmin report capacity -live
 $ ./bin/alluxio fsadmin report capacity -workers AlluxioWorker1,127.0.0.1
 ```
 
-`report metrics` will report the metrics information of Alluxio cluster.
+`report metrics` will report the metrics stored in the leading master which includes
+leading master process metrics and aggregated cluster metrics.
 
 ```console
 $ ./bin/alluxio fsadmin report metrics
@@ -125,6 +170,25 @@ $ ./bin/alluxio fsadmin report metrics
 $ ./bin/alluxio fsadmin report ufs
 Alluxio under storage system information:
 hdfs://localhost:9000/ on / (hdfs, capacity=-1B, used=-1B, not read-only, not shared, properties={})
+```
+
+`report jobservice` will report a summary of the job service.
+
+```console
+$ ./bin/alluxio fsadmin report jobservice
+Status: CREATED   Count: 0
+Status: CANCELED  Count: 0
+Status: FAILED    Count: 1
+Status: RUNNING   Count: 118
+Status: COMPLETED Count: 223
+
+10 Most Recently Modified Jobs:
+Timestamp: 10-24-2019 17:15:25:014       Id: 1571936656844       Name: Persist             Status: COMPLETED
+Timestamp: 10-24-2019 17:15:24:340       Id: 1571936656957       Name: Persist             Status: RUNNING
+(only a subset of the results is shown)
+
+10 Most Recently Failed Jobs:
+Timestamp: 10-24-2019 17:15:22:946       Id: 1571936656839       Name: Persist             Status: FAILED
 ```
 
 ### ufs
@@ -144,7 +208,7 @@ UFS URI like `hdfs://<name-service>/`, and not `hdfs://<name-service>/<folder>`.
 
 ### pathConf
 
-The `pathConf` command manages [path defaults]({{ '/en/basic/Configuration-Settings.html' | relativize_url }}#path-defaults).
+The `pathConf` command manages [path defaults]({{ '/en/operation/Configuration.html' | relativize_url }}#path-defaults).
 
 #### list
 

@@ -11,7 +11,9 @@
 
 package alluxio.client.cli.job;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 /**
@@ -20,10 +22,21 @@ import org.junit.Test;
 public final class StatCommandTest extends JobShellTest {
   @Test
   public void statTest() throws Exception {
-    long jobId = runPersistJob();
+    String pathStr = "/pathStr";
+
+    long jobId = runPersistJob(pathStr);
     waitForJobToFinish(jobId);
-    mJobShell.run("stat", "-v", Long.toString(jobId));
-    String expected = "ID: " + jobId + "\nStatus: COMPLETED\nTask 0\n\tStatus: COMPLETED\n";
-    Assert.assertEquals(expected, mOutput.toString());
+    sJobShell.run("stat", "-v", Long.toString(jobId));
+
+    String[] output = mOutput.toString().split("\n");
+
+    assertEquals(String.format("ID: %s", jobId), output[0]);
+    assertEquals(String.format("Name: Persist"), output[1]);
+    assertTrue(output[2].contains("Description: PersistConfig"));
+    assertTrue(output[2].contains(pathStr));
+    assertEquals("Status: COMPLETED", output[3]);
+    assertEquals("Task 0", output[4]);
+    assertTrue(output[5].contains("\tWorker: "));
+    assertEquals("\tStatus: COMPLETED", output[6]);
   }
 }
