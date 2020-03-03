@@ -1093,6 +1093,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.COS_CONNECTION_MAX)
           .setDefaultValue(1024)
           .setDescription("The maximum number of COS connections.")
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey COS_CONNECTION_TIMEOUT =
       new Builder(Name.COS_CONNECTION_TIMEOUT)
