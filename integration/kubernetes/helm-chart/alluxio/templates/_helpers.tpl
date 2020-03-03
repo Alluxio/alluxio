@@ -262,3 +262,23 @@ readinessProbe:
   exec:
     command: ["alluxio", "fsadmin", "report"]
 {{- end -}}
+
+{{- define "alluxio.master.livenessProbe" -}}
+livenessProbe:
+  exec:
+    command: ["bin/alluxio-monitor.sh", "master"]
+  initialDelaySeconds: 15
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 2
+{{- end -}}
+
+{{- define "alluxio.worker.livenessProbe" -}}
+livenessProbe:
+  exec:
+    command: ["bin/alluxio-monitor.sh", "worker"]
+  initialDelaySeconds: 15
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 2
+{{- end -}}

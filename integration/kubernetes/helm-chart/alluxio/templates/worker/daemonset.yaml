@@ -81,6 +81,7 @@ spec:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
 {{ include "alluxio.readinessProbe" . | indent 10 }}
+{{ include "alluxio.worker.livenessProbe" . | indent 10 }}
           ports:
           - containerPort: {{ .Values.worker.ports.rpc }}
             name: rpc
@@ -123,6 +124,7 @@ spec:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
 {{ include "alluxio.readinessProbe" . | indent 10 }}
+{{ include "alluxio.worker.livenessProbe" . | indent 10 }}
           ports:
           - containerPort: {{ .Values.jobWorker.ports.rpc }}
             name: job-rpc

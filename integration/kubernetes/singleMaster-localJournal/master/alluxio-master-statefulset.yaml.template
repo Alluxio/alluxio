@@ -18,7 +18,7 @@ metadata:
   labels:
     name: alluxio-master
     app: alluxio
-    chart: alluxio-0.5.5
+    chart: alluxio-0.5.6
     release: alluxio
     heritage: Tiller
     role: alluxio-master
@@ -35,7 +35,7 @@ spec:
       labels:
         name: alluxio-master
         app: alluxio
-        chart: alluxio-0.5.5
+        chart: alluxio-0.5.6
         release: alluxio
         heritage: Tiller
         role: alluxio-master
@@ -70,6 +70,13 @@ spec:
           readinessProbe:
             exec:
               command: ["alluxio", "fsadmin", "report"]
+          livenessProbe:
+            exec:
+              command: ["bin/alluxio-monitor.sh", "master"]
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 2
           ports:
           - containerPort: 19998
             name: rpc
@@ -100,6 +107,13 @@ spec:
           readinessProbe:
             exec:
               command: ["alluxio", "fsadmin", "report"]
+          livenessProbe:
+            exec:
+              command: ["bin/alluxio-monitor.sh", "master"]
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 2
           ports:
           - containerPort: 20001
             name: job-rpc
