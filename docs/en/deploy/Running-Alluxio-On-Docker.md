@@ -81,7 +81,8 @@ Alluxio UFS root mount point in the Alluxio docker image:
   ```
 Of course, you can choose to mount a different path instead of `/alluxio_ufs`.
 Please make sure it is writable by the user the Docker image is run as.
-> Note: Alluxio v2.1 Docker image runs as user `alluxio` by default. It has UID 1000 and GID 1000.  
+> Note: From version 2.1 on, Alluxio Docker image runs as user `alluxio` by default. 
+It has UID 1000 and GID 1000.  
 
 ## Launch Alluxio Containers for Master and Worker
 
