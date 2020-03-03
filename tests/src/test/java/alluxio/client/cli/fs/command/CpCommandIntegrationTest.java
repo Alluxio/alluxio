@@ -36,6 +36,7 @@ import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.Mode;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -54,6 +55,11 @@ import java.util.List;
 /**
  * Tests for cp command.
  */
+@LocalAlluxioClusterResource.ServerConfig(
+    // do not cache worker info on master or clients, since this test restarts workers
+    confParams = {
+        PropertyKey.Name.MASTER_WORKER_INFO_CACHE_REFRESH_TIME, "1ms",
+        PropertyKey.Name.USER_WORKER_LIST_REFRESH_INTERVAL, "1ms"})
 public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   @Rule
