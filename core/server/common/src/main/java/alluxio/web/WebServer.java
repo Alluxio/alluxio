@@ -12,8 +12,8 @@
 package alluxio.web;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 
 import com.google.common.base.Preconditions;
 import org.eclipse.jetty.security.ConstraintMapping;
@@ -186,8 +186,10 @@ public abstract class WebServer {
   public void start() {
     try {
       LOG.info("{} starting @ {}", mServiceName, mAddress);
+      long startMs = System.currentTimeMillis();
       mServer.start();
-      LOG.info("{} started @ {}", mServiceName, mAddress);
+      LOG.info("{} started @ {} in {}ms", mServiceName, mAddress,
+          (System.currentTimeMillis() - startMs));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

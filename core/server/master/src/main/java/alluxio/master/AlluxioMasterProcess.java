@@ -303,6 +303,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     try {
       stopRejectingRpcServer();
       LOG.info("Starting Alluxio master gRPC server on address {}", mRpcBindAddress);
+      long startMs = System.currentTimeMillis();
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
           GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
           ServerConfiguration.global(), ServerUserState.global());
@@ -331,7 +332,8 @@ public class AlluxioMasterProcess extends MasterProcess {
 
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();
-      LOG.info("Started Alluxio master gRPC server on address {}", mRpcConnectAddress);
+      LOG.info("Started Alluxio master gRPC server on address {}  in {}ms", mRpcConnectAddress,
+          (System.currentTimeMillis() - startMs));
 
       // Wait until the server is shut down.
       mGrpcServer.awaitTermination();
