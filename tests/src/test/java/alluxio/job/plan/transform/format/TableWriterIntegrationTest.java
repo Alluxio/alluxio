@@ -75,12 +75,4 @@ public class TableWriterIntegrationTest extends JobIntegrationTest {
     mThrown.expectMessage(ExceptionMessage.TRANSFORM_TABLE_URI_LACKS_SCHEME.getMessage(uri));
     createWriter(uri).close();
   }
-
-  @Test
-  public void createAlluxioWriterWithoutAuthority() throws Exception {
-    AlluxioURI uri = new AlluxioURI("alluxio", null, "/CREATE_ALLUXIO_WRITER_WITHOUT_AUTHORITY");
-    mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(ExceptionMessage.TRANSFORM_TABLE_URI_LACKS_AUTHORITY.getMessage(uri));
-    createWriter(uri).close();
-  }
 }

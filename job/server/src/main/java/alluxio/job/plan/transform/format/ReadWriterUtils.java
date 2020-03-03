@@ -12,12 +12,10 @@
 package alluxio.job.plan.transform.format;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
-import alluxio.uri.NoAuthority;
 
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.conf.Configuration;
@@ -37,11 +35,6 @@ public final class ReadWriterUtils {
   public static void checkUri(AlluxioURI uri) {
     Preconditions.checkArgument(uri.getScheme() != null && !uri.getScheme().isEmpty(),
         ExceptionMessage.TRANSFORM_TABLE_URI_LACKS_SCHEME.getMessage(uri));
-    if (uri.getScheme().equals(Constants.SCHEME)) {
-      Preconditions.checkArgument(uri.getAuthority() != null
-              && !uri.getAuthority().equals(NoAuthority.INSTANCE),
-          ExceptionMessage.TRANSFORM_TABLE_URI_LACKS_AUTHORITY.getMessage(uri));
-    }
   }
 
   /**
