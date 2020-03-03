@@ -54,9 +54,14 @@ public final class PortUtils {
     try {
       socket.setReuseAddress(true);
       port = socket.getLocalPort();
-      socket.close();
     } catch (IOException e) {
       throw new RuntimeException(e);
+    } finally {
+      try {
+        socket.close();
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to close the server socket", e);
+      }
     }
     return port;
   }
