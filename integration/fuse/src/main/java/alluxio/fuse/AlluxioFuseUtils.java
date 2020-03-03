@@ -209,4 +209,37 @@ public final class AlluxioFuseUtils {
       return -ErrorCodes.EBADMSG();
     }
   }
+
+  /**
+   * An interface representing a callable for FUSE APIs.
+   */
+  public interface FuseCallable {
+    /**
+     * The RPC implementation.
+     *
+     * @return the return value from the RPC
+     */
+    int call();
+  }
+
+  /**
+   * Calls the given {@link FuseCallable} and returns its result.
+   *
+   * @param logger the logger to use for this call
+   * @param callable the callable to call
+   * @param methodName the name of the method, used for metrics
+   * @param description the format string of the description, used for logging
+   * @param args the arguments for the description
+   * @return the result
+   */
+  public static int call(Logger logger, FuseCallable callable, String methodName,
+      String description, Object... args) {
+    String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+    logger.debug("Enter: {}({})", methodName, debugDesc);
+    long ts1 = System.currentTimeMillis();
+    int ret = callable.call();
+    long ts2 = System.currentTimeMillis();
+    logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, ts2 - ts1);
+    return ret;
+  }
 }
