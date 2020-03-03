@@ -49,8 +49,8 @@ import alluxio.master.metastore.BlockStore;
 import alluxio.master.metastore.BlockStore.Block;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.metrics.Metric;
-import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
@@ -1097,13 +1097,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
           if (lastUpdate > masterWorkerTimeoutMs) {
             LOG.error("The worker {}({}) timed out after {}ms without a heartbeat!", worker.getId(),
                 worker.getWorkerAddress(), lastUpdate);
-            mLostWorkers.add(worker);
-            mWorkers.remove(worker);
-            WorkerNetAddress workerAddress = worker.getWorkerAddress();
-            for (Consumer<Address> function : mWorkerLostListeners) {
-              function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
-            }
-            processWorkerRemovedBlocks(worker, worker.getBlocks());
+            processLostWorker(worker);
           }
         }
       }
@@ -1113,6 +1107,33 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     public void close() {
       // Nothing to clean up
     }
+  }
+
+  /**
+   * Forces all workers to be lost. This should only be used for testing.
+   */
+  @VisibleForTesting
+  public void forgetAllWorkers() {
+    for (MasterWorkerInfo worker : mWorkers) {
+      synchronized (worker) {
+        processLostWorker(worker);
+      }
+    }
+  }
+
+  /**
+   * Updates the metadata for the specified lost worker.
+   *
+   * @param worker the worker metadata
+   */
+  private void processLostWorker(MasterWorkerInfo worker) {
+    mLostWorkers.add(worker);
+    mWorkers.remove(worker);
+    WorkerNetAddress workerAddress = worker.getWorkerAddress();
+    for (Consumer<Address> function : mWorkerLostListeners) {
+      function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
+    }
+    processWorkerRemovedBlocks(worker, worker.getBlocks());
   }
 
   private LockResource lockBlock(long blockId) {
