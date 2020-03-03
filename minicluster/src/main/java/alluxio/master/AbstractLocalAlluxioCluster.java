@@ -259,9 +259,12 @@ public abstract class AbstractLocalAlluxioCluster {
     mWorkerThreads.clear();
 
     // forget all the workers in the master
-    DefaultBlockMaster bm = (DefaultBlockMaster) getLocalAlluxioMaster().getMasterProcess()
-        .getMaster(BlockMaster.class);
-    bm.forgetAllWorkers();
+    LocalAlluxioMaster master = getLocalAlluxioMaster();
+    if (master != null) {
+      DefaultBlockMaster bm =
+          (DefaultBlockMaster) master.getMasterProcess().getMaster(BlockMaster.class);
+      bm.forgetAllWorkers();
+    }
   }
 
   /**
