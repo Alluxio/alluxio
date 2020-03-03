@@ -11,8 +11,7 @@
 
 package alluxio.table.under.hive.util;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.util.ConfigurationUtils;
+import alluxio.Constants;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -70,9 +69,8 @@ public class PathTranslator {
       if (ufsPath.startsWith(entry.getValue())) {
         String alluxioPath = entry.getKey() + ufsPath.substring(entry.getValue().length());
         if (alluxioPath.startsWith("/")) {
-          // scheme/authority are missing, so prefix with the scheme and authority
-          alluxioPath =
-              ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global()) + alluxioPath;
+          // scheme/authority are missing, so prefix with the scheme
+          alluxioPath = Constants.HEADER + alluxioPath;
         }
         return alluxioPath;
       }
