@@ -219,11 +219,19 @@ The latest Alluxio distribution contains a presto connector jar which can be dro
 ### Enabling the Alluxio Catalog Service with Presto
 
 Assuming you have Alluxio and Presto installation on your local machine at `${ALLUXIO_HOME}` and
-`${PRESTO_HOME}` respectively, run the following to copy the Alluxio connector files into the
-Presto installation as a new plugin. This must be done on all Presto nodes.
+`${PRESTO_HOME}` respectively, you need to copy the Alluxio connector files into the
+Presto installation as a new plugin. This must be done on all Presto nodes. 
+
+For PrestoSQL installations, run the following. 
 
 ```console
 $ cp -R ${ALLUXIO_HOME}/client/presto/plugins/presto-hive-alluxio-319/ ${PRESTO_HOME}/plugin/hive-alluxio/
+```
+
+For PrestoDB installations, run the following. 
+
+```console
+$ cp -R ${ALLUXIO_HOME}/client/presto/plugins/prestodb-hive-alluxio-227/ ${PRESTO_HOME}/plugin/hive-alluxio/
 ```
 
 Additionally, you'll need to create a new catalog to use the Alluxio connector and
