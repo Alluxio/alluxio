@@ -23,7 +23,6 @@ import alluxio.network.PortUtils;
 
 import io.grpc.Server;
 import io.grpc.netty.NettyServerBuilder;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.junit.Ignore;
 import org.junit.Test;
 
