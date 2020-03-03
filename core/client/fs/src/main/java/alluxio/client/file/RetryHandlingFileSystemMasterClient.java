@@ -63,6 +63,9 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.SyncPointInfo;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -78,6 +81,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingFileSystemMasterClient extends AbstractMasterClient
     implements FileSystemMasterClient {
+  private static final Logger LOG =
+      LoggerFactory.getLogger(RetryHandlingFileSystemMasterClient.class);
+
   private FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceBlockingStub mClient =
       null;
 
@@ -122,7 +128,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
         inconsistentUris.add(new AlluxioURI(inconsistentPath));
       }
       return inconsistentUris;
-    }, "CheckConsistency");
+    }, LOG, "CheckConsistency", "path=%s,options=%s", path, options);
   }
 
   @Override
@@ -131,7 +137,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     retryRPC(
         () -> mClient.createDirectory(CreateDirectoryPRequest.newBuilder()
             .setPath(getTransportPath(path)).setOptions(options).build()),
-        "CreateDirectory");
+        LOG, "CreateDirectory", "path=%s,options=%s", path, options);
   }
 
   @Override
@@ -140,34 +146,37 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     return retryRPC(
         () -> new URIStatus(GrpcUtils.fromProto(mClient.createFile(CreateFilePRequest.newBuilder()
             .setPath(getTransportPath(path)).setOptions(options).build()).getFileInfo())),
-        "CreateFile");
+        LOG, "CreateFile", "path=%s,options=%s", path, options);
   }
 
   @Override
   public void completeFile(final AlluxioURI path, final CompleteFilePOptions options)
       throws AlluxioStatusException {
     retryRPC(() -> mClient.completeFile(CompleteFilePRequest.newBuilder()
-        .setPath(getTransportPath(path)).setOptions(options).build()), "CompleteFile");
+        .setPath(getTransportPath(path)).setOptions(options).build()), LOG, "CompleteFile",
+        "path=%s,options=%s", path, options);
   }
 
   @Override
   public void delete(final AlluxioURI path, final DeletePOptions options)
       throws AlluxioStatusException {
     retryRPC(() -> mClient.remove(DeletePRequest.newBuilder().setPath(getTransportPath(path))
-        .setOptions(options).build()), "Delete");
+        .setOptions(options).build()), LOG, "Delete",
+        "path=%s,options=%s", path, options);
   }
 
   @Override
   public void free(final AlluxioURI path, final FreePOptions options)
       throws AlluxioStatusException {
     retryRPC(() -> mClient.free(FreePRequest.newBuilder().setPath(getTransportPath(path))
-        .setOptions(options).build()), "Free");
+        .setOptions(options).build()), LOG, "Free", "path=%s,options=%s", path, options);
   }
 
   @Override
   public String getFilePath(long fileId) throws AlluxioStatusException {
     return retryRPC(() -> mClient.getFilePath(GetFilePathPRequest
-            .newBuilder().setFileId(fileId).build()).getPath(), "GetFilePath");
+            .newBuilder().setFileId(fileId).build()).getPath(), LOG, "GetFilePath", "fileId=%d",
+        fileId);
   }
 
   @Override
@@ -176,14 +185,14 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     return retryRPC(() -> new URIStatus(GrpcUtils
         .fromProto(mClient.getStatus(GetStatusPRequest.newBuilder().setPath(getTransportPath(path))
             .setOptions(options).build()).getFileInfo())),
-        "GetStatus");
+        LOG, "GetStatus", "path=%s,options=%s", path, options);
   }
 
   @Override
   public synchronized List<SyncPointInfo> getSyncPathList() throws AlluxioStatusException {
     return retryRPC(() -> mClient.getSyncPathList(GetSyncPathListPRequest.getDefaultInstance())
         .getSyncPathsList().stream().map(x -> alluxio.wire.SyncPointInfo.fromProto(x))
-        .collect(Collectors.toList()), "GetSyncPathList");
+        .collect(Collectors.toList()), LOG, "GetSyncPathList", "");
   }
 
   @Override
@@ -194,7 +203,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
             GetNewBlockIdForFilePRequest.newBuilder().setPath(getTransportPath(path))
                 .setOptions(GetNewBlockIdForFilePOptions.newBuilder().build()).build())
             .getId(),
-        "GetNewBlockIdForFile");
+        LOG, "GetNewBlockIdForFile", "path=%s", path);
   }
 
   @Override
@@ -207,7 +216,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
         mountTableWire.put(entry.getKey(), GrpcUtils.fromProto(entry.getValue()));
       }
       return mountTableWire;
-    }, "GetMountTable");
+    }, LOG, "GetMountTable", "");
   }
 
   @Override
@@ -223,7 +232,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
                   .map((pFileInfo) -> new URIStatus(GrpcUtils.fromProto(pFileInfo)))
                   .collect(Collectors.toList())));
       return result;
-    }, "ListStatus");
+    }, LOG, "ListStatus", "path=%s,options=%s", path, options);
   }
 
   @Override
@@ -232,7 +241,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     retryRPC(
         () -> mClient.mount(MountPRequest.newBuilder().setAlluxioPath(alluxioPath.toString())
             .setUfsPath(ufsPath.toString()).setOptions(options).build()),
-        "Mount");
+        LOG, "Mount", "alluxioPath=%s,ufsPath=%s,options=%s", alluxioPath, ufsPath, options);
   }
 
   @Override
@@ -242,7 +251,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
         () -> mClient.updateMount(UpdateMountPRequest.newBuilder()
             .setAlluxioPath(alluxioPath.toString())
             .setOptions(options).build()),
-        "UpdateMount");
+        LOG, "UpdateMount", "path=%s,options=%s", alluxioPath, options);
   }
 
   @Override
@@ -255,13 +264,15 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public void rename(final AlluxioURI src, final AlluxioURI dst,
       final RenamePOptions options) throws AlluxioStatusException {
     retryRPC(() -> mClient.rename(RenamePRequest.newBuilder().setPath(getTransportPath(src))
-        .setDstPath(getTransportPath(dst)).setOptions(options).build()), "Rename");
+        .setDstPath(getTransportPath(dst)).setOptions(options).build()), LOG, "Rename",
+        "src=%s,dst=%s,options=%s", src, dst, options);
   }
 
   @Override
   public AlluxioURI reverseResolve(final AlluxioURI ufsUri) throws AlluxioStatusException {
     return retryRPC(() -> new AlluxioURI(mClient.reverseResolve(ReverseResolvePRequest.newBuilder()
-        .setUfsUri(ufsUri.toString()).build()).getAlluxioPath()), "ReverseResolve");
+        .setUfsUri(ufsUri.toString()).build()).getAlluxioPath()), LOG, "ReverseResolve",
+        "ufsUri=%s", ufsUri);
   }
 
   @Override
@@ -271,21 +282,23 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
         SetAclPRequest.newBuilder().setPath(getTransportPath(path)).setAction(action)
             .addAllEntries(entries.stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
             .setOptions(options).build()),
-        "SetAcl");
+        LOG, "SetAcl", "path=%s,action=%s,entries=%s,options=%s", path, action, entries, options);
   }
 
   @Override
   public void setAttribute(final AlluxioURI path, final SetAttributePOptions options)
       throws AlluxioStatusException {
     retryRPC(() -> mClient.setAttribute(SetAttributePRequest.newBuilder()
-        .setPath(getTransportPath(path)).setOptions(options).build()), "SetAttribute");
+        .setPath(getTransportPath(path)).setOptions(options).build()), LOG, "SetAttribute",
+        "path=%s,options=%s", path, options);
   }
 
   @Override
   public void scheduleAsyncPersist(final AlluxioURI path, ScheduleAsyncPersistencePOptions options)
       throws AlluxioStatusException {
     retryRPC(() -> mClient.scheduleAsyncPersistence(ScheduleAsyncPersistencePRequest.newBuilder()
-        .setPath(getTransportPath(path)).setOptions(options).build()), "ScheduleAsyncPersist");
+        .setPath(getTransportPath(path)).setOptions(options).build()), LOG, "ScheduleAsyncPersist",
+        "path=%s,options=%s", path, options);
   }
 
   @Override
@@ -293,7 +306,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     retryRPC(
         () -> mClient
             .startSync(StartSyncPRequest.newBuilder().setPath(getTransportPath(path)).build()),
-        "StartSync");
+        LOG, "StartSync", "path=%s", path);
   }
 
   @Override
@@ -301,7 +314,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     retryRPC(
         () -> mClient
             .stopSync(StopSyncPRequest.newBuilder().setPath(getTransportPath(path)).build()),
-        "StopSync");
+        LOG, "StopSync", "path=%s", path);
   }
 
   @Override
@@ -309,7 +322,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     retryRPC(() -> mClient
         .unmount(UnmountPRequest.newBuilder().setAlluxioPath(getTransportPath(alluxioPath))
             .setOptions(UnmountPOptions.newBuilder().build()).build()),
-        "Unmount");
+        LOG, "Unmount", "path=%s", alluxioPath);
   }
 
   @Override
@@ -318,7 +331,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     retryRPC(
         () -> mClient.updateUfsMode(UpdateUfsModePRequest.newBuilder()
             .setUfsPath(ufsUri.getRootPath()).setOptions(options).build()),
-        "UpdateUfsMode");
+        LOG, "UpdateUfsMode", "ufsUri=%s,options=%s", ufsUri, options);
   }
 
   /**

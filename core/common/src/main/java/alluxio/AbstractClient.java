@@ -356,20 +356,33 @@ public abstract class AbstractClient implements Client {
    * If a {@link UnavailableException} occurs, a reconnection will be tried through
    * {@link #connect()} and the action will be re-executed.
    *
-   * @param rpc the RPC call to be executed
-   * @param rpcName the human readable name of the RPC call
    * @param <V> type of return value of the RPC call
+   * @param rpc the RPC call to be executed
+   * @param logger the logger to use for this call
+   * @param rpcName the human readable name of the RPC call
+   * @param description the format string of the description, used for logging
+   * @param args the arguments for the description
    * @return the return value of the RPC call
+   * @throws AlluxioStatusException
    */
-  protected synchronized <V> V retryRPC(RpcCallable<V> rpc, String rpcName)
-      throws AlluxioStatusException {
+  protected synchronized <V> V retryRPC(RpcCallable<V> rpc, Logger logger, String rpcName,
+      String description, Object... args) throws AlluxioStatusException {
+    String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+    long ts1 = System.currentTimeMillis();
+    logger.debug("Enter: {}({})", rpcName, debugDesc);
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(rpcName)).time()) {
-      return retryRPCInternal(rpc, () -> {
+      V ret = retryRPCInternal(rpc, () -> {
         MetricsSystem.counter(getQualifiedRetryMetricName(rpcName)).inc();
         return null;
       });
+      long ts2 = System.currentTimeMillis();
+      logger.debug("Exit (OK): {}({}) in {} ms", rpcName, debugDesc, ts2 - ts1);
+      return ret;
     } catch (Exception e) {
       MetricsSystem.counter(getQualifiedFailureMetricName(rpcName)).inc();
+      long ts2 = System.currentTimeMillis();
+      logger.debug("Exit (ERROR): {}({}) in {} ms: {}",
+          rpcName, debugDesc, ts2 - ts1, e.toString());
       throw e;
     }
   }
