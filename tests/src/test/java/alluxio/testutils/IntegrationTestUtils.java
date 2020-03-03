@@ -37,6 +37,8 @@ import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Throwables;
 import org.powermock.reflect.Whitebox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -49,6 +51,7 @@ import java.util.concurrent.TimeoutException;
  * Util methods for writing integration tests.
  */
 public final class IntegrationTestUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(IntegrationTestUtils.class);
 
   /**
    * Convenience method for calling
@@ -174,7 +177,9 @@ public final class IntegrationTestUtils {
         ServiceType.MASTER_RAFT, ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB,
         ServiceType.JOB_MASTER_RAFT)) {
       PropertyKey key = service.getPortKey();
-      ServerConfiguration.set(key, PortRegistry.reservePort());
+      int reservedPort = PortRegistry.reservePort();
+      LOG.info("Reserved port: {} for service type: {}", reservedPort, key);
+      ServerConfiguration.set(key, reservedPort);
     }
   }
 
