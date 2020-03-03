@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.order;
 
+import alluxio.collections.Pair;
 import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.BlockStoreLocation;
 
@@ -48,6 +49,24 @@ public interface BlockIterator extends BlockStoreEventListener {
    */
   List<Long> getIntersectionList(BlockStoreLocation srcLocation, BlockOrder srcOrder,
       BlockStoreLocation dstLocation, BlockOrder dstOrder, int intersectionWidth,
+      BlockOrder intersectionOrder, Function<Long, Boolean> blockFilterFunc);
+
+  /**
+   * Used to list of block pairs, that if exchanged, could eliminate overlap between two tiers.
+   *
+   * It receives a filter using which certain blocks could be excluded from intersection iterator.
+   *
+   * @param srcLocation source location
+   * @param srcOrder order for the source location
+   * @param dstLocation destination location
+   * @param dstOrder order for the destination location
+   * @param swapRange per-tier range of swap
+   * @param intersectionOrder the order of intersected blocks
+   * @param blockFilterFunc a filter for blocks
+   * @return list of pairs that denote a block-swap
+   */
+  List<Pair<Long, Long>> getSwaps(BlockStoreLocation srcLocation, BlockOrder srcOrder,
+      BlockStoreLocation dstLocation, BlockOrder dstOrder, int swapRange,
       BlockOrder intersectionOrder, Function<Long, Boolean> blockFilterFunc);
 
   /**

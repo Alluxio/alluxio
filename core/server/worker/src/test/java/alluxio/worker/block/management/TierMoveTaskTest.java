@@ -22,9 +22,6 @@ import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.StorageDir;
-import alluxio.worker.block.order.BlockIterator;
-import alluxio.worker.block.order.BlockOrder;
-import alluxio.worker.block.order.LRUSorter;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,22 +31,20 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Random;
 
-public class TierMergeTaskTest {
+public class TierMoveTaskTest {
   private static final String FIRST_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[0];
   private static final String SECOND_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[1];
   private static final long SIMULATE_LOAD_SESSION_ID = 1;
   private static final long SIMULATE_LOAD_BLOCK_ID = 1;
   private static final long BLOCK_SIZE = 100;
+  private static final double MOVE_LIMIT = 0.2;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   private TieredBlockStore mBlockStore;
   private BlockMetadataManager mMetaManager;
-  private BlockIterator mBlockIterator;
 
   private StorageDir mTestDir1;
   private StorageDir mTestDir2;
@@ -63,12 +58,16 @@ public class TierMergeTaskTest {
    */
   @Before
   public void before() throws Exception {
-    // Use LRU for stronger overlap guarantee.
-    ServerConfiguration.set(PropertyKey.WORKER_EVICTION_ORDER_PROVIDER_CLASS,
-        LRUSorter.class.getName());
     ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
+    // Set timeouts for faster task execution.
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME, "100ms");
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_IDLE_SLEEP_TIME, "100ms");
+    // Disable swap task to avoid interference.
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_SWAP_ENABLED, false);
+    // Disable reserved space for easy measurement.
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, 0);
+    // Set move limit.
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_MOVE_LIMIT, MOVE_LIMIT);
 
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
@@ -76,7 +75,6 @@ public class TierMergeTaskTest {
     Field field = mBlockStore.getClass().getDeclaredField("mMetaManager");
     field.setAccessible(true);
     mMetaManager = (BlockMetadataManager) field.get(mBlockStore);
-    mBlockIterator = mMetaManager.getBlockIterator();
 
     mTestDir1 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(0);
     mTestDir2 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(1);
@@ -96,44 +94,31 @@ public class TierMergeTaskTest {
   }
 
   @Test
-  public void testOverlapElimination() throws Exception {
-    Random rnd = new Random();
-    StorageDir[] dirArray = new StorageDir[] {mTestDir1, mTestDir2, mTestDir3, mTestDir4};
-
+  public void testMoveToHigherTier() throws Exception {
     // Start simulating random load on worker.
     startSimulateLoad();
 
-    // Fill each directory, leaving free space on each as merge buffer.
+    // Fill 'mTestDir3' on lower tier.
     long sessionIdCounter = 1000;
     long blockIdCounter = 1000;
-    long reserveFreeSpace = 2 * BLOCK_SIZE;
-    for (StorageDir dir : dirArray) {
-      while (dir.getAvailableBytes() > reserveFreeSpace) {
-        TieredBlockStoreTestUtils.cache(sessionIdCounter++, blockIdCounter++, BLOCK_SIZE,
-            mBlockStore, dir.toBlockStoreLocation(), false);
-      }
+    while (mTestDir3.getAvailableBytes() > 0) {
+      TieredBlockStoreTestUtils.cache(sessionIdCounter++, blockIdCounter++, BLOCK_SIZE, mBlockStore,
+          mTestDir3.toBlockStoreLocation(), false);
     }
 
-    // Access blocks randomly.
-    for (int i = 0; i < 100; i++) {
-      StorageDir dirToAccess = dirArray[rnd.nextInt(dirArray.length)];
-      List<Long> blockIdList = dirToAccess.getBlockIds();
-      if (!blockIdList.isEmpty()) {
-        mBlockStore.accessBlock(sessionIdCounter++,
-            blockIdList.get(rnd.nextInt(blockIdList.size())));
-      }
-    }
+    // Assert that tiers above has no files.
+    Assert.assertEquals(0, mTestDir1.getCommittedBytes());
+    Assert.assertEquals(0, mTestDir2.getCommittedBytes());
 
-    // Validate there is overlap. (It's not guaranteed but using LRU helps.)
-    Assert.assertTrue(mBlockIterator.overlaps(BlockStoreLocation.anyDirInTier(FIRST_TIER_ALIAS),
-        BlockStoreLocation.anyDirInTier(SECOND_TIER_ALIAS), BlockOrder.Natural, (b) -> false));
-
-    // Stop the load for merge task to continue.
+    // Stop the load for move task to continue.
     stopSimulateLoad();
 
-    CommonUtils.waitFor("Overlap to be sorted out by background merge task.",
-        () -> !mBlockIterator.overlaps(BlockStoreLocation.anyDirInTier(FIRST_TIER_ALIAS),
-            BlockStoreLocation.anyDirInTier(SECOND_TIER_ALIAS), BlockOrder.Natural, (b) -> false),
+    // Calculate the expected available bytes on tier after move task finished.
+    long availableBytesLimit =
+        (long) (mMetaManager.getTier(FIRST_TIER_ALIAS).getCapacityBytes() * MOVE_LIMIT);
+
+    CommonUtils.waitFor("Higher tier to be filled with blocs from lower tier.",
+        () -> mTestDir1.getAvailableBytes() + mTestDir2.getAvailableBytes() == availableBytesLimit,
         WaitForOptions.defaults().setTimeoutMs(60000));
   }
 }

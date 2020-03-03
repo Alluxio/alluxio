@@ -58,8 +58,9 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().setProperty(
-          PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE).build();
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
+          .setProperty(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, "0").build();
   private FileSystem mFileSystem;
   private CreateFilePOptions mWriteBoth;
   private CreateFilePOptions mWriteAlluxio;

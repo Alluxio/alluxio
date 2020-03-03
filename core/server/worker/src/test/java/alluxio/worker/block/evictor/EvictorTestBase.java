@@ -70,6 +70,7 @@ public class EvictorTestBase {
    */
   protected void init(String evictorClassName) throws Exception {
     File tempFolder = mTestFolder.newFolder();
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, 0);
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mMetadataView =
         new BlockMetadataEvictorView(mMetaManager, Collections.<Long>emptySet(),

@@ -45,7 +45,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
       .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
       .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
       .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
-      .build();
+      .setProperty(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, "0").build();
 
   @Rule
   public TestRule mResetRule = sResource.getResetResource();

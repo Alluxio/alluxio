@@ -58,6 +58,7 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, CAPACITY_BYTES)
+          .setProperty(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, "0")
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "3")
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD")
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2), "HDD")

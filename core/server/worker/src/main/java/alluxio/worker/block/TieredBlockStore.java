@@ -24,6 +24,7 @@ import alluxio.util.io.FileUtils;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.io.LocalFileBlockWriter;
 import alluxio.worker.block.io.StoreBlockReader;
 import alluxio.worker.block.io.StoreBlockWriter;
 import alluxio.worker.block.management.ManagementTaskCoordinator;
@@ -38,17 +39,21 @@ import alluxio.worker.block.order.BlockOrder;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -365,6 +370,124 @@ public class TieredBlockStore implements BlockStore {
     // other types of exception to indicate this case.
     throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE, newLocation,
         blockId);
+  }
+
+  @Override
+  public void swapBlocks(long sessionId, long blockId1, long blockId2)
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      WorkerOutOfSpaceException, IOException {
+    BlockMeta blockMeta1;
+    BlockMeta blockMeta2;
+    boolean doFsSwap = false;
+
+    long lockId1 = mLockManager.lockBlock(sessionId, blockId1, BlockLockType.READ);
+    long lockId2 = mLockManager.lockBlock(sessionId, blockId2, BlockLockType.READ);
+    try {
+      try (LockResource r = new LockResource(mMetadataReadLock)) {
+        if (mMetaManager.hasTempBlockMeta(blockId1) || mMetaManager.hasTempBlockMeta(blockId2)) {
+          throw new InvalidWorkerStateException(ExceptionMessage.MOVE_UNCOMMITTED_BLOCK, blockId1);
+        }
+        blockMeta1 = mMetaManager.getBlockMeta(blockId1);
+        blockMeta2 = mMetaManager.getBlockMeta(blockId2);
+      }
+
+      if (ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_SWAP_USING_FS)) {
+        Path dirPath1 = Paths.get(blockMeta1.getParentDir().getDirPath());
+        Path dirPath2 = Paths.get(blockMeta2.getParentDir().getDirPath());
+        if (Objects.equals(dirPath1.getRoot(), dirPath2.getRoot())) {
+          doFsSwap = true;
+        }
+      }
+
+      // Allocate swap space from directories for swapping blocks.
+      if (!blockMeta1.getParentDir().allocateFromReserve(blockMeta2.getBlockSize())
+          || !blockMeta2.getParentDir().allocateFromReserve(blockMeta1.getBlockSize())) {
+        throw new WorkerOutOfSpaceException("No reserved space left for swapping.");
+      }
+
+      if (!doFsSwap) {
+        copyBlockFiles(sessionId, blockMeta1, blockMeta2);
+      }
+    } finally {
+      mLockManager.unlockBlock(lockId1);
+      mLockManager.unlockBlock(lockId2);
+    }
+
+    long writeLock1 = mLockManager.lockBlock(sessionId, blockId1, BlockLockType.WRITE);
+    long writeLock2 = mLockManager.lockBlock(sessionId, blockId2, BlockLockType.WRITE);
+    try (LockResource r = new LockResource(mMetadataWriteLock)) {
+      if (doFsSwap) {
+        String swapPath = new TempBlockMeta(sessionId, blockId1, blockMeta1.getBlockSize(),
+            blockMeta2.getParentDir()).getPath();
+        // Ensure swap path.
+        Path swapParentPath = Paths.get(swapPath).getParent();
+        if (swapParentPath != null) {
+          FileUtils.createDir(swapParentPath.toString());
+        }
+        // 3-way swap files.
+        FileUtils.move(blockMeta1.getPath(), swapPath);
+        FileUtils.move(blockMeta2.getPath(), blockMeta1.getPath());
+        FileUtils.move(swapPath, blockMeta2.getPath());
+      } else {
+        String swapPath1 = new TempBlockMeta(sessionId, blockMeta1.getBlockId(),
+            blockMeta1.getBlockSize(), blockMeta2.getParentDir()).getPath();
+        String swapPath2 = new TempBlockMeta(sessionId, blockMeta2.getBlockId(),
+            blockMeta2.getBlockSize(), blockMeta1.getParentDir()).getPath();
+        FileUtils.delete(blockMeta1.getPath());
+        FileUtils.delete(blockMeta2.getPath());
+        FileUtils.move(swapPath2, blockMeta1.getPath());
+        FileUtils.move(swapPath1, blockMeta2.getPath());
+      }
+      mMetaManager.swapBlocks(blockMeta1, blockMeta2);
+      synchronized (mBlockStoreEventListeners) {
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          listener.onMoveBlockByWorker(sessionId, blockMeta1.getBlockId(),
+              blockMeta1.getBlockLocation(), blockMeta2.getBlockLocation());
+          listener.onMoveBlockByWorker(sessionId, blockMeta2.getBlockId(),
+              blockMeta2.getBlockLocation(), blockMeta1.getBlockLocation());
+        }
+      }
+    } finally {
+      mLockManager.unlockBlock(writeLock1);
+      mLockManager.unlockBlock(writeLock2);
+      // Release back the allocation.
+      blockMeta1.getParentDir().releaseToReserve(blockMeta1.getBlockSize());
+      blockMeta2.getParentDir().releaseToReserve(blockMeta2.getBlockSize());
+    }
+  }
+
+  private void copyBlockFiles(long sessionId, BlockMeta blockMeta1, BlockMeta blockMeta2)
+      throws IOException {
+    String swapPathStr1 = new TempBlockMeta(sessionId, blockMeta1.getBlockId(),
+        blockMeta1.getBlockSize(), blockMeta2.getParentDir()).getPath();
+    String swapPathStr2 = new TempBlockMeta(sessionId, blockMeta2.getBlockId(),
+        blockMeta2.getBlockSize(), blockMeta1.getParentDir()).getPath();
+
+    // Ensure swap paths.
+    Path swapParentPath1 = Paths.get(swapPathStr1).getParent();
+    Path swapParentPath2 = Paths.get(swapPathStr2).getParent();
+    if (swapParentPath1 != null) {
+      FileUtils.createDir(swapParentPath1.toString());
+    }
+    if (swapParentPath2 != null) {
+      FileUtils.createDir(swapParentPath2.toString());
+    }
+
+    BlockReader reader1 = new StoreBlockReader(sessionId, blockMeta1);
+    LocalFileBlockWriter writer1 = new LocalFileBlockWriter(swapPathStr1);
+
+    BlockReader reader2 = new StoreBlockReader(sessionId, blockMeta2);
+    LocalFileBlockWriter writer2 = new LocalFileBlockWriter(swapPathStr2);
+
+    // Transfer first file.
+    ByteBuf buffer1 = PooledByteBufAllocator.DEFAULT.buffer((int) blockMeta1.getBlockSize());
+    reader1.transferTo(buffer1);
+    writer1.append(buffer1);
+
+    // Transfer second file.
+    ByteBuf buffer2 = PooledByteBufAllocator.DEFAULT.buffer((int) blockMeta1.getBlockSize());
+    reader2.transferTo(buffer2);
+    writer2.append(buffer2);
   }
 
   @Override

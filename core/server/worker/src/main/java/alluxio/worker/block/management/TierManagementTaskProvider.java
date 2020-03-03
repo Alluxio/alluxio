@@ -30,8 +30,9 @@ import java.util.function.Supplier;
 /**
  * {@link ManagementTaskProvider} implementation for tier management tasks.
  *
- * Currently it produces only 1 type of task {@link TierMergeTask} for: - Maintaining layering based
- * on access pattern - Promoting blocks
+ * It currently creates two types of tasks:
+ *  1- TierSwap task for swapping blocks between tiers in order to promote/demote blocks.
+ *  2- TierMove task for utilizing speed of higher tiers by moving blocks from below.
  */
 public class TierManagementTaskProvider implements ManagementTaskProvider {
   private static final Logger LOG = LoggerFactory.getLogger(TierManagementTaskProvider.class);
@@ -59,64 +60,74 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
 
   @Override
   public BlockManagementTask getTask() {
-    if (!ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_MERGE_ENABLED)) {
-      return null;
+    switch (findNextTask()) {
+      case NONE:
+        return null;
+      case TIER_SWAP:
+        return new TierSwapTask(mBlockStore, mMetadataManager, mEvictorViewSupplier.get(),
+            mLoadTracker);
+      case TIER_MOVE:
+        return new TierMoveTask(mBlockStore, mMetadataManager, mEvictorViewSupplier.get(),
+            mLoadTracker);
+      default:
+        throw new IllegalArgumentException("Unknown task type.");
     }
-
-    if (needMerging()) {
-      return new TierMergeTask(mBlockStore, mMetadataManager, mEvictorViewSupplier.get(),
-          mLoadTracker);
-    }
-
-    return null;
   }
 
   /**
-   * @return {@code false} if there are no overlaps between any tier intersection
+   * @return the next tier management task that is required
    */
-  private boolean needMerging() {
+  private TierManagementTaskType findNextTask() {
+    // Fetch the configuration for supported tasks types.
+    boolean tierSwapEnabled =
+        ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_SWAP_ENABLED);
+    boolean tierMoveEnabled =
+        ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_MOVE_ENABLED);
+
     // Acquire a recent evictor view.
     BlockMetadataEvictorView evictorView = mEvictorViewSupplier.get();
     // Iterate all tier intersections for deciding whether to run a merge.
     for (Pair<BlockStoreLocation, BlockStoreLocation> intersection : mMetadataManager
         .getStorageTierAssoc().intersectionList()) {
-
       // Check if needs merging due to an overlap.
-      if (mMetadataManager.getBlockIterator().overlaps(intersection.getFirst(),
+      if (tierSwapEnabled && mMetadataManager.getBlockIterator().overlaps(intersection.getFirst(),
           intersection.getSecond(), BlockOrder.Natural,
           (blockId) -> !evictorView.isBlockEvictable(blockId))) {
 
-        LOG.debug("Needs merging due to an overlap between: {} - {}", intersection.getFirst(),
-            intersection.getSecond());
-
-        // TODO(ggezer): TV2 - Remove after swap support.
-        // Make sure merging can make progress.
-        long blockSize = ServerConfiguration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-        if (evictorView.getAvailableBytes(intersection.getFirst()) < blockSize
-            && evictorView.getAvailableBytes(intersection.getSecond()) < blockSize) {
-          LOG.debug("Overlap can't be eliminated due to lack of block swap support");
-          return false;
-        }
-        return true;
+        LOG.debug("Needs block swapping due to an overlap between: {} - {}",
+            intersection.getFirst(), intersection.getSecond());
+        return TierManagementTaskType.TIER_SWAP;
       }
 
-      // Check if needs merging due to promotions.
-      StorageTier highTier = mMetadataManager.getTier(intersection.getFirst().tierAlias());
-      double currentFreeSpace = (double) highTier.getAvailableBytes() / highTier.getCapacityBytes();
-      if (currentFreeSpace > ServerConfiguration
-          .getDouble(PropertyKey.WORKER_MANAGEMENT_TIER_MERGE_PROMOTION_LIMIT)) {
-        // Check if there is anything to promote on lower tier.
-        Iterator<Long> lowBlocks = mMetadataManager.getBlockIterator()
-            .getIterator(intersection.getSecond(), BlockOrder.Reverse);
-        while (lowBlocks.hasNext()) {
-          if (evictorView.isBlockEvictable(lowBlocks.next())) {
-            LOG.debug("Needs merging due for promotion from: {} to {}", intersection.getSecond(),
-                intersection.getFirst());
-            return true;
+      // Check if needs moving blocks from below.
+      if (tierMoveEnabled) {
+        StorageTier highTier = mMetadataManager.getTier(intersection.getFirst().tierAlias());
+        double currentFreeSpace =
+            (double) highTier.getAvailableBytes() / highTier.getCapacityBytes();
+        if (currentFreeSpace > ServerConfiguration
+            .getDouble(PropertyKey.WORKER_MANAGEMENT_TIER_MOVE_LIMIT)) {
+          // Check if there is anything to move from lower tier.
+          Iterator<Long> lowBlocks = mMetadataManager.getBlockIterator()
+              .getIterator(intersection.getSecond(), BlockOrder.Reverse);
+          while (lowBlocks.hasNext()) {
+            if (evictorView.isBlockEvictable(lowBlocks.next())) {
+              LOG.debug("Needs merging due to allowed move from {} - {}", intersection.getSecond(),
+                  intersection.getFirst());
+              return TierManagementTaskType.TIER_MOVE;
+            }
           }
         }
       }
     }
-    return false;
+    return TierManagementTaskType.NONE;
+  }
+
+  /**
+   * Enum for supported tier management tasks.
+   */
+  enum TierManagementTaskType {
+    NONE,
+    TIER_SWAP,
+    TIER_MOVE
   }
 }

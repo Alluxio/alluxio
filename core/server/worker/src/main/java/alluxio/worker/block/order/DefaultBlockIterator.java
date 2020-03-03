@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -229,6 +230,57 @@ public class DefaultBlockIterator extends AbstractBlockStoreEventListener
         o1.getSecond(), o2.getSecond()));
     // Return iterator off of sorted intersection list.
     return intersectionList.stream().map((kv) -> kv.getFirst()).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Pair<Long, Long>> getSwaps(BlockStoreLocation srcLocation, BlockOrder srcOrder,
+      BlockStoreLocation dstLocation, BlockOrder dstOrder, int swapRange,
+      BlockOrder intersectionOrder, Function<Long, Boolean> blockFilterFunc) {
+    // Acquire source iterator based on given order.
+    Iterator<Pair<Long, BlockSortedField>> srcIterator = getIteratorInternal(srcLocation, srcOrder);
+    // Acquire destination iterator based on given order.
+    Iterator<Pair<Long, BlockSortedField>> dstIterator = getIteratorInternal(dstLocation, dstOrder);
+
+    List<Pair<Long, BlockSortedField>> srcList = new ArrayList<>(swapRange);
+    List<Pair<Long, BlockSortedField>> dstList = new ArrayList<>(swapRange);
+
+    while (srcIterator.hasNext() && srcList.size() < swapRange) {
+      Pair<Long, BlockSortedField> currPair = srcIterator.next();
+      if (!blockFilterFunc.apply(currPair.getFirst())) {
+        srcList.add(currPair);
+      }
+    }
+    while (dstIterator.hasNext() && dstList.size() < swapRange) {
+      Pair<Long, BlockSortedField> currPair = dstIterator.next();
+      if (!blockFilterFunc.apply(currPair.getFirst())) {
+        dstList.add(currPair);
+      }
+    }
+
+    int swapCount = Math.min(srcList.size(), dstList.size());
+    List<Pair<Long, Long>> swapList = new ArrayList<>(swapCount);
+    while (swapList.size() < swapCount) {
+      if (intersectionOrder.comparator().compare(srcList.get(0).getSecond(),
+          dstList.get(0).getSecond()) < 0) {
+        break;
+      }
+
+      Pair<Long, BlockSortedField> srcItem = srcList.get(0);
+      Pair<Long, BlockSortedField> dstItem = dstList.get(0);
+      swapList.add(new Pair(srcItem.getFirst(), dstItem.getFirst()));
+
+      srcList.remove(0);
+      dstList.remove(0);
+      srcList.add(dstItem);
+      dstList.add(srcItem);
+
+      Collections.sort(srcList,
+          (o1, o2) -> srcOrder.comparator().compare(o1.getSecond(), o2.getSecond()));
+      Collections.sort(dstList,
+          (o1, o2) -> dstOrder.comparator().compare(o1.getSecond(), o2.getSecond()));
+    }
+
+    return swapList;
   }
 
   @Override

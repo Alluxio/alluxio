@@ -57,16 +57,23 @@ public final class StorageDir {
   private Map<Long, Set<Long>> mSessionIdToTempBlockIdsMap;
   private AtomicLong mAvailableBytes;
   private AtomicLong mCommittedBytes;
+  private AtomicLong mReservedBytes;
+  private AtomicLong mUsedReservedBytes;
   private String mDirPath;
   private int mDirIndex;
   private StorageTier mTier;
 
-  private StorageDir(StorageTier tier, int dirIndex, long capacityBytes, String dirPath,
-      String dirMedium) {
+  private StorageDir(StorageTier tier, int dirIndex, long capacityBytes, long reservedBytes,
+      String dirPath, String dirMedium) {
     mTier = Preconditions.checkNotNull(tier, "tier");
     mDirIndex = dirIndex;
     mCapacityBytes = capacityBytes;
-    mAvailableBytes = new AtomicLong(capacityBytes);
+    if (capacityBytes < reservedBytes) {
+      reservedBytes = capacityBytes / 20;
+    }
+    mReservedBytes = new AtomicLong(reservedBytes);
+    mUsedReservedBytes = new AtomicLong(0);
+    mAvailableBytes = new AtomicLong(capacityBytes - reservedBytes);
     mCommittedBytes = new AtomicLong(0);
     mDirPath = dirPath;
     mDirMedium = dirMedium;
@@ -86,6 +93,7 @@ public final class StorageDir {
    * @param tier the {@link StorageTier} this dir belongs to
    * @param dirIndex the index of this dir in its tier
    * @param capacityBytes the initial capacity of this dir, can not be modified later
+   * @param reservedBytes the amount of reserved space for internal management
    * @param dirPath filesystem path of this dir for actual storage
    * @param dirMedium the medium type of the storage dir
    * @return the new created {@link StorageDir}
@@ -93,10 +101,11 @@ public final class StorageDir {
    * @throws WorkerOutOfSpaceException when metadata can not be added due to limited left space
    */
   public static StorageDir newStorageDir(StorageTier tier, int dirIndex, long capacityBytes,
-      String dirPath, String dirMedium)
+      long reservedBytes, String dirPath, String dirMedium)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException,
       InvalidPathException {
-    StorageDir dir = new StorageDir(tier, dirIndex, capacityBytes, dirPath, dirMedium);
+    StorageDir dir =
+        new StorageDir(tier, dirIndex, capacityBytes, reservedBytes, dirPath, dirMedium);
     dir.initializeMeta();
     return dir;
   }
@@ -319,7 +328,7 @@ public final class StorageDir {
     long blockId = tempBlockMeta.getBlockId();
     long blockSize = tempBlockMeta.getBlockSize();
 
-    if (getAvailableBytes() < blockSize) {
+    if (getAvailableBytes() + mReservedBytes.get() < blockSize) {
       throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId,
           blockSize, getAvailableBytes(), tempBlockMeta.getBlockLocation().tierAlias());
     }
@@ -459,6 +468,31 @@ public final class StorageDir {
    */
   public BlockStoreLocation toBlockStoreLocation() {
     return new BlockStoreLocation(mTier.getTierAlias(), mDirIndex, mDirMedium);
+  }
+
+  /**
+   * Allocates from reserved bytes for this dir.
+   *
+   * @param bytes bytes to reserve
+   * @return {@code true} if allocation is successful
+   * @throws IOException
+   */
+  public boolean allocateFromReserve(long bytes) throws IOException {
+    long reservedBytes = mReservedBytes.addAndGet(-bytes);
+    if (reservedBytes < 0) {
+      mReservedBytes.addAndGet(bytes);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Release bytes to the reserved pool.
+   *
+   * @param bytes bytes to release
+   */
+  public void releaseToReserve(long bytes) {
+    mReservedBytes.addAndGet(bytes);
   }
 
   private void reclaimSpace(long size, boolean committed) {

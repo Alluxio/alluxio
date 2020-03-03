@@ -20,6 +20,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -88,6 +89,13 @@ public final class TieredBlockStoreTest {
   @Before
   public void before() throws Exception {
     ServerConfiguration.reset();
+    init(0);
+  }
+
+  private void init(long reservedBytes) throws Exception {
+    // No reserved space for tests that are not swap related.
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, reservedBytes);
+
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
     mBlockStore = new TieredBlockStore();
@@ -303,8 +311,76 @@ public final class TieredBlockStoreTest {
     assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID2)));
   }
 
+  @Test
+  public void swapBlocks() throws Exception {
+    // Reinitialize with reserved bytes.
+    init(BLOCK_SIZE);
+
+    TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mBlockIterator);
+    TieredBlockStoreTestUtils.cache2(SESSION_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
+        mBlockIterator);
+
+    mBlockStore.swapBlocks(SESSION_ID1, BLOCK_ID1, BLOCK_ID2);
+    assertTrue(mTestDir1.hasBlockMeta(BLOCK_ID2));
+    assertTrue(mTestDir2.hasBlockMeta(BLOCK_ID1));
+    assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
+    assertFalse(mTestDir2.hasBlockMeta(BLOCK_ID2));
+  }
+
+  @Test
+  public void swapBlocksNoFs() throws Exception {
+    // Reinitialize with reserved bytes.
+    init(BLOCK_SIZE);
+
+    TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mBlockIterator);
+    TieredBlockStoreTestUtils.cache2(SESSION_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
+        mBlockIterator);
+
+    mBlockStore.swapBlocks(SESSION_ID1, BLOCK_ID1, BLOCK_ID2);
+    assertTrue(mTestDir1.hasBlockMeta(BLOCK_ID2));
+    assertTrue(mTestDir2.hasBlockMeta(BLOCK_ID1));
+    assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
+    assertFalse(mTestDir2.hasBlockMeta(BLOCK_ID2));
+  }
+
+  @Test
+  public void swapBlocksNoSpace() throws Exception {
+    // Reinitialize with reserved bytes.
+    init(BLOCK_SIZE);
+
+    // Create block1 with size greater than the reserved space.
+    TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE + 1, mTestDir1,
+        mMetaManager, mBlockIterator);
+    TieredBlockStoreTestUtils.cache2(SESSION_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
+        mBlockIterator);
+
+    mThrown.expect(WorkerOutOfSpaceException.class);
+    mBlockStore.swapBlocks(SESSION_ID1, BLOCK_ID1, BLOCK_ID2);
+  }
+
+  @Test
+  public void swapBlocksDifferentSize() throws Exception {
+    // Reinitialize with reserved bytes.
+    init(BLOCK_SIZE);
+
+    long blockSize1 = BLOCK_SIZE - 5;
+    long blockSize2 = BLOCK_SIZE - 10;
+
+    // Create block1 with size greater than the reserved space.
+    TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, blockSize1, mTestDir1, mMetaManager,
+        mBlockIterator);
+    TieredBlockStoreTestUtils.cache2(SESSION_ID2, BLOCK_ID2, blockSize2, mTestDir2, mMetaManager,
+        mBlockIterator);
+
+    mBlockStore.swapBlocks(SESSION_ID1, BLOCK_ID1, BLOCK_ID2);
+    assertEquals(mTestDir1.getCommittedBytes(), blockSize2);
+    assertEquals(mTestDir2.getCommittedBytes(), blockSize1);
+  }
+
   /**
-   * Tests the {@link TieredBlockStore#freeSpace(long, long, BlockStoreLocation)} method.
+   * Tests the {@link TieredBlockStore#freeSpace(long, long, long, BlockStoreLocation)} method.
    */
   @Test
   public void freeSpace() throws Exception {

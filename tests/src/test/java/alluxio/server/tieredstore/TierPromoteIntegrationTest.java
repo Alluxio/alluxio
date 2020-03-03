@@ -87,6 +87,7 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
         .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
         .setProperty(PropertyKey.WORKER_MANAGEMENT_IDLE_SLEEP_TIME, "1s")
         .setProperty(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME, "2s")
+        .setProperty(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, BLOCK_SIZE_BYTES)
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD")
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
             Files.createTempDir().getAbsolutePath())
@@ -104,7 +105,7 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
     AlluxioURI path1 = new AlluxioURI(PathUtils.uniqPath());
     AlluxioURI path2 = new AlluxioURI(PathUtils.uniqPath());
 
-    // Write teo files, first file should be in memory, the second should be in ssd tier.
+    // Write two files, first file should be in memory, the second should be in ssd tier.
     FileOutStream os1 = mFileSystem.createFile(path1,
         CreateFilePOptions.newBuilder().setWriteTier(0).setRecursive(true).build());
     os1.write(BufferUtils.getIncreasingByteArray(size));
