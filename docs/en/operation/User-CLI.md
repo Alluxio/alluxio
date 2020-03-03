@@ -312,7 +312,7 @@ The `clearCache` command drops the OS buffer cache.
 
 ### docGen
 
-The `docGen` autogenerates documentation based on the current source code.
+The `docGen` command autogenerates documentation based on the current source code.
 
 ### table
 
