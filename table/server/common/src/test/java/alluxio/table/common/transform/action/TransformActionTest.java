@@ -14,6 +14,7 @@ package alluxio.table.common.transform.action;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import alluxio.table.common.transform.TransformDefinition;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -55,14 +56,14 @@ public class TransformActionTest {
 
   private void parseValidInternal(List<String> definitions) {
     for (String definition : definitions) {
-      assertNotNull("Should be parsable: " + definition, TransformAction.Parser.parse(definition));
+      assertNotNull("Should be parsable: " + definition, TransformDefinition.parse(definition));
     }
   }
 
   private void parseInvalidInternal(List<String> definitions) {
     for (String definition : definitions) {
       try {
-        TransformAction.Parser.parse(definition);
+        TransformDefinition.parse(definition);
         fail("Should not be parsable: " + definition);
       } catch (Exception e) {
         // ignore

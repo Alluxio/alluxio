@@ -11,24 +11,24 @@
 
 package alluxio.table.common.transform.action;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * The action factory interface.
  */
 public interface TransformActionFactory {
 
-  /**
-   * @return the name of the action
-   */
-  String getName();
+  default int getOrder() {
+    return 100;
+  }
 
   /**
    * @param definition the raw definition of the action
-   * @param args a list of string args
-   * @param options a string-string map of options
    * @return a new instance of an action
    */
-  TransformAction create(String definition, List<String> args, Map<String, String> options);
+  @Nullable
+  TransformAction create(Properties definition);
 }
