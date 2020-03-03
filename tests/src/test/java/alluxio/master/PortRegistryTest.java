@@ -108,11 +108,10 @@ public final class PortRegistryTest {
 
   @Test
   public void reservation() throws Exception {
-    for (int i = 0; i < 20000; i++) {
+    for (int i = 0; i < 10000; i++) {
       int port = mRegistry.reservePort();
 
-      Server server = NettyServerBuilder.forAddress(new InetSocketAddress(port))
-          .channelType(NioServerSocketChannel.class).build();
+      Server server = NettyServerBuilder.forAddress(new InetSocketAddress(port)).build();
       try {
         server.start();
       } catch (Exception e) {
