@@ -178,7 +178,7 @@ public final class IntegrationTestUtils {
         ServiceType.JOB_MASTER_RAFT)) {
       PropertyKey key = service.getPortKey();
       int reservedPort = PortRegistry.reservePort();
-      LOG.info("Reserved port: {} for service type: {}", reservedPort, key);
+      LOG.info("Reserved port: {} for service: {}", reservedPort, service.getServiceName());
       ServerConfiguration.set(key, reservedPort);
     }
   }

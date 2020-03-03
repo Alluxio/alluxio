@@ -93,6 +93,7 @@ public abstract class MasterProcess implements Process {
     }
     if (port == 0) {
       port = PortUtils.getFreePort();
+      LOG.info("Generated free port: {} for service: {}", port, service.getServiceName());
       conf.set(service.getPortKey(), port);
     }
     return NetworkAddressUtils.getBindAddress(service, conf);
