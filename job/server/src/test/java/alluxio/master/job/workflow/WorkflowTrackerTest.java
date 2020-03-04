@@ -22,6 +22,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
@@ -70,6 +71,16 @@ public class WorkflowTrackerTest {
     mWorkers = Lists.newArrayList(new WorkerInfo());
     mCommandManager = new CommandManager();
     mMockJobServerContext = mock(JobServerContext.class);
+  }
+
+  @Test
+  public void testEmpty() throws Exception {
+    ArrayList<JobConfig> jobs = Lists.newArrayList();
+    CompositeConfig config = new CompositeConfig(jobs, true);
+    mWorkflowTracker.run(config, 0);
+    WorkflowInfo info = mWorkflowTracker.getStatus(0, true);
+
+    assertEquals(Status.COMPLETED, info.getStatus());
   }
 
   @Test

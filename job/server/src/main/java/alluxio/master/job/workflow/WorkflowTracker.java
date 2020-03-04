@@ -218,6 +218,7 @@ public class WorkflowTracker {
 
   private synchronized void next(long jobId) {
     WorkflowExecution workflowExecution = mWorkflows.get(jobId);
+    mChildren.putIfAbsent(jobId, new ConcurrentHashSet<>());
 
     Set<JobConfig> childJobConfigs = workflowExecution.next();
 
@@ -232,8 +233,6 @@ public class WorkflowTracker {
     }
 
     mWaitingOn.put(jobId, childJobIds);
-
-    mChildren.putIfAbsent(jobId, new ConcurrentHashSet<>());
     mChildren.get(jobId).addAll(childJobIds);
 
     for (Long childJobId : childJobIds) {
