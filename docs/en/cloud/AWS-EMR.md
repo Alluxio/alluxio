@@ -53,6 +53,7 @@ The current version of Alluxio is compatible with `emr-5.25.0`.
 - `instance-type`: The instance type to provision with.
 Note that your account is limited in the number of instances you can launch in each region;
 check your instance limits [here](https://console.aws.amazon.com/ec2/v2/home#Limits:).
+A good instance type to start off with is `r4.4xlarge`.
 - `applications`: Specify `Name=Spark Name=Presto Name=Hive` to bootstrap the three additional services
 - `name`: The EMR cluster name
 - `bootstrap-actions`:
