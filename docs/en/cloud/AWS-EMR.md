@@ -38,22 +38,6 @@ If required, the root UFS can be reconfigured to be HDFS.
 ## Basic Setup
 
 {% accordion setup %}
-  {% collapsible Subscribe to the Alluxio AMI %}
-Go to the [Alluxio AMI page](https://aws.amazon.com/marketplace/pp/B07WR37VD1) in the AWS Marketplace.
-Click on "Continue to Subscribe"
-
-![emr_ami_subscribe]({{ '/img/emr_ami_subscribe.png' | relativize_url }})
-
-Review pricing and the terms. Click "Accept Terms" to continue.
-
-![emr_ami_accept_terms]({{ '/img/emr_ami_accept_terms.png' | relativize_url }})
-
-The Alluxio AMI is now associated with your account.
-The subscription includes a 7 day free trial.
-
-![emr_ami_subscribe_done]({{ '/img/emr_ami_subscribe_done.png' | relativize_url }})
-
-  {% endcollapsible %}
   {% collapsible Set up the required IAM roles for the account to be able to use the EMR service %}
 Open a terminal and use the AWS CLI to create the necessary IAM roles on your account.
 ```console
@@ -67,10 +51,9 @@ The `create-cluster` command requires passing in multiple flags to successfully 
 The current version of Alluxio is compatible with `emr-5.25.0`.
 - `instance-count`: The number of nodes to provision for the cluster.
 - `instance-type`: The instance type to provision with.
-Make sure you pick an instance type supported by the Alluxio marketplace AMI.
 Note that your account is limited in the number of instances you can launch in each region;
 check your instance limits [here](https://console.aws.amazon.com/ec2/v2/home#Limits:).
-The default instance type for the AMI is `r4.4xlarge`.
+A good instance type to start off with is `r4.4xlarge`.
 - `applications`: Specify `Name=Spark Name=Presto Name=Hive` to bootstrap the three additional services
 - `name`: The EMR cluster name
 - `bootstrap-actions`:
@@ -249,6 +232,7 @@ Usage: alluxio-emr.sh <root-ufs-uri>
                              [-d <alluxio-download-uri>]
                              [-f <file_uri>]
                              [-i <journal_backup_uri>]
+                             [-n <storage percentage>]
                              [-p <delimited_properties>]
                              [-s <property_delimiter>]
                              
@@ -257,8 +241,8 @@ with Alluxio. It can download and install Alluxio as well as add properties
 specified as arguments to the script.
   
 By default, if the environment this script executes in does not already contain
-an Alluxio install at /opt/alluxio then it will download, untar, and configure
-the environment at /opt/alluxio. If an install already exists at /opt/alluxio,
+an Alluxio install at ${ALLUXIO_HOME} then it will download, untar, and configure
+the environment at ${ALLUXIO_HOME}. If an install already exists at ${ALLUXIO_HOME},
 nothing will be installed over it, even if -d is specified.
   
 If a specific Alluxio tarball is desired, see the -d option.
@@ -277,21 +261,27 @@ If a specific Alluxio tarball is desired, see the -d option.
 
   -d                An s3:// or http(s):// URI which points to an Alluxio
                     tarball. This script will download and untar the
-                    Alluxio tarball and install Alluxio at /opt/alluxio if an
+                    Alluxio tarball and install Alluxio at ${ALLUXIO_HOME} if an
                     Alluxio installation doesn't already exist at that location.
                     
 
   -f                An s3:// or http(s):// URI to any remote file. This property
                     can be specified multiple times. Any file specified through
                     this property will be downloaded and stored with the same
-                    name to /opt/alluxio/conf/
+                    name to ${ALLUXIO_HOME}/conf/
                     
 
   -i                An s3:// or http(s):// URI which represents the URI of a
                     previous Alluxio journal backup. If supplied, the backup
                     will be downloaded, and upon Alluxio startup, the Alluxio
                     master will read and restore the backup.
-                    
+
+  -n                Automatically configure NVMe storage for Alluxio workers at
+                    tier 0 instead of MEM. When present, the script will attempt
+                    to locate mounted NVMe storage locations and configure them
+                    to be used with Alluxio. The argument provided is an
+                    integer between 1 and 100 that represents the percentage of
+                    each disk that will be allocated to Alluxio.                    
 
   -p                A string containing a delimited set of properties which
                     should be added to the
