@@ -138,7 +138,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }, "MasterServingThread");
     mServingThread.start();
     if (!waitForReady(10 * Constants.MINUTE_MS)) {
-      ThreadUtils.logAllThreads();
+      ThreadUtils.logAllThreads("FaultTolerantAlluxioMasterProcess failed to start serving");
       throw new RuntimeException("Alluxio master failed to come up");
     }
     LOG.info("Primary started");

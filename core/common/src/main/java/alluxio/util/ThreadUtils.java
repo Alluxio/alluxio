@@ -40,9 +40,11 @@ public final class ThreadUtils {
 
   /**
    * Logs a stack trace for all threads currently running in the JVM, similar to jstack.
+   *
+   * @param message the message to print with the thread dumps
    */
-  public static void logAllThreads() {
-    StringBuilder sb = new StringBuilder("Dumping all threads:\n");
+  public static void logAllThreads(String message) {
+    StringBuilder sb = new StringBuilder("Dumping all threads. " + message + "\n");
     for (Thread t : Thread.getAllStackTraces().keySet()) {
       sb.append(formatStackTrace(t));
     }

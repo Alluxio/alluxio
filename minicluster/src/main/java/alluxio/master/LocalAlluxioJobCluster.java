@@ -62,9 +62,9 @@ public final class LocalAlluxioJobCluster {
     setupTest();
     updateTestConf();
     startMaster();
-    TestUtils.waitForReady(mMaster);
+    TestUtils.waitForReady(mMaster, "Job Master in thread: " + mMasterThread.getName());
     startWorker();
-    TestUtils.waitForReady(mWorker);
+    TestUtils.waitForReady(mWorker, "Job Worker in thread: " + mWorkerThread.getName());
     mIsRunning = true;
   }
 
@@ -166,13 +166,15 @@ public final class LocalAlluxioJobCluster {
       @Override
       public void run() {
         try {
+          LOG.info("Starting Alluxio job master {}.", mMaster);
           mMaster.start();
         } catch (Exception e) {
-          throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
+          throw new RuntimeException(e + " \n Start Job Master Error \n" + e.getMessage(), e);
         }
       }
     };
     mMasterThread = new Thread(runMaster);
+    mMasterThread.setName("JobMasterThread-" + System.identityHashCode(mMasterThread));
     mMasterThread.start();
   }
 
@@ -188,13 +190,15 @@ public final class LocalAlluxioJobCluster {
       @Override
       public void run() {
         try {
+          LOG.info("Starting Alluxio job worker {}.", mWorker);
           mWorker.start();
         } catch (Exception e) {
-          throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+          throw new RuntimeException(e + " \n Start Job Worker Error \n" + e.getMessage(), e);
         }
       }
     };
     mWorkerThread = new Thread(runWorker);
+    mWorkerThread.setName("JobWorkerThread-" + System.identityHashCode(mWorkerThread));
     mWorkerThread.start();
   }
 

@@ -86,9 +86,9 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
     runProcess(mExecutor, worker1);
     runProcess(mExecutor, worker2);
 
-    TestUtils.waitForReady(master);
-    TestUtils.waitForReady(worker1);
-    TestUtils.waitForReady(worker2);
+    TestUtils.waitForReady(master, "master1");
+    TestUtils.waitForReady(worker1, "worker1");
+    TestUtils.waitForReady(worker2, "worker2");
 
     FileSystem fs = FileSystem.Factory.create(ServerConfiguration.global());
 

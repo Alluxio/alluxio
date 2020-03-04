@@ -26,12 +26,13 @@ public class TestUtils {
 
   /**
    * @param process the process to wait for
+   * @param message the message to show when timed out
    */
-  public static void waitForReady(alluxio.Process process) {
+  public static void waitForReady(alluxio.Process process, String message) {
     if (!process.waitForReady(SERVER_START_TIMEOUT_MS)) {
-      ThreadUtils.logAllThreads();
+      ThreadUtils.logAllThreads(message);
       throw new RuntimeException(
-          String.format("Timed out waiting for process %s to start", process));
+          String.format("Timed out waiting for process %s to start. %s", process, message));
     }
   }
 

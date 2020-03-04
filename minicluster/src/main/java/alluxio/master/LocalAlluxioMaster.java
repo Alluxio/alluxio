@@ -117,7 +117,7 @@ public final class LocalAlluxioMaster {
     mMasterThread = new Thread(runMaster);
     mMasterThread.setName("MasterThread-" + System.identityHashCode(mMasterThread));
     mMasterThread.start();
-    TestUtils.waitForReady(mMasterProcess);
+    TestUtils.waitForReady(mMasterProcess, "Master in thread: " + mMasterThread.getName());
     // Don't start a secondary master when using the Raft journal.
     if (ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE,
         JournalType.class) == JournalType.EMBEDDED) {
@@ -146,7 +146,8 @@ public final class LocalAlluxioMaster {
     mSecondaryMasterThread
         .setName("SecondaryMasterThread-" + System.identityHashCode(mSecondaryMasterThread));
     mSecondaryMasterThread.start();
-    TestUtils.waitForReady(mSecondaryMaster);
+    TestUtils.waitForReady(mSecondaryMaster,
+        "Secondary Master in thread: " + mSecondaryMasterThread.getName());
   }
 
   /**
