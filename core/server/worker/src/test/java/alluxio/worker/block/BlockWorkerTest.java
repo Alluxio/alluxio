@@ -240,7 +240,7 @@ public class BlockWorkerTest {
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
     when(mBlockStore.createBlock(sessionId, blockId,
-        BlockAllocationOptions.defaultsForCreate(initialBytes, location))).thenReturn(meta);
+        AllocateOptions.forCreate(initialBytes, location))).thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
@@ -263,7 +263,7 @@ public class BlockWorkerTest {
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
     when(mBlockStore.createBlock(sessionId, blockId,
-        BlockAllocationOptions.defaultsForCreate(initialBytes, location))).thenReturn(meta);
+        AllocateOptions.forCreate(initialBytes, location))).thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
@@ -285,7 +285,7 @@ public class BlockWorkerTest {
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
     when(mBlockStore.createBlock(sessionId, blockId,
-        BlockAllocationOptions.defaultsForCreate(initialBytes, location))).thenReturn(meta);
+        AllocateOptions.forCreate(initialBytes, location))).thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
@@ -398,7 +398,8 @@ public class BlockWorkerTest {
     when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyLong()))
         .thenReturn(meta);
     mBlockWorker.moveBlock(sessionId, blockId, tierAlias);
-    verify(mBlockStore).moveBlock(sessionId, blockId, location);
+    verify(mBlockStore).moveBlock(sessionId, blockId,
+        AllocateOptions.forMove(location).setSize(meta.getBlockSize()));
   }
 
   /**
@@ -418,7 +419,8 @@ public class BlockWorkerTest {
     when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyLong()))
         .thenReturn(meta);
     mBlockWorker.moveBlock(sessionId, blockId, tierAlias);
-    verify(mBlockStore, times(0)).moveBlock(sessionId, blockId, location);
+    verify(mBlockStore, times(0)).moveBlock(sessionId, blockId,
+        AllocateOptions.forMove(location).setSize(meta.getBlockSize()));
   }
 
   /**

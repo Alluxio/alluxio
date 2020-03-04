@@ -91,7 +91,7 @@ public interface BlockStore extends SessionCleanable {
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    */
-  TempBlockMeta createBlock(long sessionId, long blockId, BlockAllocationOptions options)
+  TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
@@ -232,7 +232,7 @@ public interface BlockStore extends SessionCleanable {
    *
    * @param sessionId the id of the session to move a block
    * @param blockId the id of an existing block
-   * @param newLocation the location of the destination
+   * @param moveOptions the options for move
    * @throws IllegalArgumentException if newLocation does not belong to the tiered storage
    * @throws BlockDoesNotExistException if block id can not be found
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks of the
@@ -241,7 +241,7 @@ public interface BlockStore extends SessionCleanable {
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    *         block
    */
-  void moveBlock(long sessionId, long blockId, BlockStoreLocation newLocation)
+  void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException;
 
@@ -251,7 +251,7 @@ public interface BlockStore extends SessionCleanable {
    * @param sessionId the id of the session to remove a block
    * @param blockId the id of an existing block
    * @param oldLocation the location of the source
-   * @param newLocation the location of the destination
+   * @param moveOptions the options for move
    * @throws IllegalArgumentException if newLocation does not belong to the tiered storage
    * @throws BlockDoesNotExistException if block id can not be found
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks of the
@@ -261,7 +261,7 @@ public interface BlockStore extends SessionCleanable {
    *         block
    */
   void moveBlock(long sessionId, long blockId, BlockStoreLocation oldLocation,
-      BlockStoreLocation newLocation) throws BlockDoesNotExistException,
+      AllocateOptions moveOptions) throws BlockDoesNotExistException,
       BlockAlreadyExistsException, InvalidWorkerStateException, WorkerOutOfSpaceException,
       IOException;
 

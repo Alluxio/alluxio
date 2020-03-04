@@ -216,7 +216,7 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public TempBlockMeta createBlock(long sessionId, long blockId, BlockAllocationOptions options)
+  public TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     LOG.debug("createBlock: sessionId={}, blockId={}, options={}", sessionId, blockId, options);
     // TODO(ggezer): TV2 - Re-purpose write-to-medium feature to set forcedLocation flag.
@@ -320,8 +320,8 @@ public class TieredBlockStore implements BlockStore {
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
 
-      StorageDirView allocationDir = allocateSpace(sessionId, BlockAllocationOptions
-          .defaultsForRequest(additionalBytes, tempBlockMeta.getBlockLocation()));
+      StorageDirView allocationDir = allocateSpace(sessionId,
+          AllocateOptions.forRequestSpace(additionalBytes, tempBlockMeta.getBlockLocation()));
       if (allocationDir == null) {
         throw new WorkerOutOfSpaceException(String.format(
             "Can't reserve more space for block: %d under session: %d.", blockId, sessionId));
@@ -343,20 +343,20 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void moveBlock(long sessionId, long blockId, BlockStoreLocation newLocation)
+  public void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
-    moveBlock(sessionId, blockId, BlockStoreLocation.anyTier(), newLocation);
+    moveBlock(sessionId, blockId, BlockStoreLocation.anyTier(), moveOptions);
   }
 
   @Override
   public void moveBlock(long sessionId, long blockId, BlockStoreLocation oldLocation,
-      BlockStoreLocation newLocation)
+      AllocateOptions moveOptions)
           throws BlockDoesNotExistException, BlockAlreadyExistsException,
           InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
-    LOG.debug("moveBlock: sessionId={}, blockId={}, oldLocation={}, newLocation={}", sessionId,
-        blockId, oldLocation, newLocation);
-    MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
+    LOG.debug("moveBlock: sessionId={}, blockId={}, oldLocation={}, options={}", sessionId,
+        blockId, oldLocation, moveOptions);
+    MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, moveOptions);
     if (result.getSuccess()) {
       synchronized (mBlockStoreEventListeners) {
         for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -368,8 +368,8 @@ public class TieredBlockStore implements BlockStore {
     }
     // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
     // other types of exception to indicate this case.
-    throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE, newLocation,
-        blockId);
+    throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE,
+        moveOptions.getLocation(), blockId);
   }
 
   @Override
@@ -735,7 +735,7 @@ public class TieredBlockStore implements BlockStore {
     return loc;
   }
 
-  private StorageDirView allocateSpace(long sessionId, BlockAllocationOptions options) {
+  private StorageDirView allocateSpace(long sessionId, AllocateOptions options) {
     StorageDirView dirView = null;
     BlockMetadataView allocatorView = new BlockMetadataAllocatorView(mMetaManager);
     try {
@@ -803,7 +803,7 @@ public class TieredBlockStore implements BlockStore {
    * @throws BlockAlreadyExistsException if there is already a block with the same block id
    */
   private TempBlockMeta createBlockMetaInternal(long sessionId, long blockId, boolean newBlock,
-      BlockAllocationOptions options) throws BlockAlreadyExistsException {
+      AllocateOptions options) throws BlockAlreadyExistsException {
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
       // NOTE: a temp block is supposed to be visible for its own writer,
       // unnecessary to acquire block lock here since no sharing.
@@ -920,14 +920,14 @@ public class TieredBlockStore implements BlockStore {
    * @param sessionId session id
    * @param blockId block id
    * @param oldLocation the source location of the block
-   * @param newLocation new location to move this block
+   * @param moveOptions the allocate options for the move
    * @return the resulting information about the move operation
    * @throws BlockDoesNotExistException if block is not found
    * @throws BlockAlreadyExistsException if a block with same id already exists in new location
    * @throws InvalidWorkerStateException if the block to move is a temp block
    */
   private MoveBlockResult moveBlockInternal(long sessionId, long blockId,
-      BlockStoreLocation oldLocation, BlockStoreLocation newLocation)
+      BlockStoreLocation oldLocation, AllocateOptions moveOptions)
           throws BlockDoesNotExistException, BlockAlreadyExistsException,
           InvalidWorkerStateException, IOException {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
@@ -947,18 +947,19 @@ public class TieredBlockStore implements BlockStore {
         srcLocation = srcBlockMeta.getBlockLocation();
         srcFilePath = srcBlockMeta.getPath();
         blockSize = srcBlockMeta.getBlockSize();
+        // Update moveOptions with the block size.
+        moveOptions.setSize(blockSize);
       }
 
       if (!srcLocation.belongsTo(oldLocation)) {
         throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION, blockId,
             oldLocation);
       }
-      if (srcLocation.belongsTo(newLocation)) {
+      if (srcLocation.belongsTo(moveOptions.getLocation())) {
         return new MoveBlockResult(true, blockSize, srcLocation, srcLocation);
       }
 
-      TempBlockMeta dstTempBlock = createBlockMetaInternal(sessionId, blockId, false,
-          BlockAllocationOptions.defaultsForMove(blockSize, newLocation));
+      TempBlockMeta dstTempBlock = createBlockMetaInternal(sessionId, blockId, false, moveOptions);
       if (dstTempBlock == null) {
         return new MoveBlockResult(false, blockSize, null, null);
       }

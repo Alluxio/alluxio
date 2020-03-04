@@ -15,6 +15,7 @@ import alluxio.Sessions;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStore;
@@ -92,7 +93,8 @@ public class TierMoveTask extends AbstractBlockManagementTask {
         // Move the current block up.
         long nextBlockId = tierDownIterator.next();
         try {
-          mBlockStore.moveBlock(Sessions.createInternalSessionId(), nextBlockId, tierUpLocation);
+          mBlockStore.moveBlock(Sessions.createInternalSessionId(), nextBlockId,
+              AllocateOptions.forTierMove(tierUpLocation));
         } catch (Exception e) {
           LOG.warn("Move failed during tier-move for block: {}. Error: {}", nextBlockId, e);
         }

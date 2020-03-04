@@ -329,7 +329,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     TempBlockMeta createdBlock;
     try {
       createdBlock = mBlockStore.createBlock(sessionId, blockId,
-          BlockAllocationOptions.defaultsForCreate(initialBytes, loc));
+          AllocateOptions.forCreate(initialBytes, loc));
     } catch (WorkerOutOfSpaceException e) {
       InetSocketAddress address =
           InetSocketAddress.createUnresolved(mAddress.getHost(), mAddress.getRpcPort());
@@ -349,8 +349,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     } else {
       loc = BlockStoreLocation.anyDirInTierWithMedium(medium);
     }
-    mBlockStore.createBlock(sessionId, blockId,
-        BlockAllocationOptions.defaultsForCreate(initialBytes, loc));
+    mBlockStore.createBlock(sessionId, blockId, AllocateOptions.forCreate(initialBytes, loc));
   }
 
   @Override
@@ -426,7 +425,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       mBlockStore.unlockBlock(lockId);
     }
     // Execute the block move if necessary
-    mBlockStore.moveBlock(sessionId, blockId, dst);
+    mBlockStore.moveBlock(sessionId, blockId, AllocateOptions.forMove(dst));
   }
 
   @Override
@@ -444,7 +443,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       mBlockStore.unlockBlock(lockId);
     }
     // Execute the block move if necessary
-    mBlockStore.moveBlock(sessionId, blockId, dst);
+    mBlockStore.moveBlock(sessionId, blockId, AllocateOptions.forMove(dst));
   }
 
   @Override

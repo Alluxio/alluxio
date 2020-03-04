@@ -213,13 +213,14 @@ public final class TieredBlockStoreTest {
   }
 
   /**
-   * Tests the {@link TieredBlockStore#moveBlock(long, long, BlockStoreLocation)} method.
+   * Tests the {@link TieredBlockStore#moveBlock(long, long, AllocateOptions)} method.
    */
   @Test
   public void moveBlock() throws Exception {
     TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mBlockIterator);
-    mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, mTestDir2.toBlockStoreLocation());
+    mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1,
+        AllocateOptions.forMove(mTestDir2.toBlockStoreLocation()));
     assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
     assertTrue(mTestDir2.hasBlockMeta(BLOCK_ID1));
     assertTrue(mBlockStore.hasBlockMeta(BLOCK_ID1));
@@ -234,10 +235,10 @@ public final class TieredBlockStoreTest {
     mThrown.expectMessage(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION.getMessage(BLOCK_ID2,
         mTestDir2.toBlockStoreLocation()));
     mBlockStore.moveBlock(SESSION_ID2, BLOCK_ID2, mTestDir2.toBlockStoreLocation(),
-        mTestDir3.toBlockStoreLocation());
+        AllocateOptions.forMove(mTestDir3.toBlockStoreLocation()));
     // Move block from right Dir
     mBlockStore.moveBlock(SESSION_ID2, BLOCK_ID2, mTestDir1.toBlockStoreLocation(),
-        mTestDir3.toBlockStoreLocation());
+        AllocateOptions.forMove(mTestDir3.toBlockStoreLocation()));
     assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID2));
     assertTrue(mTestDir3.hasBlockMeta(BLOCK_ID2));
     assertTrue(mBlockStore.hasBlockMeta(BLOCK_ID2));
@@ -247,7 +248,7 @@ public final class TieredBlockStoreTest {
     // Move block from the specific tier
     mBlockStore.moveBlock(SESSION_ID2, BLOCK_ID2,
         BlockStoreLocation.anyDirInTier(mTestDir1.getParentTier().getTierAlias()),
-        mTestDir3.toBlockStoreLocation());
+        AllocateOptions.forMove(mTestDir3.toBlockStoreLocation()));
     assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID2));
     assertTrue(mTestDir3.hasBlockMeta(BLOCK_ID2));
     assertTrue(mBlockStore.hasBlockMeta(BLOCK_ID2));
@@ -265,7 +266,8 @@ public final class TieredBlockStoreTest {
     // Move block to same location will simply do nothing, so the src block keeps where it was,
     // and the available space should also remain unchanged.
     long availableBytesBefore = mMetaManager.getAvailableBytes(mTestDir1.toBlockStoreLocation());
-    mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, mTestDir1.toBlockStoreLocation());
+    mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1,
+        AllocateOptions.forMove(mTestDir1.toBlockStoreLocation()));
     long availableBytesAfter = mMetaManager.getAvailableBytes(mTestDir1.toBlockStoreLocation());
 
     assertEquals(availableBytesBefore, availableBytesAfter);
@@ -412,7 +414,7 @@ public final class TieredBlockStoreTest {
   }
 
   /**
-   * Tests the {@link TieredBlockStore#freeSpace(long, long, BlockStoreLocation)} method.
+   * Tests the {@link TieredBlockStore#freeSpace(long, long, long, BlockStoreLocation)} method.
    */
   @Test
   public void freeSpaceThreadSafe() throws Exception {
@@ -444,7 +446,7 @@ public final class TieredBlockStoreTest {
   }
 
   /**
-   * Tests the {@link TieredBlockStore#freeSpace(long, long, BlockStoreLocation)} method.
+   * Tests the {@link TieredBlockStore#freeSpace(long, long, long, BlockStoreLocation)} method.
    */
   @Test
   public void freeSpaceWithPinnedBlocks() throws Exception {
@@ -473,13 +475,13 @@ public final class TieredBlockStoreTest {
   }
 
   /**
-   * Tests the {@link TieredBlockStore#createBlock(long, long, BlockAllocationOptions)} method
+   * Tests the {@link TieredBlockStore#createBlock(long, long, AllocateOptions)} method
    * to work without eviction.
    */
   @Test
   public void createBlockMetaWithoutEviction() throws Exception {
     TempBlockMeta tempBlockMeta = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID,
-        BlockAllocationOptions.defaultsForCreate(1, mTestDir1.toBlockStoreLocation()));
+        AllocateOptions.forCreate(1, mTestDir1.toBlockStoreLocation()));
     assertEquals(1, tempBlockMeta.getBlockSize());
     assertEquals(mTestDir1, tempBlockMeta.getParentDir());
   }
@@ -488,13 +490,13 @@ public final class TieredBlockStoreTest {
   public void createBlockMetaWithMediumType() throws Exception {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTierWithMedium("MEM");
     TempBlockMeta tempBlockMeta = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID,
-        BlockAllocationOptions.defaultsForCreate(1, loc));
+        AllocateOptions.forCreate(1, loc));
     assertEquals(1, tempBlockMeta.getBlockSize());
     assertEquals(mTestDir2, tempBlockMeta.getParentDir());
 
     BlockStoreLocation loc2 = BlockStoreLocation.anyDirInTierWithMedium("SSD");
     TempBlockMeta tempBlockMeta2 = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID2,
-        BlockAllocationOptions.defaultsForCreate(1, loc2));
+        AllocateOptions.forCreate(1, loc2));
     assertEquals(1, tempBlockMeta2.getBlockSize());
     assertEquals(mTestDir4, tempBlockMeta2.getParentDir());
   }
@@ -542,8 +544,8 @@ public final class TieredBlockStoreTest {
   public void stickyLocationWrites() throws Exception {
     long fileSizeBytes = 100;
     int maxFileCount = (int) (mTestDir1.getCapacityBytes() / fileSizeBytes);
-    BlockAllocationOptions remainOnLocOptions = BlockAllocationOptions
-        .defaultsForCreate(fileSizeBytes, mTestDir1.toBlockStoreLocation()).setForceLocation(true);
+    AllocateOptions remainOnLocOptions = AllocateOptions
+        .forCreate(fileSizeBytes, mTestDir1.toBlockStoreLocation()).setForceLocation(true);
 
     // Write to first dir, 2 times of its peak capacity.
     for (int i = 0; i <= maxFileCount * 2; i++) {
@@ -578,11 +580,13 @@ public final class TieredBlockStoreTest {
     mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE
         .getMessage(mTestDir2.toBlockStoreLocation(), BLOCK_ID1));
 
-    mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, mTestDir2.toBlockStoreLocation());
+    mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1,
+        AllocateOptions.forMove(mTestDir2.toBlockStoreLocation()));
 
     // Expect createBlockMeta to succeed after unlocking this block.
     mBlockStore.unlockBlock(lockId);
-    mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, mTestDir2.toBlockStoreLocation());
+    mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1,
+        AllocateOptions.forMove(mTestDir2.toBlockStoreLocation()));
 
     assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());
     assertEquals(mTestDir2.getCapacityBytes() - BLOCK_SIZE, mTestDir2.getAvailableBytes());
@@ -673,7 +677,8 @@ public final class TieredBlockStoreTest {
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
-    mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, mTestDir1.toBlockStoreLocation());
+    mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1,
+        AllocateOptions.forMove(mTestDir1.toBlockStoreLocation()));
   }
 
   /**
@@ -685,7 +690,8 @@ public final class TieredBlockStoreTest {
     mThrown.expectMessage(ExceptionMessage.MOVE_UNCOMMITTED_BLOCK.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
-    mBlockStore.moveBlock(SESSION_ID1, TEMP_BLOCK_ID, mTestDir2.toBlockStoreLocation());
+    mBlockStore.moveBlock(SESSION_ID1, TEMP_BLOCK_ID,
+        AllocateOptions.forMove(mTestDir2.toBlockStoreLocation()));
   }
 
   /**

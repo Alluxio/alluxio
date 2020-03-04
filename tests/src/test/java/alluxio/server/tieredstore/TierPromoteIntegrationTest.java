@@ -97,10 +97,10 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
             String.valueOf(CAPACITY_BYTES)).build();
   }
 
-  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT,
-      "MUST_CACHE"})
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE"})
   @Test
-  public void promoteBlock() throws Exception {
+  public void promoteByTierSwap() throws Exception {
     final int size = (int) CAPACITY_BYTES / 2;
     AlluxioURI path1 = new AlluxioURI(PathUtils.uniqPath());
     AlluxioURI path2 = new AlluxioURI(PathUtils.uniqPath());
@@ -122,8 +122,7 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
     Assert.assertFalse(mFileSystem.getStatus(path1).getFileBlockInfos().isEmpty());
 
     // After reading the second file, it should be moved to memory tier as per LRU.
-    FileInStream in = mFileSystem.openFile(path2,
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build());
+    FileInStream in = mFileSystem.openFile(path2, OpenFilePOptions.getDefaultInstance());
     byte[] buf = new byte[size];
     while (in.read(buf) != -1) {
       // read the entire file
@@ -139,5 +138,54 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
         return false;
       }
     }, WaitForOptions.defaults().setTimeoutMs(60000));
+  }
+
+  // Disable tier management tasks.
+  // Set is to MUST_CACHE to make blocks evictable.
+  // No reserved-space for precise capacity planning.
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.WORKER_MANAGEMENT_TIER_MOVE_ENABLED, "false",
+          PropertyKey.Name.WORKER_MANAGEMENT_TIER_SWAP_ENABLED, "false",
+          PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE",
+          PropertyKey.Name.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, "0"})
+  @Test
+  public void promoteByRead() throws Exception {
+    final int size = (int) CAPACITY_BYTES / 2;
+    AlluxioURI path1 = new AlluxioURI(PathUtils.uniqPath());
+
+    // Write a file to ssd tier.
+    FileOutStream os1 = mFileSystem.createFile(path1,
+            CreateFilePOptions.newBuilder().setWriteTier(1).setRecursive(true).build());
+    os1.write(BufferUtils.getIncreasingByteArray(size));
+    os1.close();
+
+    // Fill mem tier.
+    long fileBytes = CAPACITY_BYTES / 2;
+    for (int i = 0; i < 2; i++) {
+      FileOutStream os = mFileSystem.createFile(new AlluxioURI(PathUtils.uniqPath()),
+          CreateFilePOptions.newBuilder().setWriteTier(0).setRecursive(true).build());
+      os.write(BufferUtils.getIncreasingByteArray((int) fileBytes));
+      os.close();
+    }
+
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+
+    // Not in memory but in Alluxio storage
+    Assert.assertEquals(0, mFileSystem.getStatus(path1).getInMemoryPercentage());
+    Assert.assertFalse(mFileSystem.getStatus(path1).getFileBlockInfos().isEmpty());
+
+    // Before reading the second file, it should be moved to memory tier as per read flag.
+    FileInStream in = mFileSystem.openFile(path1,
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build());
+    byte[] buf = new byte[size];
+    while (in.read(buf) != -1) {
+      // read the entire file
+    }
+    in.close();
+
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+    // In memory
+    Assert.assertEquals(100, mFileSystem.getStatus(path1).getInMemoryPercentage());
   }
 }

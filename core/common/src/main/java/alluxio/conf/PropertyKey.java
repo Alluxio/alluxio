@@ -3231,7 +3231,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_READ_TYPE_DEFAULT =
       new Builder(Name.USER_FILE_READ_TYPE_DEFAULT)
-          .setDefaultValue("CACHE_PROMOTE")
+          .setDefaultValue("CACHE")
           .setDescription("Default read type when creating Alluxio files. Valid options are "
               + "`CACHE_PROMOTE` (move data to highest tier if already in Alluxio storage, "
               + "write data into highest tier of local Alluxio if data needs to be read from "

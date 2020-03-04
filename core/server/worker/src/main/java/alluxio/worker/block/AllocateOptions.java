@@ -17,8 +17,7 @@ import com.google.common.base.Objects;
 /**
  * Used to specify various options while allocating space.
  */
-public class BlockAllocationOptions {
-
+public class AllocateOptions {
   /** Size of allocation. */
   private long mSize;
   /** Location requested for allocation. */
@@ -28,51 +27,104 @@ public class BlockAllocationOptions {
   /** Whether eviction is allowed to satisfy this allocation. */
   private boolean mEvictionAllowed;
 
-  private BlockAllocationOptions(BlockStoreLocation location, long size) {
+  /**
+   * Creates new allocation options object.
+   *
+   * @param location the allocation location
+   * @param size the allocation size
+   */
+  public AllocateOptions(BlockStoreLocation location, long size) {
     mLocation = location;
     mSize = size;
   }
 
   /**
+   * Creates new allocation options object.
+   *
+   * @param location the allocation location
+   */
+  public AllocateOptions(BlockStoreLocation location) {
+    mLocation = location;
+  }
+
+  /**
    * Creates default allocation options for block create request.
+   *  - Locations is not strict
+   *  - Evicting on destination is allowed
    *
    * @param sizeBytes size of allocation
    * @param location location of allocation
    * @return the allocation object initialized with defaults for create
    */
-  public static BlockAllocationOptions defaultsForCreate(long sizeBytes,
-      BlockStoreLocation location) {
-    return new BlockAllocationOptions(location, sizeBytes)
+  public static AllocateOptions forCreate(long sizeBytes, BlockStoreLocation location) {
+    return new AllocateOptions(location, sizeBytes)
         .setForceLocation(false)
         .setEvictionAllowed(true);
   }
 
   /**
    * Creates default allocation options for requesting more space for a block.
+   *  - Locations is strict
+   *  - Evicting on destination is allowed
    *
    * @param sizeBytes size of allocation
    * @param location location of allocation
    * @return the allocation object initialized with defaults for requesting space
    */
-  public static BlockAllocationOptions defaultsForRequest(long sizeBytes,
-      BlockStoreLocation location) {
-    return new BlockAllocationOptions(location, sizeBytes)
+  public static AllocateOptions forRequestSpace(long sizeBytes, BlockStoreLocation location) {
+    return new AllocateOptions(location, sizeBytes)
         .setForceLocation(true)
         .setEvictionAllowed(true);
   }
 
   /**
-   * Creates default allocation options for moving a block.
+   * Creates default allocation options for moving a block during tier-move task.
+   *  - Locations is strict
+   *  - Evicting on destination is disallowed
    *
-   * @param sizeBytes size of allocation
    * @param location location of allocation
    * @return the allocation object initialized with defaults for moving
    */
-  public static BlockAllocationOptions defaultsForMove(long sizeBytes,
-      BlockStoreLocation location) {
-    return new BlockAllocationOptions(location, sizeBytes)
+  public static AllocateOptions forTierMove(BlockStoreLocation location) {
+    return new AllocateOptions(location)
         .setForceLocation(true)
         .setEvictionAllowed(false);
+  }
+
+  /**
+   * Creates default allocation options for moving a block by a client request.
+   *  - Locations is strict
+   *  - Evicting on destination is allowed
+   *
+   * @param location location of allocation
+   * @return the allocation object initialized with defaults for moving
+   */
+  public static AllocateOptions forMove(BlockStoreLocation location) {
+    return new AllocateOptions(location)
+        .setForceLocation(true)
+        .setEvictionAllowed(true);
+  }
+
+  /**
+   * Sets the allocation location.
+   *
+   * @param location the allocation location
+   * @return the updated options
+   */
+  public AllocateOptions setLocation(BlockStoreLocation location) {
+    mLocation = location;
+    return this;
+  }
+
+  /**
+   * Sets the allocation size.
+   *
+   * @param size the allocation size in bytes
+   * @return the updated options
+   */
+  public AllocateOptions setSize(long size) {
+    mSize = size;
+    return this;
   }
 
   /**
@@ -81,7 +133,7 @@ public class BlockAllocationOptions {
    * @param forceLocation force location
    * @return the updated options
    */
-  public BlockAllocationOptions setForceLocation(boolean forceLocation) {
+  public AllocateOptions setForceLocation(boolean forceLocation) {
     mForceLocation = forceLocation;
     return this;
   }
@@ -92,7 +144,7 @@ public class BlockAllocationOptions {
    * @param evictionAllowed eviction allowed
    * @return the updated options
    */
-  public BlockAllocationOptions setEvictionAllowed(boolean evictionAllowed) {
+  public AllocateOptions setEvictionAllowed(boolean evictionAllowed) {
     mEvictionAllowed = evictionAllowed;
     return this;
   }
@@ -127,14 +179,14 @@ public class BlockAllocationOptions {
 
   @Override
   public boolean equals(Object o) {
-    if (o == null || !(o instanceof BlockAllocationOptions)) {
+    if (o == null || !(o instanceof AllocateOptions)) {
       return false;
     }
-    BlockAllocationOptions other = (BlockAllocationOptions) o;
+    AllocateOptions other = (AllocateOptions) o;
     return mSize == other.mSize
-            && mLocation.equals(other.mLocation)
-            && mForceLocation == other.mForceLocation
-            && mEvictionAllowed == other.mEvictionAllowed;
+        && mLocation.equals(other.mLocation)
+        && mForceLocation == other.mForceLocation
+        && mEvictionAllowed == other.mEvictionAllowed;
   }
 
   @Override

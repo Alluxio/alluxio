@@ -15,7 +15,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.worker.block.BlockAllocationOptions;
+import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStore;
@@ -91,7 +91,7 @@ public class TierSwapTaskTest {
 
   private void startSimulateLoad() throws Exception {
     mBlockStore.createBlock(SIMULATE_LOAD_SESSION_ID, SIMULATE_LOAD_BLOCK_ID,
-        BlockAllocationOptions.defaultsForCreate(0, BlockStoreLocation.anyTier()));
+        AllocateOptions.forCreate(0, BlockStoreLocation.anyTier()));
     mSimulateWriter = mBlockStore.getBlockWriter(SIMULATE_LOAD_SESSION_ID, SIMULATE_LOAD_BLOCK_ID);
   }
 

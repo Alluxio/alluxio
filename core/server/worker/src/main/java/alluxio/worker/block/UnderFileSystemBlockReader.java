@@ -351,7 +351,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       if (mBlockWriter == null && offset == 0 && !mBlockMeta.isNoCache()) {
         BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(mStorageTierAssoc.getAlias(0));
         mLocalBlockStore.createBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(),
-            BlockAllocationOptions.defaultsForCreate(mInitialBlockSize, loc));
+            AllocateOptions.forCreate(mInitialBlockSize, loc));
         mBlockWriter = mLocalBlockStore.getBlockWriter(
             mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
       }

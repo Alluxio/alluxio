@@ -12,6 +12,8 @@
 package alluxio.worker.grpc;
 
 import alluxio.RpcUtils;
+import alluxio.StorageTierAssoc;
+import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
@@ -39,6 +41,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
   private static final Logger LOG =
       LoggerFactory.getLogger(ShortCircuitBlockReadHandler.class);
 
+  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   /** The block worker. */
   private final BlockWorker mWorker;
   private final StreamObserver<OpenLocalBlockResponse> mResponseObserver;
@@ -75,19 +78,16 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         if (mLockId == BlockLockManager.INVALID_LOCK_ID) {
           mSessionId = IdUtils.createSessionId();
           // TODO(calvin): Update the locking logic so this can be done better
-          // TODO(ggezer): TV2 - Update public API.
-          // TODO(ggezer): TV2 - Might still be useful for forcing faster reads.
-          //if (mRequest.getPromote()) {
-          //  try {
-          //    mWorker
-          //        .moveBlock(mSessionId, mRequest.getBlockId(), mStorageTierAssoc.getAlias(0));
-          //  } catch (BlockDoesNotExistException e) {
-          //    LOG.debug("Block {} to promote does not exist in Alluxio: {}",
-          //        mRequest.getBlockId(), e.getMessage());
-          //  } catch (Exception e) {
-          //    LOG.warn("Failed to promote block {}: {}", mRequest.getBlockId(), e.getMessage());
-          //  }
-          //}
+          if (mRequest.getPromote()) {
+            try {
+              mWorker.moveBlock(mSessionId, mRequest.getBlockId(), mStorageTierAssoc.getAlias(0));
+            } catch (BlockDoesNotExistException e) {
+              LOG.debug("Block {} to promote does not exist in Alluxio: {}", mRequest.getBlockId(),
+                  e.getMessage());
+            } catch (Exception e) {
+              LOG.warn("Failed to promote block {}: {}", mRequest.getBlockId(), e.getMessage());
+            }
+          }
           mLockId = mWorker.lockBlock(mSessionId, mRequest.getBlockId());
           mWorker.accessBlock(mSessionId, mRequest.getBlockId());
         } else {
