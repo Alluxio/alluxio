@@ -73,6 +73,16 @@ public class WorkflowTrackerTest {
   }
 
   @Test
+  public void testEmpty() throws Exception {
+    ArrayList<JobConfig> jobs = Lists.newArrayList();
+    CompositeConfig config = new CompositeConfig(jobs, true);
+    mWorkflowTracker.run(config, 0);
+    WorkflowInfo info = mWorkflowTracker.getStatus(0, true);
+
+    assertEquals(Status.COMPLETED, info.getStatus());
+  }
+
+  @Test
   public void testBasic() throws Exception {
 
     ArrayList<JobConfig> jobs = Lists.newArrayList();
