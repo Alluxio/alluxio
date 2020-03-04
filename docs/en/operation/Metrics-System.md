@@ -89,6 +89,7 @@ sink.csv.directory=/tmp/alluxio-metrics
 ```
 
 If Alluxio is deployed in a cluster, this file needs to be distributed to all the nodes.
+Restart the Alluxio servers to active new configuration changes.
 
 After starting Alluxio, the CSV files containing metrics will be found in the `sink.csv.directory`. 
 The filename will correspond with the metric name.
@@ -114,6 +115,7 @@ users can view more human-readable metrics stored in the leading master via lead
 ![Master Metrics]({{ '/img/screenshot_generalMetrics.png' | relativize_url }})
 
 The nick name and original metric name corresponding are shown:
+
 | Nick Name | Original Metric Name |
 |-----------------------------------|------------------------------|
 | Local Alluxio (Domain Socket) Read | cluster.BytesReadDomain |
