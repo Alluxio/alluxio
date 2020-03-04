@@ -212,6 +212,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 ```
 
 #### Initiate a multipart upload
+Since we delete the testobject in previous command, you have to create another testobject
+before initiating a multipart upload.
 
 ```console
 $ curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploads
@@ -294,6 +296,11 @@ Server: Jetty(9.2.z-SNAPSHOT)
 Tested for Python 2.7.
 
 #### Create a connection:
+Please note you have to install boto package first.
+
+```console
+pip install boto
+```
 
 ```python
 import boto
