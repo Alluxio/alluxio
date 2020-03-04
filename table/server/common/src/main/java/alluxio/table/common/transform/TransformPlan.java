@@ -13,8 +13,10 @@ package alluxio.table.common.transform;
 
 import alluxio.job.JobConfig;
 import alluxio.table.common.Layout;
+import alluxio.table.common.transform.action.TransformAction;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -49,7 +51,13 @@ public class TransformPlan {
   }
 
   private ArrayList<JobConfig> computeJobConfigs(TransformDefinition definition) {
-    return definition.getActions().stream()
+    final List<TransformAction> actions = definition.getActions();
+
+    if (actions.isEmpty()) {
+      throw new IllegalArgumentException("At least one action should be defined");
+    }
+
+    return actions.stream()
         .map(action -> action.generateJobConfig(mBaseLayout, mTransformedLayout))
         .collect(Collectors.toCollection(ArrayList::new));
   }
