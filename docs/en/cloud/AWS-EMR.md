@@ -231,6 +231,7 @@ Usage: alluxio-emr.sh <root-ufs-uri>
                              [-d <alluxio-download-uri>]
                              [-f <file_uri>]
                              [-i <journal_backup_uri>]
+                             [-n <storage percentage>]
                              [-p <delimited_properties>]
                              [-s <property_delimiter>]
                              
@@ -239,8 +240,8 @@ with Alluxio. It can download and install Alluxio as well as add properties
 specified as arguments to the script.
   
 By default, if the environment this script executes in does not already contain
-an Alluxio install at /opt/alluxio then it will download, untar, and configure
-the environment at /opt/alluxio. If an install already exists at /opt/alluxio,
+an Alluxio install at ${ALLUXIO_HOME} then it will download, untar, and configure
+the environment at ${ALLUXIO_HOME}. If an install already exists at ${ALLUXIO_HOME},
 nothing will be installed over it, even if -d is specified.
   
 If a specific Alluxio tarball is desired, see the -d option.
@@ -259,21 +260,27 @@ If a specific Alluxio tarball is desired, see the -d option.
 
   -d                An s3:// or http(s):// URI which points to an Alluxio
                     tarball. This script will download and untar the
-                    Alluxio tarball and install Alluxio at /opt/alluxio if an
+                    Alluxio tarball and install Alluxio at ${ALLUXIO_HOME} if an
                     Alluxio installation doesn't already exist at that location.
                     
 
   -f                An s3:// or http(s):// URI to any remote file. This property
                     can be specified multiple times. Any file specified through
                     this property will be downloaded and stored with the same
-                    name to /opt/alluxio/conf/
+                    name to ${ALLUXIO_HOME}/conf/
                     
 
   -i                An s3:// or http(s):// URI which represents the URI of a
                     previous Alluxio journal backup. If supplied, the backup
                     will be downloaded, and upon Alluxio startup, the Alluxio
                     master will read and restore the backup.
-                    
+
+  -n                Automatically configure NVMe storage for Alluxio workers at
+                    tier 0 instead of MEM. When present, the script will attempt
+                    to locate mounted NVMe storage locations and configure them
+                    to be used with Alluxio. The argument provided is an
+                    integer between 1 and 100 that represents the percentage of
+                    each disk that will be allocated to Alluxio.                    
 
   -p                A string containing a delimited set of properties which
                     should be added to the
