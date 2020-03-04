@@ -33,8 +33,6 @@ public class TransformDefinitionTest {
     );
 
     parseValidInternal(definitions);
-
-    TransformDefinition.parse("write(hive).option(some.option1, 100).option(some.option2, 2gb);");
   }
 
   @Test

@@ -42,16 +42,16 @@ public class CompactActionTest {
 
   @Test
   public void invalidNumFiles() {
-    String definition = "hive.file.count.max=0";
+    String definition = "file.count.max=0";
     mException.expect(IllegalArgumentException.class);
-    mException.expectMessage("test");
+    mException.expectMessage("Write action must have positive number of files");
 
     parse(definition);
   }
 
   @Test
   public void dynamicNumFiles() {
-    final CompactAction compactAction = parse("hive.file.count.max=1000;hive.file.size.min=1024");
+    final CompactAction compactAction = parse("file.count.max=1000;file.size.min=1024");
 
     HiveLayout from = TableTestUtils.createLayout("/from");
     HiveLayout to = TableTestUtils.createLayout("/to");
@@ -67,7 +67,7 @@ public class CompactActionTest {
 
   @Test
   public void generateJobConfig() {
-    final CompactAction compactAction = parse("write(hive).option(hive.file.count.max, 12)");
+    final CompactAction compactAction = parse("file.count.max=12");
 
     HiveLayout from = TableTestUtils.createLayout("/from");
     HiveLayout to = TableTestUtils.createLayout("/to");
