@@ -109,7 +109,7 @@ public final class LocalAlluxioMaster {
           // this is expected
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
-          LOG.error("Start master error", e);
+          LOG.error("Start master error: " + mMasterProcess, e);
           throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
         }
       }
@@ -117,7 +117,8 @@ public final class LocalAlluxioMaster {
     mMasterThread = new Thread(runMaster);
     mMasterThread.setName("MasterThread-" + System.identityHashCode(mMasterThread));
     mMasterThread.start();
-    TestUtils.waitForReady(mMasterProcess, "Master in thread: " + mMasterThread.getName());
+    TestUtils
+        .waitForReady(mMasterProcess, "Failed to start master thread: " + mMasterThread.getName());
     // Don't start a secondary master when using the Raft journal.
     if (ServerConfiguration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE,
         JournalType.class) == JournalType.EMBEDDED) {
@@ -137,7 +138,7 @@ public final class LocalAlluxioMaster {
           // this is expected
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
-          LOG.error("Start secondary master error", e);
+          LOG.error("Start secondary master error: " + mSecondaryMaster, e);
           throw new RuntimeException(e + " \n Start Secondary Master Error \n" + e.getMessage(), e);
         }
       }
@@ -147,7 +148,7 @@ public final class LocalAlluxioMaster {
         .setName("SecondaryMasterThread-" + System.identityHashCode(mSecondaryMasterThread));
     mSecondaryMasterThread.start();
     TestUtils.waitForReady(mSecondaryMaster,
-        "Secondary Master in thread: " + mSecondaryMasterThread.getName());
+        "Failed to start Secondary Master thread: " + mSecondaryMasterThread.getName());
   }
 
   /**

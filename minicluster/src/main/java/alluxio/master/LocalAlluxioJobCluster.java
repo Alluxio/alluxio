@@ -62,9 +62,11 @@ public final class LocalAlluxioJobCluster {
     setupTest();
     updateTestConf();
     startMaster();
-    TestUtils.waitForReady(mMaster, "Job Master in thread: " + mMasterThread.getName());
+    TestUtils
+        .waitForReady(mMaster, "Failed to start Job Master thread: " + mMasterThread.getName());
     startWorker();
-    TestUtils.waitForReady(mWorker, "Job Worker in thread: " + mWorkerThread.getName());
+    TestUtils
+        .waitForReady(mWorker, "Failed to start Job Worker thread: " + mWorkerThread.getName());
     mIsRunning = true;
   }
 
@@ -169,6 +171,8 @@ public final class LocalAlluxioJobCluster {
           LOG.info("Starting Alluxio job master {}.", mMaster);
           mMaster.start();
         } catch (Exception e) {
+          // Log the exception as the RuntimeException will be caught and handled silently by JUnit
+          LOG.error("Start job master error: " + mMaster, e);
           throw new RuntimeException(e + " \n Start Job Master Error \n" + e.getMessage(), e);
         }
       }
@@ -193,6 +197,8 @@ public final class LocalAlluxioJobCluster {
           LOG.info("Starting Alluxio job worker {}.", mWorker);
           mWorker.start();
         } catch (Exception e) {
+          // Log the exception as the RuntimeException will be caught and handled silently by JUnit
+          LOG.error("Start job worker error: " + mWorker, e);
           throw new RuntimeException(e + " \n Start Job Worker Error \n" + e.getMessage(), e);
         }
       }

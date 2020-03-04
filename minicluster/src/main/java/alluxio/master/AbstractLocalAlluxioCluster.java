@@ -126,7 +126,8 @@ public abstract class AbstractLocalAlluxioCluster {
     mProxyThread = new Thread(runProxy);
     mProxyThread.setName("ProxyThread-" + System.identityHashCode(mProxyThread));
     mProxyThread.start();
-    TestUtils.waitForReady(mProxyProcess, "Proxy in thread: " + mProxyThread.getName());
+    TestUtils
+        .waitForReady(mProxyProcess, "Failed to start proxy thread: " + mProxyThread.getName());
   }
 
   /**
@@ -159,7 +160,7 @@ public abstract class AbstractLocalAlluxioCluster {
     }
 
     for (WorkerProcess worker : mWorkers) {
-      TestUtils.waitForReady(worker, "worker");
+      TestUtils.waitForReady(worker, "Failed to start worker thread");
     }
   }
 
