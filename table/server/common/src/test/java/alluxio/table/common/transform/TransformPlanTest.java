@@ -28,7 +28,7 @@ public class TransformPlanTest {
     HiveLayout from = TableTestUtils.createLayout("/from");
     HiveLayout to = TableTestUtils.createLayout("/to");
     TransformDefinition definition =
-        TransformDefinition.parse("hive.file.count.max=12");
+        TransformDefinition.parse("file.count.max=12");
 
     TransformPlan plan = new TransformPlan(from, to, definition);
     assertEquals(from, plan.getBaseLayout());
