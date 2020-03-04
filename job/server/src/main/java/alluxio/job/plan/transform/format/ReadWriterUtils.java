@@ -15,10 +15,13 @@ import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.conf.Configuration;
+
+import static alluxio.hadoop.HadoopConfigurationUtils.mergeAlluxioConfiguration;
 
 /**
  * Utilities for implementing {@link TableReader} and {@link TableWriter}.
@@ -45,7 +48,7 @@ public final class ReadWriterUtils {
     conf.setEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT.getName(), ReadType.NO_CACHE);
     // The cached filesystem might not be configured with the above read type.
     conf.setBoolean(ALLUXIO_HADOOP_FILESYSTEM_DISABLE_CACHE, true);
-    return conf;
+    return mergeAlluxioConfiguration(conf, ServerConfiguration.global());
   }
 
   /**
@@ -56,7 +59,7 @@ public final class ReadWriterUtils {
     conf.setEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT.getName(), WriteType.THROUGH);
     // The cached filesystem might not be configured with the above write type.
     conf.setBoolean(ALLUXIO_HADOOP_FILESYSTEM_DISABLE_CACHE, true);
-    return conf;
+    return mergeAlluxioConfiguration(conf, ServerConfiguration.global());
   }
 
   private ReadWriterUtils() {} // Prevent initialization

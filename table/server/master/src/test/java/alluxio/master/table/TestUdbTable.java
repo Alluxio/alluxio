@@ -82,12 +82,7 @@ public class TestUdbTable implements UdbTable {
           AlluxioURI location = new AlluxioURI("/udbtable/"
               + CommonUtils.randomAlphaNumString(5) + i + "/test.csv");
           if (fs != null) {
-            location = new AlluxioURI(Constants.SCHEME,
-                Authority.fromString(String.join(",",
-                    ConfigurationUtils.getMasterRpcAddresses(
-                        fs.getConf()).stream()
-                        .map(InetSocketAddress::toString)
-                        .collect(ImmutableList.toImmutableList()))),
+            location = new AlluxioURI(Constants.SCHEME, null,
                 "/udbtable/" + CommonUtils.randomAlphaNumString(5) + i + "/test.csv");
             try (FileOutStream out = fs.createFile(location,
                 CreateFilePOptions.newBuilder().setRecursive(true).build())) {
