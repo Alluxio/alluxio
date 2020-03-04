@@ -15,6 +15,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import alluxio.table.common.transform.TransformDefinition;
+
 import org.junit.Test;
 
 import java.util.Arrays;

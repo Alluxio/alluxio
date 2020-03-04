@@ -13,13 +13,12 @@ package alluxio.table.common.transform.action;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.exception.ExceptionMessage;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.transform.CompactConfig;
 import alluxio.table.common.TableTestUtils;
 import alluxio.table.common.layout.HiveLayout;
-
 import alluxio.table.common.transform.TransformDefinition;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -56,7 +55,7 @@ public class CompactActionTest {
 
     HiveLayout from = TableTestUtils.createLayout("/from");
     HiveLayout to = TableTestUtils.createLayout("/to");
-    JobConfig job = compactAction.generateJobConfig(from, to);
+    JobConfig job = compactAction.generateJobConfig(from, to, false);
     assertEquals(CompactConfig.class, job.getClass());
 
     CompactConfig compact = (CompactConfig) job;
@@ -72,7 +71,7 @@ public class CompactActionTest {
 
     HiveLayout from = TableTestUtils.createLayout("/from");
     HiveLayout to = TableTestUtils.createLayout("/to");
-    JobConfig job = compactAction.generateJobConfig(from, to);
+    JobConfig job = compactAction.generateJobConfig(from, to, false);
     assertEquals(CompactConfig.class, job.getClass());
 
     CompactConfig compact = (CompactConfig) job;

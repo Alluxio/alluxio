@@ -12,8 +12,6 @@
 package alluxio.table.common.transform.action;
 
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -21,6 +19,12 @@ import java.util.Properties;
  */
 public interface TransformActionFactory {
 
+  /**
+   * Returns the order of the transform action. Transform actions with a lower number
+   * will be executed before transform actions with a higher number.
+   *
+   * @return integer representing order number
+   */
   default int getOrder() {
     return 100;
   }

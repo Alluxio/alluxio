@@ -61,24 +61,15 @@ public final class CompactConfig implements PlanConfig {
    * @param minFileSize the minimum file size for coalescing
    */
   public CompactConfig(@JsonProperty("partitionInfo") PartitionInfo partitionInfo,
-      @JsonProperty("input") String input,
-      @JsonProperty("output") String output,
-      @JsonProperty("maxNumFiles") Integer maxNumFiles,
-      @JsonProperty("minFileSize") Long minFileSize) {
+                       @JsonProperty("input") String input,
+                       @JsonProperty("output") String output,
+                       @JsonProperty("maxNumFiles") Integer maxNumFiles,
+                       @JsonProperty("minFileSize") Long minFileSize) {
     mPartitionInfo = partitionInfo;
     mInput = Preconditions.checkNotNull(input, "input");
     mOutput = Preconditions.checkNotNull(output, "output");
     mMaxNumFiles = Preconditions.checkNotNull(maxNumFiles, "maxNumFiles");
     mMinFileSize = Preconditions.checkNotNull(minFileSize, "minFileSize");
-  }
-
-  public CompactConfig(@JsonProperty("partitionInfo") PartitionInfo partitionInfo,
-                       @JsonProperty("input") String input,
-                       @JsonProperty("output") String output,
-                       @JsonProperty("layoutType") String layoutType,
-                       @JsonProperty("maxNumFiles") Integer maxNumFiles,
-                       @JsonProperty("minFileSize") Long minFileSize) {
-    this(partitionInfo, input, output, maxNumFiles, minFileSize);
   }
 
   /**

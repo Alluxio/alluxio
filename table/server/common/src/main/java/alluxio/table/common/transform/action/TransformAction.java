@@ -11,20 +11,8 @@
 
 package alluxio.table.common.transform.action;
 
-import alluxio.exception.ExceptionMessage;
 import alluxio.job.JobConfig;
 import alluxio.table.common.Layout;
-
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * The definition of an individual transformation action.
@@ -34,7 +22,8 @@ public interface TransformAction {
   /**
    * @param base the layout to transform from
    * @param transformed the layout to transform to
+   * @param deleteSrc whether the src file should be deleted
    * @return the job configuration for this action
    */
-  JobConfig generateJobConfig(Layout base, Layout transformed);
+  JobConfig generateJobConfig(Layout base, Layout transformed, boolean deleteSrc);
 }

@@ -83,7 +83,7 @@ public class CompactAction implements TransformAction {
   }
 
   @Override
-  public JobConfig generateJobConfig(Layout base, Layout transformed) {
+  public JobConfig generateJobConfig(Layout base, Layout transformed, boolean deleteSrc) {
     alluxio.job.plan.transform.PartitionInfo basePartitionInfo =
         TransformActionUtils.generatePartitionInfo(base);
     return new CompactConfig(basePartitionInfo, base.getLocation().toString(),
