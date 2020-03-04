@@ -38,22 +38,6 @@ If required, the root UFS can be reconfigured to be HDFS.
 ## Basic Setup
 
 {% accordion setup %}
-  {% collapsible Subscribe to the Alluxio AMI %}
-Go to the [Alluxio AMI page](https://aws.amazon.com/marketplace/pp/B07WR37VD1) in the AWS Marketplace.
-Click on "Continue to Subscribe"
-
-![emr_ami_subscribe]({{ '/img/emr_ami_subscribe.png' | relativize_url }})
-
-Review pricing and the terms. Click "Accept Terms" to continue.
-
-![emr_ami_accept_terms]({{ '/img/emr_ami_accept_terms.png' | relativize_url }})
-
-The Alluxio AMI is now associated with your account.
-The subscription includes a 7 day free trial.
-
-![emr_ami_subscribe_done]({{ '/img/emr_ami_subscribe_done.png' | relativize_url }})
-
-  {% endcollapsible %}
   {% collapsible Set up the required IAM roles for the account to be able to use the EMR service %}
 Open a terminal and use the AWS CLI to create the necessary IAM roles on your account.
 ```console
