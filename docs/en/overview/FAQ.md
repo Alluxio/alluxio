@@ -17,7 +17,7 @@ at memory speed. Read more about Alluxio [here]({{ '/en/Overview.html' | relativ
 
 ## What platforms and Java versions can Alluxio run on?
 
-Alluxio requires JVM 1.8 to run on various distributions of Linux / MacOS.
+Alluxio requires JDK 1.8 to run on various distributions of Linux / MacOS.
 
 ## What license is Alluxio under?
 
@@ -44,7 +44,7 @@ It is recommended to deploy Alluxio as a stand-alone system. Orchestration frame
 ## Which programming language does Alluxio support?
 
 Alluxio is primarily developed in Java and exposes Java-like File APIs for other applications to
-interact with. Alluxio supports other language bindings including
+interact with. Alluxio supports other language bindings (experimental currently) including
 [Python]({{ '/en/api/FS-API.html' | relativize_url }}#python) and
 [Golang]({{ '/en/api/FS-API.html' | relativize_url }}#go).
 
