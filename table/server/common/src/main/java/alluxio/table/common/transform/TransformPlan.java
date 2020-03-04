@@ -54,7 +54,7 @@ public class TransformPlan {
     final List<TransformAction> actions = definition.getActions();
 
     if (actions.isEmpty()) {
-      throw new IllegalArgumentException("At least one action should be defined");
+      throw new IllegalArgumentException("At least one action should be defined for the transformation");
     }
 
     return actions.stream()
