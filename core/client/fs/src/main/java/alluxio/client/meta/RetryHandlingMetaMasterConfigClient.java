@@ -25,6 +25,9 @@ import alluxio.master.MasterClientContext;
 import alluxio.wire.ConfigHash;
 import alluxio.wire.Configuration;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,6 +42,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
     implements MetaMasterConfigClient {
+  private static final Logger LOG =
+      LoggerFactory.getLogger(RetryHandlingMetaMasterConfigClient.class);
   private MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub mClient =
       null;
 
@@ -74,13 +79,13 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
   @Override
   public Configuration getConfiguration(GetConfigurationPOptions options) throws IOException {
     return Configuration.fromProto(retryRPC(() ->
-        mClient.getConfiguration(options)));
+        mClient.getConfiguration(options), LOG, "GetConfiguration", "options=%s", options));
   }
 
   @Override
   public ConfigHash getConfigHash() throws IOException {
     return ConfigHash.fromProto(retryRPC(() -> mClient.getConfigHash(
-        GetConfigHashPOptions.getDefaultInstance())));
+        GetConfigHashPOptions.getDefaultInstance()), LOG, "GetConfigHash", ""));
   }
 
   @Override
@@ -89,7 +94,8 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
     Map<String, String> props = new HashMap<>();
     properties.forEach((key, value) -> props.put(key.getName(), value));
     retryRPC(() -> mClient.setPathConfiguration(SetPathConfigurationPRequest.newBuilder()
-        .setPath(path.getPath()).putAllProperties(props).build()));
+        .setPath(path.getPath()).putAllProperties(props).build()),
+        LOG, "setPathConfiguration", "path=%s,properties=%s", path, properties);
   }
 
   @Override
@@ -99,12 +105,13 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
       keySet.add(key.getName());
     }
     retryRPC(() -> mClient.removePathConfiguration(RemovePathConfigurationPRequest.newBuilder()
-        .setPath(path.getPath()).addAllKeys(keySet).build()));
+        .setPath(path.getPath()).addAllKeys(keySet).build()),
+        LOG, "removePathConfiguration", "path=%s,keys=%s", path, keys);
   }
 
   @Override
   public void removePathConfiguration(AlluxioURI path) throws IOException {
     retryRPC(() -> mClient.removePathConfiguration(RemovePathConfigurationPRequest.newBuilder()
-        .setPath(path.getPath()).build()));
+        .setPath(path.getPath()).build()), LOG, "removePathConfiguration", "path=%s", path);
   }
 }
