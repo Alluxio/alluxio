@@ -85,7 +85,7 @@ public class TransformDefinition {
     try {
       properties.load(reader);
     } catch (IOException e) {
-      // The only way this throws an IOException is when the definition is null which isn't possible.
+      // The only way this throws an IOException is if the definition is null which isn't possible.
       return new TransformDefinition(definition, Collections.emptyList());
     }
 

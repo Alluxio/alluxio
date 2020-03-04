@@ -27,8 +27,8 @@ import java.util.Properties;
  */
 public class CompactAction implements TransformAction {
 
-  private static final String NUM_FILES_OPTION = "hive.file.count.max";
-  private static final String FILE_SIZE_OPTION = "hive.file.size.min";
+  private static final String NUM_FILES_OPTION = "file.count.max";
+  private static final String FILE_SIZE_OPTION = "file.size.min";
   private static final long DEFAULT_FILE_SIZE = FileUtils.ONE_GB * 2;
   private static final int DEFAULT_NUM_FILES = 100;
 
