@@ -310,9 +310,9 @@ $ ./bin/alluxio copyDir conf/alluxio-site.properties
 
 The `clearCache` command drops the OS buffer cache.
 
-### confDocGen
+### docGen
 
-The `confDocGen` autogenerates configuration documentation based on the current source code.
+The `docGen` command autogenerates documentation based on the current source code.
 
 ### table
 
@@ -374,6 +374,11 @@ $ ./bin/alluxio validateEnv local ma
 `OPTIONS` can be a list of command line options. Each option has the format
 `-<optionName> [optionValue]` For example, `[-hadoopConfDir <arg>]` could set the path to
 server-side hadoop configuration directory when running validating tasks.
+
+### collectInfo
+
+The `collectInfo` command collects information to troubleshoot an Alluxio cluster.
+For more information see the [collectInfo command page]({{ '/en/operation/Troubleshooting.html#alluxio-collectinfo-command' | relativize_url }}).
 
 ## File System Operations
 
@@ -584,10 +589,21 @@ For example, `cp` can be used to copy files between under storage systems.
 $ ./bin/alluxio fs cp /hdfs/file1 /s3/
 ```
 
+### distributedCp
+
+The `distributedCp` command copies a file or directory in the Alluxio file system distributed across workers
+using the job service.
+
+If the source designates a directory, `distributedCp` copies the entire subtree at source to the destination.
+
+```console
+$ ./bin/alluxio fs distributedCp /data/1023 /data/1024
+```
+
 ### distributedLoad
 
-The `distributedLoad` command moves a file or directory from the under storage system into Alluxio storage in distributed 
-across workers. The job is a no-op if the file is already loaded into Alluxio.
+The `distributedLoad` command loads a file or directory from the under storage system into Alluxio storage distributed 
+across workers using the job service. The job is a no-op if the file is already loaded into Alluxio.
 
 If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
 on a random worker.
@@ -595,6 +611,17 @@ The `--replication` flag can be used to load the data into multiple workers.
 
 ```console
 $ ./bin/alluxio fs distributedLoad --replication 2 /data/today
+```
+
+### distributedMv
+
+The `distributedMv` command moves a file or directory in the Alluxio file system distributed across workers
+using the job service.
+
+If the source designates a directory, `distributedMv` moves the entire subtree at source to the destination.
+
+```console
+$ ./bin/alluxio fs distributedMv /data/1023 /data/1024
 ```
 
 ### du
@@ -735,22 +762,6 @@ For example, `load` can be used to prefetch data for analytics jobs.
 
 ```console
 $ ./bin/alluxio fs load /data/today
-```
-
-### loadMetadata
-
-The `loadMetadata` command is deprecated since Alluxio version 1.1.
-Please use `alluxio fs ls <path>` command instead.
-
-The `loadMetadata` command queries the under storage system for any file or directory matching the
-given path and creates a mirror of the file in Alluxio backed by that file.
-Only the metadata, such as the file name and size, are loaded this way and no data transfer occurs.
-
-For example, `loadMetadata` can be used when other systems output to the under storage directly
-and the application running on Alluxio needs to use the output of those systems.
-
-```console
-$ ./bin/alluxio fs loadMetadata /hdfs/data/2015/logs-1.txt
 ```
 
 ### location

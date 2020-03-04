@@ -15,13 +15,19 @@ import alluxio.exception.PageNotFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * The default implementation of a metadata store for pages stored in cache.
+ * The default implementation of a metadata store for pages stored in cache. This implementation
+ * is not thread safe and requires synchronizations on external callers.
  */
 public class DefaultMetaStore implements MetaStore {
   /** A map from PageId to page info. */
   private final Map<PageId, PageInfo> mPageMap = new HashMap<>();
+  /** The number of logical bytes used. */
+  private final AtomicLong mBytes = new AtomicLong(0);
+  /** The number of pages stored. */
+  private final AtomicLong mPages = new AtomicLong(0);
 
   @Override
   public boolean hasPage(PageId pageId) {
@@ -31,6 +37,8 @@ public class DefaultMetaStore implements MetaStore {
   @Override
   public void addPage(PageId pageId, PageInfo pageInfo) {
     mPageMap.put(pageId, pageInfo);
+    mBytes.addAndGet(pageInfo.getPageSize());
+    mPages.incrementAndGet();
   }
 
   @Override
@@ -46,6 +54,25 @@ public class DefaultMetaStore implements MetaStore {
     if (!mPageMap.containsKey(pageId)) {
       throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }
-    mPageMap.remove(pageId);
+    PageInfo pageInfo = mPageMap.remove(pageId);
+    mBytes.addAndGet(-pageInfo.getPageSize());
+    mPages.decrementAndGet();
+  }
+
+  @Override
+  public long bytes() {
+    return mBytes.get();
+  }
+
+  @Override
+  public long pages() {
+    return mPages.get();
+  }
+
+  @Override
+  public void reset() {
+    mPages.set(0);
+    mBytes.set(0);
+    mPageMap.clear();
   }
 }

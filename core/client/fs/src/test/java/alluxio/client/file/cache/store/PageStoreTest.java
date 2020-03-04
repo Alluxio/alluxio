@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RunWith(Parameterized.class)
 public class PageStoreTest {
@@ -75,7 +76,7 @@ public class PageStoreTest {
     mOptions.setCacheSize(65536);
     mOptions.setAlluxioVersion(ProjectConstants.VERSION);
     mOptions.setRootDir(mTemp.getRoot().getAbsolutePath());
-    mPageStore = PageStore.create(mOptions);
+    mPageStore = PageStore.create(mOptions, true);
   }
 
   @After
@@ -89,14 +90,12 @@ public class PageStoreTest {
     byte[] msgBytes = msg.getBytes();
     PageId id = new PageId("0", 0);
     mPageStore.put(id, msgBytes);
-    assertEquals(1, mPageStore.pages());
     ByteBuffer buf = ByteBuffer.allocate(1024);
     mPageStore.get(id).read(buf);
     buf.flip();
     String read = StandardCharsets.UTF_8.decode(buf).toString();
     assertEquals(msg, read);
     mPageStore.delete(id, msgBytes.length);
-    assertEquals(0, mPageStore.pages());
     try {
       buf.clear();
       mPageStore.get(id).read(buf);
@@ -144,10 +143,8 @@ public class PageStoreTest {
       mPageStore.put(id, data);
       pages.add(new PageInfo(id, data.length));
     }
-    mPageStore.close();
-    try (PageStore store = PageStore.create(mOptions)) {
-      assertEquals(pages, new HashSet<>(store.getPages()));
-    }
+    Set<PageInfo> restored = mPageStore.getPages().collect(Collectors.toSet());
+    assertEquals(pages, restored);
   }
 
   @Test
@@ -161,30 +158,8 @@ public class PageStoreTest {
       mPageStore.put(id, data);
       pages.add(new PageInfo(id, data.length));
     }
-    mPageStore.close();
-    try (PageStore store = PageStore.create(mOptions)) {
-      assertEquals(pages, new HashSet<>(store.getPages()));
-    }
-  }
-
-  @Ignore
-  @Test
-  public void testPagesAndBytes() throws Exception {
-    long totalBytes = 0;
-    for (int i = 1; i <= 1024; i++) {
-      PageId id = new PageId(Integer.toString(i), 0);
-      mPageStore.put(id, new byte[i]);
-      totalBytes += i;
-      assertEquals(i, mPageStore.pages());
-      assertEquals(totalBytes, mPageStore.bytes());
-    }
-    for (int i = 1024; i >= 1; i--) {
-      PageId id = new PageId(Integer.toString(i), 0);
-      mPageStore.delete(id, i);
-      totalBytes -= i;
-      assertEquals(i - 1, mPageStore.pages());
-      assertEquals(totalBytes, mPageStore.bytes());
-    }
+    Set<PageInfo> restored = mPageStore.getPages().collect(Collectors.toSet());
+    assertEquals(pages, restored);
   }
 
   @Ignore

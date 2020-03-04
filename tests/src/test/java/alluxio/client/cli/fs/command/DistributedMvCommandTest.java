@@ -45,7 +45,7 @@ public final class DistributedMvCommandTest extends AbstractFileSystemShellTest 
   }
 
   private void run(String ...args) {
-    if (mFsShell.run(args) != 0) {
+    if (sFsShell.run(args) != 0) {
       throw new RuntimeException(
           "Failed command <" + Joiner.on(" ").join(args) + "> " + mOutput.toString());
     }

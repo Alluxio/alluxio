@@ -38,8 +38,8 @@ $ git checkout <TAG_NAME>
 
 Build the source code using Maven:
 
-```java
-mvn clean install -DskipTests
+```console
+$ mvn clean install -DskipTests
 ```
 
 To speed up the compilation, you can run the following instruction to skip different checks:
@@ -49,8 +49,8 @@ $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip \
   -Dcheckstyle.skip -Dlicense.skip -Dskip.protoc
 ```
 
-Note: The flag `-Dskip.protoc` means protoc do not work this time, so it won't generate the
-proto relates source file. So you shouldn't use `-Dskip.protoc` flag at the first build.
+> Note: The flag `-Dskip.protoc` skips generating source files related to gRPC proto.
+You can skip this step if you have already built them.
 
 If you are seeing `java.lang.OutOfMemoryError: Java heap space`, please set the following
 variable to increase the memory heap size for maven:

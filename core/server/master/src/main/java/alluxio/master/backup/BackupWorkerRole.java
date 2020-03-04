@@ -333,14 +333,22 @@ public class BackupWorkerRole extends AbstractBackupRole {
         (int) mLeaderConnectionIntervalMin, (int) mLeaderConnectionIntervalMax, Integer.MAX_VALUE);
 
     while (infiniteRetryPolicy.attempt()) {
+      // Get leader address.
+      Address leaderAddress;
       try {
         // Create inquire client to determine leader address.
         MasterInquireClient inquireClient =
             MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
                 .build().getMasterInquireClient();
-        // Get leader address.
-        Address leaderAddress = new Address(inquireClient.getPrimaryRpcAddress());
 
+        leaderAddress = new Address(inquireClient.getPrimaryRpcAddress());
+      } catch (Throwable t) {
+        LOG.warn("Failed to get backup-leader address. {}. Error:{}. Attempt:{}", t.toString(),
+            infiniteRetryPolicy.getAttemptCount());
+        continue;
+      }
+      // Address acquired. Establish messaging connection with the leader.
+      try {
         // Create messaging client for backup-leader.
         GrpcMessagingClient messagingClient = new GrpcMessagingClient(ServerConfiguration.global(),
             mServerUserState, mExecutorService, "BackupWorker");
@@ -353,9 +361,9 @@ public class BackupWorkerRole extends AbstractBackupRole {
         activateLeaderConnection(mLeaderConnection);
         LOG.info("Established connection to backup-leader: {}", leaderAddress);
         break;
-      } catch (Exception e) {
-        LOG.warn("Failed to establish connection to backup-leader. Error:{}. Attempt:{}",
-            e.toString(), infiniteRetryPolicy.getAttemptCount());
+      } catch (Throwable t) {
+        LOG.warn("Failed to establish connection to backup-leader: {}. Error:{}. Attempt:{}",
+            leaderAddress, t.toString(), infiniteRetryPolicy.getAttemptCount());
       }
     }
   }

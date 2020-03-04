@@ -12,7 +12,6 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
@@ -23,6 +22,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
@@ -30,9 +30,6 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatScheduler;
-import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.security.user.UserState;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
@@ -46,13 +43,11 @@ import alluxio.wire.WorkerNetAddress;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Integration tests for reading from a remote worker.
@@ -61,10 +56,6 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
-
-  @ClassRule
-  public static ManuallyScheduleHeartbeat sManuallySchedule =
-      new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource;
@@ -557,13 +548,10 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void remoteReadLock() throws Exception {
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
-
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
-      HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
       URIStatus status = mFileSystem.getStatus(uri);
       InStreamOptions options = new InStreamOptions(status, ServerConfiguration.global());
@@ -577,7 +565,6 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
               workerAddr, BlockInStreamSource.REMOTE, options);
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
-      HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
       // The file has been deleted.
       Assert.assertFalse(mFileSystem.exists(uri));

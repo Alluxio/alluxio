@@ -23,16 +23,16 @@ public final class LeaderCommandIntegrationTest extends AbstractFileSystemShellT
 
   @Test
   public void leader() {
-    mFsShell.run("leader");
+    sFsShell.run("leader");
     String expected =
-        mLocalAlluxioCluster.getLocalAlluxioMaster().getAddress().getHostName() + "\n";
+        sLocalAlluxioCluster.getLocalAlluxioMaster().getAddress().getHostName() + "\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 
   @Test
   public void leaderAddressNotAvailable() throws Exception {
-    mLocalAlluxioCluster.stopMasters();
-    mFsShell.run("leader");
+    sLocalAlluxioCluster.stopMasters();
+    sFsShell.run("leader");
     String expected = "The leader is not currently serving requests.";
     Assert.assertTrue(mErrOutput.toString().contains(expected));
   }
