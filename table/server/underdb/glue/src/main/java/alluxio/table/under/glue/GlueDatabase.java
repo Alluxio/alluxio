@@ -92,7 +92,8 @@ public class GlueDatabase implements UnderDatabase {
   public static GlueDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
     String glueDbName = udbContext.getUdbDbName();
     if (glueDbName == null || glueDbName.isEmpty()) {
-      throw new IllegalArgumentException("Glue database name cannot be empty: " + glueDbName);
+      throw new IllegalArgumentException(
+          "Glue database name cannot be empty: " + glueDbName);
     }
 
     return new GlueDatabase(udbContext, configuration, glueDbName);

@@ -24,7 +24,7 @@
 
   <modules>
     <module>hive</module>
-      <module>glue</module>
+    <module>glue</module>
   </modules>
 
   <properties>

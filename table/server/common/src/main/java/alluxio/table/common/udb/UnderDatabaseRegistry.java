@@ -56,7 +56,6 @@ public class UnderDatabaseRegistry {
 
     String libDir =
         PathUtils.concatPath(ServerConfiguration.global().get(PropertyKey.HOME), "lib");
-    LOG.info("Loading udb jars from {}", libDir);
     List<File> files = new ArrayList<>();
     try (DirectoryStream<Path> stream = Files
         .newDirectoryStream(Paths.get(libDir), UDB_EXTENSION_PATTERN)) {
@@ -116,6 +115,7 @@ public class UnderDatabaseRegistry {
    */
   public UnderDatabase create(UdbContext udbContext, String type, UdbConfiguration configuration) {
     Map<String, UnderDatabaseFactory> map = mFactories;
+    LOG.warn("Registered UDBs in create method: " + String.join(",", map.keySet()));
     UnderDatabaseFactory factory = map.get(type);
     if (factory == null) {
       throw new IllegalArgumentException(
