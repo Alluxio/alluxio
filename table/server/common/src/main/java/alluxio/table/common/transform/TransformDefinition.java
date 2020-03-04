@@ -76,7 +76,7 @@ public class TransformDefinition {
     definition = definition.trim();
 
     // accept semicolon as new lines for inline definitions
-    definition.replace(";", "\n");
+    definition = definition.replace(";", "\n");
 
     final Properties properties = new Properties();
 
