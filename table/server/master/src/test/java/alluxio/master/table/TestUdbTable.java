@@ -28,14 +28,9 @@ import alluxio.grpc.table.layout.hive.Storage;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.UdbTable;
-import alluxio.uri.Authority;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
-
-import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

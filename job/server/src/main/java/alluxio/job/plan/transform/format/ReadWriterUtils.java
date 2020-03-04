@@ -11,6 +11,8 @@
 
 package alluxio.job.plan.transform.format;
 
+import static alluxio.hadoop.HadoopConfigurationUtils.mergeAlluxioConfiguration;
+
 import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -20,8 +22,6 @@ import alluxio.exception.ExceptionMessage;
 
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.conf.Configuration;
-
-import static alluxio.hadoop.HadoopConfigurationUtils.mergeAlluxioConfiguration;
 
 /**
  * Utilities for implementing {@link TableReader} and {@link TableWriter}.
