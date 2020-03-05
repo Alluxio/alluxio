@@ -109,7 +109,7 @@ public class TieredBlockStore implements BlockStore {
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
 
   /** Used to get iterators per locations. */
-  private BlockIterator mIterationProvider;
+  private BlockIterator mBlockIterator;
 
   /** Management task coordinator. */
   private ManagementTaskCoordinator mTaskCoordinator;
@@ -121,8 +121,11 @@ public class TieredBlockStore implements BlockStore {
     mMetaManager = BlockMetadataManager.createBlockMetadataManager();
     mLockManager = new BlockLockManager();
 
-    mIterationProvider = mMetaManager.getBlockIterator();
-    registerBlockStoreEventListener(mIterationProvider);
+    mBlockIterator = mMetaManager.getBlockIterator();
+    // Register listeners required by the block iterator.
+    for (BlockStoreEventListener listener : mBlockIterator.getListeners()) {
+      registerBlockStoreEventListener(listener);
+    }
 
     BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(mMetaManager,
         Collections.<Long>emptySet(), Collections.<Long>emptySet());
@@ -130,14 +133,6 @@ public class TieredBlockStore implements BlockStore {
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
-
-    // TODO(ggezer): TV2 - Implement evictor emulation.
-    // initManagerView = new BlockMetadataEvictorView(mMetaManager, Collections.<Long>emptySet(),
-    //         Collections.<Long>emptySet());
-    // mEvictor = Evictor.Factory.create(initManagerView, mAllocator);
-    // if (mEvictor instanceof BlockStoreEventListener) {
-    //   registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
-    // }
 
     // Initialize and start coordinator.
     mTaskCoordinator = new ManagementTaskCoordinator(this, mMetaManager,
@@ -862,7 +857,7 @@ public class TieredBlockStore implements BlockStore {
         maxBytesToFree);
 
     Iterator<Long> evictionCandidates =
-        mIterationProvider.getIterator(location, BlockOrder.Natural);
+        mBlockIterator.getIterator(location, BlockOrder.Natural);
     while (evictionCandidates.hasNext() && maxBytesToFree > 0) {
       long blockToDelete = evictionCandidates.next();
       blocksIterated++;

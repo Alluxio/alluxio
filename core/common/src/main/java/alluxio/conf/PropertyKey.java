@@ -2277,7 +2277,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated(message = "Use WORKER_BLOCK_ANNOTATOR_CLASS instead.")
   public static final PropertyKey WORKER_EVICTOR_CLASS =
       new Builder(Name.WORKER_EVICTOR_CLASS)
-          .setDefaultValue("alluxio.worker.block.evictor.LRUEvictor")
           .setDescription("The strategy that a worker uses to evict block files when a "
               + "storage layer runs out of space. Valid options include "
               + "`alluxio.worker.block.evictor.LRFUEvictor`, "

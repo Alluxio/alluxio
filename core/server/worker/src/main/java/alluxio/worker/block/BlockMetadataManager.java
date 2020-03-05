@@ -13,12 +13,15 @@ package alluxio.worker.block;
 
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.allocator.Allocator;
+import alluxio.worker.block.annotator.EmulatingBlockIterator;
 import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.meta.AbstractBlockMeta;
 import alluxio.worker.block.meta.BlockMeta;
@@ -35,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +79,19 @@ public final class BlockMetadataManager {
         mTiers.add(tier);
         mAliasToTiers.put(tier.getTierAlias(), tier);
       }
-      mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
+      // Create the block iterator.
+      if (ServerConfiguration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
+        LOG.warn(String.format("Evictor is being emulated. Please use %s instead.",
+            PropertyKey.Name.WORKER_BLOCK_ANNOTATOR_CLASS));
+        // Create emulating block iterator.
+        BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(this,
+            Collections.<Long>emptySet(), Collections.<Long>emptySet());
+        mBlockIterator = new EmulatingBlockIterator(this,
+            Evictor.Factory.create(initManagerView, Allocator.Factory.create(initManagerView)));
+      } else {
+        // Create default block iterator.
+        mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
+      }
     } catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
       throw new RuntimeException(e);
     }

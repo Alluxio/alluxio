@@ -23,7 +23,7 @@ import java.util.function.Function;
  * An interface to provide various block iteration utilities for eviction
  * and various management tasks.
  */
-public interface BlockIterator extends BlockStoreEventListener {
+public interface BlockIterator {
   /**
    * Gets an iterator of block-Ids.
    *
@@ -83,4 +83,11 @@ public interface BlockIterator extends BlockStoreEventListener {
    */
   boolean overlaps(BlockStoreLocation srcLocation, BlockStoreLocation dstLocation, BlockOrder order,
       Function<Long, Boolean> blockFilterFunc);
+
+  /**
+   * Used to acquire and register listeners that are used by this iterator.
+   *
+   * @return list of event listeners
+   */
+  List<BlockStoreEventListener> getListeners();
 }

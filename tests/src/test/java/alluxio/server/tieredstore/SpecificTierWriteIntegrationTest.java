@@ -207,9 +207,19 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
   public void spillingWrite() throws Exception {
     // Keep writing to the top tier at tier capacity.
     // Writes should be spilled to the lower tiers.
+    // Then keep writing. New writes should succeeded and worker remain at full capacity.
     writeFileAndCheckUsage(0, CAPACITY_BYTES, CAPACITY_BYTES, 0, 0);
     writeFileAndCheckUsage(0, CAPACITY_BYTES, CAPACITY_BYTES, CAPACITY_BYTES, 0);
     writeFileAndCheckUsage(0, CAPACITY_BYTES, CAPACITY_BYTES, CAPACITY_BYTES, CAPACITY_BYTES);
+    // Overwrite.
+    writeFileAndCheckUsage(0, CAPACITY_BYTES, CAPACITY_BYTES, CAPACITY_BYTES, CAPACITY_BYTES);
     deleteAllFiles();
+  }
+
+  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.WORKER_EVICTOR_CLASS,
+      "alluxio.worker.block.evictor.LRUEvictor"})
+  @Test
+  public void spillingWriteWithEmulation() throws Exception {
+    spillingWrite();
   }
 }

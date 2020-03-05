@@ -16,6 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.worker.block.annotator.BlockIterator;
 import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockWriter;
@@ -325,6 +326,26 @@ public final class TieredBlockStoreTestUtils {
    * @param bytes size of the block in bytes
    * @param dir the {@link StorageDir} the block resides in
    * @param meta the metadata manager to update meta of the block
+   * @param iterator the iterator to be informed of the new block
+   */
+  public static void cache2(long sessionId, long blockId, long bytes, StorageDir dir,
+      BlockMetadataManager meta, BlockIterator iterator) throws Exception {
+    cache2(sessionId, blockId, bytes, dir, meta, (BlockStoreEventListener) null);
+    if (iterator != null) {
+      for (BlockStoreEventListener listener : iterator.getListeners()) {
+        listener.onCommitBlock(sessionId, blockId, dir.toBlockStoreLocation());
+      }
+    }
+  }
+
+  /**
+   * Caches bytes into {@link StorageDir}.
+   *
+   * @param sessionId session who caches the data
+   * @param blockId id of the cached block
+   * @param bytes size of the block in bytes
+   * @param dir the {@link StorageDir} the block resides in
+   * @param meta the metadata manager to update meta of the block
    * @param listener the listener to be informed of the new block
    */
   public static void cache2(long sessionId, long blockId, long bytes, StorageDir dir,
@@ -335,7 +356,7 @@ public final class TieredBlockStoreTestUtils {
     FileUtils.move(tempBlockMeta.getPath(), tempBlockMeta.getCommitPath());
     meta.commitTempBlockMeta(tempBlockMeta);
 
-    // update listener.
+    // update iterator if a listener.
     if (listener != null) {
       listener.onCommitBlock(sessionId, blockId, dir.toBlockStoreLocation());
     }

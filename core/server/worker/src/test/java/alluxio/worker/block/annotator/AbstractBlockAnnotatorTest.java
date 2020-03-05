@@ -13,6 +13,7 @@ package alluxio.worker.block.annotator;
 
 import alluxio.StorageTierAssoc;
 import alluxio.worker.block.BlockMetadataManager;
+import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.meta.StorageDir;
@@ -38,6 +39,7 @@ public abstract class AbstractBlockAnnotatorTest {
 
   protected BlockMetadataManager mMetaManager;
   protected BlockIterator mBlockIterator;
+  protected BlockStoreEventListener mBlockEventListener;
   protected StorageTierAssoc mTierAssoc;
 
   /**
@@ -47,6 +49,7 @@ public abstract class AbstractBlockAnnotatorTest {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mBlockIterator = mMetaManager.getBlockIterator();
+    mBlockEventListener = mBlockIterator.getListeners().get(0);
     mTierAssoc = mMetaManager.getStorageTierAssoc();
     mBlockLocation = new HashMap<>();
   }
@@ -58,20 +61,21 @@ public abstract class AbstractBlockAnnotatorTest {
 
   protected void moveBlock(long blockId, StorageDir destDir) throws Exception {
     mMetaManager.removeBlockMeta(mMetaManager.getBlockMeta(blockId));
-    TieredBlockStoreTestUtils.cache2(mUserSession++, blockId, 1, destDir, mMetaManager, null);
-    mBlockIterator.onMoveBlockByWorker(mInternalSession++, blockId,
+    TieredBlockStoreTestUtils.cache2(mUserSession++, blockId, 1, destDir, mMetaManager,
+        (BlockIterator) null);
+    mBlockEventListener.onMoveBlockByWorker(mInternalSession++, blockId,
         mBlockLocation.get(blockId).toBlockStoreLocation(), destDir.toBlockStoreLocation());
     mBlockLocation.put(blockId, destDir);
   }
 
   protected void removeBlock(long blockId) throws Exception {
     mMetaManager.removeBlockMeta(mMetaManager.getBlockMeta(blockId));
-    mBlockIterator.onRemoveBlock(mUserSession++, blockId,
+    mBlockEventListener.onRemoveBlock(mUserSession++, blockId,
         mBlockLocation.remove(blockId).toBlockStoreLocation());
   }
 
   protected void accessBlock(long blockId) throws Exception {
-    mBlockIterator.onAccessBlock(mUserSession++, blockId,
+    mBlockEventListener.onAccessBlock(mUserSession++, blockId,
         mBlockLocation.get(blockId).toBlockStoreLocation());
   }
 

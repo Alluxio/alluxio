@@ -369,7 +369,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
 
   /**
    * Handles the heartbeat from a client.
-   * TODO(ggezer): TV2 - Remove.
    *
    * @param sessionId the id of the client
    */

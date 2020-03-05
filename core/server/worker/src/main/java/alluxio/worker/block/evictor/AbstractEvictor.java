@@ -35,8 +35,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Provides the basic implementation for every evictor.
+ *
+ * @deprecated use block annotator instead
  */
 @NotThreadSafe
+@Deprecated
 public abstract class AbstractEvictor extends AbstractBlockStoreEventListener implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractEvictor.class);
   protected final Allocator mAllocator;

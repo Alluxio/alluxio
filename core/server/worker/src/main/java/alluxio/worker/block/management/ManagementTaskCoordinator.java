@@ -104,8 +104,12 @@ public class ManagementTaskCoordinator implements Closeable {
    */
   private void initializeTaskProviders() {
     mTaskProviders = new ArrayList<>(1);
-    mTaskProviders.add(new TierManagementTaskProvider(mBlockStore, mMetadataManager,
-        mEvictionViewSupplier, mLoadTracker));
+    if (ServerConfiguration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
+      LOG.warn("Tier management tasks will be disabled under eviction emulation mode.");
+    } else {
+      mTaskProviders.add(new TierManagementTaskProvider(mBlockStore, mMetadataManager,
+          mEvictionViewSupplier, mLoadTracker));
+    }
   }
 
   /**

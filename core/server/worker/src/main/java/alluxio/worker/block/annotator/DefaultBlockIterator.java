@@ -15,6 +15,7 @@ import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
 import alluxio.worker.block.AbstractBlockStoreEventListener;
 import alluxio.worker.block.BlockMetadataManager;
+import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
@@ -24,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -36,8 +38,7 @@ import java.util.stream.Collectors;
  * The default {@link BlockIterator} implementation that integrates with the
  * {@link BlockMetadataManager}.
  */
-public class DefaultBlockIterator extends AbstractBlockStoreEventListener
-    implements BlockIterator {
+public class DefaultBlockIterator implements BlockIterator {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockIterator.class);
 
   /** Map of sorted block set collections per directory. */
@@ -52,19 +53,22 @@ public class DefaultBlockIterator extends AbstractBlockStoreEventListener
   /** Underlying meta manager. */
   private final BlockMetadataManager mMetaManager;
 
+  /** Block store delegate listener. */
+  private BlockStoreEventListener mListener;
+
   /**
    * Creates default block iterator instance.
    *
    * @param metaManager meta manager
    * @param blockAnnotator block annotator
    */
-  public DefaultBlockIterator(BlockMetadataManager metaManager,
-      BlockAnnotator blockAnnotator) {
+  public DefaultBlockIterator(BlockMetadataManager metaManager, BlockAnnotator blockAnnotator) {
     mMetaManager = metaManager;
     mBlockAnnotator = blockAnnotator;
 
     mPerDirOrderedSets = new HashMap<>();
     mUnorderedLocations = new ConcurrentHashSet<>();
+    mListener = new Listener();
 
     initialize();
   }
@@ -157,35 +161,8 @@ public class DefaultBlockIterator extends AbstractBlockStoreEventListener
   }
 
   @Override
-  public void onAccessBlock(long sessionId, long blockId, BlockStoreLocation location) {
-    blockUpdated(blockId, location);
-  }
-
-  @Override
-  public void onCommitBlock(long sessionId, long blockId, BlockStoreLocation location) {
-    blockUpdated(blockId, location);
-  }
-
-  @Override
-  public void onRemoveBlock(long sessionId, long blockId, BlockStoreLocation location) {
-    blockRemoved(blockId, location);
-  }
-
-  @Override
-  public void onStorageLost(BlockStoreLocation dirLocation) {
-    mPerDirOrderedSets.remove(dirLocation);
-  }
-
-  @Override
-  public void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
-      BlockStoreLocation newLocation) {
-    blockMoved(blockId, oldLocation, newLocation);
-  }
-
-  @Override
-  public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
-      BlockStoreLocation newLocation) {
-    blockMoved(blockId, oldLocation, newLocation);
+  public List<BlockStoreEventListener> getListeners() {
+    return Arrays.asList(new BlockStoreEventListener[] {mListener});
   }
 
   @Override
@@ -397,6 +374,43 @@ public class DefaultBlockIterator extends AbstractBlockStoreEventListener
 
       // Location is ordered now.
       mUnorderedLocations.remove(location);
+    }
+  }
+
+  /**
+   * Internal class used to forward block store events to this iterator implementation.
+   */
+  class Listener extends AbstractBlockStoreEventListener {
+    @Override
+    public void onAccessBlock(long sessionId, long blockId, BlockStoreLocation location) {
+      blockUpdated(blockId, location);
+    }
+
+    @Override
+    public void onCommitBlock(long sessionId, long blockId, BlockStoreLocation location) {
+      blockUpdated(blockId, location);
+    }
+
+    @Override
+    public void onRemoveBlock(long sessionId, long blockId, BlockStoreLocation location) {
+      blockRemoved(blockId, location);
+    }
+
+    @Override
+    public void onStorageLost(BlockStoreLocation dirLocation) {
+      mPerDirOrderedSets.remove(dirLocation);
+    }
+
+    @Override
+    public void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
+        BlockStoreLocation newLocation) {
+      blockMoved(blockId, oldLocation, newLocation);
+    }
+
+    @Override
+    public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
+        BlockStoreLocation newLocation) {
+      blockMoved(blockId, oldLocation, newLocation);
     }
   }
 }
