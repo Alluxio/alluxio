@@ -60,7 +60,8 @@ public class TransformPlan {
     }
 
     if (actions.isEmpty()) {
-      throw new IllegalArgumentException("At least one action should be defined for the transformation");
+      throw new IllegalArgumentException(
+          "At least one action should be defined for the transformation");
     }
 
     return actions;
