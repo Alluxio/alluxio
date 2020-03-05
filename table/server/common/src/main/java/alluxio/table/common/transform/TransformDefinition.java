@@ -73,8 +73,6 @@ public class TransformDefinition {
       return new TransformDefinition(definition, Collections.emptyList());
     }
 
-    definition = definition.trim();
-
     // accept semicolon as new lines for inline definitions
     definition = definition.replace(";", "\n");
 
