@@ -27,9 +27,27 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.basedir}/build</build.path>
   </properties>
-
-  <modules>
-    <module>checker</module>
-    <module>fuse</module>
-  </modules>
+  <profiles>
+    <profile>
+      <id>hadoop-1</id>
+      <modules>
+        <!-- exclude checker from hadoop-1 profile as yarn is not available in Hadoop 1.x -->
+        <module>fuse</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>hadoop-2</id>
+      <modules>
+        <module>checker</module>
+        <module>fuse</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>hadoop-3</id>
+      <modules>
+        <module>checker</module>
+        <module>fuse</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>
