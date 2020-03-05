@@ -35,6 +35,7 @@ import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
@@ -64,6 +65,8 @@ public abstract class AbstractClient implements Client {
   /** Underlying channel to the target service. */
   protected GrpcChannel mChannel;
 
+  @SuppressFBWarnings(value = "IS2_INCONSISTENT_SYNC",
+      justification = "the error seems a bug in findbugs")
   /** Used to query service version for the remote service type. */
   protected ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub mVersionService;
 
@@ -117,13 +120,11 @@ public abstract class AbstractClient implements Client {
   protected abstract ServiceType getRemoteServiceType();
 
   protected long getRemoteServiceVersion() throws AlluxioStatusException {
-    return retryRPC(new RpcCallable<Long>() {
-      public Long call() {
-        return mVersionService.getServiceVersion(
+    return retryRPC(() ->
+        mVersionService.getServiceVersion(
             GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType()).build())
-            .getVersion();
-      }
-    });
+            .getVersion(),
+        LOG, "getRemoteServiceVersion", "");
   }
 
   /**
@@ -321,7 +322,7 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * The RPC to be executed in {@link #retryRPC(RpcCallable)}.
+   * The RPC to be executed in {@link #retryRPC}.
    *
    * @param <V> the return value of {@link #call()}
    */
@@ -336,40 +337,39 @@ public abstract class AbstractClient implements Client {
   }
 
   /**
-   * Tries to execute an RPC defined as a {@link RpcCallable}.
-   *
-   * If a {@link UnavailableException} occurs, a reconnection will be tried through
-   * {@link #connect()} and the action will be re-executed.
-   *
-   * @param rpc the RPC call to be executed
-   * @param <V> type of return value of the RPC call
-   * @return the return value of the RPC call
-   */
-  protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws AlluxioStatusException {
-    return retryRPCInternal(rpc, () -> null);
-  }
-
-  /**
    * Tries to execute an RPC defined as a {@link RpcCallable}. Metrics will be recorded based on
    * the provided rpc name.
    *
    * If a {@link UnavailableException} occurs, a reconnection will be tried through
    * {@link #connect()} and the action will be re-executed.
    *
-   * @param rpc the RPC call to be executed
-   * @param rpcName the human readable name of the RPC call
    * @param <V> type of return value of the RPC call
+   * @param rpc the RPC call to be executed
+   * @param logger the logger to use for this call
+   * @param rpcName the human readable name of the RPC call
+   * @param description the format string of the description, used for logging
+   * @param args the arguments for the description
    * @return the return value of the RPC call
+   * @throws AlluxioStatusException
    */
-  protected synchronized <V> V retryRPC(RpcCallable<V> rpc, String rpcName)
-      throws AlluxioStatusException {
+  protected synchronized <V> V retryRPC(RpcCallable<V> rpc, Logger logger, String rpcName,
+      String description, Object... args) throws AlluxioStatusException {
+    String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+    // TODO(binfan): create RPC context so we could get RPC duration from metrics timer directly
+    long startMs = System.currentTimeMillis();
+    logger.debug("Enter: {}({})", rpcName, debugDesc);
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(rpcName)).time()) {
-      return retryRPCInternal(rpc, () -> {
+      V ret = retryRPCInternal(rpc, () -> {
         MetricsSystem.counter(getQualifiedRetryMetricName(rpcName)).inc();
         return null;
       });
+      logger.debug("Exit (OK): {}({}) in {} ms",
+          rpcName, debugDesc, System.currentTimeMillis() - startMs);
+      return ret;
     } catch (Exception e) {
       MetricsSystem.counter(getQualifiedFailureMetricName(rpcName)).inc();
+      logger.debug("Exit (ERROR): {}({}) in {} ms: {}",
+          rpcName, debugDesc, System.currentTimeMillis() - startMs, e.toString());
       throw e;
     }
   }

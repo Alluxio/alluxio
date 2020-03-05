@@ -12,12 +12,12 @@
 package alluxio.client.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.Client;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.wire.ConfigHash;
 import alluxio.wire.Configuration;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +26,7 @@ import java.util.Set;
 /**
  * Interface for a meta master config client.
  */
-public interface MetaMasterConfigClient extends Closeable {
+public interface MetaMasterConfigClient extends Client {
   /**
    * @param options the options
    * @return the runtime configuration
