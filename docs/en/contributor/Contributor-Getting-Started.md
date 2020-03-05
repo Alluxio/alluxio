@@ -320,8 +320,9 @@ Please also list options for the feature and corresponding pros and cons.
 And this feature can move on to the implementation phase.
 1. Fork Alluxio repository, implement your feature and create a pull request, 
 as you have mastered in the previous section. Please also link to the issue and design document in your pull request.
+In the pull request, you should also add documentation on your feature to 
+[Alluxio documentations](https://docs.alluxio.io/).
 1. After your pull request is reviewed and merged, you have contributed your feature to Alluxio. Cheers!
-1. You should also add documentation on your feature to [Alluxio documentations](https://docs.alluxio.io/).
 
 ## Next Steps
 

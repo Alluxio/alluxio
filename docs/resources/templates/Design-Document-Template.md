@@ -3,7 +3,7 @@ Authors:
 Date: 
 
 ## Overview
-This section explains the motivation of the work, providing the status QUO and 
+This section explains the motivation of the work, providing the status quo and 
 the problems associated with it. 
 This section also proposes the high level solution to the problem.
 
@@ -17,8 +17,7 @@ This also includes some high level functionality or performance gains.
 This section explains the use cases which will be enabled by the implementation 
 of this design. 
 This section should be from the perspective of a user and how they would be 
-able to interact with 
-the feature described.
+able to interact with the feature described.
 
 ## Design
 This section explains the high level changes proposed to achieve the design. 
