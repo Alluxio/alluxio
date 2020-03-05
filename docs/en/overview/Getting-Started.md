@@ -36,7 +36,7 @@ If you are trying to speedup SQL analytics, you can try the Presto Alluxio Getti
 ## Prerequisites
 
 * MacOS or Linux
-* [Java 8 or newer](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+* [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
 * Enable remote login: see [instructions for MacOS users](http://osxdaily.com/2011/09/30/remote-login-ssh-server-mac-os-x/)
 * **[Bonus]** AWS account and keys
 

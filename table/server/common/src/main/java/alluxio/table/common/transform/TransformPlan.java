@@ -16,6 +16,11 @@ import alluxio.table.common.Layout;
 import alluxio.table.common.transform.action.TransformAction;
 
 import java.util.ArrayList;
+<<<<<<< HEAD
+=======
+import java.util.List;
+import java.util.stream.Collectors;
+>>>>>>> upstream/master
 
 /**
  * The plan for a transformation.
@@ -60,7 +65,7 @@ public class TransformPlan {
     }
 
     if (actions.isEmpty()) {
-      throw new IllegalArgumentException("At least one action should be defined");
+      throw new IllegalArgumentException("At least one action should be defined for the transformation");
     }
 
     return actions;
