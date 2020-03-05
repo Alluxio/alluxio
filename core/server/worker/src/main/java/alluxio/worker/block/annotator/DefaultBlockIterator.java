@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.order;
+package alluxio.worker.block.annotator;
 
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
@@ -46,8 +46,8 @@ public class DefaultBlockIterator extends AbstractBlockStoreEventListener
   /** Used to update total order for offline sorting schemes. */
   private final ConcurrentHashSet<BlockStoreLocation> mUnorderedLocations;
 
-  /** Configured eviction order provider class. */
-  private final EvictionOrderProvider mOrderProvider;
+  /** Configured block annotator class. */
+  private final BlockAnnotator mBlockAnnotator;
 
   /** Underlying meta manager. */
   private final BlockMetadataManager mMetaManager;
@@ -56,12 +56,12 @@ public class DefaultBlockIterator extends AbstractBlockStoreEventListener
    * Creates default block iterator instance.
    *
    * @param metaManager meta manager
-   * @param orderProvider eviction order provider
+   * @param blockAnnotator block annotator
    */
   public DefaultBlockIterator(BlockMetadataManager metaManager,
-      EvictionOrderProvider orderProvider) {
+      BlockAnnotator blockAnnotator) {
     mMetaManager = metaManager;
-    mOrderProvider = orderProvider;
+    mBlockAnnotator = blockAnnotator;
 
     mPerDirOrderedSets = new HashMap<>();
     mUnorderedLocations = new ConcurrentHashSet<>();
@@ -100,12 +100,12 @@ public class DefaultBlockIterator extends AbstractBlockStoreEventListener
     SortedBlockSet sortedSet = mPerDirOrderedSets.get(location);
     // Get new sort-field for the block.
     BlockSortedField sortedField =
-        mOrderProvider.updateSortedField(blockId, sortedSet.getSortField(blockId));
+        mBlockAnnotator.updateSortedField(blockId, sortedSet.getSortField(blockId));
     // Update the sorted-set.
     sortedSet.put(blockId, sortedField);
 
     // Mark the location for offline sort providers.
-    if (!mOrderProvider.isOnlineSorter()) {
+    if (!mBlockAnnotator.isOnlineSorter()) {
       mUnorderedLocations.add(location);
     }
 
@@ -144,8 +144,8 @@ public class DefaultBlockIterator extends AbstractBlockStoreEventListener
       SortedBlockSet newSortedSet = mPerDirOrderedSets.get(newLocation);
       newSortedSet.put(blockId, oldSortField);
 
-      // Mark the location for offline sort providers.
-      if (!mOrderProvider.isOnlineSorter()) {
+      // Mark the location for offline annotators.
+      if (!mBlockAnnotator.isOnlineSorter()) {
         mUnorderedLocations.add(newLocation);
       }
 
@@ -328,7 +328,7 @@ public class DefaultBlockIterator extends AbstractBlockStoreEventListener
         .filter((dirLocation) -> dirLocation.belongsTo(location)).collect(Collectors.toList());
 
     // For offline order providers, update total order for each dirty location.
-    if (!mOrderProvider.isOnlineSorter()) {
+    if (!mBlockAnnotator.isOnlineSorter()) {
       if (mUnorderedLocations.stream()
           .anyMatch((dirtyLocation) -> dirtyLocation.belongsTo(location))) {
         LOG.debug("Updating total order for directories that belong to: {}", location);
@@ -388,7 +388,7 @@ public class DefaultBlockIterator extends AbstractBlockStoreEventListener
           updatedEntries.size());
 
       // Invoke order provider to update fields all together.
-      mOrderProvider.updateSortedFields(updatedEntries);
+      mBlockAnnotator.updateSortedFields(updatedEntries);
 
       // Reinsert updated values back to sorted-set.
       for (Pair<Long, BlockSortedField> updatedEntry : updatedEntries) {

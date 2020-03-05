@@ -34,8 +34,8 @@ import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
-import alluxio.worker.block.order.BlockIterator;
-import alluxio.worker.block.order.BlockOrder;
+import alluxio.worker.block.annotator.BlockIterator;
+import alluxio.worker.block.annotator.BlockOrder;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;

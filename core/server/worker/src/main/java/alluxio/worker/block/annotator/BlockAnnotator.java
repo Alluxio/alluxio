@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.order;
+package alluxio.worker.block.annotator;
 
 import alluxio.annotation.PublicApi;
 import alluxio.collections.Pair;
@@ -21,29 +21,29 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 
 /**
- * Interface for providers that define eviction order.
+ * Interface for providers that annotates blocks for sorting.
  *
- * @param <T> sorted-field type for the provider
+ * @param <T> sorted-field type for the annotator
  */
 @PublicApi
-public interface EvictionOrderProvider<T extends BlockSortedField> {
+public interface BlockAnnotator<T extends BlockSortedField> {
 
   /**
-   * Factory for {@link EvictionOrderProvider}.
+   * Factory for {@link BlockAnnotator}.
    */
   @ThreadSafe
   class Factory {
     private Factory() {} // prevent instantiation
 
     /**
-     * Creates {@link EvictionOrderProvider} implementation based
+     * Creates {@link BlockAnnotator} implementation based
      * on Alluxio configuration.
      *
-     * @return the generated {@link EvictionOrderProvider} instance
+     * @return the generated {@link BlockAnnotator} instance
      */
-    public static EvictionOrderProvider create() {
+    public static BlockAnnotator create() {
       return CommonUtils.createNewClassInstance(
-          ServerConfiguration.getClass(PropertyKey.WORKER_EVICTION_ORDER_PROVIDER_CLASS), null,
+          ServerConfiguration.getClass(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS), null,
           null);
     }
   }
@@ -68,7 +68,7 @@ public interface EvictionOrderProvider<T extends BlockSortedField> {
   void updateSortedFields(List<Pair<Long, T>> blockList);
 
   /**
-   * Used to report whether the order provider implementation is an online sorter.
+   * Used to report whether the block annotator is an online sorter.
    *
    * For offline sorters, {@link #updateSortedFields(List)} will be called before
    * acquiring an iterator for a particular location.

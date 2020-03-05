@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.order;
+package alluxio.worker.block.annotator;
 
 import alluxio.collections.Pair;
 
@@ -21,17 +21,17 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * {@link EvictionOrderProvider} implementation of LRU scheme.
+ * {@link BlockAnnotator} implementation of LRU scheme.
  */
-public class LRUSorter implements EvictionOrderProvider<LRUSorter.LRUSortedField> {
-  private static final Logger LOG = LoggerFactory.getLogger(LRUSorter.class);
+public class LRUAnnotator implements BlockAnnotator<LRUAnnotator.LRUSortedField> {
+  private static final Logger LOG = LoggerFactory.getLogger(LRUAnnotator.class);
 
   private AtomicLong mLRUClock;
 
   /**
-   * Creates a new LRU sorter.
+   * Creates a new LRU annotator.
    */
-  public LRUSorter() {
+  public LRUAnnotator() {
     mLRUClock = new AtomicLong(0);
   }
 

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.order;
+package alluxio.worker.block.annotator;
 
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
@@ -23,10 +23,10 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * {@link EvictionOrderProvider} implementation of LRFU scheme.
+ * {@link BlockAnnotator} implementation of LRFU scheme.
  */
-public class LRFUSorter implements EvictionOrderProvider<LRFUSorter.LRFUSortedField> {
-  private static final Logger LOG = LoggerFactory.getLogger(LRFUSorter.class);
+public class LRFUAnnotator implements BlockAnnotator<LRFUAnnotator.LRFUSortedField> {
+  private static final Logger LOG = LoggerFactory.getLogger(LRFUAnnotator.class);
 
   /** LRU logical clock. */
   private AtomicLong mLRUClock;
@@ -38,15 +38,15 @@ public class LRFUSorter implements EvictionOrderProvider<LRFUSorter.LRFUSortedFi
 
   static {
     STEP_FACTOR = ServerConfiguration.getDouble(
-        PropertyKey.WORKER_EVICTION_ORDER_LRFU_STEP_FACTOR);
+        PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR);
     ATTENUATION_FACTOR = ServerConfiguration.getDouble(
-        PropertyKey.WORKER_EVICTION_ORDER_LRFU_ATTENUATION_FACTOR);
+        PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR);
   }
 
   /**
-   * Creates a new LRFU sorter.
+   * Creates a new LRFU annotator.
    */
-  public LRFUSorter() {
+  public LRFUAnnotator() {
     mLRUClock = new AtomicLong();
   }
 

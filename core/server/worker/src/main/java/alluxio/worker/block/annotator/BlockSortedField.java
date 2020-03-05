@@ -9,12 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.order;
+package alluxio.worker.block.annotator;
 
 import alluxio.annotation.PublicApi;
 
 /**
- * Used by {@link EvictionOrderProvider} implementations to embed sorted-fields per blocks.
+ * Used by {@link BlockAnnotator} implementations to embed sorted-fields per blocks.
  */
 @PublicApi
 public interface BlockSortedField extends Comparable<BlockSortedField> {

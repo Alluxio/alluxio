@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.order;
+package alluxio.worker.block.annotator;
 
 import alluxio.StorageTierAssoc;
 import alluxio.worker.block.BlockMetadataManager;
@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-public abstract class AbstractEvictionOrderProviderTest {
+public abstract class AbstractBlockAnnotatorTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 

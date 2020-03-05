@@ -38,7 +38,7 @@ import alluxio.worker.block.evictor.Evictor.Mode;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
-import alluxio.worker.block.order.BlockIterator;
+import alluxio.worker.block.annotator.BlockIterator;
 
 import com.google.common.collect.Sets;
 import org.junit.Before;

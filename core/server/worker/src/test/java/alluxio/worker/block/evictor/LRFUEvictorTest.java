@@ -74,9 +74,10 @@ public class LRFUEvictorTest {
     ServerConfiguration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
     ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(mMetadataView);
-    mStepFactor = ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTION_ORDER_LRFU_STEP_FACTOR);
+    mStepFactor =
+        ServerConfiguration.getDouble(PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR);
     mAttenuationFactor =
-        ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTION_ORDER_LRFU_ATTENUATION_FACTOR);
+        ServerConfiguration.getDouble(PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR);
     mEvictor = Evictor.Factory.create(mMetadataView, allocator);
   }
 

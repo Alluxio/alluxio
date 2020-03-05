@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.order;
+package alluxio.worker.block.annotator;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -24,16 +24,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-public class LRFUOrderProviderTest extends AbstractEvictionOrderProviderTest {
+public class LRFUAnnotatorTest extends AbstractBlockAnnotatorTest {
   /**
-   * Sets up base class for LRUSorter.
+   * Sets up base class for LRUAnnotator.
    */
   @Before
   public void before() throws Exception {
-    ServerConfiguration.set(PropertyKey.WORKER_EVICTION_ORDER_PROVIDER_CLASS,
-        LRFUSorter.class.getName());
+    ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+        LRFUAnnotator.class.getName());
     // To make it behave close to an absolute LFU.
-    ServerConfiguration.set(PropertyKey.WORKER_EVICTION_ORDER_LRFU_STEP_FACTOR, 0);
+    ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR, 0);
     init();
   }
 

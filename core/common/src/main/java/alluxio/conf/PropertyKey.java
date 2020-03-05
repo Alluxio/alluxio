@@ -2272,9 +2272,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   /**
-   * @deprecated use eviction order providers instead
+   * @deprecated use block annotators instead
    */
-  @Deprecated(message = "Use WORKER_EVICTION_ORDER_PROVIDER_CLASS instead.")
+  @Deprecated(message = "Use WORKER_BLOCK_ANNOTATOR_CLASS instead.")
   public static final PropertyKey WORKER_EVICTOR_CLASS =
       new Builder(Name.WORKER_EVICTOR_CLASS)
           .setDefaultValue("alluxio.worker.block.evictor.LRUEvictor")
@@ -2287,27 +2287,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_EVICTION_ORDER_PROVIDER_CLASS =
-      new Builder(Name.WORKER_EVICTION_ORDER_PROVIDER_CLASS)
-          .setDefaultValue("alluxio.worker.block.order.LRUSorter")
-          .setDescription("The strategy that a worker uses to evict block files when a "
-              + "storage layer runs out of space. It is also used for moving blocks "
-              + "to maintain tier based layering of data. "
+  public static final PropertyKey WORKER_BLOCK_ANNOTATOR_CLASS =
+      new Builder(Name.WORKER_BLOCK_ANNOTATOR_CLASS)
+          .setDefaultValue("alluxio.worker.block.annotator.LRUAnnotator")
+          .setDescription("The strategy that a worker uses to annotate blocks "
+              + "in order to have an ordered view of them during internal"
+              + "management tasks such as eviction and promotion/demotion. "
               + " Valid options include: "
-              + "`alluxio.worker.block.order.LRFUSorter`, "
-              + "`alluxio.worker.block.order.LRUSorter`, ")
+              + "`alluxio.worker.block.annotator.LRFUAnnotator`, "
+              + "`alluxio.worker.block.annotator.LRUAnnotator`, ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_EVICTION_ORDER_LRFU_ATTENUATION_FACTOR =
-      new Builder(Name.WORKER_EVICTION_ORDER_LRFU_ATTENUATION_FACTOR)
+  public static final PropertyKey WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR =
+      new Builder(Name.WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR)
           .setDefaultValue(2.0)
-          .setDescription("A attenuation factor in [2, INF) to control the behavior of LRFU.")
+          .setDescription(
+              "A attenuation factor in [2, INF) to control the behavior of LRFU annotator.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_EVICTION_ORDER_LRFU_STEP_FACTOR =
-      new Builder(Name.WORKER_EVICTOR_LRFU_STEP_FACTOR)
+  public static final PropertyKey WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR =
+      new Builder(Name.WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR)
           .setDefaultValue(0.25)
           .setDescription("A factor in [0, 1] to control the behavior of LRFU: smaller value "
               + "makes LRFU more similar to LFU; and larger value makes LRFU closer to LRU.")
@@ -4630,12 +4631,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.folder.tmp";
     public static final String WORKER_DATA_TMP_SUBDIR_MAX = "alluxio.worker.data.tmp.subdir.max";
     public static final String WORKER_EVICTOR_CLASS = "alluxio.worker.evictor.class";
-    public static final String WORKER_EVICTION_ORDER_PROVIDER_CLASS =
-        "alluxio.worker.eviction.order.provider.class";
-    public static final String WORKER_EVICTION_ORDER_LRFU_ATTENUATION_FACTOR =
-        "alluxio.worker.eviction.order.lrfu.attenuation.factor";
-    public static final String WORKER_EVICTOR_LRFU_STEP_FACTOR =
-        "alluxio.worker.eviction.order.lrfu.step.factor";
+    public static final String WORKER_BLOCK_ANNOTATOR_CLASS =
+        "alluxio.worker.block.annotator.class";
+    public static final String WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR =
+        "alluxio.worker.block.annotator.lrfu.attenuation.factor";
+    public static final String WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR =
+        "alluxio.worker.block.annotator.lrfu.step.factor";
     public static final String WORKER_MANAGEMENT_RESERVED_SPACE_BYTES =
         "alluxio.worker.management.reserved.space.bytes";
     public static final String WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME =

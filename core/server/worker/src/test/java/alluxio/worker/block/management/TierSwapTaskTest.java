@@ -22,9 +22,9 @@ import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.StorageDir;
-import alluxio.worker.block.order.BlockIterator;
-import alluxio.worker.block.order.BlockOrder;
-import alluxio.worker.block.order.LRUSorter;
+import alluxio.worker.block.annotator.BlockIterator;
+import alluxio.worker.block.annotator.BlockOrder;
+import alluxio.worker.block.annotator.LRUAnnotator;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -64,8 +64,8 @@ public class TierSwapTaskTest {
   @Before
   public void before() throws Exception {
     // Use LRU for stronger overlap guarantee.
-    ServerConfiguration.set(PropertyKey.WORKER_EVICTION_ORDER_PROVIDER_CLASS,
-        LRUSorter.class.getName());
+    ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+        LRUAnnotator.class.getName());
     ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
     // Reserve block size per directory.
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, BLOCK_SIZE);

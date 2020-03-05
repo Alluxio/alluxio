@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block.order;
+package alluxio.worker.block.annotator;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -24,14 +24,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-public class LRUOrderProviderTest extends AbstractEvictionOrderProviderTest {
+public class LRUAnnotatorTest extends AbstractBlockAnnotatorTest {
   /**
-   * Sets up base class for LRUSorter.
+   * Sets up base class for LRUAnnotator.
    */
   @Before
   public void before() throws Exception {
-    ServerConfiguration.set(PropertyKey.WORKER_EVICTION_ORDER_PROVIDER_CLASS,
-        LRUSorter.class.getName());
+    ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+        LRUAnnotator.class.getName());
     init();
   }
 
