@@ -44,12 +44,4 @@ public class TableReaderIntegrationTest extends JobIntegrationTest {
     mThrown.expectMessage(ExceptionMessage.TRANSFORM_TABLE_URI_LACKS_SCHEME.getMessage(uri));
     TableReader.create(uri, mPartitionInfo).close();
   }
-
-  @Test
-  public void createAlluxioReaderWithoutAuthority() throws Exception {
-    AlluxioURI uri = new AlluxioURI("alluxio", null, "/CREATE_ALLUXIO_READER_WITHOUT_AUTHORITY");
-    mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(ExceptionMessage.TRANSFORM_TABLE_URI_LACKS_AUTHORITY.getMessage(uri));
-    TableReader.create(uri, mPartitionInfo).close();
-  }
 }

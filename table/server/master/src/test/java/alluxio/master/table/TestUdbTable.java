@@ -28,14 +28,9 @@ import alluxio.grpc.table.layout.hive.Storage;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.UdbTable;
-import alluxio.uri.Authority;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
-
-import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -82,12 +77,7 @@ public class TestUdbTable implements UdbTable {
           AlluxioURI location = new AlluxioURI("/udbtable/"
               + CommonUtils.randomAlphaNumString(5) + i + "/test.csv");
           if (fs != null) {
-            location = new AlluxioURI(Constants.SCHEME,
-                Authority.fromString(String.join(",",
-                    ConfigurationUtils.getMasterRpcAddresses(
-                        fs.getConf()).stream()
-                        .map(InetSocketAddress::toString)
-                        .collect(ImmutableList.toImmutableList()))),
+            location = new AlluxioURI(Constants.SCHEME, null,
                 "/udbtable/" + CommonUtils.randomAlphaNumString(5) + i + "/test.csv");
             try (FileOutStream out = fs.createFile(location,
                 CreateFilePOptions.newBuilder().setRecursive(true).build())) {

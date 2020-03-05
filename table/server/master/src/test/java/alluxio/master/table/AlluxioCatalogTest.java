@@ -326,18 +326,18 @@ public class AlluxioCatalogTest {
     ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
     ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, "8080");
     List<TransformPlan> plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
-    assertEquals("alluxio://localhost:8080/",
+    assertEquals("alluxio://",
         plans.get(0).getTransformedLayout().getLocation().getRootPath());
 
     ServerConfiguration.set(PropertyKey.MASTER_RPC_ADDRESSES, "host1:1,host2:2");
     plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
-    assertEquals("alluxio://host1:1,host2:2/",
+    assertEquals("alluxio://",
         plans.get(0).getTransformedLayout().getLocation().getRootPath());
 
     ServerConfiguration.set(PropertyKey.ZOOKEEPER_ENABLED, "true");
     ServerConfiguration.set(PropertyKey.ZOOKEEPER_ADDRESS, "host:1000");
     plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
-    assertEquals("alluxio://zk@host:1000/",
+    assertEquals("alluxio://",
         plans.get(0).getTransformedLayout().getLocation().getRootPath());
   }
 

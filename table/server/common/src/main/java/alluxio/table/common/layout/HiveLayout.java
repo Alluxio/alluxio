@@ -12,7 +12,7 @@
 package alluxio.table.common.layout;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
+import alluxio.Constants;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
 import alluxio.job.plan.transform.HiveConstants;
@@ -21,7 +21,6 @@ import alluxio.table.common.LayoutFactory;
 import alluxio.table.common.transform.TransformContext;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
-import alluxio.util.ConfigurationUtils;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.slf4j.Logger;
@@ -132,8 +131,7 @@ public class HiveLayout implements Layout {
       TransformDefinition definition) throws IOException {
     AlluxioURI outputPath = transformContext.generateTransformedPath();
     AlluxioURI outputUri = new AlluxioURI(
-        ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global())
-        + outputPath.getPath());
+        Constants.HEADER + outputPath.getPath());
     HiveLayout transformedLayout = transformLayout(outputUri);
     return new TransformPlan(this, transformedLayout, definition);
   }
