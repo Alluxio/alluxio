@@ -69,7 +69,7 @@ spec:
               name: alluxio-config
           readinessProbe:
             exec:
-              command: ["alluxio", "fsadmin", "report"]
+              command: ["bin/alluxio-monitor.sh", "master"]
           livenessProbe:
             exec:
               command: ["bin/alluxio-monitor.sh", "master"]
@@ -106,7 +106,7 @@ spec:
               name: alluxio-config
           readinessProbe:
             exec:
-              command: ["alluxio", "fsadmin", "report"]
+              command: ["bin/alluxio-monitor.sh", "master"]
           livenessProbe:
             exec:
               command: ["bin/alluxio-monitor.sh", "master"]

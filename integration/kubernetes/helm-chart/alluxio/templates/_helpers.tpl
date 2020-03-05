@@ -257,10 +257,16 @@ resources:
   {{- end }}
 {{- end -}}
 
-{{- define "alluxio.readinessProbe" -}}
+{{- define "alluxio.master.readinessProbe" -}}
 readinessProbe:
   exec:
-    command: ["alluxio", "fsadmin", "report"]
+    command: ["bin/alluxio-monitor.sh", "master"]
+{{- end -}}
+
+{{- define "alluxio.worker.readinessProbe" -}}
+readinessProbe:
+  exec:
+    command: ["bin/alluxio-monitor.sh", "worker"]
 {{- end -}}
 
 {{- define "alluxio.master.livenessProbe" -}}
