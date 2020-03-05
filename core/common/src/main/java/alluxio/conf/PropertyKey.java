@@ -2301,9 +2301,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  /**
+   * @deprecated use block annotators instead
+   */
+  @Deprecated(message = "Use WORKER_BLOCK_ANNOTATOR_CLASS instead.")
   public static final PropertyKey WORKER_EVICTOR_CLASS =
       new Builder(Name.WORKER_EVICTOR_CLASS)
-          .setDefaultValue("alluxio.worker.block.evictor.LRUEvictor")
           .setDescription("The strategy that a worker uses to evict block files when a "
               + "storage layer runs out of space. Valid options include "
               + "`alluxio.worker.block.evictor.LRFUEvictor`, "
@@ -2313,15 +2316,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR =
-      new Builder(Name.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR)
-          .setDefaultValue(2.0)
-          .setDescription("A attenuation factor in [2, INF) to control the behavior of LRFU.")
+  public static final PropertyKey WORKER_BLOCK_ANNOTATOR_CLASS =
+      new Builder(Name.WORKER_BLOCK_ANNOTATOR_CLASS)
+          .setDefaultValue("alluxio.worker.block.annotator.LRUAnnotator")
+          .setDescription("The strategy that a worker uses to annotate blocks "
+              + "in order to have an ordered view of them during internal"
+              + "management tasks such as eviction and promotion/demotion. "
+              + " Valid options include: "
+              + "`alluxio.worker.block.annotator.LRFUAnnotator`, "
+              + "`alluxio.worker.block.annotator.LRUAnnotator`, ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_EVICTOR_LRFU_STEP_FACTOR =
-      new Builder(Name.WORKER_EVICTOR_LRFU_STEP_FACTOR)
+  public static final PropertyKey WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR =
+      new Builder(Name.WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR)
+          .setDefaultValue(2.0)
+          .setDescription(
+              "A attenuation factor in [2, INF) to control the behavior of LRFU annotator.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR =
+      new Builder(Name.WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR)
           .setDefaultValue(0.25)
           .setDescription("A factor in [0, 1] to control the behavior of LRFU: smaller value "
               + "makes LRFU more similar to LFU; and larger value makes LRFU closer to LRU.")
@@ -2569,6 +2585,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(1000)
           .setDescription("Total number of block locks for an Alluxio block worker. Larger "
               + "value leads to finer locking granularity, but uses more space.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_TIERED_STORE_FREE_AHEAD_BYTES =
+      new Builder(Name.WORKER_TIERED_STORE_FREE_AHEAD_BYTES)
+          .setDefaultValue(0)
+          .setDescription("Amount to free ahead when worker storage is full. "
+              + "Higher values will help decrease CPU utilization under peak storage. "
+              + "Lower values will increase storage utilization.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3033,6 +3058,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILE_TARGET_MEDIA =
+      new Builder(Name.USER_FILE_TARGET_MEDIA)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_BLOCK_SIZE_BYTES_DEFAULT =
       new Builder(Name.USER_BLOCK_SIZE_BYTES_DEFAULT)
           .setDefaultValue("64MB")
@@ -3073,6 +3102,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_FILE_BUFFER_BYTES)
           .setDefaultValue("8MB")
           .setDescription("The size of the file buffer to use for file system reads/writes.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_FILE_RESERVED_BYTES =
+      new Builder(Name.USER_FILE_RESERVED_BYTES)
+          .setDefaultValue(String.format("${%s}", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
+          .setDescription("The size to reserve on workers for file system writes."
+              + "Using smaller value will improve concurrency for writes smaller than block size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3159,7 +3196,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_READ_TYPE_DEFAULT =
       new Builder(Name.USER_FILE_READ_TYPE_DEFAULT)
-          .setDefaultValue("CACHE_PROMOTE")
+          .setDefaultValue("CACHE")
           .setDescription("Default read type when creating Alluxio files. Valid options are "
               + "`CACHE_PROMOTE` (move data to highest tier if already in Alluxio storage, "
               + "write data into highest tier of local Alluxio if data needs to be read from "
@@ -4904,6 +4941,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.tieredstore.block.lock.readers";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
         "alluxio.worker.tieredstore.block.locks";
+    public static final String WORKER_TIERED_STORE_FREE_AHEAD_BYTES =
+        "alluxio.worker.tieredstore.free.ahead.bytes";
     public static final String WORKER_TIERED_STORE_LEVELS = "alluxio.worker.tieredstore.levels";
     public static final String WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
         "alluxio.worker.tieredstore.reserver.interval";
@@ -5004,6 +5043,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
+    public static final String USER_FILE_RESERVED_BYTES = "alluxio.user.file.reserved.bytes";
     public static final String USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY =
         "alluxio.user.file.copyfromlocal.block.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
@@ -5028,6 +5068,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.persistence.initial.wait.time";
     public static final String USER_FILE_REPLICATION_MAX = "alluxio.user.file.replication.max";
     public static final String USER_FILE_REPLICATION_MIN = "alluxio.user.file.replication.min";
+    public static final String USER_FILE_TARGET_MEDIA = "alluxio.user.file.target.media";
     public static final String USER_FILE_REPLICATION_DURABLE =
         "alluxio.user.file.replication.durable";
     public static final String USER_FILE_SEQUENTIAL_PREAD_THRESHOLD =

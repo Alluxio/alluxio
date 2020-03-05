@@ -24,8 +24,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * {@link alluxio.worker.block.meta.StorageDir}s until one StorageDir satisfies the request space,
  * but PartialLRU select one StorageDir with maximum free space first and evict old blocks in the
  * selected StorageDir by LRU
+ *
+ * @deprecated use block annotator instead
  */
 @NotThreadSafe
+@Deprecated
 public class PartialLRUEvictor extends LRUEvictor {
 
   /**

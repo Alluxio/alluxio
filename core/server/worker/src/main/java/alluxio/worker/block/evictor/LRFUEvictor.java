@@ -47,8 +47,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * combines LRU and LFU, it evicts blocks with small frequency or large recency. When
  * {@link #mStepFactor} is close to 0, LRFU is close to LFU. Conversely, LRFU is close to LRU
  * when {@link #mStepFactor} is close to 1.
+ *
+ * @deprecated use block annotator instead
  */
 @NotThreadSafe
+@Deprecated
 public final class LRFUEvictor extends AbstractEvictor {
   /** Map from block id to the last updated logic time count. */
   private final Map<Long, Long> mBlockIdToLastUpdateTime = new ConcurrentHashMap<>();
@@ -70,9 +73,10 @@ public final class LRFUEvictor extends AbstractEvictor {
    */
   public LRFUEvictor(BlockMetadataEvictorView view, Allocator allocator) {
     super(view, allocator);
-    mStepFactor = ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_STEP_FACTOR);
+    mStepFactor =
+        ServerConfiguration.getDouble(PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR);
     mAttenuationFactor =
-        ServerConfiguration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
+        ServerConfiguration.getDouble(PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR);
     Preconditions.checkArgument(mStepFactor >= 0.0 && mStepFactor <= 1.0,
         "Step factor should be in the range of [0.0, 1.0]");
     Preconditions.checkArgument(mAttenuationFactor >= 2.0,

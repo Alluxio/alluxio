@@ -123,7 +123,7 @@ public class AsyncBlockRemover {
           LOG.warn("{}: invalid block state for block {}, exception is {}.",
               mThreadName, blockToBeRemoved, e.getMessage());
         } catch (Exception e) {
-          LOG.warn("Unexpected exception: {}.", e.getMessage());
+          LOG.warn("Unexpected exception: {}.", e);
         } finally {
           if (blockToBeRemoved != INVALID_BLOCK_ID) {
             mRemovingBlocks.remove(blockToBeRemoved);
