@@ -95,7 +95,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, "0").build();
 
   @After
   public void after() throws Exception {

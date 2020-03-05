@@ -81,6 +81,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_MEMORY_SIZE_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
+          .setProperty(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, "0")
           .setNumWorkers(NUM_WORKERS)
           .build();
 

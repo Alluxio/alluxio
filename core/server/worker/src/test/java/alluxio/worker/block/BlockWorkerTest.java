@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -161,7 +162,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#commitBlock(long, long)} method.
+   * Tests the {@link BlockWorker#commitBlock(long, long, boolean)} method.
    */
   @Test
   public void commitBlock() throws Exception {
@@ -179,7 +180,7 @@ public class BlockWorkerTest {
     BlockStoreMeta blockStoreMeta = mock(BlockStoreMeta.class);
 
     when(mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
-    when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(blockMeta);
+    when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyInt())).thenReturn(blockMeta);
     when(mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
     when(mBlockStore.getBlockStoreMetaFull()).thenReturn(blockStoreMeta);
 
@@ -192,7 +193,6 @@ public class BlockWorkerTest {
     mBlockWorker.commitBlock(sessionId, blockId, mRandom.nextBoolean());
     verify(mBlockMasterClient).commitBlock(anyLong(), eq(usedBytes), eq(tierAlias), eq(mediumType),
         eq(blockId), eq(length));
-    verify(mBlockStore).unlockBlock(lockId);
   }
 
   /**
@@ -214,7 +214,7 @@ public class BlockWorkerTest {
     BlockStoreMeta blockStoreMeta = mock(BlockStoreMeta.class);
 
     when(mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
-    when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(blockMeta);
+    when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyInt())).thenReturn(blockMeta);
     when(mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
     when(blockMeta.getBlockLocation()).thenReturn(blockStoreLocation);
     when(blockStoreLocation.tierAlias()).thenReturn(tierAlias);
@@ -239,7 +239,8 @@ public class BlockWorkerTest {
     StorageDir storageDir = mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes)).thenReturn(meta);
+    when(mBlockStore.createBlock(sessionId, blockId,
+        AllocateOptions.forCreate(initialBytes, location))).thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
@@ -261,7 +262,8 @@ public class BlockWorkerTest {
     StorageDir storageDir = mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes)).thenReturn(meta);
+    when(mBlockStore.createBlock(sessionId, blockId,
+        AllocateOptions.forCreate(initialBytes, location))).thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
@@ -282,7 +284,8 @@ public class BlockWorkerTest {
     StorageDir storageDir = mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes)).thenReturn(meta);
+    when(mBlockStore.createBlock(sessionId, blockId,
+        AllocateOptions.forCreate(initialBytes, location))).thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
@@ -300,7 +303,7 @@ public class BlockWorkerTest {
     String tierAlias = "MEM";
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
     mBlockWorker.freeSpace(sessionId, availableBytes, tierAlias);
-    verify(mBlockStore).freeSpace(sessionId, availableBytes, location);
+    verify(mBlockStore).freeSpace(sessionId, availableBytes, availableBytes, location);
   }
 
   /**
@@ -395,7 +398,8 @@ public class BlockWorkerTest {
     when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyLong()))
         .thenReturn(meta);
     mBlockWorker.moveBlock(sessionId, blockId, tierAlias);
-    verify(mBlockStore).moveBlock(sessionId, blockId, location);
+    verify(mBlockStore).moveBlock(sessionId, blockId,
+        AllocateOptions.forMove(location).setSize(meta.getBlockSize()));
   }
 
   /**
@@ -415,7 +419,8 @@ public class BlockWorkerTest {
     when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyLong()))
         .thenReturn(meta);
     mBlockWorker.moveBlock(sessionId, blockId, tierAlias);
-    verify(mBlockStore, times(0)).moveBlock(sessionId, blockId, location);
+    verify(mBlockStore, times(0)).moveBlock(sessionId, blockId,
+        AllocateOptions.forMove(location).setSize(meta.getBlockSize()));
   }
 
   /**

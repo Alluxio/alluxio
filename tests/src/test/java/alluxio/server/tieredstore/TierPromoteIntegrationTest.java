@@ -19,8 +19,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
@@ -30,7 +28,6 @@ import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.io.Files;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -111,11 +108,21 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
     os2.write(BufferUtils.getIncreasingByteArray(size));
     os2.close();
 
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-
     // Not in memory but in Alluxio storage
-    Assert.assertEquals(0, mFileSystem.getStatus(path2).getInMemoryPercentage());
-    Assert.assertFalse(mFileSystem.getStatus(path1).getFileBlockInfos().isEmpty());
+    CommonUtils.waitFor("file is not in memory", () -> {
+      try {
+        return 0 == mFileSystem.getStatus(path2).getInMemoryPercentage();
+      } catch (Exception e) {
+        return false;
+      }
+    }, WAIT_OPTIONS);
+    CommonUtils.waitFor("file has block locations", () -> {
+      try {
+        return !mFileSystem.getStatus(path1).getFileBlockInfos().isEmpty();
+      } catch (Exception e) {
+        return false;
+      }
+    }, WAIT_OPTIONS);
 
     // After reading the second file, it should be moved to memory tier as per LRU.
     FileInStream in = mFileSystem.openFile(path2, OpenFilePOptions.getDefaultInstance());
@@ -127,7 +134,6 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
 
     CommonUtils.waitFor("File getting promoted to memory tier.", () -> {
       try {
-        HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
         // In memory
         return 100 == mFileSystem.getStatus(path2).getInMemoryPercentage();
       } catch (Exception e) {
@@ -188,11 +194,10 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
     while (in.read(buf) != -1) {
       // read the entire file
     }
-    in.close();
 
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+    in.close();
     // In memory
-    CommonUtils.waitFor("file is not in memory", () -> {
+    CommonUtils.waitFor("file is in memory", () -> {
       try {
         return 100 == mFileSystem.getStatus(path1).getInMemoryPercentage();
       } catch (Exception e) {

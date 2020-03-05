@@ -77,8 +77,10 @@ public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
       new UnderFileSystemFactoryRegistryRule(new DelegatingUnderFileSystemFactory(UFS));
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
-          DelegatingUnderFileSystemFactory.DELEGATING_SCHEME + "://" + LOCAL_UFS_PATH).build();
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
+              DelegatingUnderFileSystemFactory.DELEGATING_SCHEME + "://" + LOCAL_UFS_PATH)
+          .setProperty(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, "0").build();
   private FileSystem mFs;
 
   @Before

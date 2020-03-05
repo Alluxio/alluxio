@@ -89,17 +89,4 @@ public class EvictorFactoryTest {
     Evictor evictor = Evictor.Factory.create(sBlockMetadataView, allocator);
     Assert.assertTrue(evictor instanceof LRUEvictor);
   }
-
-  /**
-   * Tests that the default evictor can be created from
-   * {@link alluxio.worker.block.evictor.Evictor.Factory#create(
-   *        BlockMetadataEvictorView, Allocator)}.
-   */
-  @Test
-  public void createDefaultEvictor() {
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(sBlockMetadataView);
-    Evictor evictor = Evictor.Factory.create(sBlockMetadataView, allocator);
-    Assert.assertTrue(evictor instanceof LRUEvictor);
-  }
 }
