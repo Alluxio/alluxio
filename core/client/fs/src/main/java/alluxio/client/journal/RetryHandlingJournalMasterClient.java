@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  */
 public class RetryHandlingJournalMasterClient extends AbstractMasterClient
     implements JournalMasterClient {
-  private static final Logger LOG = LoggerFactory.getLogger(RetryHandlingJournalMasterClient.class);
+  private static final Logger RPC_LOG = LoggerFactory.getLogger(JournalMasterClient.class);
   private JournalMasterClientServiceGrpc.JournalMasterClientServiceBlockingStub mClient = null;
 
   /**
@@ -65,13 +65,13 @@ public class RetryHandlingJournalMasterClient extends AbstractMasterClient
   @Override
   public GetQuorumInfoPResponse getQuorumInfo() throws AlluxioStatusException {
     return retryRPC(() -> mClient.getQuorumInfo(GetQuorumInfoPRequest.getDefaultInstance()),
-        LOG, "GetQuorumInfo",  "");
+        RPC_LOG, "GetQuorumInfo",  "");
   }
 
   @Override
   public void removeQuorumServer(NetAddress serverAddress) throws AlluxioStatusException {
     retryRPC(() -> mClient.removeQuorumServer(
         RemoveQuorumServerPRequest.newBuilder().setServerAddress(serverAddress).build()),
-        LOG, "RemoveQuorumServer",  "serverAddress=%s", serverAddress);
+        RPC_LOG, "RemoveQuorumServer",  "serverAddress=%s", serverAddress);
   }
 }

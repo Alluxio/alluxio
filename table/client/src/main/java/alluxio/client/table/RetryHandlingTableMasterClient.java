@@ -52,7 +52,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingTableMasterClient extends AbstractMasterClient
     implements TableMasterClient {
-  private static final Logger LOG = LoggerFactory.getLogger(RetryHandlingTableMasterClient.class);
+  private static final Logger RPC_LOG = LoggerFactory.getLogger(TableMasterClient.class);
   private TableMasterClientServiceGrpc.TableMasterClientServiceBlockingStub mClient = null;
 
   /**
@@ -88,28 +88,28 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
   public List<String> getAllDatabases() throws AlluxioStatusException {
     return retryRPC(() -> mClient.getAllDatabases(
         GetAllDatabasesPRequest.newBuilder().build()).getDatabaseList(),
-        LOG, "GetAllDatabases", "");
+        RPC_LOG, "GetAllDatabases", "");
   }
 
   @Override
   public Database getDatabase(String databaseName) throws AlluxioStatusException {
     return retryRPC(() -> mClient.getDatabase(GetDatabasePRequest.newBuilder()
         .setDbName(databaseName).build()),
-        LOG, "GetDatabase", "databaseName=%s", databaseName).getDb();
+        RPC_LOG, "GetDatabase", "databaseName=%s", databaseName).getDb();
   }
 
   @Override
   public List<String> getAllTables(String databaseName) throws AlluxioStatusException {
     return retryRPC(() -> mClient.getAllTables(
         GetAllTablesPRequest.newBuilder().setDatabase(databaseName).build()).getTableList(),
-        LOG, "GetAllTables", "databaseName=%s", databaseName);
+        RPC_LOG, "GetAllTables", "databaseName=%s", databaseName);
   }
 
   @Override
   public TableInfo getTable(String databaseName, String tableName) throws AlluxioStatusException {
     return retryRPC(() -> mClient.getTable(
         GetTablePRequest.newBuilder().setDbName(databaseName).setTableName(tableName).build())
-        .getTableInfo(), LOG, "GetTable", "databaseName=%s,tableName=%s",
+        .getTableInfo(), RPC_LOG, "GetTable", "databaseName=%s,tableName=%s",
         databaseName, tableName);
   }
 
@@ -122,7 +122,7 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
             .setUdbConnectionUri(udbConnectionUri).setUdbDbName(udbDbName).setDbName(dbName)
             .putAllOptions(configuration).setIgnoreSyncErrors(ignoreSyncErrors).build())
         .getSyncStatus(),
-        LOG, "AttachDatabase", "udbType=%s,udbConnectionUri=%s,udbDbName=%s,dbName=%s,"
+        RPC_LOG, "AttachDatabase", "udbType=%s,udbConnectionUri=%s,udbDbName=%s,dbName=%s,"
             + "configuration=%s,ignoreSyncErrors=%s",
         udbType, udbConnectionUri, udbDbName, dbName, configuration, ignoreSyncErrors);
   }
@@ -132,14 +132,14 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
       throws AlluxioStatusException {
     return retryRPC(() -> mClient.detachDatabase(
         DetachDatabasePRequest.newBuilder().setDbName(dbName).build()).getSuccess(),
-        LOG, "DetachDatabase", "dbName=%s", dbName);
+        RPC_LOG, "DetachDatabase", "dbName=%s", dbName);
   }
 
   @Override
   public SyncStatus syncDatabase(String dbName) throws AlluxioStatusException {
     return retryRPC(() -> mClient.syncDatabase(
         SyncDatabasePRequest.newBuilder().setDbName(dbName).build()).getStatus(),
-        LOG, "SyncDatabase", "dbName=%s", dbName);
+        RPC_LOG, "SyncDatabase", "dbName=%s", dbName);
   }
 
   @Override
@@ -148,7 +148,7 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
     return retryRPC(() -> mClient.readTable(
         ReadTablePRequest.newBuilder().setDbName(databaseName).setTableName(tableName)
             .setConstraint(constraint).build()).getPartitionsList(),
-        LOG, "ReadTable", "databaseName=%s,tableName=%s,constraint=%s", databaseName, tableName,
+        RPC_LOG, "ReadTable", "databaseName=%s,tableName=%s,constraint=%s", databaseName, tableName,
         constraint);
   }
 
@@ -160,7 +160,7 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
     return retryRPC(() -> mClient.getTableColumnStatistics(
         GetTableColumnStatisticsPRequest.newBuilder().setDbName(databaseName)
             .setTableName(tableName).addAllColNames(columnNames).build()).getStatisticsList(),
-        LOG, "GetTableColumnStatistics",
+        RPC_LOG, "GetTableColumnStatistics",
         "databaseName=%s,tableName=%s,columnNames=%s", databaseName, tableName, columnNames);
   }
 
@@ -181,7 +181,7 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
         GetPartitionColumnStatisticsPRequest.newBuilder().setDbName(databaseName)
             .setTableName(tableName).addAllColNames(columnNames)
             .addAllPartNames(partitionNames).build()).getPartitionStatisticsMap(),
-        LOG, "GetPartitionColumnStatistics",
+        RPC_LOG, "GetPartitionColumnStatistics",
         "databaseName=%s,tableName=%s,partitionNames=%s,columnNames=%s",
         databaseName, tableName, partitionNames, columnNames)
         .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
@@ -197,7 +197,7 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
             .setTableName(tableName)
             .setDefinition(definition)
             .build()).getJobId(),
-        LOG, "TransformTable", "dbName=%s,tableName=%s,definition=%s",
+        RPC_LOG, "TransformTable", "dbName=%s,tableName=%s,definition=%s",
         dbName, tableName, definition);
   }
 
@@ -207,13 +207,13 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
         GetTransformJobInfoPRequest.newBuilder()
             .setJobId(jobId)
             .build()).getInfo(0),
-        LOG, "GetTransformJobInfo", "jobId=%d", jobId);
+        RPC_LOG, "GetTransformJobInfo", "jobId=%d", jobId);
   }
 
   @Override
   public List<TransformJobInfo> getAllTransformJobInfo() throws AlluxioStatusException {
     return retryRPC(() -> mClient.getTransformJobInfo(
         GetTransformJobInfoPRequest.newBuilder().build()).getInfoList(),
-        LOG, "GetAllTransformJobInfo", "");
+        RPC_LOG, "GetAllTransformJobInfo", "");
   }
 }

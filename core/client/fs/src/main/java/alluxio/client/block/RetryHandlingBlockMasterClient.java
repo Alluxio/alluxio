@@ -47,7 +47,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     implements BlockMasterClient {
-  private static final Logger LOG = LoggerFactory.getLogger(RetryHandlingBlockMasterClient.class);
+  private static final Logger RPC_LOG = LoggerFactory.getLogger(BlockMasterClient.class);
   private BlockMasterClientServiceGrpc.BlockMasterClientServiceBlockingStub mClient = null;
 
   /**
@@ -89,7 +89,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
         result.add(GrpcUtils.fromProto(workerInfo));
       }
       return result;
-    }, LOG, "GetWorkerInfoList", "");
+    }, RPC_LOG, "GetWorkerInfoList", "");
   }
 
   @Override
@@ -102,7 +102,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
         result.add(GrpcUtils.fromProto(workerInfo));
       }
       return result;
-    }, LOG, "GetWorkerReport", "options=%s", options);
+    }, RPC_LOG, "GetWorkerReport", "options=%s", options);
   }
 
   @Override
@@ -110,7 +110,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     return retryRPC(() -> mClient
         .getWorkerLostStorage(GetWorkerLostStoragePOptions.getDefaultInstance())
         .getWorkerLostStorageInfoList(),
-        LOG, "GetWorkerLostStorage", "");
+        RPC_LOG, "GetWorkerLostStorage", "");
   }
 
   /**
@@ -124,7 +124,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
       return GrpcUtils.fromProto(
           mClient.getBlockInfo(GetBlockInfoPRequest.newBuilder().setBlockId(blockId).build())
               .getBlockInfo());
-    }, LOG, "GetBlockInfo", "blockId=%d", blockId);
+    }, RPC_LOG, "GetBlockInfo", "blockId=%d", blockId);
   }
 
   @Override
@@ -136,7 +136,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
               .addAllFilters(
                   fields.stream().map(BlockMasterInfoField::toProto).collect(Collectors.toList()))
               .build()).getBlockMasterInfo());
-    }, LOG, "GetBlockMasterInfo", "fields=%s", fields);
+    }, RPC_LOG, "GetBlockMasterInfo", "fields=%s", fields);
   }
 
   /**
@@ -147,7 +147,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   public long getCapacityBytes() throws IOException {
     return retryRPC(() -> mClient
         .getCapacityBytes(GetCapacityBytesPOptions.getDefaultInstance()).getBytes(),
-        LOG, "GetCapacityBytes", "");
+        RPC_LOG, "GetCapacityBytes", "");
   }
 
   /**
@@ -158,6 +158,6 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   public long getUsedBytes() throws IOException {
     return retryRPC(
         () -> mClient.getUsedBytes(GetUsedBytesPOptions.getDefaultInstance()).getBytes(),
-        LOG, "GetUsedBytes", "");
+        RPC_LOG, "GetUsedBytes", "");
   }
 }

@@ -41,7 +41,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class RetryHandlingMetaMasterClient extends AbstractMasterClient
     implements MetaMasterClient {
-  private static final Logger LOG = LoggerFactory.getLogger(RetryHandlingMetaMasterClient.class);
+  private static final Logger RPC_LOG = LoggerFactory.getLogger(MetaMasterClient.class);
   private MetaMasterClientServiceGrpc.MetaMasterClientServiceBlockingStub mClient = null;
 
   /**
@@ -76,21 +76,21 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
   @Override
   public BackupStatus backup(BackupPRequest backupRequest) throws IOException {
     return retryRPC(() -> BackupStatus.fromProto(mClient.backup(backupRequest)),
-        LOG, "Backup", "backupRequest=%s", backupRequest);
+        RPC_LOG, "Backup", "backupRequest=%s", backupRequest);
   }
 
   @Override
   public BackupStatus getBackupStatus(UUID backupId) throws IOException {
     return retryRPC(() -> BackupStatus.fromProto(mClient.getBackupStatus(
         BackupStatusPRequest.newBuilder().setBackupId(backupId.toString()).build())),
-        LOG, "GetBackupStatus", "backupId=%d", backupId);
+        RPC_LOG, "GetBackupStatus", "backupId=%d", backupId);
   }
 
   @Override
   public ConfigCheckReport getConfigReport() throws IOException {
     return retryRPC(() -> ConfigCheckReport.fromProto(
         mClient.getConfigReport(GetConfigReportPOptions.getDefaultInstance()).getReport()),
-        LOG, "GetConfigReport", "");
+        RPC_LOG, "GetConfigReport", "");
   }
 
   @Override
@@ -98,13 +98,13 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
       throws IOException {
     return retryRPC(() -> mClient
         .getMasterInfo(GetMasterInfoPOptions.newBuilder().addAllFilter(fields).build())
-        .getMasterInfo(), LOG, "GetMasterInfo", "fields=%s", fields);
+        .getMasterInfo(), RPC_LOG, "GetMasterInfo", "fields=%s", fields);
   }
 
   @Override
   public String checkpoint() throws IOException {
     return retryRPC(() -> mClient
         .checkpoint(CheckpointPOptions.newBuilder().build()).getMasterHostname(),
-        LOG, "Checkpoint", "");
+        RPC_LOG, "Checkpoint", "");
   }
 }

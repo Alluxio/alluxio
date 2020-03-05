@@ -48,7 +48,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     implements JobMasterClient {
-  private static final Logger LOG = LoggerFactory.getLogger(RetryHandlingJobMasterClient.class);
+  private static final Logger RPC_LOG = LoggerFactory.getLogger(JobMasterClient.class);
   private JobMasterClientServiceGrpc.JobMasterClientServiceBlockingStub mClient = null;
 
   /**
@@ -85,34 +85,34 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     retryRPC((RpcCallable<Void>) () -> {
       mClient.cancel(CancelPRequest.newBuilder().setJobId(jobId).build());
       return null;
-    }, LOG, "Cancel", "jobId=%d", jobId);
+    }, RPC_LOG, "Cancel", "jobId=%d", jobId);
   }
 
   @Override
   public JobInfo getJobStatus(final long id) throws IOException {
     return ProtoUtils.fromProto(
         retryRPC(() -> mClient.getJobStatus(GetJobStatusPRequest.newBuilder().setJobId(id).build())
-            .getJobInfo(), LOG, "GetJobStatus", "id=%d", id));
+            .getJobInfo(), RPC_LOG, "GetJobStatus", "id=%d", id));
   }
 
   @Override
   public JobServiceSummary getJobServiceSummary() throws IOException {
     return new JobServiceSummary(retryRPC(() -> mClient
-        .getJobServiceSummary(GetJobServiceSummaryPRequest.newBuilder().build()).getSummary(), LOG,
-        "GetJobServiceSummary", ""));
+        .getJobServiceSummary(GetJobServiceSummaryPRequest.newBuilder().build()).getSummary(),
+        RPC_LOG, "GetJobServiceSummary", ""));
   }
 
   @Override
   public List<Long> list() throws IOException {
     return retryRPC(() -> mClient.listAll(ListAllPRequest.getDefaultInstance()).getJobIdsList(),
-        LOG, "List", "");
+        RPC_LOG, "List", "");
   }
 
   @Override
   public List<JobInfo> listDetailed() throws IOException {
     List<alluxio.grpc.JobInfo> jobProtoInfos =
-        retryRPC(() -> mClient.listAll(ListAllPRequest.getDefaultInstance()).getJobInfosList(), LOG,
-            "ListDetailed", "");
+        retryRPC(() -> mClient.listAll(ListAllPRequest.getDefaultInstance()).getJobInfosList(),
+            RPC_LOG, "ListDetailed", "");
     ArrayList<JobInfo> result = Lists.newArrayList();
     for (alluxio.grpc.JobInfo jobProtoInfo : jobProtoInfos) {
       result.add(ProtoUtils.fromProto(jobProtoInfo));
@@ -125,7 +125,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     final ByteString jobConfigStr = ByteString.copyFrom(SerializationUtils.serialize(jobConfig));
     return retryRPC(
         () -> mClient.run(RunPRequest.newBuilder().setJobConfig(jobConfigStr).build()).getJobId(),
-        LOG, "Run", "jobConfig=%s", jobConfig);
+        RPC_LOG, "Run", "jobConfig=%s", jobConfig);
   }
 
   @Override
@@ -135,6 +135,6 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
           mClient.getAllWorkerHealth(GetAllWorkerHealthPRequest.newBuilder().build())
               .getWorkerHealthsList();
       return workerHealthsList.stream().map(JobWorkerHealth::new).collect(Collectors.toList());
-    }, LOG, "GetAllWorkerHealth", "");
+    }, RPC_LOG, "GetAllWorkerHealth", "");
   }
 }

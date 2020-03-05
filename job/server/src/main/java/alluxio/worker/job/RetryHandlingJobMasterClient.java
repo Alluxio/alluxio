@@ -38,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     implements JobMasterClient {
-  private static final Logger LOG = LoggerFactory.getLogger(RetryHandlingJobMasterClient.class);
+  private static final Logger RPC_LOG = LoggerFactory.getLogger(JobMasterClient.class);
   private JobMasterWorkerServiceGrpc.JobMasterWorkerServiceBlockingStub mClient = null;
 
   /**
@@ -74,7 +74,7 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   public long registerWorker(final WorkerNetAddress address) throws IOException {
     return retryRPC(() -> mClient.registerJobWorker(RegisterJobWorkerPRequest.newBuilder()
             .setWorkerNetAddress(GrpcUtils.toProto(address)).build()).getId(),
-        LOG, "RegisterWorker", "address=%s", address);
+        RPC_LOG, "RegisterWorker", "address=%s", address);
   }
 
   @Override
@@ -84,6 +84,6 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
         mClient.heartbeat(JobHeartbeatPRequest.newBuilder()
             .setJobWorkerHealth(jobWorkerHealth.toProto()).addAllTaskInfos(taskInfoList).build())
             .getCommandsList(),
-        LOG, "Heartbeat", "jobWorkerHealth=%s,taskInfoList=%s", jobWorkerHealth, taskInfoList);
+        RPC_LOG, "Heartbeat", "jobWorkerHealth=%s,taskInfoList=%s", jobWorkerHealth, taskInfoList);
   }
 }
