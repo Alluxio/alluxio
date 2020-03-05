@@ -13,6 +13,7 @@ package alluxio.table.common.transform.action;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.job.JobConfig;
+import alluxio.job.plan.transform.TransformJobConfig;
 import alluxio.table.common.Layout;
 
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public interface TransformAction {
    * @param transformed the layout to transform to
    * @return the job configuration for this action
    */
-  JobConfig generateJobConfig(Layout base, Layout transformed);
+  TransformJobConfig generateJobConfig(Layout base, Layout transformed);
 
   /**
    * A class to parse transform actions.
