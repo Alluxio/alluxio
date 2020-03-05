@@ -318,18 +318,13 @@ The helm chart contains one Kubernetes [Job](https://kubernetes.io/docs/concepts
 template that can be used for formatting the Alluxio journal. The template contains one Job for each Alluxio master.
 Each Job runs `alluxio formatJournal` and formats the journal for that master.
 
-You can manually trigger the journal formatting by applying the Job template.
+You can trigger the journal formatting by upgrading the helm deployment with `journal.format.runFormat=true`.
 ```console
-# Generate the YAML definition for the journal formatting Job(s)
-$ helm template --name alluxio helm-chart/alluxio/ --set journal.format.runFormat=true -x templates/job/format-journal-job.yaml -f ./config.yaml > alluxio-format-journal-job.yaml
-# Create the Jobs(s) with kubectl
-$ kubectl create -f alluxio-format-journal-job.yaml
+# Use the same config.yaml and switch on journal formatting
+$ helm upgrade alluxio --version 0.5.5 -f config.yaml --set journal.format.runFormat=true alluxio-local/alluxio
 ```
 
-After the Job completes, it will be deleted by Kubernetes after the defined `ttlSecondsAfterFinished`.
-Then the clean journal will be ready for a new Alluxio master(s) to start with.
-
-> Note: You should make sure the master(s) are turned off while formatting their journals.
+> Note: `helm upgrade` is another deployment, which will result in new master and worker pods.
 
 ### Deploy Using `kubectl`
 
@@ -643,14 +638,9 @@ fuse:
 
 Then follow the steps to install Alluxio with helm [here]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#deploy-using-helm' | relativize_url }}).
 
-If Alluxio has already been deployed with helm and now you want to enable FUSE, you can manually add the FUSE daemons.
+If Alluxio has already been deployed with helm and now you want to enable FUSE, you use `helm upgrade` to add the FUSE daemons.
 ```console
-# Generate YAML resources with helm template
-$ helm template --name alluxio helm-chart/alluxio/ --set fuse.enabled=true -x templates/fuse/daemonset.yaml -f ./config.yaml > "alluxio-fuse.yaml"
-$ helm template --name alluxio helm-chart/alluxio/ --set fuse.clientEnabled=true -x templates/fuse/client-daemonset.yaml -f ./config.yaml > "alluxio-fuse-client.yaml"
-# Manually apply the YAML files using kubectl
-$ kubectl create -f alluxio-fuse.yaml
-$ kubectl create -f alluxio-fuse-client.yaml
+$ helm upgrade alluxio --version 0.5.5 -f config.yaml --set fuse.enabled=true --set fuse.clientEnabled=true alluxio-local/alluxio
 ```
 
 ## Troubleshooting
