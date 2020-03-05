@@ -19,6 +19,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
@@ -28,6 +30,7 @@ import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.io.Files;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -78,6 +81,9 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
         .setProperty(PropertyKey.WORKER_MEMORY_SIZE, CAPACITY_BYTES)
         .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, shortCircuitEnabled)
         .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
+        .setProperty(PropertyKey.WORKER_MANAGEMENT_IDLE_SLEEP_TIME, "1s")
+        .setProperty(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME, "2s")
+        .setProperty(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, BLOCK_SIZE_BYTES)
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD")
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
             Files.createTempDir().getAbsolutePath())
@@ -87,28 +93,77 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
             String.valueOf(CAPACITY_BYTES)).build();
   }
 
-  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT,
-      "MUST_CACHE"})
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE"})
   @Test
-  public void promoteBlock() throws Exception {
+  public void promoteByTierSwap() throws Exception {
     final int size = (int) CAPACITY_BYTES / 2;
     AlluxioURI path1 = new AlluxioURI(PathUtils.uniqPath());
     AlluxioURI path2 = new AlluxioURI(PathUtils.uniqPath());
-    AlluxioURI path3 = new AlluxioURI(PathUtils.uniqPath());
 
-    // Write three files, first file should be in ssd, the others should be in memory
-    FileOutStream os1 =
-        mFileSystem.createFile(path1, CreateFilePOptions.newBuilder().setRecursive(true).build());
+    // Write two files, first file should be in memory, the second should be in ssd tier.
+    FileOutStream os1 = mFileSystem.createFile(path1,
+        CreateFilePOptions.newBuilder().setWriteTier(0).setRecursive(true).build());
     os1.write(BufferUtils.getIncreasingByteArray(size));
     os1.close();
-    FileOutStream os2 =
-        mFileSystem.createFile(path2, CreateFilePOptions.newBuilder().setRecursive(true).build());
+    FileOutStream os2 = mFileSystem.createFile(path2,
+        CreateFilePOptions.newBuilder().setWriteTier(1).setRecursive(true).build());
     os2.write(BufferUtils.getIncreasingByteArray(size));
     os2.close();
-    FileOutStream os3 =
-        mFileSystem.createFile(path3, CreateFilePOptions.newBuilder().setRecursive(true).build());
-    os3.write(BufferUtils.getIncreasingByteArray(size));
-    os3.close();
+
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+
+    // Not in memory but in Alluxio storage
+    Assert.assertEquals(0, mFileSystem.getStatus(path2).getInMemoryPercentage());
+    Assert.assertFalse(mFileSystem.getStatus(path1).getFileBlockInfos().isEmpty());
+
+    // After reading the second file, it should be moved to memory tier as per LRU.
+    FileInStream in = mFileSystem.openFile(path2, OpenFilePOptions.getDefaultInstance());
+    byte[] buf = new byte[size];
+    while (in.read(buf) != -1) {
+      // read the entire file
+    }
+    in.close();
+
+    CommonUtils.waitFor("File getting promoted to memory tier.", () -> {
+      try {
+        HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+        // In memory
+        return 100 == mFileSystem.getStatus(path2).getInMemoryPercentage();
+      } catch (Exception e) {
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(60000));
+  }
+
+  // Disable tier management tasks.
+  // Set is to MUST_CACHE to make blocks evictable.
+  // No reserved-space for precise capacity planning.
+  @LocalAlluxioClusterResource.Config(
+      confParams = {
+          PropertyKey.Name.WORKER_MANAGEMENT_TIER_MOVE_ENABLED, "false",
+          PropertyKey.Name.WORKER_MANAGEMENT_TIER_SWAP_ENABLED, "false",
+          PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE",
+          PropertyKey.Name.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, "0"})
+  @Test
+  public void promoteByRead() throws Exception {
+    final int size = (int) CAPACITY_BYTES / 2;
+    AlluxioURI path1 = new AlluxioURI(PathUtils.uniqPath());
+
+    // Write a file to ssd tier.
+    FileOutStream os1 = mFileSystem.createFile(path1,
+            CreateFilePOptions.newBuilder().setWriteTier(1).setRecursive(true).build());
+    os1.write(BufferUtils.getIncreasingByteArray(size));
+    os1.close();
+
+    // Fill mem tier.
+    long fileBytes = CAPACITY_BYTES / 2;
+    for (int i = 0; i < 2; i++) {
+      FileOutStream os = mFileSystem.createFile(new AlluxioURI(PathUtils.uniqPath()),
+          CreateFilePOptions.newBuilder().setWriteTier(0).setRecursive(true).build());
+      os.write(BufferUtils.getIncreasingByteArray((int) fileBytes));
+      os.close();
+    }
 
     // Not in memory but in Alluxio storage
     CommonUtils.waitFor("file is not in memory", () -> {
@@ -126,7 +181,7 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
       }
     }, WAIT_OPTIONS);
 
-    // After reading with CACHE_PROMOTE, the file should be in memory
+    // Before reading the second file, it should be moved to memory tier as per read flag.
     FileInStream in = mFileSystem.openFile(path1,
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build());
     byte[] buf = new byte[size];
@@ -135,6 +190,7 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
     }
     in.close();
 
+    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     // In memory
     CommonUtils.waitFor("file is not in memory", () -> {
       try {

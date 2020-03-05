@@ -2344,6 +2344,75 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME =
+          new Builder(Name.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME)
+          .setDefaultValue("10sec")
+          .setDescription("Management tasks will not run for this long after load detected.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_RESERVED_SPACE_BYTES =
+      new Builder(Name.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES)
+          .setDefaultValue("1GB")
+          .setDescription("The amount of space that is reserved from each storage directory "
+              + "for internal management tasks.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_IDLE_SLEEP_TIME =
+      new Builder(Name.WORKER_MANAGEMENT_IDLE_SLEEP_TIME)
+          .setDefaultValue("10sec")
+          .setDescription("Management task coordinator will back-off for specified duration when"
+              + "no management task is pending.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_SWAP_ENABLED =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_SWAP_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether to run management tier-swap task.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_MOVE_ENABLED =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_MOVE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether to run management tier-move task.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_SWAP_RANGE =
+          new Builder(Name.WORKER_MANAGEMENT_TIER_SWAP_RANGE)
+          .setDefaultValue(100)
+          .setDescription(
+              "Maximum number of blocks to consider from one tier when doing tier swap task.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_MOVE_RANGE =
+          new Builder(Name.WORKER_MANAGEMENT_TIER_MOVE_RANGE)
+          .setDefaultValue(100)
+          .setDescription(
+              "Maximum number of blocks to consider from one tier when doing tier move task.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_MOVE_LIMIT =
+          new Builder(Name.WORKER_MANAGEMENT_TIER_MOVE_LIMIT)
+          .setDefaultValue(0.1)
+          .setDescription("Ratio of free space per-tier for moving blocks from below."
+              + " When under this value moving to that tier will be stopped.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_SWAP_USING_FS =
+      new Builder(Name.WORKER_MANAGEMENT_SWAP_USING_FS)
+          .setDefaultValue(true)
+          .setDescription("Whether to use file-system moves to "
+              + "emulate swapping under same file-system root.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_FILE_BUFFER_SIZE =
       new Builder(Name.WORKER_FILE_BUFFER_SIZE)
           .setDefaultValue("1MB")
@@ -4883,10 +4952,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.folder.tmp";
     public static final String WORKER_DATA_TMP_SUBDIR_MAX = "alluxio.worker.data.tmp.subdir.max";
     public static final String WORKER_EVICTOR_CLASS = "alluxio.worker.evictor.class";
-    public static final String WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR =
-        "alluxio.worker.evictor.lrfu.attenuation.factor";
-    public static final String WORKER_EVICTOR_LRFU_STEP_FACTOR =
-        "alluxio.worker.evictor.lrfu.step.factor";
+    public static final String WORKER_BLOCK_ANNOTATOR_CLASS =
+        "alluxio.worker.block.annotator.class";
+    public static final String WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR =
+        "alluxio.worker.block.annotator.lrfu.attenuation.factor";
+    public static final String WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR =
+        "alluxio.worker.block.annotator.lrfu.step.factor";
+    public static final String WORKER_MANAGEMENT_RESERVED_SPACE_BYTES =
+        "alluxio.worker.management.reserved.space.bytes";
+    public static final String WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME =
+        "alluxio.worker.management.load.detection.cool.down.time";
+    public static final String WORKER_MANAGEMENT_IDLE_SLEEP_TIME =
+        "alluxio.worker.management.idle.sleep.time";
+    public static final String WORKER_MANAGEMENT_TIER_SWAP_ENABLED =
+        "alluxio.worker.management.tier.swap.enabled";
+    public static final String WORKER_MANAGEMENT_TIER_SWAP_RANGE =
+        "alluxio.worker.management.tier.swap.range";
+    public static final String WORKER_MANAGEMENT_TIER_MOVE_ENABLED =
+        "alluxio.worker.management.tier.move.enabled";
+    public static final String WORKER_MANAGEMENT_TIER_MOVE_RANGE =
+        "alluxio.worker.management.tier.move.range";
+    public static final String WORKER_MANAGEMENT_TIER_MOVE_LIMIT =
+        "alluxio.worker.management.tier.move.limit";
+    public static final String WORKER_MANAGEMENT_SWAP_USING_FS =
+        "alluxio.worker.management.swap.using.fs";
     public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
     public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
