@@ -16,11 +16,6 @@ import alluxio.table.common.Layout;
 import alluxio.table.common.transform.action.TransformAction;
 
 import java.util.ArrayList;
-<<<<<<< HEAD
-=======
-import java.util.List;
-import java.util.stream.Collectors;
->>>>>>> upstream/master
 
 /**
  * The plan for a transformation.
