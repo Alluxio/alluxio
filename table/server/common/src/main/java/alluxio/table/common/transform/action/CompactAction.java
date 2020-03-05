@@ -14,7 +14,6 @@ package alluxio.table.common.transform.action;
 import alluxio.exception.ExceptionMessage;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.transform.CompactConfig;
-import alluxio.job.plan.transform.TransformJobConfig;
 import alluxio.table.common.Layout;
 
 import com.google.common.base.Preconditions;
@@ -76,6 +75,10 @@ public class CompactAction implements TransformAction {
           ExceptionMessage.TRANSFORM_WRITE_ACTION_INVALID_NUM_FILES.getMessage());
       return new CompactAction(numFiles, fileSize);
     }
+
+    public TransformAction create(int numFiles, long fileSize) {
+      return new CompactAction(numFiles, fileSize);
+    }
   }
 
   private CompactAction(int numFiles, long fileSize) {
@@ -84,7 +87,7 @@ public class CompactAction implements TransformAction {
   }
 
   @Override
-  public TransformJobConfig generateJobConfig(Layout base, Layout transformed, boolean deleteSrc) {
+  public JobConfig generateJobConfig(Layout base, Layout transformed, boolean deleteSrc) {
     alluxio.job.plan.transform.PartitionInfo basePartitionInfo =
         TransformActionUtils.generatePartitionInfo(base);
     return new CompactConfig(basePartitionInfo, base.getLocation().toString(),

@@ -11,13 +11,21 @@
 
 package alluxio.table.common.transform.action;
 
-import alluxio.job.plan.transform.TransformJobConfig;
+import alluxio.job.JobConfig;
+import alluxio.job.plan.transform.Format;
 import alluxio.table.common.Layout;
+import com.google.common.collect.Sets;
+
+import java.util.Set;
 
 /**
  * The definition of an individual transformation action.
  */
 public interface TransformAction {
+
+  default Set<Format> acceptedFormats() {
+    return Sets.newHashSet(Format.CSV, Format.GZIP_CSV, Format.PARQUET);
+  }
 
   /**
    * @param base the layout to transform from
@@ -25,5 +33,5 @@ public interface TransformAction {
    * @param deleteSrc whether the src file should be deleted
    * @return the job configuration for this action
    */
-  TransformJobConfig generateJobConfig(Layout base, Layout transformed, boolean deleteSrc);
+  JobConfig generateJobConfig(Layout base, Layout transformed, boolean deleteSrc);
 }

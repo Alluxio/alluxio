@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The original order of rows is preserved.
  */
 @ThreadSafe
-public final class CompactConfig implements TransformJobConfig, PlanConfig {
+public final class CompactConfig implements PlanConfig {
   private static final long serialVersionUID = -3434270994964559796L;
 
   private static final String NAME = "Compact";

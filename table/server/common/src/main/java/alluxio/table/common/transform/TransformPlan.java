@@ -12,10 +12,17 @@
 package alluxio.table.common.transform;
 
 import alluxio.job.JobConfig;
+import alluxio.job.plan.transform.Format;
+import alluxio.job.plan.transform.PartitionInfo;
 import alluxio.table.common.Layout;
+import alluxio.table.common.transform.action.CompactAction;
 import alluxio.table.common.transform.action.TransformAction;
+import alluxio.table.common.transform.action.TransformActionUtils;
+import com.google.common.collect.Lists;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The plan for a transformation.
@@ -49,22 +56,44 @@ public class TransformPlan {
   }
 
   private ArrayList<JobConfig> computeJobConfigs(TransformDefinition definition) {
-    ArrayList<JobConfig> actions = new ArrayList<>();
-    Layout baseLayout = mBaseLayout;
-    boolean deleteSrc = false;
-
-    for (TransformAction action : definition.getActions()) {
-      actions.add(action.generateJobConfig(baseLayout, mTransformedLayout, deleteSrc));
-      baseLayout = mTransformedLayout;
-      deleteSrc = true;
-    }
+    final List<TransformAction> actions = definition.getActions();
 
     if (actions.isEmpty()) {
       throw new IllegalArgumentException(
           "At least one action should be defined for the transformation");
     }
 
-    return actions;
+    ArrayList<JobConfig> actionsJobConfig = new ArrayList<>();
+
+
+    Layout baseLayout = mBaseLayout;
+    boolean deleteSrc = false;
+
+    alluxio.job.plan.transform.PartitionInfo basePartitionInfo =
+        TransformActionUtils.generatePartitionInfo(baseLayout);
+
+    Format inputFormat;
+    try {
+      inputFormat = basePartitionInfo.getFormat("");
+    } catch (IOException e) {
+      // couldn't figure out inputFormat, assume the least supported input format
+      inputFormat = Format.GZIP_CSV;
+    }
+
+    if (!actions.get(0).acceptedFormats().contains(inputFormat)) {
+      final TransformAction toParquetAction = new CompactAction.CompactActionFactory().create(Integer.MAX_VALUE, 0L);
+      actionsJobConfig.add(toParquetAction.generateJobConfig(baseLayout, mTransformedLayout, deleteSrc));
+      baseLayout = mTransformedLayout;
+      deleteSrc = true;
+    }
+
+    for (TransformAction action : actions) {
+      actionsJobConfig.add(action.generateJobConfig(baseLayout, mTransformedLayout, deleteSrc));
+      baseLayout = mTransformedLayout;
+      deleteSrc = true;
+    }
+
+    return actionsJobConfig;
   }
 
   /**
