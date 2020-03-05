@@ -45,10 +45,6 @@ public final class CompactConfig implements TransformJobConfig, PlanConfig {
    */
   private final String mOutput;
   /**
-   * The type of database to write the compacted table to.
-   */
-  private final String mDatabaseType;
-  /**
    * Max number of files after compaction.
    */
   private final int mMaxNumFiles;
@@ -61,20 +57,17 @@ public final class CompactConfig implements TransformJobConfig, PlanConfig {
    * @param partitionInfo the partition info
    * @param input the input directory
    * @param output the output directory
-   * @param databaseType the type of database to write the compacted table to
    * @param maxNumFiles the maximum number of files after compaction
    * @param minFileSize the minimum file size for coalescing
    */
   public CompactConfig(@JsonProperty("partitionInfo") PartitionInfo partitionInfo,
-      @JsonProperty("input") String input,
-      @JsonProperty("output") String output,
-      @JsonProperty("databaseType") String databaseType,
-      @JsonProperty("maxNumFiles") Integer maxNumFiles,
-      @JsonProperty("minFileSize") Long minFileSize) {
+                       @JsonProperty("input") String input,
+                       @JsonProperty("output") String output,
+                       @JsonProperty("maxNumFiles") Integer maxNumFiles,
+                       @JsonProperty("minFileSize") Long minFileSize) {
     mPartitionInfo = partitionInfo;
     mInput = Preconditions.checkNotNull(input, "input");
     mOutput = Preconditions.checkNotNull(output, "output");
-    mDatabaseType = Preconditions.checkNotNull(databaseType, "databaseType");
     mMaxNumFiles = Preconditions.checkNotNull(maxNumFiles, "maxNumFiles");
     mMinFileSize = Preconditions.checkNotNull(minFileSize, "minFileSize");
   }
@@ -98,13 +91,6 @@ public final class CompactConfig implements TransformJobConfig, PlanConfig {
    */
   public String getOutput() {
     return mOutput;
-  }
-
-  /**
-   * @return the type of database to write the compacted table to
-   */
-  public String getDatabaseType() {
-    return mDatabaseType;
   }
 
   /**
@@ -135,7 +121,6 @@ public final class CompactConfig implements TransformJobConfig, PlanConfig {
     CompactConfig that = (CompactConfig) obj;
     return mPartitionInfo.equals(that.mPartitionInfo)
         && mInput.equals(that.mInput)
-        && mDatabaseType.equals(that.mDatabaseType)
         && mOutput.equals(that.mOutput)
         && mMaxNumFiles == that.mMaxNumFiles
         && mMinFileSize == that.mMinFileSize;
@@ -143,8 +128,7 @@ public final class CompactConfig implements TransformJobConfig, PlanConfig {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPartitionInfo, mInput, mOutput,
-        mDatabaseType, mMaxNumFiles, mMinFileSize);
+    return Objects.hashCode(mPartitionInfo, mInput, mOutput, mMaxNumFiles, mMinFileSize);
   }
 
   @Override
@@ -152,7 +136,6 @@ public final class CompactConfig implements TransformJobConfig, PlanConfig {
     return MoreObjects.toStringHelper(this)
         .add("input", mInput)
         .add("output", mOutput)
-        .add("databaseType", mDatabaseType)
         .add("maxNumFiles", mMaxNumFiles)
         .add("minFileSize", mMinFileSize)
         .add("partitionInfo", mPartitionInfo)

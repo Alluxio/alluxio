@@ -50,7 +50,7 @@ public class CompactDefinitionSelectExecutorsTest extends SelectExecutorsTest {
     PartitionInfo mockPartitionInfo = mock(PartitionInfo.class);
     when(mockPartitionInfo.getFormat(any())).thenReturn(Format.CSV);
 
-    CompactConfig config = new CompactConfig(mockPartitionInfo, INPUT_DIR, OUTPUT_DIR, "test",
+    CompactConfig config = new CompactConfig(mockPartitionInfo, INPUT_DIR, OUTPUT_DIR,
         numCompactedFiles, 2 * FileUtils.ONE_GB);
 
     List<URIStatus> inputFiles = new ArrayList<>();

@@ -11,8 +11,8 @@
 
 package alluxio.table.common.transform.action;
 
-import java.util.List;
-import java.util.Map;
+import javax.annotation.Nullable;
+import java.util.Properties;
 
 /**
  * The action factory interface.
@@ -20,15 +20,19 @@ import java.util.Map;
 public interface TransformActionFactory {
 
   /**
-   * @return the name of the action
+   * Returns the order of the transform action. Transform actions with a lower number
+   * will be executed before transform actions with a higher number.
+   *
+   * @return integer representing order number
    */
-  String getName();
+  default int getOrder() {
+    return 100;
+  }
 
   /**
    * @param definition the raw definition of the action
-   * @param args a list of string args
-   * @param options a string-string map of options
    * @return a new instance of an action
    */
-  TransformAction create(String definition, List<String> args, Map<String, String> options);
+  @Nullable
+  TransformAction create(Properties definition);
 }
