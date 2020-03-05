@@ -212,7 +212,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 ```
 
 #### Initiate a multipart upload
-Since we delete the testobject in previous command, you have to create another testobject
+Since we deleted the `testobject` in the previous command, you have to create another `testobject`
 before initiating a multipart upload.
 
 ```console
@@ -418,4 +418,3 @@ mp.cancel_upload()
 bucket.delete_key(largeObjectKey)
 conn.delete_bucket(bucketName)
 ```
-
