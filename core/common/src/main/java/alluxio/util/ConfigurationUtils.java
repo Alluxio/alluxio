@@ -472,10 +472,12 @@ public final class ConfigurationUtils {
    * @param conf the existing configuration
    * @param ignoreClusterConf do not load cluster configuration related information
    * @param ignorePathConf do not load path configuration related information
+   * @param ignoreDefaultValue do not load configuration property with default value
    * @return the RPC response
    */
   public static GetConfigurationPResponse loadConfiguration(InetSocketAddress address,
-      AlluxioConfiguration conf, boolean ignoreClusterConf, boolean ignorePathConf)
+      AlluxioConfiguration conf, boolean ignoreClusterConf, boolean ignorePathConf,
+      boolean ignoreDefaultValue)
       throws AlluxioStatusException {
     GrpcChannel channel = null;
     try {
@@ -487,6 +489,7 @@ public final class ConfigurationUtils {
           MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
       GetConfigurationPResponse response = client.getConfiguration(
           GetConfigurationPOptions.newBuilder().setRawValue(true)
+              .setIgnoreDefaultValue(ignoreDefaultValue)
               .setIgnoreClusterConf(ignoreClusterConf).setIgnorePathConf(ignorePathConf).build());
       LOG.debug("Alluxio client has loaded configuration from meta master {}", address);
       return response;
@@ -552,7 +555,7 @@ public final class ConfigurationUtils {
     Properties clusterProps = filterAndLoadProperties(clusterConfig, scope, (key, value) ->
         String.format("Loading property: %s (%s) -> %s", key, key.getScope(), value));
     // Check version.
-    String clusterVersion = clusterProps.get(PropertyKey.VERSION).toString();
+    Object clusterVersion = clusterProps.get(PropertyKey.VERSION);
     if (!clientVersion.equals(clusterVersion)) {
       LOG.warn("Alluxio {} version ({}) does not match Alluxio cluster version ({})",
           scope, clientVersion, clusterVersion);

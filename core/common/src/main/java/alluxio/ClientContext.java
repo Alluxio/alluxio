@@ -132,7 +132,7 @@ public class ClientContext {
       return;
     }
     GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
-        conf, !loadClusterConf, !loadPathConf);
+        conf, !loadClusterConf, !loadPathConf, false);
     if (loadClusterConf) {
       mClusterConf = ConfigurationUtils.getClusterConf(response, conf, Scope.CLIENT);
       mClusterConfHash = response.getClusterConfigHash();

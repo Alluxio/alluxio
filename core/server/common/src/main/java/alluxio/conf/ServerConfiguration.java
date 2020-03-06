@@ -351,7 +351,7 @@ public final class ServerConfiguration {
     if (sConf.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)
         && !sConf.clusterDefaultsLoaded()) {
       GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address, sConf,
-          false, true);
+          false, true, true);
       AlluxioConfiguration conf = ConfigurationUtils.getClusterConf(response, sConf, Scope.WORKER);
       sConf = new InstancedConfiguration(conf.copyProperties(), conf.clusterDefaultsLoaded());
     }

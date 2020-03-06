@@ -68,7 +68,8 @@ public final class MetaMasterConfigurationServiceHandler
         if (clusterConf == null
             || !clusterConf.getClusterConfigHash().equals(hash.getClusterConfigHash())) {
           clusterConf = mMetaMaster.getConfiguration(GetConfigurationPOptions.newBuilder()
-              .setIgnorePathConf(true).build()).toProto();
+              .setIgnorePathConf(true).setIgnoreDefaultValue(options.getIgnoreDefaultValue())
+              .build()).toProto();
           mClusterConf = clusterConf;
         }
         builder.addAllClusterConfigs(clusterConf.getClusterConfigsList());
@@ -78,7 +79,8 @@ public final class MetaMasterConfigurationServiceHandler
         if (pathConf == null
             || !pathConf.getPathConfigHash().equals(hash.getPathConfigHash())) {
           pathConf = mMetaMaster.getConfiguration(GetConfigurationPOptions.newBuilder()
-              .setIgnoreClusterConf(true).build()).toProto();
+              .setIgnoreClusterConf(true).setIgnoreDefaultValue(options.getIgnoreDefaultValue())
+              .build()).toProto();
           mPathConf = pathConf;
         }
         builder.putAllPathConfigs(pathConf.getPathConfigsMap());
