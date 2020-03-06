@@ -315,16 +315,22 @@ $ helm delete alluxio
 #### Format Journal
 
 The helm chart contains one Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
-template that can be used for formatting the Alluxio journal. The template contains one Job for each Alluxio master.
+template that can be used for formatting the Alluxio journal. 
+The template contains one Job for each Alluxio master.
 Each Job runs `alluxio formatJournal` and formats the journal for that master.
 
-You can trigger the journal formatting by upgrading the helm deployment with `journal.format.runFormat=true`.
+You can trigger the journal formatting by upgrading the existing helm deployment with `journal.format.runFormat=true`.
 ```console
 # Use the same config.yaml and switch on journal formatting
-$ helm upgrade alluxio --version 0.5.5 -f config.yaml --set journal.format.runFormat=true alluxio-local/alluxio
+$ helm upgrade alluxio -f config.yaml --set journal.format.runFormat=true alluxio-local/alluxio
 ```
 
-> Note: `helm upgrade` is another deployment, which will result in new master and worker pods.
+> Note: `helm upgrade` will create the journal-formatting Job.
+
+Or you can trigger the journal formatting at deployment.
+```console
+helm install --name alluxio -f config.yaml --set journal.format.runFormat=true alluxio-local/alluxio
+```
 
 ### Deploy Using `kubectl`
 
@@ -474,7 +480,8 @@ Be careful if you have persistent volumes or other important resources you want 
 #### Format Journal
 
 The helm chart contains one Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
-template that can be used for formatting the Alluxio journal. The template contains one Job for each Alluxio master.
+template that can be used for formatting the Alluxio journal. 
+The template contains one Job for each Alluxio master.
 Each Job runs `alluxio formatJournal` and formats the journal for that master.
 
 You can manually trigger the journal formatting by applying the Job template.
@@ -640,7 +647,7 @@ Then follow the steps to install Alluxio with helm [here]({{ '/en/deploy/Running
 
 If Alluxio has already been deployed with helm and now you want to enable FUSE, you use `helm upgrade` to add the FUSE daemons.
 ```console
-$ helm upgrade alluxio --version 0.5.5 -f config.yaml --set fuse.enabled=true --set fuse.clientEnabled=true alluxio-local/alluxio
+$ helm upgrade alluxio -f config.yaml --set fuse.enabled=true --set fuse.clientEnabled=true alluxio-local/alluxio
 ```
 
 ## Troubleshooting
