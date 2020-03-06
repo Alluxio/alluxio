@@ -158,7 +158,8 @@ ERROR SparkContext: Error initializing SparkContext.
 io.fabric8.kubernetes.client.KubernetesClientException
 ```
 
-This is probably due to a known issue that can be resolved by upgrading `kubernetes-client.jar` to 4.4.x.
+This is probably due to a [known issue](https://issues.apache.org/jira/browse/SPARK-28921) 
+that can be resolved by upgrading `kubernetes-client.jar` to 4.4.x.
 You can patch the docker image by updating the `kubernetes-client-x.x.jar` before building the 
 `spark-alluxio` image.
 
