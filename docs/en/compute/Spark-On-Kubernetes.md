@@ -66,6 +66,8 @@ Build the Spark Docker image
 ```console
 $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 ```
+> Note: Make sure all your nodes (where the spark-driver and spark-executor pods will run) 
+have this image.
 
 ## Example(s)
 
@@ -106,7 +108,10 @@ The following command runs an example word count job in the Alluxio location
 The output and time taken can be seen in the logs for Spark driver pod. Refer to Spark
 [documentation](https://spark.apache.org/docs/latest/running-on-kubernetes.html) for further instructions.
 
-Create the service account (if required)
+#### Create the service account (optional)
+
+You can create one service account for running the spark job with the required access as below  
+if you do not have one to use.
 
 ```console
 $ kubectl create serviceaccount spark
@@ -114,9 +119,11 @@ $ kubectl create clusterrolebinding spark-role --clusterrole=edit \
   --serviceaccount=default:spark --namespace=default
 ```
 
+#### Submit a Spark job
+
 Run the job from the Spark distribution directory
 ```console
-$ ./bin/spark-submit --master k8s://https://<master>:8443 \
+$ ./bin/spark-submit --master k8s://https://<kubernetes-api-server>:8443 \
 --deploy-mode cluster --name spark-alluxio --conf spark.executor.instances=1 \
 --class org.apache.spark.examples.JavaWordCount \
 --driver-memory 500m --executor-memory 1g \
@@ -127,8 +134,10 @@ $ ./bin/spark-submit --master k8s://https://<master>:8443 \
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.path=/tmp/alluxio-domain \
 --conf spark.kubernetes.executor.volumes.hostPath.alluxio-domain.options.type=Directory \
 local:///opt/spark/examples/jars/spark-examples_2.11-2.4.4.jar \
-alluxio://alluxio-master.default.svc.cluster.local:19998/LICENSE
+alluxio://<alluxio-master>:19998/LICENSE
 ```
+> Note: You can find the address of the Kubernetes API server by running `kubectl cluster-info`.
+You can find more details in Spark [documentation](https://spark.apache.org/docs/latest/running-on-kubernetes.html?q=cluster-info#cluster-mode).
 
 ## Troubleshooting
 
@@ -138,3 +147,43 @@ The Alluxio client logs can be found in the Spark driver and executor logs.
 Refer to
 [Spark documentation](https://spark.apache.org/docs/latest/running-on-kubernetes.html#debugging)
 for further instructions.
+
+### HTTP 403 on Kubernetes client
+
+If your spark job failed due to failure in the Kubernetes client like the following:
+```
+WARN ExecutorPodsWatchSnapshotSource: Kubernetes client has been closed
+...
+ERROR SparkContext: Error initializing SparkContext.
+io.fabric8.kubernetes.client.KubernetesClientException
+```
+
+This is probably due to a [known issue](https://issues.apache.org/jira/browse/SPARK-28921) 
+that can be resolved by upgrading `kubernetes-client.jar` to 4.4.x.
+You can patch the docker image by updating the `kubernetes-client-x.x.jar` before building the 
+`spark-alluxio` image.
+
+```console
+rm spark-2.4.4-bin-hadoop2.7/jars/kubernetes-client-*.jar
+wget https://repo1.maven.org/maven2/io/fabric8/kubernetes-client/4.4.2/kubernetes-client-4.4.2.jar 
+cp kubernetes-client-4.4.2.jar spark-2.4.4-bin-hadoop2.7/jars
+```
+
+Then build the `spark-alluxio` image and distribute to all your nodes.
+
+### Service account does not have access
+
+If you see errors like below complaining some operations are forbidden, that is because the
+service account you use for the spark job does not have enough access to perform the action.
+
+```
+ERROR Utils: Uncaught exception in thread main
+io.fabric8.kubernetes.client.KubernetesClientException: Failure executing: DELETE at: \
+https://kubernetes.default.svc/api/v1/namespaces/default/pods/spark-alluxiolatest-exec-1. \
+Message: Forbidden!Configured service account doesn't have access. Service account may have been revoked. \
+pods "spark-alluxiolatest-exec-1" is forbidden: User "system:serviceaccount:default:default" \
+cannot delete resource "pods" in API group "" in the namespace "default".
+```
+
+You should ensure you have the correct access by 
+[creating a service account]({{ '/en/compute/Spark-On-Kubernetes.html#create-the-service-account-optional' | relativize_url }}).
