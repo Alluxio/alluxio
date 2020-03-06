@@ -111,7 +111,7 @@ public class HiveDatabase implements UnderDatabase {
     try (CloseableResource<IMetaStoreClient> client = mClientPool.acquireClientResource()) {
       Database hiveDb = client.get().getDatabase(mHiveDbName);
       alluxio.grpc.table.PrincipalType type = alluxio.grpc.table.PrincipalType.USER;
-      if (hiveDb.getOwnerType().equals(PrincipalType.ROLE)) {
+      if (Objects.equals(hiveDb.getOwnerType(), PrincipalType.ROLE)) {
         type = alluxio.grpc.table.PrincipalType.ROLE;
       }
       return new DatabaseInfo(hiveDb.getLocationUri(), hiveDb.getOwnerName(), type,
