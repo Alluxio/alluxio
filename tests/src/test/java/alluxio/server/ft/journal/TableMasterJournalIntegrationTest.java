@@ -59,7 +59,6 @@ public class TableMasterJournalIntegrationTest {
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES)
           .setNumWorkers(1).build();
 
-
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_TABLE_TRANSFORMATION_MONITOR);
