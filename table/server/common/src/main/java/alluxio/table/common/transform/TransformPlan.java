@@ -13,12 +13,10 @@ package alluxio.table.common.transform;
 
 import alluxio.job.JobConfig;
 import alluxio.job.plan.transform.Format;
-import alluxio.job.plan.transform.PartitionInfo;
 import alluxio.table.common.Layout;
 import alluxio.table.common.transform.action.CompactAction;
 import alluxio.table.common.transform.action.TransformAction;
 import alluxio.table.common.transform.action.TransformActionUtils;
-import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -65,7 +63,6 @@ public class TransformPlan {
 
     ArrayList<JobConfig> actionsJobConfig = new ArrayList<>();
 
-
     Layout baseLayout = mBaseLayout;
     boolean deleteSrc = false;
 
@@ -80,9 +77,11 @@ public class TransformPlan {
       inputFormat = Format.GZIP_CSV;
     }
 
-    if (!actions.get(0).acceptedFormats().contains(inputFormat)) {
-      final TransformAction toParquetAction = new CompactAction.CompactActionFactory().create(Integer.MAX_VALUE, 0L);
-      actionsJobConfig.add(toParquetAction.generateJobConfig(baseLayout, mTransformedLayout, deleteSrc));
+    if (!actions.get(0).acceptedInputFormats().contains(inputFormat)) {
+      final TransformAction toParquetAction =
+          new CompactAction.CompactActionFactory().create(Integer.MAX_VALUE, 0L);
+      actionsJobConfig.add(
+          toParquetAction.generateJobConfig(baseLayout, mTransformedLayout, deleteSrc));
       baseLayout = mTransformedLayout;
       deleteSrc = true;
     }

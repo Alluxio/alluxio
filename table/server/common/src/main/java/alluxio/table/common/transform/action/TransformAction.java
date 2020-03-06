@@ -14,6 +14,7 @@ package alluxio.table.common.transform.action;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.transform.Format;
 import alluxio.table.common.Layout;
+
 import com.google.common.collect.Sets;
 
 import java.util.Set;
@@ -23,7 +24,10 @@ import java.util.Set;
  */
 public interface TransformAction {
 
-  default Set<Format> acceptedFormats() {
+  /**
+   * @return a list of accepted input formats of the transform action
+   */
+  default Set<Format> acceptedInputFormats() {
     return Sets.newHashSet(Format.CSV, Format.GZIP_CSV, Format.PARQUET);
   }
 

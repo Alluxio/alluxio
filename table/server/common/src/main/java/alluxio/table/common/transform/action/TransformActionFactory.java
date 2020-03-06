@@ -30,7 +30,7 @@ public interface TransformActionFactory {
   }
 
   /**
-   * @param definition the raw definition of the action
+   * @param definition the definition of actions as a properties map
    * @return a new instance of an action
    */
   @Nullable

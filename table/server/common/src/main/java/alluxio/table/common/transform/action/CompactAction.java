@@ -76,6 +76,11 @@ public class CompactAction implements TransformAction {
       return new CompactAction(numFiles, fileSize);
     }
 
+    /**
+     * @param numFiles maximum number of files
+     * @param fileSize minimum file size
+     * @return a new instance of a CompactAction
+     */
     public TransformAction create(int numFiles, long fileSize) {
       return new CompactAction(numFiles, fileSize);
     }
