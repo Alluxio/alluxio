@@ -241,7 +241,7 @@ public class Database implements Journaled {
     try {
       CommonUtils.invokeAll(service, tasks, mUdbSyncTimeoutMs);
     } catch (Exception e) {
-      throw new IOException("Failed to sync database " + mName, e);
+      throw new IOException("Failed to sync database " + mName + ". error: " + e.getMessage(), e);
     }
 
     for (Table existingTable : mTables.values()) {
