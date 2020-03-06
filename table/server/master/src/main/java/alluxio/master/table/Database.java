@@ -205,95 +205,9 @@ public class Database implements Journaled {
         LOG.debug("Syncing an existing table " + tableName + " in database " + mName);
         tableUpdated = table.sync(mUdb.getTable(tableName));
       }
-<<<<<<< HEAD
       if (tableUpdated) {
         alluxio.proto.journal.Table.AddTableEntry addTableEntry = table.toJournalProto();
         Journal.JournalEntry entry = Journal.JournalEntry.newBuilder().setAddTable(addTableEntry)
-||||||| parent of 89fc2d3a64... Avoid NPE for optional ownerType field
-      tasks.add(() -> {
-        // Save all exceptions
-        try {
-          Table previousTable = mTables.get(tableName);
-          UdbTable udbTable = mUdb.getTable(tableName);
-          Table newTable = Table.create(thisDb, udbTable, previousTable);
-
-          if (newTable != null) {
-            // table was created or was updated
-            alluxio.proto.journal.Table.AddTableEntry addTableEntry = newTable.toJournalProto();
-            Journal.JournalEntry entry =
-                Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
-            applyAndJournal(context, entry);
-            builder.addTablesUpdated(tableName);
-          } else {
-            builder.addTablesUnchanged(tableName);
-          }
-        } catch (Exception e) {
-          builder.putTablesErrors(tableName, e.getMessage());
-        }
-        return null;
-      });
-    }
-
-    try {
-      CommonUtils.invokeAll(service, tasks, mUdbSyncTimeoutMs);
-    } catch (Exception e) {
-      throw new IOException("Failed to sync database " + mName, e);
-    }
-
-    for (Table existingTable : mTables.values()) {
-      if (!udbTableNames.contains(existingTable.getName())) {
-        // this table no longer exists in udb
-        alluxio.proto.journal.Table.RemoveTableEntry removeTableEntry =
-            alluxio.proto.journal.Table.RemoveTableEntry.newBuilder()
-                .setDbName(mName)
-                .setTableName(existingTable.getName())
-                .setVersion(existingTable.getVersion())
-                .build();
-        Journal.JournalEntry entry = Journal.JournalEntry.newBuilder()
-            .setRemoveTable(removeTableEntry)
-=======
-      tasks.add(() -> {
-        // Save all exceptions
-        try {
-          Table previousTable = mTables.get(tableName);
-          UdbTable udbTable = mUdb.getTable(tableName);
-          Table newTable = Table.create(thisDb, udbTable, previousTable);
-
-          if (newTable != null) {
-            // table was created or was updated
-            alluxio.proto.journal.Table.AddTableEntry addTableEntry = newTable.toJournalProto();
-            Journal.JournalEntry entry =
-                Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
-            applyAndJournal(context, entry);
-            builder.addTablesUpdated(tableName);
-          } else {
-            builder.addTablesUnchanged(tableName);
-          }
-        } catch (Exception e) {
-          builder.putTablesErrors(tableName, e.getMessage());
-        }
-        return null;
-      });
-    }
-
-    try {
-      CommonUtils.invokeAll(service, tasks, mUdbSyncTimeoutMs);
-    } catch (Exception e) {
-      throw new IOException("Failed to sync database " + mName + ". error: " + e.getMessage(), e);
-    }
-
-    for (Table existingTable : mTables.values()) {
-      if (!udbTableNames.contains(existingTable.getName())) {
-        // this table no longer exists in udb
-        alluxio.proto.journal.Table.RemoveTableEntry removeTableEntry =
-            alluxio.proto.journal.Table.RemoveTableEntry.newBuilder()
-                .setDbName(mName)
-                .setTableName(existingTable.getName())
-                .setVersion(existingTable.getVersion())
-                .build();
-        Journal.JournalEntry entry = Journal.JournalEntry.newBuilder()
-            .setRemoveTable(removeTableEntry)
->>>>>>> 89fc2d3a64... Avoid NPE for optional ownerType field
             .build();
         applyAndJournal(context, entry);
         returnVal = true;
