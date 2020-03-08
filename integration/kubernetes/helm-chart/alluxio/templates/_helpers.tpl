@@ -260,19 +260,19 @@ resources:
 {{- define "alluxio.master.readinessProbe" -}}
 readinessProbe:
   exec:
-    command: ["bin/alluxio-monitor.sh", "master"]
+    command: ["alluxio-monitor.sh", "master"]
 {{- end -}}
 
 {{- define "alluxio.worker.readinessProbe" -}}
 readinessProbe:
   exec:
-    command: ["bin/alluxio-monitor.sh", "worker"]
+    command: ["alluxio-monitor.sh", "worker"]
 {{- end -}}
 
 {{- define "alluxio.master.livenessProbe" -}}
 livenessProbe:
   exec:
-    command: ["bin/alluxio-monitor.sh", "master"]
+    command: ["alluxio-monitor.sh", "master"]
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
@@ -282,7 +282,7 @@ livenessProbe:
 {{- define "alluxio.worker.livenessProbe" -}}
 livenessProbe:
   exec:
-    command: ["bin/alluxio-monitor.sh", "worker"]
+    command: ["alluxio-monitor.sh", "worker"]
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
