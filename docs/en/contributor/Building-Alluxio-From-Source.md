@@ -142,7 +142,7 @@ To build against Cloudera's releases, just use a version like `$apacheRelease-cd
 
 #### Hortonworks
 
-To build against a Hortonworks release, just use a version like `$apacheRelease.$hortonRelease`
+To build against a Hortonworks release, just use a version like `$apacheRelease.$hortonworksRelease`
 
 ```properties
 -Phadoop-2 -Dhadoop.version=2.1.0.2.0.5.0-67
