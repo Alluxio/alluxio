@@ -122,10 +122,10 @@ spec:
               name: alluxio-config
           readinessProbe:
             exec:
-              command: ["alluxio-monitor.sh", "worker"]
+              command: ["alluxio-monitor.sh", "job_worker"]
           livenessProbe:
             exec:
-              command: ["alluxio-monitor.sh", "worker"]
+              command: ["alluxio-monitor.sh", "job_worker"]
             initialDelaySeconds: 15
             periodSeconds: 30
             timeoutSeconds: 5

@@ -263,10 +263,22 @@ readinessProbe:
     command: ["alluxio-monitor.sh", "master"]
 {{- end -}}
 
+{{- define "alluxio.jobMaster.readinessProbe" -}}
+readinessProbe:
+  exec:
+    command: ["alluxio-monitor.sh", "job_master"]
+{{- end -}}
+
 {{- define "alluxio.worker.readinessProbe" -}}
 readinessProbe:
   exec:
     command: ["alluxio-monitor.sh", "worker"]
+{{- end -}}
+
+{{- define "alluxio.jobWorker.readinessProbe" -}}
+readinessProbe:
+  exec:
+    command: ["alluxio-monitor.sh", "job_worker"]
 {{- end -}}
 
 {{- define "alluxio.master.livenessProbe" -}}
@@ -279,10 +291,30 @@ livenessProbe:
   failureThreshold: 2
 {{- end -}}
 
+{{- define "alluxio.jobMaster.livenessProbe" -}}
+livenessProbe:
+  exec:
+    command: ["alluxio-monitor.sh", "job_master"]
+  initialDelaySeconds: 15
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 2
+{{- end -}}
+
 {{- define "alluxio.worker.livenessProbe" -}}
 livenessProbe:
   exec:
     command: ["alluxio-monitor.sh", "worker"]
+  initialDelaySeconds: 15
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 2
+{{- end -}}
+
+{{- define "alluxio.jobWorker.livenessProbe" -}}
+livenessProbe:
+  exec:
+    command: ["alluxio-monitor.sh", "job_worker"]
   initialDelaySeconds: 15
   periodSeconds: 30
   timeoutSeconds: 5
