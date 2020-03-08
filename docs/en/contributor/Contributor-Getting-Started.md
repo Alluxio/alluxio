@@ -301,7 +301,7 @@ contribute to the Alluxio repository.
 
 1. Create a Github issue in [Alluxio repository](https://github.com/Alluxio/alluxio/issues) regarding your feature.
 1. Attach a feature design document following the 
-[template]({{ '/templates/Design-Document-Template.md' | relativize_url }})
+[template]({{ '/resources/templates/Design-Document-Template.md' | relativize_url }})
 in your Github issue. The design document should follow the template and provide information regarding each section.
 We recommend using a public Google doc for more efficient collaboration and discussions.
 If a Google doc is not an option for you, you can choose to attach either a Markdown file or a PDF file for 
