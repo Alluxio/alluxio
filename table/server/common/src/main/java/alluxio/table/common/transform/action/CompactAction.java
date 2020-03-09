@@ -23,7 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.Properties;
 
 /**
- * The definition of the write action.
+ * The definition of the compact action.
  */
 public class CompactAction implements TransformAction {
 
@@ -74,6 +74,11 @@ public class CompactAction implements TransformAction {
       Preconditions.checkArgument(numFiles > 0,
           ExceptionMessage.TRANSFORM_WRITE_ACTION_INVALID_NUM_FILES.getMessage());
       return new CompactAction(numFiles, fileSize);
+    }
+
+    @Override
+    public String toString(){
+      return "CompactActionFactory";
     }
   }
 

@@ -11,6 +11,7 @@
 
 package alluxio.table.common.transform.action;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +51,11 @@ public class TransformActionRegistry {
       }
     }
     return actions;
+  }
+
+  @VisibleForTesting
+  public static List<TransformActionFactory> getFactories() {
+    return FACTORIES;
   }
 
   /**
