@@ -195,6 +195,16 @@ Instructions and examples till here illustrate how to use Alluxio as one of the 
 tables in Hive, together with other filesystems like HDFS. They do not require to change the global
 setting in Hive such as the default filesystem which is covered in the next section.
 
+### Move an Partitioned Table
+
+The process of moving a partitioned table is quite similar to moving a non-partitioned table, with one caveat.
+In addition to altering the table location, we also need to modify the partition location for all the partitions.
+See the following for an example.
+
+```
+hive> alter table TABLE_NAME partition(PARTITION_COLUMN = VALUE) set location 'hdfs://namenode:port/table/path/partitionpath";
+```
+
 ## Advanced Setup
 
 ### Customize Alluxio User Properties
