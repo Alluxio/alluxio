@@ -18,6 +18,8 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import alluxio.Constants;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.table.Database;
 import alluxio.grpc.table.PrincipalType;
 import alluxio.heartbeat.HeartbeatContext;
@@ -49,9 +51,13 @@ import java.util.List;
  * Integration tests for table master functionality.
  */
 public class TableMasterJournalIntegrationTest {
+  private static final int WORKER_CAPACITY_BYTES = 200 * Constants.MB;
+
   @ClassRule
   public static LocalAlluxioClusterResource sClusterResource =
-      new LocalAlluxioClusterResource.Builder().setNumWorkers(1).build();
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES)
+          .setNumWorkers(1).build();
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
