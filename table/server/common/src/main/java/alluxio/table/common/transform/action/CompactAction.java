@@ -77,7 +77,7 @@ public class CompactAction implements TransformAction {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
       return "CompactActionFactory";
     }
   }

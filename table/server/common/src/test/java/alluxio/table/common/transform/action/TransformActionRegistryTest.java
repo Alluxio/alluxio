@@ -11,11 +11,11 @@
 
 package alluxio.table.common.transform.action;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 public class TransformActionRegistryTest {
 
@@ -26,5 +26,4 @@ public class TransformActionRegistryTest {
     assertEquals(EarlyActionFactory.class, factories.get(0).getClass());
     assertEquals(LateActionFactory.class, factories.get(factories.size() - 1).getClass());
   }
-
 }
