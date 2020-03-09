@@ -11,6 +11,8 @@
 
 package alluxio.fuse;
 
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -20,6 +22,7 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 
@@ -37,6 +40,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioFuseUtils {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseUtils.class);
+  private static final long THRESHOLD = new InstancedConfiguration(ConfigurationUtils.defaults())
+      .getMs(PropertyKey.FUSE_LOGGING_THRESHOLD);
 
   private AlluxioFuseUtils() {}
 
@@ -236,10 +241,14 @@ public final class AlluxioFuseUtils {
       String description, Object... args) {
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     logger.debug("Enter: {}({})", methodName, debugDesc);
-    long ts1 = System.currentTimeMillis();
+    long startMs = System.currentTimeMillis();
     int ret = callable.call();
-    long ts2 = System.currentTimeMillis();
-    logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, ts2 - ts1);
+    long durationMs = System.currentTimeMillis() - startMs;
+    logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
+    if (durationMs >= THRESHOLD) {
+      logger.warn("{}({}) returned {} in {} ms (>={}ms)",
+          methodName, String.format(description, args), ret, durationMs, THRESHOLD);
+    }
     return ret;
   }
 }

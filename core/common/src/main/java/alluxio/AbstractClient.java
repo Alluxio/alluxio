@@ -86,6 +86,8 @@ public abstract class AbstractClient implements Client {
 
   protected ClientContext mContext;
 
+  private final long mRpcThreshold;
+
   /**
    * Creates a new client base.
    *
@@ -112,6 +114,7 @@ public abstract class AbstractClient implements Client {
     mContext = Preconditions.checkNotNull(context, "context");
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
+    mRpcThreshold = mContext.getClusterConf().getMs(PropertyKey.USER_LOGGING_THRESHOLD);
   }
 
   /**
@@ -363,13 +366,22 @@ public abstract class AbstractClient implements Client {
         MetricsSystem.counter(getQualifiedRetryMetricName(rpcName)).inc();
         return null;
       });
-      logger.debug("Exit (OK): {}({}) in {} ms",
-          rpcName, debugDesc, System.currentTimeMillis() - startMs);
+      long duration = System.currentTimeMillis() - startMs;
+      logger.debug("Exit (OK): {}({}) in {} ms", rpcName, debugDesc, duration);
+      if (duration >= mRpcThreshold) {
+        logger.warn("{}({}) returned {} in {} ms",
+            rpcName, String.format(description, args), ret, duration);
+      }
       return ret;
     } catch (Exception e) {
+      long duration = System.currentTimeMillis() - startMs;
       MetricsSystem.counter(getQualifiedFailureMetricName(rpcName)).inc();
       logger.debug("Exit (ERROR): {}({}) in {} ms: {}",
-          rpcName, debugDesc, System.currentTimeMillis() - startMs, e.toString());
+          rpcName, debugDesc, duration, e.toString());
+      if (duration >= mRpcThreshold) {
+        logger.warn("{}({}) exits with exception [{}] in {} ms (>={}ms)",
+            rpcName, String.format(description, args), e.toString(), duration, mRpcThreshold);
+      }
       throw e;
     }
   }
