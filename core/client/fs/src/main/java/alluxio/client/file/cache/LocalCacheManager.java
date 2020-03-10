@@ -173,13 +173,14 @@ public class LocalCacheManager implements CacheManager {
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     mAsyncWrite = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED);
     mCacheSize = pageStore.getCacheSize();
-    for (int i = 0; i < LOCK_SIZE; i ++) {
+    for (int i = 0; i < LOCK_SIZE; i++) {
       mPageLocks[i] = new ReentrantReadWriteLock();
     }
     mPendingRequests = new ConcurrentHashSet<>();
-    mAsyncCacheExecutor = mAsyncWrite ?
-        new ThreadPoolExecutor(0, conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS),
-            60, TimeUnit.SECONDS, new SynchronousQueue<>()) : null;
+    mAsyncCacheExecutor = mAsyncWrite
+        ? new ThreadPoolExecutor(0, conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS),
+            60, TimeUnit.SECONDS, new SynchronousQueue<>())
+        : null;
     Metrics.registerGauges(mCacheSize, mMetaStore);
   }
 

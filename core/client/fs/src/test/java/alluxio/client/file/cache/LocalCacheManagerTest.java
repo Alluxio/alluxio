@@ -299,7 +299,6 @@ public final class LocalCacheManagerTest {
     assertNull(mCacheManager.get(pageUuid));
   }
 
-
   @Test
   public void asyncCache() throws Exception {
     final int threads = 16;
@@ -357,7 +356,7 @@ public final class LocalCacheManagerTest {
     @Override
     public void put(PageId pageId, byte[] page) throws IOException {
       // never quit
-      while(mHanging.get()) {}
+      while (mHanging.get()) {}
       super.put(pageId, page);
       mPut.getAndIncrement();
     }
