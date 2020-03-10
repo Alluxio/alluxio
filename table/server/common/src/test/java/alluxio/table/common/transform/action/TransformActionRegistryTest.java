@@ -24,6 +24,6 @@ public class TransformActionRegistryTest {
     final List<TransformActionFactory> factories = TransformActionRegistry.getFactories();
 
     assertEquals(EarlyActionFactory.class, factories.get(0).getClass());
-    assertEquals(LateActionFactory.class, factories.get(factories.size() - 1).getClass());
+    assertEquals(EarlyActionFactory.class, factories.get(factories.size() - 1).getClass());
   }
 }

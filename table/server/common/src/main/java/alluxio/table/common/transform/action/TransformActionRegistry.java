@@ -29,6 +29,7 @@ import java.util.ServiceLoader;
 public class TransformActionRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(TransformActionRegistry.class);
 
+  // List of TransformActionFactories ordered in the order returned by getOrder
   private static final List<TransformActionFactory> FACTORIES = new ArrayList<>();
 
   static {
@@ -38,7 +39,8 @@ public class TransformActionRegistry {
   private TransformActionRegistry() {} // prevent instantiation
 
   /**
-   * Creates a new instance of a {@link TransformAction}.
+   * Creates a new instance of an ordered list of {@link TransformAction}.
+   * The ordering here is the order that the Actions should be executed in.
    *
    * @param definition the raw definition of the action
    * @return a new instance of an action
@@ -46,6 +48,7 @@ public class TransformActionRegistry {
   public static List<TransformAction> create(Properties definition) {
     final ArrayList<TransformAction> actions = new ArrayList<>();
     for (TransformActionFactory factory : FACTORIES) {
+      // TODO(bradyoo): make this more efficient when FACTORIES.size() > 50
       final TransformAction transformAction = factory.create(definition);
       if (transformAction != null) {
         actions.add(transformAction);
@@ -72,6 +75,7 @@ public class TransformActionRegistry {
       FACTORIES.add(factory);
     }
     FACTORIES.sort(Comparator.comparingInt((factory) -> factory.getOrder()));
+
     LOG.info("Registered Transform actions: " + StringUtils.join(FACTORIES, ","));
   }
 }

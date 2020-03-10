@@ -22,6 +22,7 @@ public interface TransformActionFactory {
   /**
    * Returns the order of the transform action. Transform actions with a lower number
    * will be executed before transform actions with a higher number.
+   * Behavior is undefined for actions with equal number.
    *
    * @return integer representing order number
    */
@@ -30,6 +31,9 @@ public interface TransformActionFactory {
   }
 
   /**
+   * Creates a new instance of an action based on the properties. Null should be returned
+   * when the particular action is not necessary.
+   *
    * @param definition the raw definition of the action
    * @return a new instance of an action
    */
