@@ -246,7 +246,7 @@ public final class AlluxioFuseUtils {
     long durationMs = System.currentTimeMillis() - startMs;
     logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
     if (durationMs >= THRESHOLD) {
-      logger.warn("{}({}) returned {} in {} ms (>={}ms)",
+      logger.warn("{}({}) returned {} in {} ms (>={} ms)",
           methodName, String.format(description, args), ret, durationMs, THRESHOLD);
     }
     return ret;
