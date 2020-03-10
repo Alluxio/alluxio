@@ -12,6 +12,7 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.PageStoreOptions;
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -33,6 +34,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
@@ -67,6 +73,7 @@ public class LocalCacheManager implements CacheManager {
   private static final int LOCK_SIZE = 1024;
   private final long mPageSize;
   private final long mCacheSize;
+  private final boolean mAsyncWrite;
   private final CacheEvictor mEvictor;
   /** A readwrite lock pool to guard individual pages based on striping. */
   private final ReadWriteLock[] mPageLocks = new ReentrantReadWriteLock[LOCK_SIZE];
@@ -75,6 +82,9 @@ public class LocalCacheManager implements CacheManager {
   private final ReadWriteLock mMetaLock = new ReentrantReadWriteLock();
   @GuardedBy("mMetaLock")
   private final MetaStore mMetaStore;
+  /** Executor service for execute the async cache tasks. */
+  private final ExecutorService mAsyncCacheExecutor;
+  private final ConcurrentHashSet<PageId> mPendingRequests;
 
   /**
    * Restores a page store a the configured location, updating meta store and evictor.
@@ -104,8 +114,7 @@ public class LocalCacheManager implements CacheManager {
         metaStore.addPage(pageInfo.getPageId(), pageInfo);
         evictor.updateOnPut(pageInfo.getPageId());
         if (metaStore.bytes() > pageStore.getCacheSize()) {
-          LOG.error("Loaded pages exceed cache capacity ({} bytes)",
-                  pageStore.getCacheSize());
+          LOG.error("Loaded pages exceed cache capacity ({} bytes)", pageStore.getCacheSize());
           return false;
         }
       }
@@ -156,16 +165,21 @@ public class LocalCacheManager implements CacheManager {
    * @param pageStore the page store manages the cache data
    */
   @VisibleForTesting
-  LocalCacheManager(AlluxioConfiguration conf, MetaStore metaStore,
-      PageStore pageStore, CacheEvictor evictor) {
+  LocalCacheManager(AlluxioConfiguration conf, MetaStore metaStore, PageStore pageStore,
+      CacheEvictor evictor) {
     mMetaStore = metaStore;
     mPageStore = pageStore;
     mEvictor = evictor;
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
+    mAsyncWrite = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED);
     mCacheSize = pageStore.getCacheSize();
-    for (int i = 0; i < LOCK_SIZE; i++) {
+    for (int i = 0; i < LOCK_SIZE; i ++) {
       mPageLocks[i] = new ReentrantReadWriteLock();
     }
+    mPendingRequests = new ConcurrentHashSet<>();
+    mAsyncCacheExecutor = mAsyncWrite ?
+        new ThreadPoolExecutor(0, conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS),
+            60, TimeUnit.SECONDS, new SynchronousQueue<>()) : null;
     Metrics.registerGauges(mCacheSize, mMetaStore);
   }
 
@@ -209,6 +223,40 @@ public class LocalCacheManager implements CacheManager {
   @Override
   public boolean put(PageId pageId, byte[] page) {
     LOG.debug("put({},{} bytes) enters", pageId, page.length);
+    if (!mAsyncWrite) {
+      boolean inserted = putInternal(pageId, page);
+      if (inserted) {
+        LOG.debug("put({},{} bytes) exits", pageId, page.length);
+      } else {
+        LOG.debug("put({},{} bytes) fails", pageId, page.length);
+      }
+      return inserted;
+    }
+
+    if (!mPendingRequests.add(pageId)) { // already queued
+      return false;
+    }
+    try {
+      mAsyncCacheExecutor.submit(() -> {
+        try {
+          putInternal(pageId, page);
+        } finally {
+          mPendingRequests.remove(pageId);
+        }
+      });
+    } catch (RejectedExecutionException e) { // queue is full, skip
+      // RejectedExecutionException may be thrown in extreme cases when the
+      // highly concurrent caching workloads. In these cases, return false
+      mPendingRequests.remove(pageId);
+      LOG.debug("put({},{} bytes) fails due to full queue", pageId, page.length);
+      return false;
+    }
+    LOG.debug("put({},{} bytes) exits with async write", pageId, page.length);
+    return true;
+  }
+
+  private boolean putInternal(PageId pageId, byte[] page) {
+    LOG.debug("putInternal({},{} bytes) enters", pageId, page.length);
     PageId victim = null;
     PageInfo victimPageInfo = null;
     boolean enoughSpace;
@@ -229,7 +277,7 @@ public class LocalCacheManager implements CacheManager {
       }
       if (enoughSpace) {
         boolean ret = addPage(pageId, page);
-        LOG.debug("put({},{} bytes) exits without eviction, success: {}", pageId, page.length, ret);
+        LOG.debug("Add page ({},{} bytes) without eviction: {}", pageId, page.length, ret);
         return ret;
       }
     }
@@ -264,12 +312,13 @@ public class LocalCacheManager implements CacheManager {
       }
       if (enoughSpace) {
         boolean ret = addPage(pageId, page);
-        LOG.debug("put({},{} bytes) exits after evicting ({}), success: {}", pageId, page.length,
+        LOG.debug("Add page ({},{} bytes) after evicting ({}), success: {}", pageId, page.length,
             victimPageInfo, ret);
         return ret;
       }
     }
-    LOG.debug("put({},{} bytes) fails after evicting ({})", pageId, page.length, victimPageInfo);
+    LOG.debug("putInternal({},{} bytes) fails after evicting ({})", pageId, page.length,
+        victimPageInfo);
     return false;
   }
 
