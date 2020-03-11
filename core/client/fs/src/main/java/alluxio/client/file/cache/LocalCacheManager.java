@@ -95,8 +95,8 @@ public class LocalCacheManager implements CacheManager {
    * @param evictor evictor
    * @return whether the restore succeeds or not
    */
-  private static boolean restore(
-      PageStore pageStore, PageStoreOptions options, MetaStore metaStore, CacheEvictor evictor) {
+  private static boolean restore(PageStore pageStore, PageStoreOptions options, MetaStore metaStore,
+      CacheEvictor evictor) {
     LOG.info("Restore PageStore with {}", options);
     Path rootDir = Paths.get(options.getRootDir());
     if (!Files.exists(rootDir)) {
@@ -122,8 +122,8 @@ public class LocalCacheManager implements CacheManager {
       LOG.error("Failed to restore PageStore", e);
       return false;
     }
-    LOG.info("Restored PageStore with {} existing pages and {} bytes",
-        metaStore.pages(), metaStore.bytes());
+    LOG.info("Restored PageStore with {} existing pages and {} bytes", metaStore.pages(),
+        metaStore.bytes());
     return true;
   }
 
@@ -173,14 +173,16 @@ public class LocalCacheManager implements CacheManager {
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     mAsyncWrite = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED);
     mCacheSize = pageStore.getCacheSize();
-    for (int i = 0; i < LOCK_SIZE; i++) {
+    for (int i = 0; i < LOCK_SIZE; i ++) {
       mPageLocks[i] = new ReentrantReadWriteLock();
     }
     mPendingRequests = new ConcurrentHashSet<>();
-    mAsyncCacheExecutor = mAsyncWrite
-        ? new ThreadPoolExecutor(0, conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS),
-            60, TimeUnit.SECONDS, new SynchronousQueue<>())
-        : null;
+    mAsyncCacheExecutor =
+        mAsyncWrite
+            ? new ThreadPoolExecutor(conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS),
+                conf.getInt(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS), 60,
+                TimeUnit.SECONDS, new SynchronousQueue<>())
+            : null;
     Metrics.registerGauges(mCacheSize, mMetaStore);
   }
 
@@ -226,11 +228,7 @@ public class LocalCacheManager implements CacheManager {
     LOG.debug("put({},{} bytes) enters", pageId, page.length);
     if (!mAsyncWrite) {
       boolean inserted = putInternal(pageId, page);
-      if (inserted) {
-        LOG.debug("put({},{} bytes) exits", pageId, page.length);
-      } else {
-        LOG.debug("put({},{} bytes) fails", pageId, page.length);
-      }
+      LOG.debug("put({},{} bytes) exits: {}", pageId, page.length, inserted);
       return inserted;
     }
 
@@ -249,6 +247,7 @@ public class LocalCacheManager implements CacheManager {
       // RejectedExecutionException may be thrown in extreme cases when the
       // highly concurrent caching workloads. In these cases, return false
       mPendingRequests.remove(pageId);
+      Metrics.PUT_ERRORS.inc();
       LOG.debug("put({},{} bytes) fails due to full queue", pageId, page.length);
       return false;
     }
