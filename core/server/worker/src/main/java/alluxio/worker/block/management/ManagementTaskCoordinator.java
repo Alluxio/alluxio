@@ -86,6 +86,7 @@ public class ManagementTaskCoordinator implements Closeable {
 
     // Initialize runner thread.
     mRunnerThread = new Thread(this::runManagement, "block-management-runner");
+    mRunnerThread.setDaemon(true);
   }
 
   /**
@@ -94,6 +95,19 @@ public class ManagementTaskCoordinator implements Closeable {
   public void start() {
     // Start runner thread.
     mRunnerThread.start();
+  }
+
+  @Override
+  public void close() throws IOException {
+    try {
+      // Shutdown task executor.
+      mTaskExecutor.shutdownNow();
+      // Interrupt and wait for runner thread.
+      mRunnerThread.interrupt();
+      mRunnerThread.join();
+    } catch (Exception e) {
+      throw new IOException("Failed to close management task coordinator", e);
+    }
   }
 
   /**
@@ -172,11 +186,5 @@ public class ManagementTaskCoordinator implements Closeable {
       }
     }
     LOG.info("Block management coordinator exited.");
-  }
-
-  @Override
-  public void close() throws IOException {
-    mTaskExecutor.shutdownNow();
-    mRunnerThread.interrupt();
   }
 }

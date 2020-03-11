@@ -108,7 +108,7 @@ public class TierSwapTaskTest {
     // Start simulating random load on worker.
     startSimulateLoad();
 
-    // Fill each directory, leaving free space on each as swap buffer.
+    // Fill each directory.
     long sessionIdCounter = 1000;
     long blockIdCounter = 1000;
     for (StorageDir dir : dirArray) {

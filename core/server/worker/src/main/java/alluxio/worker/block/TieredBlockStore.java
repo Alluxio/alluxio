@@ -310,7 +310,7 @@ public class TieredBlockStore implements BlockStore {
     LOG.debug("requestSpace: sessionId={}, blockId={}, additionalBytes={}", sessionId, blockId,
         additionalBytes);
 
-    // NOTE: a temp block is supposed to be visible for its own writer, unnecessary to acquire
+    // NOTE: a temp block is only visible to its own writer, unnecessary to acquire
     // block lock here since no sharing
     try (LockResource r = new LockResource(mMetadataWriteLock)) {
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
@@ -780,6 +780,7 @@ public class TieredBlockStore implements BlockStore {
       }
     } catch (Exception e) {
       LOG.error("Allocation failure. Options: {}. Error: {}", options, e);
+      return null;
     }
 
     return dirView;
@@ -1086,6 +1087,11 @@ public class TieredBlockStore implements BlockStore {
         }
       }
     }
+  }
+
+  @Override
+  public void close() throws IOException {
+    mTaskCoordinator.close();
   }
 
   /**

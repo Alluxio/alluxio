@@ -22,6 +22,7 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Set;
 
@@ -31,7 +32,7 @@ import javax.annotation.Nullable;
  * A blob store interface to represent the local storage managing and serving all the blocks in the
  * local storage.
  */
-public interface BlockStore extends SessionCleanable {
+public interface BlockStore extends SessionCleanable, Closeable {
 
   /**
    * Locks an existing block and guards subsequent reads on this block.
