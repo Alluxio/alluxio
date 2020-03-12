@@ -12,6 +12,7 @@
 package alluxio.master.table;
 
 import alluxio.client.file.FileSystem;
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.PrincipalType;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A udb implementation which does nothing, used for testing.
@@ -41,6 +43,11 @@ public class TestDatabase implements UnderDatabase {
 
   private Map<String, UdbTable> mUdbTables;
   private UdbContext mUdbContext;
+  /**
+   * The names of the threads calling getTable(). This is useful for examining parallel sync
+   * behavior.
+   */
+  private Set<String> mGetTableThreadNames = new ConcurrentHashSet<>();
 
   private TestDatabase() {
     mUdbTables = new HashMap<>();
@@ -51,6 +58,21 @@ public class TestDatabase implements UnderDatabase {
    */
   public static void reset() {
     DATABASE.mUdbTables.clear();
+    resetGetTableThreadNames();
+  }
+
+  /**
+   * Resets the set of thread names for getTable.
+   */
+  public static void resetGetTableThreadNames() {
+    DATABASE.mGetTableThreadNames.clear();
+  }
+
+  /**
+   * @return the set of thread names used to call getTable
+   */
+  public static Set<String> getTableThreadNames() {
+    return DATABASE.mGetTableThreadNames;
   }
 
   /**
@@ -94,6 +116,7 @@ public class TestDatabase implements UnderDatabase {
     if (!mUdbTables.containsKey(tableName)) {
       throw new NotFoundException("Table " + tableName + " does not exist.");
     }
+    mGetTableThreadNames.add(Thread.currentThread().getName());
     return mUdbTables.get(tableName);
   }
 
