@@ -38,6 +38,7 @@ import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
 import alluxio.util.executor.ExecutorServiceFactories;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.junit.AfterClass;
@@ -55,6 +56,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -393,6 +395,52 @@ public class AlluxioCatalogTest {
       assertTrue(partition.isTransformed(TRANSFORM_DEFINITION.getDefinition()));
       assertEquals(transformedLayouts.get(partition.getSpec()), partition.getLayout());
     });
+  }
+
+  @Test
+  public void parallelSync() throws Exception {
+    // this should be larger than numThreads, to guarantee all threads are utilized
+    int numTables = 200;
+    TestDatabase.genTable(numTables, 2, false);
+
+    testParallelSyncInternal("8", 8);
+    testParallelSyncInternal("16", 16);
+    testParallelSyncInternal("1", 1);
+    testParallelSyncInternal("0", CatalogProperty.DEFAULT_DB_SYNC_THREADS);
+    testParallelSyncInternal("-1", CatalogProperty.DEFAULT_DB_SYNC_THREADS);
+    testParallelSyncInternal("", CatalogProperty.DEFAULT_DB_SYNC_THREADS);
+    testParallelSyncInternal("not an int", CatalogProperty.DEFAULT_DB_SYNC_THREADS);
+  }
+
+  /**
+   * @param syncThreads the string value for the sync threads parameter. remains unset if null
+   * @param expectedThreadsUsed the expected number of threads used for the sync
+   */
+  private void testParallelSyncInternal(String syncThreads, int expectedThreadsUsed)
+      throws Exception {
+    Map<String, String> attachConf = Collections.emptyMap();
+    if (syncThreads != null) {
+      attachConf = ImmutableMap.of(CatalogProperty.DB_SYNC_THREADS.getName(), syncThreads);
+    }
+    // verify thread count for attach
+    assertTrue(TestDatabase.getTableThreadNames().isEmpty());
+    mCatalog.attachDatabase(NoopJournalContext.INSTANCE, TestUdbFactory.TYPE, "connect_URI",
+        TestDatabase.TEST_UDB_NAME, TestDatabase.TEST_UDB_NAME, attachConf, false);
+    Set<String> threadNames = TestDatabase.getTableThreadNames();
+    assertEquals("unexpected # threads used for attach for config value: " + syncThreads,
+        expectedThreadsUsed, threadNames.size());
+
+    // verify thread count for sync
+    TestDatabase.resetGetTableThreadNames();
+    assertTrue(TestDatabase.getTableThreadNames().isEmpty());
+    mCatalog.syncDatabase(NoopJournalContext.INSTANCE, TestDatabase.TEST_UDB_NAME);
+    threadNames = TestDatabase.getTableThreadNames();
+    assertEquals("unexpected # threads used for sync for config value: " + syncThreads,
+        expectedThreadsUsed, threadNames.size());
+
+    // reset the state by detaching and resetting the thread name set
+    mCatalog.detachDatabase(NoopJournalContext.INSTANCE, TestDatabase.TEST_UDB_NAME);
+    TestDatabase.resetGetTableThreadNames();
   }
 
   /**

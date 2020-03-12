@@ -129,8 +129,7 @@ public class AlluxioCatalog implements Journaled {
 
       boolean syncError = false;
       try {
-        SyncStatus status =
-            mDBs.get(dbName).sync(journalContext, mExecutorServiceSupplier.get());
+        SyncStatus status = mDBs.get(dbName).sync(journalContext);
         syncError = status.getTablesErrorsCount() > 0;
         return status;
       } catch (Exception e) {
@@ -159,7 +158,7 @@ public class AlluxioCatalog implements Journaled {
   public SyncStatus syncDatabase(JournalContext journalContext, String dbName) throws IOException {
     try (LockResource l = getDbLock(dbName)) {
       Database db = getDatabaseByName(dbName);
-      return db.sync(journalContext, mExecutorServiceSupplier.get());
+      return db.sync(journalContext);
     }
   }
 
