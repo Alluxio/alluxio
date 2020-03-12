@@ -3202,6 +3202,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED =
+      new Builder(Name.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("If this is enabled, cache data asynchronously.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_ASYNC_WRITE_THREADS =
+      new Builder(Name.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS)
+          .setDefaultValue(16)
+          .setDescription("Number of threads to asynchronously cache data.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_ENABLED =
       new Builder(Name.USER_CLIENT_CACHE_ENABLED)
           .setDefaultValue(false)
@@ -4666,6 +4680,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.worker.client.read.retry";
     public static final String USER_BLOCK_WRITE_LOCATION_POLICY =
         "alluxio.user.block.write.location.policy.class";
+    public static final String USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED =
+        "alluxio.user.client.cache.async.write.enabled";
+    public static final String USER_CLIENT_CACHE_ASYNC_WRITE_THREADS =
+        "alluxio.user.client.cache.async.write.threads";
     public static final String USER_CLIENT_CACHE_ENABLED =
         "alluxio.user.client.cache.enabled";
     public static final String USER_CLIENT_CACHE_EVICTOR_CLASS =

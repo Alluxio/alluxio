@@ -19,6 +19,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.conf.InstancedConfiguration;
@@ -38,6 +39,8 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
 
@@ -66,6 +69,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getAbsolutePath());
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, false);
     mMetaStore = MetaStore.create();
     mPageStore = PageStore.create(PageStoreOptions.create(mConf), true);
     mEvictor = new FIFOEvictor(mMetaStore);
@@ -294,6 +298,77 @@ public final class LocalCacheManagerTest {
     mCacheManager = LocalCacheManager.create(mConf);
     assertNull(mCacheManager.get(PAGE_ID1));
     assertNull(mCacheManager.get(pageUuid));
+  }
+
+  @Test
+  public void asyncCache() throws Exception {
+    final int threads = 16;
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, true);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS, threads);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "LOCAL");
+    PutDelayedPageStore pageStore = new PutDelayedPageStore();
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, pageStore, mEvictor);
+    for (int i = 0; i < threads; i++) {
+      PageId pageId = new PageId("5", i);
+      assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES)));
+    }
+    // fail due to full queue
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
+    pageStore.setHanging(false);
+    while (pageStore.getPuts() < threads) {
+      Thread.sleep(1000);
+    }
+    pageStore.setHanging(true);
+    for (int i = 0; i < threads; i++) {
+      PageId pageId = new PageId("6", i);
+      assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES)));
+    }
+  }
+
+  @Test
+  public void asyncCacheSamePage() throws Exception {
+    final int threads = 16;
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, true);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_THREADS, threads);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, "LOCAL");
+    PutDelayedPageStore pageStore = new PutDelayedPageStore();
+    mCacheManager = new LocalCacheManager(mConf, mMetaStore, pageStore, mEvictor);
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
+    pageStore.setHanging(false);
+    while (pageStore.getPuts() < 1) {
+      Thread.sleep(1000);
+    }
+    pageStore.setHanging(true);
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
+  }
+
+  /**
+   * A PageStore where put will always hang.
+   */
+  public class PutDelayedPageStore extends LocalPageStore {
+    private AtomicBoolean mHanging = new AtomicBoolean(true);
+    private AtomicInteger mPut = new AtomicInteger(0);
+
+    public PutDelayedPageStore() {
+      super(PageStoreOptions.create(mConf).toOptions());
+    }
+
+    @Override
+    public void put(PageId pageId, byte[] page) throws IOException {
+      // never quit
+      while (mHanging.get()) {}
+      super.put(pageId, page);
+      mPut.getAndIncrement();
+    }
+
+    void setHanging(boolean value) {
+      mHanging.set(value);
+    }
+
+    int getPuts() {
+      return mPut.get();
+    }
   }
 
   /**
