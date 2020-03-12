@@ -490,6 +490,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey WEB_UI_ENABLED =
+      new Builder(Name.WEB_UI_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether the master/worker will have Web UI enabled. "
+              + "If set to false, the master/worker will not have Web UI page, but the RESTful "
+              + "endpoints and metrics will still be available.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey WORK_DIR =
       new Builder(Name.WORK_DIR)
           .setDefaultValue(String.format("${%s}", Name.HOME))
@@ -4165,6 +4174,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WEB_THREADS = "alluxio.web.threads";
     public static final String WEB_CORS_ENABLED = "alluxio.web.cors.enabled";
     public static final String WEB_REFRESH_INTERVAL = "alluxio.web.refresh.interval";
+    public static final String WEB_UI_ENABLED = "alluxio.web.ui.enabled";
     public static final String WORK_DIR = "alluxio.work.dir";
     public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
     public static final String ZOOKEEPER_CONNECTION_TIMEOUT =

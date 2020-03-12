@@ -42,6 +42,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
 
 import com.google.common.base.Preconditions;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,8 +71,8 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   private final Lock mPauseStateLock;
 
-  private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
-  private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
+  public final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
+  public final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
       MetricsSystem.METRIC_REGISTRY);
 
   /** The master registry. */

@@ -85,7 +85,7 @@ public abstract class MasterProcess implements Process {
     mWebBindAddress = configureAddress(webService);
   }
 
-  private static InetSocketAddress configureAddress(ServiceType service) {
+  public static InetSocketAddress configureAddress(ServiceType service) {
     InstancedConfiguration conf = ServerConfiguration.global();
     int port = NetworkAddressUtils.getPort(service, conf);
     if (!ConfigurationUtils.isHaMode(conf) && port == 0) {
