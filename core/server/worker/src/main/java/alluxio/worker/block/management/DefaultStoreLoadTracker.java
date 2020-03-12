@@ -72,54 +72,49 @@ public class DefaultStoreLoadTracker implements StoreLoadTracker, BlockStreamLis
 
   @Override
   public void readerOpened(BlockReader reader, BlockStoreLocation location) {
-    Preconditions.checkState(locationValid(location));
-    mStreamsPerLocation.compute(location, (k, v) -> {
-      Set<Object> streamList = v;
-      if (streamList == null) {
-        streamList = new ConcurrentHashSet<>();
-      }
-      streamList.add(reader);
-      return streamList;
-    });
+    streamOpened(reader, location);
   }
 
   @Override
   public void readerClosed(BlockReader reader, BlockStoreLocation location) {
-    Preconditions.checkState(locationValid(location));
-    mScheduler.schedule(() -> {
-      mStreamsPerLocation.compute(location, (k, v) -> {
-        Set<Object> streamList = v;
-        Preconditions.checkState(streamList != null && !streamList.isEmpty(),
-            "Unexpected load tracker state");
-        streamList.remove(reader);
-        return streamList;
-      });
-    }, mLoadDetectionCoolDownMs, TimeUnit.MILLISECONDS);
+    streamClosed(reader, location);
   }
 
   @Override
   public void writerOpened(BlockWriter writer, BlockStoreLocation location) {
-    Preconditions.checkState(locationValid(location));
-    mStreamsPerLocation.compute(location, (k, v) -> {
-      Set<Object> streamList = v;
-      if (streamList == null) {
-        streamList = new ConcurrentHashSet<>();
-      }
-      streamList.add(writer);
-      return streamList;
-    });
+    streamOpened(writer, location);
   }
 
   @Override
   public void writerClosed(BlockWriter writer, BlockStoreLocation location) {
+    streamClosed(writer, location);
+  }
+
+  /**
+   * Used to activate stream reader/writer for load tracking.
+   */
+  private void streamOpened(Object stream, BlockStoreLocation location) {
+    Preconditions.checkState(locationValid(location));
+    mStreamsPerLocation.compute(location, (k, streamSet) -> {
+      if (streamSet == null) {
+        streamSet = new ConcurrentHashSet<>();
+      }
+      streamSet.add(stream);
+      return streamSet;
+    });
+  }
+
+  /**
+   * Used to deactivate stream reader/writer for load tracking.
+   */
+  private void streamClosed(Object stream, BlockStoreLocation location) {
     Preconditions.checkState(locationValid(location));
     mScheduler.schedule(() -> {
-      mStreamsPerLocation.compute(location, (k, v) -> {
-        Set<Object> streamList = v;
-        Preconditions.checkState(streamList != null && !streamList.isEmpty(),
+      mStreamsPerLocation.compute(location, (k, streamSet) -> {
+        Preconditions.checkState(streamSet != null && !streamSet.isEmpty(),
             "Unexpected load tracker state");
-        streamList.remove(writer);
-        return streamList;
+        streamSet.remove(stream);
+        return streamSet;
       });
     }, mLoadDetectionCoolDownMs, TimeUnit.MILLISECONDS);
   }
