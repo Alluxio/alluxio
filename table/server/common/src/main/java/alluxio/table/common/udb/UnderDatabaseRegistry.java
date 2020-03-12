@@ -115,7 +115,6 @@ public class UnderDatabaseRegistry {
    */
   public UnderDatabase create(UdbContext udbContext, String type, UdbConfiguration configuration) {
     Map<String, UnderDatabaseFactory> map = mFactories;
-    LOG.warn("Registered UDBs in create method: " + String.join(",", map.keySet()));
     UnderDatabaseFactory factory = map.get(type);
     if (factory == null) {
       throw new IllegalArgumentException(

@@ -30,6 +30,7 @@
         <!-- run properly from sub-project directories -->
         <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
         <glue.version>1.11.602</glue.version>
+        <aws.java.jdk.version>1.11.475</aws.java.jdk.version>
     </properties>
 
     <dependencies>
@@ -43,7 +44,7 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-core</artifactId>
-            <version>${glue.version}</version>
+            <version>${aws.java.jdk.version}</version>
         </dependency>
     </dependencies>
 

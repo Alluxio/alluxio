@@ -37,23 +37,15 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.glue.AWSGlueAsync;
 import com.amazonaws.services.glue.AWSGlueAsyncClientBuilder;
-import com.amazonaws.services.glue.model.BatchGetPartitionRequest;
-import com.amazonaws.services.glue.model.Database;
-import com.amazonaws.services.glue.model.EntityNotFoundException;
-import com.amazonaws.services.glue.model.GetDatabaseRequest;
-import com.amazonaws.services.glue.model.GetDatabaseResult;
-import com.amazonaws.services.glue.model.GetTableRequest;
+import com.amazonaws.services.glue.model.*;
 
-import com.amazonaws.services.glue.model.GetTablesRequest;
-import com.amazonaws.services.glue.model.GetTablesResult;
-import com.amazonaws.services.glue.model.Partition;
-import com.amazonaws.services.glue.model.Table;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -91,6 +83,8 @@ public class GlueDatabase implements UnderDatabase {
    */
   public static GlueDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
     String glueDbName = udbContext.getUdbDbName();
+    LOG.info("Glue configuration: " + configuration.getMap());
+    LOG.info("Glue database name: " + glueDbName);
     if (glueDbName == null || glueDbName.isEmpty()) {
       throw new IllegalArgumentException(
           "Glue database name cannot be empty: " + glueDbName);
@@ -99,6 +93,45 @@ public class GlueDatabase implements UnderDatabase {
     return new GlueDatabase(udbContext, configuration, glueDbName);
   }
 
+  @Override
+  public UdbContext getUdbContext() {
+    return mUdbContext;
+  }
+
+  @Override
+  public DatabaseInfo getDatabaseInfo() throws IOException {
+    LOG.info("Geting database information from database: " + mGlueDbName + ".");
+    try {
+      GetDatabaseRequest dbRequest = new GetDatabaseRequest()
+          .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
+          .withName(mGlueDbName);
+      GetDatabaseResult dbResult = mGlueClient.getDatabase(dbRequest);
+      Database glueDatabase = dbResult.getDatabase();
+      String glueDbLocation = glueDatabase.getLocationUri();
+      String glueDbDescription = glueDatabase.getDescription();
+      Map<String, String> glueParameters = new HashMap<>();
+      // Returned parameter can be null while Alluxio require non-null hash map for parameters
+      if (glueDatabase.getParameters() != null) {
+        glueParameters = glueDatabase.getParameters();
+      }
+      return new DatabaseInfo(
+          glueDbLocation,
+          mOwnerName,
+          mOwnerType,
+          glueDbDescription,
+          glueParameters);
+    } catch (EntityNotFoundException e) {
+      throw new IOException("Cannot find glue database" + mGlueDbName
+          + "." + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * This method allows user to test udb glue client with remote glue server.
+   *
+   * @param config udbconfiguration
+   * @return glue async client
+   */
   @VisibleForTesting
   protected static AWSGlueAsync createAsyncGlueClient(UdbConfiguration config) {
     ClientConfiguration clientConfig = new ClientConfiguration()
@@ -107,7 +140,8 @@ public class GlueDatabase implements UnderDatabase {
         .standard()
         .withClientConfiguration(clientConfig);
 
-    if (config.get(Property.GLUE_REGION).isEmpty()) {
+    if (!config.get(Property.GLUE_REGION).isEmpty()) {
+      LOG.debug("Set Glue region: " + config.get(Property.GLUE_REGION) + ".");
       asyncClientBuilder.setRegion(config.get(Property.GLUE_REGION));
     }
 
@@ -117,8 +151,9 @@ public class GlueDatabase implements UnderDatabase {
   }
 
   private static AWSCredentialsProvider getAWSCredentialsProvider(UdbConfiguration config) {
-    if (config.get(Property.AWS_GLUE_ACCESS_KEY).isEmpty()
-        && config.get(Property.AWS_GLUE_SECRET_KEY).isEmpty()) {
+    //TODO(shouwei): add compelete authentication method for glue udb
+    if (!config.get(Property.AWS_GLUE_ACCESS_KEY).isEmpty()
+        && !config.get(Property.AWS_GLUE_SECRET_KEY).isEmpty()) {
       return new AWSStaticCredentialsProvider(
         new BasicAWSCredentials(
           config.get(Property.AWS_GLUE_ACCESS_KEY),
@@ -158,8 +193,91 @@ public class GlueDatabase implements UnderDatabase {
     }
   }
 
+  private String mountAlluxioPath(String tableName, AlluxioURI ufsUri, AlluxioURI tableUri)
+      throws IOException, AlluxioException {
+    if (Objects.equals(ufsUri.getScheme(), Constants.SCHEME)) {
+      // already an alluxio uri, return the alluxio uri
+      return ufsUri.toString();
+    }
+    try {
+      tableUri = mUdbContext.getFileSystem().reverseResolve(ufsUri);
+      LOG.debug("Trying to mount table {} location {}, but it is already mounted at location {}",
+          tableName, ufsUri, tableUri);
+      return tableUri.getPath();
+    } catch (InvalidPathException e) {
+      // ufs path not mounted, continue
+    }
+    // make sure the parent exists
+    mUdbContext.getFileSystem().createDirectory(tableUri.getParent(),
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
+    Map<String, String> mountOptionMap = mGlueConfiguration.getMountOption(
+        String.format("%s://%s/", ufsUri.getScheme(), ufsUri.getAuthority().toString()));
+    MountPOptions.Builder option = MountPOptions.newBuilder();
+    for (Map.Entry<String, String> entry : mountOptionMap.entrySet()) {
+      if (entry.getKey().equals(UdbConfiguration.READ_ONLY_OPTION)) {
+        option.setReadOnly(Boolean.parseBoolean(entry.getValue()));
+      } else if (entry.getKey().equals(UdbConfiguration.SHARED_OPTION)) {
+        option.setShared(Boolean.parseBoolean(entry.getValue()));
+      } else {
+        option.putProperties(entry.getKey(), entry.getValue());
+      }
+    }
+    mUdbContext.getFileSystem().mount(tableUri, ufsUri, option.build());
+
+    LOG.info("mounted table {} location {} to Alluxio location {} with mountOption {}",
+        tableName, ufsUri, tableUri, option.build());
+    return tableUri.getPath();
+  }
+
+  private PathTranslator mountAlluxioPaths(Table table, List<Partition> partitions)
+      throws IOException {
+    String tableName = table.getName();
+    AlluxioURI ufsUri;
+    AlluxioURI alluxioUri = mUdbContext.getTableLocation(tableName);
+    String glueUfsUri = table.getStorageDescriptor().getLocation();
+
+    try {
+      PathTranslator pathTranslator = new PathTranslator();
+      ufsUri = new AlluxioURI(table.getStorageDescriptor().getLocation());
+      pathTranslator.addMapping(mountAlluxioPath(tableName, ufsUri, alluxioUri), glueUfsUri);
+
+      for (Partition partition : partitions) {
+        AlluxioURI partitionUri;
+        if (partition.getStorageDescriptor() != null
+            && partition.getStorageDescriptor().getLocation() != null
+            && ufsUri.isAncestorOf(
+            partitionUri = new AlluxioURI(
+                partition.getStorageDescriptor().getLocation()))) {
+          glueUfsUri = partition.getStorageDescriptor().getLocation();
+          String partitionName = partition.getValues().toString();
+          // Glue does not provide makePartName as Hive, use a simple conveter for place holder
+          try {
+            partitionName = GlueUtils.makePartitionName(table, partition);
+          } catch (IOException e) {
+            LOG.warn("Error making partition name for table {}, partition {}", tableName,
+                partition.getValues().toString());
+          }
+          alluxioUri = new AlluxioURI(
+              PathUtils.concatPath(
+                  mUdbContext.getTableLocation(tableName).getPath(),
+                  partitionName));
+          // mount partition path if it is not already mounted as part of the table path mount
+          pathTranslator
+              .addMapping(mountAlluxioPath(tableName, partitionUri, alluxioUri), glueUfsUri);
+        }
+      }
+      return pathTranslator;
+    } catch (AlluxioException e) {
+      throw new IOException(
+          "Failed to mount table location. tableName: " + tableName
+              + " glueUfsLocation: " + glueUfsUri
+              + " AlluxioLocation: " + alluxioUri + " error: " + e.getMessage(), e);
+    }
+  }
+
   @Override
   public UdbTable getTable(String tableName) throws IOException {
+    LOG.info("Getting table information from table: " +tableName + ".");
     Table table;
     try {
       GetTableRequest tableRequest = new GetTableRequest()
@@ -201,130 +319,32 @@ public class GlueDatabase implements UnderDatabase {
           table.getStorageDescriptor().getLocation());
     } catch (EntityNotFoundException e) {
       throw new NotFoundException("Table " + tableName + " does not exist.", e);
-    } catch (AlluxioException e) {
-      throw new IOException("Cannot mount Alluxio path:" + e.getMessage());
+    } catch (ValidationException e) {
+      e.printStackTrace();
+      throw new IOException("Failed to get table: " + tableName + " with validation error: " + e.getMessage(), e);
+    } catch (GlueEncryptionException e) {
+      throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
     }
   }
 
   private List<Partition> batchGetPartitions(AWSGlueAsync glueClient, String tableName)
       throws IOException {
-    List<Partition> partitions;
-    BatchGetPartitionRequest batchGetPartitionRequest =
-        new BatchGetPartitionRequest()
-        .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
-        .withDatabaseName(mGlueDbName)
-        .withTableName(tableName);
-    partitions = glueClient.batchGetPartition(batchGetPartitionRequest).getPartitions();
-    return partitions;
-  }
-
-  private String mountAlluxioPath(String tableName, AlluxioURI ufsUri, AlluxioURI tableUri)
-      throws IOException, AlluxioException {
-    if (Objects.equals(ufsUri.getScheme(), Constants.SCHEME)) {
-      // already an alluxio uri, return the alluxio uri
-      return ufsUri.toString();
-    }
+    LOG.info("Getting partition information from table: " +tableName + ".");
+    List<Partition> partitions = new ArrayList<>();
     try {
-      tableUri = mUdbContext.getFileSystem().reverseResolve(ufsUri);
-      LOG.debug("Trying to mount table {} location {}, but it is already mounted at location {}",
-          tableName, ufsUri, tableUri);
-      return tableUri.getPath();
-    } catch (InvalidPathException e) {
-      // ufs path not mounted, continue
-    }
-    // make sure the parent exists
-    mUdbContext.getFileSystem().createDirectory(tableUri.getParent(),
-        CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
-    Map<String, String> mountOptionMap = mGlueConfiguration.getMountOption(
-        String.format("%s://%s/", ufsUri.getScheme(), ufsUri.getAuthority().toString()));
-    MountPOptions.Builder option = MountPOptions.newBuilder();
-    for (Map.Entry<String, String> entry : mountOptionMap.entrySet()) {
-      if (entry.getKey().equals(UdbConfiguration.READ_ONLY_OPTION)) {
-        option.setReadOnly(Boolean.parseBoolean(entry.getValue()));
-      } else if (entry.getKey().equals(UdbConfiguration.SHARED_OPTION)) {
-        option.setShared(Boolean.parseBoolean(entry.getValue()));
+      GetPartitionsRequest getPartitionsRequest =
+          new GetPartitionsRequest()
+              .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
+              .withDatabaseName(mGlueDbName)
+              .withTableName(tableName);
+      if (glueClient.getPartitions(getPartitionsRequest).getPartitions() != null) {
+        partitions = glueClient.getPartitions(getPartitionsRequest).getPartitions();
       } else {
-        option.putProperties(entry.getKey(), entry.getValue());
+        LOG.info("Table: " + tableName + " does not have partitions.");
       }
-    }
-    mUdbContext.getFileSystem().mount(tableUri, ufsUri, option.build());
-
-    LOG.info("mounted table {} location {} to Alluxio location {} with mountOption {}",
-        tableName, ufsUri, tableUri, option.build());
-    return tableUri.getPath();
-  }
-
-  private PathTranslator mountAlluxioPaths(Table table, List<Partition> partitions)
-      throws IOException, AlluxioException {
-    String tableName = table.getName();
-    AlluxioURI ufsUri;
-    AlluxioURI alluxioUri = mUdbContext.getTableLocation(tableName);
-    String glueUfsUri = table.getStorageDescriptor().getLocation();
-
-    try {
-      PathTranslator pathTranslator = new PathTranslator();
-      ufsUri = new AlluxioURI(table.getStorageDescriptor().getLocation());
-      pathTranslator.addMapping(mountAlluxioPath(tableName, ufsUri, alluxioUri), glueUfsUri);
-
-      for (Partition partition : partitions) {
-        AlluxioURI partitionUri;
-        if (partition.getStorageDescriptor() != null
-            && partition.getStorageDescriptor().getLocation() != null
-            && ufsUri.isAncestorOf(
-                partitionUri = new AlluxioURI(
-                    partition.getStorageDescriptor().getLocation()))) {
-          glueUfsUri = partition.getStorageDescriptor().getLocation();
-          String partitionName = partition.getValues().toString();
-          // Glue does not provide makePartName as Hive, use a simple conveter for place holder
-          try {
-            partitionName = GlueUtils.makePartitionName(table, partition);
-          } catch (IOException e) {
-            LOG.warn("Error making partition name for table {}, partition {}", tableName,
-                partition.getValues().toString());
-          }
-          alluxioUri = new AlluxioURI(
-              PathUtils.concatPath(
-                  mUdbContext.getTableLocation(tableName).getPath(),
-                  partitionName));
-          // mount partition path if it is not already mounted as part of the table path mount
-          pathTranslator
-              .addMapping(mountAlluxioPath(tableName, partitionUri, alluxioUri), glueUfsUri);
-        }
-      }
-      return pathTranslator;
-    } catch (AlluxioException e) {
-      throw new IOException(
-          "Failed to mount table location. tableName: " + tableName
-              + " glueUfsLocation: " + glueUfsUri
-              + " AlluxioLocation: " + alluxioUri + " error: " + e.getMessage(), e);
-    }
-  }
-
-  @Override
-  public UdbContext getUdbContext() {
-    return mUdbContext;
-  }
-
-  @Override
-  public DatabaseInfo getDatabaseInfo() throws IOException {
-    try {
-      GetDatabaseRequest dbRequest = new GetDatabaseRequest()
-          .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
-          .withName(mGlueDbName);
-      GetDatabaseResult dbResult = mGlueClient.getDatabase(dbRequest);
-      Database glueDatabaseInfo = dbResult.getDatabase();
-      String glueDbLocation = glueDatabaseInfo.getLocationUri();
-      String glueDbDescription = glueDatabaseInfo.getDescription();
-      Map<String, String> glueParameters = glueDatabaseInfo.getParameters();
-      return new DatabaseInfo(
-          glueDbLocation,
-          mOwnerName,
-          mOwnerType,
-          glueDbDescription,
-          glueParameters);
-    } catch (EntityNotFoundException e) {
-      throw new IOException("Cannot find glue database" + mGlueDbName
-          + "." + e.getMessage(), e);
+      return partitions;
+    } catch (AWSGlueException e) {
+      throw new IOException("WARNING: Cannot get partition information for table: " + tableName + ". error: " + e.getMessage(), e);
     }
   }
 

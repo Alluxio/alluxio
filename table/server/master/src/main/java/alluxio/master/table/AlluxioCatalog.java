@@ -129,6 +129,7 @@ public class AlluxioCatalog implements Journaled {
       } catch (Exception e) {
         // Failed to connect to and sync the udb.
         syncError = true;
+        e.printStackTrace();
         throw new IOException(String
             .format("Failed to connect underDb for Alluxio db '%s': %s", dbName,
                 e.getMessage()), e);
