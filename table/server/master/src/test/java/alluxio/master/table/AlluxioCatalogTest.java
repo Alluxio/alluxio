@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 
 public class AlluxioCatalogTest {
   private static final TransformDefinition TRANSFORM_DEFINITION =
-      TransformDefinition.parse("write(hive).option(hive.file.count.max, 100);");
+      TransformDefinition.parse("file.count.max=100");
 
   private static ExecutorService sService =
       ExecutorServiceFactories.cachedThreadPool("AlluxioCatalogTest").create();

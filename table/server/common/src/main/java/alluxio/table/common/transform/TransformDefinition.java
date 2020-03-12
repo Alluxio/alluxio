@@ -12,10 +12,13 @@
 package alluxio.table.common.transform;
 
 import alluxio.table.common.transform.action.TransformAction;
+import alluxio.table.common.transform.action.TransformActionRegistry;
 
-import java.util.ArrayList;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * The definition of a transformation.
@@ -64,19 +67,27 @@ public class TransformDefinition {
    * @return the {@link TransformDefinition} representation
    */
   public static TransformDefinition parse(String definition) {
-    // TODO(gpang): use real lexer/parser
     definition = definition.trim();
 
     if (definition.isEmpty()) {
       return new TransformDefinition(definition, Collections.emptyList());
     }
 
-    // ';' separates actions
-    String[] parts = definition.split(";");
-    List<TransformAction> actions = new ArrayList<>(parts.length);
-    for (String actionPart : parts) {
-      actions.add(TransformAction.Parser.parse(actionPart));
+    // accept semicolon as new lines for inline definitions
+    definition = definition.replace(";", "\n");
+
+    final Properties properties = new Properties();
+
+    final StringReader reader = new StringReader(definition);
+
+    try {
+      properties.load(reader);
+    } catch (IOException e) {
+      // The only way this throws an IOException is if the definition is null which isn't possible.
+      return new TransformDefinition(definition, Collections.emptyList());
     }
+
+    final List<TransformAction> actions = TransformActionRegistry.create(properties);
 
     return new TransformDefinition(definition, actions);
   }

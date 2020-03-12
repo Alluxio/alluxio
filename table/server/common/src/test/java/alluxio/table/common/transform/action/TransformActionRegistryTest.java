@@ -11,19 +11,19 @@
 
 package alluxio.table.common.transform.action;
 
-import alluxio.job.JobConfig;
-import alluxio.table.common.Layout;
+import static org.junit.Assert.assertEquals;
 
-/**
- * The definition of an individual transformation action.
- */
-public interface TransformAction {
+import org.junit.Test;
 
-  /**
-   * @param base the layout to transform from
-   * @param transformed the layout to transform to
-   * @param deleteSrc whether the src file should be deleted
-   * @return the job configuration for this action
-   */
-  JobConfig generateJobConfig(Layout base, Layout transformed, boolean deleteSrc);
+import java.util.List;
+
+public class TransformActionRegistryTest {
+
+  @Test
+  public void testOrder() {
+    final List<TransformActionFactory> factories = TransformActionRegistry.getFactories();
+
+    assertEquals(EarlyActionFactory.class, factories.get(0).getClass());
+    assertEquals(LateActionFactory.class, factories.get(factories.size() - 1).getClass());
+  }
 }
