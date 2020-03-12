@@ -71,7 +71,7 @@ public class DefaultTableMaster extends CoreMaster
   public DefaultTableMaster(CoreMasterContext context, JobMasterClient jobMasterClient) {
     super(context, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.TABLE_MASTER_NAME));
-    mCatalog = new AlluxioCatalog(this::getExecutorService);
+    mCatalog = new AlluxioCatalog();
     mTransformManager = new TransformManager(this::createJournalContext, mCatalog, jobMasterClient);
     mJournaledComponents = new JournaledGroup(Lists.newArrayList(mCatalog, mTransformManager),
         CheckpointName.TABLE_MASTER);

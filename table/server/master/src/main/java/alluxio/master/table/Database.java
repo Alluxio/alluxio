@@ -27,6 +27,7 @@ import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
@@ -45,6 +46,8 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
@@ -190,11 +193,11 @@ public class Database implements Journaled {
    * external synchronization.
    *
    * @param context journal context
-   * @param service executor service for parallezing the sync
    * @return the resulting sync status
    */
-  public SyncStatus sync(JournalContext context, ExecutorService service) throws IOException {
-    // Keep track of the status of each syncing table
+  public SyncStatus sync(JournalContext context) throws IOException {
+    // Keep track of the status of each syncing table.
+    // Synchronization is necessary if accessed concurrently from multiple threads
     SyncStatus.Builder builder = SyncStatus.newBuilder();
 
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
@@ -205,6 +208,12 @@ public class Database implements Journaled {
 
     Set<String> udbTableNames = new HashSet<>(mUdb.getTableNames());
 
+    // keeps track of how many tables have been synced
+    final AtomicInteger tablesSynced = new AtomicInteger();
+    // # of synced tables, after which a log message is printed for progress
+    final int progressBatch =
+        (udbTableNames.size() < 100) ? udbTableNames.size() : udbTableNames.size() / 10;
+
     // sync each table in parallel, with the executor service
     List<Callable<Void>> tasks = new ArrayList<>(udbTableNames.size());
     final Database thisDb = this;
@@ -212,6 +221,7 @@ public class Database implements Journaled {
       if (mIgnoreTables.contains(tableName)) {
         // this table should be ignored.
         builder.addTablesIgnored(tableName);
+        tablesSynced.incrementAndGet();
         continue;
       }
       tasks.add(() -> {
@@ -227,21 +237,71 @@ public class Database implements Journaled {
             Journal.JournalEntry entry =
                 Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
             applyAndJournal(context, entry);
-            builder.addTablesUpdated(tableName);
+            synchronized (builder) {
+              builder.addTablesUpdated(tableName);
+            }
           } else {
-            builder.addTablesUnchanged(tableName);
+            synchronized (builder) {
+              builder.addTablesUnchanged(tableName);
+            }
           }
         } catch (Exception e) {
-          builder.putTablesErrors(tableName, e.getMessage());
+          synchronized (builder) {
+            builder.putTablesErrors(tableName, e.getMessage());
+          }
+        } finally {
+          int syncedTables = tablesSynced.incrementAndGet();
+          int percentage = -1;
+          // Only log at regular intervals, or when complete
+          if (syncedTables % progressBatch == 0) {
+            // compute percentage, cap at 99%
+            percentage = Math.min(Math.round(100.0f * syncedTables / udbTableNames.size()), 99);
+          }
+          if (syncedTables == udbTableNames.size()) {
+            percentage = 100;
+          }
+          if (percentage != -1) {
+            LOG.info("Syncing db {} progress: completed {} of {} tables ({}%)", mName, syncedTables,
+                udbTableNames.size(), percentage);
+          }
         }
         return null;
       });
     }
 
+    // create a thread pool to parallelize the sync
+    int threads;
+    try {
+      threads = Integer.parseInt(mConfig.get(CatalogProperty.DB_SYNC_THREADS));
+    } catch (NumberFormatException e) {
+      LOG.warn("Catalog property {} with value {} cannot be parsed as an int",
+          CatalogProperty.DB_SYNC_THREADS.getName(), mConfig.get(CatalogProperty.DB_SYNC_THREADS));
+      threads = CatalogProperty.DEFAULT_DB_SYNC_THREADS;
+    }
+    if (threads < 1) {
+      // if invalid, set to the default
+      threads = CatalogProperty.DEFAULT_DB_SYNC_THREADS;
+    }
+    ExecutorService service =
+        ExecutorServiceFactories.fixedThreadPool(String.format("Catalog-Sync-%s", mName), threads)
+            .create();
     try {
       CommonUtils.invokeAll(service, tasks, mUdbSyncTimeoutMs);
     } catch (Exception e) {
       throw new IOException("Failed to sync database " + mName + ". error: " + e.getMessage(), e);
+    } finally {
+      // shutdown the thread pool
+      service.shutdownNow();
+      String errorMessage =
+          String.format("waiting for db-sync thread pool to shut down. db: %s", mName);
+      try {
+        if (!service.awaitTermination(5, TimeUnit.SECONDS)) {
+          LOG.warn("Timed out " + errorMessage);
+        }
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        LOG.warn("Interrupted while " + errorMessage);
+      }
     }
 
     for (Table existingTable : mTables.values()) {
