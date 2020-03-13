@@ -15,12 +15,13 @@ Alluxio 2.1.0 introduces a new service within Alluxio called the Alluxio Catalog
 The Alluxio Catalog Service is a service for managing access to structured data, which serves a purpose similar to the
 [Apache Hive Metastore](https://cwiki.apache.org/confluence/display/Hive/Design#Design-Metastore)
 
-SQL engines, i.e. [Starburst Presto](https://starburstdata.com), leverage these metastore-like
+SQL engines like Presto, SparkSQL, and Hive, leverage these metastore-like
 services to determine which, and how much data to read when executing queries.
 They store information about different database catalogs, tables, storage formats, data
 location, and more.
-The Alluxio Catalog Service is designed to make it simple and straightforward to retrieve and serve structured table
-metadata to these SQL engines.
+The Alluxio Catalog Service is designed to make it simple and straightforward to retrieve and
+serve structured table metadata to Presto query engines, e.g. [PrestoSQL](https://prestosql.io/),
+[PrestoDB](https://prestodb.io/), and [Starburst Presto](https://starburstdata.com).
 
 
 ## Architecture

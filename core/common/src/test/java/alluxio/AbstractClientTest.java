@@ -127,6 +127,8 @@ public final class AbstractClientTest {
   @Test
   public void confAddress() throws Exception {
     ClientContext context = Mockito.mock(ClientContext.class);
+    Mockito.when(context.getClusterConf()).thenReturn(
+        new InstancedConfiguration(ConfigurationUtils.defaults()));
 
     InetSocketAddress baseAddress = new InetSocketAddress("0.0.0.0", 2000);
     InetSocketAddress confAddress = new InetSocketAddress("0.0.0.0", 2001);

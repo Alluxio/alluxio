@@ -11,12 +11,16 @@
 
 package alluxio.table.common.transform.action;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.Properties;
 import java.util.ServiceLoader;
 
 /**
@@ -25,7 +29,8 @@ import java.util.ServiceLoader;
 public class TransformActionRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(TransformActionRegistry.class);
 
-  private static final Map<String, TransformActionFactory> FACTORIES = new HashMap<>();
+  // List of TransformActionFactories ordered in the order returned by getOrder
+  private static final List<TransformActionFactory> FACTORIES = new ArrayList<>();
 
   static {
     refresh();
@@ -34,22 +39,30 @@ public class TransformActionRegistry {
   private TransformActionRegistry() {} // prevent instantiation
 
   /**
-   * Creates a new instance of a {@link TransformAction}.
+   * Creates a new instance of an ordered list of {@link TransformAction}.
+   * The ordering here is the order that the Actions should be executed in.
    *
    * @param definition the raw definition of the action
-   * @param name the name of the transform action
-   * @param args a list of string args
-   * @param options a string-string map of options
    * @return a new instance of an action
    */
-  public static TransformAction create(String definition, String name, List<String> args,
-      Map<String, String> options) {
-    TransformActionFactory factory = FACTORIES.get(name);
-    if (factory == null) {
-      throw new IllegalStateException(
-          String.format("TransformActionFactory for name '%s' does not exist.", name));
+  public static List<TransformAction> create(Properties definition) {
+    final ArrayList<TransformAction> actions = new ArrayList<>();
+    for (TransformActionFactory factory : FACTORIES) {
+      // TODO(bradyoo): make this more efficient when FACTORIES.size() > 50
+      final TransformAction transformAction = factory.create(definition);
+      if (transformAction != null) {
+        actions.add(transformAction);
+      }
     }
-    return factory.create(definition, args, options);
+    return actions;
+  }
+
+  /**
+   * @return the list of TransformActionFactories
+   */
+  @VisibleForTesting
+  public static List<TransformActionFactory> getFactories() {
+    return Collections.unmodifiableList(FACTORIES);
   }
 
   /**
@@ -59,14 +72,10 @@ public class TransformActionRegistry {
     FACTORIES.clear();
     for (TransformActionFactory factory : ServiceLoader
         .load(TransformActionFactory.class, TransformActionFactory.class.getClassLoader())) {
-      TransformActionFactory existingFactory = FACTORIES.get(factory.getName());
-      if (existingFactory != null) {
-        LOG.warn(
-            "Ignoring duplicate transform action '{}' found in factory {}. Existing factory: {}",
-            factory.getName(), factory.getClass(), existingFactory.getClass());
-      }
-      FACTORIES.put(factory.getName(), factory);
+      FACTORIES.add(factory);
     }
-    LOG.info("Registered Transform actions: " + String.join(",", FACTORIES.keySet()));
+    FACTORIES.sort(Comparator.comparingInt((factory) -> factory.getOrder()));
+
+    LOG.info("Registered Transform actions: " + StringUtils.join(FACTORIES, ","));
   }
 }

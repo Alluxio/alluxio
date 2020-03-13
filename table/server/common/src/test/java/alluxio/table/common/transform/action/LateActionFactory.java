@@ -11,19 +11,18 @@
 
 package alluxio.table.common.transform.action;
 
-import alluxio.job.JobConfig;
-import alluxio.table.common.Layout;
+import javax.annotation.Nullable;
+import java.util.Properties;
 
-/**
- * The definition of an individual transformation action.
- */
-public interface TransformAction {
+public class LateActionFactory implements TransformActionFactory {
+  @Override
+  public int getOrder() {
+    return 1000;
+  }
 
-  /**
-   * @param base the layout to transform from
-   * @param transformed the layout to transform to
-   * @param deleteSrc whether the src file should be deleted
-   * @return the job configuration for this action
-   */
-  JobConfig generateJobConfig(Layout base, Layout transformed, boolean deleteSrc);
+  @Nullable
+  @Override
+  public TransformAction create(Properties definition) {
+    return null;
+  }
 }

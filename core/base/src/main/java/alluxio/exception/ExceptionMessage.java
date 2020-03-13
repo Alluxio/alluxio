@@ -174,8 +174,6 @@ public enum ExceptionMessage {
   // table master
   DATABASE_DOES_NOT_EXIST("Database {0} does not exist"),
   TABLE_DOES_NOT_EXIST("Table {0} does not exist in database {1}"),
-  TRANSFORM_ACTION_PARSE_FAILED("Failed to parse transform action at: {0}"),
-  TRANSFORM_WRITE_ACTION_INVALID_ARGS("Write action must have exactly one argument"),
   TRANSFORM_WRITE_ACTION_INVALID_NUM_FILES("Write action must have positive number of files"),
   TABLE_BEING_TRANSFORMED("Existing job {0} is transforming table {1} in database {2}"),
   TABLE_ALREADY_TRANSFORMED("Database {0} table {1} has been transformed by definition {2}"),

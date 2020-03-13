@@ -71,6 +71,8 @@ public final class AlluxioFuse {
     try {
       fs.mount(Paths.get(opts.getMountPoint()), true, opts.isDebug(),
           fuseOpts.toArray(new String[0]));
+      LOG.info("Mounted Alluxio: mount point=\"{}\", opts=\"{}\"",
+          opts.getMountPoint(), fuseOpts.toArray(new String[0]));
     } catch (FuseException e) {
       LOG.error("Failed to mount {}", opts.getMountPoint(), e);
       // only try to umount file system when exception occurred.
@@ -80,6 +82,7 @@ public final class AlluxioFuse {
     } finally {
       try {
         tfs.close();
+        LOG.info("Closed Alluxio file system.");
       } catch (Exception e) {
         LOG.error("Failed to close Alluxio file system", e);
       }
