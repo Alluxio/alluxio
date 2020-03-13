@@ -130,7 +130,7 @@ log4j.logger.alluxio.client.block.BlockMasterClient=DEBUG
 ```
 
 You will see debug logs on the begin and the end of each RPC with its arguments and result
-in client logs like the following:
+in the client logs like the following:
 
 ```
 2020-03-03 15:56:40,115 DEBUG FileSystemMasterClient - Enter: GetStatus(path=/.DS_Store,options=loadMetadataType: ONCE
