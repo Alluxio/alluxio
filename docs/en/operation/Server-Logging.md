@@ -160,7 +160,7 @@ $ ./bin/alluxio logLevel \
 --target master --level=DEBUG
 ```
 
-Similarly, turn on the debug-level logging for Block related RPC calls (e.g., adding/removing
+Similarly, turn on the debug-level logging for block related RPC calls (e.g., adding/removing
 blocks):
 
 ```console
