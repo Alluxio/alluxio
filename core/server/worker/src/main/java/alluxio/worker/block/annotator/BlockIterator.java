@@ -52,7 +52,7 @@ public interface BlockIterator {
       BlockOrder intersectionOrder, Function<Long, Boolean> blockFilterFunc);
 
   /**
-   * Used to list of block pairs, that if exchanged, could eliminate overlap between two tiers.
+   * Used to list of blocks, that if swapped, could eliminate overlap between two tiers.
    *
    * It receives a filter using which certain blocks could be excluded from intersection iterator.
    *
@@ -63,9 +63,9 @@ public interface BlockIterator {
    * @param swapRange per-tier range of swap
    * @param intersectionOrder the order of intersected blocks
    * @param blockFilterFunc a filter for blocks
-   * @return list of pairs that denote a block-swap
+   * @return 2 list of blocks to swap
    */
-  List<Pair<Long, Long>> getSwaps(BlockStoreLocation srcLocation, BlockOrder srcOrder,
+  Pair<List<Long>, List<Long>> getSwaps(BlockStoreLocation srcLocation, BlockOrder srcOrder,
       BlockStoreLocation dstLocation, BlockOrder dstOrder, int swapRange,
       BlockOrder intersectionOrder, Function<Long, Boolean> blockFilterFunc);
 

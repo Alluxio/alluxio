@@ -214,7 +214,6 @@ public class TieredBlockStore implements BlockStore {
   public TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     LOG.debug("createBlock: sessionId={}, blockId={}, options={}", sessionId, blockId, options);
-    // TODO(ggezer): TV2 - Re-purpose write-to-medium feature to set forcedLocation flag.
     TempBlockMeta tempBlockMeta = createBlockMetaInternal(sessionId, blockId, true, options);
     if (tempBlockMeta != null) {
       createBlockFile(tempBlockMeta.getPath());

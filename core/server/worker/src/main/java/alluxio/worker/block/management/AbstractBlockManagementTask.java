@@ -15,6 +15,8 @@ import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStore;
 
+import java.util.concurrent.ExecutorService;
+
 /**
  * Abstract block management task implementation.
  */
@@ -23,20 +25,24 @@ public abstract class AbstractBlockManagementTask implements BlockManagementTask
   protected final BlockMetadataManager mMetadataManager;
   protected final BlockMetadataEvictorView mEvictorView;
   protected final StoreLoadTracker mLoadTracker;
+  protected final ExecutorService mExecutor;
 
   /**
    * Creates abstract task implementation.
    *
-   * @param blockStore block store
-   * @param metadataManager meta manager
-   * @param evictorView evictor view
-   * @param loadTracker load tracker
+   * @param blockStore the block store
+   * @param metadataManager the meta manager
+   * @param evictorView the evictor view
+   * @param loadTracker the load tracker
+   * @param executor the executor to use for task execution
    */
   public AbstractBlockManagementTask(BlockStore blockStore, BlockMetadataManager metadataManager,
-      BlockMetadataEvictorView evictorView, StoreLoadTracker loadTracker) {
+      BlockMetadataEvictorView evictorView, StoreLoadTracker loadTracker,
+      ExecutorService executor) {
     mBlockStore = blockStore;
     mMetadataManager = metadataManager;
     mEvictorView = evictorView;
     mLoadTracker = loadTracker;
+    mExecutor = executor;
   }
 }

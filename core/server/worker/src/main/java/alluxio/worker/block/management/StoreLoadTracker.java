@@ -20,8 +20,8 @@ public interface StoreLoadTracker {
   /**
    * Used to detect load on particular location.
    *
-   * @param location location
-   * @return {@code true} if load detected on target location
+   * @param locations vararg of locations
+   * @return {@code true} if load detected on any given location
    */
-  boolean loadDetected(BlockStoreLocation location);
+  boolean loadDetected(BlockStoreLocation... locations);
 }

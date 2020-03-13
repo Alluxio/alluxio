@@ -2344,8 +2344,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_MANAGEMENT_GLOBAL_LOAD_DETECTION_ENABLED =
+      new Builder(Name.WORKER_MANAGEMENT_GLOBAL_LOAD_DETECTION_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether to postpone all management tasks under any user activity")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME =
-          new Builder(Name.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME)
+      new Builder(Name.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME)
           .setDefaultValue("10sec")
           .setDescription("Management tasks will not run for this long after load detected.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2367,6 +2374,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TASK_THREAD_COUNT =
+      new Builder(Name.WORKER_MANAGEMENT_TASK_THREAD_COUNT)
+          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+              "Use {CPU core count} threads for all management tasks")
+          .setDescription("The number of threads for management task executor")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_TASK_CONCURRENCY =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_TASK_CONCURRENCY)
+          .setDefaultSupplier(() -> Math.max(1, Runtime.getRuntime().availableProcessors() / 2),
+              "Use up to {CPU core count / 2} for tier swap/move tasks")
+          .setDescription("The number of threads used by tier swap/move tasks.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_MANAGEMENT_TIER_SWAP_ENABLED =
       new Builder(Name.WORKER_MANAGEMENT_TIER_SWAP_ENABLED)
           .setDefaultValue(true)
@@ -2382,7 +2405,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_TIER_SWAP_RANGE =
-          new Builder(Name.WORKER_MANAGEMENT_TIER_SWAP_RANGE)
+      new Builder(Name.WORKER_MANAGEMENT_TIER_SWAP_RANGE)
           .setDefaultValue(100)
           .setDescription(
               "Maximum number of blocks to consider from one tier when doing tier swap task.")
@@ -2390,7 +2413,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_TIER_MOVE_RANGE =
-          new Builder(Name.WORKER_MANAGEMENT_TIER_MOVE_RANGE)
+      new Builder(Name.WORKER_MANAGEMENT_TIER_MOVE_RANGE)
           .setDefaultValue(100)
           .setDescription(
               "Maximum number of blocks to consider from one tier when doing tier move task.")
@@ -2398,7 +2421,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_TIER_MOVE_LIMIT =
-          new Builder(Name.WORKER_MANAGEMENT_TIER_MOVE_LIMIT)
+      new Builder(Name.WORKER_MANAGEMENT_TIER_MOVE_LIMIT)
           .setDefaultValue(0.1)
           .setDescription("Ratio of free space per-tier for moving blocks from below."
               + " When under this value moving to that tier will be stopped.")
@@ -4960,10 +4983,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.annotator.lrfu.step.factor";
     public static final String WORKER_MANAGEMENT_RESERVED_SPACE_BYTES =
         "alluxio.worker.management.reserved.space.bytes";
+    public static final String WORKER_MANAGEMENT_GLOBAL_LOAD_DETECTION_ENABLED =
+        "alluxio.worker.management.global.load.detection.enabled";
     public static final String WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME =
         "alluxio.worker.management.load.detection.cool.down.time";
     public static final String WORKER_MANAGEMENT_IDLE_SLEEP_TIME =
         "alluxio.worker.management.idle.sleep.time";
+    public static final String WORKER_MANAGEMENT_TASK_THREAD_COUNT =
+        "alluxio.worker.management.task.thread.count";
+    public static final String WORKER_MANAGEMENT_TIER_TASK_CONCURRENCY =
+        "alluxio.worker.management.tier.task.concurrency";
     public static final String WORKER_MANAGEMENT_TIER_SWAP_ENABLED =
         "alluxio.worker.management.tier.swap.enabled";
     public static final String WORKER_MANAGEMENT_TIER_SWAP_RANGE =

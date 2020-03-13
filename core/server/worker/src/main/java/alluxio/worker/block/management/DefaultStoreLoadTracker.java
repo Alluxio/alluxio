@@ -58,12 +58,14 @@ public class DefaultStoreLoadTracker implements StoreLoadTracker, BlockStreamLis
   }
 
   @Override
-  public boolean loadDetected(BlockStoreLocation location) {
-    for (BlockStoreLocation trackedLocation : mStreamsPerLocation.keySet()) {
-      if (trackedLocation.belongsTo(location)) {
-        Set<Object> streamsPerLocation = mStreamsPerLocation.get(trackedLocation);
-        if (streamsPerLocation != null && streamsPerLocation.size() > 0) {
-          return true;
+  public boolean loadDetected(BlockStoreLocation... locations) {
+    for (BlockStoreLocation location : locations) {
+      for (BlockStoreLocation trackedLocation : mStreamsPerLocation.keySet()) {
+        if (trackedLocation.belongsTo(location)) {
+          Set<Object> streamsPerLocation = mStreamsPerLocation.get(trackedLocation);
+          if (streamsPerLocation != null && streamsPerLocation.size() > 0) {
+            return true;
+          }
         }
       }
     }

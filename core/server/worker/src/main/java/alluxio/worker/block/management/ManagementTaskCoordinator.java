@@ -26,7 +26,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
@@ -41,6 +40,8 @@ public class ManagementTaskCoordinator implements Closeable {
   private final long mIdleSleepMs;
   /** Duration to sleep when load detected on worker. */
   private final long mLoadDetectionCoolDownMs;
+  /** Whether to stop all tasks when any user activity is detected. */
+  private final boolean mGlobalLoadDetectionEnabled;
 
   /** Runner thread for launching management tasks. */
   private final Thread mRunnerThread;
@@ -57,6 +58,9 @@ public class ManagementTaskCoordinator implements Closeable {
   /** List of management task providers. */
   private List<ManagementTaskProvider> mTaskProviders;
 
+  /** Whether the coordinator is shut down. */
+  private volatile boolean mShutdown = false;
+
   /**
    * Creates management coordinator.
    *
@@ -72,17 +76,18 @@ public class ManagementTaskCoordinator implements Closeable {
     mLoadTracker = loadTracker;
     mEvictionViewSupplier = evictionViewSupplier;
 
-    initializeTaskProviders();
-
     // Read configs.
     mLoadDetectionCoolDownMs =
         ServerConfiguration.getMs(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME);
     mIdleSleepMs = ServerConfiguration.getMs(PropertyKey.WORKER_MANAGEMENT_IDLE_SLEEP_TIME);
+    mGlobalLoadDetectionEnabled =
+        ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_GLOBAL_LOAD_DETECTION_ENABLED);
 
-    // Initialize management task executor.
-    // Currently a single management task is active at a time.
-    mTaskExecutor = Executors
-        .newSingleThreadExecutor(ThreadFactoryUtils.build("block-management-thread-%d", true));
+    mTaskExecutor = Executors.newFixedThreadPool(
+        ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TASK_THREAD_COUNT),
+        ThreadFactoryUtils.build("block-management-task-%d", true));
+
+    initializeTaskProviders();
 
     // Initialize runner thread.
     mRunnerThread = new Thread(this::runManagement, "block-management-runner");
@@ -103,6 +108,7 @@ public class ManagementTaskCoordinator implements Closeable {
       // Shutdown task executor.
       mTaskExecutor.shutdownNow();
       // Interrupt and wait for runner thread.
+      mShutdown = true;
       mRunnerThread.interrupt();
       mRunnerThread.join();
     } catch (Exception e) {
@@ -113,7 +119,6 @@ public class ManagementTaskCoordinator implements Closeable {
   /**
    * Register known task providers by priority order.
    *
-   * TODO(ggezer): TV2 - Implement pin enforcer as {@link BlockManagementTask}.
    * TODO(ggezer): TV2 - Re-implement async-cache as {@link BlockManagementTask}.
    */
   private void initializeTaskProviders() {
@@ -122,7 +127,7 @@ public class ManagementTaskCoordinator implements Closeable {
       LOG.warn("Tier management tasks will be disabled under eviction emulation mode.");
     } else {
       mTaskProviders.add(new TierManagementTaskProvider(mBlockStore, mMetadataManager,
-          mEvictionViewSupplier, mLoadTracker));
+          mEvictionViewSupplier, mLoadTracker, mTaskExecutor));
     }
   }
 
@@ -151,14 +156,14 @@ public class ManagementTaskCoordinator implements Closeable {
     while (true) {
       if (Thread.interrupted()) {
         // Coordinator closed.
-        return;
+        break;
       }
 
-      BlockManagementTask currentTask = null;
+      BlockManagementTask currentTask;
       try {
         // Back off if any load detected.
-        // TODO(ggezer): TV2 - Trust management tasks' back-off handling.
-        if (mLoadTracker.loadDetected(BlockStoreLocation.anyTier())) {
+        if (mGlobalLoadDetectionEnabled
+            && mLoadTracker.loadDetected(BlockStoreLocation.anyTier())) {
           LOG.info("Load detected.");
           Thread.sleep(mLoadDetectionCoolDownMs);
           continue;
@@ -173,14 +178,17 @@ public class ManagementTaskCoordinator implements Closeable {
 
         // Submit and wait for the task.
         currentTask = nextTask;
-        mTaskExecutor.submit(() -> nextTask.run()).get();
+        // Run the current task on coordinator thread.
+        try {
+          currentTask.run();
+        } catch (Exception e) {
+          LOG.error("Management task failed: {}. Error: {}", currentTask.getClass().getSimpleName(),
+              e);
+        }
         LOG.info("Management task finished: {}", currentTask.getClass().getSimpleName());
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         break;
-      } catch (ExecutionException e) {
-        LOG.error("Management task failed: {}. Error: {}", currentTask.getClass().getSimpleName(),
-            e);
       } catch (Throwable t) {
         LOG.error("Unexpected error during block management: {}", t);
       }

@@ -80,6 +80,7 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
         .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
         .setProperty(PropertyKey.WORKER_MANAGEMENT_IDLE_SLEEP_TIME, "1s")
         .setProperty(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME, "2s")
+        .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_MOVE_ENABLED, "false")
         .setProperty(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, BLOCK_SIZE_BYTES)
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD")
         .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),

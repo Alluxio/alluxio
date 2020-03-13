@@ -210,7 +210,7 @@ public class DefaultBlockIterator implements BlockIterator {
   }
 
   @Override
-  public List<Pair<Long, Long>> getSwaps(BlockStoreLocation srcLocation, BlockOrder srcOrder,
+  public Pair<List<Long>, List<Long>> getSwaps(BlockStoreLocation srcLocation, BlockOrder srcOrder,
       BlockStoreLocation dstLocation, BlockOrder dstOrder, int swapRange,
       BlockOrder intersectionOrder, Function<Long, Boolean> blockFilterFunc) {
     // Acquire source iterator based on given order.
@@ -218,6 +218,7 @@ public class DefaultBlockIterator implements BlockIterator {
     // Acquire destination iterator based on given order.
     Iterator<Pair<Long, BlockSortedField>> dstIterator = getIteratorInternal(dstLocation, dstOrder);
 
+    // These lists are used to emulate block swapping.
     List<Pair<Long, BlockSortedField>> srcList = new ArrayList<>(swapRange);
     List<Pair<Long, BlockSortedField>> dstList = new ArrayList<>(swapRange);
 
@@ -235,8 +236,10 @@ public class DefaultBlockIterator implements BlockIterator {
     }
 
     int swapCount = Math.min(srcList.size(), dstList.size());
-    List<Pair<Long, Long>> swapList = new ArrayList<>(swapCount);
-    while (swapList.size() < swapCount) {
+    Pair<List<Long>, List<Long>> swapLists =
+        new Pair(new ArrayList<>(swapCount), new ArrayList<>(swapCount));
+    // Find blocks to swap in order to eliminate overlap.
+    while (swapCount-- > 0) {
       if (intersectionOrder.comparator().compare(srcList.get(0).getSecond(),
           dstList.get(0).getSecond()) < 0) {
         break;
@@ -244,7 +247,8 @@ public class DefaultBlockIterator implements BlockIterator {
 
       Pair<Long, BlockSortedField> srcItem = srcList.get(0);
       Pair<Long, BlockSortedField> dstItem = dstList.get(0);
-      swapList.add(new Pair(srcItem.getFirst(), dstItem.getFirst()));
+      swapLists.getFirst().add(srcItem.getFirst());
+      swapLists.getSecond().add(dstItem.getFirst());
 
       srcList.remove(0);
       dstList.remove(0);
@@ -257,7 +261,7 @@ public class DefaultBlockIterator implements BlockIterator {
           (o1, o2) -> dstOrder.comparator().compare(o1.getSecond(), o2.getSecond()));
     }
 
-    return swapList;
+    return swapLists;
   }
 
   @Override

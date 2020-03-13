@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
 /**
@@ -41,21 +42,25 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
   private final BlockMetadataManager mMetadataManager;
   private final Supplier<BlockMetadataEvictorView> mEvictorViewSupplier;
   private final StoreLoadTracker mLoadTracker;
+  private final ExecutorService mExecutor;
 
   /**
    * Creates a task provider for tier management functions.
    *
-   * @param blockStore block store
-   * @param metadataManager meta manager
-   * @param evictorViewSupplier evictor view supplier
-   * @param loadTracker load tracker
+   * @param blockStore the block store
+   * @param metadataManager the meta manager
+   * @param evictorViewSupplier the evictor view supplier
+   * @param loadTracker the load tracker
+   * @param executor the executor
    */
   public TierManagementTaskProvider(BlockStore blockStore, BlockMetadataManager metadataManager,
-      Supplier<BlockMetadataEvictorView> evictorViewSupplier, StoreLoadTracker loadTracker) {
+      Supplier<BlockMetadataEvictorView> evictorViewSupplier, StoreLoadTracker loadTracker,
+      ExecutorService executor) {
     mBlockStore = blockStore;
     mMetadataManager = metadataManager;
     mEvictorViewSupplier = evictorViewSupplier;
     mLoadTracker = loadTracker;
+    mExecutor = executor;
   }
 
   @Override
@@ -65,10 +70,10 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
         return null;
       case TIER_SWAP:
         return new TierSwapTask(mBlockStore, mMetadataManager, mEvictorViewSupplier.get(),
-            mLoadTracker);
+            mLoadTracker, mExecutor);
       case TIER_MOVE:
         return new TierMoveTask(mBlockStore, mMetadataManager, mEvictorViewSupplier.get(),
-            mLoadTracker);
+            mLoadTracker, mExecutor);
       default:
         throw new IllegalArgumentException("Unknown task type.");
     }
@@ -93,10 +98,15 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
       if (tierSwapEnabled && mMetadataManager.getBlockIterator().overlaps(intersection.getFirst(),
           intersection.getSecond(), BlockOrder.Natural,
           (blockId) -> !evictorView.isBlockEvictable(blockId))) {
-
         LOG.debug("Needs block swapping due to an overlap between: {} - {}",
             intersection.getFirst(), intersection.getSecond());
-        return TierManagementTaskType.TIER_SWAP;
+        // Ignore task if load detected.
+        if (mLoadTracker.loadDetected(intersection.getFirst(), intersection.getSecond())) {
+          LOG.debug("Ignoring overlap between: {} - {} due to user activity.",
+              intersection.getFirst(), intersection.getSecond());
+        } else {
+          return TierManagementTaskType.TIER_SWAP;
+        }
       }
 
       // Check if needs moving blocks from below.
@@ -113,7 +123,13 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
             if (evictorView.isBlockEvictable(lowBlocks.next())) {
               LOG.debug("Needs merging due to allowed move from {} - {}", intersection.getSecond(),
                   intersection.getFirst());
-              return TierManagementTaskType.TIER_MOVE;
+              // Ignore task if load detected.
+              if (mLoadTracker.loadDetected(intersection.getFirst(), intersection.getSecond())) {
+                LOG.debug("Ignoring moves from: {} - {} due to user activity.",
+                    intersection.getSecond(), intersection.getFirst());
+              } else {
+                return TierManagementTaskType.TIER_MOVE;
+              }
             }
           }
         }

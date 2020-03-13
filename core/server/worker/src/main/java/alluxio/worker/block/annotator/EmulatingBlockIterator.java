@@ -170,11 +170,11 @@ public class EmulatingBlockIterator implements BlockIterator {
   }
 
   @Override
-  public List<Pair<Long, Long>> getSwaps(BlockStoreLocation srcLocation, BlockOrder srcOrder,
+  public Pair<List<Long>, List<Long>> getSwaps(BlockStoreLocation srcLocation, BlockOrder srcOrder,
       BlockStoreLocation dstLocation, BlockOrder dstOrder, int swapRange,
       BlockOrder intersectionOrder, Function<Long, Boolean> blockFilterFunc) {
     // Swap calculation not possible.
-    return Collections.emptyList();
+    return new Pair(Collections.emptyList(), Collections.emptyList());
   }
 
   @Override

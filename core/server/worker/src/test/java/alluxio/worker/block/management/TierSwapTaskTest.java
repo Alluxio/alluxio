@@ -68,7 +68,8 @@ public class TierSwapTaskTest {
         LRUAnnotator.class.getName());
     ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
     // Reserve block size per directory.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, BLOCK_SIZE);
+    // Current tier layout could end up swapping 2 blocks concurrently.
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, 2 * BLOCK_SIZE);
     // Set timeouts for faster task execution.
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME, "100ms");
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_IDLE_SLEEP_TIME, "100ms");
