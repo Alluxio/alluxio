@@ -129,7 +129,7 @@ Similarly, capture lower-level RPCs between Alluxio client and Block Master:
 log4j.logger.alluxio.client.block.BlockMasterClient=DEBUG
 ```
 
-You will see debug logs on the begin and the end of each RPC with its arguments and result
+You will see debug logs at the beginning and end of each RPC with its arguments and result
 in the client logs like the following:
 
 ```
