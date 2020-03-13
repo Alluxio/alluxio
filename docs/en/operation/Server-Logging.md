@@ -101,7 +101,7 @@ Setting in `conf/log4j.properties`:
 log4j.logger.alluxio.fuse.AlluxioFuseFileSystem=DEBUG
 ```
 
-You will see debug logs on the begin and the end of each FUSE API call with its arguments and result
+You will see debug logs at the beginning and the end of each FUSE API call with its arguments and result
 in `logs/fuse.log`:
 
 ```
@@ -116,23 +116,21 @@ in `logs/fuse.log`:
 
 ### Logging RPCs Calls Sent by Client
 
-Add to your application-side `log4j.properties` to capture RPCs between Alluxio client
+Add the following to your application-side `log4j.properties` to capture RPCs between the Alluxio client
 and FileSystem Master:
 
 ```properties
-#
 log4j.logger.alluxio.client.file.FileSystemMasterClient=DEBUG
 ```
 
-Similarly, capture lower level RPCs between Alluxio client and Block Master:
+Similarly, capture lower-level RPCs between Alluxio client and Block Master:
 
 ```properties
-#
 log4j.logger.alluxio.client.block.BlockMasterClient=DEBUG
 ```
 
-You will see debug logs on the begin and the end of each RPC with its arguments and result
-in `logs/fuse.log`:
+You will see debug logs at the beginning and end of each RPC with its arguments and result
+in the client logs like the following:
 
 ```
 2020-03-03 15:56:40,115 DEBUG FileSystemMasterClient - Enter: GetStatus(path=/.DS_Store,options=loadMetadataType: ONCE
@@ -153,8 +151,8 @@ commonOptions {
 
 ### Logging RPC Calls Received by Masters
 
-On master, one can turn on the debug-level RPC logging for File System level RPC calls (e.g.,
-creating/reading/writing/removing files, updating file attributions):
+On the master, debug-level RPC logging for File System level RPC calls can be turned on (e.g.,
+creating/reading/writing/removing files, updating file attributions) using the `logLevel` command:
 
 ```console
 $ ./bin/alluxio logLevel \
@@ -162,7 +160,7 @@ $ ./bin/alluxio logLevel \
 --target master --level=DEBUG
 ```
 
-Similarly, turn on the debug-level RPC logging for Block level RPC calls (e.g., adding/removing
+Similarly, turn on the debug-level logging for block related RPC calls (e.g., adding/removing
 blocks):
 
 ```console
