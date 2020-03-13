@@ -173,10 +173,9 @@ $ ./bin/alluxio logLevel \
 ### Identifying Expensive Client RPCs / FUSE calls
 
 When debugging the performance, it is often useful to understand which RPCs take most of the time
-but without recording all the communication (e.g., enabling all debug logging). There are two
-properties introduced in v2.3.0 in Alluxio to record expensive calls or RPCs in logs with WARN
-level. For example, setting the following in `conf/alluxio-site.properties` will record client-side
-RPCs taking more than 200ms and FUSE APIs taking more than 1s:
+but without recording all the communication (e.g., enabling all debug logging).
+There are two properties introduced in v2.3.0 in Alluxio to record expensive calls or RPCs in logs with WARN level.
+Setting in `conf/alluxio-site.properties` records client-side RPCs taking more than 200ms and FUSE APIs taking more than 1s:
 
 ```properties
 alluxio.user.logging.threshold=200ms
