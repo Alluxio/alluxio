@@ -151,7 +151,7 @@ commonOptions {
 
 ### Logging RPC Calls Received by Masters
 
-On master, one can turn on the debug-level RPC logging for File System level RPC calls (e.g.,
+On the master, debug-level RPC logging for File System level RPC calls can be turned on (e.g.,
 creating/reading/writing/removing files, updating file attributions) using `logLevel` command:
 
 ```console
