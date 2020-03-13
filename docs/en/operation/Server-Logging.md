@@ -101,7 +101,7 @@ Setting in `conf/log4j.properties`:
 log4j.logger.alluxio.fuse.AlluxioFuseFileSystem=DEBUG
 ```
 
-You will see debug logs on the begin and the end of each FUSE API call with its arguments and result
+You will see debug logs at the beginning and the end of each FUSE API call with its arguments and result
 in `logs/fuse.log`:
 
 ```
