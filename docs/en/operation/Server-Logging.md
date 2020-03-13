@@ -152,7 +152,7 @@ commonOptions {
 ### Logging RPC Calls Received by Masters
 
 On the master, debug-level RPC logging for File System level RPC calls can be turned on (e.g.,
-creating/reading/writing/removing files, updating file attributions) using `logLevel` command:
+creating/reading/writing/removing files, updating file attributions) using the `logLevel` command:
 
 ```console
 $ ./bin/alluxio logLevel \
