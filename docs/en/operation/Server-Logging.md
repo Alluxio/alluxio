@@ -116,7 +116,7 @@ in `logs/fuse.log`:
 
 ### Logging RPCs Calls Sent by Client
 
-Add to your application-side `log4j.properties` to capture RPCs between Alluxio client
+Add the following to your application-side `log4j.properties` to capture RPCs between the Alluxio client
 and FileSystem Master:
 
 ```properties
