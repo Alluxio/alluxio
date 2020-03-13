@@ -87,7 +87,7 @@ public final class WorkerWebServer extends WebServer {
     // STATIC assets
     try {
       // If the Web UI is disabled, disable the resources and servlet together.
-      if (!ServerConfiguration.getBoolean(PropertyKey.WEB_UI_ENABLED)) {
+      if (ServerConfiguration.getBoolean(PropertyKey.WEB_UI_ENABLED)) {
         String resourceDirPathString =
                 ServerConfiguration.get(PropertyKey.WEB_RESOURCES) + "/worker/build/";
         File resourceDir = new File(resourceDirPathString);
