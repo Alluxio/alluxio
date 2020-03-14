@@ -32,6 +32,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
@@ -444,6 +445,29 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     return hdfs.isFile(new Path(path));
   }
 
+  /**
+   * List status for given path. Returns an array of {@link FileStatus} with an entry for each file
+   * and directory in the directory denoted by this path.
+   *
+   * @param path the pathname to list
+   * @return {@code null} if the path is not a directory
+   */
+  @Nullable
+  private FileStatus[] listStatusInternal(String path) throws IOException {
+    FileStatus[] files;
+    FileSystem hdfs = getFs();
+    try {
+      files = hdfs.listStatus(new Path(path));
+    } catch (FileNotFoundException e) {
+      return null;
+    }
+    // Check if path is a file
+    if (files != null && files.length == 1 && files[0].getPath().toString().equals(path)) {
+      return null;
+    }
+    return files;
+  }
+
   @Override
   @Nullable
   public UfsStatus[] listStatus(String path) throws IOException {
@@ -717,29 +741,6 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       }
     }
     throw te;
-  }
-
-  /**
-   * List status for given path. Returns an array of {@link FileStatus} with an entry for each file
-   * and directory in the directory denoted by this path.
-   *
-   * @param path the pathname to list
-   * @return {@code null} if the path is not a directory
-   */
-  @Nullable
-  private FileStatus[] listStatusInternal(String path) throws IOException {
-    FileStatus[] files;
-    FileSystem hdfs = getFs();
-    try {
-      files = hdfs.listStatus(new Path(path));
-    } catch (FileNotFoundException e) {
-      return null;
-    }
-    // Check if path is a file
-    if (files != null && files.length == 1 && files[0].getPath().toString().equals(path)) {
-      return null;
-    }
-    return files;
   }
 
   /**
