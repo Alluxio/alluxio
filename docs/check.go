@@ -81,8 +81,7 @@ func run() error {
 	if len(ctx.markdownErrors) > 0 {
 		errLines := []string{"Errors found in documentation markdown"}
 		for f, errs := range ctx.markdownErrors {
-
-			errLines = append(errLines, fmt.Sprintf("  %v:", strings.TrimPrefix(repoRoot+"/", docsPath)))
+			errLines = append(errLines, fmt.Sprintf("  %v:", strings.TrimPrefix(f, repoRoot)))
 			for _, err := range errs {
 				errLines = append(errLines, fmt.Sprintf("    %s", err))
 			}
