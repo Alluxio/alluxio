@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"regexp"
 )
 
 func main() {
@@ -19,9 +20,19 @@ func main() {
 type checkContext struct {
 	// inputs
 	categoryNames StringSet // category or group names defined in _config.yml
+	docsPath      string    // path to docs directory in repository
+
+	// intermediate
+	knownFiles    StringSet                  // file paths of files that can be referenced by markdown files
+	markdownLinks map[string][]*relativeLink // list of relative links found in each markdown file
 
 	// outputs
 	markdownErrors map[string][]string // list of errors found in each markdown file
+}
+
+type relativeLink struct {
+	line int
+	path string
 }
 
 func (ctx *checkContext) addError(mdFile string, lineNum int, format string, args ...interface{}) {
@@ -53,6 +64,9 @@ func run() error {
 
 	ctx := &checkContext{
 		categoryNames:  categoryNames,
+		docsPath:       docsPath,
+		knownFiles:     StringSet{},
+		markdownLinks:  map[string][]*relativeLink{},
 		markdownErrors: map[string][]string{},
 	}
 
@@ -74,9 +88,28 @@ func run() error {
 				return nil
 			},
 		); err != nil {
-			return fmt.Errorf("error traversing through md files in %v", filepath.Join(docsPath, langDir))
+			return fmt.Errorf("error traversing through md files in %v: %v", filepath.Join(docsPath, langDir), err)
 		}
 	}
+	// scan through img and resources directories to update known files
+	for _, dir := range []string{"img", "resources"} {
+		if err := filepath.Walk(filepath.Join(docsPath, dir),
+			func(p string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+				if info.IsDir() {
+					return nil
+				}
+				ctx.knownFiles.Add(strings.TrimPrefix(p, docsPath))
+				return nil
+			},
+		); err != nil {
+			return fmt.Errorf("error traversing through files in %v: %v", filepath.Join(docsPath, dir), err)
+		}
+	}
+
+	ctx.checkLinks()
 
 	if len(ctx.markdownErrors) > 0 {
 		errLines := []string{"Errors found in documentation markdown"}
@@ -116,7 +149,7 @@ func parseCategoryNames(configPath string) (StringSet, error) {
 				found = false
 				continue
 			}
-			categoryNames[strings.TrimPrefix(l, categoryPrefix)] = struct{}{}
+			categoryNames.Add(strings.TrimPrefix(l, categoryPrefix))
 		}
 	}
 	if err := scanner.Err(); err != nil {
@@ -124,6 +157,13 @@ func parseCategoryNames(configPath string) (StringSet, error) {
 	}
 	return categoryNames, nil
 }
+
+var (
+	// general format of a relative link, where the link will be computed by a jekyll function encapsulated in {{ }}
+	relativeLinkRe = regexp.MustCompile(`\[.+\]\({{.*}}\)`)
+	// path encapsulated in ' ' could have an optional search query "?q=queryStr" and/or an optional anchor reference "#anchor"
+	relativeLinkPagePathRe = regexp.MustCompile(`\[.+\]\({{ '(?P<path>[\w-./]+)(\?q=\w+)?(#.+)?' | relativize_url }}\)`)
+)
 
 // checkFile parses the given markdown file and appends errors found in its contents
 func checkFile(mdFile string, ctx *checkContext) error {
@@ -134,6 +174,7 @@ func checkFile(mdFile string, ctx *checkContext) error {
 	defer f.Close()
 
 	var headers []string
+	var relativeLinks []*relativeLink
 	inHeaderSection := true
 	scanner := bufio.NewScanner(f)
 	for i := 1; scanner.Scan(); i++ {
@@ -146,26 +187,54 @@ func checkFile(mdFile string, ctx *checkContext) error {
 				headers = append(headers, l)
 			}
 		}
+		if relativeLinkRe.MatchString(l) {
+			for _, lineMatches := range relativeLinkRe.FindAllStringSubmatch(l, -1) {
+				if len(lineMatches) != 1 {
+					return fmt.Errorf("expected to find exactly one string submatch but found %d in line %v", len(lineMatches), l)
+				}
+				relativeLinkStr := lineMatches[0]
+				if !relativeLinkPagePathRe.MatchString(relativeLinkStr) {
+					ctx.addError(mdFile, i, "relative link did not match expected pattern %q", relativeLinkStr)
+					continue
+				}
+				linkMatches := relativeLinkPagePathRe.FindStringSubmatch(relativeLinkStr)
+				if len(linkMatches) < 2 {
+					return fmt.Errorf("expected to find at least two string submatches but found %d = %v in link %v", len(linkMatches), linkMatches, relativeLinkStr)
+				}
+				// note that first is the full match, second is the named match
+				namedMatch := linkMatches[1]
+				if namedMatch == "" {
+					return fmt.Errorf("encountered empty named match when parsing link from %v", relativeLinkStr)
+				}
+				relativeLinks = append(relativeLinks, &relativeLink{
+					line: i,
+					path: namedMatch,
+				})
+			}
+		}
 	}
 	if err := scanner.Err(); err != nil {
 		return fmt.Errorf("error scanning file: %v", err)
 	}
 
-	checkHeader(headers, mdFile, ctx)
+	ctx.checkHeader(headers, mdFile)
+	ctx.addRelativeLinks(relativeLinks, mdFile)
+
 	return nil
 }
 
 const groupKey = "group"
+
 var headerKeys = StringSet{
 	"layout":   {},
 	"title":    {},
 	"nickname": {},
-	groupKey:    {},
+	groupKey:   {},
 	"priority": {},
 }
 
 // checkHeader validates the header lines
-func checkHeader(headers []string, mdFile string, ctx *checkContext) {
+func (ctx *checkContext) checkHeader(headers []string, mdFile string) {
 	for i := 0; i < len(headers); i++ {
 		l := headers[i]
 		if i == 0 || i == len(headers)-1 {
@@ -191,7 +260,30 @@ func checkHeader(headers []string, mdFile string, ctx *checkContext) {
 	}
 }
 
+// addRelativeLinks updates knownFiles and markdownLinks
+func (ctx *checkContext) addRelativeLinks(relativeLinks []*relativeLink, mdFile string) {
+	// find the relative path of the markdown file start from repoRoot/docs/ and replace .md with .html
+	htmlPath := strings.TrimSuffix(strings.TrimPrefix(mdFile, ctx.docsPath), ".md") + ".html"
+	ctx.knownFiles.Add(htmlPath)
+	ctx.markdownLinks[mdFile] = relativeLinks
+}
+
+// checkLinks validates that each markdownLink corresponds to a known markdownFile
+func (ctx *checkContext) checkLinks() {
+	for mdFile, relativeLinks := range ctx.markdownLinks {
+		for _, relativeLink := range relativeLinks {
+			if _, ok := ctx.knownFiles[relativeLink.path]; !ok {
+				ctx.addError(mdFile, relativeLink.line, "relative link pointed to unknown file %v", relativeLink.path)
+			}
+		}
+	}
+}
+
 type StringSet map[string]struct{}
+
+func (s StringSet) Add(key string) {
+	s[key] = struct{}{}
+}
 
 func (s StringSet) String() string {
 	var ret []string
