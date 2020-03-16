@@ -44,6 +44,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
@@ -142,7 +143,9 @@ public interface FileSystem extends Closeable {
       }
       FileSystem fs = conf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)
           ? new MetadataCachingBaseFileSystem(context) : new BaseFileSystem(context);
-      if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)) {
+      // Enable local cache only for clients which have the property set.
+      if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED)
+          && CommonUtils.PROCESS_TYPE.get().equals(CommonUtils.ProcessType.CLIENT)) {
         return new LocalCacheFileSystem(fs, conf);
       }
       return fs;
