@@ -115,7 +115,7 @@ journal:
   folder: "/journal" # Master journal folder
   # Configuration for journal formatting job
   format:
-    runFormat: true # Change to true to format journal
+    runFormat: false # Change to true to format journal
     job:
       activeDeadlineSeconds: 30
       ttlSecondsAfterFinished: 10
