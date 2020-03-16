@@ -72,10 +72,14 @@ master:
   nodeSelector: {}
   hostNetwork: false
   dnsPolicy: ClusterFirst
+  # Example: use ROCKS DB instead of Heap
   # metastore:
-  #   medium: ""
   #   size: 1Gi
   #   mountPath: /metastore
+  #   storageClass: "standard"
+  #   accessModes:
+  #     - ReadWriteOnce
+
 
 jobMaster:
   args:
