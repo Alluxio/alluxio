@@ -11,15 +11,16 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
+import alluxio.client.LoggingUtils;
 import alluxio.client.PositionedReadable;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.ReadRequest;
@@ -122,7 +123,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     // 3. the worker's domain socket is not configuered
     //      OR alluxio.user.short.circuit.preferred is true
     if (sourceIsLocal && shortCircuit && (shortCircuitPreferred || !sourceSupportsDomainSocket)) {
-      LOG.debug("Creating short circuit input stream for block {} @ {}", blockId, dataSource);
+      LOG.debug("Creating short circuit input stream for block {} ({}) @ {}",
+          blockId, status.getPath(), dataSource);
       try {
         return createLocalBlockInStream(context, dataSource, blockId, blockSize, options);
       } catch (NotFoundException e) {
@@ -134,8 +136,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
 
     // gRPC
-    LOG.debug("Creating gRPC input stream for block {} @ {} from client {} reading through {}",
-        blockId, dataSource, NetworkAddressUtils.getClientHostName(alluxioConf), dataSource);
+    LOG.debug("Creating gRPC input stream for block {} ({}) @ {} from client {} reading through {}",
+        blockId, status.getPath(), dataSource, NetworkAddressUtils.getClientHostName(alluxioConf),
+        dataSource);
     return createGrpcBlockInStream(context, dataSource, dataSourceType, builder.buildPartial(),
         blockSize, options);
   }
@@ -249,6 +252,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
+    return LoggingUtils.callAndLog(() -> readInternal(b, off, len),
+        LOG, "read", "id=%d,b=%s,off=%d,len=%d", mId, b, off, len);
+  }
+
+  private int readInternal(byte[] b, int off, int len) throws IOException {
     checkIfClosed();
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
@@ -276,6 +284,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
+    return LoggingUtils.callAndLog(() -> positionedReadInternal(pos, b, off, len),
+        LOG, "positionedRead", "id=%d,pos=%d,b=%s,off=%d,len=%d", mId, pos, b, off, len);
+  }
+
+  private int positionedReadInternal(long pos, byte[] b, int off, int len) throws IOException {
     if (len == 0) {
       return 0;
     }
@@ -319,6 +332,13 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   @Override
   public void seek(long pos) throws IOException {
+    LoggingUtils.callAndLog(() -> {
+      seekInternal(pos);
+      return null;
+    }, LOG, "seek", "id=%d,pos=%d", mId, pos);
+  }
+
+  private void seekInternal(long pos) throws IOException {
     checkIfClosed();
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
     Preconditions
@@ -337,6 +357,13 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   @Override
   public long skip(long n) throws IOException {
+    return LoggingUtils.callAndLog(() -> {
+      skipInternal(n);
+      return null;
+    }, LOG, "skip", "id=%d,n=%d", mId, n);
+  }
+
+  private long skipInternal(long n) throws IOException {
     checkIfClosed();
     if (n <= 0) {
       return 0;

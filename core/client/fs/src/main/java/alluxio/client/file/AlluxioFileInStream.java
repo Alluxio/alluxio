@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
+import alluxio.client.LoggingUtils;
 import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
@@ -68,6 +69,7 @@ public class AlluxioFileInStream extends FileInStream {
 
   private final int mBlockWorkerClientReadRetry;
   private final URIStatus mStatus;
+  private final String mPath;
   private final InStreamOptions mOptions;
   private final AlluxioBlockStore mBlockStore;
   private final FileSystemContext mContext;
@@ -109,6 +111,7 @@ public class AlluxioFileInStream extends FileInStream {
       mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
       mBlockWorkerClientReadRetry = conf.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
       mStatus = status;
+      mPath = status.getPath();
       mOptions = options;
       mBlockStore = AlluxioBlockStore.create(mContext);
       mLength = mStatus.getLength();
@@ -128,6 +131,22 @@ public class AlluxioFileInStream extends FileInStream {
   /* Input Stream methods */
   @Override
   public int read() throws IOException {
+    return LoggingUtils.callAndLog(() -> readInternal(),
+        LOG, "read", "file=%s", mPath);
+  }
+
+  @Override
+  public int read(byte[] b) throws IOException {
+    return read(b, 0, b.length);
+  }
+
+  @Override
+  public int read(byte[] b, int off, int len) throws IOException {
+    return LoggingUtils.callAndLog(() -> readInternal(b, off, len),
+        LOG, "read", "file=%s,b=%s,off=%d,len=%d", mPath, b, off, len);
+  }
+
+  private int readInternal() throws IOException {
     if (mPosition == mLength) { // at end of file
       return -1;
     }
@@ -152,13 +171,7 @@ public class AlluxioFileInStream extends FileInStream {
     throw lastException;
   }
 
-  @Override
-  public int read(byte[] b) throws IOException {
-    return read(b, 0, b.length);
-  }
-
-  @Override
-  public int read(byte[] b, int off, int len) throws IOException {
+  private int readInternal(byte[] b, int off, int len) throws IOException {
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
         PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
@@ -200,6 +213,11 @@ public class AlluxioFileInStream extends FileInStream {
 
   @Override
   public long skip(long n) throws IOException {
+    return LoggingUtils.callAndLog(() -> skipInternal(n),
+        LOG, "skip", "file=%s,n=%d", mPath, n);
+  }
+
+  private long skipInternal(long n) throws IOException {
     if (n <= 0) {
       return 0;
     }
@@ -225,7 +243,9 @@ public class AlluxioFileInStream extends FileInStream {
   /* Positioned Readable methods */
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
-    return positionedReadInternal(pos, b, off, len);
+    return LoggingUtils.callAndLog(() -> positionedReadInternal(pos, b, off, len),
+        LOG, "positionedReadInternal", "file=%s,pos=%d,b=%s,off=%d,len=%d", mPath, pos, b, off,
+        len);
   }
 
   private int positionedReadInternal(long pos, byte[] b, int off, int len) throws IOException {
@@ -286,6 +306,13 @@ public class AlluxioFileInStream extends FileInStream {
 
   @Override
   public void seek(long pos) throws IOException {
+    LoggingUtils.callAndLog(() -> {
+      seekInternal(pos);
+      return null;
+    }, LOG, "seek", "file=%s,pos=%d", mPath, pos);
+  }
+
+  private void seekInternal(long pos) throws IOException {
     if (mPosition == pos) {
       return;
     }
