@@ -60,8 +60,8 @@ spec:
       {{- end }}
       securityContext:
         fsGroup: {{ .Values.fsGroup }}
-      {{- if and $needJournalVolume (not $isRoot) }}
       initContainers:
+      {{- if and $needJournalVolume (not $isRoot) }}
       - name: journal-chown
         image: {{ .Values.image }}:{{ .Values.imageTag }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -71,6 +71,17 @@ spec:
         volumeMounts:
         - name: alluxio-journal
           mountPath: /journal
+      {{- end}}
+      {{- if .Values.journal.format.runFormat}}
+      - name: journal-format
+        image: {{ .Values.image }}:{{ .Values.imageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        securityContext:
+          runAsUser: {{ .Values.user }}
+        command: ["alluxio","formatJournal"]
+        volumeMounts:
+          - name: alluxio-journal
+            mountPath: /journal
       {{- end}}
       containers:
         - name: alluxio-master

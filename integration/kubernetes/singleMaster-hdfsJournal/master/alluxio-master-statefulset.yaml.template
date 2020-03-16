@@ -45,6 +45,16 @@ spec:
       nodeSelector:
       securityContext:
         fsGroup: 1000
+      initContainers:
+      - name: journal-format
+        image: alluxio/alluxio:2.3.0-SNAPSHOT
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          runAsUser: 1000
+        command: ["alluxio","formatJournal"]
+        volumeMounts:
+          - name: alluxio-journal
+            mountPath: /journal
       containers:
         - name: alluxio-master
           image: alluxio/alluxio:2.3.0-SNAPSHOT
