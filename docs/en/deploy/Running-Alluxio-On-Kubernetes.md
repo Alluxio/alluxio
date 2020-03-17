@@ -247,6 +247,9 @@ Alluxio manages local storage, including memory, on the worker Pods.
 [Multiple-Tier Storage]({{ '/en/core-services/Caching.html#multiple-tier-storage' | relativize_url }})
 can be configured using the following reference configurations.
 
+There 3 supported volume `type`: [hostPath](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath), [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) 
+and [persistentVolumeClaim](https://kubernetes.io/docs/concepts/storage/volumes/#persistentvolumeclaim).
+
 **Memory Tier Only**
 
 ```properties
@@ -279,12 +282,49 @@ tieredstore:
     low: 0.7
 ```
 
-> There 2 supported volume `type`: [hostPath](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath) and [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir)
-`hostPath` volumes can only be used by the `root` user without resource limits.
-[Local persistent volumes](https://kubernetes.io/docs/concepts/storage/volumes/#local) instead of
-`hostPath` must be configured manually as of now.
+> Note: If a `hostPath` file or directory is created at runtime, it can only be used by the `root` user.
+`hostPath` volumes do not have resource limits. 
+You can either run Alluxio containers with `root` or make sure the local paths exist and are accessible to 
+the user `alluxio` with UID and GID 1000. 
+You can find more details [here](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath).
+
+**Memory and SSD Storage in Multiple-Tiers, using PVC**
+
+You can also use PVCs for each tier and provision [PersistentVolume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
+For worker tiered storage please use either `hostPath` or `local` volume so that the worker will read and write 
+locally to achieve the best performance.
+ 
+```properties
+tieredstore:
+  levels:
+  - level: 0
+    mediumtype: MEM
+    path: /dev/shm
+    type: persistentVolumeClaim
+    name: alluxio-mem
+    quota: 1G
+    high: 0.95
+    low: 0.7
+  - level: 1
+    mediumtype: SSD
+    path: /ssd-disk
+    type: persistentVolumeClaim
+    name: alluxio-ssd
+    quota: 10G
+    high: 0.95
+    low: 0.7
+```
+
+> Note: There is one PVC per tier. 
+When the PVC is bound to a PV of type `hostPath` or `local`, each worker Pod will resolve to the local path on the Node.
+Please also note that a `local` volumes requires `nodeAffinity` and Pods using this volume can only run on the Nodes 
+specified in the `nodeAffinity` rule of this volume.
+You can find more details [here](https://kubernetes.io/docs/concepts/storage/volumes/#local).
 
 **Memory and SSD Storage in a Single-Tier**
+
+You can also have multiple volumes on the same tier.
+This configuration will create one `persistentVolumeClaim` for each volume.
 
 ```properties
 tieredstore:
@@ -292,7 +332,8 @@ tieredstore:
   - level: 0
     mediumtype: MEM,SSD
     path: /dev/shm,/alluxio-ssd
-    type: hostPath
+    type: persistentVolumeClaim
+    name: alluxio-mem,alluxio-ssd
     quota: 1GB,10GB
     high: 0.95
     low: 0.7

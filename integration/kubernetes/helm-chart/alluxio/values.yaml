@@ -134,6 +134,35 @@ journal:
 ## Worker ##
 
 # Tiered Storage
+# emptyDir example
+#  - level: 0
+#    mediumtype: MEM
+#    path: /dev/shm
+#    type: emptyDir
+#    quota: 1G
+#
+# hostPath example
+#  - level: 0
+#    mediumtype: MEM
+#    path: /dev/shm
+#    type: hostPath
+#    quota: 1G
+#
+# persistentVolumeClaim example
+#  - level: 1
+#    mediumtype: SSD
+#    type: persistentVolumeClaim
+#    name: alluxio-ssd
+#    path: /dev/ssd
+#    quota: 10G
+#
+# multi-part mediumtype example
+#  - level: 1
+#    mediumtype: SSD,HDD
+#    type: persistentVolumeClaim
+#    name: alluxio-ssd,alluxio-hdd
+#    path: /dev/ssd,/dev/hdd
+#    quota: 10G,10G
 tieredstore:
   levels:
   - level: 0
