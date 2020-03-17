@@ -160,17 +160,19 @@ resources:
 {{- define "alluxio.worker.tieredstoreVolumeMounts" -}}
   {{- if .Values.tieredstore.levels }}
     {{- range .Values.tieredstore.levels }}
+      {{- /* The mediumtype can have multiple parts like MEM,SSD */}}
       {{- if .mediumtype }}
+        {{- /* Mount each part */}}
         {{- if contains "," .mediumtype }}
-{{- $type := .type }}
-{{- $path := .path }}
-{{- $split := split "," .mediumtype }}
+          {{- $type := .type }}
+          {{- $path := .path }}
+          {{- $split := split "," .mediumtype }}
           {{- range $key, $val := $split }}
-            {{- if eq $type "hostPath"}}
-            - mountPath:  {{ index ($path | split ",") $key }}
-              name: {{ $val | lower }}-{{ $key | replace "_" "" }}
-            {{- end}}
+            {{- /* Example: For path="/tmp/mem,/tmp/ssd", mountPath resolves to /tmp/mem and /tmp/ssd */}}
+            - mountPath: {{ index ($path | split ",") $key }}
+              name: {{ $val | lower }}-{{ replace $key "_" "" }}
           {{- end}}
+        {{- /* The mediumtype is a single value. */}}
         {{- else}}
             - mountPath: {{ .path }}
               name: {{ .mediumtype | replace "," "-" | lower }}
@@ -191,18 +193,28 @@ resources:
   {{- if .Values.tieredstore.levels }}
     {{- range .Values.tieredstore.levels }}
       {{- if .mediumtype }}
+        {{- /* The mediumtype can have multiple parts like MEM,SSD */}}
         {{- if contains "," .mediumtype }}
           {{- $split := split "," .mediumtype }}
           {{- $type := .type }}
           {{- $path := .path }}
+          {{- $volumeName := .name }}
+          {{- /* A volume will be generated for each part */}}
           {{- range $key, $val := $split }}
+            {{- /* Example: For mediumtype="MEM,SSD", mediumName resolves to mem-0 and ssd-1 */}}
+            {{- $mediumName := printf "%v-%v" (lower $val) (replace $key "_" "") }}
             {{- if eq $type "hostPath"}}
         - hostPath:
             path: {{ index ($path | split ",") $key }}
             type: DirectoryOrCreate
-          name: {{ $val | lower }}-{{ $key | replace "_" "" }}
+          name: {{ $mediumName }}
+            {{- else if eq $type "persistentVolumeClaim" }}
+        - name: {{ $mediumName }}
+          persistentVolumeClaim:
+            {{- /* Example: For volumeName="/tmp/mem,/tmp/ssd", claimName resolves to /tmp/mem and /tmp/ssd */}}
+            claimName: {{ index ($volumeName | split ",") $key }}
             {{- else }}
-        - name: {{ $val | lower }}-{{ $key | replace "_" "" }}
+        - name: {{ $mediumName }}
           emptyDir:
             medium: "Memory"
               {{- if .quota }}
@@ -210,14 +222,20 @@ resources:
               {{- end}}
             {{- end}}
           {{- end}}
+        {{- /* The mediumtype is a single value like MEM. */}}
         {{- else}}
+          {{- $mediumName := .mediumtype | lower }}
           {{- if eq .type "hostPath"}}
         - hostPath:
             path: {{ .path }}
             type: DirectoryOrCreate
-          name: {{ .mediumtype | replace "," "-" | lower }}
+          name: {{ $mediumName }}
+          {{- else if eq .type "persistentVolumeClaim" }}
+        - name: {{ $mediumName }}
+          persistentVolumeClaim:
+            claimName: {{ .name }}
           {{- else }}
-        - name: {{ .mediumtype | replace "," "-" | lower }}
+        - name: {{ $mediumName }}
           emptyDir:
             medium: "Memory"
             {{- if .quota }}
