@@ -314,10 +314,9 @@ $ helm delete alluxio
 
 #### Format Journal
 
-The helm chart contains one Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
-template that can be used for formatting the Alluxio journal. 
-The template contains one Job for each Alluxio master.
-Each Job runs `alluxio formatJournal` and formats the journal for that master.
+The master Pods in the StatefulSet use a `initContainer` to format the journal on startup..
+This `initContainer` is switched on by `journal.format.runFormat=true`. 
+By default, the journal is not formatted when the master starts.
 
 You can trigger the journal formatting by upgrading the existing helm deployment with `journal.format.runFormat=true`.
 ```console
@@ -325,11 +324,11 @@ You can trigger the journal formatting by upgrading the existing helm deployment
 $ helm upgrade alluxio -f config.yaml --set journal.format.runFormat=true alluxio-local/alluxio
 ```
 
-> Note: `helm upgrade` will create the journal-formatting Job.
+> Note: `helm upgrade` will re-create the master Pods.
 
 Or you can trigger the journal formatting at deployment.
 ```console
-helm install --name alluxio -f config.yaml --set journal.format.runFormat=true alluxio-local/alluxio
+$ helm install --name alluxio -f config.yaml --set journal.format.runFormat=true alluxio-local/alluxio
 ```
 
 ### Deploy Using `kubectl`
@@ -479,22 +478,24 @@ Be careful if you have persistent volumes or other important resources you want 
 
 #### Format Journal
 
-The helm chart contains one Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
-template that can be used for formatting the Alluxio journal. 
-The template contains one Job for each Alluxio master.
-Each Job runs `alluxio formatJournal` and formats the journal for that master.
+You can manually add an `initContainer` to format the journal on Pod creation time.
+This `initContainer` will run `alluxio formatJournal` when the Pod is created and formats the journal.
 
-You can manually trigger the journal formatting by applying the Job template.
-```console
-$ cp ./job/alluxio-format-journal-job.yaml.template ./job/alluxio-format-journal-job.yaml
-# Apply the YAML file manually
-$ kubectl apply -f ./job/alluxio-format-journal-job.yaml
+```yaml
+- name: journal-format
+  image: alluxio/alluxio:{{site.ALLUXIO_VERSION_STRING}}
+  imagePullPolicy: IfNotPresent
+  securityContext:
+    runAsUser: 1000
+  command: ["alluxio","formatJournal"]
+  volumeMounts:
+    - name: alluxio-journal
+      mountPath: /journal
 ```
 
-After the Job completes, it will be deleted by Kubernetes after the defined `ttlSecondsAfterFinished`.
-Then the clean journal will be ready for a new Alluxio master(s) to start with.
-
-> Note: You should make sure the master(s) are turned off while formatting their journals.
+> Note: From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio` 
+with UID 1000 and GID 1000 by default. 
+You should make sure the journal is formatted using the same user that the Alluxio master Pod runs as. 
 
 #### Upgrade
 
