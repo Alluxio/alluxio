@@ -211,8 +211,8 @@ secrets:
 
 ***Example: Off-heap Metastore Management***
 
-The following configuration provisions an `emptyDir` volume with the specified configuration and
-configures the Alluxio master to use the mounted directory for an on-disk RocksDB-based metastore.
+The following configuration creates a `PersistentVolumeClaim` for each Alluxio master Pod with the specified 
+configuration and configures the Pod to use the volume for an on-disk RocksDB-based metastore.
 ```properties
 properties:
   alluxio.master.metastore: ROCKS
@@ -220,12 +220,12 @@ properties:
 
 master:
   metastore:
-    medium: ""
     size: 1Gi
     mountPath: /metastore
+    storageClass: "standard"
+    accessModes:
+      - ReadWriteOnce
 ```
-
-> Limitation: Limits for the disk usage are not configurable as of now.
 
 ***Example: Multiple Secrets***
 
