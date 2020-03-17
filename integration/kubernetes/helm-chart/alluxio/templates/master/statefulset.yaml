@@ -60,17 +60,17 @@ spec:
       {{- end }}
       securityContext:
         fsGroup: {{ .Values.fsGroup }}
-      {{- if and $needJournalVolume (not $isRoot) }}
       initContainers:
-      - name: journal-chown
+      {{- if .Values.journal.format.runFormat}}
+      - name: journal-format
         image: {{ .Values.image }}:{{ .Values.imageTag }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         securityContext:
-          runAsUser: 0
-        command: ["/bin/chown","-R", {{ $ugi | quote }}, "/journal"]
+          runAsUser: {{ .Values.user }}
+        command: ["alluxio","formatJournal"]
         volumeMounts:
-        - name: alluxio-journal
-          mountPath: /journal
+          - name: alluxio-journal
+            mountPath: /journal
       {{- end}}
       containers:
         - name: alluxio-master

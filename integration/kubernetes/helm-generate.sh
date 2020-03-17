@@ -38,7 +38,6 @@ function generateTemplates {
   generateConfigTemplates
   generateMasterTemplates
   generateWorkerTemplates
-  generateFormatJournalJobTemplates
   generateFuseTemplates
 }
 
@@ -51,12 +50,6 @@ function generateMasterTemplates {
   echo "Generating master templates into $dir"
   helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/statefulset.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-statefulset.yaml.template"
   helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/master/service.yaml -f $dir/config.yaml > "$dir/master/alluxio-master-service.yaml.template"
-}
-
-function generateFormatJournalJobTemplates {
-  echo "Generating format journal job templates into $dir"
-  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ --set journal.format.runFormat=true -x templates/job/format-journal-job.yaml -f $dir/config.yaml > "$dir/job/alluxio-format-journal-job.yaml.template"
-
 }
 
 function generateWorkerTemplates {
