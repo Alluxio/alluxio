@@ -168,6 +168,7 @@ resources:
           {{- $path := .path }}
           {{- $split := split "," .mediumtype }}
           {{- range $key, $val := $split }}
+            {{- /* Example: For path=/tmp/mem,/tmp/ssd, mountPath resolves to /tmp/mem and /tmp/ssd */}}
             - mountPath: {{ index ($path | split ",") $key }}
               name: {{ $val | lower }}-{{ replace $key "_" "" }}
           {{- end}}
@@ -200,6 +201,7 @@ resources:
           {{- $volumeName := .name }}
           {{- /* A volume will be generated for each part */}}
           {{- range $key, $val := $split }}
+            {{- /* Example: For mediumtype=MEM,SSD, mediumName resolves to mem-0 and ssd-1 */}}
             {{- $mediumName := printf "%v-%v" (lower $val) (replace $key "_" "") }}
             {{- if eq $type "hostPath"}}
         - hostPath:
@@ -209,6 +211,7 @@ resources:
             {{- else if eq $type "persistentVolumeClaim" }}
         - name: {{ $mediumName }}
           persistentVolumeClaim:
+            {{- /* Example: For volumeName=/tmp/mem,/tmp/ssd, claimName resolves to /tmp/mem and /tmp/ssd */}}
             claimName: {{ index ($volumeName | split ",") $key }}
             {{- else }}
         - name: {{ $mediumName }}
@@ -219,9 +222,9 @@ resources:
               {{- end}}
             {{- end}}
           {{- end}}
-        {{- /* The mediumtype is a single value. */}}
+        {{- /* The mediumtype is a single value like MEM. */}}
         {{- else}}
-          {{- $mediumName := .mediumtype | replace "," "-" | lower }}
+          {{- $mediumName := .mediumtype | lower }}
           {{- if eq .type "hostPath"}}
         - hostPath:
             path: {{ .path }}
