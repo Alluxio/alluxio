@@ -250,37 +250,6 @@ can be configured using the following reference configurations.
 There 3 supported volume `type`: [hostPath](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath), [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) 
 and [persistentVolumeClaim](https://kubernetes.io/docs/concepts/storage/volumes/#persistentvolumeclaim).
 
-
-# emptyDir example
-#  - level: 0
-#    mediumtype: MEM
-#    path: /dev/shm
-#    type: emptyDir
-#    quota: 1G
-#
-# hostPath example
-#  - level: 0
-#    mediumtype: MEM
-#    path: /dev/shm
-#    type: hostPath
-#    quota: 1G
-#
-# persistentVolumeClaim example
-#  - level: 1
-#    mediumtype: SSD
-#    type: persistentVolumeClaim
-#    name: alluxio-ssd
-#    path: /dev/ssd
-#    quota: 10G
-#
-# multi-part mediumtype example
-#  - level: 1
-#    mediumtype: SSD,HDD
-#    type: persistentVolumeClaim
-#    name: alluxio-ssd,alluxio-hdd
-#    path: /dev/ssd,/dev/hdd
-#    quota: 10G,10G
-
 **Memory Tier Only**
 
 ```properties
@@ -315,6 +284,8 @@ tieredstore:
 
 > Note: If a `hostPath` file or directory is created at runtime, it can only be used by the `root` user.
 `hostPath` volumes do not have resource limits. 
+You can either run Alluxio containers with `root` or make sure the local paths exist and are accessible to 
+the user `alluxio` with UID and GID 1000. 
 You can find more details [here](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath).
 
 **Memory and SSD Storage in Multiple-Tiers, using PVC**
