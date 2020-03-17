@@ -229,6 +229,13 @@ public class AlluxioFileInStream extends FileInStream {
 
   @Override
   public void close() throws IOException {
+    LoggingUtils.callAndLog(() -> {
+      closeInternal();
+      return null;
+    }, LOG, "close", "file=%s", mPath);
+  }
+
+  private void closeInternal() throws IOException {
     closeBlockInStream(mBlockInStream);
     closeBlockInStream(mCachedPositionedReadStream);
     mCloser.close();

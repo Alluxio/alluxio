@@ -11,6 +11,7 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.client.LoggingUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -119,6 +120,11 @@ public final class GrpcDataReader implements DataReader {
 
   @Override
   public DataBuffer readChunk() throws IOException {
+    return LoggingUtils.callAndLog(() -> readChunkInternal(),
+        LOG, "readChunk", "id=%d,pos=%d", mReadRequest.getBlockId(), mPosToRead);
+  }
+
+  private DataBuffer readChunkInternal() throws IOException {
     Preconditions.checkState(!mClient.get().isShutdown(),
         "Data reader is closed while reading data chunks.");
     DataBuffer buffer = null;
@@ -199,6 +205,11 @@ public final class GrpcDataReader implements DataReader {
 
     @Override
     public DataReader create(long offset, long len) throws IOException {
+      return LoggingUtils.callAndLog(() -> createInternal(offset, len),
+          LOG, "create", "id=%d,offset=%d,len=%d", mReadRequestPartial.getBlockId(), offset, len);
+    }
+
+    private  DataReader createInternal(long offset, long len) throws IOException {
       return new GrpcDataReader(mContext, mAddress,
           mReadRequestPartial.toBuilder().setOffset(offset).setLength(len).build());
     }

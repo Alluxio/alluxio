@@ -56,24 +56,25 @@ public final  class LoggingUtils {
   public static <V> V callAndLog(Callable<V> method, Logger logger, String methodName,
       String description, Object... args) throws IOException {
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+    long tid = Thread.currentThread().getId();
     long startMs = System.currentTimeMillis();
-    logger.debug("Enter: {}({})", methodName, debugDesc);
+    logger.debug("Enter: {}({}), tid={}", methodName, debugDesc, tid);
     try {
       V ret = method.call();
       long duration = System.currentTimeMillis() - startMs;
-      logger.debug("Exit (OK): {}({}) in {} ms", methodName, debugDesc, duration);
+      logger.debug("Exit (OK): {}({}) in {} ms, tid={}", methodName, debugDesc, duration, tid);
       if (duration >= THRESHOLD) {
-        logger.warn("{}({}) returned {} in {} ms", methodName, String.format(description, args),
-            ret, duration);
+        logger.warn("{}({}) returned {} in {} ms (>={}ms), tid={}",
+            methodName, String.format(description, args), ret, duration, THRESHOLD, tid);
       }
       return ret;
     } catch (Exception e) {
       long duration = System.currentTimeMillis() - startMs;
-      logger.debug("Exit (ERROR): {}({}) in {} ms: {}", methodName, debugDesc, duration,
-          e.toString());
+      logger.debug("Exit (ERROR): {}({}) in {} ms: {}, tid={}", methodName, debugDesc, duration,
+          e.toString(), tid);
       if (duration >= THRESHOLD) {
-        logger.warn("{}({}) failed with exception [{}] in {} ms (>={}ms)", methodName,
-            String.format(description, args), e.toString(), duration, THRESHOLD);
+        logger.warn("{}({}) failed with exception [{}] in {} ms (>={}ms), tid={}", methodName,
+            String.format(description, args), e.toString(), duration, THRESHOLD, tid);
       }
       throw e;
     }

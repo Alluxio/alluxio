@@ -11,6 +11,9 @@
 
 package alluxio.client.block.stream;
 
+import static alluxio.client.block.stream.DataWriter.Factory.LOG;
+
+import alluxio.client.LoggingUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
@@ -43,6 +46,7 @@ public final class LocalFileDataReader implements DataReader {
   private final LocalFileBlockReader mReader;
   private final long mEnd;
   private final long mChunkSize;
+  private final long mId;
   private long mPos;
   private boolean mClosed;
 
@@ -53,17 +57,25 @@ public final class LocalFileDataReader implements DataReader {
    * @param offset the offset
    * @param len the length to read
    * @param chunkSize the chunk size
+   * @param id block id
    */
-  private LocalFileDataReader(LocalFileBlockReader reader, long offset, long len, long chunkSize) {
+  private LocalFileDataReader(LocalFileBlockReader reader, long offset, long len, long chunkSize,
+      long id) {
     mReader = reader;
     Preconditions.checkArgument(chunkSize > 0);
     mPos = offset;
     mEnd = Math.min(mReader.getLength(), offset + len);
     mChunkSize = chunkSize;
+    mId = id;
   }
 
   @Override
   public DataBuffer readChunk() throws IOException {
+    return LoggingUtils.callAndLog(() -> readChunkInternal(),
+        LOG, "readChunk", "id=%d,pos=%d", mId, mPos);
+  }
+
+  private DataBuffer readChunkInternal() throws IOException {
     if (mPos >= mEnd) {
       return null;
     }
@@ -151,7 +163,7 @@ public final class LocalFileDataReader implements DataReader {
       }
       Preconditions.checkState(mReader.getUsageCount() == 0);
       mReader.increaseUsageCount();
-      return new LocalFileDataReader(mReader, offset, len, mLocalReaderChunkSize);
+      return new LocalFileDataReader(mReader, offset, len, mLocalReaderChunkSize, mBlockId);
     }
 
     @Override

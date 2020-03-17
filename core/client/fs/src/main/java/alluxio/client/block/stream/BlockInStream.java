@@ -378,6 +378,13 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   @Override
   public void close() throws IOException {
+    LoggingUtils.callAndLog(() -> {
+      closeInternal();
+      return null;
+    }, LOG, "close", "id=%d", mId);
+  }
+
+  private void closeInternal() throws IOException {
     try {
       closeDataReader();
     } finally {
