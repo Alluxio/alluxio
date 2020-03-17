@@ -173,12 +173,6 @@ spec:
           {{- end }}
       restartPolicy: Always
       volumes:
-        {{- if .Values.master.metastore }}
-        - name: alluxio-metastore
-          emptyDir:
-            medium: {{ .Values.master.metastore.medium }}
-            sizeLimit: {{ .Values.master.metastore.size | quote }}
-        {{- end }}
         {{- if .Values.secrets }}
           {{- if .Values.secrets.master }}
             {{- range $key, $val := .Values.secrets.master }}
@@ -196,8 +190,8 @@ spec:
             claimName: "{{ .name }}"
           {{- end }}
         {{- end }}
-  {{- if $needJournalVolume }}
   volumeClaimTemplates:
+  {{- if $needJournalVolume }}
     - metadata:
         name: alluxio-journal
       spec:
@@ -207,4 +201,15 @@ spec:
         resources:
           requests:
             storage: {{ .Values.journal.size }}
+  {{- end }}
+  {{- if .Values.master.metastore }}
+    - metadata:
+        name: alluxio-metastore
+      spec:
+        storageClassName: {{ .Values.master.metastore.storageClass }}
+        accessModes:
+{{ toYaml .Values.master.metastore.accessModes | indent 8 -}}
+        resources:
+          requests:
+            storage: {{ .Values.master.metastore.size }}
   {{- end }}
