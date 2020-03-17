@@ -308,7 +308,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    * @throws JobDoesNotExistException if the job does not exist
    */
   public JobInfo getStatus(long jobId) throws JobDoesNotExistException {
-    getStatus(jobId, true);
+    return getStatus(jobId, true);
   }
 
   /**
