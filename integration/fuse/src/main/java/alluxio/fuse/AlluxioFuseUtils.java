@@ -240,14 +240,16 @@ public final class AlluxioFuseUtils {
   public static int call(Logger logger, FuseCallable callable, String methodName,
       String description, Object... args) {
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
-    logger.debug("Enter: {}({})", methodName, debugDesc);
+    long tid = Thread.currentThread().getId();
+    logger.debug("Enter: {}({}), tid={}", methodName, debugDesc, tid);
     long startMs = System.currentTimeMillis();
     int ret = callable.call();
     long durationMs = System.currentTimeMillis() - startMs;
-    logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
+    logger.debug("Exit ({}): {}({}) in {} ms, tid={}",
+        ret, methodName, debugDesc, durationMs, tid);
     if (durationMs >= THRESHOLD) {
-      logger.warn("{}({}) returned {} in {} ms (>={} ms)",
-          methodName, String.format(description, args), ret, durationMs, THRESHOLD);
+      logger.warn("{}({}) returned {} in {} ms (>={} ms), tid={}",
+          methodName, String.format(description, args), ret, durationMs, THRESHOLD, tid);
     }
     return ret;
   }

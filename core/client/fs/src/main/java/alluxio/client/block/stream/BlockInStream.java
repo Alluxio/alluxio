@@ -409,7 +409,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
 
     if (mCurrentChunk != null && mCurrentChunk.readableBytes() == 0) {
-      mCurrentChunk.release();
+      LoggingUtils.callAndLog(() -> {
+        mCurrentChunk.release();
+        return null;
+      }, LOG, "mCurrentChunk.release", "");
       mCurrentChunk = null;
     }
     if (mCurrentChunk == null) {
@@ -422,11 +425,17 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    */
   private void closeDataReader() throws IOException {
     if (mCurrentChunk != null) {
-      mCurrentChunk.release();
+      LoggingUtils.callAndLog(() -> {
+        mCurrentChunk.release();
+        return null;
+      }, LOG, "mCurrentChunk.release", "");
       mCurrentChunk = null;
     }
     if (mDataReader != null) {
-      mDataReader.close();
+      LoggingUtils.callAndLog(() -> {
+        mDataReader.close();
+        return null;
+      }, LOG, "mDataReader.release", "");
     }
     mDataReader = null;
   }
