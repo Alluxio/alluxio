@@ -44,3 +44,5 @@ then
   # run sonar analysis
   mvn $(echo "${ALLUXIO_SONAR_ARGS}") sonar:sonar
 fi
+
+go run docs/check.go
