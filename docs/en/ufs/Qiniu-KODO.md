@@ -2,7 +2,7 @@
 layout: global
 title: Qiniu Kodo
 nickname: Qiniu Kodo
-group: Under Store
+group: Storage Integrations
 priority: 4
 ---
 
