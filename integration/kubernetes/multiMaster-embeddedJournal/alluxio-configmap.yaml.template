@@ -23,7 +23,7 @@ metadata:
   labels:
     name: alluxio-config
     app: alluxio
-    chart: alluxio-0.5.6
+    chart: alluxio-0.5.7
     release: alluxio
     heritage: Tiller
 data:

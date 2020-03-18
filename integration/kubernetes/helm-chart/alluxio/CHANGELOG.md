@@ -57,3 +57,9 @@
 
 - Added readiness and liveness probes for master and worker containers
 - Removed formatting script under format/
+
+0.5.7
+
+- Moved journal formatting from job/format-journal-job.yaml to initContainer in master/statefulset.yaml
+- Changed the master RocksDB metastore volume from emptyDir to PVC
+- Added support for using PVC for tiered storage
