@@ -144,6 +144,7 @@ import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
+import alluxio.underfs.UfsStatusCache;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.ListOptions;
@@ -2375,31 +2376,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
    * @param rpcContext the rpc context
    * @param inodePath the path for which metadata should be loaded
    * @param context the load metadata context
-   * @throws AccessControlException if permission checking fails
-   * @throws BlockInfoException if an invalid block size is encountered
-   * @throws FileAlreadyCompletedException if the file is already completed
-   * @throws FileDoesNotExistException if there is no UFS path
-   * @throws InvalidFileSizeException if invalid file size is encountered
-   * @throws InvalidPathException if invalid path is encountered
-   */
-  private void loadMetadataInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      LoadMetadataContext context)
-      throws AccessControlException, BlockInfoException, FileAlreadyCompletedException,
-      FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException {
-    loadMetadataInternal(rpcContext, inodePath, context, null);
-  }
-
-  /**
-   * Loads metadata for the object identified by the given path from UFS into Alluxio.
-   *
-   * This operation requires users to have WRITE permission on the path
-   * and its parent path if path is a file, or WRITE permission on the
-   * parent path if path is a directory.
-   *
-   * @param rpcContext the rpc context
-   * @param inodePath the path for which metadata should be loaded
-   * @param context the load metadata context
    * @param statusCache UFS statuses which has already been retrieved for the {@code inodePath}
+   *                    This can be set to null if no status cache is available
+   * @param shouldParallelize if set to true and we are loading metadata for child inodes, then it
+   *                          will load metadata for separate paths concurrently. This should only
+   *                          be set to true if the calling thread doesn't already hold a write
+   *                          lock. If a write lock is held, and this parameter is true, this will
+   *                          cause a deadlock
    * @throws AccessControlException if permission checking fails
    * @throws BlockInfoException if an invalid block size is encountered
    * @throws FileAlreadyCompletedException if the file is already completed
@@ -2408,7 +2391,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
    * @throws InvalidPathException if invalid path is encountered
    */
   private void loadMetadataInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      LoadMetadataContext context, @Nullable Map<AlluxioURI, UfsStatus> statusCache)
+      LoadMetadataContext context, @Nullable UfsStatusCache statusCache, boolean shouldParallelize)
       throws AccessControlException, BlockInfoException, FileAlreadyCompletedException,
       FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException {
     AlluxioURI path = inodePath.getUri();
@@ -2472,10 +2455,27 @@ public final class DefaultFileSystemMaster extends CoreMaster
           // Level-ordered traversal starting at the root.
           for (Integer key : buckets.keySet().stream().sorted().collect(Collectors.toList())) {
             ConcurrentHashSet<UfsStatus> stats = buckets.get(key);
-            Stream<UfsStatus> stream = stats.stream().parallel();
+            Stream<UfsStatus> stream = stats.stream();
+
+            if (shouldParallelize && inodePath.getLockPattern() != LockPattern.READ) {
+              String stackTrace = Arrays.stream(Thread.currentThread().getStackTrace())
+                  .map(StackTraceElement::toString)
+                  .reduce((e1, e2) -> String.join(System.lineSeparator(), e1, e2))
+                  .orElse("");
+              LOG.error("The caller asked to parallelize loading metadata, but the locking scheme"
+                  + " is {}. This would have caused a deadlock! stacktrace: {}",
+                  inodePath.getLockPattern(), stackTrace);
+              shouldParallelize = false;
+            }
+
+            if (shouldParallelize) {
+              stream = stream.parallel();
+            }
             List<Exception> exs = stream
                 .map(child -> processLoadMetadataChildren(inodePath, rpcContext, context, child))
-                .filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
             if (exs.size() > 0) {
               AggregateException e = new AggregateException(exs);
               LOG.error("Failed to loadMetadata: inodePath={}, context={}", inodePath.getUri(),
@@ -2514,7 +2514,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
               .setLoadDescendantType(LoadDescendantPType.NONE).setCreateAncestors(false))
           .setUfsStatus(childStatus);
       try {
-        loadMetadataInternal(rpcContext, descendant, loadMetadataContext);
+        loadMetadataInternal(rpcContext, descendant, loadMetadataContext, null, false);
       } catch (FileNotFoundException e) {
         LOG.debug(
             "Failed to loadMetadata because file is not in ufs:"
@@ -2728,7 +2728,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
     }
     if (!inodeExists || loadDirectChildren) {
       try {
-        loadMetadataInternal(rpcContext, inodePath, context);
+        // since the inodePath is READ locked we can parallelize
+        loadMetadataInternal(rpcContext, inodePath, context, null, true);
       } catch (AlluxioException | IOException e) {
         LOG.debug("Failed to load metadata for path from UFS: {}", inodePath.getUri(), e);
       }
@@ -3303,7 +3304,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         // full sync
         LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, true);
         // Populate the status cache before taking a write lock
-        Map<AlluxioURI, UfsStatus> statusCache;
+        UfsStatusCache statusCache;
         try (LockedInodePath inodePath =
             mInodeTree.lockInodePath(lockingScheme.getPath(), LockPattern.READ)) {
           statusCache = populateStatusCache(path, DescendantType.ALL);
@@ -3318,7 +3319,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         return;
       } else {
         // incremental sync
-        Map<AlluxioURI, UfsStatus> statusCache = populateStatusCache(
+        UfsStatusCache statusCache = populateStatusCache(
             PathUtils.findLowestCommonAncestor(changedFiles), DescendantType.ALL);
         Set<Callable<Void>> callables = new HashSet<>();
         for (AlluxioURI changedFile : changedFiles) {
@@ -3386,7 +3387,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     return result;
   }
 
-  private Map<AlluxioURI, UfsStatus> populateStatusCache(AlluxioURI path,
+  private UfsStatusCache populateStatusCache(AlluxioURI path,
       DescendantType syncDescendantType) {
     Map<AlluxioURI, UfsStatus> statusCache = new HashMap<>();
     try {
@@ -3412,10 +3413,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
         } catch (Exception e) {
           LOG.debug("ListStatus failed as an preparation step for syncMetadata {}", path, e);
         }
-        return statusCache;
+        return new UfsStatusCache(ufsUri, statusCache);
       }
     } catch (InvalidPathException e) {
-      return statusCache;
+      return new UfsStatusCache(new AlluxioURI(""), statusCache);
     }
   }
 
@@ -3432,8 +3433,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
    * @return true if the sync was performed successfully, false otherwise (including errors)
    */
   private boolean syncMetadataInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      LockingScheme lockingScheme, DescendantType syncDescendantType,
-      Map<AlluxioURI, UfsStatus> statusCache)
+      LockingScheme lockingScheme, DescendantType syncDescendantType, UfsStatusCache statusCache)
       throws IOException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
@@ -3449,7 +3449,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
     Set<String> pathsToLoad = new HashSet<>();
 
-    long start = System.currentTimeMillis();
     try {
       if (!inodePath.fullPathExists()) {
         // The requested path does not exist in Alluxio, so just load metadata.
@@ -3471,13 +3470,19 @@ public final class DefaultFileSystemMaster extends CoreMaster
       inodePath.downgradeToPattern(lockingScheme.getDesiredPattern());
     }
 
+    boolean shouldParallelize = lockingScheme.getDesiredPattern() == LockPattern.READ;
+
     // Update metadata for all the mount points
     for (String mountPoint : pathsToLoad) {
       if (Thread.currentThread().isInterrupted()) {
         LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
         return false;
       }
+      UfsStatusCache cache = null;
       AlluxioURI mountPointUri = new AlluxioURI(mountPoint);
+      if (statusCache.getUfsUri().equals(mountPointUri)) {
+        cache = statusCache;
+      }
       try {
         if (PathUtils.hasPrefix(inodePath.getUri().getPath(), mountPointUri.getPath())) {
           // one of the mountpoint is above the original inodePath, we start loading from the
@@ -3487,7 +3492,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
                 LoadMetadataContext
                     .mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
                         .setLoadDescendantType(GrpcUtils.toProto(syncDescendantType))),
-                statusCache);
+                cache, shouldParallelize);
 
             mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath(), syncDescendantType);
           } catch (Exception e) {
@@ -3503,7 +3508,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
                   LoadMetadataContext
                       .mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
                           .setLoadDescendantType(GrpcUtils.toProto(syncDescendantType))),
-                  statusCache);
+                  cache, shouldParallelize);
             } catch (Exception e) {
               LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
             }
@@ -3574,7 +3579,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
    *         metadata is required
    */
   private SyncResult syncInodeMetadata(RpcContext rpcContext, LockedInodePath inodePath,
-      final DescendantType syncDescendantType, Map<AlluxioURI, UfsStatus> statusCache)
+      final DescendantType syncDescendantType, UfsStatusCache statusCache)
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
@@ -3585,11 +3590,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
     // Set to true if the given inode was deleted.
     boolean deletedInode = false;
     // Set of paths to sync
-    Set<String> pathsToLoad = new ConcurrentHashSet<>();
+    Set<String> pathsToLoad = new HashSet<>();
     LOG.debug("Syncing inode metadata {}", inodePath.getUri());
-    // The options for deleting.
-    DeleteContext syncDeleteContext = DeleteContext.mergeFrom(
-        DeletePOptions.newBuilder().setRecursive(true).setAlluxioOnly(true).setUnchecked(true));
 
     // The requested path already exists in Alluxio.
     Inode inode = inodePath.getInode();
@@ -3649,6 +3651,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
       }
       if (syncPlan.toDelete()) {
         try {
+          // The options for deleting.
+          DeleteContext syncDeleteContext = DeleteContext.mergeFrom(DeletePOptions.newBuilder()
+                  .setRecursive(true)
+                  .setAlluxioOnly(true)
+                  .setUnchecked(true));
           deleteInternal(rpcContext, inodePath, syncDeleteContext);
 
           deletedInode = true;
