@@ -217,7 +217,7 @@ $ git push origin awesome_feature
 新开发者可以通过以下资料和教程来进一步熟悉并贡献Alluxio:
 
 1. [本地运行Alluxio]({{ '/cn/deploy/Running-Alluxio-Locally.html' | relativize_url }})
-1. [集群上运行Alluxio]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html.html' | relativize_url }})
+1. [集群上运行Alluxio]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }})
 1. 阅读[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }})和[命令行相关操作]({{ '/cn/operation/User-CLI.html' | relativize_url }})
 1. 阅读[示范代码](https://github.com/alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/BasicOperations.java)
 1. [编译Alluxio源代码]({{ '/cn/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
