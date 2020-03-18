@@ -896,6 +896,11 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       worker.addLostStorage(lostStorage);
     }
     if (options.getConfigsCount() > 0) {
+      // TODO(jiacheng): verify config
+      List<ConfigProperty> workerConfigs = options.getConfigsList();
+      for (ConfigProperty cp : workerConfigs) {
+        LOG.warn("Got worker config {}", cp);
+      }
       for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
         WorkerNetAddress workerAddress = worker.getWorkerAddress();
         function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()),

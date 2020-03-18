@@ -62,6 +62,7 @@ public class ServerConfigurationStore {
    * @param configList the configuration of this node
    */
   public synchronized void registerNewConf(Address address, List<ConfigProperty> configList) {
+    // TODO(jiacheng): register here?
     Preconditions.checkNotNull(address, "address should not be null");
     Preconditions.checkNotNull(configList, "configuration list should not be null");
     // Instead of recording property name, we record property key.
