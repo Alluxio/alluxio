@@ -17,8 +17,6 @@ ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/alluxio-2.2.1-SNAPSHOT-client
 # e.g. Javadoc:      https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION: 2.2
 # e.g. REST API doc: https://docs.alluxio.io/os/restdoc/{{site.ALLUXIO_MAJOR_VERSION: 2.2
 ALLUXIO_MAJOR_VERSION: 2.2
-# The version string must match the version of the K8s helm chart
-ALLUXIO_HELM_VERSION_STRING: 0.5.2
 
 # These attach the pages of different languages with different 'lang' attributes
 defaults:

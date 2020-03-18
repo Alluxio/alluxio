@@ -73,7 +73,7 @@ spec:
   capacity:
     storage: 1Gi
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   hostPath:
     path: /tmp/alluxio-journal-0
 ```
@@ -92,20 +92,15 @@ There are other ways to create Persistent Volumes as documented [here](https://k
 
 #### Prerequisites
 
-You should have helm 2.X installed. You can install helm following instructions [here](https://v2.helm.sh/docs/using_helm/#install-helm).
+A. Install Helm
 
-A helm repo with the Alluxio helm chart must be available.
+You should have helm 2.X installed.
+You can install helm following instructions [here](https://v2.helm.sh/docs/using_helm/#install-helm).
 
-(Optional) To prepare a local helm repository:
+B. A helm repo with the Alluxio helm chart must be available.
+
 ```console
-$ helm init
-$ helm package helm-chart/alluxio/
-$ mkdir -p helm-chart/charts/
-$ cp alluxio-{{site.ALLUXIO_HELM_VERSION_STRING}}.tgz helm-chart/charts/
-$ helm repo index helm-chart/charts/
-$ helm serve --repo-path helm-chart/charts
-$ helm repo add alluxio-local http://127.0.0.1:8879
-$ helm repo update alluxio-local
+$ helm repo add alluxio-charts https://alluxio-charts.storage.googleapis.com/openSource/{{site.ALLUXIO_VERSION_STRING}}
 ```
 
 #### Configuration
@@ -120,7 +115,7 @@ properties:
 
 To view the complete list of supported properties run the `helm inspect` command:
 ```console
-$ helm inspect values alluxio-local/alluxio
+$ helm inspect values alluxio-charts/alluxio
 ```
 
 The remainder of this section describes various configuration options with examples.
@@ -302,7 +297,7 @@ tieredstore:
 
 Once the configuration is finalized in a file named `config.yaml`, install as follows:
 ```console
-helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_HELM_VERSION_STRING}}
+$ helm install --name alluxio -f config.yaml alluxio-charts/alluxio
 ```
 
 #### Uninstall
@@ -322,14 +317,14 @@ Each Job runs `alluxio formatJournal` and formats the journal for that master.
 You can trigger the journal formatting by upgrading the existing helm deployment with `journal.format.runFormat=true`.
 ```console
 # Use the same config.yaml and switch on journal formatting
-$ helm upgrade alluxio -f config.yaml --set journal.format.runFormat=true alluxio-local/alluxio
+$ helm upgrade alluxio -f config.yaml --set journal.format.runFormat=true alluxio-charts/alluxio
 ```
 
 > Note: `helm upgrade` will create the journal-formatting Job.
 
 Or you can trigger the journal formatting at deployment.
 ```console
-helm install --name alluxio -f config.yaml --set journal.format.runFormat=true alluxio-local/alluxio
+$ helm install --name alluxio -f config.yaml --set journal.format.runFormat=true alluxio-charts/alluxio
 ```
 
 ### Deploy Using `kubectl`
@@ -647,7 +642,7 @@ Then follow the steps to install Alluxio with helm [here]({{ '/en/deploy/Running
 
 If Alluxio has already been deployed with helm and now you want to enable FUSE, you use `helm upgrade` to add the FUSE daemons.
 ```console
-$ helm upgrade alluxio -f config.yaml --set fuse.enabled=true --set fuse.clientEnabled=true alluxio-local/alluxio
+$ helm upgrade alluxio -f config.yaml --set fuse.enabled=true --set fuse.clientEnabled=true alluxio-charts/alluxio
 ```
 
 ## Troubleshooting
