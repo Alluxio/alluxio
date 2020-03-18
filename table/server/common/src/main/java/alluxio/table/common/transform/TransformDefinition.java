@@ -26,18 +26,20 @@ import java.util.Properties;
 public class TransformDefinition {
   private final String mDefinition;
   private final List<TransformAction> mActions;
+  private final Properties mProperties;
 
   /**
    * The user-provided definition is normalized by:
    * 1. trimming whitespaces and semicolon from the beginning and end;
    * 2. normalize to lower case.
-   *
-   * @param definition the string definition
+   *  @param definition the string definition
    * @param actions the list of actions
+   * @param properties the list of properties extracted from definition
    */
-  private TransformDefinition(String definition, List<TransformAction> actions) {
+  private TransformDefinition(String definition, List<TransformAction> actions, Properties properties) {
     mDefinition = normalize(definition);
     mActions = actions;
+    mProperties = properties;
   }
 
   private String normalize(String definition) {
@@ -63,6 +65,13 @@ public class TransformDefinition {
   }
 
   /**
+   * @return the list of properties extracted from the user-provided definition
+   */
+  public Properties getProperties() {
+    return mProperties;
+  }
+
+  /**
    * @param definition the string definition
    * @return the {@link TransformDefinition} representation
    */
@@ -70,7 +79,7 @@ public class TransformDefinition {
     definition = definition.trim();
 
     if (definition.isEmpty()) {
-      return new TransformDefinition(definition, Collections.emptyList());
+      return new TransformDefinition(definition, Collections.emptyList(), new Properties());
     }
 
     // accept semicolon as new lines for inline definitions
@@ -84,11 +93,11 @@ public class TransformDefinition {
       properties.load(reader);
     } catch (IOException e) {
       // The only way this throws an IOException is if the definition is null which isn't possible.
-      return new TransformDefinition(definition, Collections.emptyList());
+      return new TransformDefinition(definition, Collections.emptyList(), properties);
     }
 
     final List<TransformAction> actions = TransformActionRegistry.create(properties);
 
-    return new TransformDefinition(definition, actions);
+    return new TransformDefinition(definition, actions, properties);
   }
 }

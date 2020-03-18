@@ -35,11 +35,13 @@ public final class CompactConfig implements PlanConfig {
 
   private static final String NAME = "Compact";
 
-  private final PartitionInfo mPartitionInfo;
+  private final PartitionInfo mInputPartitionInfo;
   /**
    * Files directly under this directory are compacted.
    */
   private final String mInput;
+
+  private final PartitionInfo mOutputPartitionInfo;
   /**
    * Compacted files are stored under this directory.
    */
@@ -54,29 +56,39 @@ public final class CompactConfig implements PlanConfig {
   private final long mMinFileSize;
 
   /**
-   * @param partitionInfo the partition info
+   * @param inputPartitionInfo the input partition info
    * @param input the input directory
+   * @param outputPartitionInfo the output partition info
    * @param output the output directory
    * @param maxNumFiles the maximum number of files after compaction
    * @param minFileSize the minimum file size for coalescing
    */
-  public CompactConfig(@JsonProperty("partitionInfo") PartitionInfo partitionInfo,
+  public CompactConfig(@JsonProperty("inputPartitionInfo") PartitionInfo inputPartitionInfo,
                        @JsonProperty("input") String input,
+                       @JsonProperty("outputPartitionInfo") PartitionInfo outputPartitionInfo,
                        @JsonProperty("output") String output,
                        @JsonProperty("maxNumFiles") Integer maxNumFiles,
                        @JsonProperty("minFileSize") Long minFileSize) {
-    mPartitionInfo = partitionInfo;
+    mInputPartitionInfo = inputPartitionInfo;
     mInput = Preconditions.checkNotNull(input, "input");
+    mOutputPartitionInfo = outputPartitionInfo;
     mOutput = Preconditions.checkNotNull(output, "output");
     mMaxNumFiles = Preconditions.checkNotNull(maxNumFiles, "maxNumFiles");
     mMinFileSize = Preconditions.checkNotNull(minFileSize, "minFileSize");
   }
 
   /**
-   * @return the partition info
+   * @return the input partition info
    */
-  public PartitionInfo getPartitionInfo() {
-    return mPartitionInfo;
+  public PartitionInfo getInputPartitionInfo() {
+    return mInputPartitionInfo;
+  }
+
+  /**
+   * @return the output partition info
+   */
+  public PartitionInfo getOutputPartitionInfo() {
+    return mOutputPartitionInfo;
   }
 
   /**
@@ -119,7 +131,7 @@ public final class CompactConfig implements PlanConfig {
       return false;
     }
     CompactConfig that = (CompactConfig) obj;
-    return mPartitionInfo.equals(that.mPartitionInfo)
+    return mInputPartitionInfo.equals(that.mInputPartitionInfo)
         && mInput.equals(that.mInput)
         && mOutput.equals(that.mOutput)
         && mMaxNumFiles == that.mMaxNumFiles
@@ -128,7 +140,7 @@ public final class CompactConfig implements PlanConfig {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPartitionInfo, mInput, mOutput, mMaxNumFiles, mMinFileSize);
+    return Objects.hashCode(mInputPartitionInfo, mInput, mOutput, mMaxNumFiles, mMinFileSize);
   }
 
   @Override
@@ -138,7 +150,7 @@ public final class CompactConfig implements PlanConfig {
         .add("output", mOutput)
         .add("maxNumFiles", mMaxNumFiles)
         .add("minFileSize", mMinFileSize)
-        .add("partitionInfo", mPartitionInfo)
+        .add("partitionInfo", mInputPartitionInfo)
         .toString();
   }
 

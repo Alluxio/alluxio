@@ -91,7 +91,9 @@ public class CompactAction implements TransformAction {
   public JobConfig generateJobConfig(Layout base, Layout transformed, boolean deleteSrc) {
     alluxio.job.plan.transform.PartitionInfo basePartitionInfo =
         TransformActionUtils.generatePartitionInfo(base);
+    alluxio.job.plan.transform.PartitionInfo transformedPartitionInfo =
+        TransformActionUtils.generatePartitionInfo(transformed);
     return new CompactConfig(basePartitionInfo, base.getLocation().toString(),
-        transformed.getLocation().toString(), mNumFiles, mFileSize);
+        transformedPartitionInfo, transformed.getLocation().toString(), mNumFiles, mFileSize);
   }
 }

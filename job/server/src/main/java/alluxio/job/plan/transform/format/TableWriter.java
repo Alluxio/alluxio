@@ -12,8 +12,10 @@
 package alluxio.job.plan.transform.format;
 
 import alluxio.AlluxioURI;
+import alluxio.job.plan.transform.PartitionInfo;
 import alluxio.job.plan.transform.format.parquet.ParquetWriter;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 
@@ -28,6 +30,11 @@ public interface TableWriter extends Closeable {
    * @throws IOException when failed to create the writer
    */
   static TableWriter create(TableSchema schema, AlluxioURI uri) throws IOException {
+    return create(schema, uri, null);
+  }
+
+  static TableWriter create(TableSchema schema, AlluxioURI uri,
+                            @Nullable PartitionInfo partitionInfo) throws IOException {
     ReadWriterUtils.checkUri(uri);
     return ParquetWriter.create(schema, uri);
   }

@@ -97,10 +97,10 @@ public final class CompactDefinition
     int maxNumFiles = config.getMaxNumFiles();
     long groupMinSize = config.getMinFileSize();
 
-    if (!files.isEmpty() && config.getPartitionInfo() != null) {
+    if (!files.isEmpty() && config.getInputPartitionInfo() != null) {
       // adjust the group minimum size for source compression ratio
       groupMinSize *= COMPRESSION_RATIO.get(
-          config.getPartitionInfo().getFormat(files.get(0).getName()));
+          config.getInputPartitionInfo().getFormat(files.get(0).getName()));
     }
 
     if (totalFileSize / groupMinSize > maxNumFiles) {
@@ -182,14 +182,15 @@ public final class CompactDefinition
 
       TableSchema schema;
       try (TableReader reader = TableReader.create(new AlluxioURI(inputs.get(0)),
-          config.getPartitionInfo())) {
+          config.getInputPartitionInfo())) {
         schema = reader.getSchema();
       }
 
-      try (TableWriter writer = TableWriter.create(schema, output)) {
+      try (TableWriter writer = TableWriter.create(schema, output,
+          config.getOutputPartitionInfo())) {
         for (String input : inputs) {
           try (TableReader reader = TableReader.create(new AlluxioURI(input),
-              config.getPartitionInfo())) {
+              config.getInputPartitionInfo())) {
             for (TableRow row = reader.read(); row != null; row = reader.read()) {
               writer.write(row);
             }

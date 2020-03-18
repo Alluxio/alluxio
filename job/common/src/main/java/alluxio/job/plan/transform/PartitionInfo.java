@@ -27,6 +27,11 @@ import java.util.HashMap;
 public class PartitionInfo implements Serializable {
   private static final long serialVersionUID = 6905153658064056381L;
 
+  /**
+   * Key in Serde Properties to denote parquet compression method
+   */
+  public static final String PARQUET_COMPRESSION = "parquet.compression";
+
   private final String mSerdeClass;
   private final String mInputFormatClass;
   private final HashMap<String, String> mSerdeProperties;
