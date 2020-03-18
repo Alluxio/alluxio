@@ -17,7 +17,7 @@ metadata:
   name: alluxio-worker
   labels:
     app: alluxio
-    chart: alluxio-0.5.5
+    chart: alluxio-0.5.6
     release: alluxio
     heritage: Tiller
     role: alluxio-worker
@@ -31,7 +31,7 @@ spec:
     metadata:
       labels:
         app: alluxio
-        chart: alluxio-0.5.5
+        chart: alluxio-0.5.6
         release: alluxio
         heritage: Tiller
         role: alluxio-worker
@@ -76,6 +76,16 @@ spec:
           envFrom:
           - configMapRef:
               name: alluxio-config
+          readinessProbe:
+            exec:
+              command: ["alluxio-monitor.sh", "worker"]
+          livenessProbe:
+            exec:
+              command: ["alluxio-monitor.sh", "worker"]
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 2
           ports:
           - containerPort: 29999
             name: rpc
@@ -110,6 +120,16 @@ spec:
           envFrom:
           - configMapRef:
               name: alluxio-config
+          readinessProbe:
+            exec:
+              command: ["alluxio-monitor.sh", "job_worker"]
+          livenessProbe:
+            exec:
+              command: ["alluxio-monitor.sh", "job_worker"]
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 2
           ports:
           - containerPort: 30001
             name: job-rpc

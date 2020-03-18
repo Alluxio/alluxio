@@ -52,3 +52,8 @@
 0.5.5
 
 - Removed extra resources created by Helm install https://github.com/Alluxio/alluxio/issues/10321
+
+0.5.6
+
+- Added readiness and liveness probes for master and worker containers
+- Removed formatting script under format/
