@@ -12,7 +12,6 @@
 package alluxio.job.plan.transform.format;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
 
 import alluxio.AlluxioURI;
 import alluxio.job.plan.transform.BaseTransformTest;
@@ -21,14 +20,11 @@ import alluxio.job.plan.transform.PartitionInfo;
 import alluxio.job.plan.transform.format.parquet.ParquetRow;
 import alluxio.job.plan.transform.format.parquet.ParquetSchema;
 
-import alluxio.job.plan.transform.format.parquet.ParquetWriter;
 import com.google.common.collect.Lists;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
