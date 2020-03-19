@@ -36,7 +36,8 @@ public class TransformDefinition {
    * @param actions the list of actions
    * @param properties the list of properties extracted from definition
    */
-  private TransformDefinition(String definition, List<TransformAction> actions, Properties properties) {
+  private TransformDefinition(String definition, List<TransformAction> actions,
+                              Properties properties) {
     mDefinition = normalize(definition);
     mActions = actions;
     mProperties = properties;

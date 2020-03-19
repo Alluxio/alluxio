@@ -73,8 +73,11 @@ public final class ParquetWriter implements TableWriter {
    */
   public static ParquetWriter create(TableSchema schema, AlluxioURI uri,
                                      PartitionInfo partitionInfo) throws IOException {
-    final String compressionCodec = partitionInfo.getSerdeProperties().getOrDefault(
-        PartitionInfo.PARQUET_COMPRESSION, DEFAULT_COMPRESSION_CODEC);
+    String compressionCodec = DEFAULT_COMPRESSION_CODEC;
+    if (partitionInfo != null) {
+      compressionCodec = partitionInfo.getSerdeProperties().getOrDefault(
+          PartitionInfo.PARQUET_COMPRESSION, DEFAULT_COMPRESSION_CODEC);
+    }
     return ParquetWriter.create(schema, uri, ROW_GROUP_SIZE, true, compressionCodec);
   }
 

@@ -117,7 +117,8 @@ public class HiveLayout implements Layout {
     final Properties properties = definition.getProperties();
 
     // TODO(cc): assumption here is the transformed data is in Parquet format.
-    final StorageFormat.Builder storageFormatBuilder = mPartitionInfo.getStorage().getStorageFormat().toBuilder()
+    final StorageFormat.Builder storageFormatBuilder = mPartitionInfo.getStorage()
+        .getStorageFormat().toBuilder()
         .setSerde(HiveConstants.PARQUET_SERDE_CLASS)
         .setInputFormat(HiveConstants.PARQUET_INPUT_FORMAT_CLASS)
         .setOutputFormat(HiveConstants.PARQUET_OUTPUT_FORMAT_CLASS);
