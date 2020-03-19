@@ -106,6 +106,15 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
     List<ConfigProperty> configList =
         ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
+    // TODO(jiacheng): verify here
+    String workerHostname = ServerConfiguration.global().get(PropertyKey.WORKER_HOSTNAME);
+    LOG.warn("WORKER_HOSTNAME set to {}", workerHostname);
+    for (ConfigProperty cp : configList) {
+      if (cp.getName().equals(PropertyKey.WORKER_HOSTNAME.getName())) {
+        LOG.warn("Found WORKER_HOSTNAME in ConfigProperty {} ", cp.getValue());
+      }
+    }
+
     mMasterClient.register(mWorkerId.get(),
         storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
         storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
