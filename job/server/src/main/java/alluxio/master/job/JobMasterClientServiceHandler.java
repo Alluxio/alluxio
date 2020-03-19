@@ -83,7 +83,7 @@ public class JobMasterClientServiceHandler
     {
       return GetJobStatusDetailedPResponse.newBuilder()
           .setJobInfo(mJobMaster.getStatus(request.getJobId(), true).toProto()).build();
-    }, "getJobStatus", "request=%s", responseObserver, request);
+    }, "getJobStatusDetailed", "request=%s", responseObserver, request);
   }
 
   @Override
