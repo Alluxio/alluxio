@@ -24,8 +24,6 @@ import com.google.common.collect.Lists;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -40,7 +38,6 @@ import java.util.zip.GZIPOutputStream;
 /**
  * Tests {@link TableReader} and {@link TableWriter}.
  */
-@RunWith(PowerMockRunner.class)
 public final class ReadWriteTest extends BaseTransformTest {
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();
