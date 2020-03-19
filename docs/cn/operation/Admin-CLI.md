@@ -1,17 +1,16 @@
 ---
 layout: global
 title: 管理员命令行接口
-group: Features
 group: Operations
 priority: 2
 ---
- 
+
 * 目录
 {:toc}
- 
+
 Alluxio的管理员命令行接口为管理员提供了管理Alluxio文件系统的操作。
 您可以调用以下命令行来获取所有子命令：
- 
+
 ```console
 $ ./bin/alluxio fsadmin
 Usage: alluxio fsadmin [generic options]
@@ -19,11 +18,11 @@ Usage: alluxio fsadmin [generic options]
        [ufs --mode <noAccess/readOnly/readWrite> <ufsPath>]
        ...
 ```
- 
+
 以UFS URI作为参数的`fsadmin ufs`子命令，参数应该是像`hdfs://<name-service>/`这样的根UFS URI，而不是`hdfs://<name-service>/<folder>`。
- 
+
 ## 操作列表
- 
+
 <table class="table table-striped">
   <tr><th>操作</th><th>语法</th><th>描述</th></tr>
   {% for item in site.data.table.fsadmin-command %}
@@ -34,7 +33,7 @@ Usage: alluxio fsadmin [generic options]
     </tr>
   {% endfor %}
 </table>
- 
+
 ## 示例用例
 
 ### backup(备份)
