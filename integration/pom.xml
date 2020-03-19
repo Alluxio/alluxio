@@ -21,6 +21,10 @@
   <packaging>pom</packaging>
   <name>Alluxio Integration</name>
   <description>Parent POM for different integrations with Alluxio</description>
+  <modules>
+    <!-- exclude checker from hadoop-1 profile as yarn is not available in Hadoop 1.x -->
+    <module>fuse</module>
+  </modules>
 
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
@@ -29,24 +33,15 @@
   </properties>
   <profiles>
     <profile>
-      <id>hadoop-1</id>
-      <modules>
-        <!-- exclude checker from hadoop-1 profile as yarn is not available in Hadoop 1.x -->
-        <module>fuse</module>
-      </modules>
-    </profile>
-    <profile>
       <id>hadoop-2</id>
       <modules>
         <module>checker</module>
-        <module>fuse</module>
       </modules>
     </profile>
     <profile>
       <id>hadoop-3</id>
       <modules>
         <module>checker</module>
-        <module>fuse</module>
       </modules>
     </profile>
   </profiles>
