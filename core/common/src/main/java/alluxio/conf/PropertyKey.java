@@ -2328,6 +2328,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
       .setScope(Scope.WORKER)
       .build();
+  public static final PropertyKey WORKER_NODE_HOSTNAME = new Builder(Name.WORKER_NODE_HOSTNAME)
+          .setDescription("The node hostname if provided").setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.WORKER).build();
   public static final PropertyKey WORKER_KEYTAB_FILE = new Builder(Name.WORKER_KEYTAB_FILE)
       .setDescription("Kerberos keytab file for Alluxio worker.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)

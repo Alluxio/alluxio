@@ -904,7 +904,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       List<ConfigProperty> workerConfigs = options.getConfigsList();
       for (ConfigProperty cp : workerConfigs) {
         // TODO(jiacheng): lock this?
-        if (cp.getName().equals(PropertyKey.WORKER_HOSTNAME.getName())) {
+        if (cp.getName().equals(PropertyKey.WORKER_NODE_HOSTNAME.getName())) {
           mWorkerToHostname.put(worker.getWorkerAddress().getHost(), cp.getValue());
           LOG.warn("Got worker hostname {}:{}", worker.getWorkerAddress().getHost(), cp.getValue());
         }

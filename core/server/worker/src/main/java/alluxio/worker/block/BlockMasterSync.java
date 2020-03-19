@@ -107,11 +107,11 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     List<ConfigProperty> configList =
         ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
     // TODO(jiacheng): verify here
-    String workerHostname = ServerConfiguration.global().get(PropertyKey.WORKER_HOSTNAME);
-    LOG.warn("WORKER_HOSTNAME set to {}", workerHostname);
+    String workerHostname = ServerConfiguration.global().get(PropertyKey.WORKER_NODE_HOSTNAME);
+    LOG.warn("WORKER_NODE_HOSTNAME set to {}", workerHostname);
     for (ConfigProperty cp : configList) {
-      if (cp.getName().equals(PropertyKey.WORKER_HOSTNAME.getName())) {
-        LOG.warn("Found WORKER_HOSTNAME in ConfigProperty {} ", cp.getValue());
+      if (cp.getName().equals(PropertyKey.WORKER_NODE_HOSTNAME.getName())) {
+        LOG.warn("Found WORKER_NODE_HOSTNAME in ConfigProperty {} ", cp.getValue());
       }
     }
 
