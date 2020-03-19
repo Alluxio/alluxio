@@ -109,6 +109,15 @@ message GetJobStatusPResponse {
   optional JobInfo jobInfo = 1;
 }
 
+message GetJobStatusDetailedPOptions {}
+message GetJobStatusDetailedPRequest {
+  optional int64 jobId = 1;
+  optional GetJobStatusDetailedPOptions options = 2;
+}
+message GetJobStatusDetailedPResponse {
+  optional JobInfo jobInfo = 1;
+}
+
 message ListAllPOptions {}
 message ListAllPRequest {
   optional ListAllPOptions options = 1;
@@ -157,6 +166,11 @@ service JobMasterClientService {
    * Gets the status of the given job.
    */
   rpc GetJobStatus(GetJobStatusPRequest) returns (GetJobStatusPResponse);
+
+  /**
+   * Gets the status of the given job.
+   */
+  rpc GetJobStatusDetailed(GetJobStatusDetailedPRequest) returns (GetJobStatusDetailedPResponse);
 
   /**
    * Gets the summary of the job service.

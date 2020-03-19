@@ -301,24 +301,36 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   }
 
   /**
-   * Gets information of the given job id.
+   * Gets information of the given job id (verbose = True).
    *
    * @param jobId the id of the job
    * @return the job information
    * @throws JobDoesNotExistException if the job does not exist
    */
   public JobInfo getStatus(long jobId) throws JobDoesNotExistException {
+    return getStatus(jobId, true);
+  }
+
+  /**
+   * Gets information of the given job id.
+   *
+   * @param jobId the id of the job
+   * @param verbose whether the job info should be verbose
+   * @return the job information
+   * @throws JobDoesNotExistException if the job does not exist
+   */
+  public JobInfo getStatus(long jobId, boolean verbose) throws JobDoesNotExistException {
     PlanCoordinator planCoordinator = mPlanTracker.getCoordinator(jobId);
     if (planCoordinator == null) {
 
-      WorkflowInfo status = mWorkflowTracker.getStatus(jobId, true);
+      WorkflowInfo status = mWorkflowTracker.getStatus(jobId, verbose);
 
       if (status == null) {
         throw new JobDoesNotExistException(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(jobId));
       }
       return status;
     }
-    return planCoordinator.getPlanInfoWire(true);
+    return planCoordinator.getPlanInfoWire(verbose);
   }
 
   /**
