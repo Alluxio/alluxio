@@ -254,7 +254,8 @@ public final class AlluxioBlockStore {
     if (blockSize == -1) {
       try (CloseableResource<BlockMasterClient> blockMasterClientResource =
           mContext.acquireBlockMasterClientResource()) {
-        blockSize = blockMasterClientResource.get().getBlockInfo(blockId).getLength();
+        BlockInfo blockInfo = blockMasterClientResource.get().getBlockInfo(blockId);
+        blockSize = blockInfo.getLength();
       }
     }
     // No specified location to write to.
@@ -302,6 +303,7 @@ public final class AlluxioBlockStore {
         throw new UnavailableException(
             ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
       }
+      LOG.warn("Single worker outstream to address {}", address);
       return getOutStream(blockId, blockSize, address, options);
     }
 
@@ -314,6 +316,12 @@ public final class AlluxioBlockStore {
       } else {
         blockWorkersByHost.put(hostName, com.google.common.collect.Sets.newHashSet(blockWorker));
       }
+    }
+    // TODO(jiacheng): report here
+    LOG.warn("Report hostname-worker map");
+    for (String w : blockWorkersByHost.keySet()) {
+      Set<BlockWorkerInfo> st = blockWorkersByHost.get(w);
+      LOG.warn("Worker {} maps to {} workers {}", w, st.size(), st);
     }
 
     // Select N workers on different hosts where N is the value of initialReplicas for this block
@@ -333,6 +341,8 @@ public final class AlluxioBlockStore {
           "Not enough workers for replications, %d workers selected but %d required",
           workerAddressList.size(), initialReplicas));
     }
+
+    LOG.warn("Decided workerAddressList {}", workerAddressList);
     return BlockOutStream
         .createReplicatedBlockOutStream(mContext, blockId, blockSize, workerAddressList, options);
   }

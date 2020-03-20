@@ -82,6 +82,7 @@ import com.google.common.util.concurrent.Striped;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.rmi.runtime.Log;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -447,7 +448,17 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
     for (MasterWorkerInfo worker : mWorkers) {
       synchronized (worker) {
-        workerInfoList.add(worker.generateWorkerInfo(null, true));
+        WorkerInfo workerInfo = worker.generateWorkerInfo(null, true);
+        WorkerNetAddress workerAddress = workerInfo.getAddress();
+        String workerHostname = workerAddress.getHost();
+        LOG.warn("Found worker with address {}", workerAddress);
+        if (mWorkerToHostname.containsKey(workerHostname)) {
+          String nodeHostname = mWorkerToHostname.get(workerHostname);
+          LOG.warn("translate worker hostname from {} to {}", workerHostname, nodeHostname);
+          workerAddress.setHost(nodeHostname);
+        }
+        LOG.warn("Returning workerInfo {}", workerInfo);
+        workerInfoList.add(workerInfo);
       }
     }
     return workerInfoList;
@@ -891,6 +902,8 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     }
 
     synchronized (worker) {
+      WorkerNetAddress address = worker.getWorkerAddress();
+      LOG.warn("In workerRegister the worker address is {}", address);
       worker.updateLastUpdatedTimeMs();
       // Detect any lost blocks on this worker.
       Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
@@ -1071,37 +1084,24 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
         Comparator.comparingInt(o -> mGlobalStorageTierAssoc.getOrdinal(o.getTier())));
 
     // TODO(jiacheng):
-    LOG.warn("Current worker mapping {}", mWorkerToHostname);
+//    LOG.warn("Current worker mapping {}", mWorkerToHostname);
 
     List<alluxio.wire.BlockLocation> locations = new ArrayList<>();
     for (BlockLocation location : blockLocations) {
-
-//      2020-03-19 12:00:39,233 WARN  DefaultBlockMaster - Processing BlockLocation worker_id: 8710873776046105785
-//      tier: "MEM"
-//      mediumType: "MEM"
-//
-//      2020-03-19 12:00:39,233 WARN  DefaultBlockMaster - MasterWorkerInfo MasterWorkerInfo{id=8710873776046105785,
-//        workerAddress=WorkerNetAddress{host=localhost, rpcPort=29999, dataPort=29999, webPort=30000, domainSocketPath=, tieredIdentity=TieredIdentity(node=localhost, rack=null)},
-//        capacityBytes=11453246122, usedBytes=1148, lastUpdatedTimeMs=1584590438982,
-//        blocks=[50801410048, 50751078400, 50767855616, 50784632832, 50818187264, 50834964480, 50851741696, 50868518912, 50885296128, 50902073344, 50918850560, 50935627776, 50952404992, 50969182208], lostStorage={}}
-//      2020-03-19 12:00:39,233 WARN  DefaultBlockMaster - Worker hostname localhost maps to null
-//      2020-03-19 12:00:39,234 WARN  DefaultBlockMaster - Current worker mapping {MasterWorkerInfo{id=8710873776046105785, workerAddress=WorkerNetAddress{host=localhost, rpcPort=29999, dataPort=29999, webPort=30000, domainSocketPath=, tieredIdentity=TieredIdentity(node=localhost, rack=null)}, capacityBytes=11453246122, usedBytes=1148, lastUpdatedTimeMs=1584590438982, blocks=[50801410048, 50751078400, 50767855616, 50784632832, 50818187264, 50834964480, 50851741696, 50868518912, 50885296128, 50902073344, 50918850560, 50935627776, 50952404992, 50969182208], lostStorage={}}=localhost}
-
-
       LOG.warn("Processing BlockLocation {}", location);
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(ID_INDEX, location.getWorkerId());
       LOG.warn("MasterWorkerInfo {}", workerInfo);
       if (workerInfo != null) {
         // TODO(jiacheng): do the translation here
-        WorkerNetAddress addr = workerInfo.getWorkerAddress();
-        String currentHost = addr.getHost();
-        LOG.warn("Look for node for current hostname {}", currentHost);
-        LOG.warn("Worker hostname {} maps to {}", addr.getHost(), mWorkerToHostname.getOrDefault(currentHost, null));
-        if (mWorkerToHostname.containsKey(addr)) {
-          LOG.warn("Found mapping");
-          addr.setHost(mWorkerToHostname.get(addr));
-        }
+//        WorkerNetAddress addr = workerInfo.getWorkerAddress();
+//        String currentHost = addr.getHost();
+//        LOG.warn("Look for node for current hostname {}", currentHost);
+//        LOG.warn("Worker hostname {} maps to {}", addr.getHost(), mWorkerToHostname.getOrDefault(currentHost, null));
+//        if (mWorkerToHostname.containsKey(addr)) {
+//          LOG.warn("Found mapping");
+//          addr.setHost(mWorkerToHostname.get(addr));
+//        }
 
         // worker metadata is intentionally not locked here because:
         // - it would be an incorrect order (correct order is lock worker first, then block)
