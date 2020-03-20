@@ -295,7 +295,7 @@ public class GlueDatabase implements UnderDatabase {
       PartitionInfo partitionInfo = PartitionInfo.newBuilder()
           .setDbName(mGlueDbName)
           .setTableName(tableName)
-          .addAllDataCols(GlueUtils.toProto(table.getPartitionKeys()))
+          .addAllDataCols(GlueUtils.toProto(table.getStorageDescriptor().getColumns()))
           .setStorage(GlueUtils.toProto(table.getStorageDescriptor(), pathTranslator))
           .putAllParameters(table.getParameters())
           .build();
@@ -305,18 +305,24 @@ public class GlueDatabase implements UnderDatabase {
           .setLayoutData(partitionInfo.toByteString())
           .build();
 
+      /**
+       * Glue Table:
+       * 1. GlueDatabase 2. PathTranslator
+       * 3. Table Name 4. Schema
+       * 5. Partition keys 6. Table Statistics
+       * 7. Layout 8. Glue table
+       */
       return new GlueTable(this,
           pathTranslator,
           tableName,
-          GlueUtils.toProtoSchema(table.getPartitionKeys()),
+          GlueUtils.toProtoSchema(table.getStorageDescriptor().getColumns()),
           columnStatisticsData,
           // Glue does not provide FieldSchema from API directly
           // Get FieldSchema from storage description
-          GlueUtils.toProto(table.getStorageDescriptor().getColumns()),
+          GlueUtils.toProto(table.getPartitionKeys()),
           partitions,
           layout,
-          table,
-          table.getStorageDescriptor().getLocation());
+          table);
     } catch (EntityNotFoundException e) {
       throw new NotFoundException("Table " + tableName + " does not exist.", e);
     } catch (ValidationException e) {

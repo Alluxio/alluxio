@@ -46,7 +46,6 @@ public class GlueTable implements UdbTable {
   private final String mName;
   private final String mOwner;
   private final Table mTable;
-  private final String mLocation;
   private final List<FieldSchema> mPartitionKeys;
   private final Map<String, String> mParameters;
   private final List mPartitions;
@@ -66,11 +65,10 @@ public class GlueTable implements UdbTable {
    * @param statistics the table statistics
    * @param layout the table layout
    * @param table glue table object
-   * @param location glue table location
    */
   public GlueTable(GlueDatabase glueDatabase, PathTranslator pathTranslator, String name,
       Schema schema, List<ColumnStatisticsInfo> statistics, List<FieldSchema> cols,
-      List<Partition> partitions, Layout layout, Table table, String location) {
+      List<Partition> partitions, Layout layout, Table table) {
     mGlueDatabase = glueDatabase;
     mPathTranslator = pathTranslator;
     mTable = table;
@@ -79,7 +77,6 @@ public class GlueTable implements UdbTable {
     mPartitions = partitions;
     mPartitionKeys = cols;
     mStatistics = statistics;
-    mLocation = location;
     mOwner = (table.getOwner() != null) ? table.getOwner() : null;
     mParameters = (table.getParameters() != null) ? table.getParameters() : Collections.emptyMap();
     mLayout = layout;
@@ -153,12 +150,5 @@ public class GlueTable implements UdbTable {
       LOG.warn("Table " + mTable.getName() + " does not exist.", e);
     }
     return udbPartitions;
-  }
-
-  /**
-   * @return glue table location
-   */
-  public String getLocation() {
-    return mLocation;
   }
 }

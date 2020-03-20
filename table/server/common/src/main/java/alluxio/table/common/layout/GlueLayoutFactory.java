@@ -23,7 +23,7 @@ import java.util.ArrayList;
  * Glue layout factory to create layout implementation.
  */
 public class GlueLayoutFactory implements LayoutFactory {
-  public static final String TYPE = "glue";
+  public static final String TYPE = "hive";
 
   @Override
   public String getType() {
