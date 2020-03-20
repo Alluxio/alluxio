@@ -36,20 +36,20 @@ spec:
         heritage: Tiller
         role: alluxio-worker
     spec:
-      hostNetwork: true
+      hostNetwork: false
       dnsPolicy: ClusterFirstWithHostNet
       securityContext:
         fsGroup: 1000
       nodeSelector:
       initContainers:
-      - name: socket-chown
-        securityContext:
-          runAsUser: 0
-        image: alluxio/alluxio:2.3.0-SNAPSHOT
-        command: ["/bin/chown","-R", "1000:1000", "/opt/domain"]
-        volumeMounts:
-        - name: alluxio-domain
-          mountPath: /opt/domain
+        - name: socket-chown
+          securityContext:
+            runAsUser: 0
+          image: alluxio/alluxio:2.3.0-SNAPSHOT
+          command: ["/bin/chown","-R", "1000:1000", "/opt/domain"]
+          volumeMounts:
+            - name: alluxio-domain
+              mountPath: /opt/domain
       containers:
         - name: alluxio-worker
           image: alluxio/alluxio:2.3.0-SNAPSHOT
@@ -69,18 +69,24 @@ spec:
             - worker-only
             - --no-format
           env:
-          - name: ALLUXIO_WORKER_HOSTNAME
-            valueFrom:
-              fieldRef:
-                fieldPath: status.hostIP
+            - name: ALLUXIO_WORKER_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: ALLUXIO_WORKER_NODE_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
           envFrom:
-          - configMapRef:
-              name: alluxio-config
+            - configMapRef:
+                name: alluxio-config
           ports:
-          - containerPort: 29999
-            name: rpc
-          - containerPort: 30000
-            name: web
+            - containerPort: 29999
+              hostPort: 29999
+              name: rpc
+            - containerPort: 30000
+              hostPort: 30000
+              name: web
           volumeMounts:
             - name: alluxio-domain
               mountPath: /opt/domain
@@ -103,20 +109,27 @@ spec:
           args:
             - job-worker
           env:
-          - name: ALLUXIO_WORKER_HOSTNAME
-            valueFrom:
-              fieldRef:
-                fieldPath: status.hostIP
+            - name: ALLUXIO_WORKER_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: ALLUXIO_WORKER_NODE_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
           envFrom:
-          - configMapRef:
-              name: alluxio-config
+            - configMapRef:
+                name: alluxio-config
           ports:
-          - containerPort: 30001
-            name: job-rpc
-          - containerPort: 30002
-            name: job-data
-          - containerPort: 30003
-            name: job-web
+            - containerPort: 30001
+              hostPort: 30001
+              name: job-rpc
+            - containerPort: 30002
+              hostPort: 30002
+              name: job-data
+            - containerPort: 30003
+              hostPort: 30003
+              name: job-web
           volumeMounts:
             - name: alluxio-domain
               mountPath: /opt/domain

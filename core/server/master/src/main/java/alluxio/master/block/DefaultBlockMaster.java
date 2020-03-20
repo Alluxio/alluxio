@@ -1083,9 +1083,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     Collections.sort(blockLocations,
         Comparator.comparingInt(o -> mGlobalStorageTierAssoc.getOrdinal(o.getTier())));
 
-    // TODO(jiacheng):
-//    LOG.warn("Current worker mapping {}", mWorkerToHostname);
-
     List<alluxio.wire.BlockLocation> locations = new ArrayList<>();
     for (BlockLocation location : blockLocations) {
       LOG.warn("Processing BlockLocation {}", location);
@@ -1093,16 +1090,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
           mWorkers.getFirstByField(ID_INDEX, location.getWorkerId());
       LOG.warn("MasterWorkerInfo {}", workerInfo);
       if (workerInfo != null) {
-        // TODO(jiacheng): do the translation here
-//        WorkerNetAddress addr = workerInfo.getWorkerAddress();
-//        String currentHost = addr.getHost();
-//        LOG.warn("Look for node for current hostname {}", currentHost);
-//        LOG.warn("Worker hostname {} maps to {}", addr.getHost(), mWorkerToHostname.getOrDefault(currentHost, null));
-//        if (mWorkerToHostname.containsKey(addr)) {
-//          LOG.warn("Found mapping");
-//          addr.setHost(mWorkerToHostname.get(addr));
-//        }
-
         // worker metadata is intentionally not locked here because:
         // - it would be an incorrect order (correct order is lock worker first, then block)
         // - only uses getters of final variables
