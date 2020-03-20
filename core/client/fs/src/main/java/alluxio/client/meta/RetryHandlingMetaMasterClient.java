@@ -83,7 +83,7 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
   public BackupStatus getBackupStatus(UUID backupId) throws IOException {
     return retryRPC(() -> BackupStatus.fromProto(mClient.getBackupStatus(
         BackupStatusPRequest.newBuilder().setBackupId(backupId.toString()).build())),
-        RPC_LOG, "GetBackupStatus", "backupId=%d", backupId);
+        RPC_LOG, "GetBackupStatus", "backupId=%s", backupId);
   }
 
   @Override
