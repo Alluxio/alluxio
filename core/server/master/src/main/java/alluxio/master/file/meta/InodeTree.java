@@ -382,6 +382,23 @@ public class InodeTree implements DelegatingJournaled {
    * Locks a path and throws an exception if the path does not exist.
    *
    * @param uri a uri to lock
+   * @param lockScheme the scheme to lock with
+   * @return a locked inode path for the uri
+   */
+  public LockedInodePath lockFullInodePath(AlluxioURI uri, LockingScheme lockScheme)
+      throws InvalidPathException, FileDoesNotExistException {
+    LockedInodePath inodePath = lockInodePath(uri, lockScheme.getPattern());
+    if (!inodePath.fullPathExists()) {
+      inodePath.close();
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(uri));
+    }
+    return inodePath;
+  }
+
+  /**
+   * Locks a path and throws an exception if the path does not exist.
+   *
+   * @param uri a uri to lock
    * @param lockPattern the pattern to lock with
    * @return a locked inode path for the uri
    */

@@ -16,12 +16,13 @@ import alluxio.AlluxioURI;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A class to hold a set of statuses which map from AlluxioURI to UfsStatus.
  */
 public class UfsStatusCache {
-  private final Map<AlluxioURI, UfsStatus> mStatuses;
+  private final ConcurrentHashMap<AlluxioURI, UfsStatus> mStatuses;
   private final AlluxioURI mUfsUri;
 
   /**
@@ -30,8 +31,29 @@ public class UfsStatusCache {
    * @param ufsUri the UFS URI used to create the statuses map
    * @param statuses the mapping from {@link AlluxioURI} to {@link UfsStatus}
    */
-  public UfsStatusCache(AlluxioURI ufsUri, Map<AlluxioURI, UfsStatus> statuses) {
+  public UfsStatusCache(AlluxioURI ufsUri, ConcurrentHashMap<AlluxioURI, UfsStatus> statuses) {
     mStatuses = statuses;
+    mUfsUri = ufsUri;
+  }
+
+  /**
+   * Creates a new instance of {@link UfsStatusCache}.
+   *
+   * @param ufsUri the UFS URI used to create the statuses map
+   * @param statuses the mapping from {@link AlluxioURI} to {@link UfsStatus}
+   */
+  public UfsStatusCache(AlluxioURI ufsUri, Map<AlluxioURI, UfsStatus> statuses) {
+    mStatuses = new ConcurrentHashMap<>(statuses);
+    mUfsUri = ufsUri;
+  }
+
+  /**
+   * Creates a new instance of {@link UfsStatusCache}.
+   *
+   * @param ufsUri the UFS URI used to create the statuses map
+   */
+  public UfsStatusCache(AlluxioURI ufsUri) {
+    mStatuses = new ConcurrentHashMap<>();
     mUfsUri = ufsUri;
   }
 
@@ -44,6 +66,16 @@ public class UfsStatusCache {
   @Nullable
   public UfsStatus get(AlluxioURI key) {
     return mStatuses.get(key);
+  }
+
+  /**
+   * Remove a status from the status cache.
+   *
+   * @param key the {@link AlluxioURI} for the status
+   * @return the status that the cache stored, or none
+   */
+  public UfsStatus remove(AlluxioURI key) {
+    return mStatuses.remove(key);
   }
 
   /**
