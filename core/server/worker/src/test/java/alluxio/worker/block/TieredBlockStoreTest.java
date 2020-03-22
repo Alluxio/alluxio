@@ -313,74 +313,6 @@ public final class TieredBlockStoreTest {
     assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID2)));
   }
 
-  @Test
-  public void swapBlocks() throws Exception {
-    // Reinitialize with reserved bytes.
-    init(BLOCK_SIZE);
-
-    TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
-        mBlockIterator);
-    TieredBlockStoreTestUtils.cache2(SESSION_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
-        mBlockIterator);
-
-    mBlockStore.swapBlocks(SESSION_ID1, BLOCK_ID1, BLOCK_ID2);
-    assertTrue(mTestDir1.hasBlockMeta(BLOCK_ID2));
-    assertTrue(mTestDir2.hasBlockMeta(BLOCK_ID1));
-    assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
-    assertFalse(mTestDir2.hasBlockMeta(BLOCK_ID2));
-  }
-
-  @Test
-  public void swapBlocksNoFs() throws Exception {
-    // Reinitialize with reserved bytes.
-    init(BLOCK_SIZE);
-
-    TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
-        mBlockIterator);
-    TieredBlockStoreTestUtils.cache2(SESSION_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
-        mBlockIterator);
-
-    mBlockStore.swapBlocks(SESSION_ID1, BLOCK_ID1, BLOCK_ID2);
-    assertTrue(mTestDir1.hasBlockMeta(BLOCK_ID2));
-    assertTrue(mTestDir2.hasBlockMeta(BLOCK_ID1));
-    assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
-    assertFalse(mTestDir2.hasBlockMeta(BLOCK_ID2));
-  }
-
-  @Test
-  public void swapBlocksNoSpace() throws Exception {
-    // Reinitialize with reserved bytes.
-    init(BLOCK_SIZE);
-
-    // Create block1 with size greater than the reserved space.
-    TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE + 1, mTestDir1,
-        mMetaManager, mBlockIterator);
-    TieredBlockStoreTestUtils.cache2(SESSION_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
-        mBlockIterator);
-
-    mThrown.expect(WorkerOutOfSpaceException.class);
-    mBlockStore.swapBlocks(SESSION_ID1, BLOCK_ID1, BLOCK_ID2);
-  }
-
-  @Test
-  public void swapBlocksDifferentSize() throws Exception {
-    // Reinitialize with reserved bytes.
-    init(BLOCK_SIZE);
-
-    long blockSize1 = BLOCK_SIZE - 5;
-    long blockSize2 = BLOCK_SIZE - 10;
-
-    // Create block1 with size greater than the reserved space.
-    TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, blockSize1, mTestDir1, mMetaManager,
-        mBlockIterator);
-    TieredBlockStoreTestUtils.cache2(SESSION_ID2, BLOCK_ID2, blockSize2, mTestDir2, mMetaManager,
-        mBlockIterator);
-
-    mBlockStore.swapBlocks(SESSION_ID1, BLOCK_ID1, BLOCK_ID2);
-    assertEquals(mTestDir1.getCommittedBytes(), blockSize2);
-    assertEquals(mTestDir2.getCommittedBytes(), blockSize1);
-  }
-
   /**
    * Tests the {@link TieredBlockStore#freeSpace(long, long, long, BlockStoreLocation)} method.
    */
@@ -590,6 +522,42 @@ public final class TieredBlockStoreTest {
 
     assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());
     assertEquals(mTestDir2.getCapacityBytes() - BLOCK_SIZE, mTestDir2.getAvailableBytes());
+  }
+
+  @Test
+  public void moveBlockWithReservedSpace() throws Exception {
+    ServerConfiguration.reset();
+    final long RESERVE_SIZE = BLOCK_SIZE;
+    init(RESERVE_SIZE);
+
+    // Setup the src dir containing the block to move
+    TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mBlockIterator);
+    // Setup the dst dir whose space is totally taken by another block
+    TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID2,
+        mTestDir2.getCapacityBytes() - BLOCK_SIZE, mTestDir2, mMetaManager, mBlockIterator);
+    assertEquals(0, mTestDir2.getAvailableBytes());
+    assertTrue(mTestDir2.getCapacityBytes() > mTestDir2.getCommittedBytes());
+
+    // Expect an exception because destination is full.
+    mThrown.expect(WorkerOutOfSpaceException.class);
+    mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE
+        .getMessage(mTestDir2.toBlockStoreLocation(), BLOCK_ID1));
+
+    AllocateOptions moveOptions = AllocateOptions.forMove(mTestDir2.toBlockStoreLocation())
+        .setForceLocation(true)     // Stay in destination.
+        .setEvictionAllowed(false); // No eviction.
+
+    mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, moveOptions);
+
+    // Expect createBlockMeta to succeed after setting 'useReservedSpace' flag for allocation.
+    mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, moveOptions.setUseReservedSpace(true));
+
+    // Validate source is empty.
+    assertEquals(mTestDir1.getCapacityBytes(),
+        mTestDir1.getAvailableBytes() + mTestDir1.getReservedBytes());
+    // Validate destination is full.
+    assertEquals(mTestDir2.getCapacityBytes(), mTestDir2.getCommittedBytes());
   }
 
   /**

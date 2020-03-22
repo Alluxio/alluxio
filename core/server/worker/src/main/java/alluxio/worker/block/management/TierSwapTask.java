@@ -16,6 +16,7 @@ import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistException;
+import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStore;
@@ -121,8 +122,11 @@ public class TierSwapTask extends AbstractBlockManagementTask {
       }
       // Swap blocks on store.
       try {
-        mBlockStore.swapBlocks(Sessions.createInternalSessionId(), swap.getFirst(),
-            swap.getSecond());
+        // TODO(ggezer): Implement external allocations for earlier failure detection.
+        mBlockStore.moveBlock(Sessions.createInternalSessionId(), swap.getFirst(), locationSrc,
+            AllocateOptions.forMove(locationDst).setUseReservedSpace(true));
+        mBlockStore.moveBlock(Sessions.createInternalSessionId(), swap.getSecond(), locationDst,
+            AllocateOptions.forMove(locationSrc).setUseReservedSpace(true));
       } catch (Exception e) {
         LOG.warn("Swapping blocks {}-{} failed with error: {}", swap.getFirst(), swap.getSecond(),
             e);

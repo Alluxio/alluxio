@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 public abstract class BlockMetadataView {
   /** The {@link BlockMetadataManager} this view is derived from. */
   protected final BlockMetadataManager mMetadataManager;
+  protected final boolean mUseReservedSpace;
 
   /**
    * A list of {@link StorageTierView}, derived from {@link StorageTier}s from the
@@ -48,7 +49,18 @@ public abstract class BlockMetadataView {
    * @param manager which the view should be constructed from
    */
   public BlockMetadataView(BlockMetadataManager manager) {
+    this(manager, false);
+  }
+
+  /**
+   * Creates a new instance of {@link BlockMetadataView}.
+   *
+   * @param manager which the view should be constructed from
+   * @param useReservedSpace whether to include reserved space in available bytes
+   */
+  public BlockMetadataView(BlockMetadataManager manager, boolean useReservedSpace) {
     mMetadataManager = Preconditions.checkNotNull(manager, "manager");
+    mUseReservedSpace = useReservedSpace;
     initializeView();
   }
 

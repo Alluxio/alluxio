@@ -58,7 +58,6 @@ public final class StorageDir {
   private AtomicLong mAvailableBytes;
   private AtomicLong mCommittedBytes;
   private AtomicLong mReservedBytes;
-  private AtomicLong mUsedReservedBytes;
   private String mDirPath;
   private int mDirIndex;
   private StorageTier mTier;
@@ -69,10 +68,10 @@ public final class StorageDir {
     mDirIndex = dirIndex;
     mCapacityBytes = capacityBytes;
     if (capacityBytes < reservedBytes) {
+      /** Reserve %5 of the capacity at the least. */
       reservedBytes = capacityBytes / 20;
     }
     mReservedBytes = new AtomicLong(reservedBytes);
-    mUsedReservedBytes = new AtomicLong(0);
     mAvailableBytes = new AtomicLong(capacityBytes - reservedBytes);
     mCommittedBytes = new AtomicLong(0);
     mDirPath = dirPath;
@@ -471,28 +470,10 @@ public final class StorageDir {
   }
 
   /**
-   * Allocates from reserved bytes for this dir.
-   *
-   * @param bytes bytes to reserve
-   * @return {@code true} if allocation is successful
-   * @throws IOException
+   * @return amount of reserved bytes for this dir
    */
-  public boolean allocateFromReserve(long bytes) throws IOException {
-    long reservedBytes = mReservedBytes.addAndGet(-bytes);
-    if (reservedBytes < 0) {
-      mReservedBytes.addAndGet(bytes);
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Release bytes to the reserved pool.
-   *
-   * @param bytes bytes to release
-   */
-  public void releaseToReserve(long bytes) {
-    mReservedBytes.addAndGet(bytes);
+  public long getReservedBytes() {
+    return mReservedBytes.get();
   }
 
   private void reclaimSpace(long size, boolean committed) {

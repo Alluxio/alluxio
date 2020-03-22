@@ -26,6 +26,8 @@ public class AllocateOptions {
   private boolean mForceLocation;
   /** Whether eviction is allowed to satisfy this allocation. */
   private boolean mEvictionAllowed;
+  /** Whether to use the reserved space for allocation. */
+  private boolean mUseReservedSpace;
 
   /**
    * Creates new allocation options object.
@@ -33,8 +35,8 @@ public class AllocateOptions {
    * @param location the allocation location
    * @param size the allocation size
    */
-  public AllocateOptions(BlockStoreLocation location, long size) {
-    mLocation = location;
+  private AllocateOptions(BlockStoreLocation location, long size) {
+    this(location);
     mSize = size;
   }
 
@@ -43,8 +45,9 @@ public class AllocateOptions {
    *
    * @param location the allocation location
    */
-  public AllocateOptions(BlockStoreLocation location) {
+  private AllocateOptions(BlockStoreLocation location) {
     mLocation = location;
+    mUseReservedSpace = false;
   }
 
   /**
@@ -150,6 +153,17 @@ public class AllocateOptions {
   }
 
   /**
+   * Sets value for whether this allocation can use reserved space.
+   *
+   * @param useReservedSpace use reserved space
+   * @return the updated options
+   */
+  public AllocateOptions setUseReservedSpace(boolean useReservedSpace) {
+    mUseReservedSpace = useReservedSpace;
+    return this;
+  }
+
+  /**
    * @return the location of allocation
    */
   public BlockStoreLocation getLocation() {
@@ -175,6 +189,13 @@ public class AllocateOptions {
    */
   public boolean isEvictionAllowed() {
     return mEvictionAllowed;
+  }
+
+  /**
+   * @return whether this allocation can use reserved space
+   */
+  public boolean canUseReservedSpace() {
+    return mUseReservedSpace;
   }
 
   @Override

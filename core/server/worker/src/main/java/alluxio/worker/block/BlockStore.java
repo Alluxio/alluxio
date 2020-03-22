@@ -267,24 +267,6 @@ public interface BlockStore extends SessionCleanable, Closeable {
       IOException;
 
   /**
-   * Swaps blocks' location.
-   *
-   * @param sessionId the id of the session to move a block
-   * @param blockId1 the first block
-   * @param blockId2 the second block
-   * @throws IllegalArgumentException if newLocation does not belong to the tiered storage
-   * @throws BlockDoesNotExistException if block id can not be found
-   * @throws BlockAlreadyExistsException if block id already exists in committed blocks of the
-   *         newLocation
-   * @throws InvalidWorkerStateException if block id has not been committed
-   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
-   *         block
-   */
-  void swapBlocks(long sessionId, long blockId1, long blockId2)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      WorkerOutOfSpaceException, IOException;
-
-  /**
    * Removes an existing block. If the block can not be found in this store.
    *
    * @param sessionId the id of the session to remove a block
