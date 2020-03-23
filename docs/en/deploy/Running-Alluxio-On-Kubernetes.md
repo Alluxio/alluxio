@@ -687,6 +687,133 @@ If Alluxio has already been deployed with helm and now you want to enable FUSE, 
 $ helm upgrade alluxio -f config.yaml --set fuse.enabled=true --set fuse.clientEnabled=true alluxio-charts/alluxio
 ```
 
+### Short-circuit Access
+
+Short-circuit access enables clients to perform read and write operations directly against the
+worker bypassing the networking interface.
+For performance-critical applications it is recommended to enable short-circuit operations
+against Alluxio because it can increase a client's read and write throughput when co-located with
+an Alluxio worker.
+
+#### Properties to Enable Short-Circuit Operations
+
+This feature is enabled by default, however requires extra configuration to work properly in
+Kubernetes environments.
+See sections below for how to configure short-circuit access.
+
+#### Disable Short-Circuit Operations
+To disable short-circuit operations, the operation depends on how you deploy Alluxio.
+
+> Note: As mentioned, disabling short-circuit access for Alluxio workers will result in 
+worse throughput 
+
+***Using `helm`***
+You can disable short circuit by setting the properties as below:
+
+```properties
+shortCircuit:
+  enabled: false
+```
+
+***Using `kubectl`***
+You should set the property `alluxio.user.short.circuit.enabled` to `false` in your `ALLUXIO_WORKER_JAVA_OPTS`.
+
+```properties
+-Dalluxio.user.short.circuit.enabled=false
+```
+
+You should also manually remove the volume `alluxio-domain` from `volumes` of the Pod definition 
+and `volumeMounts` of each container if existing.
+
+#### Short-Circuit Modes
+There are 2 modes for using short-circuit.
+
+##### `local`
+In this mode, the Alluxio client and local Alluxio worker recognize each other if the client hostname 
+matches the worker hostname.
+This is called *Hostname Introspection*.
+In this mode, the Alluxio client and local Alluxio worker share the tiered storage of Alluxio worker.
+
+***Using `helm`***
+You can use `local` policy by setting the properties as below:
+
+```properties
+shortCircuit:
+  enabled: true
+  policy: "local"
+```
+
+***Using `kubectl`***
+In your `alluxio-configmap.yaml` you should add the following properties to `ALLUXIO_WORKER_JAVA_OPTS`:
+
+```properties
+-Dalluxio.user.short.circuit.enabled=true -Dalluxio.worker.data.server.domain.socket.address= -Dalluxio.worker.data.server.domain.socket.as.uuid=false
+```
+
+You should also manually remove the volume `alluxio-domain` from `volumes` of the Pod definition 
+and `volumeMounts` of each container if existing.
+
+##### `uuid`
+This is the **default** policy used for short-circuit.
+
+If the client or worker container is using virtual networking, their hostnames may not match.
+In such a scenario, set the following property to use filesystem inspection to enable short-circuit
+operations and **make sure the client container mounts the directory specified as the domain socket
+path**.
+Short-circuit writes are then enabled if the worker UUID is located on the client filesystem.
+
+***Domain Socket Path***
+The domain socket is a volume which should be mounted on:
+
+- All Alluxio workers
+- All application containers which intend to read/write through Alluxio
+
+This domain socket volume refers to a `PersistentVolumeClaim` by its name.
+You need to create your `PersistentVolumeClaim` and provision a `PersistentVolume` of kind being 
+either `hostPath` or `local`.
+
+***Using `helm`***
+You can use `uuid` policy by setting the properties as below:
+
+```properties
+# These are the default configurations
+shortCircuit:
+  enabled: true
+  policy: "local"
+  pvcName: alluxio-worker-domain-socket
+```
+
+The field `shortCircuit.pvcName` defines the name of the `PersistentVolumeClaim` for domain socket.
+
+***Using `kubectl`***
+You should verify the following properties in `ALLUXIO_WORKER_JAVA_OPTS`.
+Actually they are set to these values by default:
+```properties
+-Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true
+```
+
+Also you should make sure the worker Pods have domain socket defined in the `volumes`,
+and all relevant containers have the domain socket volume mounted.
+The domain socket volume is defined as below by default:
+```properties
+volumes:
+  - name: alluxio-domain
+    persistentVolumeClaim:
+      claimName: "alluxio-worker-domain-socket"
+```
+
+> Note: Compute application containers **MUST** mount the domain socket volume to the same path
+(`/opt/domain`) as configured for the Alluxio workers.
+
+#### Verify
+
+To verify short-circuit reads and writes monitor the metrics displayed under:
+1. the metrics tab of the web UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`
+1. or, the [metrics json]({{ '/en/operation/Metrics-System.html' | relativize_url }}) as
+`cluster.BytesReadDomain` and `cluster.BytesWrittenDomain`
+1. or, the [fsadmin metrics CLI]({{ '/en/operation/Admin-CLI.html' | relativize_url }}) as
+`Short-circuit Read (Domain Socket)` and `Alluxio Write (Domain Socket)`
+
 ## Troubleshooting
 
 ### Worker Host Unreachable
@@ -755,65 +882,6 @@ Job Worker:
 ```console
 $ kubectl logs -f alluxio-worker-<id> -c alluxio-job-worker
 ```
-
-### Short-circuit Access
-
-Short-circuit access enables clients to perform read and write operations directly against the
-worker bypassing the networking interface.
-For performance-critical applications it is recommended to enable short-circuit operations
-against Alluxio because it can increase a client's read and write throughput when co-located with
-an Alluxio worker.
-
-***Properties to Enable Short-Circuit Operations***
-
-This feature is enabled by default, however requires extra configuration to work properly in
-Kubernetes environments.
-To disable short-circuit operations, set the property `alluxio.user.short.circuit.enabled=false`.
-
-**Hostname Introspection:** Short-circuit operations between the Alluxio client and worker are
-enabled if the client hostname matches the worker hostname.
-This may not be true if the client is running as part of a container with virtual networking.
-In such a scenario, set the following property to use filesystem inspection to enable short-circuit
-operations and **make sure the client container mounts the directory specified as the domain socket
-path**.
-Short-circuit writes are then enabled if the worker UUID is located on the client filesystem.
-
-> Note: This property should be set on all workers
-
-```properties
-alluxio.worker.data.server.domain.socket.as.uuid=true
-```
-
-**Domain Socket Path:** The domain socket is a volume which should be mounted on:
-
-- All Alluxio workers
-- All application containers which intend to read/write through Alluxio
-
-The exact path of the domain socket on the host is defined in the helm chart at
-`${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/values.yml`.
-On the worker the path where the domain socket is mounted can be found within
-`${ALLUXIO_HOME}/integration/kubernetes/helm/alluxio/templates/worker/daemonset.yaml`
-
-As part of the Alluxio worker Pod creation, a directory
-is created on the host at `/tmp/alluxio-domain` for the shared domain socket.
-The workers then mount `/tmp/alluxio-domain` to `/opt/domain` within the
-container.
-
-```properties
-alluxio.worker.data.server.domain.socket.address=/opt/domain
-```
-
-Compute application containers **must** mount the domain socket volume to the same path
-(`/opt/domain`) as configured for the Alluxio workers.
-
-***Verify***
-
-To verify short-circuit reads and writes monitor the metrics displayed under:
-1. the metrics tab of the web UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`
-1. or, the [metrics json]({{ '/en/operation/Metrics-System.html' | relativize_url }}) as
-`cluster.BytesReadDomain` and `cluster.BytesWrittenDomain`
-1. or, the [fsadmin metrics CLI]({{ '/en/operation/Admin-CLI.html' | relativize_url }}) as
-`Short-circuit Read (Domain Socket)` and `Alluxio Write (Domain Socket)`
 
 ### POSIX API
 

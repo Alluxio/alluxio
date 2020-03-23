@@ -9,8 +9,6 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-{{ $isRoot := eq (int .Values.user) 0 }}
-{{- $ugi := printf "%v:%v" .Values.user .Values.group -}}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -45,17 +43,6 @@ spec:
 {{ toYaml .Values.worker.nodeSelector | trim | indent 8  }}
       {{- else if .Values.nodeSelector }}
 {{ toYaml .Values.nodeSelector | trim | indent 8  }}
-      {{- end }}
-      {{- if not $isRoot }}
-      initContainers:
-      - name: socket-chown
-        securityContext:
-          runAsUser: 0
-        image: {{ .Values.image }}:{{ .Values.imageTag }}
-        command: ["/bin/chown","-R", {{ $ugi | quote }}, "/opt/domain"]
-        volumeMounts:
-        - name: alluxio-domain
-          mountPath: /opt/domain
       {{- end }}
       containers:
         - name: alluxio-worker
@@ -148,10 +135,13 @@ spec:
             {{- end }}
       restartPolicy: Always
       volumes:
+        {{- if .Values.shortCircuit }}
+          {{- if .Values.shortCircuit.enabled }}
         - name: alluxio-domain
-          hostPath:
-            path: {{ .Values.domainHostPath }}
-            type: DirectoryOrCreate
+          persistentVolumeClaim:
+            claimName: "{{ .Values.shortCircuit.pvcName }}"
+          {{- end }}
+        {{- end }}
         {{- if .Values.secrets }}
           {{- if .Values.secrets.worker }}
 {{- include "alluxio.worker.secretVolumes" . }}

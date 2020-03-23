@@ -111,7 +111,6 @@ spec:
             path: /alluxio-fuse
             type: DirectoryOrCreate
         - name: alluxio-domain
-          hostPath:
-            path: /tmp/alluxio-domain
-            type: "Directory"
+          persistentVolumeClaim:
+            claimName: "alluxio-worker-domain-socket"
 
