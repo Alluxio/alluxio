@@ -21,18 +21,25 @@ import java.util.Map;
  * A class to hold a set of statuses which map from AlluxioURI to UfsStatus.
  */
 public class UfsStatusCache {
+  /** The mapping of Alluxio namespace URI to UFS status. */
   private final Map<AlluxioURI, UfsStatus> mStatuses;
+  /** The UFS URI which this cache was created with. */
   private final AlluxioURI mUfsUri;
+  /** Whether or not a recursive listing was used when creating this cache. */
+  private final boolean mIsRecursive;
 
   /**
    * Creates a new instance of {@link UfsStatusCache}.
    *
    * @param ufsUri the UFS URI used to create the statuses map
    * @param statuses the mapping from {@link AlluxioURI} to {@link UfsStatus}
+   * @param isRecursive whether or not this cache represents a recursive listing from the UFS URI
    */
-  public UfsStatusCache(AlluxioURI ufsUri, Map<AlluxioURI, UfsStatus> statuses) {
+  public UfsStatusCache(AlluxioURI ufsUri, Map<AlluxioURI, UfsStatus> statuses,
+      boolean isRecursive) {
     mStatuses = statuses;
     mUfsUri = ufsUri;
+    mIsRecursive = isRecursive;
   }
 
   /**
@@ -65,5 +72,12 @@ public class UfsStatusCache {
    */
   public boolean isEmpty() {
     return mStatuses.isEmpty();
+  }
+
+  /**
+   * @return whether this cache is a recursive listing
+   */
+  public boolean isRecursive() {
+    return mIsRecursive;
   }
 }

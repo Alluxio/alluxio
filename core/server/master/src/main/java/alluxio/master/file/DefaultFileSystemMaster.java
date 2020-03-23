@@ -2412,8 +2412,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
         if (context.getOptions().getLoadDescendantType() != LoadDescendantPType.NONE) {
           UfsStatus[] children;
           if (statusCache != null
-              && context.getOptions().getLoadDescendantType() == LoadDescendantPType.ALL) {
-            // Avoid re-caching. Makes the assumption the cache was created on the same ufs URI
+              && context.getOptions().getLoadDescendantType() == LoadDescendantPType.ALL
+              && statusCache.isRecursive()) {
+            // Avoid re-listing large trees. Makes the assumption the cache was created on the same
+            // ufs URI
             children = statusCache.values().toArray(new UfsStatus[0]);
           } else {
             ListOptions listOptions = ListOptions.defaults();
@@ -2637,7 +2639,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
       createDirectoryContext.setOperationTimeMs(lastModifiedTime);
     }
 
-    LOG.warn("lockFinalWriteEdge: {}", inodePath);
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite()) {
       createDirectoryInternal(rpcContext, writeLockedPath, createDirectoryContext);
     } catch (FileAlreadyExistsException e) {
@@ -3356,10 +3357,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
         } catch (Exception e) {
           LOG.debug("ListStatus failed as an preparation step for syncMetadata {}", path, e);
         }
-        return new UfsStatusCache(ufsUri, statusCache);
+        return new UfsStatusCache(ufsUri, statusCache, listOptions.isRecursive());
       }
     } catch (InvalidPathException e) {
-      return new UfsStatusCache(new AlluxioURI(""), statusCache);
+      return new UfsStatusCache(new AlluxioURI(""), statusCache, false);
     }
   }
 
@@ -3652,7 +3653,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             return syncInodeMetadata(rpcContext, descendant, type, statusCache);
           } catch (InvalidPathException | FileDoesNotExistException | IOException
               | AccessControlException e) {
-            LOG.error("Failed to process inode path: {}", inodeEntry.getValue().toString(), e);
+            LOG.error("Failed to sync inode path: {}", inodeEntry.getValue().toString(), e);
           }
           return SyncResult.defaults();
         }).forEach(result -> pathsToLoad.addAll(result.getPathsToLoad()));
