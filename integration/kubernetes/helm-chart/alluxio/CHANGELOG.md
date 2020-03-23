@@ -63,3 +63,8 @@
 - Moved journal formatting from job/format-journal-job.yaml to initContainer in master/statefulset.yaml
 - Changed the master RocksDB metastore volume from emptyDir to PVC
 - Added support for using PVC for tiered storage
+
+0.5.8
+
+- Added option to disable worker short-circuit
+- Changed worker domain socket volume from hostPath to PVC
