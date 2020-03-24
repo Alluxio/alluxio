@@ -56,6 +56,7 @@ public class UnderDatabaseRegistry {
 
     String libDir =
         PathUtils.concatPath(ServerConfiguration.global().get(PropertyKey.HOME), "lib");
+    LOG.info("Loading udb jars from {}", libDir);
     List<File> files = new ArrayList<>();
     try (DirectoryStream<Path> stream = Files
         .newDirectoryStream(Paths.get(libDir), UDB_EXTENSION_PATTERN)) {
