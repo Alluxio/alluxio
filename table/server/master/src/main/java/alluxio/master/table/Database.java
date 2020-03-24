@@ -227,9 +227,7 @@ public class Database implements Journaled {
       tasks.add(() -> {
         // Save all exceptions
         try {
-          LOG.info("Sync get table name.");
           Table previousTable = mTables.get(tableName);
-          LOG.info("Sync get table.");
           UdbTable udbTable = mUdb.getTable(tableName);
           Table newTable = Table.create(thisDb, udbTable, previousTable);
 

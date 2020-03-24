@@ -37,8 +37,19 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.glue.AWSGlueAsync;
 import com.amazonaws.services.glue.AWSGlueAsyncClientBuilder;
-import com.amazonaws.services.glue.model.*;
-
+import com.amazonaws.services.glue.model.AWSGlueException;
+import com.amazonaws.services.glue.model.Database;
+import com.amazonaws.services.glue.model.EntityNotFoundException;
+import com.amazonaws.services.glue.model.GetDatabaseRequest;
+import com.amazonaws.services.glue.model.GetDatabaseResult;
+import com.amazonaws.services.glue.model.GetPartitionsRequest;
+import com.amazonaws.services.glue.model.GetTableRequest;
+import com.amazonaws.services.glue.model.GetTablesRequest;
+import com.amazonaws.services.glue.model.GetTablesResult;
+import com.amazonaws.services.glue.model.GlueEncryptionException;
+import com.amazonaws.services.glue.model.Partition;
+import com.amazonaws.services.glue.model.Table;
+import com.amazonaws.services.glue.model.ValidationException;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -277,7 +288,6 @@ public class GlueDatabase implements UnderDatabase {
 
   @Override
   public UdbTable getTable(String tableName) throws IOException {
-    LOG.info("Getting table information from table: " +tableName + ".");
     Table table;
     try {
       GetTableRequest tableRequest = new GetTableRequest()
@@ -305,13 +315,6 @@ public class GlueDatabase implements UnderDatabase {
           .setLayoutData(partitionInfo.toByteString())
           .build();
 
-      /**
-       * Glue Table:
-       * 1. GlueDatabase 2. PathTranslator
-       * 3. Table Name 4. Schema
-       * 5. Partition keys 6. Table Statistics
-       * 7. Layout 8. Glue table
-       */
       return new GlueTable(this,
           pathTranslator,
           tableName,
@@ -327,7 +330,8 @@ public class GlueDatabase implements UnderDatabase {
       throw new NotFoundException("Table " + tableName + " does not exist.", e);
     } catch (ValidationException e) {
       e.printStackTrace();
-      throw new IOException("Failed to get table: " + tableName + " with validation error: " + e.getMessage(), e);
+      throw new IOException("Failed to get table: "
+          + tableName + " with validation error: " + e.getMessage(), e);
     } catch (GlueEncryptionException e) {
       throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
     }
@@ -335,7 +339,6 @@ public class GlueDatabase implements UnderDatabase {
 
   private List<Partition> batchGetPartitions(AWSGlueAsync glueClient, String tableName)
       throws IOException {
-    LOG.info("Getting partition information from table: " +tableName + ".");
     List<Partition> partitions = new ArrayList<>();
     try {
       GetPartitionsRequest getPartitionsRequest =
@@ -345,12 +348,11 @@ public class GlueDatabase implements UnderDatabase {
               .withTableName(tableName);
       if (glueClient.getPartitions(getPartitionsRequest).getPartitions() != null) {
         partitions = glueClient.getPartitions(getPartitionsRequest).getPartitions();
-      } else {
-        LOG.info("Table: " + tableName + " does not have partitions.");
       }
       return partitions;
     } catch (AWSGlueException e) {
-      throw new IOException("WARNING: Cannot get partition information for table: " + tableName + ". error: " + e.getMessage(), e);
+      throw new IOException("WARNING: Cannot get partition information for table: "
+          + tableName + ". error: " + e.getMessage(), e);
     }
   }
 
