@@ -266,7 +266,8 @@ public class BackupWorkerRole extends AbstractBackupRole {
     mBackupProgressFuture = mExecutorService.submit(() -> {
       while (true) {
         // No need to check result because heartbeat will be sent regardless.
-        mBackupTracker.waitUntilFinished(mBackupHeartbeatIntervalMs, TimeUnit.MILLISECONDS);
+        boolean finished =
+            mBackupTracker.waitUntilFinished(mBackupHeartbeatIntervalMs, TimeUnit.MILLISECONDS);
         try {
           sendMessageBlocking(mLeaderConnection,
               new BackupHeartbeatMessage(mBackupTracker.getCurrentStatus()));
@@ -274,8 +275,8 @@ public class BackupWorkerRole extends AbstractBackupRole {
           LOG.warn("Failed to send heartbeat to backup-leader: {}. Error: {}", mLeaderConnection,
               e);
         }
-        // Stop heartbeats if backup finished.
-        if (!mBackupTracker.inProgress()) {
+        // Stop sending heartbeats if the latest backup has been finished.
+        if (finished) {
           break;
         }
       }
