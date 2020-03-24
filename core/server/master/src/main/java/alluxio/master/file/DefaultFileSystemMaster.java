@@ -2412,6 +2412,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         if (context.getOptions().getLoadDescendantType() != LoadDescendantPType.NONE) {
           UfsStatus[] children;
           if (statusCache != null
+              && statusCache.getUfsUri().equals(inodePath.getUri())
               && context.getOptions().getLoadDescendantType() == LoadDescendantPType.ALL
               && statusCache.isRecursive()) {
             // Avoid re-listing large trees. Makes the assumption the cache was created on the same
@@ -3357,7 +3358,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
         } catch (Exception e) {
           LOG.debug("ListStatus failed as an preparation step for syncMetadata {}", path, e);
         }
-        return new UfsStatusCache(ufsUri, statusCache, listOptions.isRecursive());
+        return new UfsStatusCache(new AlluxioURI(ufsUri.getPath()), statusCache,
+            listOptions.isRecursive());
       }
     } catch (InvalidPathException e) {
       return new UfsStatusCache(new AlluxioURI(""), statusCache, false);
@@ -3420,11 +3422,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
         LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
         return false;
       }
-      UfsStatusCache cache = null;
       AlluxioURI mountPointUri = new AlluxioURI(mountPoint);
-      if (statusCache.getUfsUri().equals(mountPointUri)) {
-        cache = statusCache;
-      }
+
       try {
         if (PathUtils.hasPrefix(inodePath.getUri().getPath(), mountPointUri.getPath())) {
           // one of the mountpoint is above the original inodePath, we start loading from the
@@ -3434,7 +3433,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
                 LoadMetadataContext
                     .mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
                         .setLoadDescendantType(GrpcUtils.toProto(syncDescendantType))),
-                cache);
+                statusCache);
 
             mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath(), syncDescendantType);
           } catch (Exception e) {
@@ -3450,7 +3449,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
                   LoadMetadataContext
                       .mergeFrom(LoadMetadataPOptions.newBuilder().setCreateAncestors(true)
                           .setLoadDescendantType(GrpcUtils.toProto(syncDescendantType))),
-                  cache);
+                  statusCache);
             } catch (Exception e) {
               LOG.debug("Failed to load metadata for mount point: {}", mountPointUri, e);
             }
