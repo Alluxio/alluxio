@@ -94,11 +94,11 @@ public class GlueDatabase implements UnderDatabase {
    */
   public static GlueDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
     String glueDbName = udbContext.getUdbDbName();
-    LOG.info("Glue configuration: " + configuration.getMap());
-    LOG.info("Glue database name: " + glueDbName);
     if (glueDbName == null || glueDbName.isEmpty()) {
       throw new IllegalArgumentException(
           "Glue database name cannot be empty: " + glueDbName);
+    } else if (configuration.get(Property.GLUE_REGION) == null) {
+      throw new IllegalArgumentException("GlueUdb Error: AWS region cannot be empty.");
     }
 
     return new GlueDatabase(udbContext, configuration, glueDbName);

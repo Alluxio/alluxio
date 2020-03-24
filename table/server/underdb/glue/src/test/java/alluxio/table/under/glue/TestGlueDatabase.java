@@ -38,8 +38,9 @@ public class TestGlueDatabase {
 
   @Before
   public void before() {
-    mUdbContext = new UdbContext(null, null, "glue", "null", DB_NAME, DB_NAME);
+    CONF.put("aws.region", "us-east-1");
     mUdbConfiguration = new UdbConfiguration(CONF);
+    mUdbContext = new UdbContext(null, null, "glue", "null", DB_NAME, DB_NAME);
   }
 
   @Test
