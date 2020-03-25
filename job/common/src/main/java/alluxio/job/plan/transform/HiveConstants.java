@@ -42,6 +42,10 @@ public class HiveConstants {
    */
   public static final String CSV_SERDE_CLASS = "org.apache.hadoop.hive.serde2.OpenCSVSerde";
   /**
+   * ORC serde class.
+   */
+  public static final String ORC_SERDE_CLASS = "org.apache.hadoop.hive.ql.io.orc.OrcSerde";
+  /**
    * Text input format.
    */
   public static final String TEXT_INPUT_FORMAT_CLASS = "org.apache.hadoop.mapred.TextInputFormat";

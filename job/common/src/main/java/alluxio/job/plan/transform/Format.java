@@ -18,6 +18,7 @@ public enum Format {
   CSV(".csv"),
   GZIP_CSV(".csv.gz"),
   GZIP(".gz"),
+  ORC(".orc"),
   PARQUET(".parquet");
 
   private String mSuffix;

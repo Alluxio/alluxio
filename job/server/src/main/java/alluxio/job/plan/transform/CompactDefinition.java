@@ -52,7 +52,8 @@ public final class CompactDefinition
   private static final Map<Format, Double> COMPRESSION_RATIO = ImmutableMap.of(
       Format.PARQUET, 1.0,
       Format.CSV, 5.0,
-      Format.GZIP_CSV, 2.5);
+      Format.GZIP_CSV, 2.5,
+      Format.ORC, 1.0);
 
   /**
    * Constructs a new {@link CompactDefinition}.
