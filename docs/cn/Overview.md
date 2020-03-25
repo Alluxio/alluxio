@@ -70,10 +70,6 @@ Alluxio 将三个关键领域的创新结合在一起，提供了一套独特的
  <img src="https://www.alluxio.io/app/uploads/2019/07/amazon-aws-ami.png" width="250" alt="AWS with AMI"/></a>
 </p>
 
-此外，你可以在Alluxio集群模式下测试体验使用更多的高级功能。
-
--	点击[这里](https://www.alluxio.io/sandbox-request/)免费获取一个在AWS上预装好的Alluxio和Spark沙箱集群。
-
 ## 下载和有用资源
 
 你可以从 [Alluxio 下载页面](https://alluxio.io/download)获取已发布版本。
