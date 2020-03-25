@@ -345,14 +345,14 @@ public class AlluxioCatalogTest {
     ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
 
     final TransformDefinition transformDefinition =
-        TransformDefinition.parse("file.count.max=100;parquet.compression=uncompressed");
+        TransformDefinition.parse("file.count.max=100;file.parquet.compression=uncompressed");
 
     List<TransformPlan> plans = mCatalog.getTransformPlan(dbName, tableName, transformDefinition);
     assertEquals(1, plans.size());
     alluxio.job.plan.transform.PartitionInfo transformedPartitionInfo =
         TransformActionUtils.generatePartitionInfo(plans.get(0).getTransformedLayout());
     assertEquals("uncompressed",
-        transformedPartitionInfo.getSerdeProperties().get("parquet.compression"));
+        transformedPartitionInfo.getSerdeProperties().get("file.parquet.compression"));
   }
 
   @Test
