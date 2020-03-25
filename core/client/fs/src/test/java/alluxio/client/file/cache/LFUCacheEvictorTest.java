@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.ConfigurationTestUtils;
 import alluxio.client.file.cache.evictor.LFUCacheEvictor;
 import alluxio.client.file.cache.evictor.LRUCacheEvictor;
 
@@ -33,7 +34,7 @@ public final class LFUCacheEvictorTest {
    */
   @Before
   public void before() {
-    mEvictor = new LFUCacheEvictor();
+    mEvictor = new LFUCacheEvictor(ConfigurationTestUtils.defaults());
   }
 
   @Test

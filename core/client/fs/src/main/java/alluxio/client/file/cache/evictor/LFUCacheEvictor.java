@@ -13,6 +13,8 @@ package alluxio.client.file.cache.evictor;
 
 import alluxio.client.file.cache.CacheEvictor;
 import alluxio.client.file.cache.PageId;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -27,16 +29,27 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class LFUCacheEvictor implements CacheEvictor {
-  private static final int LINKED_HASH_MAP_INIT_CAPACITY = 200;
-  private static final float LINKED_HASH_MAP_INIT_LOAD_FACTOR = 0.75f;
+  private static final int PAGE_MAP_INIT_CAPACITY = 200;
+  private static final float PAGE_MAP_INIT_LOAD_FACTOR = 0.75f;
+  private static final int BUCKET_MAP_INIT_CAPACITY = 32;
+  private static final float BUCKET_MAP_INIT_LOAD_FACTOR = 0.75f;
 
   private final Map<PageId, Integer> mPageMap = new HashMap<>(
-      LINKED_HASH_MAP_INIT_CAPACITY, LINKED_HASH_MAP_INIT_LOAD_FACTOR);
+      PAGE_MAP_INIT_CAPACITY, PAGE_MAP_INIT_LOAD_FACTOR);
 
   private final Map<Integer, Set<PageId>> mBucketMap =
-      new HashMap<>(LINKED_HASH_MAP_INIT_CAPACITY, LINKED_HASH_MAP_INIT_LOAD_FACTOR);
+      new HashMap<>(BUCKET_MAP_INIT_CAPACITY, BUCKET_MAP_INIT_LOAD_FACTOR);
   private int mMinBucket = -1;
-  private double mLogBase = 2;
+  private final double mLogBase;
+
+  /**
+   * Required constructor.
+   *
+   * @param conf Alluxio configuration
+   */
+  public LFUCacheEvictor(AlluxioConfiguration conf) {
+    mLogBase = conf.getDouble(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE);
+  }
 
   private int getBucket(int count) {
     return (int) (Math.log(count) / Math.log(mLogBase));
