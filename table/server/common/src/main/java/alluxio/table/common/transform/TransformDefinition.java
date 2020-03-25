@@ -32,7 +32,7 @@ public class TransformDefinition {
    * The user-provided definition is normalized by:
    * 1. trimming whitespaces and semicolon from the beginning and end;
    * 2. normalize to lower case.
-   *  @param definition the string definition
+   * @param definition the string definition
    * @param actions the list of actions
    * @param properties the list of properties extracted from definition
    */

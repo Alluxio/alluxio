@@ -35,7 +35,7 @@ public interface TableWriter extends Closeable {
   /**
    * @param schema the table schema
    * @param uri the URI to the output
-   * @param partitionInfo the writer for the output
+   * @param partitionInfo the partition info (default configuration is used if null)
    * @return the writer for the output
    */
   static TableWriter create(TableSchema schema, AlluxioURI uri,

@@ -132,6 +132,7 @@ public final class CompactConfig implements PlanConfig {
     }
     CompactConfig that = (CompactConfig) obj;
     return mInputPartitionInfo.equals(that.mInputPartitionInfo)
+        && mOutputPartitionInfo.equals(that.mOutputPartitionInfo)
         && mInput.equals(that.mInput)
         && mOutput.equals(that.mOutput)
         && mMaxNumFiles == that.mMaxNumFiles
@@ -140,7 +141,8 @@ public final class CompactConfig implements PlanConfig {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mInputPartitionInfo, mInput, mOutput, mMaxNumFiles, mMinFileSize);
+    return Objects.hashCode(mInputPartitionInfo, mOutputPartitionInfo, mInput, mOutput,
+        mMaxNumFiles, mMinFileSize);
   }
 
   @Override
@@ -150,7 +152,8 @@ public final class CompactConfig implements PlanConfig {
         .add("output", mOutput)
         .add("maxNumFiles", mMaxNumFiles)
         .add("minFileSize", mMinFileSize)
-        .add("partitionInfo", mInputPartitionInfo)
+        .add("inputPartitionInfo", mInputPartitionInfo)
+        .add("outputPartitionInfo", mOutputPartitionInfo)
         .toString();
   }
 

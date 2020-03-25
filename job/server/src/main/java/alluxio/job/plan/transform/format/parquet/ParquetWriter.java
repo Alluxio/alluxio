@@ -29,6 +29,7 @@ import org.apache.parquet.hadoop.util.HadoopOutputFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 
 /**
@@ -68,11 +69,11 @@ public final class ParquetWriter implements TableWriter {
    *
    * @param schema the schema
    * @param uri the URI to the output
-   * @param partitionInfo the partitionInfo
+   * @param partitionInfo the partitionInfo (default configuration is used if null)
    * @return the writer
    */
   public static ParquetWriter create(TableSchema schema, AlluxioURI uri,
-                                     PartitionInfo partitionInfo) throws IOException {
+                                     @Nullable PartitionInfo partitionInfo) throws IOException {
     String compressionCodec = DEFAULT_COMPRESSION_CODEC;
     if (partitionInfo != null) {
       compressionCodec = partitionInfo.getSerdeProperties().getOrDefault(

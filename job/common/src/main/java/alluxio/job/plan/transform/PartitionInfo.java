@@ -30,7 +30,7 @@ public class PartitionInfo implements Serializable {
   /**
    * Key in Serde Properties to denote parquet compression method.
    */
-  public static final String PARQUET_COMPRESSION = "parquet.compression";
+  public static final String PARQUET_COMPRESSION = "file.parquet.compression";
 
   private final String mSerdeClass;
   private final String mInputFormatClass;
