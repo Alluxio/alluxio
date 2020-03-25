@@ -181,6 +181,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang.StringUtils;
+import org.apache.curator.framework.api.transaction.OperationType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -726,8 +727,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
     long opTimeMs = System.currentTimeMillis();
-    LockingScheme lockingScheme =
-        createLockingScheme(path, context.getOptions().getCommonOptions(), LockPattern.READ, true);
+    LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ,
+        context.getOptions().getCommonOptions(), mUfsSyncPathCache, true);
     try (RpcContext rpcContext = createRpcContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern());
@@ -3247,9 +3248,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
         LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, true);
         try (LockedInodePath inodePath =
             mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getPattern())) {
-          InodeSyncStream sync = new InodeSyncStream(inodePath.getUri(), this, mInodeTree,
+          InodeSyncStream sync = new InodeSyncStream(inodePath, lockingScheme, this, mInodeTree,
               mInodeStore, mInodeLockManager, mMountTable, rpcContext, DescendantType.ALL,
-              mUfsSyncPathCache,  FileSystemMasterCommonPOptions.getDefaultInstance(), false, true);
+              mUfsSyncPathCache, true);
           sync.sync();
         }
         long end = System.currentTimeMillis();
@@ -3264,10 +3265,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
             LockingScheme lockingScheme = new LockingScheme(path, LockPattern.READ, true);
             try (LockedInodePath changedFilePath =
                 mInodeTree.lockInodePath(changedFile, lockingScheme.getPattern())) {
-              InodeSyncStream sync = new InodeSyncStream(changedFilePath.getUri(), this, mInodeTree,
-                  mInodeStore, mInodeLockManager, mMountTable, rpcContext, DescendantType.ONE,
-                  mUfsSyncPathCache,  FileSystemMasterCommonPOptions.getDefaultInstance(), false,
-                  true);
+              InodeSyncStream sync = new InodeSyncStream(changedFilePath, lockingScheme, this,
+                  mInodeTree,  mInodeStore, mInodeLockManager, mMountTable, rpcContext,
+                  DescendantType.ONE, mUfsSyncPathCache, true);
               sync.sync();
             } catch (InvalidPathException e) {
               LOG.info("forceSyncMetadata processed an invalid path {}", changedFile.getPath());
@@ -3312,9 +3312,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
   private boolean syncMetadata(RpcContext rpcContext, LockedInodePath inodePath,
       LockingScheme scheme, DescendantType syncDescendantType) {
-    InodeSyncStream sync = new InodeSyncStream(inodePath.getUri(), this, mInodeTree, mInodeStore,
+    InodeSyncStream sync = new InodeSyncStream(inodePath, scheme, this, mInodeTree, mInodeStore,
         mInodeLockManager, mMountTable, rpcContext, syncDescendantType, mUfsSyncPathCache,
-        FileSystemMasterCommonPOptions.getDefaultInstance(), false, false);
+        scheme.shouldSync());
     return sync.sync();
   }
 
@@ -4622,18 +4622,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
   private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
       LockPattern desiredLockMode) {
-    return createLockingScheme(path, options, desiredLockMode, false);
-  }
-
-  private LockingScheme createLockingScheme(AlluxioURI path, FileSystemMasterCommonPOptions options,
-      LockPattern desiredLockMode, boolean isGetFileInfo) {
-    // If client options didn't specify the interval, fallback to whatever the server has
-    // configured to prevent unnecessary syncing due to the default value being 0
-    long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
-        ServerConfiguration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
-    boolean shouldSync =
-        mUfsSyncPathCache.shouldSyncPath(path.getPath(), syncInterval, isGetFileInfo);
-    return new LockingScheme(path, desiredLockMode, shouldSync);
+    return new LockingScheme(path, desiredLockMode, options, mUfsSyncPathCache, false);
   }
 
   boolean isAclEnabled() {

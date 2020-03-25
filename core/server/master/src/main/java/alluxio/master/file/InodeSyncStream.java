@@ -57,7 +57,6 @@ import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UfsStatusCache2;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.ListOptions;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
 
@@ -67,13 +66,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -86,15 +82,15 @@ public class InodeSyncStream {
   private final UfsSyncPathCache mUfsSyncPathCache;
   private final UfsStatusCache2 mStatusCache;
   private final InodeTree mInodeTree;
-  private final FileSystemMasterCommonPOptions mOptions;
-  private final boolean mIsGetFileInfo;
   private final DescendantType mDescendantType;
   private final RpcContext mRpcContext;
   private final ReadOnlyInodeStore mInodeStore;
   private final MountTable mMountTable;
   private final InodeLockManager mInodeLockManager;
   private final DefaultFileSystemMaster mFsMaster;
-  private final boolean mForceSync;
+  private final boolean mShouldSync;
+  private final LockedInodePath mSyncPath;
+  private final LockingScheme mLockingScheme;
 
   private final ConcurrentLinkedQueue<AlluxioURI> mSyncMetadataQ;
 
@@ -102,6 +98,7 @@ public class InodeSyncStream {
    * Create a new instance of {@link InodeSyncStream}.
    *
    * @param rootPath a
+   * @param scheme a
    * @param fsMaster a
    * @param inodeTree a
    * @param inodeStore a
@@ -110,29 +107,26 @@ public class InodeSyncStream {
    * @param rpcContext a
    * @param descendantType a
    * @param ufsSyncPathCache a
-   * @param options a
-   * @param isGetFileInfo a
    * @param forceSync a
    */
-  public InodeSyncStream(AlluxioURI rootPath, DefaultFileSystemMaster fsMaster,
-      InodeTree inodeTree, ReadOnlyInodeStore inodeStore, InodeLockManager inodeLockManager,
-      MountTable mountTable, RpcContext rpcContext, DescendantType descendantType,
-      UfsSyncPathCache ufsSyncPathCache,  FileSystemMasterCommonPOptions options,
-      boolean isGetFileInfo, boolean forceSync) {
+  public InodeSyncStream(LockedInodePath rootPath, LockingScheme scheme,
+      DefaultFileSystemMaster fsMaster,  InodeTree inodeTree, ReadOnlyInodeStore inodeStore,
+      InodeLockManager inodeLockManager, MountTable mountTable, RpcContext rpcContext,
+      DescendantType descendantType,  UfsSyncPathCache ufsSyncPathCache, boolean forceSync) {
     mDescendantType = descendantType;
     mFsMaster = fsMaster;
-    mIsGetFileInfo = isGetFileInfo;
     mSyncMetadataQ = new ConcurrentLinkedQueue<>();
     mInodeLockManager = inodeLockManager;
     mInodeStore = inodeStore;
     mInodeTree = inodeTree;
     mMountTable = mountTable;
-    mOptions = options;
     mRpcContext = rpcContext;
     mStatusCache = new UfsStatusCache2();
     mUfsSyncPathCache = ufsSyncPathCache;
-    mForceSync = forceSync;
-    mSyncMetadataQ.add(rootPath);
+    mShouldSync = forceSync;
+    mSyncPath = rootPath;
+    mSyncMetadataQ.add(rootPath.getUri());
+    mLockingScheme = scheme;
   }
 
   /**
@@ -149,29 +143,45 @@ public class InodeSyncStream {
     // 4. If not deleted, load metadata from the UFS
     // 5. If a recursive sync, add children inodes to sync queue
 
+    boolean deletedPath = false;
     int syncPathCount = 0;
     int stopNum = -1; // stop syncing when we've processed this many paths. -1 for infinite
     while (!mSyncMetadataQ.isEmpty()) {
       AlluxioURI path = mSyncMetadataQ.poll();
-      LockingScheme scheme;
-      if (mForceSync) {
-        scheme = new LockingScheme(path, InodeTree.LockPattern.WRITE_EDGE, true);
-      } else {
-        scheme = new LockingScheme(path, InodeTree.LockPattern.WRITE_EDGE, mOptions,
-            mUfsSyncPathCache, mIsGetFileInfo);
-      }
+      LockingScheme scheme = new LockingScheme(path, LockPattern.READ, mShouldSync);
       if (!scheme.shouldSync()) {
         continue;
       }
-      try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, scheme)) {
-        syncInodeMetadata(inodePath);
-        syncPathCount++;
-        if (mDescendantType == DescendantType.ONE && syncPathCount == 1) {
-          // If descendantType is ONE, then we shouldn't process any more paths except for those
-          // currently in the queue
-          stopNum = mSyncMetadataQ.size();
+      try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, scheme.getPattern())) {
+        if (Thread.currentThread().isInterrupted()) {
+          LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
+          break;
         }
-        if (stopNum != -1 && syncPathCount >= stopNum) {
+        SyncResult result = syncInodeMetadata(inodePath);
+        syncPathCount++;
+        if (syncPathCount == 1) {
+          if (result.getDeletedInode()) {
+            deletedPath = true;
+          }
+          if (mDescendantType == DescendantType.ONE) {
+            // If descendantType is ONE, then we shouldn't process any more paths except for those
+            // currently in the queue
+            stopNum = mSyncMetadataQ.size();
+          }
+
+          // process the sync result for the original path
+          try {
+            if (deletedPath) {
+              mSyncPath.removeLastInode();
+            }
+            mSyncPath.traverse();
+          } catch (InvalidPathException e) {
+            throw new RuntimeException(e);
+          } finally {
+            mSyncPath.downgradeToPattern(mLockingScheme.getDesiredPattern());
+          }
+        }
+        if (stopNum != -1 && syncPathCount > stopNum) {
           break;
         }
       } catch (AccessControlException | BlockInfoException | FileAlreadyCompletedException
@@ -184,22 +194,31 @@ public class InodeSyncStream {
       }
     }
     LOG.info("TRACING - Synced {} paths", syncPathCount);
+
     return syncPathCount > 0;
+  }
+
+  private SyncResult syncInodeMetadata(LockedInodePath inodePath)
+      throws InvalidPathException, AccessControlException, IOException, FileDoesNotExistException,
+      FileAlreadyCompletedException, InvalidFileSizeException, BlockInfoException {
+    if (!inodePath.fullPathExists()) {
+      loadMetadataForPath(inodePath);
+    }
+
+    return syncExistingInodeMetadata(inodePath);
   }
 
   /**
    * Sync inode metadata with the UFS state.
+   *
+   * This method expects the {@code inodePath} to already exist in the inode tree.
    */
-  private SyncResult syncInodeMetadata(LockedInodePath inodePath)
+  private SyncResult syncExistingInodeMetadata(LockedInodePath inodePath)
       throws AccessControlException, BlockInfoException, FileAlreadyCompletedException,
       FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException,
       InvalidPathException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
-    if (Thread.currentThread().isInterrupted()) {
-      LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
-      return SyncResult.defaults();
-    }
     // Set to true if the given inode was deleted.
     boolean deletedInode = false;
     // whether we need to load metadata for the current path
@@ -222,27 +241,13 @@ public class InodeSyncStream {
     }
     persistingLock.get().close();
 
+    UfsStatus cachedStatus = mStatusCache.getStatus(inodePath.getUri());
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
     AlluxioURI ufsUri = resolution.getUri();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       String ufsFingerprint;
       Fingerprint ufsFpParsed;
-      UfsStatus cachedStatus = mStatusCache.getStatus(inodePath.getUri());
-      if (cachedStatus == null) {
-        UfsStatus stat = ufs.getStatus(ufsUri.toString());
-        if (stat != null) {
-          try {
-            // This will remove the any authority information and simply retrieve the last path
-            // component
-            stat.setName(new AlluxioURI(stat.getName()).getName());
-            mStatusCache.addStatus(inodePath.getUri(), stat);
-          } catch (IllegalArgumentException e) {
-            LOG.warn("Failed to add status to cache", e);
-          }
-        }
-        cachedStatus = stat;
-      }
       if (cachedStatus == null) {
         // TODO(david): change the interface so that getFingerprint returns a parsed fingerprint
         ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
@@ -280,7 +285,9 @@ public class InodeSyncStream {
               .setUfsFingerprint(ufsFingerprint));
         }
       }
+
       if (syncPlan.toDelete()) {
+        deletedInode = true;
         try {
           // The options for deleting.
           DeleteContext syncDeleteContext = DeleteContext.mergeFrom(DeletePOptions.newBuilder()
@@ -288,13 +295,12 @@ public class InodeSyncStream {
               .setAlluxioOnly(true)
               .setUnchecked(true));
           mFsMaster.deleteInternal(mRpcContext, inodePath, syncDeleteContext);
-
-          deletedInode = true;
         } catch (DirectoryNotEmptyException | IOException e) {
           // Should not happen, since it is an unchecked delete.
           LOG.error("Unexpected error for unchecked delete.", e);
         }
       }
+
       if (syncPlan.toLoadMetadata()) {
         loadMetadata = true;
       }
@@ -302,6 +308,7 @@ public class InodeSyncStream {
       boolean syncChildren = syncPlan.toSyncChildren()
           && inode.isDirectory()
           && mDescendantType != DescendantType.NONE;
+
       if (syncChildren) {
         // maps children name to inode
         Map<String, Inode> inodeChildren = new HashMap<>();
@@ -309,12 +316,11 @@ public class InodeSyncStream {
           inodeChildren.put(child.getName(), child);
         }
 
-        // There shouldn't be any children in the cache at this point.
-        UfsStatus[] listStatus = ufs.listStatus(ufsUri.toString(), ListOptions.defaults());
+        // Fetch and populate children into the cache
+        Collection<UfsStatus> listStatus = mStatusCache
+            .fetchChildrenIfAbsent(inodePath.getUri(), mMountTable);
         // Iterate over UFS listings and process UFS children.
         if (listStatus != null) {
-          // First, add the statuses to the cache
-          mStatusCache.addChildren(inodePath.getUri(), Arrays.asList(listStatus));
 
           for (UfsStatus ufsChildStatus : listStatus) {
             if (!inodeChildren.containsKey(ufsChildStatus.getName()) && !PathUtils
@@ -327,14 +333,15 @@ public class InodeSyncStream {
         }
       }
 
+      // If the inode was deleted in the previous sync step, we need to remove the inode from the
+      // locked path
+      if (deletedInode) {
+        inodePath.removeLastInode();
+      }
+
       // load metadata if necessary.
       if (loadMetadata) {
-        LoadMetadataContext ctx = LoadMetadataContext.mergeFrom(
-            LoadMetadataPOptions.newBuilder()
-                .setCreateAncestors(true)
-                .setLoadDescendantType(GrpcUtils.toProto(mDescendantType)))
-            .setUfsStatus(mStatusCache.getStatus(inodePath.getUri()));
-        loadMetadata(inodePath, ctx);
+        loadMetadataForPath(inodePath);
       }
       mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath(), DescendantType.ONE);
 
@@ -348,7 +355,20 @@ public class InodeSyncStream {
       }
     }
 
-    return new SyncResult(deletedInode, new HashSet<>());
+    return new SyncResult(deletedInode, true);
+  }
+
+  private void loadMetadataForPath(LockedInodePath inodePath)
+      throws InvalidPathException, AccessControlException, IOException, FileDoesNotExistException,
+      FileAlreadyCompletedException, InvalidFileSizeException, BlockInfoException {
+
+    UfsStatus status = mStatusCache.getStatus(inodePath.getUri());
+    LoadMetadataContext ctx = LoadMetadataContext.mergeFrom(
+        LoadMetadataPOptions.newBuilder()
+            .setCreateAncestors(true)
+            .setLoadDescendantType(GrpcUtils.toProto(mDescendantType)))
+        .setUfsStatus(status);
+    loadMetadata(inodePath, ctx);
   }
 
   private void loadMetadata(LockedInodePath inodePath, LoadMetadataContext context)
@@ -379,16 +399,8 @@ public class InodeSyncStream {
         // now load all children if required
         LoadDescendantPType type = context.getOptions().getLoadDescendantType();
         if (type != LoadDescendantPType.NONE) {
-          Collection<UfsStatus> children = mStatusCache.getChildren(inodePath.getUri());
-          if (children == null) {
-            UfsStatus[] childStatuses = ufs.listStatus(ufsUri.toString());
-            if (childStatuses == null) {
-              return;
-            }
-            children = Arrays.asList(childStatuses);
-            mStatusCache.addChildren(inodePath.getUri(), children);
-          }
-          children = mStatusCache.getChildren(inodePath.getUri());
+          Collection<UfsStatus> children = mStatusCache.fetchChildrenIfAbsent(inodePath.getUri(),
+              mMountTable);
           for (UfsStatus childStatus : children) {
             if (PathUtils.isTemporaryFileName(childStatus.getName())) {
               continue;
@@ -600,24 +612,24 @@ public class InodeSyncStream {
    * - pathsToLoad: a set of paths that need to be loaded from UFS.
    */
   private static class SyncResult {
-    private boolean mDeletedInode;
-    private Set<AlluxioURI> mPathsToLoad;
+    private final boolean mDeletedInode;
+    private final boolean mSuccess;
 
     static SyncResult defaults() {
-      return new SyncResult(false, new HashSet<>());
+      return new SyncResult(false, true);
     }
 
-    SyncResult(boolean deletedInode, Set<AlluxioURI> pathsToLoad) {
+    SyncResult(boolean deletedInode, boolean success) {
       mDeletedInode = deletedInode;
-      mPathsToLoad = new HashSet<>(pathsToLoad);
+      mSuccess = success;
     }
 
     boolean getDeletedInode() {
       return mDeletedInode;
     }
 
-    Set<AlluxioURI> getPathsToLoad() {
-      return mPathsToLoad;
+    boolean getSuccess() {
+      return mSuccess;
     }
   }
 }

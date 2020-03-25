@@ -13,7 +13,16 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.exception.InvalidPathException;
+import alluxio.master.file.meta.MountTable;
+import alluxio.resource.CloseableResource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,6 +34,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * be searched for later.
  */
 public class UfsStatusCache2 {
+  private static final Logger LOG = LoggerFactory.getLogger(UfsStatusCache2.class);
+
   private final ConcurrentHashMap<AlluxioURI, UfsStatus> mStatuses;
   private final ConcurrentHashMap<UfsStatus, Collection<UfsStatus>> mChildren;
 
@@ -71,11 +82,11 @@ public class UfsStatusCache2 {
    */
   public void addChildren(AlluxioURI path, Collection<UfsStatus> children) {
     UfsStatus status = mStatuses.get(path);
-    if (status == null) {
-      throw new IllegalArgumentException(
-          String.format("UfsStatus at path %s does not exist yet in the cache", path));
+    // If this path doesn't yet exist, we can't keep track of the parent-child relationship
+    // We can still add statuses to the cache regardless
+    if (status != null) {
+      mChildren.computeIfAbsent(status, ufsStatus -> new ConcurrentHashSet<>()).addAll(children);
     }
-    mChildren.computeIfAbsent(status, ufsStatus -> new ConcurrentHashSet<>()).addAll(children);
     children.forEach(child -> {
       AlluxioURI childPath = path.joinUnsafe(child.getName());
       addStatus(childPath, child);
@@ -111,11 +122,71 @@ public class UfsStatusCache2 {
   }
 
   /**
+   * Retrieves the status for the given Alluxio path. If the path doesn't exist yet, fetch it from
+   * the UFS, store it in the cache, then return it.
+   */
+  @Nullable
+  private UfsStatus fetchIfAbsent(AlluxioURI path, MountTable mountTable)
+      throws IOException, InvalidPathException {
+    UfsStatus status = getStatus(path);
+    if (status != null) {
+      return status;
+    }
+    MountTable.Resolution resolution = mountTable.resolve(path);
+    AlluxioURI ufsUri = resolution.getUri();
+    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      status = ufs.getStatus(ufsUri.toString());
+      if (status == null) {
+        return null;
+      }
+      // This will remove the any authority information and simply retrieve the last path
+      // component
+      status.setName(new AlluxioURI(status.getName()).getName());
+      addStatus(path, status);
+    } catch (IllegalArgumentException e) {
+      LOG.warn("Failed to add status to cache", e);
+    }
+    return status;
+  }
+
+  /**
+   * Fetches children of a given alluxio path stores them in the cache, then returns them.
+   *
+   * @param path the Alluxio path
+   * @param mountTable the Alluxio mount table
+   * @return child UFS statuses of the alluxio path
+   * @throws InvalidPathException
+   */
+  public Collection<UfsStatus> fetchChildrenIfAbsent(AlluxioURI path, MountTable mountTable)
+      throws InvalidPathException {
+    Collection<UfsStatus> children = getChildren(path);
+    if (children != null) {
+      return children;
+    }
+    MountTable.Resolution resolution = mountTable.resolve(path);
+    AlluxioURI ufsUri = resolution.getUri();
+    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      UfsStatus[] statuses = ufs.listStatus(ufsUri.toString());
+      if (statuses == null) {
+        return null;
+      }
+      children = Arrays.asList(statuses);
+      addChildren(path, children);
+    } catch (IllegalArgumentException | IOException e) {
+      LOG.warn("Failed to add status to cache", e);
+    }
+    return children;
+  }
+
+  /**
    * Get the child {@link UfsStatus}es from a given {@link AlluxioURI}.
    *
    * @param path the path the retrieve
    * @return The corresponding {@link UfsStatus} or {@code null} if there is none stored
    */
+  @Nullable
   public Collection<UfsStatus> getChildren(AlluxioURI path) {
     UfsStatus stat = getStatus(path);
     if (stat == null) {
