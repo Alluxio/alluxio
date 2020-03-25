@@ -47,7 +47,7 @@ public final class OrcReader implements TableReader {
 
       Configuration conf = ReadWriterUtils.readNoCacheConf();
 
-      mReader = mCloser.register(OrcFile.createReader(inputPath, OrcFile.readerOptions(conf));
+      mReader = mCloser.register(OrcFile.createReader(inputPath, OrcFile.readerOptions(conf)));
       mFieldNames = mReader.getSchema().getFieldNames();
       mRows = mReader.rows();
     } catch (IOException e) {
