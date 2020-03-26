@@ -45,7 +45,7 @@ public class LRUCacheEvictor implements CacheEvictor {
   public LRUCacheEvictor(AlluxioConfiguration conf) {
   }
 
-    @Override
+  @Override
   public void updateOnGet(PageId pageId) {
     mLRUCache.put(pageId, UNUSED_MAP_VALUE);
   }
