@@ -121,7 +121,7 @@ public class InodeSyncStream {
     mInodeTree = inodeTree;
     mMountTable = mountTable;
     mRpcContext = rpcContext;
-    mStatusCache = new UfsStatusCache2();
+    mStatusCache = new UfsStatusCache2(fsMaster.mSyncPrefetchExecutor);
     mUfsSyncPathCache = ufsSyncPathCache;
     mShouldSync = forceSync;
     mSyncPath = rootPath;
@@ -142,7 +142,6 @@ public class InodeSyncStream {
     // 3. If the path does not exist in the UFS, delete the inode in Alluxio
     // 4. If not deleted, load metadata from the UFS
     // 5. If a recursive sync, add children inodes to sync queue
-
     boolean deletedPath = false;
     int syncPathCount = 0;
     int stopNum = -1; // stop syncing when we've processed this many paths. -1 for infinite
@@ -194,7 +193,7 @@ public class InodeSyncStream {
       }
     }
     LOG.info("TRACING - Synced {} paths", syncPathCount);
-
+    mStatusCache.cancelAllPrefetch();
     return syncPathCount > 0;
   }
 
@@ -215,8 +214,7 @@ public class InodeSyncStream {
    */
   private SyncResult syncExistingInodeMetadata(LockedInodePath inodePath)
       throws AccessControlException, BlockInfoException, FileAlreadyCompletedException,
-      FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException,
-      InvalidPathException {
+      FileDoesNotExistException, InvalidFileSizeException, InvalidPathException, IOException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
 
     // Set to true if the given inode was deleted.
@@ -351,6 +349,10 @@ public class InodeSyncStream {
           // If we're performing a recusive sync, add each child of our current Inode to the queue
           AlluxioURI child = inodePath.getUri().joinUnsafe(childInode.getName());
           mSyncMetadataQ.add(child);
+          // This asynchronously schedules a job to pre-fetch the statuses into the cache.
+          if (childInode.isDirectory()) {
+            mStatusCache.prefetchChildren(child, mMountTable);
+          }
         });
       }
     }

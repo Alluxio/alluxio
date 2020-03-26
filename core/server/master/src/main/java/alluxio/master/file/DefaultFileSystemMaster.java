@@ -150,6 +150,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.SecurityUtils;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
@@ -181,7 +182,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang.StringUtils;
-import org.apache.curator.framework.api.transaction.OperationType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -204,6 +204,8 @@ import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -386,6 +388,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
   private TimeSeriesStore mTimeSeriesStore;
 
   private AccessTimeUpdater mAccessTimeUpdater;
+
+  final ThreadPoolExecutor mSyncPrefetchExecutor = new ThreadPoolExecutor(2,
+      Runtime.getRuntime().availableProcessors(), 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
+      ThreadFactoryUtils.build("alluxio-ufs-sync-prefetch-%d", false));
 
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
