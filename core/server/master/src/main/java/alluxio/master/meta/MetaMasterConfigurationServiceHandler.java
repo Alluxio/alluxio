@@ -67,7 +67,7 @@ public final class MetaMasterConfigurationServiceHandler
       if (!options.getIgnoreClusterConf()) {
         if (clusterConf == null
             || !clusterConf.getClusterConfigHash().equals(hash.getClusterConfigHash())) {
-          clusterConf = mMetaMaster.getConfiguration(GetConfigurationPOptions.newBuilder()
+          clusterConf = mMetaMaster.getConfiguration(options.toBuilder()
               .setIgnorePathConf(true).build()).toProto();
           mClusterConf = clusterConf;
         }
@@ -77,7 +77,7 @@ public final class MetaMasterConfigurationServiceHandler
       if (!options.getIgnorePathConf()) {
         if (pathConf == null
             || !pathConf.getPathConfigHash().equals(hash.getPathConfigHash())) {
-          pathConf = mMetaMaster.getConfiguration(GetConfigurationPOptions.newBuilder()
+          pathConf = mMetaMaster.getConfiguration(options.toBuilder()
               .setIgnoreClusterConf(true).build()).toProto();
           mPathConf = pathConf;
         }
