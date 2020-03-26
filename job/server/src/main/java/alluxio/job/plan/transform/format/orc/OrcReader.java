@@ -21,6 +21,7 @@ import alluxio.job.plan.transform.format.TableSchema;
 
 import com.google.common.io.Closer;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
 import org.apache.orc.OrcFile;
 import org.apache.orc.Reader;
@@ -47,6 +48,27 @@ public final class OrcReader implements TableReader {
       Configuration conf = ReadWriterUtils.readNoCacheConf();
 
       mReader = mCloser.register(OrcFile.createReader(inputPath, OrcFile.readerOptions(conf)));
+      mFieldNames = mReader.getSchema().getFieldNames();
+      mRows = mReader.rows();
+
+      mSchema = new OrcSchema(mReader);
+    } catch (IOException e) {
+      try {
+        mCloser.close();
+      } catch (IOException ioe) {
+        e.addSuppressed(ioe);
+      }
+      throw e;
+    }
+  }
+
+  public OrcReader(String path) throws IOException {
+    mCloser = Closer.create();
+    try {
+
+      Configuration conf = ReadWriterUtils.readNoCacheConf();
+
+      mReader = mCloser.register(OrcFile.createReader(new Path(path), OrcFile.readerOptions(conf)));
       mFieldNames = mReader.getSchema().getFieldNames();
       mRows = mReader.rows();
 

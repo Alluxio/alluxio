@@ -18,6 +18,7 @@ import alluxio.job.plan.transform.format.TableSchema;
 import alluxio.job.plan.transform.format.parquet.ParquetSchema;
 import org.apache.avro.Schema;
 import org.apache.orc.Reader;
+import org.apache.orc.TypeDescription;
 
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
@@ -36,13 +37,27 @@ public class OrcSchema implements TableSchema {
     for (int i = 0; i < fieldNames.size(); i++) {
       final String fieldName = fieldNames.get(i);
 
-      final String type = reader.getSchema().getChildren().get(i).getCategory().getName();
+      final String type = getType(reader.getSchema().getChildren().get(i));
 
       mAlluxioSchema.add(new FieldSchema(i, fieldName, type, ""));
     }
 
     mWriteSchema = SchemaConversionUtils.buildWriteSchema(Schema.Type.RECORD.getName(), mAlluxioSchema);
   }
+  
+  private String getType(TypeDescription typeDescription) {
+    final TypeDescription.Category category = typeDescription.getCategory();
+    switch (category) {
+      case DECIMAL:
+        return String.format("decimal(%d,%d)", typeDescription.getPrecision(),
+            typeDescription.getScale());
+      case CHAR:
+      case VARCHAR:
+        return String.format("%s(%d)", category.getName(), typeDescription.getMaxLength());
+      default:
+        return category.getName();
+    }
+  }  
 
   @Override
   public ParquetSchema toParquet() {
