@@ -17,19 +17,31 @@ import alluxio.job.plan.transform.format.SchemaConversionUtils;
 import alluxio.job.plan.transform.format.TableSchema;
 import alluxio.job.plan.transform.format.parquet.ParquetSchema;
 import org.apache.avro.Schema;
+import org.apache.orc.Reader;
 
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class OrcSchema implements TableSchema {
   private final ArrayList<FieldSchema> mAlluxioSchema;
 
   private final Schema mWriteSchema;
 
-  public OrcSchema(@NotNull ArrayList<FieldSchema> schema) throws IOException {
-    mAlluxioSchema = schema;
-    mWriteSchema = SchemaConversionUtils.buildWriteSchema(Schema.Type.RECORD.getName(), schema);
+  public OrcSchema(Reader reader) throws IOException {
+    mAlluxioSchema = new ArrayList<>();
+
+    final List<String> fieldNames = reader.getSchema().getFieldNames();
+    for (int i = 0; i < fieldNames.size(); i++) {
+      final String fieldName = fieldNames.get(i);
+
+      final String type = reader.getSchema().getChildren().get(i).getCategory().getName();
+
+      mAlluxioSchema.add(new FieldSchema(i, fieldName, type, ""));
+    }
+
+    mWriteSchema = SchemaConversionUtils.buildWriteSchema(Schema.Type.RECORD.getName(), mAlluxioSchema);
   }
 
   @Override

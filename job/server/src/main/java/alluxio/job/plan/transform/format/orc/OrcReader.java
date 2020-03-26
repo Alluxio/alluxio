@@ -40,16 +40,17 @@ public final class OrcReader implements TableReader {
   private VectorizedRowBatch mCurrentBatch;
   private int mCurrentBatchPosition;
 
-  private OrcReader(JobPath inputPath, PartitionInfo pInfo) throws IOException {
+  private OrcReader(JobPath inputPath) throws IOException {
     mCloser = Closer.create();
     try {
-      mSchema = new OrcSchema(pInfo.getFields());
 
       Configuration conf = ReadWriterUtils.readNoCacheConf();
 
       mReader = mCloser.register(OrcFile.createReader(inputPath, OrcFile.readerOptions(conf)));
       mFieldNames = mReader.getSchema().getFieldNames();
       mRows = mReader.rows();
+
+      mSchema = new OrcSchema(mReader);
     } catch (IOException e) {
       try {
         mCloser.close();
@@ -60,9 +61,9 @@ public final class OrcReader implements TableReader {
     }
   }
 
-  public static OrcReader create(AlluxioURI uri, PartitionInfo pInfo) throws IOException {
+  public static OrcReader create(AlluxioURI uri) throws IOException {
     JobPath path = new JobPath(uri.getScheme(), uri.getAuthority().toString(), uri.getPath());
-    return new OrcReader(path, pInfo);
+    return new OrcReader(path);
   }
 
   @Override

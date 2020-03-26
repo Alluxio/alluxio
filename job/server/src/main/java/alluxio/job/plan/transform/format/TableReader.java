@@ -42,7 +42,7 @@ public interface TableReader extends Closeable {
       case PARQUET:
         return ParquetReader.create(uri);
       case ORC:
-        return OrcReader.create(uri, pInfo);
+        return OrcReader.create(uri);
       default:
         throw new IOException("Unsupported format: " + format);
     }
