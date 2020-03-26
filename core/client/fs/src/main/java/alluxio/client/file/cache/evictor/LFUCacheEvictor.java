@@ -17,15 +17,16 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 
 import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * LFU client-side cache eviction policy.
+ * Pages are sorted in bucket order based on logarithmic count.
+ * Pages inside bucket are sorted in LRU order.
  */
 @ThreadSafe
 public class LFUCacheEvictor implements CacheEvictor {
@@ -33,14 +34,17 @@ public class LFUCacheEvictor implements CacheEvictor {
   private static final float PAGE_MAP_INIT_LOAD_FACTOR = 0.75f;
   private static final int BUCKET_MAP_INIT_CAPACITY = 32;
   private static final float BUCKET_MAP_INIT_LOAD_FACTOR = 0.75f;
+  private static final int BUCKET_LRU_PAGE_MAP_INIT_CAPACITY = 200;
+  private static final float BUCKET_LRU_PAGE_MAP_INIT_LOAD_FACTOR = 0.75f;
+  private static final boolean UNUSED_MAP_VALUE = true;
 
   private final Map<PageId, Integer> mPageMap = new HashMap<>(
       PAGE_MAP_INIT_CAPACITY, PAGE_MAP_INIT_LOAD_FACTOR);
 
-  private final Map<Integer, Set<PageId>> mBucketMap =
+  private final Map<Integer, Map<PageId, Boolean>> mBucketMap =
       new HashMap<>(BUCKET_MAP_INIT_CAPACITY, BUCKET_MAP_INIT_LOAD_FACTOR);
   private int mMinBucket = -1;
-  private final double mLogBase;
+  private final double mDivisor;
 
   /**
    * Required constructor.
@@ -48,25 +52,34 @@ public class LFUCacheEvictor implements CacheEvictor {
    * @param conf Alluxio configuration
    */
   public LFUCacheEvictor(AlluxioConfiguration conf) {
-    mLogBase = conf.getDouble(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE);
+    mDivisor = Math.log(conf.getDouble(PropertyKey.USER_CLIENT_CACHE_EVICTOR_LFU_LOGBASE));
   }
 
   private int getBucket(int count) {
-    return (int) (Math.log(count) / Math.log(mLogBase));
+    return (int) (Math.log(count) / mDivisor);
   }
 
   private void addPageToBucket(PageId pageId, int bucket) {
-    mBucketMap.compute(bucket, (bucketKey, pageSet) -> {
-      Set<PageId> set = pageSet == null ? new LinkedHashSet<>() : pageSet;
-      set.add(pageId);
-      return set;
+    mBucketMap.compute(bucket, (bucketKey, lruMap) -> {
+      Map<PageId, Boolean> map = lruMap == null ? new LinkedHashMap<>(
+          BUCKET_LRU_PAGE_MAP_INIT_CAPACITY, BUCKET_LRU_PAGE_MAP_INIT_LOAD_FACTOR, true)
+          : lruMap;
+      map.put(pageId, UNUSED_MAP_VALUE);
+      return map;
     });
   }
 
-  private Set<PageId> removePageFromBucket(PageId pageId, int bucket) {
-    return mBucketMap.computeIfPresent(bucket, (bucketKey, pageSet) -> {
-      pageSet.remove(pageId);
-      return pageSet.isEmpty() ? null : pageSet;
+  private Map<PageId, Boolean> removePageFromBucket(PageId pageId, int bucket) {
+    return mBucketMap.computeIfPresent(bucket, (bucketKey, lruMap) -> {
+      lruMap.remove(pageId);
+      return lruMap.isEmpty() ? null : lruMap;
+    });
+  }
+
+  private void touchPageInBucket(PageId pageId, int bucket) {
+    mBucketMap.computeIfPresent(bucket, (bucketKey, lruMap) -> {
+      lruMap.get(pageId);
+      return lruMap;
     });
   }
 
@@ -78,11 +91,13 @@ public class LFUCacheEvictor implements CacheEvictor {
     if (newCount > 1) {
       int oldBucket = getBucket(newCount - 1);
       if (newBucket != oldBucket) {
-        Set<PageId> pagesLeft = removePageFromBucket(pageId, oldBucket);
+        Map<PageId, Boolean> pagesLeft = removePageFromBucket(pageId, oldBucket);
         if (pagesLeft == null && oldBucket == mMinBucket) {
           mMinBucket = newBucket;
         }
         addPageToBucket(pageId, newBucket);
+      } else {
+        touchPageInBucket(pageId, newBucket);
       }
     } else {
       mMinBucket = newBucket;
@@ -97,13 +112,13 @@ public class LFUCacheEvictor implements CacheEvictor {
 
   @Override
   public synchronized void updateOnDelete(PageId pageId) {
-    Integer count = mPageMap.get(pageId);
+    Integer count = mPageMap.remove(pageId);
     if (count == null) {
       return;
     }
     int bucket = getBucket(count);
-    Set<PageId> pageSet = removePageFromBucket(pageId, bucket);
-    if (pageSet == null && bucket == mMinBucket && !mBucketMap.isEmpty()) {
+    Map<PageId, Boolean> pagesLeft = removePageFromBucket(pageId, bucket);
+    if (pagesLeft == null && bucket == mMinBucket && !mBucketMap.isEmpty()) {
       // should not be expensive given logarithmic bucket key
       while (!mBucketMap.containsKey(mMinBucket)) {
         mMinBucket++;
@@ -114,8 +129,8 @@ public class LFUCacheEvictor implements CacheEvictor {
   @Nullable
   @Override
   public synchronized PageId evict() {
-    Set<PageId> pageSet = mBucketMap.get(mMinBucket);
-    return pageSet != null ? pageSet.iterator().next() : null;
+    Map<PageId, Boolean> lruMap = mBucketMap.get(mMinBucket);
+    return lruMap != null ? lruMap.keySet().iterator().next() : null;
   }
 
   @Override
