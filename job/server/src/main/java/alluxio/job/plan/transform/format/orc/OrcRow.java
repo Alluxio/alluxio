@@ -13,7 +13,10 @@
 package alluxio.job.plan.transform.format.orc;
 
 import alluxio.job.plan.transform.FieldSchema;
+import alluxio.job.plan.transform.HiveConstants;
 import alluxio.job.plan.transform.format.TableRow;
+import alluxio.job.plan.transform.format.csv.CsvUtils;
+import alluxio.job.plan.transform.format.csv.Decimal;
 import alluxio.job.plan.transform.format.parquet.ParquetRow;
 
 import org.apache.avro.Schema;
@@ -29,6 +32,7 @@ import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
 import org.apache.hadoop.hive.ql.exec.vector.VoidColumnVector;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,9 +64,9 @@ public class OrcRow implements TableRow {
     GenericRecordBuilder recordBuilder = new GenericRecordBuilder(writeSchema);
     for (FieldSchema field : mSchema.getAlluxioSchema()) {
       String name = field.getName();
-      //String type = field.getType();
+      String type = field.getType();
       Object value = getColumn(name);
-      recordBuilder.set(writeSchema.getField(name), value);
+      recordBuilder.set(writeSchema.getField(name), convert(value, name, type));
     }
     return new ParquetRow(recordBuilder.build());
   }
@@ -82,7 +86,7 @@ public class OrcRow implements TableRow {
     }
 
     if (col instanceof TimestampColumnVector) {
-      return ((TimestampColumnVector) col).getTimestampAsLong(mPosition);
+      return ((TimestampColumnVector) col).asScratchTimestamp(mPosition).getTime();
     } else if (col instanceof VoidColumnVector) {
       return null;
     } else if (col instanceof DecimalColumnVector) {
@@ -91,11 +95,31 @@ public class OrcRow implements TableRow {
     } else if (col instanceof LongColumnVector) {
       return ((LongColumnVector) col).vector[mPosition];
     } else if (col instanceof BytesColumnVector) {
-      return ((BytesColumnVector) col).vector[mPosition];
+      BytesColumnVector bcv = (BytesColumnVector) col;
+      return Arrays.copyOfRange(bcv.vector[mPosition], bcv.start[mPosition],
+          bcv.start[mPosition] + bcv.length[mPosition]);
     } else if (col instanceof DoubleColumnVector) {
       return ((DoubleColumnVector) col).vector[mPosition];
     }
 
     throw new UnsupportedOperationException("Unsupported column vector: " + col.getClass().getName());
+  }
+
+  private Object convert(Object value, String name, String type) throws IOException {
+    if (value == null) {
+      return null;
+    }
+
+    switch (HiveConstants.Types.getHiveConstantType(type)) {
+      case HiveConstants.Types.DECIMAL:
+        final Decimal decimal = new Decimal(type);
+        return ((HiveDecimal) value).bigIntegerBytesScaled(decimal.getScale());
+      case HiveConstants.Types.VARCHAR:
+      case HiveConstants.Types.CHAR:
+      case HiveConstants.Types.STRING:
+        return new String((byte[]) value);
+      default:
+        return value;
+    }
   }
 }

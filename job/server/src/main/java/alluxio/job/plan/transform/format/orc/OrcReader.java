@@ -19,6 +19,7 @@ import alluxio.job.plan.transform.format.TableReader;
 import alluxio.job.plan.transform.format.TableRow;
 import alluxio.job.plan.transform.format.TableSchema;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Closer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -62,27 +63,6 @@ public final class OrcReader implements TableReader {
     }
   }
 
-  public OrcReader(String path) throws IOException {
-    mCloser = Closer.create();
-    try {
-
-      Configuration conf = ReadWriterUtils.readNoCacheConf();
-
-      mReader = mCloser.register(OrcFile.createReader(new Path(path), OrcFile.readerOptions(conf)));
-      mFieldNames = mReader.getSchema().getFieldNames();
-      mRows = mReader.rows();
-
-      mSchema = new OrcSchema(mReader);
-    } catch (IOException e) {
-      try {
-        mCloser.close();
-      } catch (IOException ioe) {
-        e.addSuppressed(ioe);
-      }
-      throw e;
-    }
-  }
-
   public static OrcReader create(AlluxioURI uri) throws IOException {
     JobPath path = new JobPath(uri.getScheme(), uri.getAuthority().toString(), uri.getPath());
     return new OrcReader(path);
@@ -95,13 +75,15 @@ public final class OrcReader implements TableReader {
 
   @Override
   public TableRow read() throws IOException {
-    mCurrentBatch = mReader.getSchema().createRowBatch();
-    mCurrentBatchPosition = 0;
-    if (!mRows.nextBatch(mCurrentBatch)) {
-      return null;
+    if (mCurrentBatch == null || mCurrentBatch.size <= mCurrentBatchPosition) {
+      mCurrentBatch = mReader.getSchema().createRowBatch();
+      mCurrentBatchPosition = 0;
+      if (!mRows.nextBatch(mCurrentBatch)) {
+        return null;
+      }
     }
 
-    return new OrcRow(mSchema, mCurrentBatch, mCurrentBatchPosition, mFieldNames);
+    return new OrcRow(mSchema, mCurrentBatch, mCurrentBatchPosition++, mFieldNames);
   }
 
   @Override

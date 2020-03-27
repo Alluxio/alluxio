@@ -18,9 +18,11 @@ import alluxio.job.plan.transform.format.TableRow;
 import alluxio.job.plan.transform.format.TableSchema;
 import alluxio.job.plan.transform.format.TableWriter;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.parquet.avro.AvroParquetWriter;
 import org.apache.parquet.column.ParquetProperties;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
