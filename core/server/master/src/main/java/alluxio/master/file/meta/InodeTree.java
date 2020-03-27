@@ -345,6 +345,19 @@ public class InodeTree implements DelegatingJournaled {
   }
 
   /**
+   * Locks existing inodes on the path and with the pattern defined by
+   * {@link LockingScheme#getPath()} and {@link LockingScheme#getPattern()}.
+   *
+   * @param scheme the locking scheme to lock the path with
+   * @return the {@link LockedInodePath} representing the locked path of inodes
+   * @throws InvalidPathException if the path is invalid
+   */
+  public LockedInodePath lockInodePath(LockingScheme scheme)
+      throws InvalidPathException {
+    return lockInodePath(scheme.getPath(), scheme.getPattern());
+  }
+
+  /**
    * Locks existing inodes on the specified path, in the specified {@link LockPattern}. The target
    * inode is not required to exist.
    *

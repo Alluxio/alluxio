@@ -79,6 +79,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class InodeSyncStream {
   private static final Logger LOG = LoggerFactory.getLogger(InodeSyncStream.class);
 
+  private final LockedInodePath mRootPath;
   private final UfsSyncPathCache mUfsSyncPathCache;
   private final UfsStatusCache2 mStatusCache;
   private final InodeTree mInodeTree;
@@ -89,16 +90,18 @@ public class InodeSyncStream {
   private final InodeLockManager mInodeLockManager;
   private final DefaultFileSystemMaster mFsMaster;
   private final boolean mShouldSync;
-  private final LockedInodePath mSyncPath;
-  private final LockingScheme mLockingScheme;
+  private final FileSystemMasterCommonPOptions mSyncOptions;
+  private final boolean mIsGetFileInfo;
 
   private final ConcurrentLinkedQueue<AlluxioURI> mSyncMetadataQ;
 
   /**
    * Create a new instance of {@link InodeSyncStream}.
    *
+   * The root path should be already locked with {@link LockPattern#WRITE_EDGE}. The desired pattern
+   * should be {@link LockPattern#READ}.
+   *
    * @param rootPath a
-   * @param scheme a
    * @param fsMaster a
    * @param inodeTree a
    * @param inodeStore a
@@ -107,12 +110,15 @@ public class InodeSyncStream {
    * @param rpcContext a
    * @param descendantType a
    * @param ufsSyncPathCache a
+   * @param options a
+   * @param isGetFileInfo a
    * @param forceSync a
    */
-  public InodeSyncStream(LockedInodePath rootPath, LockingScheme scheme,
-      DefaultFileSystemMaster fsMaster,  InodeTree inodeTree, ReadOnlyInodeStore inodeStore,
-      InodeLockManager inodeLockManager, MountTable mountTable, RpcContext rpcContext,
-      DescendantType descendantType,  UfsSyncPathCache ufsSyncPathCache, boolean forceSync) {
+  public InodeSyncStream(LockedInodePath rootPath, DefaultFileSystemMaster fsMaster,
+      InodeTree inodeTree, ReadOnlyInodeStore inodeStore, InodeLockManager inodeLockManager,
+      MountTable mountTable, RpcContext rpcContext, DescendantType descendantType,
+      UfsSyncPathCache ufsSyncPathCache, FileSystemMasterCommonPOptions options,
+      boolean isGetFileInfo, boolean forceSync) {
     mDescendantType = descendantType;
     mFsMaster = fsMaster;
     mSyncMetadataQ = new ConcurrentLinkedQueue<>();
@@ -124,9 +130,9 @@ public class InodeSyncStream {
     mStatusCache = new UfsStatusCache2(fsMaster.mSyncPrefetchExecutor);
     mUfsSyncPathCache = ufsSyncPathCache;
     mShouldSync = forceSync;
-    mSyncPath = rootPath;
-    mSyncMetadataQ.add(rootPath.getUri());
-    mLockingScheme = scheme;
+    mRootPath = rootPath;
+    mSyncOptions = options;
+    mIsGetFileInfo = isGetFileInfo;
   }
 
   /**
@@ -145,41 +151,59 @@ public class InodeSyncStream {
     boolean deletedPath = false;
     int syncPathCount = 0;
     int stopNum = -1; // stop syncing when we've processed this many paths. -1 for infinite
+
+    try {
+      SyncResult rootResult = syncInodeMetadata(mRootPath);
+      syncPathCount++;
+
+      if (rootResult.getDeletedInode()) {
+        deletedPath = true;
+      }
+      if (mDescendantType == DescendantType.ONE) {
+        // If descendantType is ONE, then we shouldn't process any more paths except for those
+        // currently in the queue
+        stopNum = mSyncMetadataQ.size();
+      }
+
+      // process the sync result for the original path
+      try {
+        mRootPath.traverse();
+      } catch (InvalidPathException e) {
+        throw new RuntimeException(e);
+      }
+    } catch (AccessControlException | BlockInfoException | FileAlreadyCompletedException
+        | FileDoesNotExistException | InvalidFileSizeException | InvalidPathException
+        | IOException e) {
+      LOG.warn("FAILED TO SYNC METADATA: {}", e.getMessage(), e);
+    } finally {
+      // regardless of the outcome, remove the UfsStatus for this path from the cache
+      mStatusCache.remove(mRootPath.getUri());
+      // downgrade so that if operations are parallelized, the lock on the root doesn't restrict
+      // concurrent operations
+      mRootPath.downgradeToPattern(LockPattern.READ);
+    }
+
+    // Process any children after the root.
     while (!mSyncMetadataQ.isEmpty()) {
       AlluxioURI path = mSyncMetadataQ.poll();
-      LockingScheme scheme = new LockingScheme(path, LockPattern.READ, mShouldSync);
-      if (!scheme.shouldSync()) {
+      LockingScheme scheme;
+      if (mShouldSync) {
+        scheme = new LockingScheme(path, LockPattern.READ, true);
+      } else {
+        scheme = new LockingScheme(path, LockPattern.READ, mSyncOptions,
+            mUfsSyncPathCache, mIsGetFileInfo);
+      }
+
+      if (!scheme.shouldSync() && !mShouldSync) {
         continue;
       }
-      try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, scheme.getPattern())) {
+      try (LockedInodePath inodePath = mInodeTree.lockInodePath(scheme)) {
         if (Thread.currentThread().isInterrupted()) {
           LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
           break;
         }
-        SyncResult result = syncInodeMetadata(inodePath);
+        syncInodeMetadata(inodePath);
         syncPathCount++;
-        if (syncPathCount == 1) {
-          if (result.getDeletedInode()) {
-            deletedPath = true;
-          }
-          if (mDescendantType == DescendantType.ONE) {
-            // If descendantType is ONE, then we shouldn't process any more paths except for those
-            // currently in the queue
-            stopNum = mSyncMetadataQ.size();
-          }
-
-          // process the sync result for the original path
-          try {
-            if (deletedPath) {
-              mSyncPath.removeLastInode();
-            }
-            mSyncPath.traverse();
-          } catch (InvalidPathException e) {
-            throw new RuntimeException(e);
-          } finally {
-            mSyncPath.downgradeToPattern(mLockingScheme.getDesiredPattern());
-          }
-        }
         if (stopNum != -1 && syncPathCount > stopNum) {
           break;
         }
@@ -203,7 +227,6 @@ public class InodeSyncStream {
     if (!inodePath.fullPathExists()) {
       loadMetadataForPath(inodePath);
     }
-
     return syncExistingInodeMetadata(inodePath);
   }
 
