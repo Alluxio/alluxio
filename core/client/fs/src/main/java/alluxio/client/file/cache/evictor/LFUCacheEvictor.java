@@ -75,7 +75,7 @@ public class LFUCacheEvictor implements CacheEvictor {
 
   private Map<PageId, Boolean> removePageFromBucket(PageId pageId, int bucket) {
     return mBucketMap.computeIfPresent(bucket, (bucketKey, lruMap) -> {
-      if (lruMap.remove(pageId) == null ) {
+      if (lruMap.remove(pageId) == null) {
         LOG.debug("cannot remove page {} because it is not found in bucket {}", pageId, bucket);
       } else {
         LOG.debug("removed page {} from bucket {}", pageId, bucket);
