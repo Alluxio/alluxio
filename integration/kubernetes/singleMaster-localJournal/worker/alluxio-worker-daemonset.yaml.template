@@ -45,18 +45,26 @@ spec:
         - name: socket-chown
           securityContext:
             runAsUser: 0
-          image: alluxio/alluxio:2.3.0-SNAPSHOT
-          command: ["/bin/chown","-R", "1000:1000", "/opt/domain"]
+          image: jl4784/alluxio:latest
+          command: ["/bin/chown","-R", "0:0", "/opt/domain"]
+          volumeMounts:
+            - name: alluxio-domain
+              mountPath: /opt/domain
+        - name: socket-chmod
+          securityContext:
+            runAsUser: 0
+          image: jl4784/alluxio:latest
+          command: ["/bin/chown","-R", "777", "/opt/domain"]
           volumeMounts:
             - name: alluxio-domain
               mountPath: /opt/domain
       containers:
         - name: alluxio-worker
-          image: alluxio/alluxio:2.3.0-SNAPSHOT
-          imagePullPolicy: IfNotPresent
+          image: jl4784/alluxio:latest
+          imagePullPolicy: Always
           securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
+            runAsUser: 0
+            runAsGroup: 0
           resources:
             limits:
               cpu: 1
@@ -67,7 +75,7 @@ spec:
           command: ["/entrypoint.sh"]
           args:
             - worker-only
-            - --no-format
+            # - --no-format
           env:
             - name: ALLUXIO_WORKER_HOSTNAME
               valueFrom:
@@ -82,10 +90,8 @@ spec:
                 name: alluxio-config
           ports:
             - containerPort: 29999
-              hostPort: 29999
               name: rpc
             - containerPort: 30000
-              hostPort: 30000
               name: web
           volumeMounts:
             - name: alluxio-domain
@@ -93,11 +99,11 @@ spec:
             - mountPath: /dev/shm
               name: mem
         - name: alluxio-job-worker
-          image: alluxio/alluxio:2.3.0-SNAPSHOT
+          image: jl4784/alluxio:latest
           securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-          imagePullPolicy: IfNotPresent
+            runAsUser: 0
+            runAsGroup: 0
+          imagePullPolicy: Always
           resources:
             limits:
               cpu: 1
@@ -122,13 +128,10 @@ spec:
                 name: alluxio-config
           ports:
             - containerPort: 30001
-              hostPort: 30001
               name: job-rpc
             - containerPort: 30002
-              hostPort: 30002
               name: job-data
             - containerPort: 30003
-              hostPort: 30003
               name: job-web
           volumeMounts:
             - name: alluxio-domain

@@ -15,6 +15,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.grpc.RequestType;
 import alluxio.wire.WorkerNetAddress;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -27,6 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class UnderFileSystemFileOutStream extends BlockOutStream {
   private static final int ID_UNUSED = -1;
+  private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerClientPool.class);
 
   /**
    * Creates an instance of {@link UnderFileSystemFileOutStream} that writes to a UFS file.
@@ -38,6 +41,12 @@ public class UnderFileSystemFileOutStream extends BlockOutStream {
    */
   public static UnderFileSystemFileOutStream create(FileSystemContext context,
       WorkerNetAddress address, OutStreamOptions options) throws IOException {
+    String workerAddress = address.getHost();
+    if (!workerAddress.startsWith("alluxio-worker")) {
+      String workerService = "alluxio-worker-" + workerAddress.replace(".", "-");
+      address.setHost(workerService);
+      LOG.warn("Replace {} with {}", workerAddress, workerService);
+    }
     return new UnderFileSystemFileOutStream(GrpcDataWriter.create(context, address,
         ID_UNUSED, Long.MAX_VALUE, RequestType.UFS_FILE, options), address);
   }

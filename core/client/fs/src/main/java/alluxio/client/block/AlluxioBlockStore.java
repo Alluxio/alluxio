@@ -214,6 +214,15 @@ public final class AlluxioBlockStore {
     }
 
     try {
+      if (dataSourceType == BlockInStreamSource.REMOTE) {
+        String sourceHost = dataSource.getHost();
+        if (!sourceHost.startsWith("alluxio-worker")) {
+          String serviceName = "alluxio-worker-" + sourceHost.replace(".","-");
+          LOG.warn("Reading from remote worker. Replace {} with {}", sourceHost, serviceName);
+          dataSource.setHost(serviceName);
+        }
+      }
+
       return BlockInStream.create(mContext, info, dataSource, dataSourceType, options);
     } catch (UnavailableException e) {
       //When BlockInStream created failed, it will update the passed-in failedWorkers
@@ -265,6 +274,12 @@ public final class AlluxioBlockStore {
     }
     LOG.debug("Create block outstream for {} of block size {} at address {}, using options: {}",
         blockId, blockSize, address, options);
+    String workerAddress = address.getHost();
+    if (!workerAddress.startsWith("alluxio-worker")) {
+      String workerService = "alluxio-worker-" + workerAddress.replace(".", "-");
+      LOG.warn("Writing to worker {} replaced by {}", workerAddress, workerService);
+      address.setHost(workerService);
+    }
     return BlockOutStream.create(mContext, blockId, blockSize, address, options);
   }
 
