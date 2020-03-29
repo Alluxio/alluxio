@@ -146,6 +146,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     // Set the client configuration based on Alluxio configuration values.
     ClientConfiguration clientConf = new ClientConfiguration();
 
+    // Max error retry
+    if (conf.isSet(PropertyKey.UNDERFS_S3_MAX_ERROR_RETRY)) {
+      clientConf.setMaxErrorRetry(conf.getInt(PropertyKey.UNDERFS_S3_MAX_ERROR_RETRY));
+    }
+
     // Socket timeout
     clientConf
         .setSocketTimeout((int) conf.getMs(PropertyKey.UNDERFS_S3_SOCKET_TIMEOUT));
