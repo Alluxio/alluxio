@@ -11,17 +11,17 @@
 
 package alluxio.worker.block.management;
 
-import alluxio.Sessions;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistException;
-import alluxio.worker.block.AllocateOptions;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.annotator.BlockOrder;
+import alluxio.worker.block.evictor.BlockTransferInfo;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -31,12 +31,9 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -81,64 +78,22 @@ public class TierSwapTask extends AbstractBlockManagementTask {
       Pair<List<Long>, List<Long>> swapLists = mMetadataManager.getBlockIterator().getSwaps(
           tierUpLocation, BlockOrder.Natural, tierDownLocation, BlockOrder.Reverse, swapRange,
           BlockOrder.Reverse, (blockId) -> !mEvictorView.isBlockEvictable(blockId));
-
       Preconditions.checkArgument(swapLists.getFirst().size() == swapLists.getSecond().size());
-      // Generate task per concurrently executable swap buckets.
-      List<Callable<Void>> swapTasks = new LinkedList<>();
-      for (List<Pair<Long, Long>> swapBucket : generateSwapBuckets(swapLists)) {
-        swapTasks.add(() -> {
-          executeSwapBucket(swapBucket, tierUpLocation, tierDownLocation);
-          return null;
-        });
-      }
-      // Execute swap-tasks concurrently and wait for the results.
-      LOG.debug("Invoking {} concurrent swap tasks for intersection {}-{}", swapTasks.size(),
-          tierUpLocation, tierDownLocation);
-      try {
-        mExecutor.invokeAll(swapTasks);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        break;
-      }
+
+      // Create exception handler to trigger swap-restore task when swap fails due to space.
+      Consumer<Exception> excHandler = (e) -> {
+        if (e instanceof WorkerOutOfSpaceException) {
+          // Mark the need for running swap-space restoration task.
+          TierManagementTaskProvider.setSwapRestoreRequired(true);
+        }
+      };
+
+      // Execute swap transfers.
+      mTransferExecutor.executeTransferList(generateSwapTransferInfos(swapLists), excHandler);
     }
   }
 
-  /**
-   * Defines a swap task that will execute many block-store swaps.
-   *
-   * @param swapBucket the swap bucket
-   * @param locationSrc src location
-   * @param locationDst dst location
-   */
-  private void executeSwapBucket(List<Pair<Long, Long>> swapBucket, BlockStoreLocation locationSrc,
-      BlockStoreLocation locationDst) {
-    // Execute swaps.
-    for (Pair<Long, Long> swap : swapBucket) {
-      // Stop the task if load detected on corresponding tiers.
-      if (mLoadTracker.loadDetected(locationSrc) || mLoadTracker.loadDetected(locationDst)) {
-        // Stop swapping if load detected on current tier intersection.
-        LOG.warn("Stopping tier-swap task due to user activity.");
-        return;
-      }
-      // Swap blocks on store.
-      try {
-        // TODO(ggezer): Implement external allocations for earlier failure detection.
-        mBlockStore.moveBlock(Sessions.createInternalSessionId(), swap.getFirst(), locationSrc,
-            AllocateOptions.forMove(locationDst).setUseReservedSpace(true));
-        mBlockStore.moveBlock(Sessions.createInternalSessionId(), swap.getSecond(), locationDst,
-            AllocateOptions.forMove(locationSrc).setUseReservedSpace(true));
-      } catch (Exception e) {
-        LOG.warn("Swapping blocks {}-{} failed with error: {}", swap.getFirst(), swap.getSecond(),
-            e);
-      }
-    }
-  }
-
-  /**
-   * Groups given swap blocks into buckets for concurrent execution.
-   * It tries to optimize I/O by grouping based on source directory for block.
-   */
-  private List<List<Pair<Long, Long>>> generateSwapBuckets(
+  private List<BlockTransferInfo> generateSwapTransferInfos(
       Pair<List<Long>, List<Long>> swapLists) {
     // Function that is used to map blockId to <blockId,location> pair.
     Function<Long, Pair<Long, BlockStoreLocation>> blockToPairFunc = (blockId) -> {
@@ -171,33 +126,14 @@ public class TierSwapTask extends AbstractBlockManagementTask {
     Collections.sort(blockLocPairListSrc, comparator);
     Collections.sort(blockLocPairListDst, comparator);
 
-    // Process block lists into concurrently executable buckets.
-    Map<BlockStoreLocation, List<Pair<Long, Long>>> swapPairsMap = new HashMap<>();
-    for (Pair<Long, BlockStoreLocation> blockLocPair : blockLocPairListSrc) {
-      if (!swapPairsMap.containsKey(blockLocPair.getSecond())) {
-        swapPairsMap.put(blockLocPair.getSecond(), new LinkedList<>());
-      }
-      swapPairsMap.get(blockLocPair.getSecond())
-          .add(new Pair(blockLocPair.getFirst(), blockLocPairListDst.remove(0).getFirst()));
+    // Build transfer infos off sorted locations.
+    List<BlockTransferInfo> transferInfos = new ArrayList<>(blockLocPairListSrc.size());
+    for (int i = 0; i < blockLocPairListSrc.size(); i++) {
+      transferInfos.add(BlockTransferInfo.createSwap(blockLocPairListSrc.get(i).getSecond(),
+          blockLocPairListSrc.get(i).getFirst(), blockLocPairListDst.get(i).getSecond(),
+          blockLocPairListDst.get(i).getFirst()));
     }
 
-    // How many concurrent swap tasks will be running.
-    int swapConcurrency =
-        Math.min(ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_TASK_CONCURRENCY),
-            swapPairsMap.size());
-
-    // Initialize concurrent execution buckets.
-    List<List<Pair<Long, Long>>> concurrentSwapPairs = new ArrayList<>(swapConcurrency);
-    for (int i = 0; i < swapConcurrency; i++) {
-      concurrentSwapPairs.add(new LinkedList<>());
-    }
-
-    // Merge buckets as required to satisfy concurrency configuration.
-    int concurrencyBucket = 0;
-    for (List<Pair<Long, Long>> swapPairs : swapPairsMap.values()) {
-      concurrencyBucket = (concurrencyBucket + 1) % swapConcurrency;
-      concurrentSwapPairs.get(concurrencyBucket).addAll(swapPairs);
-    }
-    return concurrentSwapPairs;
+    return transferInfos;
   }
 }
