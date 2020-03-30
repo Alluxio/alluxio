@@ -127,11 +127,11 @@ public class FileSystemContext implements Closeable {
   /**
    * The data server channel pools. This pool will only grow and keys are not removed.
    */
-  private final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
-      mBlockWorkerClientPool = new ConcurrentHashMap<>();
+  private volatile ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
+      mBlockWorkerClientPoolMap;
 
   /**
-   * Used in {@link #mBlockWorkerClientPool}.
+   * Used in {@link #mBlockWorkerClientPoolMap}.
    */
   private volatile EventLoopGroup mWorkerGroup;
   /**
@@ -252,6 +252,7 @@ public class FileSystemContext implements Closeable {
     }
     mFileSystemMasterClientPool = new FileSystemMasterClientPool(mMasterClientContext);
     mBlockMasterClientPool = new BlockMasterClientPool(mMasterClientContext);
+    mBlockWorkerClientPoolMap = new ConcurrentHashMap<>();
     mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(getClusterConf()),
         getClusterConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
         String.format("alluxio-client-nettyPool-%s-%%d", mId), true);
@@ -282,13 +283,14 @@ public class FileSystemContext implements Closeable {
       mFileSystemMasterClientPool = null;
       mBlockMasterClientPool.close();
       mBlockMasterClientPool = null;
-      for (BlockWorkerClientPool pool : mBlockWorkerClientPool.values()) {
+      for (BlockWorkerClientPool pool : mBlockWorkerClientPoolMap.values()) {
         pool.close();
       }
       // Close worker group after block master clients in order to allow
       // clean termination for open streams.
       mWorkerGroup.shutdownGracefully(1L, 10L, TimeUnit.SECONDS);
-      mBlockWorkerClientPool.clear();
+      mBlockWorkerClientPoolMap.clear();
+      mBlockWorkerClientPoolMap = null;
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
 
@@ -358,9 +360,11 @@ public class FileSystemContext implements Closeable {
         throw new UnavailableException(String.format("Failed to load configuration from "
             + "meta master (%s) during reinitialization", masterAddr), e);
       }
+      LOG.debug("Closing FileSystem context for reinitialization");
       closeContext();
       initContext(getClientContext(), MasterInquireClient.Factory.create(getClusterConf(),
           getClientContext().getUserState()));
+      LOG.debug("FileSystemContext re-initialized");
       mReinitializer.onSuccess();
     }
   }
@@ -509,7 +513,7 @@ public class FileSystemContext implements Closeable {
     ClientPoolKey key = new ClientPoolKey(address, AuthenticationUserUtils
             .getImpersonationUser(context.getSubject(), context.getClusterConf()));
     final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> poolMap =
-        mBlockWorkerClientPool;
+        mBlockWorkerClientPoolMap;
     return new CloseableResource<BlockWorkerClient>(poolMap.computeIfAbsent(key,
         k -> new BlockWorkerClientPool(context.getUserState(), serverAddress,
             context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE),
