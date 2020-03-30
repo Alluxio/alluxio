@@ -486,9 +486,9 @@ public final class StorageDir {
   }
 
   private void reserveSpace(long size, boolean committed) {
-    Preconditions.checkState(size <= mAvailableBytes.get(),
+    Preconditions.checkState(size <= mAvailableBytes.get() + mReservedBytes.get(),
         "Available bytes should always be non-negative");
-    mAvailableBytes.addAndGet(-size);
+    mAvailableBytes.getAndSet(Math.max(0, mAvailableBytes.get() - size));
     if (committed) {
       mCommittedBytes.addAndGet(size);
     }

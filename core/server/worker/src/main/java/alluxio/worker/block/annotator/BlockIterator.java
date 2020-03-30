@@ -79,9 +79,9 @@ public interface BlockIterator {
    * @param dstLocation destination location
    * @param order order of comparison between locations
    * @param blockFilterFunc a filter for blocks
-   * @return {@code true} if there is an overlap
+   * @return {@code true} if tiers are aligned
    */
-  boolean overlaps(BlockStoreLocation srcLocation, BlockStoreLocation dstLocation, BlockOrder order,
+  boolean aligned(BlockStoreLocation srcLocation, BlockStoreLocation dstLocation, BlockOrder order,
       Function<Long, Boolean> blockFilterFunc);
 
   /**

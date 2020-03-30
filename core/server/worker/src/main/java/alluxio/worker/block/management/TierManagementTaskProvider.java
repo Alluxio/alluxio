@@ -31,9 +31,10 @@ import java.util.function.Supplier;
 /**
  * {@link ManagementTaskProvider} implementation for tier management tasks.
  *
- * It currently creates two types of tasks:
+ * It currently creates three types of tasks:
  *  1- TierSwap task for swapping blocks between tiers in order to promote/demote blocks.
- *  2- TierMove task for utilizing speed of higher tiers by moving blocks from below.
+ *  2- SwapRestore task for when tier-swap task can't progress due to exhausted swap space.
+ *  3- TierMove task for utilizing speed of higher tiers by moving blocks from below.
  */
 public class TierManagementTaskProvider implements ManagementTaskProvider {
   private static final Logger LOG = LoggerFactory.getLogger(TierManagementTaskProvider.class);
@@ -43,6 +44,19 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
   private final Supplier<BlockMetadataEvictorView> mEvictorViewSupplier;
   private final StoreLoadTracker mLoadTracker;
   private final ExecutorService mExecutor;
+
+  /** Used to set whether swap-space restoration is required. */
+  private static boolean sSwapRestoreRequired = false;
+
+  /**
+   * Used to set whether swap-spaces needs restoring.
+   * It's used by TierSwap task when a swap is failed due to insufficient space.
+   *
+   * @param swapRestoreRequired whether swap-restore task needs to run
+   */
+  public static void setSwapRestoreRequired(boolean swapRestoreRequired) {
+    sSwapRestoreRequired = swapRestoreRequired;
+  }
 
   /**
    * Creates a task provider for tier management functions.
@@ -74,6 +88,9 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
       case TIER_MOVE:
         return new TierMoveTask(mBlockStore, mMetadataManager, mEvictorViewSupplier.get(),
             mLoadTracker, mExecutor);
+      case SWAP_RESTORE:
+        return new SwapRestoreTask(mBlockStore, mMetadataManager, mEvictorViewSupplier.get(),
+            mLoadTracker, mExecutor);
       default:
         throw new IllegalArgumentException("Unknown task type.");
     }
@@ -86,16 +103,24 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
     // Fetch the configuration for supported tasks types.
     boolean tierSwapEnabled =
         ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_SWAP_ENABLED);
+    boolean tierSwapRestoreEnabled =
+        ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED);
     boolean tierMoveEnabled =
         ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_TIER_MOVE_ENABLED);
+
+    // Return swap-restore task if marked.
+    if (tierSwapRestoreEnabled && sSwapRestoreRequired) {
+      setSwapRestoreRequired(false);
+      return TierManagementTaskType.SWAP_RESTORE;
+    }
 
     // Acquire a recent evictor view.
     BlockMetadataEvictorView evictorView = mEvictorViewSupplier.get();
     // Iterate all tier intersections for deciding whether to run a merge.
     for (Pair<BlockStoreLocation, BlockStoreLocation> intersection : mMetadataManager
         .getStorageTierAssoc().intersectionList()) {
-      // Check if needs merging due to an overlap.
-      if (tierSwapEnabled && mMetadataManager.getBlockIterator().overlaps(intersection.getFirst(),
+      // Check if needs swapping due to alignment.
+      if (tierSwapEnabled && !mMetadataManager.getBlockIterator().aligned(intersection.getFirst(),
           intersection.getSecond(), BlockOrder.Natural,
           (blockId) -> !evictorView.isBlockEvictable(blockId))) {
         LOG.debug("Needs block swapping due to an overlap between: {} - {}",
@@ -144,6 +169,7 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
   enum TierManagementTaskType {
     NONE,
     TIER_SWAP,
-    TIER_MOVE
+    TIER_MOVE,
+    SWAP_RESTORE
   }
 }

@@ -32,7 +32,7 @@ public class StorageDirAllocatorView extends StorageDirView {
     long availableBytes = mDir.getAvailableBytes();
     long capacityBytes = mDir.getCapacityBytes();
     if (mTierView.mUseReservedSpace) {
-      return Math.min(capacityBytes, availableBytes + reservedBytes);
+      return capacityBytes - mDir.getCommittedBytes();
     } else {
       return availableBytes;
     }

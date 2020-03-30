@@ -27,7 +27,7 @@ import org.junit.Test;
 import java.util.List;
 import java.util.Random;
 
-public class TierSwapTaskTest extends BaseTierManagementTest {
+public class SwapRestoreTaskTest extends BaseTierManagementTest {
 
   /**
    * Sets up all dependencies before a test runs.
@@ -35,10 +35,10 @@ public class TierSwapTaskTest extends BaseTierManagementTest {
   @Before
   public void before() throws Exception {
     ServerConfiguration.reset();
-    // Current tier layout could end up swapping 2 blocks concurrently.
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, 2 * BLOCK_SIZE);
     // Disable move task to avoid interference.
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_MOVE_ENABLED, false);
+    // Current tier layout could end up swapping 1 big block.
+    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, BLOCK_SIZE);
     // Initialize the tier layout.
     init();
   }
@@ -46,14 +46,20 @@ public class TierSwapTaskTest extends BaseTierManagementTest {
   @Test
   public void testTierAlignment() throws Exception {
     Random rnd = new Random();
-    StorageDir[] dirArray = new StorageDir[] {mTestDir1, mTestDir2, mTestDir3, mTestDir4};
 
     // Start simulating random load on worker.
     startSimulateLoad();
 
-    // Fill each directory.
+    // Fill first dir with small blocks.
     long sessionIdCounter = 1000;
     long blockIdCounter = 1000;
+    while (mTestDir1.getAvailableBytes() > 0) {
+      TieredBlockStoreTestUtils.cache(sessionIdCounter++, blockIdCounter++, SMALL_BLOCK_SIZE,
+          mBlockStore, mTestDir1.toBlockStoreLocation(), false);
+    }
+
+    // Fill the rest with big blocks.
+    StorageDir[] dirArray = new StorageDir[] {mTestDir2, mTestDir3, mTestDir4};
     for (StorageDir dir : dirArray) {
       while (dir.getAvailableBytes() > 0) {
         TieredBlockStoreTestUtils.cache(sessionIdCounter++, blockIdCounter++, BLOCK_SIZE,
@@ -61,7 +67,11 @@ public class TierSwapTaskTest extends BaseTierManagementTest {
       }
     }
 
-    // Access blocks randomly.
+    // Access big blocks blocks randomly.
+    //
+    // This will cause swaps from below to the top tier.
+    // This, in turn, is expected to exhaust swap space at the top tier
+    // which is filled with small blocks.
     for (int i = 0; i < 100; i++) {
       StorageDir dirToAccess = dirArray[rnd.nextInt(dirArray.length)];
       List<Long> blockIdList = dirToAccess.getBlockIds();

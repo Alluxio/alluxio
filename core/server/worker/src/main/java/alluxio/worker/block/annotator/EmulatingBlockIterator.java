@@ -140,7 +140,7 @@ public class EmulatingBlockIterator implements BlockIterator {
     // Extract moved blocks in order.
     List<Long> toMove = Collections.emptyList();
     if (evictionPlan.toMove() != null) {
-      toMove = evictionPlan.toMove().stream().map((kvp) -> kvp.getBlockId())
+      toMove = evictionPlan.toMove().stream().map((kvp) -> kvp.getSrcBlockId())
           .collect(Collectors.toList());
     }
 
@@ -178,8 +178,8 @@ public class EmulatingBlockIterator implements BlockIterator {
   }
 
   @Override
-  public boolean overlaps(BlockStoreLocation srcLocation, BlockStoreLocation dstLocation,
-      BlockOrder order, Function<Long, Boolean> blockFilterFunc) {
+  public boolean aligned(BlockStoreLocation srcLocation, BlockStoreLocation dstLocation,
+                         BlockOrder order, Function<Long, Boolean> blockFilterFunc) {
     // Overlap report not possible.
     return false;
   }

@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.management;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStore;
@@ -26,6 +28,7 @@ public abstract class AbstractBlockManagementTask implements BlockManagementTask
   protected final BlockMetadataEvictorView mEvictorView;
   protected final StoreLoadTracker mLoadTracker;
   protected final ExecutorService mExecutor;
+  protected final BlockTransferExecutor mTransferExecutor;
 
   /**
    * Creates abstract task implementation.
@@ -44,5 +47,7 @@ public abstract class AbstractBlockManagementTask implements BlockManagementTask
     mEvictorView = evictorView;
     mLoadTracker = loadTracker;
     mExecutor = executor;
+    mTransferExecutor = new BlockTransferExecutor(executor, blockStore, loadTracker,
+        ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_TASK_CONCURRENCY));
   }
 }

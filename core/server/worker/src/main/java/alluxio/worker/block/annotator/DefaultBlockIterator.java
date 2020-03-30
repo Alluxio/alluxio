@@ -265,8 +265,8 @@ public class DefaultBlockIterator implements BlockIterator {
   }
 
   @Override
-  public boolean overlaps(BlockStoreLocation srcLocation, BlockStoreLocation dstLocation,
-      BlockOrder order, Function<Long, Boolean> blockFilterFunc) {
+  public boolean aligned(BlockStoreLocation srcLocation, BlockStoreLocation dstLocation,
+                         BlockOrder order, Function<Long, Boolean> blockFilterFunc) {
     // Get source iterator with given source order.
     Iterator<Pair<Long, BlockSortedField>> srcIterator =
         getIteratorInternal(srcLocation, order);
@@ -296,7 +296,7 @@ public class DefaultBlockIterator implements BlockIterator {
     }
 
     return (srcItem != null && dstItem != null
-        && order.comparator().compare(srcItem.getSecond(), dstItem.getSecond()) < 0);
+        && order.comparator().compare(srcItem.getSecond(), dstItem.getSecond()) >= 0);
   }
 
   /**

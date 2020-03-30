@@ -2404,6 +2404,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether to run management swap-restore task when swaps are stuck.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_MANAGEMENT_TIER_SWAP_RANGE =
       new Builder(Name.WORKER_MANAGEMENT_TIER_SWAP_RANGE)
           .setDefaultValue(100)
@@ -4995,6 +5002,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.management.tier.task.concurrency";
     public static final String WORKER_MANAGEMENT_TIER_SWAP_ENABLED =
         "alluxio.worker.management.tier.swap.enabled";
+    public static final String WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED =
+        "alluxio.worker.management.tier.swap.restore.enabled";
     public static final String WORKER_MANAGEMENT_TIER_SWAP_RANGE =
         "alluxio.worker.management.tier.swap.range";
     public static final String WORKER_MANAGEMENT_TIER_MOVE_ENABLED =
