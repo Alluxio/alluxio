@@ -164,7 +164,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
             candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
             continue;
           }
-          plan.toMove().add(new BlockTransferInfo(blockId, block.getBlockLocation(),
+          plan.toMove().add(BlockTransferInfo.createMove(block.getBlockLocation(), blockId,
               nextDirView.toBlockStoreLocation()));
           candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
           nextDirView.markBlockMoveIn(blockId, block.getBlockSize());
