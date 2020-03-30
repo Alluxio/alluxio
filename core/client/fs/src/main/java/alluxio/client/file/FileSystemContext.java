@@ -289,7 +289,6 @@ public class FileSystemContext implements Closeable {
       // Close worker group after block master clients in order to allow
       // clean termination for open streams.
       mWorkerGroup.shutdownGracefully(1L, 10L, TimeUnit.SECONDS);
-      mBlockWorkerClientPoolMap.clear();
       mBlockWorkerClientPoolMap = null;
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
@@ -360,7 +359,8 @@ public class FileSystemContext implements Closeable {
         throw new UnavailableException(String.format("Failed to load configuration from "
             + "meta master (%s) during reinitialization", masterAddr), e);
       }
-      LOG.debug("Closing FileSystem context for reinitialization");
+      LOG.debug("Reinitializing FileSystemContext: update cluster conf: {}, update path conf:"
+          + " {}", updateClusterConf, updateClusterConf);
       closeContext();
       initContext(getClientContext(), MasterInquireClient.Factory.create(getClusterConf(),
           getClientContext().getUserState()));
