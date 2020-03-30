@@ -9,13 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-
 package alluxio.job.plan.transform.format.orc;
 
 import alluxio.job.plan.transform.FieldSchema;
 import alluxio.job.plan.transform.HiveConstants;
 import alluxio.job.plan.transform.format.TableRow;
-import alluxio.job.plan.transform.format.csv.CsvUtils;
 import alluxio.job.plan.transform.format.csv.Decimal;
 import alluxio.job.plan.transform.format.parquet.ParquetRow;
 
@@ -37,6 +35,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A row in a Orc table.
+ */
 public class OrcRow implements TableRow {
   private final VectorizedRowBatch mBatch;
   private final int mPosition;
@@ -44,6 +45,13 @@ public class OrcRow implements TableRow {
 
   private final OrcSchema mSchema;
 
+  /**
+   * Constructor for OrcRow.
+   * @param schema the schema
+   * @param batch the vectorized row batch
+   * @param position the row position inside the vectorized row batch
+   * @param fieldNames ordered list of field names
+   */
   public OrcRow(OrcSchema schema, VectorizedRowBatch batch, int position,
                 List<String> fieldNames) {
     mSchema = schema;
@@ -90,7 +98,8 @@ public class OrcRow implements TableRow {
     } else if (col instanceof VoidColumnVector) {
       return null;
     } else if (col instanceof DecimalColumnVector) {
-      final HiveDecimal hiveDecimal = ((DecimalColumnVector) col).vector[mPosition].getHiveDecimal();
+      final HiveDecimal hiveDecimal = ((DecimalColumnVector) col).vector[mPosition]
+          .getHiveDecimal();
       return hiveDecimal;
     } else if (col instanceof LongColumnVector) {
       return ((LongColumnVector) col).vector[mPosition];
@@ -102,7 +111,8 @@ public class OrcRow implements TableRow {
       return ((DoubleColumnVector) col).vector[mPosition];
     }
 
-    throw new UnsupportedOperationException("Unsupported column vector: " + col.getClass().getName());
+    throw new UnsupportedOperationException("Unsupported column vector: "
+        + col.getClass().getName());
   }
 
   private Object convert(Object value, String name, String type) throws IOException {

@@ -9,27 +9,33 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-
 package alluxio.job.plan.transform.format.orc;
 
 import alluxio.job.plan.transform.FieldSchema;
 import alluxio.job.plan.transform.format.SchemaConversionUtils;
 import alluxio.job.plan.transform.format.TableSchema;
 import alluxio.job.plan.transform.format.parquet.ParquetSchema;
+
 import org.apache.avro.Schema;
 import org.apache.orc.Reader;
 import org.apache.orc.TypeDescription;
 
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The Orc Schema.
+ */
 public class OrcSchema implements TableSchema {
   private final ArrayList<FieldSchema> mAlluxioSchema;
 
   private final Schema mWriteSchema;
 
+  /**
+   * Default constructor for OrcSchema.
+   * @param reader the orc reader
+   */
   public OrcSchema(Reader reader) throws IOException {
     mAlluxioSchema = new ArrayList<>();
 
@@ -42,9 +48,9 @@ public class OrcSchema implements TableSchema {
       mAlluxioSchema.add(new FieldSchema(i, fieldName, type, ""));
     }
 
-    mWriteSchema = SchemaConversionUtils.buildWriteSchema(Schema.Type.RECORD.getName(), mAlluxioSchema);
+    mWriteSchema = SchemaConversionUtils.buildWriteSchema(mAlluxioSchema);
   }
-  
+
   private String getType(TypeDescription typeDescription) {
     final TypeDescription.Category category = typeDescription.getCategory();
     switch (category) {
@@ -57,17 +63,23 @@ public class OrcSchema implements TableSchema {
       default:
         return category.getName();
     }
-  }  
+  }
 
   @Override
   public ParquetSchema toParquet() {
     return new ParquetSchema(mWriteSchema);
   }
 
+  /**
+   * @return the alluxio schema
+   */
   public ArrayList<FieldSchema> getAlluxioSchema() {
     return mAlluxioSchema;
   }
 
+  /**
+   * @return the write schema
+   */
   public Schema getWriteSchema() {
     return mWriteSchema;
   }

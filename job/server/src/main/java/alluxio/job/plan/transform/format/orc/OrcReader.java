@@ -12,17 +12,14 @@
 package alluxio.job.plan.transform.format.orc;
 
 import alluxio.AlluxioURI;
-import alluxio.job.plan.transform.PartitionInfo;
 import alluxio.job.plan.transform.format.JobPath;
 import alluxio.job.plan.transform.format.ReadWriterUtils;
 import alluxio.job.plan.transform.format.TableReader;
 import alluxio.job.plan.transform.format.TableRow;
 import alluxio.job.plan.transform.format.TableSchema;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Closer;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
 import org.apache.orc.OrcFile;
 import org.apache.orc.Reader;
@@ -31,6 +28,9 @@ import org.apache.orc.RecordReader;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * The Orc reader.
+ */
 public final class OrcReader implements TableReader {
 
   private final Closer mCloser;
@@ -63,6 +63,10 @@ public final class OrcReader implements TableReader {
     }
   }
 
+  /**
+   * @param uri the alluxio uri of the orc file
+   * @return new instance of OrcReader
+   */
   public static OrcReader create(AlluxioURI uri) throws IOException {
     JobPath path = new JobPath(uri.getScheme(), uri.getAuthority().toString(), uri.getPath());
     return new OrcReader(path);

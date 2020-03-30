@@ -54,7 +54,7 @@ public final class CsvSchema implements TableSchema {
   public CsvSchema(@NotNull ArrayList<FieldSchema> schema) throws IOException {
     mAlluxioSchema = schema;
     mReadSchema = buildReadSchema(Schema.Type.RECORD.getName(), schema);
-    mWriteSchema = SchemaConversionUtils.buildWriteSchema(Schema.Type.RECORD.getName(), schema);
+    mWriteSchema = SchemaConversionUtils.buildWriteSchema(schema);
   }
 
   /**
@@ -125,5 +125,4 @@ public final class CsvSchema implements TableSchema {
     //    timestamp: 2019-10-29 10:17:42.338
     return assembler.optionalString(name);
   }
-
 }

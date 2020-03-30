@@ -15,20 +15,30 @@ import alluxio.job.plan.transform.FieldSchema;
 import alluxio.job.plan.transform.HiveConstants;
 import alluxio.job.plan.transform.format.csv.CsvUtils;
 import alluxio.job.plan.transform.format.csv.Decimal;
+
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
+/**
+ * Utility Class for converting schema to Parquet.
+ */
 public class SchemaConversionUtils {
   private static final String JAVA_CLASS_FLAG = "java-class";
 
-  public static Schema buildWriteSchema(String name, ArrayList<FieldSchema> fields) throws IOException {
+  /**
+   * Builds write schema.
+   * @param fields the fields
+   * @return the write schema
+   */
+  public static Schema buildWriteSchema(List<FieldSchema> fields)
+      throws IOException {
     SchemaBuilder.FieldAssembler<Schema> assembler =
-        SchemaBuilder.record(name).fields();
+        SchemaBuilder.record(Schema.Type.RECORD.getName()).fields();
     for (FieldSchema field : fields) {
       assembler = buildWriteField(assembler, field);
     }
@@ -39,9 +49,14 @@ public class SchemaConversionUtils {
     return Schema.createUnion(Arrays.asList(Schema.create(Schema.Type.NULL), schema));
   }
 
+  /**
+   * Builds the fields that are consistent with {@link Schema}.
+   * @param assembler the field assembler
+   * @param field field to add to the field assembler
+   * @return new field assembler with the existing fields + the new field
+   */
   public static SchemaBuilder.FieldAssembler<Schema> buildConsistentField(
       SchemaBuilder.FieldAssembler<Schema> assembler, FieldSchema field) throws IOException {
-    // Builds the fields that are consistent for read and write schema.
     String name = field.getName();
     String type = field.getType();
 
