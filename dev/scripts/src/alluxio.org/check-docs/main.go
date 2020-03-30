@@ -3,11 +3,15 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"regexp"
+
+	"gopkg.in/yaml.v3"
+	"bytes"
 )
 
 func main() {
@@ -127,35 +131,21 @@ func run() error {
 
 // parseCategoryNames parses the given config file for the list of category names
 func parseCategoryNames(configPath string) (StringSet, error) {
-	f, err := os.Open(configPath)
+	contents, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		return nil, fmt.Errorf("error opening file at %v: %v", configPath, err)
+		return nil, fmt.Errorf("error reading file: %v", err)
 	}
-	defer f.Close()
-
-	const categoryListLine, categoryPrefix = "categoryList:", "  - "
-	categoryNames := StringSet{}
-
-	found := false
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		l := scanner.Text()
-		if l == categoryListLine {
-			found = true
-			continue
-		}
-		if found {
-			if !strings.HasPrefix(l, categoryPrefix) {
-				found = false
-				continue
-			}
-			categoryNames.Add(strings.TrimPrefix(l, categoryPrefix))
-		}
+	var docsConfig struct {
+		CategoryList []string `yaml:"categoryList"`
 	}
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error scanning file: %v", err)
+	if err := yaml.Unmarshal(contents, &docsConfig); err != nil {
+		return nil, fmt.Errorf("error deserializing yaml file: %v", err)
 	}
-	return categoryNames, nil
+	ret := StringSet{}
+	for _, category := range docsConfig.CategoryList {
+		ret.Add(category)
+	}
+	return ret, nil
 }
 
 var (
@@ -173,7 +163,7 @@ func checkFile(mdFile string, ctx *checkContext) error {
 	}
 	defer f.Close()
 
-	var headers []string
+	headers := bytes.NewBuffer(nil)
 	var relativeLinks []*relativeLink
 	inHeaderSection := true
 	scanner := bufio.NewScanner(f)
@@ -184,7 +174,7 @@ func checkFile(mdFile string, ctx *checkContext) error {
 			if l == "" {
 				inHeaderSection = false
 			} else {
-				headers = append(headers, l)
+				headers.Write([]byte(l + "\n"))
 			}
 		}
 		if relativeLinkRe.MatchString(l) {
@@ -223,40 +213,23 @@ func checkFile(mdFile string, ctx *checkContext) error {
 	return nil
 }
 
-const groupKey = "group"
-
-var headerKeys = StringSet{
-	"layout":   {},
-	"title":    {},
-	"nickname": {},
-	groupKey:   {},
-	"priority": {},
+type Header struct {
+	Layout   string `yaml:"layout" binding:"required"`
+	Title    string `yaml:"title" binding:"required"`
+	Nickname string `yaml:"nickname"`
+	Group    string `yaml:"group" binding:"required"`
+	Priority int    `yaml:"priority"`
 }
 
 // checkHeader validates the header lines
-func (ctx *checkContext) checkHeader(headers []string, mdFile string) {
-	for i := 0; i < len(headers); i++ {
-		l := headers[i]
-		if i == 0 || i == len(headers)-1 {
-			if l != "---" {
-				ctx.addError(mdFile, i, "header section should be surrounded by --- but was %v", l)
-			}
-			continue
-		}
-		split := strings.Split(l, ": ")
-		if len(split) != 2 {
-			ctx.addError(mdFile, i, "header line should be formatted as 'key: value' but was %v", l)
-			continue
-		}
-		headerKey := split[0]
-		if _, ok := headerKeys[headerKey]; !ok {
-			ctx.addError(mdFile, i, "header keys should be one of %v but was key %q", headerKeys, headerKey)
-		}
-		if headerKey == groupKey {
-			if _, ok := ctx.categoryNames[split[1]]; !ok {
-				ctx.addError(mdFile, i, "group should be one of %v but was %q", ctx.categoryNames, split[1])
-			}
-		}
+func (ctx *checkContext) checkHeader(headerBytes *bytes.Buffer, mdFile string) {
+	var header Header
+	if err := yaml.Unmarshal(headerBytes.Bytes(), &header); err != nil {
+		ctx.addError(mdFile, 0, "error parsing header: %v", err)
+		return
+	}
+	if _, ok := ctx.categoryNames[header.Group]; !ok {
+		ctx.addError(mdFile, 0, "group should be one of %v but was %q", ctx.categoryNames, header.Group)
 	}
 }
 
