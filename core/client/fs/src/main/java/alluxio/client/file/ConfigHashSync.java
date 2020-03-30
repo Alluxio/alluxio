@@ -92,7 +92,6 @@ public final class ConfigHashSync implements HeartbeatExecutor {
         mContext.getClientContext().getPathConfHash());
     if (isClusterConfUpdated || isPathConfUpdated) {
       try {
-
         mContext.reinit(isClusterConfUpdated, isPathConfUpdated);
         mException = null;
       } catch (UnavailableException e) {
