@@ -45,4 +45,4 @@ then
   mvn $(echo "${ALLUXIO_SONAR_ARGS}") sonar:sonar
 fi
 
-go run docs/check.go
+./dev/scripts/check-docs.sh

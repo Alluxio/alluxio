@@ -1146,8 +1146,7 @@
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
-            <exclude>**/dev/scripts/vendor/**</exclude>
-            <exclude>**/dev/scripts/src/vendor/**</exclude>
+            <exclude>**/dev/scripts/src/alluxio.org/vendor/**</exclude>
             <exclude>**/vagrant/**/*</exclude>
             <exclude>**/\?/.java/**/*</exclude>
 
