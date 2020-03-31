@@ -38,6 +38,7 @@ public class TransformDefinition {
    */
   private TransformDefinition(String definition, List<TransformAction> actions,
                               Properties properties) {
+    // TODO(bradley): derive definition string from properties or vice versa
     mDefinition = normalize(definition);
     mActions = actions;
     mProperties = properties;
