@@ -66,7 +66,7 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
 
   @Override
   protected void closeResource(BlockWorkerClient client) throws IOException {
-    LOG.info("Block worker client for {} closed.", mAddress);
+    LOG.debug("Block worker client for {} closed.", mAddress);
     client.close();
   }
 
