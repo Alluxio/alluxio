@@ -37,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -201,7 +200,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   private void waitJob() {
     AtomicBoolean removed = new AtomicBoolean(false);
     while (true) {
-       mSubmittedJobAttempts = mSubmittedJobAttempts.parallelStream().filter((jobAttempt) -> {
+      mSubmittedJobAttempts = mSubmittedJobAttempts.parallelStream().filter((jobAttempt) -> {
         Status check = jobAttempt.check();
         switch (check) {
           case CREATED:
