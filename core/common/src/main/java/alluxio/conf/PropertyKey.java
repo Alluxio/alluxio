@@ -2347,14 +2347,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_MANAGEMENT_GLOBAL_LOAD_DETECTION_ENABLED =
       new Builder(Name.WORKER_MANAGEMENT_GLOBAL_LOAD_DETECTION_ENABLED)
           .setDefaultValue(true)
-          .setDescription("Whether to postpone all management tasks under any user activity")
+          .setDescription("Whether to postpone all management tasks under any user activity."
+              + "When enabled, background tier management tasks will not as long as "
+              + "there is any active user I/O. When disabled, background tasks might interfere "
+              + "with user I/O for a short while until back-off individually.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME =
       new Builder(Name.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME)
           .setDefaultValue("10sec")
-          .setDescription("Management tasks will not run for this long after load detected.")
+          .setDescription("Management tasks will not run for this long after load detected. "
+              + "Any user I/O will still register as a load for this period of time after "
+              + "it is finished. Short durations might cause interference between user I/O "
+              + "and background tier management tasks. Long durations might cause "
+              + "starvation for background tasks.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2382,11 +2389,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_MANAGEMENT_TIER_TASK_CONCURRENCY =
-      new Builder(Name.WORKER_MANAGEMENT_TIER_TASK_CONCURRENCY)
-          .setDefaultSupplier(() -> Math.max(1, Runtime.getRuntime().availableProcessors() / 2),
-              "Use up to {CPU core count / 2} for tier swap/move tasks")
-          .setDescription("The number of threads used by tier swap/move tasks.")
+  public static final PropertyKey WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM =
+      new Builder(Name.WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM)
+          .setDefaultValue(String.format("${%s}", Name.WORKER_TIERED_STORE_LEVELS))
+          .setDescription("Controls number of disks that are used at single time "
+              + "by tier management tasks.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -2432,14 +2439,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(0.1)
           .setDescription("Ratio of free space per-tier for moving blocks from below."
               + " When under this value moving to that tier will be stopped.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_MANAGEMENT_SWAP_USING_FS =
-      new Builder(Name.WORKER_MANAGEMENT_SWAP_USING_FS)
-          .setDefaultValue(true)
-          .setDescription("Whether to use file-system moves to "
-              + "emulate swapping under same file-system root.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3159,6 +3158,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_TARGET_MEDIA =
       new Builder(Name.USER_FILE_TARGET_MEDIA)
+          .setDescription("Preferred media type while storing file's blocks.")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_BLOCK_SIZE_BYTES_DEFAULT =
@@ -4998,8 +4998,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.management.idle.sleep.time";
     public static final String WORKER_MANAGEMENT_TASK_THREAD_COUNT =
         "alluxio.worker.management.task.thread.count";
-    public static final String WORKER_MANAGEMENT_TIER_TASK_CONCURRENCY =
-        "alluxio.worker.management.tier.task.concurrency";
+    public static final String WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM =
+        "alluxio.worker.management.tier.task.disk.parallelism";
     public static final String WORKER_MANAGEMENT_TIER_SWAP_ENABLED =
         "alluxio.worker.management.tier.swap.enabled";
     public static final String WORKER_MANAGEMENT_TIER_SWAP_RESTORE_ENABLED =
@@ -5012,8 +5012,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.management.tier.move.range";
     public static final String WORKER_MANAGEMENT_TIER_MOVE_LIMIT =
         "alluxio.worker.management.tier.move.limit";
-    public static final String WORKER_MANAGEMENT_SWAP_USING_FS =
-        "alluxio.worker.management.swap.using.fs";
     public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
     public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";

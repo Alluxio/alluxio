@@ -251,7 +251,8 @@ public class TieredBlockStore implements BlockStore {
   public void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
       IOException {
-    LOG.debug("commitBlock: sessionId={}, blockId={}", sessionId, blockId);
+    LOG.debug("commitBlock: sessionId={}, blockId={}, pinOnCreate={}",
+        sessionId, blockId, pinOnCreate);
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
     try {
       BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
@@ -269,7 +270,8 @@ public class TieredBlockStore implements BlockStore {
   public long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
       throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
       IOException {
-    LOG.debug("commitBlock: sessionId={}, blockId={}", sessionId, blockId);
+    LOG.debug("commitBlock: sessionId={}, blockId={}, pinOnCreate={}",
+        sessionId, blockId, pinOnCreate);
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
     try {
       BlockStoreLocation loc = commitBlockInternal(sessionId, blockId, pinOnCreate);
@@ -318,7 +320,9 @@ public class TieredBlockStore implements BlockStore {
 
       if (!allocationDir.toBlockStoreLocation().equals(tempBlockMeta.getBlockLocation())) {
         // If reached here, allocateSpace() failed to enforce 'forceLocation' flag.
-        throw new RuntimeException("Allocation error: location enforcement failed");
+        throw new IllegalStateException(
+            String.format("Allocation error: location enforcement failed for location: %s",
+                allocationDir.toBlockStoreLocation()));
       }
 
       // Increase the size of this temp block
@@ -755,7 +759,7 @@ public class TieredBlockStore implements BlockStore {
           maxBytesToFree -= blockMeta.getBlockSize();
           spaceFreed += blockMeta.getBlockSize();
         } catch (BlockDoesNotExistException e) {
-          LOG.info("Failed to evict blockId {}, it could be already deleted", blockToDelete);
+          LOG.warn("Failed to evict blockId {}, it could be already deleted", blockToDelete);
           continue;
         }
       }

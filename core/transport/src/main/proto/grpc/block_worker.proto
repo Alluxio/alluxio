@@ -75,7 +75,7 @@ message ReadResponse {
 }
 
 // The write request command.
-// next available id: 10
+// next available id: 11
 message WriteRequestCommand {
   optional RequestType type = 1;
   // The block ID or UFS file ID.
