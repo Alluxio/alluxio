@@ -110,7 +110,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
 
   private void stopFS() throws Exception {
     mLocalAlluxioCluster.stopFS();
-    Thread.sleep(100);
+    Thread.sleep(500);
   }
 
   private void addBlockTestUtil(URIStatus status) throws Exception {
