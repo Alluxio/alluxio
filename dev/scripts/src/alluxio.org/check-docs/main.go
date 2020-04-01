@@ -23,6 +23,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 	"bytes"
+	"io"
 )
 
 func main() {
@@ -62,7 +63,17 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("could not get current working directory: %v", err)
 	}
-	docsPath, err := filepath.Abs(filepath.Join(repoRoot, docsDir))
+	// copy contents of docs/ into tmp dir
+	tmpDir, err := ioutil.TempDir("", "docsCheck")
+	if err != nil {
+		return fmt.Errorf("error creating temporary directory: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+	if err := CopyDir(filepath.Join(repoRoot, docsDir), filepath.Join(tmpDir, docsDir)); err != nil {
+		return fmt.Errorf("error copying docs directory to temp directory: %v", err)
+	}
+
+	docsPath, err := filepath.Abs(filepath.Join(tmpDir, docsDir))
 	if err != nil {
 		return fmt.Errorf("could not get absolute path of %v: %v", filepath.Join(repoRoot, docsDir), err)
 	}
@@ -275,4 +286,66 @@ func (s StringSet) String() string {
 		ret = append(ret, k)
 	}
 	return fmt.Sprintf("[%s]", strings.Join(ret, ", "))
+}
+
+// CopyDir copies a source directory to the given destination
+func CopyDir(src, dst string) error {
+	srcFile, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	if !srcFile.IsDir() {
+		return fmt.Errorf("source %q is not a directory", src)
+	}
+
+	// create dest dir
+	if err := os.MkdirAll(dst, srcFile.Mode()); err != nil {
+		return err
+	}
+
+	entries, err := ioutil.ReadDir(src)
+	if err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		sfp := filepath.Join(src, entry.Name())
+		dfp := filepath.Join(dst, entry.Name())
+		if entry.IsDir() {
+			if err := CopyDir(sfp, dfp); err != nil {
+				return err
+			}
+		} else if entry.Mode()&os.ModeSymlink != 0 {
+			if err := os.Symlink(sfp, dfp); err != nil {
+				return err
+			}
+		} else {
+			if err := CopyFile(sfp, dfp); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// CopyFile copies a file from the given source to the given destination.
+// The destination should not exist.
+func CopyFile(src, dst string) error {
+	info, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	out, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, info.Mode())
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	if _, err = io.Copy(out, in); err != nil {
+		return err
+	}
+	return nil
 }
