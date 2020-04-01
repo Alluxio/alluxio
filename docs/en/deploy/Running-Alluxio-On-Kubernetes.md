@@ -737,7 +737,7 @@ You can use `local` policy by setting the properties as below:
 ```properties
 shortCircuit:
   enabled: true
-  policy: "local"
+  policy: local
 ```
 
 ***Using `kubectl`***
@@ -763,8 +763,8 @@ The domain socket is a volume which should be mounted on:
 - All application containers which intend to read/write through Alluxio
 
 This domain socket volume refers to a `PersistentVolumeClaim` by its name.
-You need to create your `PersistentVolumeClaim` and provision a `PersistentVolume` of kind being 
-either `hostPath` or `local`.
+You should provision to the `PersistenceVolumeClaim` with a `PersistentVolume` of kind being either
+`hostPath` or `local`.
 
 ***Using `helm`***
 You can use `uuid` policy by setting the properties as below:
@@ -802,6 +802,8 @@ volumes:
 
 > Note: Compute application containers **MUST** mount the domain socket volume to the same path
 (`/opt/domain`) as configured for the Alluxio workers.
+
+The `PersistenceVolumeClaim` is defined in `worker/alluxio-worker-pvc.yaml`.
 
 #### Verify
 
