@@ -10,6 +10,7 @@
 #
 
 {{ $shortCircuitEnabled := .Values.shortCircuit.enabled -}}
+{{ $needDomainSocketVolume := and $shortCircuitEnabled (eq .Values.shortCircuit.policy "uuid") -}}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -76,8 +77,10 @@ spec:
           - containerPort: {{ .Values.worker.ports.web }}
             name: web
           volumeMounts:
+            {{- if $needDomainSocketVolume }}
             - name: alluxio-domain
               mountPath: /opt/domain
+            {{- end }}
             {{- if .Values.secrets -}}
               {{- if .Values.secrets.worker -}}
 {{- include "alluxio.worker.secretVolumeMounts" . }}
@@ -121,8 +124,10 @@ spec:
           - containerPort: {{ .Values.jobWorker.ports.web }}
             name: job-web
           volumeMounts:
+            {{- if $needDomainSocketVolume }}
             - name: alluxio-domain
               mountPath: /opt/domain
+            {{- end }}
             {{- if .Values.secrets }}
               {{- if .Values.secrets.worker }}
 {{- include "alluxio.worker.secretVolumeMounts" . }}
@@ -136,12 +141,10 @@ spec:
             {{- end }}
       restartPolicy: Always
       volumes:
-        {{- if $shortCircuitEnabled }}
-          {{- if eq .Values.shortCircuit.policy "uuid" }}
+        {{- if $needDomainSocketVolume }}
         - name: alluxio-domain
           persistentVolumeClaim:
             claimName: "{{ .Values.shortCircuit.pvcName }}"
-          {{- end }}
         {{- end }}
         {{- if .Values.secrets }}
           {{- if .Values.secrets.worker }}
