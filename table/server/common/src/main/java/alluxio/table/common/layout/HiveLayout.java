@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
+import alluxio.grpc.table.layout.hive.StorageFormat;
 import alluxio.job.plan.transform.HiveConstants;
 import alluxio.table.common.Layout;
 import alluxio.table.common.LayoutFactory;
@@ -24,6 +25,7 @@ import alluxio.table.common.transform.TransformPlan;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
@@ -110,15 +113,26 @@ public class HiveLayout implements Layout {
     return mPartitionStatsInfo;
   }
 
-  private HiveLayout transformLayout(AlluxioURI transformedUri) {
+  private HiveLayout transformLayout(AlluxioURI transformedUri, TransformDefinition definition) {
+    final Properties properties = definition.getProperties();
+
     // TODO(cc): assumption here is the transformed data is in Parquet format.
+    final StorageFormat.Builder storageFormatBuilder = mPartitionInfo.getStorage()
+        .getStorageFormat().toBuilder()
+        .setSerde(HiveConstants.PARQUET_SERDE_CLASS)
+        .setInputFormat(HiveConstants.PARQUET_INPUT_FORMAT_CLASS)
+        .setOutputFormat(HiveConstants.PARQUET_OUTPUT_FORMAT_CLASS);
+
+    final String compressionKey = alluxio.job.plan.transform.PartitionInfo.PARQUET_COMPRESSION;
+    final String compression = properties.getProperty(compressionKey);
+    if (!StringUtils.isEmpty(compression)) {
+      storageFormatBuilder.putSerdelibParameters(compressionKey, compression);
+    }
+
     PartitionInfo info = mPartitionInfo.toBuilder()
         .putAllParameters(mPartitionInfo.getParametersMap())
         .setStorage(mPartitionInfo.getStorage().toBuilder()
-            .setStorageFormat(mPartitionInfo.getStorage().getStorageFormat().toBuilder()
-                .setSerde(HiveConstants.PARQUET_SERDE_CLASS)
-                .setInputFormat(HiveConstants.PARQUET_INPUT_FORMAT_CLASS)
-                .setOutputFormat(HiveConstants.PARQUET_OUTPUT_FORMAT_CLASS)
+            .setStorageFormat(storageFormatBuilder
                 .build())
             .setLocation(transformedUri.toString())
             .build())
@@ -134,7 +148,7 @@ public class HiveLayout implements Layout {
     AlluxioURI outputUri = new AlluxioURI(
         ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global())
         + outputPath.getPath());
-    HiveLayout transformedLayout = transformLayout(outputUri);
+    HiveLayout transformedLayout = transformLayout(outputUri, definition);
     return new TransformPlan(this, transformedLayout, definition);
   }
 
