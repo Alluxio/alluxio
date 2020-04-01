@@ -74,9 +74,9 @@ spec:
               fieldRef:
                 fieldPath: status.hostIP
           - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
           envFrom:
           - configMapRef:
               name: alluxio-config
@@ -114,6 +114,10 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
+          - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
           envFrom:
           - configMapRef:
               name: alluxio-config

@@ -202,9 +202,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     super.start(address);
     mAddress = address;
 
-    // TODO(jiacheng): Node host is NOT sent to master!!
-    LOG.warn("Starting BlockWorker with address {}", address);
-
     // Acquire worker Id.
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {

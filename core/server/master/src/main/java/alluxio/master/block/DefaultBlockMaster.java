@@ -75,14 +75,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.Striped;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.rmi.runtime.Log;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -100,7 +98,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -212,9 +209,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   /** Worker is not visualable until registration completes. */
   private final IndexedSet<MasterWorkerInfo> mTempWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
-
-  private final ConcurrentHashMap<String, String> mWorkerToHostname =
-          new ConcurrentHashMap<>();
 
   /** Listeners to call when lost workers are found. */
   private final List<Consumer<Address>> mLostWorkerFoundListeners
@@ -445,7 +439,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   }
 
   private List<WorkerInfo> constructWorkerInfoList() {
-    LOG.warn("Constructing workerInfoList");
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
     for (MasterWorkerInfo worker : mWorkers) {
       synchronized (worker) {
@@ -893,14 +886,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     }
 
     synchronized (worker) {
-      WorkerNetAddress address = worker.getWorkerAddress();
-      LOG.warn("In workerRegister the worker address is {}", address);
-      String containerHost = address.getContainerHost();
-      LOG.warn("Worker container address is {}", containerHost);
-      if (!containerHost.equals("")) {
-        LOG.warn("Worker is in a container!");
-      }
-
       worker.updateLastUpdatedTimeMs();
       // Detect any lost blocks on this worker.
       Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
@@ -912,7 +897,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     }
     if (options.getConfigsCount() > 0) {
       for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
-        LOG.warn("WorkerRegisteredListener {} is working", function);
         WorkerNetAddress workerAddress = worker.getWorkerAddress();
         function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()),
             options.getConfigsList());
@@ -1069,10 +1053,8 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 
     List<alluxio.wire.BlockLocation> locations = new ArrayList<>();
     for (BlockLocation location : blockLocations) {
-      LOG.warn("Processing BlockLocation {}", location);
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(ID_INDEX, location.getWorkerId());
-      LOG.warn("MasterWorkerInfo {}", workerInfo);
       if (workerInfo != null) {
         // worker metadata is intentionally not locked here because:
         // - it would be an incorrect order (correct order is lock worker first, then block)

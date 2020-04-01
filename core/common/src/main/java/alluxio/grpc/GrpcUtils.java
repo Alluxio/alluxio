@@ -586,7 +586,8 @@ public final class GrpcUtils {
         .setHost(workerNetAddress.getHost())
         .setContainerHost(workerNetAddress.getContainerHost())
         .setRpcPort(workerNetAddress.getRpcPort())
-        .setDataPort(workerNetAddress.getDataPort()).setWebPort(workerNetAddress.getWebPort())
+        .setDataPort(workerNetAddress.getDataPort())
+        .setWebPort(workerNetAddress.getWebPort())
         .setDomainSocketPath(workerNetAddress.getDomainSocketPath());
     if (workerNetAddress.getTieredIdentity() != null) {
       address.setTieredIdentity(toProto(workerNetAddress.getTieredIdentity()));

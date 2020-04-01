@@ -214,10 +214,10 @@ public final class AlluxioBlockStore {
     }
 
     try {
-      LOG.warn("getInStream from address {}", dataSource);
       if (!dataSource.getContainerHost().equals("")) {
         String containerName = dataSource.getContainerHost();
-        LOG.warn("Worker is in a container. Replace {} with {}", dataSource.getHost(), containerName);
+        LOG.debug("Worker is in a container. Replace host {} with container host {}",
+                dataSource.getHost(), containerName);
         dataSource.setHost(containerName);
       }
 
@@ -261,8 +261,7 @@ public final class AlluxioBlockStore {
     if (blockSize == -1) {
       try (CloseableResource<BlockMasterClient> blockMasterClientResource =
           mContext.acquireBlockMasterClientResource()) {
-        BlockInfo blockInfo = blockMasterClientResource.get().getBlockInfo(blockId);
-        blockSize = blockInfo.getLength();
+        blockSize = blockMasterClientResource.get().getBlockInfo(blockId).getLength();
       }
     }
     // No specified location to write to.
@@ -273,11 +272,12 @@ public final class AlluxioBlockStore {
     LOG.debug("Create block outstream for {} of block size {} at address {}, using options: {}",
         blockId, blockSize, address, options);
 
-    // TODO(jiacheng): replace the worker address here
-    LOG.warn("getOutStream from address {}", address);
+    // ALLUXIO-11172: If the worker is in a container, use the container hostname
+    // to establish the connection.
     if (!address.getContainerHost().equals("")) {
       String containerName = address.getContainerHost();
-      LOG.warn("Worker is in a container. Replace {} with {}", address.getHost(), containerName);
+      LOG.debug("Worker is in a container. Replace host {} with container host {}",
+              address.getHost(), containerName);
       address.setHost(containerName);
     }
     return BlockOutStream.create(mContext, blockId, blockSize, address, options);
@@ -318,7 +318,6 @@ public final class AlluxioBlockStore {
         throw new UnavailableException(
             ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
       }
-      LOG.warn("Single worker outstream to address {}", address);
       return getOutStream(blockId, blockSize, address, options);
     }
 
@@ -331,12 +330,6 @@ public final class AlluxioBlockStore {
       } else {
         blockWorkersByHost.put(hostName, com.google.common.collect.Sets.newHashSet(blockWorker));
       }
-    }
-    // TODO(jiacheng): report here
-    LOG.warn("Report hostname-worker map");
-    for (String w : blockWorkersByHost.keySet()) {
-      Set<BlockWorkerInfo> st = blockWorkersByHost.get(w);
-      LOG.warn("Worker {} maps to {} workers {}", w, st.size(), st);
     }
 
     // Select N workers on different hosts where N is the value of initialReplicas for this block
@@ -357,7 +350,16 @@ public final class AlluxioBlockStore {
           workerAddressList.size(), initialReplicas));
     }
 
-    LOG.warn("Decided workerAddressList {}", workerAddressList);
+    // ALLUXIO-11172: If the worker is in a container, use the container hostname
+    // to establish the connection.
+    for (WorkerNetAddress workerAddress : workerAddressList) {
+      if (!workerAddress.getContainerHost().equals("")) {
+        String containerName = workerAddress.getContainerHost();
+        LOG.debug("Worker is in a container. Replace host {} with container host {}",
+                workerAddress.getHost(), containerName);
+        workerAddress.setHost(containerName);
+      }
+    }
     return BlockOutStream
         .createReplicatedBlockOutStream(mContext, blockId, blockSize, workerAddressList, options);
   }
