@@ -408,7 +408,6 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     directoryTestUtil(status);
     deleteFsMasterJournalLogs();
     directoryTestUtil(status);
-    Assert.assertTrue(false);
   }
 
   private void directoryTestUtil(URIStatus status) throws Exception {
