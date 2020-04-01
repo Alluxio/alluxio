@@ -19,9 +19,6 @@ workers may use `emptyDir` volumes with a restricted size using the `sizeLimit`
 parameter. This is an alpha feature in Kubernetes 1.8. Please ensure the feature is enabled.
 - An Alluxio Docker image [alluxio/alluxio](https://hub.docker.com/r/alluxio/alluxio/). If using a
 private Docker registry, refer to the Kubernetes [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
-- Alluxio workers use `hostNetwork` and `hostPath` volumes for locality scheduling and
-short-circuit access respectively. Please ensure the security policy allows for provisioning these
-resource types.
 - Ensure the [Kubernetes Network Policy](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
 allows for connectivity between applications (Alluxio clients) and the Alluxio Pods on the defined
 ports.
@@ -750,9 +747,6 @@ In your `alluxio-configmap.yaml` you should add the following properties to `ALL
 -Dalluxio.user.short.circuit.enabled=true -Dalluxio.worker.data.server.domain.socket.address= -Dalluxio.worker.data.server.domain.socket.as.uuid=false
 ```
 
-You should also manually remove the volume `alluxio-domain` from `volumes` of the Pod definition 
-and `volumeMounts` of each container if existing.
-
 ##### `uuid`
 This is the **default** policy used for short-circuit.
 
@@ -779,8 +773,12 @@ You can use `uuid` policy by setting the properties as below:
 # These are the default configurations
 shortCircuit:
   enabled: true
-  policy: "local"
+  policy: uuid
   pvcName: alluxio-worker-domain-socket
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  storageClass: standard
 ```
 
 The field `shortCircuit.pvcName` defines the name of the `PersistentVolumeClaim` for domain socket.
