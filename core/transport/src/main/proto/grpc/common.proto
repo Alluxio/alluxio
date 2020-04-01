@@ -116,11 +116,12 @@ message NetAddress {
  */
 message WorkerNetAddress {
   optional string host = 1;
-  optional int32 rpcPort = 2;
-  optional int32 dataPort = 3;
-  optional int32 webPort = 4;
-  optional string domainSocketPath = 5;
-  optional TieredIdentity tieredIdentity = 6;
+  optional string containerHost = 2;
+  optional int32 rpcPort = 3;
+  optional int32 dataPort = 4;
+  optional int32 webPort = 5;
+  optional string domainSocketPath = 6;
+  optional TieredIdentity tieredIdentity = 7;
 }
 
 message BlockStoreLocationProto {

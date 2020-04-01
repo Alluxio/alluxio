@@ -214,13 +214,12 @@ public final class AlluxioBlockStore {
     }
 
     try {
-      if (dataSourceType == BlockInStreamSource.REMOTE) {
-        String sourceHost = dataSource.getHost();
-        if (!sourceHost.startsWith("alluxio-worker")) {
-          String serviceName = "alluxio-worker-" + sourceHost.replace(".","-");
-          LOG.warn("Reading from remote worker. Replace {} with {}", sourceHost, serviceName);
-          dataSource.setHost(serviceName);
-        }
+      // TODO(jiacheng): replace the worker address here
+      LOG.warn("getInStream from address {}", dataSource);
+      if (!dataSource.getContainerHost().equals("")) {
+        String containerName = dataSource.getContainerHost();
+        LOG.warn("Worker is in a container. Replace {} with {}", dataSource.getHost(), containerName);
+        dataSource.setHost(containerName);
       }
 
       return BlockInStream.create(mContext, info, dataSource, dataSourceType, options);
@@ -274,11 +273,13 @@ public final class AlluxioBlockStore {
     }
     LOG.debug("Create block outstream for {} of block size {} at address {}, using options: {}",
         blockId, blockSize, address, options);
-    String workerAddress = address.getHost();
-    if (!workerAddress.startsWith("alluxio-worker")) {
-      String workerService = "alluxio-worker-" + workerAddress.replace(".", "-");
-      LOG.warn("Writing to worker {} replaced by {}", workerAddress, workerService);
-      address.setHost(workerService);
+
+    // TODO(jiacheng): replace the worker address here
+    LOG.warn("getOutStream from address {}", address);
+    if (!address.getContainerHost().equals("")) {
+      String containerName = address.getContainerHost();
+      LOG.warn("Worker is in a container. Replace {} with {}", address.getHost(), containerName);
+      address.setHost(containerName);
     }
     return BlockOutStream.create(mContext, blockId, blockSize, address, options);
   }

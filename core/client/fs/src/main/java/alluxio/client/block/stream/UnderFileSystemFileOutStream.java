@@ -41,12 +41,12 @@ public class UnderFileSystemFileOutStream extends BlockOutStream {
    */
   public static UnderFileSystemFileOutStream create(FileSystemContext context,
       WorkerNetAddress address, OutStreamOptions options) throws IOException {
-    String workerAddress = address.getHost();
-    if (!workerAddress.startsWith("alluxio-worker")) {
-      String workerService = "alluxio-worker-" + workerAddress.replace(".", "-");
-      address.setHost(workerService);
-      LOG.warn("Replace {} with {}", workerAddress, workerService);
-    }
+//    String workerAddress = address.getHost();
+//    if (!workerAddress.startsWith("alluxio-worker")) {
+//      String workerService = "alluxio-worker-" + workerAddress.replace(".", "-");
+//      address.setHost(workerService);
+//      LOG.warn("Replace {} with {}", workerAddress, workerService);
+//    }
     return new UnderFileSystemFileOutStream(GrpcDataWriter.create(context, address,
         ID_UNUSED, Long.MAX_VALUE, RequestType.UFS_FILE, options), address);
   }

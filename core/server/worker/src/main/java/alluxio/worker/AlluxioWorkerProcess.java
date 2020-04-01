@@ -328,9 +328,14 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   @Override
   public WorkerNetAddress getAddress() {
+    // TODO(jiacheng): Get the node address
+    String containerHost = ServerConfiguration.global().getOrDefault(PropertyKey.WORKER_CONTAINER_HOSTNAME, "");
+    LOG.warn("Worker has container address {}", containerHost);
+
     return new WorkerNetAddress()
         .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
             ServerConfiguration.global()))
+        .setContainerHost(containerHost)
         .setRpcPort(mRpcBindAddress.getPort())
         .setDataPort(getDataLocalPort())
         .setDomainSocketPath(getDataDomainSocketPath())

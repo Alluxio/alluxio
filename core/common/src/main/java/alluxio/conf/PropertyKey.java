@@ -2328,8 +2328,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
       .setScope(Scope.WORKER)
       .build();
-  public static final PropertyKey WORKER_NODE_HOSTNAME = new Builder(Name.WORKER_NODE_HOSTNAME)
-          .setDescription("The node hostname if provided").setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+  public static final PropertyKey WORKER_CONTAINER_HOSTNAME = new Builder(Name.WORKER_CONTAINER_HOSTNAME)
+          .setDescription("The container hostname if provided").setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.WORKER).build();
   public static final PropertyKey WORKER_KEYTAB_FILE = new Builder(Name.WORKER_KEYTAB_FILE)
       .setDescription("Kerberos keytab file for Alluxio worker.")
@@ -4614,8 +4614,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.shutdown.timeout";
     public static final String WORKER_NETWORK_ZEROCOPY_ENABLED =
         "alluxio.worker.network.zerocopy.enabled";
-    public static final String WORKER_NODE_HOSTNAME =
-        "alluxio.worker.node.hostname";
+    public static final String WORKER_CONTAINER_HOSTNAME =
+        "alluxio.worker.container.hostname";
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =
         "alluxio.worker.block.master.client.pool.size";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";

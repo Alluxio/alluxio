@@ -102,6 +102,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * begins.
    */
   private void registerWithMaster() throws IOException {
+    LOG.warn("registerWithMaster worker address {}", mWorkerAddress);
+
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
     List<ConfigProperty> configList =

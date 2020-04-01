@@ -276,6 +276,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     mMetricsMaster = metricsMaster;
     Metrics.registerGauges(this);
 
+    // TODO(jiacheng): how does this work???
     mWorkerInfoCache = CacheBuilder.newBuilder()
         .refreshAfterWrite(ServerConfiguration
             .getMs(PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME), TimeUnit.MILLISECONDS)
@@ -445,10 +446,13 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   }
 
   private List<WorkerInfo> constructWorkerInfoList() {
+    LOG.warn("Constructing workerInfoList");
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
     for (MasterWorkerInfo worker : mWorkers) {
       synchronized (worker) {
         WorkerInfo workerInfo = worker.generateWorkerInfo(null, true);
+        LOG.warn("Generated WorkerInfo {}", workerInfo);
+
         WorkerNetAddress workerAddress = workerInfo.getAddress();
         String workerHostname = workerAddress.getHost();
         LOG.warn("Found worker with address {}", workerAddress);
@@ -904,6 +908,12 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     synchronized (worker) {
       WorkerNetAddress address = worker.getWorkerAddress();
       LOG.warn("In workerRegister the worker address is {}", address);
+      String containerHost = address.getContainerHost();
+      LOG.warn("Worker container address is {}", containerHost);
+      if (!containerHost.equals("")) {
+        LOG.warn("Worker is in a container!");
+      }
+
       worker.updateLastUpdatedTimeMs();
       // Detect any lost blocks on this worker.
       Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
@@ -914,14 +924,14 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       worker.addLostStorage(lostStorage);
     }
     if (options.getConfigsCount() > 0) {
-      List<ConfigProperty> workerConfigs = options.getConfigsList();
-      for (ConfigProperty cp : workerConfigs) {
-        // TODO(jiacheng): lock this?
-        if (cp.getName().equals(PropertyKey.WORKER_NODE_HOSTNAME.getName())) {
-          mWorkerToHostname.put(worker.getWorkerAddress().getHost(), cp.getValue());
-          LOG.warn("Got worker hostname {}:{}", worker.getWorkerAddress().getHost(), cp.getValue());
-        }
-      }
+//      List<ConfigProperty> workerConfigs = options.getConfigsList();
+//      for (ConfigProperty cp : workerConfigs) {
+//        // TODO(jiacheng): lock this?
+//        if (cp.getName().equals(PropertyKey.WORKER_NODE_HOSTNAME.getName())) {
+//          mWorkerToHostname.put(worker.getWorkerAddress().getHost(), cp.getValue());
+//          LOG.warn("Got worker hostname {}:{}", worker.getWorkerAddress().getHost(), cp.getValue());
+//        }
+//      }
       for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
         LOG.warn("WorkerRegisteredListener {} is working", function);
         WorkerNetAddress workerAddress = worker.getWorkerAddress();
