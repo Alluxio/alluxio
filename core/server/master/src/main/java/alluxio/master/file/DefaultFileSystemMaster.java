@@ -2461,9 +2461,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
           GrpcUtils.fromProto(context.getOptions().getLoadDescendantType());
       FileSystemMasterCommonPOptions commonOptions =
           context.getOptions().getCommonOptions();
+      // load metadata only and force sync
       InodeSyncStream sync = new InodeSyncStream(inodePath, this, mInodeTree, mInodeStore,
           mInodeLockManager, mMountTable, rpcContext, syncDescendantType, mUfsSyncPathCache,
-          commonOptions, isGetFileInfo, isGetFileInfo, true);
+          commonOptions, isGetFileInfo, true, true);
       if (!sync.sync()) {
         LOG.debug("Failed to load metadata for path from UFS: {}", inodePath.getUri());
       }

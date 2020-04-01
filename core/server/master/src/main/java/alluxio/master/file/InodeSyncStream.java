@@ -37,7 +37,6 @@ import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.meta.Inode;
-import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodeTree;
@@ -248,7 +247,7 @@ public class InodeSyncStream {
     // Set to true if the given inode was deleted.
     boolean deletedInode = false;
     // whether we need to load metadata for the current path
-    boolean loadMetadata = false;
+    boolean loadMetadata = mLoadOnly;
     boolean syncChildren = true;
     LOG.debug("Syncing inode metadata {}", inodePath.getUri());
 
@@ -355,12 +354,12 @@ public class InodeSyncStream {
         && inode.isDirectory()
         && mDescendantType != DescendantType.NONE;
 
+    Map<String, Inode> inodeChildren = new HashMap<>();
     if (syncChildren) {
       // maps children name to inode
-      Map<String, Inode> inodeChildren = new HashMap<>();
-      for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
-        inodeChildren.put(child.getName(), child);
-      }
+      mInodeStore.getChildren(inode.asDirectory())
+          .forEach(child -> inodeChildren.put(child.getName(), child));
+
       // Fetch and populate children into the cache
       Collection<UfsStatus> listStatus = mStatusCache
           .fetchChildrenIfAbsent(inodePath.getUri(), mMountTable);
@@ -391,7 +390,13 @@ public class InodeSyncStream {
     if (syncChildren) {
       // Iterate over Alluxio children and process persisted children.
       mInodeStore.getChildren(inode.asDirectory()).forEach(childInode -> {
-        // If we're performing a recusive sync, add each child of our current Inode to the queue
+        // If we are only loading non-existing metadata, then don't process any child which
+        // was already in the tree, unless it is a directory, in which case, we might need to load
+        // its children.
+        if (mLoadOnly && inodeChildren.containsKey(childInode.getName()) && childInode.isFile()) {
+          return;
+        }
+        // If we're performing a recursive sync, add each child of our current Inode to the queue
         AlluxioURI child = inodePath.getUri().joinUnsafe(childInode.getName());
         mSyncMetadataQ.add(child);
         // This asynchronously schedules a job to pre-fetch the statuses into the cache.
@@ -425,8 +430,14 @@ public class InodeSyncStream {
       UnderFileSystem ufs = ufsResource.get();
       if (context.getUfsStatus() == null && !ufs.exists(ufsUri.toString())) {
         // uri does not exist in ufs
-        InodeDirectory inode = inodePath.getInode().asDirectory();
-        mInodeTree.setDirectChildrenLoaded(mRpcContext, inode);
+        Inode inode = inodePath.getInode();
+        if (inode.isFile()) {
+          throw new IllegalArgumentException(String.format(
+              "load metadata cannot be called on a file if no ufs "
+                  + "status is present in the context. %s", inodePath.getUri()));
+        }
+
+        mInodeTree.setDirectChildrenLoaded(mRpcContext, inode.asDirectory());
         return;
       }
       boolean isFile;
