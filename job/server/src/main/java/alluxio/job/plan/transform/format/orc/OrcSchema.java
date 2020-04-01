@@ -37,9 +37,8 @@ public class OrcSchema implements TableSchema {
    * @param reader the orc reader
    */
   public OrcSchema(Reader reader) throws IOException {
-    mAlluxioSchema = new ArrayList<>();
-
     final List<String> fieldNames = reader.getSchema().getFieldNames();
+    mAlluxioSchema = new ArrayList<>(fieldNames.size());
     for (int i = 0; i < fieldNames.size(); i++) {
       final String fieldName = fieldNames.get(i);
 

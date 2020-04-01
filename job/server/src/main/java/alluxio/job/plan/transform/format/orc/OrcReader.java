@@ -39,7 +39,13 @@ public final class OrcReader implements TableReader {
   private final RecordReader mRows;
   private final List<String> mFieldNames;
 
+  /**
+   * The current processing batch of the Orc reader for the read() operation.
+   */
   private VectorizedRowBatch mCurrentBatch;
+  /**
+   * The row position inside the vectorized row batch to return next for read().
+   */
   private int mCurrentBatchPosition;
 
   private OrcReader(JobPath inputPath) throws IOException {
