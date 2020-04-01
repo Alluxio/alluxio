@@ -270,9 +270,7 @@ public class LockPool<K> {
   @VisibleForTesting
   public Map<K, ReentrantReadWriteLock> getEntryMap() {
     Map<K, ReentrantReadWriteLock> entries = new HashMap<>();
-    mPool.entrySet().forEach(entry -> {
-      entries.put(entry.getKey(), entry.getValue().mLock);
-    });
+    mPool.forEach((key, value) -> entries.put(key, value.mLock));
     return entries;
   }
 
