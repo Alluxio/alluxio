@@ -104,8 +104,13 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     }
     os.close();
     URIStatus status = mFileSystem.getStatus(uri);
-    mLocalAlluxioCluster.stopFS();
+    stopFS();
     addBlockTestUtil(status);
+  }
+
+  private void stopFS() throws Exception {
+    mLocalAlluxioCluster.stopFS();
+    Thread.sleep(100);
   }
 
   private void addBlockTestUtil(URIStatus status) throws Exception {
@@ -166,7 +171,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
     ufs.create(ufsRoot + "/xyz").close();
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/xyz"));
-    mLocalAlluxioCluster.stopFS();
+    stopFS();
     loadMetadataTestUtil(status);
     deleteFsMasterJournalLogs();
     loadMetadataTestUtil(status);
@@ -198,7 +203,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
               CreateFilePOptions.newBuilder().setBlockSizeBytes((i + 10) / 10 * 64).build())
           .close();
     }
-    mLocalAlluxioCluster.stopFS();
+    stopFS();
 
     String journalFolder = PathUtils
         .concatPath(mLocalAlluxioCluster.getLocalAlluxioMaster().getJournalFolder(),
@@ -240,7 +245,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
         mFileSystem.delete(new AlluxioURI(dirPath), recDelete);
       }
     }
-    mLocalAlluxioCluster.stopFS();
+    stopFS();
     deleteTestUtil();
     deleteFsMasterJournalLogs();
     deleteTestUtil();
@@ -266,7 +271,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
   @Test
   public void emptyFileSystem() throws Exception {
     Assert.assertEquals(0, mFileSystem.listStatus(mRootUri).size());
-    mLocalAlluxioCluster.stopFS();
+    stopFS();
     try (FsMasterResource masterResource = createFsMasterFromJournal()) {
       FileSystemMaster fsMaster = masterResource.getRegistry().get(FileSystemMaster.class);
       long rootId = fsMaster.getFileId(mRootUri);
@@ -290,7 +295,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
         mFileSystem.createFile(new AlluxioURI("/i" + i + "/j" + j), option).close();
       }
     }
-    mLocalAlluxioCluster.stopFS();
+    stopFS();
     fileDirectoryTestUtil();
     deleteFsMasterJournalLogs();
     fileDirectoryTestUtil();
@@ -322,7 +327,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     AlluxioURI filePath = new AlluxioURI("/xyz");
     mFileSystem.createFile(filePath, option).close();
     URIStatus status = mFileSystem.getStatus(filePath);
-    mLocalAlluxioCluster.stopFS();
+    stopFS();
     fileTestUtil(status);
     deleteFsMasterJournalLogs();
     fileTestUtil(status);
@@ -366,7 +371,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     URIStatus file0Status = mFileSystem.getStatus(file0Path);
     URIStatus file1Status = mFileSystem.getStatus(file1Path);
 
-    mLocalAlluxioCluster.stopFS();
+    stopFS();
 
     pinTestUtil(directoryStatus, file0Status, file1Status);
     deleteFsMasterJournalLogs();
@@ -399,10 +404,11 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     AlluxioURI directoryPath = new AlluxioURI("/xyz");
     mFileSystem.createDirectory(directoryPath);
     URIStatus status = mFileSystem.getStatus(directoryPath);
-    mLocalAlluxioCluster.stopFS();
+    stopFS();
     directoryTestUtil(status);
     deleteFsMasterJournalLogs();
     directoryTestUtil(status);
+    Assert.assertTrue(false);
   }
 
   private void directoryTestUtil(URIStatus status) throws Exception {
@@ -447,7 +453,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     for (String directory : directories) {
       directoryStatuses.put(directory, mFileSystem.getStatus(new AlluxioURI(directory)));
     }
-    mLocalAlluxioCluster.stopFS();
+    stopFS();
     persistDirectoryLaterTestUtil(directoryStatuses);
     deleteFsMasterJournalLogs();
     persistDirectoryLaterTestUtil(directoryStatuses);
@@ -475,7 +481,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
           CreateFilePOptions.newBuilder().setBlockSizeBytes((i + 1) * 64).build();
       mFileSystem.createFile(new AlluxioURI("/a" + i), option).close();
     }
-    mLocalAlluxioCluster.stopFS();
+    stopFS();
     manyFileTestUtil();
     deleteFsMasterJournalLogs();
     manyFileTestUtil();
@@ -505,7 +511,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
           CreateFilePOptions.newBuilder().setBlockSizeBytes((i + 10) / 10 * 64).build();
       mFileSystem.createFile(new AlluxioURI("/a" + i), op).close();
     }
-    mLocalAlluxioCluster.stopFS();
+    stopFS();
     multiEditLogTestUtil();
     deleteFsMasterJournalLogs();
     multiEditLogTestUtil();
@@ -541,7 +547,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
       }
       mFileSystem.rename(new AlluxioURI("/i" + i), new AlluxioURI("/ii" + i));
     }
-    mLocalAlluxioCluster.stopFS();
+    stopFS();
     renameTestUtil();
     deleteFsMasterJournalLogs();
     renameTestUtil();
@@ -583,7 +589,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
 
     URIStatus status = mFileSystem.getStatus(filePath);
 
-    mLocalAlluxioCluster.stopFS();
+    stopFS();
 
     aclTestUtil(status, user);
     deleteFsMasterJournalLogs();
