@@ -2325,7 +2325,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_HOSTNAME = new Builder(Name.WORKER_HOSTNAME)
       .setDescription("The hostname of Alluxio worker.")
-      .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
       .setScope(Scope.WORKER)
       .build();
   public static final PropertyKey WORKER_CONTAINER_HOSTNAME = new Builder(Name.WORKER_CONTAINER_HOSTNAME)

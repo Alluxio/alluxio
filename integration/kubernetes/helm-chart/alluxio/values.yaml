@@ -196,8 +196,8 @@ worker:
   jvmOptions: ""
   nodeSelector: {}
   domainHostPath: "/tmp/alluxio-domain"
-  hostNetwork: true
-  dnsPolicy: ClusterFirstWithHostNet
+  hostNetwork: false
+  dnsPolicy: ClusterFirst
   ramdisk:
     size: 1Gi
   # shortCircuitPolicy can be local or uuid,

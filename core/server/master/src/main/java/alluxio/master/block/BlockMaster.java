@@ -243,6 +243,4 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param function the function to register
    */
   void registerNewWorkerConfListener(BiConsumer<Address, List<ConfigProperty>> function);
-
-  Map<String, String> reportWorkerMapping();
 }

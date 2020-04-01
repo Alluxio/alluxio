@@ -214,7 +214,6 @@ public final class AlluxioBlockStore {
     }
 
     try {
-      // TODO(jiacheng): replace the worker address here
       LOG.warn("getInStream from address {}", dataSource);
       if (!dataSource.getContainerHost().equals("")) {
         String containerName = dataSource.getContainerHost();

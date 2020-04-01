@@ -276,7 +276,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     mMetricsMaster = metricsMaster;
     Metrics.registerGauges(this);
 
-    // TODO(jiacheng): how does this work???
     mWorkerInfoCache = CacheBuilder.newBuilder()
         .refreshAfterWrite(ServerConfiguration
             .getMs(PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME), TimeUnit.MILLISECONDS)
@@ -450,19 +449,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
     for (MasterWorkerInfo worker : mWorkers) {
       synchronized (worker) {
-        WorkerInfo workerInfo = worker.generateWorkerInfo(null, true);
-        LOG.warn("Generated WorkerInfo {}", workerInfo);
-
-        WorkerNetAddress workerAddress = workerInfo.getAddress();
-        String workerHostname = workerAddress.getHost();
-        LOG.warn("Found worker with address {}", workerAddress);
-        if (mWorkerToHostname.containsKey(workerHostname)) {
-          String nodeHostname = mWorkerToHostname.get(workerHostname);
-          LOG.warn("translate worker hostname from {} to {}", workerHostname, nodeHostname);
-          workerAddress.setHost(nodeHostname);
-        }
-        LOG.warn("Returning workerInfo {}", workerInfo);
-        workerInfoList.add(workerInfo);
+        workerInfoList.add(worker.generateWorkerInfo(null, true));
       }
     }
     return workerInfoList;
@@ -924,14 +911,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       worker.addLostStorage(lostStorage);
     }
     if (options.getConfigsCount() > 0) {
-//      List<ConfigProperty> workerConfigs = options.getConfigsList();
-//      for (ConfigProperty cp : workerConfigs) {
-//        // TODO(jiacheng): lock this?
-//        if (cp.getName().equals(PropertyKey.WORKER_NODE_HOSTNAME.getName())) {
-//          mWorkerToHostname.put(worker.getWorkerAddress().getHost(), cp.getValue());
-//          LOG.warn("Got worker hostname {}:{}", worker.getWorkerAddress().getHost(), cp.getValue());
-//        }
-//      }
       for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
         LOG.warn("WorkerRegisteredListener {} is working", function);
         WorkerNetAddress workerAddress = worker.getWorkerAddress();
@@ -944,11 +923,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     // Invalidate cache to trigger new build of worker info list
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
     LOG.info("registerWorker(): {}", worker);
-  }
-
-  @Override
-  public Map<String, String> reportWorkerMapping() {
-    return ImmutableMap.copyOf(mWorkerToHostname);
   }
 
   @Override

@@ -43,32 +43,16 @@ spec:
       hostNetwork: false
       dnsPolicy: ClusterFirst
       nodeSelector:
+      securityContext:
+        fsGroup: 1000
       initContainers:
-        - name: journal-chown
-          image: jl4784/alluxio:latest
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 0
-          command: ["/bin/chown","-R", "0:0", "/journal"]
-          volumeMounts:
-            - name: alluxio-journal
-              mountPath: /journal
-        - name: journal-format
-          image: jl4784/alluxio:latest
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 0
-          command: ["alluxio","formatJournal"]
-          volumeMounts:
-            - name: alluxio-journal
-              mountPath: /journal
       containers:
         - name: alluxio-master
-          image: jl4784/alluxio:latest
-          imagePullPolicy: Always
+          image: alluxio/alluxio:2.3.0-SNAPSHOT
+          imagePullPolicy: IfNotPresent
           securityContext:
-            runAsUser: 0
-            runAsGroup: 0
+            runAsUser: 1000
+            runAsGroup: 1000
           resources:
             limits:
               cpu: 1
@@ -79,7 +63,7 @@ spec:
           command: ["/entrypoint.sh"]
           args:
             - master-only
-            # - --no-format
+            - --no-format
           envFrom:
           - configMapRef:
               name: alluxio-config
@@ -92,11 +76,11 @@ spec:
             - name: alluxio-journal
               mountPath: /journal
         - name: alluxio-job-master
-          image: jl4784/alluxio:latest
-          imagePullPolicy: Always
+          image: alluxio/alluxio:2.3.0-SNAPSHOT
+          imagePullPolicy: IfNotPresent
           securityContext:
-            runAsUser: 0
-            runAsGroup: 0
+            runAsUser: 1000
+            runAsGroup: 1000
           resources:
             limits:
               cpu: 1

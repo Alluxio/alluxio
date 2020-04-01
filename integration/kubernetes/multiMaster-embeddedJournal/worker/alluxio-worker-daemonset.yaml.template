@@ -36,8 +36,8 @@ spec:
         heritage: Tiller
         role: alluxio-worker
     spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
       securityContext:
         fsGroup: 1000
       nodeSelector:
@@ -73,6 +73,10 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
+          - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
           envFrom:
           - configMapRef:
               name: alluxio-config

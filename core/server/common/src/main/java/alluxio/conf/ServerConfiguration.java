@@ -68,12 +68,7 @@ public final class ServerConfiguration {
    */
   public static void reset() {
     ConfigurationUtils.reloadProperties();
-
-    LOG.warn("Reloaded properties");
     sConf = new InstancedConfiguration(ConfigurationUtils.defaults());
-    // TODO(jiacheng): verify property
-    String hostname = sConf.getOrDefault(PropertyKey.WORKER_HOSTNAME, "null");
-    LOG.warn("Loaded hostname {}", hostname);
   }
 
   /**
