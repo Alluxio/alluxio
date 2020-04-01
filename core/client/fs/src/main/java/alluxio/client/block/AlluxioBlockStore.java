@@ -214,6 +214,8 @@ public final class AlluxioBlockStore {
     }
 
     try {
+      // ALLUXIO-11172: If the worker is in a container, use the container hostname
+      // to establish the connection.
       if (!dataSource.getContainerHost().equals("")) {
         String containerName = dataSource.getContainerHost();
         LOG.debug("Worker is in a container. Replace host {} with container host {}",
