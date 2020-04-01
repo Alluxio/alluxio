@@ -172,6 +172,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
       byte[] buf = new byte[length];
       replicateFileBlocks(filePath);
       mResource.get().getWorkerProcess().stop();
+      Thread.sleep(500);
       int size = in.positionedRead(offset, buf, 0, length);
 
       Assert.assertEquals(length, size);
