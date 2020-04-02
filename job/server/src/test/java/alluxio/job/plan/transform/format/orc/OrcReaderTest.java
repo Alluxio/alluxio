@@ -11,16 +11,17 @@
 
 package alluxio.job.plan.transform.format.orc;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import alluxio.AlluxioURI;
 import alluxio.job.plan.transform.format.TableRow;
+
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 public class OrcReaderTest {
 
@@ -48,6 +49,4 @@ public class OrcReaderTest {
     }
     assertNull(orcReader.read());
   }
-
-
 }
