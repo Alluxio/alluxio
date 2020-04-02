@@ -37,8 +37,8 @@ import java.util.concurrent.RejectedExecutionException;
  * It also allows associating a path with child inodes, so that the statuses for a specific path can
  * be searched for later.
  */
-public class UfsStatusCache2 {
-  private static final Logger LOG = LoggerFactory.getLogger(UfsStatusCache2.class);
+public class UfsStatusCache {
+  private static final Logger LOG = LoggerFactory.getLogger(UfsStatusCache.class);
 
   private final ConcurrentHashMap<AlluxioURI, UfsStatus> mStatuses;
   private final ConcurrentHashMap<AlluxioURI, Future<Collection<UfsStatus>>> mActivePrefetchJobs;
@@ -46,11 +46,11 @@ public class UfsStatusCache2 {
   private final ExecutorService mPrefetchExecutor;
 
   /**
-   * Create a new instance of {@link UfsStatusCache2}.
+   * Create a new instance of {@link UfsStatusCache}.
    *
    * @param prefetchExecutor the executor service used to prefetch statuses
    */
-  public UfsStatusCache2(@Nullable ExecutorService prefetchExecutor) {
+  public UfsStatusCache(@Nullable ExecutorService prefetchExecutor) {
     mStatuses = new ConcurrentHashMap<>();
     mChildren = new ConcurrentHashMap<>();
     mActivePrefetchJobs = new ConcurrentHashMap<>();

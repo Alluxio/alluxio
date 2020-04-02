@@ -54,7 +54,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
-import alluxio.underfs.UfsStatusCache2;
+import alluxio.underfs.UfsStatusCache;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
@@ -79,7 +79,7 @@ public class InodeSyncStream {
 
   private final LockedInodePath mRootPath;
   private final UfsSyncPathCache mUfsSyncPathCache;
-  private final UfsStatusCache2 mStatusCache;
+  private final UfsStatusCache mStatusCache;
   private final InodeTree mInodeTree;
   private final DescendantType mDescendantType;
   private final RpcContext mRpcContext;
@@ -131,7 +131,7 @@ public class InodeSyncStream {
     mInodeTree = inodeTree;
     mMountTable = mountTable;
     mRpcContext = rpcContext;
-    mStatusCache = new UfsStatusCache2(fsMaster.mSyncPrefetchExecutor);
+    mStatusCache = new UfsStatusCache(fsMaster.mSyncPrefetchExecutor);
     mUfsSyncPathCache = ufsSyncPathCache;
     mShouldSync = forceSync;
     mRootPath = rootPath;
