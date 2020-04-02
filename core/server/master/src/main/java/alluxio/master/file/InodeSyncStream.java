@@ -66,9 +66,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 /**
  * The purpose of this class is to sync Inode metadata in a stream-like fashion.
@@ -93,6 +98,10 @@ public class InodeSyncStream {
   private final boolean mLoadOnly;
 
   private final ConcurrentLinkedQueue<AlluxioURI> mSyncMetadataQ;
+  private final Queue<Future<Boolean>> mSyncPathJobs;
+  private final ExecutorService mMetadataSyncService;
+
+  private final int mConcurrencyLevel = Runtime.getRuntime().availableProcessors();
 
   /**
    * Create a new instance of {@link InodeSyncStream}.
@@ -105,6 +114,7 @@ public class InodeSyncStream {
    * If loadOnly is set to {@code true}
    *
    * @param rootPath a
+   * @param concurrencyService a
    * @param fsMaster a
    * @param inodeTree a
    * @param inodeStore a
@@ -118,11 +128,12 @@ public class InodeSyncStream {
    * @param forceSync a
    * @param loadOnly a
    */
-  public InodeSyncStream(LockedInodePath rootPath, DefaultFileSystemMaster fsMaster,
-      InodeTree inodeTree, ReadOnlyInodeStore inodeStore, InodeLockManager inodeLockManager,
-      MountTable mountTable, RpcContext rpcContext, DescendantType descendantType,
-      UfsSyncPathCache ufsSyncPathCache, FileSystemMasterCommonPOptions options,
-      boolean isGetFileInfo, boolean forceSync, boolean loadOnly) {
+  public InodeSyncStream(LockedInodePath rootPath, ExecutorService concurrencyService,
+      DefaultFileSystemMaster fsMaster, InodeTree inodeTree, ReadOnlyInodeStore inodeStore,
+      InodeLockManager inodeLockManager, MountTable mountTable, RpcContext rpcContext,
+      DescendantType descendantType, UfsSyncPathCache ufsSyncPathCache,
+      FileSystemMasterCommonPOptions options, boolean isGetFileInfo, boolean forceSync,
+      boolean loadOnly) {
     mDescendantType = descendantType;
     mFsMaster = fsMaster;
     mSyncMetadataQ = new ConcurrentLinkedQueue<>();
@@ -138,6 +149,8 @@ public class InodeSyncStream {
     mSyncOptions = options;
     mIsGetFileInfo = isGetFileInfo;
     mLoadOnly = loadOnly;
+    mSyncPathJobs = new LinkedList<>();
+    mMetadataSyncService = concurrencyService;
   }
 
   /**
@@ -184,41 +197,101 @@ public class InodeSyncStream {
     }
 
     // Process any children after the root.
-    while (!mSyncMetadataQ.isEmpty()) {
-      AlluxioURI path = mSyncMetadataQ.poll();
-      LockingScheme scheme;
-      if (mShouldSync) {
-        scheme = new LockingScheme(path, LockPattern.READ, true);
-      } else {
-        scheme = new LockingScheme(path, LockPattern.READ, mSyncOptions,
-            mUfsSyncPathCache, mIsGetFileInfo);
+    while (!mSyncMetadataQ.isEmpty() || !mSyncPathJobs.isEmpty()) {
+      if (Thread.currentThread().isInterrupted()) {
+        LOG.warn("Metadata syncing was interrupted before completion");
+        break;
+      }
+      // There are still paths to process
+      // First, remove any futures which have completed. Add to the sync path count if they sync'd
+      // successfully
+      while (true) {
+        Future<Boolean> job = mSyncPathJobs.peek();
+        if (job == null || !job.isDone()) {
+          break;
+        }
+        // remove the job because we know it is done.
+        mSyncPathJobs.poll();
+        try {
+          if (job.get()) {
+            syncPathCount++;
+          }
+        } catch (InterruptedException | ExecutionException e) {
+          if (e instanceof  InterruptedException) {
+            Thread.currentThread().interrupt();
+          }
+          LOG.warn("metadata sync job was interrupted while waiting for completion");
+        }
       }
 
-      if (!scheme.shouldSync() && !mShouldSync) {
+      // When using descendant type of ONE, we need to stop prematurely.
+      if (stopNum != -1 && syncPathCount > stopNum) {
+        break;
+      }
+
+      // We can submit up to ( max_concurrency - <jobs queue size>) jobs back into the queue
+      int submissions = mConcurrencyLevel - mSyncPathJobs.size();
+      for (int i = 0; i < submissions; i++) {
+        AlluxioURI path = mSyncMetadataQ.poll();
+        if (path == null) {
+          // no paths left to sync
+          break;
+        }
+        Future<Boolean> job = mMetadataSyncService.submit(() -> processSyncPath(path));
+        mSyncPathJobs.offer(job);
+      }
+      // After submitting all jobs wait for the job at the head of the queue to finish.
+      Future<Boolean> oldestJob = mSyncPathJobs.peek();
+      if (oldestJob == null) { // There might not be any jobs, restart the loop.
         continue;
       }
-      try (LockedInodePath inodePath = mInodeTree.lockInodePath(scheme)) {
-        if (Thread.currentThread().isInterrupted()) {
-          LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
-          break;
+      try {
+        oldestJob.get(); // block until the oldest job finished.
+      } catch (InterruptedException | ExecutionException e) {
+        if (e instanceof InterruptedException) {
+          Thread.currentThread().interrupt();
         }
-        syncInodeMetadata(inodePath);
-        syncPathCount++;
-        if (stopNum != -1 && syncPathCount > stopNum) {
-          break;
-        }
-      } catch (AccessControlException | BlockInfoException | FileAlreadyCompletedException
-          | FileDoesNotExistException | InvalidFileSizeException | InvalidPathException
-          | IOException e) {
-        LOG.warn("FAILED TO SYNC METADATA: {}", e.getMessage(), e);
-      } finally {
-        // regardless of the outcome, remove the UfsStatus for this path from the cache
-        mStatusCache.remove(path);
+        LOG.warn("Interrupted while waiting for metadata sync job to finish", e);
       }
     }
     LOG.info("TRACING - Synced {} paths", syncPathCount);
     mStatusCache.cancelAllPrefetch();
+    mSyncPathJobs.forEach(f -> f.cancel(true));
     return syncPathCount > 0;
+  }
+
+  private boolean processSyncPath(AlluxioURI path) {
+    if (path == null) {
+      return false;
+    }
+    LockingScheme scheme;
+    if (mShouldSync) {
+      scheme = new LockingScheme(path, LockPattern.READ, true);
+    } else {
+      scheme = new LockingScheme(path, LockPattern.READ, mSyncOptions,
+          mUfsSyncPathCache, mIsGetFileInfo);
+    }
+
+    if (!scheme.shouldSync() && !mShouldSync) {
+      return false;
+    }
+    LOG.info("Attempting to lock path: {} with scheme {}", scheme.getPath(), scheme.getPattern());
+    try (LockedInodePath inodePath = mInodeTree.lockInodePath(scheme)) {
+      if (Thread.currentThread().isInterrupted()) {
+        LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
+        return false;
+      }
+      syncInodeMetadata(inodePath);
+      return true;
+    } catch (AccessControlException | BlockInfoException | FileAlreadyCompletedException
+        | FileDoesNotExistException | InvalidFileSizeException | InvalidPathException
+        | IOException e) {
+      LOG.warn("FAILED TO SYNC METADATA: {}", e.getMessage(), e);
+    } finally {
+      // regardless of the outcome, remove the UfsStatus for this path from the cache
+      mStatusCache.remove(path);
+    }
+    return false;
   }
 
   private void syncInodeMetadata(LockedInodePath inodePath)

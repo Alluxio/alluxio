@@ -381,6 +381,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
       Runtime.getRuntime().availableProcessors(), 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
       ThreadFactoryUtils.build("alluxio-ufs-sync-prefetch-%d", false));
 
+  final ThreadPoolExecutor mMetadataSyncExecutor = new ThreadPoolExecutor(2,
+      Runtime.getRuntime().availableProcessors(), 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
+      ThreadFactoryUtils.build("alluxio-ufs-sync-%d", false));
+
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
    *
@@ -658,6 +662,21 @@ public final class DefaultFileSystemMaster extends CoreMaster
   public void close() throws IOException {
     super.close();
     mInodeTree.close();
+    try {
+      mMetadataSyncExecutor.shutdownNow();
+      mMetadataSyncExecutor.awaitTermination(5, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      LOG.warn("Failed to wait for metadata sync executor to shut down.");
+    }
+
+    try {
+      mSyncPrefetchExecutor.shutdownNow();
+      mSyncPrefetchExecutor.awaitTermination(5, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      LOG.warn("Failed to wait for metadata sync executor to shut down.");
+    }
   }
 
   @Override
@@ -2462,9 +2481,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
       FileSystemMasterCommonPOptions commonOptions =
           context.getOptions().getCommonOptions();
       // load metadata only and force sync
-      InodeSyncStream sync = new InodeSyncStream(inodePath, this, mInodeTree, mInodeStore,
-          mInodeLockManager, mMountTable, rpcContext, syncDescendantType, mUfsSyncPathCache,
-          commonOptions, isGetFileInfo, true, true);
+      InodeSyncStream sync = new InodeSyncStream(inodePath, mMetadataSyncExecutor,
+          this, mInodeTree, mInodeStore, mInodeLockManager, mMountTable, rpcContext,
+          syncDescendantType, mUfsSyncPathCache, commonOptions, isGetFileInfo, true, true);
       if (!sync.sync()) {
         LOG.debug("Failed to load metadata for path from UFS: {}", inodePath.getUri());
       }
@@ -3194,9 +3213,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
         }
         throw e;
       }
-      InodeSyncStream sync = new InodeSyncStream(inodePath, this, mInodeTree, mInodeStore,
-          mInodeLockManager, mMountTable, rpcContext, syncDescendantType, mUfsSyncPathCache,
-          options, isGetFileInfo, false, false);
+      InodeSyncStream sync = new InodeSyncStream(inodePath, mMetadataSyncExecutor, this, mInodeTree,
+          mInodeStore, mInodeLockManager, mMountTable, rpcContext, syncDescendantType,
+          mUfsSyncPathCache, options, isGetFileInfo, false, false);
       return sync.sync();
     }
   }
@@ -3217,33 +3236,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
   @VisibleForTesting
   ReadOnlyInodeStore getInodeStore() {
     return mInodeStore;
-  }
-
-  /**
-   * This class represents the result for a sync. The following are returned:
-   * - deleted: if true, the inode was already deleted as part of the syncing process
-   * - pathsToLoad: a set of paths that need to be loaded from UFS.
-   */
-  private static class SyncResult {
-    private boolean mDeletedInode;
-    private Set<String> mPathsToLoad;
-
-    static SyncResult defaults() {
-      return new SyncResult(false, new HashSet<>());
-    }
-
-    SyncResult(boolean deletedInode, Set<String> pathsToLoad) {
-      mDeletedInode = deletedInode;
-      mPathsToLoad = new HashSet<>(pathsToLoad);
-    }
-
-    boolean getDeletedInode() {
-      return mDeletedInode;
-    }
-
-    Set<String> getPathsToLoad() {
-      return mPathsToLoad;
-    }
   }
 
   @Override

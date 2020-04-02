@@ -14,6 +14,7 @@ package alluxio.resource;
 import com.google.common.annotations.VisibleForTesting;
 
 import java.io.Closeable;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 /**
@@ -47,7 +48,13 @@ public class LockResource implements Closeable {
   public LockResource(Lock lock, boolean acquireLock) {
     mLock = lock;
     if (acquireLock) {
-      mLock.lock();
+      try {
+        while (!mLock.tryLock(1, TimeUnit.MILLISECONDS)) {
+        }
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException("Failed to acquire lock", e);
+      }
     }
   }
 
