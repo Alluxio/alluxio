@@ -135,9 +135,9 @@ function umount_ramfs_freebsd() {
   if mount | grep -E "(^|[[:space:]])${TIER_PATH}($|[[:space:]])" > /dev/null; then
     echo "Unmounting ${TIER_PATH}"
     if [[ ${USE_SUDO} == true ]]; then
-      sudo umount -l -f ${TIER_PATH}
+      sudo umount -f ${TIER_PATH}
     else
-      umount -l -f ${TIER_PATH}
+      umount -f ${TIER_PATH}
     fi
     if [[ $? -ne 0 ]]; then
       echo "ERROR: umount RamFS ${TIER_PATH} failed" >&2
