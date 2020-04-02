@@ -44,6 +44,7 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
 import alluxio.util.network.NettyUtils;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import io.grpc.StatusRuntimeException;
@@ -119,6 +120,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     mRpcAsyncStub = BlockWorkerGrpc.newStub(mRpcChannel);
     mAddress = address;
     mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
+    LOG.trace("Created blockWorkerClient: {}, stacktrace: {}", this, new Exception());
   }
 
   @Override
@@ -133,6 +135,8 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public void close() throws IOException {
+    //print stack trace
+    LOG.trace("Closing blockWorkerClient: {}, stacktrace: {}", this, new Exception());
     try (Closer closer = Closer.create()) {
       closer.register(() -> {
         if (mStreamingChannel != null) {
@@ -145,6 +149,16 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
         }
       });
     }
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("address", mAddress)
+        .add("dataTimeout", mDataTimeoutMs)
+        .add("rpcChannel", mRpcChannel)
+        .add("streamingChannel", mStreamingChannel)
+        .toString();
   }
 
   @Override
