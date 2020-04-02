@@ -185,6 +185,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
 
   @Override
   public StreamObserver<ReadRequest> readBlock(StreamObserver<ReadResponse> responseObserver) {
+    LOG.trace("readBlock({}): {}", responseObserver, this);
     if (responseObserver instanceof DataMessageMarshallerProvider) {
       DataMessageMarshaller<ReadResponse> marshaller =
           ((DataMessageMarshallerProvider<ReadRequest, ReadResponse>) responseObserver)
