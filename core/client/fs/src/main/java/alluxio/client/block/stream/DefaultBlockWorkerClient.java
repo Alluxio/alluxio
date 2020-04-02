@@ -120,7 +120,9 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     mRpcAsyncStub = BlockWorkerGrpc.newStub(mRpcChannel);
     mAddress = address;
     mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
-    LOG.trace("Created blockWorkerClient: {}, stacktrace: {}", this, new Exception());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Created blockWorkerClient: {}, stacktrace: {}", this, new Exception());
+    }
   }
 
   @Override
@@ -136,7 +138,9 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   @Override
   public void close() throws IOException {
     //print stack trace
-    LOG.trace("Closing blockWorkerClient: {}, stacktrace: {}", this, new Exception());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Closing blockWorkerClient: {}, stacktrace: {}", this, new Exception());
+    }
     try (Closer closer = Closer.create()) {
       closer.register(() -> {
         if (mStreamingChannel != null) {

@@ -24,6 +24,8 @@ import io.grpc.ForwardingClientCallListener;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -34,6 +36,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class GrpcChannel extends Channel {
+  private static final Logger LOG = LoggerFactory.getLogger(GrpcChannel.class);
+
   /** Key that is used to create given managed channel. */
   private final GrpcChannelKey mChannelKey;
   /** Original channel. */
@@ -108,6 +112,9 @@ public final class GrpcChannel extends Channel {
     if (!mChannelReleased) {
       GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey, mShutdownTimeoutMs);
       mChannelReleased = true;
+    }
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Releasing channel: {}", this, new Exception());
     }
   }
 
