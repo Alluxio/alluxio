@@ -231,6 +231,8 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    */
   public BlockReader getBlockReader(final long sessionId, long blockId, long offset,
       boolean positionShort) throws BlockDoesNotExistException, IOException {
+    LOG.trace("getBlockReader: sessionId {}, blockId: {}, offset: {}, positionShort: {}",
+        sessionId, blockId, offset, positionShort);
     final BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
       blockInfo = getBlockInfo(sessionId, blockId);
