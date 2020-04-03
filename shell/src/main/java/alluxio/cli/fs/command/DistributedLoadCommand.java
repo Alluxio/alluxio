@@ -37,8 +37,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -140,7 +141,7 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
     }
   }
 
-  private final List<JobAttempt> mSubmittedJobAttempts;
+  private List<JobAttempt> mSubmittedJobAttempts;
   private int mActiveJobs;
 
   /**
@@ -194,38 +195,34 @@ public final class DistributedLoadCommand extends AbstractFileSystemCommand {
   }
 
   /**
-   * Waits one job to complete.
+   * Waits for at least one job to complete.
    */
-  private void waitJob() throws IOException {
-    boolean removed = false;
+  private void waitJob() {
+    AtomicBoolean removed = new AtomicBoolean(false);
     while (true) {
-      Iterator<JobAttempt> iterator = mSubmittedJobAttempts.iterator();
-
-      while (iterator.hasNext()) {
-        JobAttempt jobAttempt = iterator.next();
+      mSubmittedJobAttempts = mSubmittedJobAttempts.parallelStream().filter((jobAttempt) -> {
         Status check = jobAttempt.check();
-
         switch (check) {
           case CREATED:
           case RUNNING:
-            continue;
+            return true;
           case CANCELED:
           case COMPLETED:
-            removed = true;
-            jobAttempt.close();
-            iterator.remove();
-            continue;
-          case FAILED:
-            if (!jobAttempt.run()) {
-              removed = true;
-              iterator.remove();
+            removed.set(true);
+            try {
+              jobAttempt.close();
+            } catch (IOException e) {
+              LOG.warn("Unable to close job master client", e);
             }
-            continue;
+            return false;
+          case FAILED:
+            removed.set(true);
+            return false;
           default:
             throw new IllegalStateException(String.format("Unexpected Status: %s", check));
         }
-      }
-      if (removed) {
+      }).collect(Collectors.toList());
+      if (removed.get()) {
         return;
       }
     }
