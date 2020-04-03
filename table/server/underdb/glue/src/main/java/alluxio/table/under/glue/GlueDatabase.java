@@ -111,7 +111,7 @@ public class GlueDatabase implements UnderDatabase {
 
   @Override
   public DatabaseInfo getDatabaseInfo() throws IOException {
-    LOG.info("Geting database information from database: " + mGlueDbName + ".");
+    LOG.info("Getting Glue database information from database: " + mGlueDbName + ".");
     try {
       GetDatabaseRequest dbRequest = new GetDatabaseRequest()
           .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
@@ -152,8 +152,16 @@ public class GlueDatabase implements UnderDatabase {
         .withClientConfiguration(clientConfig);
 
     if (!config.get(Property.GLUE_REGION).isEmpty()) {
-      LOG.debug("Set Glue region: " + config.get(Property.GLUE_REGION) + ".");
+      LOG.info("Set Glue region: {}.", config.get(Property.GLUE_REGION));
       asyncClientBuilder.setRegion(config.get(Property.GLUE_REGION));
+    }
+
+    if (!config.get(Property.AWS_GLUE_ACCESS_KEY).isEmpty()) {
+      LOG.warn("Please setup the AWS access key id.");
+    }
+
+    if (!config.get(Property.AWS_GLUE_SECRET_KEY).isEmpty()) {
+      LOG.warn("Please setup the AWS access secret key.");
     }
 
     asyncClientBuilder.setCredentials(getAWSCredentialsProvider(config));
