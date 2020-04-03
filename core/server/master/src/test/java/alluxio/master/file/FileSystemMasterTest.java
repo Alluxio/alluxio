@@ -2706,5 +2706,6 @@ public final class FileSystemMasterTest {
   private void stopServices() throws Exception {
     mRegistry.stop();
     mJournalSystem.stop();
+    mFileSystemMaster.stop();
   }
 }

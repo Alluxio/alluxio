@@ -22,6 +22,8 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -29,6 +31,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
@@ -47,7 +50,7 @@ import java.util.function.Function;
  *
  * @param <K> key for the locks
  */
-public class LockPool<K> {
+public class LockPool<K> implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(LockPool.class);
   private static final float DEFAULT_LOAD_FACTOR = 0.75f;
   private static final String EVICTOR_THREAD_NAME = "LockPool Evictor";
@@ -60,6 +63,7 @@ public class LockPool<K> {
   private final Lock mEvictLock = new ReentrantLock();
   private final Condition mOverHighWatermark = mEvictLock.newCondition();
   private final ExecutorService mEvictor;
+  private final Future<?> mEvictorTask;
 
   /**
    * Constructor for a lock pool.
@@ -77,8 +81,20 @@ public class LockPool<K> {
     mHighWatermark = highWatermark;
     mPool = new ConcurrentHashMap<>(initialSize, DEFAULT_LOAD_FACTOR, concurrencyLevel);
     mEvictor = Executors.newSingleThreadExecutor(
-        ThreadFactoryUtils.build(EVICTOR_THREAD_NAME, true));
-    mEvictor.submit(new Evictor());
+        ThreadFactoryUtils.build(String.format("%s-%s", EVICTOR_THREAD_NAME, toString()), true));
+    mEvictorTask = mEvictor.submit(new Evictor());
+  }
+
+  @Override
+  public void close() throws IOException {
+    mEvictorTask.cancel(true);
+    mEvictor.shutdownNow(); // immediately halt the evictor thread.
+    try {
+      mEvictor.awaitTermination(2, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new IOException("Failed to await evictor termination", e);
+    }
   }
 
   private final class Evictor implements Runnable {

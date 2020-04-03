@@ -24,6 +24,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.Striped;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,7 +43,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * WeakSafeReentrantReadWriteLock stores the reference to the original lock to avoid this problem.
  * See https://github.com/google/guava/issues/2477
  */
-public class InodeLockManager {
+public class InodeLockManager implements Closeable {
   /**
    * Pool for supplying inode locks. To lock an inode, its inode id must be searched in this
    * pool to get the appropriate read lock.
@@ -49,7 +51,7 @@ public class InodeLockManager {
    * We use weak values so that when nothing holds a reference to
    * a lock, the garbage collector can remove the lock's entry from the pool.
    */
-  public final LockPool<Long> mInodeLocks =
+  private final LockPool<Long> mInodeLocks =
       new LockPool<>((key)-> new ReentrantReadWriteLock(),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK),
@@ -58,7 +60,7 @@ public class InodeLockManager {
   /**
    * Cache for supplying edge locks, similar to mInodeLocks.
    */
-  public final LockPool<Edge> mEdgeLocks =
+  private final LockPool<Edge> mEdgeLocks =
       new LockPool<>((key)-> new ReentrantReadWriteLock(),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK),
@@ -205,5 +207,11 @@ public class InodeLockManager {
    */
   public LockResource lockUpdate(long inodeId) {
     return new LockResource(mParentUpdateLocks.get(inodeId));
+  }
+
+  @Override
+  public void close() throws IOException {
+    mInodeLocks.close();
+    mEdgeLocks.close();
   }
 }

@@ -664,6 +664,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
   public void close() throws IOException {
     super.close();
     mInodeTree.close();
+    mInodeLockManager.close();
     try {
       mMetadataSyncExecutor.shutdownNow();
       mMetadataSyncExecutor.awaitTermination(5, TimeUnit.SECONDS);
