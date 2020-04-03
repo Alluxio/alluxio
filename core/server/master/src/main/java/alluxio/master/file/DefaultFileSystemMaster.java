@@ -377,11 +377,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
   private AccessTimeUpdater mAccessTimeUpdater;
 
-  final ThreadPoolExecutor mSyncPrefetchExecutor = new ThreadPoolExecutor(2,
+  final ThreadPoolExecutor mSyncPrefetchExecutor = new ThreadPoolExecutor(
+      ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_PARALLELISM),
       Runtime.getRuntime().availableProcessors(), 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
       ThreadFactoryUtils.build("alluxio-ufs-sync-prefetch-%d", false));
 
-  final ThreadPoolExecutor mMetadataSyncExecutor = new ThreadPoolExecutor(2,
+  final ThreadPoolExecutor mMetadataSyncExecutor = new ThreadPoolExecutor(
+      ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
       Runtime.getRuntime().availableProcessors(), 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
       ThreadFactoryUtils.build("alluxio-ufs-sync-%d", false));
 

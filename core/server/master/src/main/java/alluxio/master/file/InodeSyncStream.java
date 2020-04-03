@@ -211,8 +211,12 @@ public class InodeSyncStream {
           break;
         }
         // remove the job because we know it is done.
-        mSyncPathJobs.poll();
+        if (mSyncPathJobs.poll() != job) {
+          throw new IllegalStateException("Last node to be de-queued was not equal to the expected"
+              + "head of queue");
+        }
         try {
+          // we synced the path successfully
           if (job.get()) {
             syncPathCount++;
           }
@@ -260,6 +264,15 @@ public class InodeSyncStream {
     return syncPathCount > 0;
   }
 
+  /**
+   * Process a path to sync.
+   *
+   * This can update metadata for the inode, delete the inode, and/or queue any children that should
+   * be synced as well.
+   *
+   * @param path The path to sync
+   * @return true if this path was synced
+   */
   private boolean processSyncPath(AlluxioURI path) {
     if (path == null) {
       return false;
@@ -275,7 +288,6 @@ public class InodeSyncStream {
     if (!scheme.shouldSync() && !mShouldSync) {
       return false;
     }
-    LOG.info("Attempting to lock path: {} with scheme {}", scheme.getPath(), scheme.getPattern());
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(scheme)) {
       if (Thread.currentThread().isInterrupted()) {
         LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
