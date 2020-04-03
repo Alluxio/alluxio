@@ -214,15 +214,6 @@ public final class AlluxioBlockStore {
     }
 
     try {
-      // ALLUXIO-11172: If the worker is in a container, use the container hostname
-      // to establish the connection.
-      if (!dataSource.getContainerHost().equals("")) {
-        String containerName = dataSource.getContainerHost();
-        LOG.debug("Worker is in a container. Replace host {} with container host {}",
-                dataSource.getHost(), containerName);
-        dataSource.setHost(containerName);
-      }
-
       return BlockInStream.create(mContext, info, dataSource, dataSourceType, options);
     } catch (UnavailableException e) {
       //When BlockInStream created failed, it will update the passed-in failedWorkers
@@ -273,15 +264,6 @@ public final class AlluxioBlockStore {
     }
     LOG.debug("Create block outstream for {} of block size {} at address {}, using options: {}",
         blockId, blockSize, address, options);
-
-    // ALLUXIO-11172: If the worker is in a container, use the container hostname
-    // to establish the connection.
-    if (!address.getContainerHost().equals("")) {
-      String containerName = address.getContainerHost();
-      LOG.debug("Worker is in a container. Replace host {} with container host {}",
-              address.getHost(), containerName);
-      address.setHost(containerName);
-    }
     return BlockOutStream.create(mContext, blockId, blockSize, address, options);
   }
 
@@ -350,17 +332,6 @@ public final class AlluxioBlockStore {
       throw new alluxio.exception.status.ResourceExhaustedException(String.format(
           "Not enough workers for replications, %d workers selected but %d required",
           workerAddressList.size(), initialReplicas));
-    }
-
-    // ALLUXIO-11172: If the worker is in a container, use the container hostname
-    // to establish the connection.
-    for (WorkerNetAddress workerAddress : workerAddressList) {
-      if (!workerAddress.getContainerHost().equals("")) {
-        String containerName = workerAddress.getContainerHost();
-        LOG.debug("Worker is in a container. Replace host {} with container host {}",
-                workerAddress.getHost(), containerName);
-        workerAddress.setHost(containerName);
-      }
     }
     return BlockOutStream
         .createReplicatedBlockOutStream(mContext, blockId, blockSize, workerAddressList, options);
