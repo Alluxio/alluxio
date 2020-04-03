@@ -55,7 +55,8 @@ public final class WorkerNetAddress implements Serializable {
   }
 
   /**
-   * @return the host of the worker
+   * @return the container host of the worker, default to empty string if the worker
+   * is not in a container
    */
   @ApiModelProperty(value = "Host name of the physical node if running in a container")
   public String getContainerHost() {
