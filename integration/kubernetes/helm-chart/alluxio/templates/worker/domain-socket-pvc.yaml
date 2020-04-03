@@ -26,8 +26,8 @@ spec:
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .Values.shortCircuit.size }}
-  storageClassName: {{ .Values.shortCircuit.storageClass }}
+      storage: {{ .Values.shortCircuit.pvcSize }}
+  storageClassName: {{ .Values.shortCircuit.pvcStorageClass }}
   accessModes:
-{{ toYaml .Values.shortCircuit.accessModes | trim | indent 4 -}}
+{{ toYaml .Values.shortCircuit.pvcAccessModes | trim | indent 4 -}}
 {{- end -}}

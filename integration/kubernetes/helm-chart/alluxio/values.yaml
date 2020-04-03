@@ -222,10 +222,10 @@ shortCircuit:
   # uuid means interact with domain socket
   policy: uuid
   pvcName: alluxio-worker-domain-socket
-  accessModes:
+  pvcAccessModes:
     - ReadWriteOnce
-  size: 1Gi
-  storageClass: standard
+  pvcSize: 1Mi
+  pvcStorageClass: standard
 
 ## FUSE ##
 
