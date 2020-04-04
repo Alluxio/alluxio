@@ -10,4 +10,3 @@
 #
 
 alluxio.table.common.layout.HiveLayout$HiveLayoutFactory
-alluxio.table.common.layout.GlueLayoutFactory

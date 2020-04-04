@@ -17,7 +17,7 @@ import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
 import alluxio.table.common.UdbPartition;
-import alluxio.table.common.layout.GlueLayout;
+import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.under.glue.util.PathTranslator;
 
@@ -138,7 +138,7 @@ public class GlueTable implements UdbTable {
             .setPartitionName(mName)
             .putAllParameters(mTable.getParameters());
         udbPartitions.add(new GluePartition(
-            new GlueLayout(partitionInfoBuilder.build(), Collections.emptyList())));
+            new HiveLayout(partitionInfoBuilder.build(), Collections.emptyList())));
         return udbPartitions;
       }
       // Glue partition name place holder

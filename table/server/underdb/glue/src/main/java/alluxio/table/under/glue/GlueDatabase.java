@@ -22,7 +22,7 @@ import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
 import alluxio.master.table.DatabaseInfo;
-import alluxio.table.common.layout.GlueLayoutFactory;
+import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
@@ -319,7 +319,7 @@ public class GlueDatabase implements UnderDatabase {
           .build();
 
       Layout layout = Layout.newBuilder()
-          .setLayoutType(GlueLayoutFactory.TYPE)
+          .setLayoutType(HiveLayout.TYPE)
           .setLayoutData(partitionInfo.toByteString())
           .build();
 

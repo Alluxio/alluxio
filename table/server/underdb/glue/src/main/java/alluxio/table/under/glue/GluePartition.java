@@ -13,7 +13,8 @@ package alluxio.table.under.glue;
 
 import alluxio.table.common.Layout;
 import alluxio.table.common.UdbPartition;
-import alluxio.table.common.layout.GlueLayout;
+
+import alluxio.table.common.layout.HiveLayout;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,14 +25,14 @@ import org.slf4j.LoggerFactory;
 public class GluePartition implements UdbPartition {
   private static final Logger LOG = LoggerFactory.getLogger(GluePartition.class);
 
-  private final GlueLayout mLayout;
+  private final HiveLayout mLayout;
 
   /**
    * Create Glue partition instance.
    *
    * @param layout glue table layout
    */
-  public GluePartition(GlueLayout layout) {
+  public GluePartition(HiveLayout layout) {
     mLayout = layout;
   }
 
