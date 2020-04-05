@@ -11,6 +11,7 @@
 
 package alluxio.table.common.transform;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
@@ -24,43 +25,45 @@ public class TransformDefinitionTest {
   @Test
   public void parse() {
     List<String> definitions = Arrays.asList(
-        "write(type)",
-        " write(type) ",
-        "write(type);",
-        "write(type); write(type)",
-        "write(type); write(type);"
+        "file.count.max=2",
+        "  file.count.max=2  ",
+        "  file.count.max:2",
+        "file.count.max:2;",
+        "file.count.max:2\nfile.count.max:2"
     );
 
     parseValidInternal(definitions);
-
-    TransformDefinition.parse("write(hive).option(some.option1, 100).option(some.option2, 2gb);");
   }
 
   @Test
   public void parseInvalid() {
     List<String> definitions = Arrays.asList(
-        "write(); dne()",
-        "write();; write()",
-        "write();; write();;",
-        "write()  write()",
-        "doesNotExist()"
+        "file.count.max:",
+        "file.does.not.exist:2",
+        ""
     );
     parseInvalidInternal(definitions);
   }
 
   private void parseValidInternal(List<String> definitions) {
     for (String definition : definitions) {
-      assertNotNull("Should be parsable: " + definition, TransformDefinition.parse(definition));
+      final TransformDefinition transformDefinition = TransformDefinition.parse(definition);
+      assertNotNull("Should be parsable: " + definition, transformDefinition);
+      assertEquals("Should be parsable: " + definition,
+          1, transformDefinition.getActions().size());
     }
   }
 
   private void parseInvalidInternal(List<String> definitions) {
     for (String definition : definitions) {
+      TransformDefinition transformDefinition = null;
       try {
-        TransformDefinition.parse(definition);
-        fail("Should not be parsable: " + definition);
+        transformDefinition = TransformDefinition.parse(definition);
       } catch (Exception e) {
         // ignore
+      }
+      if (transformDefinition != null && !transformDefinition.getActions().isEmpty()) {
+        fail("Should not be parsable: " + definition);
       }
     }
   }

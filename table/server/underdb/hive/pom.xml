@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-table-server-underdb</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.3.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-table-server-underdb-hive</artifactId>
   <packaging>jar</packaging>
@@ -35,6 +35,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.hive</groupId>
@@ -49,6 +50,10 @@
         <exclusion>
           <groupId>org.apache.logging.log4j</groupId>
           <artifactId>log4j-slf4j-impl</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.protobuf</groupId>
+          <artifactId>protobuf-java</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -124,4 +129,35 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>java11</id>
+      <activation>
+        <jdk>11</jdk>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hive</groupId>
+          <artifactId>hive-metastore</artifactId>
+          <version>${hive-metastore.version}</version>
+          <scope>compile</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>org.apache.logging.log4j</groupId>
+              <artifactId>log4j-1.2-api</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.logging.log4j</groupId>
+              <artifactId>log4j-slf4j-impl</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>jdk.tools</groupId>
+              <artifactId>jdk.tools</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 </project>

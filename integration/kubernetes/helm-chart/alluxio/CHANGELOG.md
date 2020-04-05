@@ -43,3 +43,23 @@
 - Changed values.yaml structure for ports and update configmap
 - Define alluxio.master.hostname individually for each Pod in env variable, and update configmap
 - Moved a few duplicated blocks into _helpers.tpl
+
+0.5.4
+
+- Updated the journal formatting Job logic
+- Misc formatting and parameters updates
+
+0.5.5
+
+- Removed extra resources created by Helm install https://github.com/Alluxio/alluxio/issues/10321
+
+0.5.6
+
+- Added readiness and liveness probes for master and worker containers
+- Removed formatting script under format/
+
+0.5.7
+
+- Moved journal formatting from job/format-journal-job.yaml to initContainer in master/statefulset.yaml
+- Changed the master RocksDB metastore volume from emptyDir to PVC
+- Added support for using PVC for tiered storage

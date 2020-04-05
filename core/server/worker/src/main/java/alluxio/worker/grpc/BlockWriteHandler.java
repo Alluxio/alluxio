@@ -16,8 +16,8 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WriteResponse;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.WorkerMetrics;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.worker.block.BlockWorker;
@@ -75,11 +75,13 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
         mStorageTierAssoc.getAlias(request.getTier()),
         request.getMediumType(), FILE_BUFFER_SIZE);
     if (mDomainSocketEnabled) {
-      context.setCounter(MetricsSystem.counter(WorkerMetrics.BYTES_WRITTEN_DOMAIN));
-      context.setMeter(MetricsSystem.meter(WorkerMetrics.BYTES_WRITTEN_DOMAIN_THROUGHPUT));
+      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName()));
+      context.setMeter(MetricsSystem.meter(
+          MetricKey.WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()));
     } else {
-      context.setCounter(MetricsSystem.counter(WorkerMetrics.BYTES_WRITTEN_ALLUXIO));
-      context.setMeter(MetricsSystem.meter(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT));
+      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO.getName()));
+      context.setMeter(MetricsSystem.meter(
+          MetricKey.WORKER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName()));
     }
     return context;
   }

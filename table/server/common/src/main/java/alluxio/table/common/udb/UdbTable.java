@@ -17,7 +17,6 @@ import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.Schema;
 import alluxio.table.common.UdbPartition;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -65,5 +64,5 @@ public interface UdbTable {
   /**
    * @return returns partitions for the table
    */
-  List<UdbPartition> getPartitions() throws IOException;
+  List<UdbPartition> getPartitions();
 }

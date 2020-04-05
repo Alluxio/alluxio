@@ -294,6 +294,36 @@ Congratulations! You have successfully contributed to Alluxio! Thank you for joi
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/QsbM804rc6Y" frameborder="0" allowfullscreen></iframe>
 
+## Submit Your Feature
+
+If you have a brilliant idea about a new Alluxio feature, we highly encourage you to implement it and 
+contribute to the Alluxio repository.
+
+1. Create a Github issue in [Alluxio repository](https://github.com/Alluxio/alluxio/issues) regarding your feature.
+1. Attach a feature design document following the 
+[template]({{ '/resources/templates/Design-Document-Template.md' | relativize_url }})
+in your Github issue. The design document should follow the template and provide information regarding each section.
+We recommend using a public Google doc for more efficient collaboration and discussions.
+If a Google doc is not an option for you, you can choose to attach either a Markdown file or a PDF file for 
+the design document.
+1. Tag your issue `type-feature`. Alluxio members periodically check all open issues and will allocate reviewers 
+to the design document.
+Community users do not have the access to assign issues in Alluxio repository. 
+So if you would like to initiate the review process, you can create a placeholder pull request, 
+link to the issue, attach the feature design document, and request reviews from Alluxio members there.
+1. The reviewers (assignees on the corresponding Github issue or the reviewers of the pull request) will review
+the feature design document and provide feedback or request for iterations.
+Please feel free to raise questions and seek help from the reviewers and community members, 
+if you are uncertain about specific design decisions. 
+Please also list options for the feature and corresponding pros and cons.
+1. After a few iterations on the design document, reviewers will give an **LGTM** to the design document.
+And this feature can move on to the implementation phase.
+1. Fork Alluxio repository, implement your feature and create a pull request, 
+as you have mastered in the previous section. Please also link to the issue and design document in your pull request.
+In the pull request, you should also add documentation on your feature to 
+[Alluxio documentations](https://docs.alluxio.io/).
+1. After your pull request is reviewed and merged, you have contributed your feature to Alluxio. Cheers!
+
 ## Next Steps
 
 There are a few things that new contributors can do to familiarize themselves with Alluxio:

@@ -39,19 +39,19 @@ When creating a Dataproc cluster, Alluxio can be installed using an
 [initialization action](https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/init-actions)
 
 The Alluxio initialization action is hosted in a publicly readable
-GCS location at **gs://alluxio-public/dataproc/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-dataproc.sh**.
+GCS location at **gs://alluxio-public/dataproc/{{site.ALLUXIO_VERSION_STRING}}/alluxio-dataproc.sh**.
 * A required argument is the root UFS URI using **alluxio_root_ufs_uri**.
 * Additional properties can be specified using the metadata key **alluxio_site_properties** delimited
 using `;`
 ```console
 $ gcloud dataproc clusters create <cluster_name> \
---initialization-actions gs://alluxio-public/dataproc/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-dataproc.sh \
+--initialization-actions gs://alluxio-public/dataproc/{{site.ALLUXIO_VERSION_STRING}}/alluxio-dataproc.sh \
 --metadata alluxio_root_ufs_uri=<gs://my_bucket>,alluxio_site_properties="alluxio.master.mount.table.root.option.fs.gcs.accessKeyId=<gcs_access_key_id>;alluxio.master.mount.table.root.option.fs.gcs.secretAccessKey=<gcs_secret_access_key>"
 ```
 * Additional files can be downloaded into `/opt/alluxio/conf` using the metadata key `alluxio_download_files_list` by specifying `http(s)` or `gs` uris delimited using `;`
 ```console
 $ gcloud dataproc clusters create <cluster_name> \
---initialization-actions gs://alluxio-public/dataproc/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-dataproc.sh \
+--initialization-actions gs://alluxio-public/dataproc/{{site.ALLUXIO_VERSION_STRING}}/alluxio-dataproc.sh \
 --metadata alluxio_root_ufs_uri=<under_storage_address>,alluxio_download_files_list="gs://$my_bucket/$my_file;https://$server/$file"
 ```
 
@@ -122,7 +122,7 @@ The Alluxio initialization script configures Presto for Alluxio.
 If installing the optional Presto component, Presto must be installed before Alluxio.
 Initialization action are executed sequentially and the Presto action must precede the Alluxio action.
 For instance, the sequence should be
-`--initialization-actions gs://dataproc-initialization-actions/presto/presto.sh,gs://alluxio-public/dataproc/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-dataproc.sh`
+`--initialization-actions gs://dataproc-initialization-actions/presto/presto.sh,gs://alluxio-public/dataproc/{{site.ALLUXIO_VERSION_STRING}}/alluxio-dataproc.sh`
 > Note: The Presto initialization action should install in the home directory `/opt/presto-server`
 > for Alluxio to be configured correctly.
 

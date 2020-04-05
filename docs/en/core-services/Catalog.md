@@ -15,12 +15,13 @@ Alluxio 2.1.0 introduces a new service within Alluxio called the Alluxio Catalog
 The Alluxio Catalog Service is a service for managing access to structured data, which serves a purpose similar to the
 [Apache Hive Metastore](https://cwiki.apache.org/confluence/display/Hive/Design#Design-Metastore)
 
-SQL engines, i.e. [Starburst Presto](https://starburstdata.com), leverage these metastore-like
+SQL engines like Presto, SparkSQL, and Hive, leverage these metastore-like
 services to determine which, and how much data to read when executing queries.
 They store information about different database catalogs, tables, storage formats, data
 location, and more.
-The Alluxio Catalog Service is designed to make it simple and straightforward to retrieve and serve structured table
-metadata to these SQL engines.
+The Alluxio Catalog Service is designed to make it simple and straightforward to retrieve and
+serve structured table metadata to Presto query engines, e.g. [PrestoSQL](https://prestosql.io/),
+[PrestoDB](https://prestodb.io/), and [Starburst Presto](https://starburstdata.com).
 
 
 ## Architecture
@@ -78,7 +79,7 @@ databases from Alluxio.
 ```console
 $ ${ALLUXIO_HOME}/bin/alluxio table
 Usage: alluxio table [generic options]
-	 [attachdb [-o|--option <key=value>] [--db <alluxio db name>] <udb type> <udb connection uri> <udb db name>]
+	 [attachdb [-o|--option <key=value>] [--db <alluxio db name>] [--ignore-sync-errors] <udb type> <udb connection uri> <udb db name>]
 	 [detachdb <db name>]
 	 [ls [<db name> [<table name>]]]
 	 [sync <db name>]
@@ -88,6 +89,8 @@ Usage: alluxio table [generic options]
 
 To attach a database use the `attachdb` command. Currently, only `hive` is supported as the
 `<udb type>`.
+See the [attachdb command documentation]({{ '/en/operation/User-CLI.html' | relativize_url }}#attachdb)
+for more details.
 The following command maps the hive database `default` into a database in Alluxio called
 `alluxio_db` from the metastore located at `thrift://metastore_host:9083`
 
@@ -96,12 +99,10 @@ $ ${ALLUXIO_HOME}/bin/alluxio table attachdb --db alluxio_db hive \
     thrift://metastore_host:9083 default
 ```
 
-> **Note:** When databases are attached, all tables will be synced from the configured UDB.
+> **Note:** When databases are attached, all tables are synced from the configured UDB.
 If out-of-band updates occur to the database or table and the user wants query results to reflect
-the updates, the user must detach ([See Detaching Databases](#detaching-databases)) and then
-re-attach the database to reflect up any updates.
-Alternatively, if the only changes to the database are additional tables and partitions,
-sync command ([See Syncing Databases](#syncing-databases)) can be used.
+the updates, the database must be synced. See [Syncing Databases](#syncing-databases) for more
+information.
 
 ### Exploring Attached Databases
 
@@ -192,8 +193,10 @@ Running `alluxio table ls` afterwards will not display the database any more.
 
 ### Syncing databases
 
-When new tables or new partitions are added to the UDB, users can invoke the sync command
-to refresh the information stored in the Alluxio namespace. 
+When the underlying database and tables are updated, users can invoke the sync command
+to refresh the information stored in the Alluxio catalog metadata.
+See the [sync command documentation]({{ '/en/operation/User-CLI.html' | relativize_url }}#sync)
+for more details.
 
 ```console
 $ alluxio table sync <database name>
@@ -205,8 +208,8 @@ For the previous examples, to sync we would run:
 $ ${ALLUXIO_HOME}/bin/alluxio table sync alluxio_db
 ```
 
-Note that the sync operation will not remove any tables or partitions from the Alluxio namespace,
-nor would it change the existing tables or partitions.
+This sync command will update the Alluxio catalog metadata according to the updates, deletions,
+and additions in the UDB tables.
 
 ## Using Alluxio Structured Data with Presto
 
@@ -217,11 +220,19 @@ The latest Alluxio distribution contains a presto connector jar which can be dro
 ### Enabling the Alluxio Catalog Service with Presto
 
 Assuming you have Alluxio and Presto installation on your local machine at `${ALLUXIO_HOME}` and
-`${PRESTO_HOME}` respectively, run the following to copy the Alluxio connector files into the
-Presto installation as a new plugin. This must be done on all Presto nodes.
+`${PRESTO_HOME}` respectively, you need to copy the Alluxio connector files into the
+Presto installation as a new plugin. This must be done on all Presto nodes. 
+
+For PrestoSQL installations, run the following. 
 
 ```console
 $ cp -R ${ALLUXIO_HOME}/client/presto/plugins/presto-hive-alluxio-319/ ${PRESTO_HOME}/plugin/hive-alluxio/
+```
+
+For PrestoDB installations, run the following. 
+
+```console
+$ cp -R ${ALLUXIO_HOME}/client/presto/plugins/prestodb-hive-alluxio-227/ ${PRESTO_HOME}/plugin/hive-alluxio/
 ```
 
 Additionally, you'll need to create a new catalog to use the Alluxio connector and

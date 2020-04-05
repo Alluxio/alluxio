@@ -28,10 +28,10 @@ public final class MkdirCommandIntegrationTest extends AbstractFileSystemShellTe
   @Test
   public void mkdir() throws IOException, AlluxioException {
     String qualifiedPath =
-        "alluxio://" + mLocalAlluxioCluster.getHostname() + ":" + mLocalAlluxioCluster
+        "alluxio://" + sLocalAlluxioCluster.getHostname() + ":" + sLocalAlluxioCluster
             .getMasterRpcPort() + "/root/testFile1";
-    mFsShell.run("mkdir", qualifiedPath);
-    URIStatus status = mFileSystem.getStatus(new AlluxioURI("/root/testFile1"));
+    sFsShell.run("mkdir", qualifiedPath);
+    URIStatus status = sFileSystem.getStatus(new AlluxioURI("/root/testFile1"));
     Assert.assertNotNull(status);
     Assert
         .assertEquals(getCommandOutput(new String[] {"mkdir", qualifiedPath}), mOutput.toString());
@@ -40,9 +40,9 @@ public final class MkdirCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void mkdirComplexPath() throws IOException, AlluxioException {
-    mFsShell.run("mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File");
+    sFsShell.run("mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File");
     URIStatus status =
-        mFileSystem.getStatus(new AlluxioURI("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
+        sFileSystem.getStatus(new AlluxioURI("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
     Assert.assertNotNull(status);
     Assert.assertEquals(getCommandOutput(new String[] {"mkdir",
         "/Complex!@#$%^&*()-_=+[]{};\"'<>," + ".?/File"}), mOutput.toString());
@@ -51,8 +51,8 @@ public final class MkdirCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void mkdirExisting() throws IOException {
-    Assert.assertEquals(0, mFsShell.run("mkdir", "/testFile1"));
-    Assert.assertEquals(-1, mFsShell.run("mkdir", "/testFile1"));
+    Assert.assertEquals(0, sFsShell.run("mkdir", "/testFile1"));
+    Assert.assertEquals(-1, sFsShell.run("mkdir", "/testFile1"));
   }
 
   @Test
@@ -64,13 +64,13 @@ public final class MkdirCommandIntegrationTest extends AbstractFileSystemShellTe
         "/ x y z / a b c"
     };
     for (String path : paths) {
-      Assert.assertEquals(0, mFsShell.run("mkdir", path));
+      Assert.assertEquals(0, sFsShell.run("mkdir", path));
     }
   }
 
   @Test
   public void mkdirInvalidPath() throws IOException {
-    Assert.assertEquals(-1, mFsShell.run("mkdir", ""));
+    Assert.assertEquals(-1, sFsShell.run("mkdir", ""));
   }
 
   @Test
@@ -78,25 +78,25 @@ public final class MkdirCommandIntegrationTest extends AbstractFileSystemShellTe
     String path1 = "/testDir1";
     String path2 = "/testDir2";
     String path3 = "/testDir2/testDir2.1";
-    Assert.assertEquals(0, mFsShell.run("mkdir", path1, path2, path3));
+    Assert.assertEquals(0, sFsShell.run("mkdir", path1, path2, path3));
 
-    URIStatus status = mFileSystem.getStatus(new AlluxioURI(path1));
+    URIStatus status = sFileSystem.getStatus(new AlluxioURI(path1));
     Assert.assertNotNull(status);
     Assert.assertTrue(status.isFolder());
 
-    status = mFileSystem.getStatus(new AlluxioURI(path2));
+    status = sFileSystem.getStatus(new AlluxioURI(path2));
     Assert.assertNotNull(status);
     Assert.assertTrue(status.isFolder());
 
-    status = mFileSystem.getStatus(new AlluxioURI(path3));
+    status = sFileSystem.getStatus(new AlluxioURI(path3));
     Assert.assertNotNull(status);
     Assert.assertTrue(status.isFolder());
   }
 
   @Test
   public void mkdirShortPath() throws IOException, AlluxioException {
-    mFsShell.run("mkdir", "/root/testFile1");
-    URIStatus status = mFileSystem.getStatus(new AlluxioURI("/root/testFile1"));
+    sFsShell.run("mkdir", "/root/testFile1");
+    URIStatus status = sFileSystem.getStatus(new AlluxioURI("/root/testFile1"));
     Assert.assertNotNull(status);
     Assert.assertEquals(getCommandOutput(new String[]{"mkdir", "/root/testFile1"}),
         mOutput.toString());

@@ -12,7 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
@@ -155,14 +154,14 @@ public final class FileSystemUtils {
       AlluxioException, TimeoutException, InterruptedException {
     fs.persist(uri, ScheduleAsyncPersistencePOptions
         .newBuilder().setPersistenceWaitTime(persistenceWaitTime).build());
-    CommonUtils.waitFor(String.format("%s to be persisted", uri) , () -> {
+    CommonUtils.waitForResult(String.format("%s to be persisted", uri) , () -> {
       try {
-        return fs.getStatus(uri).isPersisted();
+        return fs.getStatus(uri);
       } catch (Exception e) {
         Throwables.throwIfUnchecked(e);
         throw new RuntimeException(e);
       }
-    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs)
-        .setInterval(Constants.SECOND_MS));
+    }, (status) -> status.isPersisted(),
+        WaitForOptions.defaults().setTimeoutMs(timeoutMs).setInterval(100));
   }
 }

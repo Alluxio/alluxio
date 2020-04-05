@@ -33,6 +33,9 @@ import alluxio.master.MasterClientContext;
 import alluxio.grpc.GrpcUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +50,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BlockMasterClient extends AbstractMasterClient {
+  private static final Logger LOG = LoggerFactory.getLogger(BlockMasterClient.class);
   private BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient = null;
 
   /**
@@ -91,14 +95,16 @@ public final class BlockMasterClient extends AbstractMasterClient {
   public void commitBlock(final long workerId, final long usedBytesOnTier,
       final String tierAlias, final String mediumType,
       final long blockId, final long length) throws IOException {
-    retryRPC((RpcCallable<Void>) () -> {
+    retryRPC(() -> {
       CommitBlockPRequest request =
           CommitBlockPRequest.newBuilder().setWorkerId(workerId).setUsedBytesOnTier(usedBytesOnTier)
               .setTierAlias(tierAlias).setMediumType(mediumType)
               .setBlockId(blockId).setLength(length).build();
       mClient.commitBlock(request);
       return null;
-    });
+    }, LOG, "CommitBlock",
+        "workerId=%d,usedBytesOnTier=%d,tierAlias=%s,mediumType=%s,blockId=%d,length=%d",
+        workerId, usedBytesOnTier, tierAlias, mediumType, blockId, length);
   }
 
   /**
@@ -109,12 +115,12 @@ public final class BlockMasterClient extends AbstractMasterClient {
    */
   public void commitBlockInUfs(final long blockId, final long length)
       throws IOException {
-    retryRPC((RpcCallable<Void>) () -> {
+    retryRPC(() -> {
       CommitBlockInUfsPRequest request =
           CommitBlockInUfsPRequest.newBuilder().setBlockId(blockId).setLength(length).build();
       mClient.commitBlockInUfs(request);
       return null;
-    });
+    }, LOG, "CommitBlockInUfs", "blockId=%d,length=%d", blockId, length);
   }
 
   /**
@@ -124,11 +130,11 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @return a worker id
    */
   public long getId(final WorkerNetAddress address) throws IOException {
-    return retryRPC((RpcCallable<Long>) () -> {
+    return retryRPC(() -> {
       GetWorkerIdPRequest request =
           GetWorkerIdPRequest.newBuilder().setWorkerNetAddress(GrpcUtils.toProto(address)).build();
       return mClient.getWorkerId(request).getWorkerId();
-    });
+    }, LOG, "GetId", "address=%s", address);
   }
 
   private List<LocationBlockIdListEntry> convertBlockListMapToProto(
@@ -181,7 +187,8 @@ public final class BlockMasterClient extends AbstractMasterClient {
         .addAllAddedBlocks(entryList).setOptions(options)
         .putAllLostStorage(lostStorageMap).build();
 
-    return retryRPC(() -> mClient.blockHeartbeat(request).getCommand());
+    return retryRPC(() -> mClient.blockHeartbeat(request).getCommand(),
+        LOG, "Heartbeat", "workerId=%d", workerId);
   }
 
   /**
@@ -222,6 +229,6 @@ public final class BlockMasterClient extends AbstractMasterClient {
     retryRPC(() -> {
       mClient.registerWorker(request);
       return null;
-    });
+    }, LOG, "Register", "workerId=%d", workerId);
   }
 }

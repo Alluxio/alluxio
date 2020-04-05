@@ -27,6 +27,11 @@ import java.util.HashMap;
 public class PartitionInfo implements Serializable {
   private static final long serialVersionUID = 6905153658064056381L;
 
+  /**
+   * Key in Serde Properties to denote parquet compression method.
+   */
+  public static final String PARQUET_COMPRESSION = "file.parquet.compression";
+
   private final String mSerdeClass;
   private final String mInputFormatClass;
   private final HashMap<String, String> mSerdeProperties;
@@ -69,6 +74,14 @@ public class PartitionInfo implements Serializable {
       }
       return Format.CSV;
     }
+    // failed to get format from serde info, try to get it from extension
+    if (filename.endsWith(Format.CSV.getSuffix())) {
+      return Format.CSV;
+    }
+    if (filename.endsWith(Format.PARQUET.getSuffix())) {
+      return Format.PARQUET;
+    }
+    // both method failed, throw exception
     throw new IOException("Cannot determine format for " + filename);
   }
 

@@ -47,8 +47,7 @@ public class MetricsCommand {
    * @param metricsMasterClient client to connect to metrics master client
    * @param printStream stream to print operation metrics information to
    */
-  public MetricsCommand(MetricsMasterClient metricsMasterClient, PrintStream printStream)
-      throws IOException {
+  public MetricsCommand(MetricsMasterClient metricsMasterClient, PrintStream printStream) {
     mMetricsMasterClient = metricsMasterClient;
     mPrintStream = printStream;
   }
@@ -75,8 +74,7 @@ public class MetricsCommand {
           // Bytes long can be transformed to human-readable format
           strValue = FormatUtils.getSizeFromBytes((long) doubleValue);
           if (name.contains(THROUGHPUT_METRIC_IDENTIFIER)) {
-            // throughput is calculated as one-minute exponentially-weighted moving average rate
-            strValue = strValue + "/min";
+            strValue = strValue + "/MIN";
           }
         } else if (DoubleMath.isMathematicalInteger(doubleValue)) {
           strValue = DECIMAL_FORMAT.format((long) doubleValue);
@@ -92,8 +90,8 @@ public class MetricsCommand {
   /**
    * Checks if a metric is Alluxio metric.
    *
-   * @param name
-   * @return
+   * @param name name of the metrics to check
+   * @return true if a metric is an Alluxio metric, false otherwise
    */
   private boolean isAlluxioMetric(String name) {
     for (MetricsSystem.InstanceType instance : MetricsSystem.InstanceType.values()) {

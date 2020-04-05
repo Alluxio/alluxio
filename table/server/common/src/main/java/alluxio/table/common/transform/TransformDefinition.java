@@ -12,10 +12,13 @@
 package alluxio.table.common.transform;
 
 import alluxio.table.common.transform.action.TransformAction;
+import alluxio.table.common.transform.action.TransformActionRegistry;
 
-import java.util.ArrayList;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * The definition of a transformation.
@@ -23,18 +26,22 @@ import java.util.List;
 public class TransformDefinition {
   private final String mDefinition;
   private final List<TransformAction> mActions;
+  private final Properties mProperties;
 
   /**
    * The user-provided definition is normalized by:
    * 1. trimming whitespaces and semicolon from the beginning and end;
    * 2. normalize to lower case.
-   *
    * @param definition the string definition
    * @param actions the list of actions
+   * @param properties the list of properties extracted from definition
    */
-  private TransformDefinition(String definition, List<TransformAction> actions) {
+  private TransformDefinition(String definition, List<TransformAction> actions,
+                              Properties properties) {
+    // TODO(bradley): derive definition string from properties or vice versa
     mDefinition = normalize(definition);
     mActions = actions;
+    mProperties = properties;
   }
 
   private String normalize(String definition) {
@@ -60,24 +67,39 @@ public class TransformDefinition {
   }
 
   /**
+   * @return the list of properties extracted from the user-provided definition
+   */
+  public Properties getProperties() {
+    return mProperties;
+  }
+
+  /**
    * @param definition the string definition
    * @return the {@link TransformDefinition} representation
    */
   public static TransformDefinition parse(String definition) {
-    // TODO(gpang): use real lexer/parser
     definition = definition.trim();
 
     if (definition.isEmpty()) {
-      return new TransformDefinition(definition, Collections.emptyList());
+      return new TransformDefinition(definition, Collections.emptyList(), new Properties());
     }
 
-    // ';' separates actions
-    String[] parts = definition.split(";");
-    List<TransformAction> actions = new ArrayList<>(parts.length);
-    for (String actionPart : parts) {
-      actions.add(TransformAction.Parser.parse(actionPart));
+    // accept semicolon as new lines for inline definitions
+    definition = definition.replace(";", "\n");
+
+    final Properties properties = new Properties();
+
+    final StringReader reader = new StringReader(definition);
+
+    try {
+      properties.load(reader);
+    } catch (IOException e) {
+      // The only way this throws an IOException is if the definition is null which isn't possible.
+      return new TransformDefinition(definition, Collections.emptyList(), properties);
     }
 
-    return new TransformDefinition(definition, actions);
+    final List<TransformAction> actions = TransformActionRegistry.create(properties);
+
+    return new TransformDefinition(definition, actions, properties);
   }
 }

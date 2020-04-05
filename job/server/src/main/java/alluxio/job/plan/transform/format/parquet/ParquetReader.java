@@ -39,14 +39,18 @@ import java.io.IOException;
 public final class ParquetReader implements TableReader {
   private final org.apache.parquet.hadoop.ParquetReader<Record> mReader;
   private final ParquetSchema mSchema;
+  private final ParquetMetadata mMetadata;
 
   /**
    * @param reader the Parquet reader
    * @param schema the schema
+   * @param metadata the Parquet metadata
    */
-  private ParquetReader(org.apache.parquet.hadoop.ParquetReader<Record> reader, Schema schema) {
+  private ParquetReader(org.apache.parquet.hadoop.ParquetReader<Record> reader, Schema schema,
+                        ParquetMetadata metadata) {
     mReader = reader;
     mSchema = new ParquetSchema(schema);
+    mMetadata = metadata;
   }
 
   /**
@@ -68,18 +72,26 @@ public final class ParquetReader implements TableReader {
             .build();
 
     Schema schema;
+    ParquetMetadata footer;
     try (ParquetFileReader r = new ParquetFileReader(inputFile,
         ParquetReadOptions.builder().build())) {
-      ParquetMetadata footer = r.getFooter();
+      footer = r.getFooter();
       schema = new AvroSchemaConverter().convert(footer.getFileMetaData().getSchema());
     }
 
-    return new ParquetReader(reader, schema);
+    return new ParquetReader(reader, schema, footer);
   }
 
   @Override
   public TableSchema getSchema() throws IOException {
     return mSchema;
+  }
+
+  /**
+   * @return the Parquet metadata
+   */
+  public ParquetMetadata getMetadata() {
+    return mMetadata;
   }
 
   @Override

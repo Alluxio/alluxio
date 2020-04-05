@@ -17,7 +17,7 @@ metadata:
   name: alluxio-worker
   labels:
     app: alluxio
-    chart: alluxio-0.5.3
+    chart: alluxio-0.5.7
     release: alluxio
     heritage: Tiller
     role: alluxio-worker
@@ -31,7 +31,7 @@ spec:
     metadata:
       labels:
         app: alluxio
-        chart: alluxio-0.5.3
+        chart: alluxio-0.5.7
         release: alluxio
         heritage: Tiller
         role: alluxio-worker
@@ -45,14 +45,14 @@ spec:
       - name: socket-chown
         securityContext:
           runAsUser: 0
-        image: alluxio/alluxio:2.2.0-SNAPSHOT
+        image: alluxio/alluxio:2.3.0-SNAPSHOT
         command: ["/bin/chown","-R", "1000:1000", "/opt/domain"]
         volumeMounts:
         - name: alluxio-domain
           mountPath: /opt/domain
       containers:
         - name: alluxio-worker
-          image: alluxio/alluxio:2.2.0-SNAPSHOT
+          image: alluxio/alluxio:2.3.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsUser: 1000
@@ -76,6 +76,16 @@ spec:
           envFrom:
           - configMapRef:
               name: alluxio-config
+          readinessProbe:
+            exec:
+              command: ["alluxio-monitor.sh", "worker"]
+          livenessProbe:
+            exec:
+              command: ["alluxio-monitor.sh", "worker"]
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 2
           ports:
           - containerPort: 29999
             name: rpc
@@ -87,7 +97,7 @@ spec:
             - mountPath: /dev/shm
               name: mem
         - name: alluxio-job-worker
-          image: alluxio/alluxio:2.2.0-SNAPSHOT
+          image: alluxio/alluxio:2.3.0-SNAPSHOT
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
@@ -110,6 +120,16 @@ spec:
           envFrom:
           - configMapRef:
               name: alluxio-config
+          readinessProbe:
+            exec:
+              command: ["alluxio-monitor.sh", "job_worker"]
+          livenessProbe:
+            exec:
+              command: ["alluxio-monitor.sh", "job_worker"]
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 2
           ports:
           - containerPort: 30001
             name: job-rpc

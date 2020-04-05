@@ -101,9 +101,6 @@ Also try our getting started tutorials for Presto & Alluxio via:
  <img src="https://www.alluxio.io/app/uploads/2019/07/amazon-aws-ami.png" width="250" alt="AWS with AMI"/></a>
 </p>
 
-In addition, you can try more advanced testing with a cluster of Alluxio. 
-- Request [a sandbox cluster](https://www.alluxio.io/sandbox-request/) with Alluxio and Spark installed on AWS for free
-
 ## Downloads and Useful Resources
 
 Released versions of Alluxio are available from the [Project Downloads Page](https://alluxio.io/download).

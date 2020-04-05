@@ -24,7 +24,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
-import alluxio.metrics.ClientMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
@@ -107,7 +107,7 @@ public class AlluxioFileOutStream extends FileOutStream {
         mUnderStorageOutputStream = null;
       } else { // Write is through to the under storage, create mUnderStorageOutputStream.
         GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
-            .setBlockWorkerInfos(mBlockStore.getEligibleWorkers())
+            .setBlockWorkerInfos(mContext.getCachedWorkers())
             .setBlockInfo(new BlockInfo()
                 .setBlockId(-1)
                 .setLength(0)); // not storing data to Alluxio, so block size is 0
@@ -312,7 +312,7 @@ public class AlluxioFileOutStream extends FileOutStream {
   @ThreadSafe
   private static final class Metrics {
     private static final Counter BYTES_WRITTEN_UFS =
-        MetricsSystem.counter(ClientMetrics.BYTES_WRITTEN_UFS);
+        MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_UFS.getName());
 
     private Metrics() {} // prevent instantiation
   }

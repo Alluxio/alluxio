@@ -39,10 +39,11 @@ function printUsage {
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
   echo -e "  copyDir <PATH>\t Copy the PATH to all master/worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
-  echo -e "  confDocGen    \t Generate configuration docs."
+  echo -e "  docGen        \t Generate docs automatically."
   echo -e "  version       \t Print Alluxio version and exit."
   echo -e "  validateConf  \t Validate Alluxio conf and exit."
   echo -e "  validateEnv   \t Validate Alluxio environment."
+  echo -e "  collectInfo   \t Collects information to troubleshoot an Alluxio cluster."
   echo
   echo "GENERIC_COMMAND_OPTIONS supports:"
   echo -e "  -D<property=value>\t Use a value for a given Alluxio property"
@@ -264,6 +265,11 @@ function main {
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.conf.validation.enabled=false"
     runJavaClass "$@"
   ;;
+  "collectInfo")
+    CLASS="alluxio.cli.bundler.CollectInfo"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
   "job")
     CLASS="alluxio.cli.job.JobShell"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
@@ -338,8 +344,8 @@ function main {
   "copyDir")
     copyDir "$@"
   ;;
-  "confDocGen")
-    CLASS="alluxio.cli.ConfigurationDocGenerator"
+  "docGen")
+    CLASS="alluxio.cli.DocGenerator"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"

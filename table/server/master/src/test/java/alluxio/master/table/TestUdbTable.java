@@ -11,6 +11,12 @@
 
 package alluxio.master.table;
 
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
+import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.table.ColumnStatisticsData;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.FieldSchema;
@@ -18,11 +24,18 @@ import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.LongColumnStatsData;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
+import alluxio.grpc.table.layout.hive.Storage;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.UdbTable;
+import alluxio.uri.Authority;
+import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
+
+import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +44,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TestUdbTable implements UdbTable {
+  private List<FieldSchema> mDataCols;
   private String mDbName;
   private String mName;
   private PartitionInfo mPartitionInfo;
@@ -40,7 +54,7 @@ public class TestUdbTable implements UdbTable {
   private List<FieldSchema> mPartitionCols;
   private List<ColumnStatisticsInfo> mStats;
 
-  public TestUdbTable(String dbName, String name, int numOfPartitions) {
+  public TestUdbTable(String dbName, String name, int numOfPartitions, FileSystem fs) {
     mDbName = dbName;
     mName = name;
     mPartitionInfo = PartitionInfo.newBuilder()
@@ -57,13 +71,34 @@ public class TestUdbTable implements UdbTable {
         .setType("int").setId(2).build();
     mSchema = Schema.newBuilder().addCols(col).addCols(col2).build();
     mPartitionCols = Arrays.asList(col);
+    mDataCols = Arrays.asList(col2);
     ColumnStatisticsInfo stats = ColumnStatisticsInfo.newBuilder().setColName("col2")
         .setColType("int").setData(ColumnStatisticsData.newBuilder()
             .setLongStats(LongColumnStatsData.getDefaultInstance()).build()).build();
     mStats = Arrays.asList(stats);
+
     mTestPartitions = Stream.iterate(0, n -> n + 1)
-        .limit(numOfPartitions).map(i -> new TestPartition(new HiveLayout(genPartitionInfo(
-            mDbName, mName, i), mStats)))
+        .limit(numOfPartitions).map(i -> {
+          AlluxioURI location = new AlluxioURI("/udbtable/"
+              + CommonUtils.randomAlphaNumString(5) + i + "/test.csv");
+          if (fs != null) {
+            location = new AlluxioURI(Constants.SCHEME,
+                Authority.fromString(String.join(",",
+                    ConfigurationUtils.getMasterRpcAddresses(
+                        fs.getConf()).stream()
+                        .map(InetSocketAddress::toString)
+                        .collect(ImmutableList.toImmutableList()))),
+                "/udbtable/" + CommonUtils.randomAlphaNumString(5) + i + "/test.csv");
+            try (FileOutStream out = fs.createFile(location,
+                CreateFilePOptions.newBuilder().setRecursive(true).build())) {
+              out.write("1".getBytes());
+            } catch (IOException | AlluxioException e) {
+              e.printStackTrace();
+            }
+          }
+          return new TestPartition(new HiveLayout(genPartitionInfo(
+              mDbName, mName, i, location.getParent().toString(), mDataCols), mStats));
+        })
         .collect(Collectors.toList());
   }
 
@@ -71,11 +106,15 @@ public class TestUdbTable implements UdbTable {
     return "col1=" + index;
   }
 
-  private static PartitionInfo genPartitionInfo(String dbName, String tableName, int index) {
+  private static PartitionInfo genPartitionInfo(String dbName, String tableName, int index,
+      String location, List<FieldSchema> dataCols) {
     return PartitionInfo.newBuilder()
         .setDbName(dbName)
         .setTableName(tableName)
-        .setPartitionName(getPartName(index)).build();
+        .setPartitionName(getPartName(index))
+        .addAllDataCols(dataCols)
+        .setStorage(Storage.newBuilder().setLocation(location).build())
+        .build();
   }
 
   @Override
@@ -114,7 +153,7 @@ public class TestUdbTable implements UdbTable {
   }
 
   @Override
-  public List<UdbPartition> getPartitions() throws IOException {
+  public List<UdbPartition> getPartitions() {
     return mTestPartitions;
   }
 

@@ -13,6 +13,7 @@ package alluxio.server.ft.journal;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioTestDirectory;
@@ -20,6 +21,10 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
+import alluxio.client.block.BlockMasterClient;
+import alluxio.client.block.RetryHandlingBlockMasterClient;
+import alluxio.client.file.FileSystemTestUtils;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
@@ -30,6 +35,10 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientContext;
 import alluxio.master.journal.JournalType;
@@ -61,6 +70,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
   public MultiProcessCluster mCluster;
   private static final int GET_PRIMARY_INDEX_TIMEOUT_MS = 30000;
   private static final int PRIMARY_KILL_TIMEOUT_MS = 30000;
+  private static final int WAIT_NODES_REGISTERED_MS = 30000;
 
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(new HashMap<PropertyKey, String>() {
@@ -87,6 +97,34 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
         .build();
     backupRestoreTest(true);
+  }
+
+  @Test
+  public void backupRestoreMetastore_Heap() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_METASSTORE_HEAP)
+        .setClusterName("backupRestoreMetastore_Heap")
+        .setNumMasters(1)
+        .setNumWorkers(1)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        // Masters become primary faster
+        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        .addProperty(PropertyKey.MASTER_METASTORE, "HEAP")
+        .build();
+    backupRestoreMetaStoreTest();
+  }
+
+  @Test
+  public void backupRestoreMetastore_Rocks() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_METASSTORE_ROCKS)
+        .setClusterName("backupRestoreMetastore_Rocks")
+        .setNumMasters(1)
+        .setNumWorkers(1)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        // Masters become primary faster
+        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        .addProperty(PropertyKey.MASTER_METASTORE, "ROCKS")
+        .build();
+    backupRestoreMetaStoreTest();
   }
 
   // This test needs to stop and start master many times, so it can take up to a minute to complete.
@@ -246,15 +284,14 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     // Kill follower immediately before it sends the next heartbeat to leader.
     mCluster.stopMaster(followerIdx);
     // Wait until backup is abandoned.
-    CommonUtils.waitFor("Backup abandoned.", () -> {
+    CommonUtils.waitForResult("Backup abandoned.", () -> {
       try {
-        return mCluster.getMetaMasterClient().getBackupStatus(backupId)
-            .getError() instanceof BackupAbortedException;
+        return mCluster.getMetaMasterClient().getBackupStatus(backupId);
       } catch (Exception e) {
         throw new RuntimeException(
             String.format("Unexpected error while getting backup status: %s", e.toString()));
       }
-    });
+    }, (backupStatus) -> backupStatus.getError() instanceof BackupAbortedException);
 
     // Restart follower to restore HA.
     mCluster.startMaster(followerIdx);
@@ -441,6 +478,50 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     mCluster.notifySuccess();
   }
 
+  private void backupRestoreMetaStoreTest() throws Exception {
+    // Directory for backups.
+    File backups = AlluxioTestDirectory.createTemporaryDirectory("backups");
+    mCluster.start();
+
+    // Needs workers to be up before the test.
+    mCluster.waitForAllNodesRegistered(WAIT_NODES_REGISTERED_MS);
+
+    // Acquire clients.
+    FileSystem fs = mCluster.getFileSystemClient();
+    MetaMasterClient metaClient = getMetaClient(mCluster);
+    BlockMasterClient blockClient = getBlockClient(mCluster);
+
+    // Create single test file.
+    String testFilePath = "/file";
+    AlluxioURI testFileUri = new AlluxioURI(testFilePath);
+
+    // Create file THROUGH.
+    FileSystemTestUtils.createByteFile(fs, testFilePath, 100,
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH).build());
+    // Delete it from Alluxio namespace.
+    fs.delete(testFileUri, DeletePOptions.newBuilder().setAlluxioOnly(true).build());
+    // List status on root to bring the file's meta back.
+    fs.listStatus(new AlluxioURI("/"), ListStatusPOptions.newBuilder().setRecursive(true)
+        .setLoadMetadataType(LoadMetadataPType.ONCE).build());
+    // Verify that file's meta is in Alluxio.
+    assertNotNull(fs.getStatus(testFileUri));
+
+    // Take a backup.
+    AlluxioURI backup1 = metaClient
+        .backup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
+            .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false)).build())
+        .getBackupUri();
+    // Restart with backup.
+    restartMastersFromBackup(backup1);
+
+    // Verify that file and its blocks are in Alluxio after restore.
+    URIStatus fileStatus = fs.getStatus(testFileUri);
+    assertNotNull(fileStatus);
+    for (long blockId : fileStatus.getBlockIds()) {
+      assertNotNull(blockClient.getBlockInfo(blockId));
+    }
+  }
+
   private void restartMastersFromBackup(AlluxioURI backup) throws IOException {
     mCluster.stopMasters();
     mCluster.formatJournal();
@@ -454,5 +535,11 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
             .setMasterInquireClient(cluster.getMasterInquireClient())
             .build());
+  }
+
+  private BlockMasterClient getBlockClient(MultiProcessCluster cluster) {
+    return new RetryHandlingBlockMasterClient(
+        MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
+            .setMasterInquireClient(cluster.getMasterInquireClient()).build());
   }
 }

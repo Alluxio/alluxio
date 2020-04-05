@@ -17,6 +17,7 @@ import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Constraint;
 import alluxio.grpc.table.Database;
 import alluxio.grpc.table.Partition;
+import alluxio.grpc.table.SyncStatus;
 import alluxio.grpc.table.TableInfo;
 import alluxio.grpc.table.TransformJobInfo;
 import alluxio.master.MasterClientContext;
@@ -93,11 +94,13 @@ public interface TableMasterClient extends Client {
    * @param udbDbName the database name in the udb
    * @param dbName the database name in Alluxio
    * @param configuration the configuration map
-   * @return true if database created successfully
+   * @param ignoreSyncErrors will ignore sync errors if true
+   * @return the sync status for the attach
    * @throws AlluxioStatusException
    */
-  boolean attachDatabase(String udbType, String udbConnectionUri, String udbDbName, String dbName,
-      Map<String, String> configuration) throws AlluxioStatusException;
+  SyncStatus attachDatabase(String udbType, String udbConnectionUri, String udbDbName,
+      String dbName, Map<String, String> configuration, boolean ignoreSyncErrors)
+      throws AlluxioStatusException;
 
   /**
    * Detaches an existing database in the catalog master.
@@ -113,9 +116,9 @@ public interface TableMasterClient extends Client {
    * Syncs an existing database in the catalog master.
    *
    * @param dbName database name
-   * @return true if the database changed as a result of sync
+   * @return the sync status
    */
-  boolean syncDatabase(String dbName) throws AlluxioStatusException;
+  SyncStatus syncDatabase(String dbName) throws AlluxioStatusException;
 
   /**
    * Returns metadata for reading a table given constraints.

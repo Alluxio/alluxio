@@ -22,10 +22,20 @@ import org.slf4j.LoggerFactory;
 public class CatalogProperty extends BaseProperty {
   private static final Logger LOG = LoggerFactory.getLogger(CatalogProperty.class);
 
+  public static final int DEFAULT_DB_SYNC_THREADS = 4;
+
   private CatalogProperty(String name, String description, String defaultValue) {
     super(name, description, defaultValue);
   }
 
-  public static final CatalogProperty DB_TYPE =
-      new CatalogProperty("db.type", "The type of database. Possible values are: hive", "");
+  public static final CatalogProperty DB_IGNORE_TABLES =
+      new CatalogProperty("catalog.db.ignore.udb.tables",
+          "The comma-separated list of table names to ignore from the UDB.", "");
+  public static final CatalogProperty DB_SYNC_THREADS =
+      new CatalogProperty("catalog.db.sync.threads",
+          "The maximum number of threads to use when parallel syncing all the tables from the "
+              + "under database (UDB) to the catalog. If this is set too large, the threads may "
+              + "overload the UDB, and if set too low, syncing a database with many tables may "
+              + "take a long time.",
+          Integer.toString(DEFAULT_DB_SYNC_THREADS));
 }

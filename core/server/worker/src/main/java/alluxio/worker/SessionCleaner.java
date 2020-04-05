@@ -70,7 +70,10 @@ public final class SessionCleaner implements Runnable, Closeable {
       long lastIntervalMs = System.currentTimeMillis() - lastCheckMs;
       long toSleepMs = mCheckIntervalMs - lastIntervalMs;
       if (toSleepMs > 0) {
-        CommonUtils.sleepMs(LOG, toSleepMs);
+        CommonUtils.sleepMs(null, toSleepMs);
+        if (Thread.interrupted()) {
+          break;
+        }
       } else {
         LOG.warn("Session cleanup took: {}, expected: {}", lastIntervalMs, mCheckIntervalMs);
       }

@@ -20,6 +20,8 @@ myuid=$(id -u)
 mygid=$(id -g)
 echo "$myuid:x:$myuid:$mygid:anonymous uid:/home/jenkins:/bin/false" >> /etc/passwd
 
+export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
+
 if [ -z ${ALLUXIO_BUILD_FORKCOUNT} ]
 then
   ALLUXIO_BUILD_FORKCOUNT=4
@@ -42,3 +44,5 @@ then
   # run sonar analysis
   mvn $(echo "${ALLUXIO_SONAR_ARGS}") sonar:sonar
 fi
+
+./dev/scripts/check-docs.sh

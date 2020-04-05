@@ -40,6 +40,8 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -354,7 +356,7 @@ public final class ConfigurationUtils {
    */
   public static List<ConfigProperty> getConfiguration(AlluxioConfiguration conf, Scope scope) {
     ConfigurationValueOptions useRawDisplayValue =
-        ConfigurationValueOptions.defaults().useDisplayValue(true).useRawValue(true);
+        ConfigurationValueOptions.defaults().useDisplayValue(true);
 
     List<ConfigProperty> configs = new ArrayList<>();
     List<PropertyKey> selectedKeys =
@@ -504,22 +506,24 @@ public final class ConfigurationUtils {
   }
 
   /**
-   * Loads client scope properties from the property list returned by grpc.
+   * Filters and loads properties with a certain scope from the property list returned by grpc.
+   * The given scope should only be {@link Scope#WORKER} or {@link Scope#CLIENT}.
    *
    * @param properties the property list returned by grpc
+   * @param scope the scope to filter the received property list
    * @param logMessage a function with key and value as parameter and returns debug log message
    * @return the loaded properties
    */
-  private static Properties loadClientProperties(List<ConfigProperty> properties,
-      BiFunction<PropertyKey, String, String> logMessage) {
+  private static Properties filterAndLoadProperties(List<ConfigProperty> properties,
+      Scope scope, BiFunction<PropertyKey, String, String> logMessage) {
     Properties props = new Properties();
     for (ConfigProperty property : properties) {
       String name = property.getName();
       // TODO(binfan): support propagating unsetting properties from master
       if (PropertyKey.isValid(name) && property.hasValue()) {
         PropertyKey key = PropertyKey.fromString(name);
-        if (!GrpcUtils.contains(key.getScope(), Scope.CLIENT)) {
-          // Only propagate client properties.
+        if (!GrpcUtils.contains(key.getScope(), scope)) {
+          // Only propagate properties contains the target scope
           continue;
         }
         String value = property.getValue();
@@ -531,26 +535,27 @@ public final class ConfigurationUtils {
   }
 
   /**
-   * Loads the cluster level configuration from the get configuration response, and merges it with
-   * the existing configuration.
+   * Loads the cluster level configuration from the get configuration response,
+   * filters out the configuration for certain scope, and merges it with the existing configuration.
    *
    * @param response the get configuration RPC response
    * @param conf the existing configuration
+   * @param scope the target scope
    * @return the merged configuration
    */
   public static AlluxioConfiguration getClusterConf(GetConfigurationPResponse response,
-      AlluxioConfiguration conf) {
+      AlluxioConfiguration conf, Scope scope) {
     String clientVersion = conf.get(PropertyKey.VERSION);
-    LOG.debug("Alluxio client (version {}) is trying to load cluster level configurations",
-        clientVersion);
+    LOG.debug("Alluxio {} (version {}) is trying to load cluster level configurations",
+        scope, clientVersion);
     List<alluxio.grpc.ConfigProperty> clusterConfig = response.getClusterConfigsList();
-    Properties clusterProps = loadClientProperties(clusterConfig, (key, value) ->
+    Properties clusterProps = filterAndLoadProperties(clusterConfig, scope, (key, value) ->
         String.format("Loading property: %s (%s) -> %s", key, key.getScope(), value));
     // Check version.
     String clusterVersion = clusterProps.get(PropertyKey.VERSION).toString();
     if (!clientVersion.equals(clusterVersion)) {
-      LOG.warn("Alluxio client version ({}) does not match Alluxio cluster version ({})",
-          clientVersion, clusterVersion);
+      LOG.warn("Alluxio {} version ({}) does not match Alluxio cluster version ({})",
+          scope, clientVersion, clusterVersion);
       clusterProps.remove(PropertyKey.VERSION);
     }
     // Merge conf returned by master as the cluster default into conf object
@@ -559,7 +564,7 @@ public final class ConfigurationUtils {
     // Use the constructor to set cluster defaults as being loaded.
     InstancedConfiguration updatedConf = new InstancedConfiguration(props, true);
     updatedConf.validate();
-    LOG.debug("Alluxio client has loaded cluster level configurations");
+    LOG.debug("Alluxio {} has loaded cluster level configurations", scope);
     return updatedConf;
   }
 
@@ -579,7 +584,7 @@ public final class ConfigurationUtils {
         clientVersion);
     Map<String, AlluxioConfiguration> pathConfs = new HashMap<>();
     response.getPathConfigsMap().forEach((path, conf) -> {
-      Properties props = loadClientProperties(conf.getPropertiesList(),
+      Properties props = filterAndLoadProperties(conf.getPropertiesList(), Scope.CLIENT,
           (key, value) -> String.format("Loading property: %s (%s) -> %s for path %s",
               key, key.getScope(), value, path));
       AlluxioProperties properties = new AlluxioProperties();
@@ -607,5 +612,17 @@ public final class ConfigurationUtils {
 
     return Constants.HEADER + conf.get(PropertyKey.MASTER_HOSTNAME) + ":" + conf
         .get(PropertyKey.MASTER_RPC_PORT);
+  }
+
+  /**
+   * Returns the input string as a list, splitting on a specified delimiter.
+   *
+   * @param value the value to split
+   * @param delimiter the delimiter to split the values
+   * @return the list of values for input string
+   */
+  public static List<String> parseAsList(String value, String delimiter) {
+    return Lists.newArrayList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
+        .split(value));
   }
 }

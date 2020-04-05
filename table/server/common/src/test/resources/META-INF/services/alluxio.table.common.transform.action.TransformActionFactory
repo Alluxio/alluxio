@@ -1,0 +1,2 @@
+alluxio.table.common.transform.action.EarlyActionFactory
+alluxio.table.common.transform.action.LateActionFactory

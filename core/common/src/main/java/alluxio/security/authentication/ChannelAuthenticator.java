@@ -82,17 +82,16 @@ public class ChannelAuthenticator {
    * @throws AlluxioStatusException
    */
   public void authenticate() throws AlluxioStatusException {
-    LOG.debug("Authenticating channel: {}. AuthType: {}", mChannelKey, mAuthType);
+    LOG.debug("Authenticating channel: {}. AuthType: {}", mChannelKey.toStringShort(), mAuthType);
 
     ChannelAuthenticationScheme authScheme = getChannelAuthScheme(mAuthType, mParentSubject,
         mChannelKey.getServerAddress().getSocketAddress());
 
     try {
-      // Create SaslHandler for handling sasl handshake.
-      SaslClientHandler saslClientHandler =
-          createSaslClientHandler(mChannelKey.getServerAddress(), authScheme, mParentSubject);
       // Create client-side driver for establishing authenticated channel with the target.
-      mAuthDriver = new AuthenticatedChannelClientDriver(saslClientHandler, mChannelKey);
+      mAuthDriver = new AuthenticatedChannelClientDriver(
+          createSaslClientHandler(mChannelKey.getServerAddress(), authScheme, mParentSubject),
+          mChannelKey);
 
       // Initialize client-server authentication drivers.
       SaslAuthenticationServiceGrpc.SaslAuthenticationServiceStub serverStub =
@@ -108,13 +107,14 @@ public class ChannelAuthenticator {
       // Intercept authenticated channel with channel-id injector.
       mAuthenticatedChannel = ClientInterceptors.intercept(mManagedChannel,
           new ChannelIdInjector(mChannelKey.getChannelId()));
-    } catch (AlluxioStatusException e) {
+    } catch (Throwable t) {
+      AlluxioStatusException e = AlluxioStatusException.fromThrowable(t);
       // Build a pretty message for authentication failure.
       String message = String.format(
-          "Channel authentication failed with code:%s. ChannelKey: %s, AuthType: %s, Error: %s",
+          "Channel authentication failed with code:%s. Channel: %s, AuthType: %s, Error: %s",
           e.getStatusCode().name(), mChannelKey.toStringShort(), mAuthType, e.toString());
       throw AlluxioStatusException
-          .from(Status.fromCode(e.getStatusCode()).withDescription(message).withCause(e));
+          .from(Status.fromCode(e.getStatusCode()).withDescription(message).withCause(t));
     }
   }
 

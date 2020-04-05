@@ -17,7 +17,7 @@ fullnameOverride: alluxio
 
 # Docker Image
 image: alluxio/alluxio
-imageTag: 2.2.0-SNAPSHOT
+imageTag: 2.3.0-SNAPSHOT
 imagePullPolicy: IfNotPresent
 
 # Security Context
@@ -72,10 +72,13 @@ master:
   nodeSelector: {}
   hostNetwork: false
   dnsPolicy: ClusterFirst
+  # Example: use ROCKS DB instead of Heap
   # metastore:
-  #   medium: ""
   #   size: 1Gi
   #   mountPath: /metastore
+  #   storageClass: "standard"
+  #   accessModes:
+  #     - ReadWriteOnce
 
 jobMaster:
   args:
@@ -106,22 +109,60 @@ jobMaster:
 #   type: "EMBEDDED"
 #   folder: "/journal"
 journal:
-  pvcName: alluxio-pv-claim
   storageClass: "standard"
   size: 1Gi
+  accessModes:
+    - ReadWriteOnce
   type: "UFS" # "UFS" or "EMBEDDED"
   ufsType: "local" # Ignored if type is "EMBEDDED". "local" or "HDFS"
   folder: "/journal" # Master journal folder
   # Configuration for journal formatting job
   format:
+    runFormat: false # Change to true to format journal
     job:
       activeDeadlineSeconds: 30
       ttlSecondsAfterFinished: 10
+    resources:
+      limits:
+        cpu: "1"
+        memory: "1G"
+      requests:
+        cpu: "1"
+        memory: "1G"
 
 
 ## Worker ##
 
 # Tiered Storage
+# emptyDir example
+#  - level: 0
+#    mediumtype: MEM
+#    path: /dev/shm
+#    type: emptyDir
+#    quota: 1G
+#
+# hostPath example
+#  - level: 0
+#    mediumtype: MEM
+#    path: /dev/shm
+#    type: hostPath
+#    quota: 1G
+#
+# persistentVolumeClaim example
+#  - level: 1
+#    mediumtype: SSD
+#    type: persistentVolumeClaim
+#    name: alluxio-ssd
+#    path: /dev/ssd
+#    quota: 10G
+#
+# multi-part mediumtype example
+#  - level: 1
+#    mediumtype: SSD,HDD
+#    type: persistentVolumeClaim
+#    name: alluxio-ssd,alluxio-hdd
+#    path: /dev/ssd,/dev/hdd
+#    quota: 10G,10G
 tieredstore:
   levels:
   - level: 0
@@ -188,8 +229,11 @@ jobWorker:
 
 fuse:
   image: alluxio/alluxio-fuse
-  imageTag: 2.2.0-SNAPSHOT
+  imageTag: 2.3.0-SNAPSHOT
   imagePullPolicy: IfNotPresent
+  # Change both to true to deploy FUSE
+  enabled: false
+  clientEnabled: false
   # Properties for the jobWorker component
   properties:
   # Customize the MaxDirectMemorySize

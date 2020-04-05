@@ -116,6 +116,7 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WEB_RESOURCES,
         PathUtils.concatPath(System.getProperty("user.dir"), "../webui"));
     conf.put(PropertyKey.WORKER_MEMORY_SIZE, "100MB");
+    conf.put(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL, "15ms");
     conf.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "15ms");
     conf.put(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, "2");
 
@@ -139,6 +140,9 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "20ms");
     conf.put(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, "20ms");
     conf.put(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "20ms");
+
+    // faster refresh
+    conf.put(PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME, "20ms");
 
     return conf;
   }

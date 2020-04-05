@@ -174,8 +174,6 @@ public enum ExceptionMessage {
   // table master
   DATABASE_DOES_NOT_EXIST("Database {0} does not exist"),
   TABLE_DOES_NOT_EXIST("Table {0} does not exist in database {1}"),
-  TRANSFORM_ACTION_PARSE_FAILED("Failed to parse transform action at: {0}"),
-  TRANSFORM_WRITE_ACTION_INVALID_ARGS("Write action must have exactly one argument"),
   TRANSFORM_WRITE_ACTION_INVALID_NUM_FILES("Write action must have positive number of files"),
   TABLE_BEING_TRANSFORMED("Existing job {0} is transforming table {1} in database {2}"),
   TABLE_ALREADY_TRANSFORMED("Database {0} table {1} has been transformed by definition {2}"),
@@ -242,6 +240,9 @@ public enum ExceptionMessage {
   UNDEFINED_CONFIGURATION_KEY("No value set for configuration key {0}"),
   UNKNOWN_ENUM("Unrecognized configuration enum value <{0}> for key {1}. Acceptable values: {2}"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
+
+  // metrics
+  INVALID_METRIC_KEY("Invalid metric key {0}"),
 
   // security
   ACL_BASE_REQUIRED(

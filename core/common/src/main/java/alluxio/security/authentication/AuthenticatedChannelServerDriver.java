@@ -67,7 +67,7 @@ public class AuthenticatedChannelServerDriver implements StreamObserver<SaslMess
 
   private void initAuthenticatedChannel(ChannelAuthenticationScheme authScheme, UUID channelId,
       String channelRef) throws SaslException {
-    LOG.debug("Initializing authentication for {}. AuthType: {}", mChannelRef, authScheme);
+    LOG.debug("Initializing authentication for channel: {}. AuthType: {}", mChannelRef, authScheme);
     // Create sasl handler for the requested scheme.
     mSaslServerHandler = mAuthenticationServer.createSaslHandler(authScheme);
     // Unregister from registry if in case it was authenticated before.
@@ -99,7 +99,7 @@ public class AuthenticatedChannelServerDriver implements StreamObserver<SaslMess
         // Complete stream.
         mRequestObserver.onCompleted();
       } catch (Exception exc) {
-        LOG.debug("Failed to close gRPC stream of {}. Error: {}", mChannelRef, exc);
+        LOG.debug("Failed to close gRPC stream of channel: {}. Error: {}", mChannelRef, exc);
       }
     }
   }
@@ -114,7 +114,7 @@ public class AuthenticatedChannelServerDriver implements StreamObserver<SaslMess
             saslMessage.getChannelRef());
       }
 
-      LOG.debug("Responding to a message of {}. Message: {}", mChannelRef, saslMessage);
+      LOG.debug("Responding to a message of channel: {}. Message: {}", mChannelRef, saslMessage);
       // Consult sasl server for handling the message.
       SaslMessage response = mSaslServerHandler.handleMessage(saslMessage);
 
@@ -125,7 +125,7 @@ public class AuthenticatedChannelServerDriver implements StreamObserver<SaslMess
       // Push response to stream.
       mRequestObserver.onNext(response);
     } catch (Throwable t) {
-      LOG.debug("Exception while handling message of {}. Message: {}. Error: {}",
+      LOG.debug("Exception while handling message of channel: {}. Message: {}. Error: {}",
               mChannelRef, saslMessage, t);
       // Invalidate stream.
       mRequestObserver.onError(AlluxioStatusException.fromThrowable(t).toGrpcStatusException());
@@ -147,7 +147,7 @@ public class AuthenticatedChannelServerDriver implements StreamObserver<SaslMess
    * Completes authenticated channel.
    */
   public void close() {
-    LOG.debug("Closing authentication for {}", mChannelRef);
+    LOG.debug("Closing authentication for channel: {}", mChannelRef);
     closeAuthenticatedChannel(true);
   }
 }

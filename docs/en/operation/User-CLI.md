@@ -310,9 +310,9 @@ $ ./bin/alluxio copyDir conf/alluxio-site.properties
 
 The `clearCache` command drops the OS buffer cache.
 
-### confDocGen
+### docGen
 
-The `confDocGen` autogenerates configuration documentation based on the current source code.
+The `docGen` command autogenerates documentation based on the current source code.
 
 ### table
 
@@ -374,6 +374,11 @@ $ ./bin/alluxio validateEnv local ma
 `OPTIONS` can be a list of command line options. Each option has the format
 `-<optionName> [optionValue]` For example, `[-hadoopConfDir <arg>]` could set the path to
 server-side hadoop configuration directory when running validating tasks.
+
+### collectInfo
+
+The `collectInfo` command collects information to troubleshoot an Alluxio cluster.
+For more information see the [collectInfo command page]({{ '/en/operation/Troubleshooting.html#alluxio-collectinfo-command' | relativize_url }}).
 
 ## File System Operations
 
@@ -584,6 +589,41 @@ For example, `cp` can be used to copy files between under storage systems.
 $ ./bin/alluxio fs cp /hdfs/file1 /s3/
 ```
 
+### distributedCp
+
+The `distributedCp` command copies a file or directory in the Alluxio file system distributed across workers
+using the job service.
+
+If the source designates a directory, `distributedCp` copies the entire subtree at source to the destination.
+
+```console
+$ ./bin/alluxio fs distributedCp /data/1023 /data/1024
+```
+
+### distributedLoad
+
+The `distributedLoad` command loads a file or directory from the under storage system into Alluxio storage distributed 
+across workers using the job service. The job is a no-op if the file is already loaded into Alluxio.
+
+If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
+on a random worker.
+The `--replication` flag can be used to load the data into multiple workers.
+
+```console
+$ ./bin/alluxio fs distributedLoad --replication 2 /data/today
+```
+
+### distributedMv
+
+The `distributedMv` command moves a file or directory in the Alluxio file system distributed across workers
+using the job service.
+
+If the source designates a directory, `distributedMv` moves the entire subtree at source to the destination.
+
+```console
+$ ./bin/alluxio fs distributedMv /data/1023 /data/1024
+```
+
 ### du
 
 The `du` command outputs the total size and in Alluxio size of files and folders.
@@ -722,22 +762,6 @@ For example, `load` can be used to prefetch data for analytics jobs.
 
 ```console
 $ ./bin/alluxio fs load /data/today
-```
-
-### loadMetadata
-
-The `loadMetadata` command is deprecated since Alluxio version 1.1.
-Please use `alluxio fs ls <path>` command instead.
-
-The `loadMetadata` command queries the under storage system for any file or directory matching the
-given path and creates a mirror of the file in Alluxio backed by that file.
-Only the metadata, such as the file name and size, are loaded this way and no data transfer occurs.
-
-For example, `loadMetadata` can be used when other systems output to the under storage directly
-and the application running on Alluxio needs to use the output of those systems.
-
-```console
-$ ./bin/alluxio fs loadMetadata /hdfs/data/2015/logs-1.txt
 ```
 
 ### location
@@ -1084,16 +1108,22 @@ $ ./bin/alluxio fs unsetTtl /data/yesterday/data-not-yet-analyzed
 ```console
 $ ./bin/alluxio table
 Usage: alluxio table [generic options]
-	 [attachdb [-o|--option <key=value>] [--db <alluxio db name>] <udb type> <udb connection uri> <udb db name>]
+	 [attachdb [-o|--option <key=value>] [--db <alluxio db name>] [--ignore-sync-errors] <udb type> <udb connection uri> <udb db name>]
 	 [detachdb <db name>]
 	 [ls [<db name> [<table name>]]]
 	 [sync <db name>]
 	 [transform <db name> <table name>]
+	 [transformStatus [<job ID>]]
 ```
 
 The table subcommand manages the structured data service of Alluxio.
 
 ### attachdb
+
+Syntax:
+```
+attachdb [-o|--option <key=value>] [--db <alluxio db name>] [--ignore-sync-errors] <udb type> <udb connection uri> <udb db name>
+```
 
 The `attachdb` command attaches an existing "under database" to the Alluxio catalog. This is
 analogous to mounting a under filesystem to the Alluxio filesystem namespace. Once a database is
@@ -1107,8 +1137,21 @@ $ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name
 This command will attach the database `hive_db_name` (of type `hive`) from the URI
 `thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `hive_db_name`.
 
-You can use a different Alluxio database name with the `--db <alluxio db name>` option.
+Here are the attach command options:
+  * `--db <alluxio db name>`: specify a different Alluxio database name
+  * `--ignore-sync-errors`: ignore sync errors, and keeps the database attached
+  * `-o|--option <key=value>`: (multiple) additional properties associated with the attached db and UDB
 
+Here are the additional properties possible for the `-o` options:
+  * `udb-<UDB_TYPE>.mount-option.{<UFS_PREFIX>}.<MOUNT_PROPERTY>`: specify a mount option for a
+  particular UFS path
+    * `<UDB_TYPE>`: the UDB type
+    * `<UFS_PREFIX>`: the UFS path prefix that the mount properties are for
+    * `<MOUNT_PROPERTY>`: an Alluxio mount property
+  * `catalog.db.ignore.udb.tables`: comma-separated list of table names to ignore from the UDB
+  * `catalog.db.sync.threads`: number of parallel threads to use to sync with the UDB. If too large,
+  the sync may overload the UDB, and if set too low, syncing a database with many tables make take
+  a long time. The default is `4`.
 
 For the `hive` udb type, during the attach process, the Alluxio catalog will auto-mount all the
 table/partition locations in the specified database, to Alluxio. You can supply the mount options
@@ -1162,16 +1205,26 @@ the `db_name` database.
 
 ### sync
 
-The `sync` command syncs the given database name with the under database. Here is an example:
+The `sync` command syncs the metadata of specified database name with the under database.
+Here is an example:
 
 ```console
 $ ./bin/alluxio table sync db_name
 ```
 
-This will sync the `db_name` database name with the under database.
+This will sync the metadata of `db_name` database name with its under database.
+The sync will update, add, remove catalog metadata according to the changes found in the underlying
+database and tables.
+For example, if the under database is `hive`, and the metadata of its tables is updated
+in the Hive Metastore (like `MSCK REPAIR` or other commands), then this `sync` command will
+update the Alluxio metadata with the updated Hive metadata. 
+If an existing Alluxio partition or table is updated and previously had a transformation, then the
+transformation is invalidated, and must be re-triggered via the `transform` command.
 
-> In 2.1.0, `sync` will only discover new information (new tables, new partitions) and not update
-> existing metadata. The full sync feature will be implemented in future versions.
+> If the metadata is NOT updated in the under database, then this sync command will not update
+> the Alluxio catalog metadata, even if the data of the table has been updated. For example,
+> if files are added to a Hive table but the Hive Metastore is not updated, the sync will not
+> detect changes to the metadata.
 
 ### transform
 
@@ -1189,8 +1242,8 @@ format.
 > In 2.1.0, the supported file formats which can be transformed are: parquet and csv
 > file formats. The resulting transformations are in the parquet file format. Additional formats
 > for input and output will be implemented in future versions.
-> For the coalesce feature, if a partition contains more than 100 files, then the coalesce
-> transformation will result in 100 files.
+> For the coalesce feature, by default it will coalesce into a maximum of 100 files, 
+> with each file no smaller than 2GB. 
 
 ### transformStatus
 

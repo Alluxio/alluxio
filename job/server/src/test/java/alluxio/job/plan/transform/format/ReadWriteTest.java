@@ -26,14 +26,10 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * Tests {@link TableReader} and {@link TableWriter}.
@@ -46,28 +42,6 @@ public final class ReadWriteTest extends BaseTransformTest {
       HiveConstants.PARQUET_INPUT_FORMAT_CLASS, new HashMap<>(), new HashMap<>(),
       new ArrayList<>());
 
-  private void createCsvFile(File file, boolean gzipped) throws IOException {
-    OutputStream outputStream = new FileOutputStream(file);
-    try {
-      if (gzipped) {
-        outputStream = new GZIPOutputStream(outputStream);
-      }
-      outputStream.write("a,b,c\n".getBytes());
-      outputStream.write("1,2,3\n".getBytes());
-    } finally {
-      outputStream.close();
-    }
-  }
-
-  private void createParquetFile(File file) throws IOException {
-    TableSchema schema = new ParquetSchema(SCHEMA);
-    TableRow row = new ParquetRow(RECORD);
-    AlluxioURI uri = new AlluxioURI("file:///" + file.getPath());
-    try (TableWriter writer = TableWriter.create(schema, uri)) {
-      writer.write(row);
-    }
-  }
-
   @Test
   public void readWrite() throws Exception {
     final File file = mTempFolder.newFile("test.parquet");
@@ -77,7 +51,7 @@ public final class ReadWriteTest extends BaseTransformTest {
     TableSchema schema = new ParquetSchema(SCHEMA);
     TableRow row = new ParquetRow(RECORD);
     AlluxioURI uri = new AlluxioURI("file:///" + file.getPath());
-    try (TableWriter writer = TableWriter.create(schema, uri)) {
+    try (TableWriter writer = TableWriter.create(schema, uri, mPartitionInfo)) {
       for (int r = 0; r < numRows; r++) {
         writer.write(row);
       }

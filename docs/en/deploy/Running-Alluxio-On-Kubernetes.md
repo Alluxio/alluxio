@@ -73,7 +73,7 @@ spec:
   capacity:
     storage: 1Gi
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   hostPath:
     path: /tmp/alluxio-journal-0
 ```
@@ -92,18 +92,15 @@ There are other ways to create Persistent Volumes as documented [here](https://k
 
 #### Prerequisites
 
-A helm repo with the Alluxio helm chart must be available.
+A. Install Helm
 
-(Optional) To prepare a local helm repository:
+You should have helm 2.X installed.
+You can install helm following instructions [here](https://v2.helm.sh/docs/using_helm/#install-helm).
+
+B. A helm repo with the Alluxio helm chart must be available.
+
 ```console
-$ helm init
-$ helm package helm-chart/alluxio/
-$ mkdir -p helm-chart/charts/
-$ cp alluxio-{{site.ALLUXIO_HELM_VERSION_STRING}}.tgz helm-chart/charts/
-$ helm repo index helm-chart/charts/
-$ helm serve --repo-path helm-chart/charts
-$ helm repo add alluxio-local http://127.0.0.1:8879
-$ helm repo update alluxio-local
+$ helm repo add alluxio-charts https://alluxio-charts.storage.googleapis.com/openSource/{{site.ALLUXIO_VERSION_STRING}}
 ```
 
 #### Configuration
@@ -118,7 +115,7 @@ properties:
 
 To view the complete list of supported properties run the `helm inspect` command:
 ```console
-$ helm inspect values alluxio-local/alluxio
+$ helm inspect values alluxio-charts/alluxio
 ```
 
 The remainder of this section describes various configuration options with examples.
@@ -209,8 +206,8 @@ secrets:
 
 ***Example: Off-heap Metastore Management***
 
-The following configuration provisions an `emptyDir` volume with the specified configuration and
-configures the Alluxio master to use the mounted directory for an on-disk RocksDB-based metastore.
+The following configuration creates a `PersistentVolumeClaim` for each Alluxio master Pod with the specified 
+configuration and configures the Pod to use the volume for an on-disk RocksDB-based metastore.
 ```properties
 properties:
   alluxio.master.metastore: ROCKS
@@ -218,12 +215,12 @@ properties:
 
 master:
   metastore:
-    medium: ""
     size: 1Gi
     mountPath: /metastore
+    storageClass: "standard"
+    accessModes:
+      - ReadWriteOnce
 ```
-
-> Limitation: Limits for the disk usage are not configurable as of now.
 
 ***Example: Multiple Secrets***
 
@@ -244,6 +241,9 @@ secrets:
 Alluxio manages local storage, including memory, on the worker Pods.
 [Multiple-Tier Storage]({{ '/en/core-services/Caching.html#multiple-tier-storage' | relativize_url }})
 can be configured using the following reference configurations.
+
+There 3 supported volume `type`: [hostPath](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath), [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) 
+and [persistentVolumeClaim](https://kubernetes.io/docs/concepts/storage/volumes/#persistentvolumeclaim).
 
 **Memory Tier Only**
 
@@ -277,12 +277,49 @@ tieredstore:
     low: 0.7
 ```
 
-> There 2 supported volume `type`: [hostPath](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath) and [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir)
-`hostPath` volumes can only be used by the `root` user without resource limits.
-[Local persistent volumes](https://kubernetes.io/docs/concepts/storage/volumes/#local) instead of
-`hostPath` must be configured manually as of now.
+> Note: If a `hostPath` file or directory is created at runtime, it can only be used by the `root` user.
+`hostPath` volumes do not have resource limits. 
+You can either run Alluxio containers with `root` or make sure the local paths exist and are accessible to 
+the user `alluxio` with UID and GID 1000. 
+You can find more details [here](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath).
+
+**Memory and SSD Storage in Multiple-Tiers, using PVC**
+
+You can also use PVCs for each tier and provision [PersistentVolume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
+For worker tiered storage please use either `hostPath` or `local` volume so that the worker will read and write 
+locally to achieve the best performance.
+ 
+```properties
+tieredstore:
+  levels:
+  - level: 0
+    mediumtype: MEM
+    path: /dev/shm
+    type: persistentVolumeClaim
+    name: alluxio-mem
+    quota: 1G
+    high: 0.95
+    low: 0.7
+  - level: 1
+    mediumtype: SSD
+    path: /ssd-disk
+    type: persistentVolumeClaim
+    name: alluxio-ssd
+    quota: 10G
+    high: 0.95
+    low: 0.7
+```
+
+> Note: There is one PVC per tier. 
+When the PVC is bound to a PV of type `hostPath` or `local`, each worker Pod will resolve to the local path on the Node.
+Please also note that a `local` volumes requires `nodeAffinity` and Pods using this volume can only run on the Nodes 
+specified in the `nodeAffinity` rule of this volume.
+You can find more details [here](https://kubernetes.io/docs/concepts/storage/volumes/#local).
 
 **Memory and SSD Storage in a Single-Tier**
+
+You can also have multiple volumes on the same tier.
+This configuration will create one `persistentVolumeClaim` for each volume.
 
 ```properties
 tieredstore:
@@ -290,7 +327,8 @@ tieredstore:
   - level: 0
     mediumtype: MEM,SSD
     path: /dev/shm,/alluxio-ssd
-    type: hostPath
+    type: persistentVolumeClaim
+    name: alluxio-mem,alluxio-ssd
     quota: 1GB,10GB
     high: 0.95
     low: 0.7
@@ -300,7 +338,7 @@ tieredstore:
 
 Once the configuration is finalized in a file named `config.yaml`, install as follows:
 ```console
-helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{site.ALLUXIO_HELM_VERSION_STRING}}
+$ helm install --name alluxio -f config.yaml alluxio-charts/alluxio
 ```
 
 #### Uninstall
@@ -308,6 +346,25 @@ helm install --name alluxio -f config.yaml alluxio-local/alluxio --version {{sit
 Uninstall Alluxio as follows:
 ```console
 $ helm delete alluxio
+```
+
+#### Format Journal
+
+The master Pods in the StatefulSet use a `initContainer` to format the journal on startup..
+This `initContainer` is switched on by `journal.format.runFormat=true`. 
+By default, the journal is not formatted when the master starts.
+
+You can trigger the journal formatting by upgrading the existing helm deployment with `journal.format.runFormat=true`.
+```console
+# Use the same config.yaml and switch on journal formatting
+$ helm upgrade alluxio -f config.yaml --set journal.format.runFormat=true alluxio-charts/alluxio
+```
+
+> Note: `helm upgrade` will re-create the master Pods.
+
+Or you can trigger the journal formatting at deployment.
+```console
+$ helm install --name alluxio -f config.yaml --set journal.format.runFormat=true alluxio-charts/alluxio
 ```
 
 ### Deploy Using `kubectl`
@@ -455,6 +512,27 @@ $ kubectl delete configmap alluxio-config
 > Note: This will delete all resources under `./master/` and `./worker/`. 
 Be careful if you have persistent volumes or other important resources you want to keep under those directories.  
 
+#### Format Journal
+
+You can manually add an `initContainer` to format the journal on Pod creation time.
+This `initContainer` will run `alluxio formatJournal` when the Pod is created and formats the journal.
+
+```yaml
+- name: journal-format
+  image: alluxio/alluxio:{{site.ALLUXIO_VERSION_STRING}}
+  imagePullPolicy: IfNotPresent
+  securityContext:
+    runAsUser: 1000
+  command: ["alluxio","formatJournal"]
+  volumeMounts:
+    - name: alluxio-journal
+      mountPath: /journal
+```
+
+> Note: From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio` 
+with UID 1000 and GID 1000 by default. 
+You should make sure the journal is formatted using the same user that the Alluxio master Pod runs as. 
+
 #### Upgrade
 
 This section will go over how to upgrade Alluxio in your Kubernetes cluster with `kubectl`.
@@ -502,18 +580,8 @@ Make sure all the Pods have been terminated before you move on to the next step.
 Check the Alluxio upgrade guide page for whether the Alluxio master journal has to be formatted.
 If no format is needed, you are ready to skip the rest of this section and move on to restart all Alluxio master and worker Pods.
 
-There is a single Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
-template that can be used for only formatting the master.
-The Job runs `alluxio formatMasters` and formats the journal for all masters.
-You should make sure the Job runs with the same configMap with all your other Alluxio masters so it's able to find the journal persistent storage and format it.
-
-```console
-$ cp ./job/alluxio-format-journal-job.yaml.template ./job/alluxio-format-journal-job.yaml
-$ kubectl apply -f ./job/alluxio-format-journal-job.yaml
-```
-
-After the Job completes, it will be deleted by Kubernetes after the defined `ttlSecondsAfterFinished`.
-Then the clean journal will be ready for a new Alluxio master(s) to start with.
+You can follow [formatting journal with kubectl]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#format-journal-1' | relativize_url }})
+to format the Alluxio journals. 
 
 If you are running Alluxio workers with [tiered storage]({{ '/en/core-services/Caching.html#multiple-tier-storage' | relativize_url }}),
 and you have Persistent Volumes configured for Alluxio, the storage should be cleaned up too.
@@ -603,6 +671,21 @@ $ kubectl create -f alluxio-fuse-client.yaml
 
 If using the template, Alluxio is mounted at `/alluxio-fuse` and can be accessed via the POSIX-API
 across multiple containers.
+
+***Using `helm`***
+You can deploy the FUSE daemon by configuring the following properties:
+```properties
+fuse:
+  enabled: true
+  clientEnabled: true
+```
+
+Then follow the steps to install Alluxio with helm [here]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#deploy-using-helm' | relativize_url }}).
+
+If Alluxio has already been deployed with helm and now you want to enable FUSE, you use `helm upgrade` to add the FUSE daemons.
+```console
+$ helm upgrade alluxio -f config.yaml --set fuse.enabled=true --set fuse.clientEnabled=true alluxio-charts/alluxio
+```
 
 ## Troubleshooting
 

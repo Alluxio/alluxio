@@ -23,7 +23,7 @@ on top of Alluxio POSIX API.
 
 * Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
 * Alluxio has been set up and is running.
-* [Tensorflow](https://www.tensorflow.org/install/pip) installed. 
+* [Tensorflow](https://www.tensorflow.org/install/pip) installed. This guide uses Tensorflow **v1.15**.
 
 ## Setting up Alluxio POSIX API
 

@@ -101,12 +101,10 @@ public final class EvictDefinition
   @Override
   public SerializableVoid runTask(EvictConfig config, SerializableVoid args, RunTaskContext context)
       throws Exception {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context.getFsContext());
-
     long blockId = config.getBlockId();
     String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
         ServerConfiguration.global());
-    List<BlockWorkerInfo> workerInfoList = blockStore.getAllWorkers();
+    List<BlockWorkerInfo> workerInfoList = context.getFsContext().getCachedWorkers();
     WorkerNetAddress localNetAddress = null;
 
     for (BlockWorkerInfo workerInfo : workerInfoList) {

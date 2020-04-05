@@ -17,6 +17,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetConfigurationPResponse;
+import alluxio.grpc.Scope;
 import alluxio.security.user.UserState;
 import alluxio.util.ConfigurationUtils;
 
@@ -133,7 +134,7 @@ public class ClientContext {
     GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address,
         conf, !loadClusterConf, !loadPathConf);
     if (loadClusterConf) {
-      mClusterConf = ConfigurationUtils.getClusterConf(response, conf);
+      mClusterConf = ConfigurationUtils.getClusterConf(response, conf, Scope.CLIENT);
       mClusterConfHash = response.getClusterConfigHash();
     }
     if (loadPathConf) {

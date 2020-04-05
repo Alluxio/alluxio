@@ -23,10 +23,12 @@ import alluxio.grpc.table.ColumnStatisticsList;
 import alluxio.grpc.table.Constraint;
 import alluxio.grpc.table.Database;
 import alluxio.grpc.table.Partition;
+import alluxio.grpc.table.SyncStatus;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.DelegatingJournaled;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.checkpoint.CheckpointName;
@@ -54,7 +56,7 @@ public class DefaultTableMaster extends CoreMaster
     implements TableMaster, DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultTableMaster.class);
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(FileSystemMaster.class);
-  private static final String DEFAULT_TRANSFORMATION = "write(hive).option(hive.num.files, 100);";
+  public static final String DEFAULT_TRANSFORMATION = "file.count.max=100";
 
   private final AlluxioCatalog mCatalog;
   private final TransformManager mTransformManager;
@@ -76,17 +78,21 @@ public class DefaultTableMaster extends CoreMaster
   }
 
   @Override
-  public boolean attachDatabase(String udbType, String udbConnectionUri, String udbDbName,
-      String dbName, Map<String, String> configuration) throws IOException {
-    return mCatalog
-        .attachDatabase(createJournalContext(), udbType, udbConnectionUri, udbDbName, dbName,
-            configuration);
+  public SyncStatus attachDatabase(String udbType, String udbConnectionUri,
+      String udbDbName, String dbName, Map<String, String> configuration, boolean ignoreSyncErrors)
+      throws IOException {
+    try (JournalContext journalContext = createJournalContext()) {
+      return mCatalog.attachDatabase(journalContext, udbType, udbConnectionUri, udbDbName, dbName,
+          configuration, ignoreSyncErrors);
+    }
   }
 
   @Override
   public boolean detachDatabase(String dbName)
       throws IOException {
-    return mCatalog.detachDatabase(createJournalContext(), dbName);
+    try (JournalContext journalContext = createJournalContext()) {
+      return mCatalog.detachDatabase(journalContext, dbName);
+    }
   }
 
   @Override
@@ -147,8 +153,10 @@ public class DefaultTableMaster extends CoreMaster
   }
 
   @Override
-  public boolean syncDatabase(String dbName) throws IOException {
-    return mCatalog.syncDatabase(createJournalContext(), dbName);
+  public SyncStatus syncDatabase(String dbName) throws IOException {
+    try (JournalContext journalContext = createJournalContext()) {
+      return mCatalog.syncDatabase(journalContext, dbName);
+    }
   }
 
   @Override

@@ -83,7 +83,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private static final String DIR_HASH;
 
   /** Threshold to do multipart copy. */
-  private static final long MULTIPART_COPY_THRESHOLD = 100 * Constants.MB;
+  private static final long MULTIPART_COPY_THRESHOLD = 100L * Constants.MB;
 
   /** Default owner of objects if owner cannot be determined. */
   private static final String DEFAULT_OWNER = "";
@@ -145,6 +145,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     // Set the client configuration based on Alluxio configuration values.
     ClientConfiguration clientConf = new ClientConfiguration();
+
+    // Max error retry
+    if (conf.isSet(PropertyKey.UNDERFS_S3_MAX_ERROR_RETRY)) {
+      clientConf.setMaxErrorRetry(conf.getInt(PropertyKey.UNDERFS_S3_MAX_ERROR_RETRY));
+    }
 
     // Socket timeout
     clientConf

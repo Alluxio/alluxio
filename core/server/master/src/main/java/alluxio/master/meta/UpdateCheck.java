@@ -14,6 +14,7 @@ package alluxio.master.meta;
 import alluxio.ProjectConstants;
 import alluxio.util.EnvironmentUtils;
 
+import com.amazonaws.util.EC2MetadataUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import org.apache.http.HttpResponse;
@@ -26,6 +27,8 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,6 +37,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class UpdateCheck {
+  private static final String PRODUCT_CODE_KEY = "ProductCode:";
+
   /**
    * @param clusterID the cluster ID
    * @param connectionRequestTimeout the connection request timeout for the HTTP request in ms
@@ -80,12 +85,58 @@ public final class UpdateCheck {
   @VisibleForTesting
   public static String getUserAgentString(String clusterID) throws IOException {
     Joiner joiner = Joiner.on("; ").skipNulls();
+    boolean isGCE = EnvironmentUtils.isGoogleComputeEngine();
     String sysInfo = joiner.join(
         clusterID,
         EnvironmentUtils.isDocker() ? "docker" : null,
-        EnvironmentUtils.isKubernetes() ? "kubernetes" : null
+        EnvironmentUtils.isKubernetes() ? "kubernetes" : null,
+        isGCE ? "gce" : null
     );
+    if (!isGCE) {
+      List<String> ec2Info = getEC2Info();
+      if (ec2Info.size() != 0) {
+        sysInfo = joiner.join(sysInfo, joiner.join(ec2Info));
+      }
+    }
     return String.format("Alluxio/%s (%s)", ProjectConstants.VERSION, sysInfo);
+  }
+
+  /**
+   * Gets the EC2 system information.
+   *
+   * @return a list of string representation of the user's EC2 environment
+   */
+  private static List<String> getEC2Info() {
+    List<String> ec2Info = new ArrayList<>();
+    boolean isEC2 = false;
+    String productCode = EnvironmentUtils.getEC2ProductCode();
+    if (!productCode.isEmpty()) {
+      ec2Info.add(PRODUCT_CODE_KEY + productCode);
+      isEC2 = true;
+    }
+
+    String userData = "";
+    try {
+      userData = EC2MetadataUtils.getUserData();
+    } catch (Throwable t) {
+      // Exceptions are expected if instance is not EC2 instance
+      // or get metadata operation is not allowed
+    }
+    if (userData != null && !userData.isEmpty()) {
+      isEC2 = true;
+      if (EnvironmentUtils.isCFT(userData)) {
+        ec2Info.add("cft");
+      } else if (EnvironmentUtils.isEMR(userData)) {
+        ec2Info.add("emr");
+      }
+    } else if (!isEC2 && EnvironmentUtils.isEC2()) {
+      isEC2 = true;
+    }
+
+    if (isEC2) {
+      ec2Info.add("ec2");
+    }
+    return ec2Info;
   }
 
   private UpdateCheck() {} // prevent instantiation

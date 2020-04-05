@@ -84,7 +84,7 @@ across different Alluxio nodes as well as alert the operator when worker storage
 # shows server-side configuration errors and warnings
 $ ./bin/alluxio fsadmin doctor configuration
 # shows worker storage health errors and warnings
-$ ./bin/alluixo fsadmin doctor storage
+$ ./bin/alluxio fsadmin doctor storage
 ```
 
 ### getBlockInfo
@@ -102,17 +102,17 @@ This block belongs to file {id=16810770431, path=/test2}
 
 The `metrics` command provides operations for Alluxio metrics system.
 
-`metrics clear` will clear the metrics stored in the whole alluxio cluster.
-This command is useful when getting metrics information in short-term testing.
-It should be used sparingly as it may affect the current metrics recording and reporting which may lead to metrics incorrectness 
-and affect worker/client heartbeats with leading master.
+The command `metrics clear`, will clear all metrics stored in the alluxio cluster.
+This command is useful for collecting metrics for specific jobs and tests.
+It should be used sparingly, since it will affect the current metrics reporting and can affect worker/client heartbeats
+to the leading master.
 
 If `--master` option is used, all the metrics stored in Alluxio leading master will be cleared.
 If `--workers <WORKER_HOSTNAME_1>,<WORKER_HOSTNAME_2>` is used, metrics in specific workers will be cleared.
 
-If you are clearing metrics of a large Alluxio cluster with many workers, you can use the `--parallelism <#>` option to submit `#` of
-worker metrics clearance job in parallel. For example, if your cluster has 200 workers, persisting with a
-parallelism factor of 10 will clear metrics of 10 workers at a time until all metrics in 200 workers are cleared.
+If you are clearing metrics on a large Alluxio cluster with many workers, you can use the `--parallelism <#>` option to
+choose the `#` of workers to clear in parallel. For example, if your cluster has 200 workers, running with a
+parallelism factor of 10 will clear execute the command on 10 workers at a time until all metrics are cleared.
 
 ```console
 # Clear metrics of the whole alluxio cluster including leading master and workers
@@ -124,6 +124,75 @@ $ ./bin/alluxio fsadmin metrics clear --workers <WORKER_HOSTNAME_1>,<WORKER_HOST
 # Clear metrics of an alluxio cluster with many workers in parallel
 $ ./bin/alluxio fsadmin metrics clear --parallelism 10
 ```
+
+### pathConf
+
+The `pathConf` command manages [path defaults]({{ '/en/operation/Configuration.html' | relativize_url }}#path-defaults).
+
+#### list
+
+`pathConf list` lists paths configured with path defaults.
+
+```console
+$ ./bin/alluxio fsadmin pathConf list
+
+/a
+/b
+```
+The above command shows that there are path defaults set for paths with prefix `/a` and `/b`.
+
+#### show
+
+`pathConf show` shows path defaults for a specific path.
+
+It has two modes:
+1. without option `--all`, only show path defaults set for the specific path;
+2. with option `--all`, show path defaults set for all paths that are prefixes of the specified path.
+
+For example, suppose path defaults `property1=value1` is set for `/a`,
+and `property2=value2` is set for `/a/b`.
+
+Then without `--all`, only properties for `/a/b` are shown:
+```console
+$ ./bin/alluxio fsadmin pathConf show /a/b
+
+property2=value2
+```
+
+With `--all`, since `/a` is a prefix of `/a/b`, properties for both `/a` and `/a/b` are shown:
+```console
+$ ./bin/alluxio fsadmin pathConf show --all /a/b
+
+property1=value1
+property2=value2
+```
+
+#### add
+
+`pathConf add` adds or updates path defaults, only properties with scope equal to or broader than the
+client scope can be set as path defaults.
+
+```console
+$ ./bin/alluxio fsadmin pathConf add --property property1=value1 --property property2=value2 /tmp
+```
+
+The above command adds two properties as path defaults for paths with prefix `/tmp`.
+
+```console
+$ ./bin/alluxio fsadmin pathConf add --property property1=value2 /tmp
+```
+The above command updates the value of `property1` from `value1` to `value2` for path defaults of `/tmp`.
+
+#### remove
+
+`pathConf remove` removes properties from path defaults for a path.
+
+```console
+$ ./bin/alluxio fsadmin pathConf remove --keys property1,property2 /tmp
+```
+
+The above command removes properties with key `property1` and `property2` from path
+defaults for paths with prefix `/tmp`.
 
 ### report
 
@@ -205,72 +274,3 @@ $ ./bin/alluxio fsadmin ufs --mode readOnly hdfs://ns
 
 The `fsadmin ufs` subcommand takes a UFS URI as an argument. The argument should be a root
 UFS URI like `hdfs://<name-service>/`, and not `hdfs://<name-service>/<folder>`.
-
-### pathConf
-
-The `pathConf` command manages [path defaults]({{ '/en/operation/Configuration.html' | relativize_url }}#path-defaults).
-
-#### list
-
-`pathConf list` lists paths configured with path defaults.
-
-```console
-$ ./bin/alluxio fsadmin pathConf list
-
-/a
-/b
-```
-The above command shows that there are path defaults set for paths with prefix `/a` and `/b`.
-
-#### show
-
-`pathConf show` shows path defaults for a specific path.
-
-It has two modes:
-1. without option `--all`, only show path defaults set for the specific path;
-2. with option `--all`, show path defaults set for all paths that are prefixes of the specified path.
-
-For example, suppose path defaults `property1=value1` is set for `/a`,
-and `property2=value2` is set for `/a/b`.
-
-Then without `--all`, only properties for `/a/b` are shown:
-```console
-$ ./bin/alluxio fsadmin pathConf show /a/b
-
-property2=value2
-```
-
-With `--all`, since `/a` is a prefix of `/a/b`, properties for both `/a` and `/a/b` are shown:
-```console
-$ ./bin/alluxio fsadmin pathConf show --all /a/b
-
-property1=value1
-property2=value2
-```
-
-#### add
-
-`pathConf add` adds or updates path defaults, only properties with scope equal to or broader than the
-client scope can be set as path defaults.
-
-```console
-$ ./bin/alluxio fsadmin pathConf add --property property1=value1 --property property2=value2 /tmp
-```
-
-The above command adds two properties as path defaults for paths with prefix `/tmp`.
-
-```console
-$ ./bin/alluxio fsadmin pathConf add --property property1=value2 /tmp
-```
-The above command updates the value of `property1` from `value1` to `value2` for path defaults of `/tmp`.
-
-#### remove
-
-`pathConf remove` removes properties from path defaults for a path.
-
-```console
-$ ./bin/alluxio fsadmin pathConf remove --keys property1,property2 /tmp
-```
-
-The above command removes properties with key `property1` and `property2` from path
-defaults for paths with prefix `/tmp`.

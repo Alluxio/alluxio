@@ -22,6 +22,9 @@ import alluxio.master.MasterClientContext;
 import alluxio.grpc.GrpcUtils;
 import alluxio.wire.FileInfo;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -32,6 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class FileSystemMasterClient extends AbstractMasterClient {
+  private static final Logger LOG = LoggerFactory.getLogger(FileSystemMasterClient.class);
   private FileSystemMasterWorkerServiceGrpc.FileSystemMasterWorkerServiceBlockingStub mClient =
           null;
 
@@ -70,7 +74,8 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    */
   public FileInfo getFileInfo(final long fileId) throws IOException {
     return retryRPC(() -> GrpcUtils.fromProto(mClient
-        .getFileInfo(GetFileInfoPRequest.newBuilder().setFileId(fileId).build()).getFileInfo()));
+        .getFileInfo(GetFileInfoPRequest.newBuilder().setFileId(fileId).build()).getFileInfo()),
+        LOG, "GetFileInfo", "fileId=%d", fileId);
   }
 
   /**
@@ -80,6 +85,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    */
   public UfsInfo getUfsInfo(final long mountId) throws IOException {
     return retryRPC(() -> mClient
-        .getUfsInfo(GetUfsInfoPRequest.newBuilder().setMountId(mountId).build()).getUfsInfo());
+        .getUfsInfo(GetUfsInfoPRequest.newBuilder().setMountId(mountId).build()).getUfsInfo(),
+        LOG, "GetUfsInfo", "mountId=%d", mountId);
   }
 }

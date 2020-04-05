@@ -29,32 +29,28 @@ $ cd alluxio
 By default, cloning the repository will check out the master branch. If you are looking to build a
 particular version of the code you may check out the version using a git tag.
 
-For example to checkout the source for version v{{site.ALLUXIO_RELEASED_VERSION}}, run:
-
-```console
-$ git checkout v{{site.ALLUXIO_RELEASED_VERSION}}
-```
-
-To view a list of all possible versions you can run
-
 ```console
 $ git tag
+$ git checkout <TAG_NAME>
 ```
 
 ## Build
 
 Build the source code using Maven:
 
-```java
-mvn clean install -DskipTests
+```console
+$ mvn clean install -DskipTests
 ```
 
 To speed up the compilation, you can run the following instruction to skip different checks:
 
 ```console
 $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip \
-  -Dcheckstyle.skip -Dlicense.skip
+  -Dcheckstyle.skip -Dlicense.skip -Dskip.protoc
 ```
+
+> Note: The flag `-Dskip.protoc` skips generating source files related to gRPC proto.
+You can skip this step if you have already built them.
 
 If you are seeing `java.lang.OutOfMemoryError: Java heap space`, please set the following
 variable to increase the memory heap size for maven:
@@ -146,7 +142,7 @@ To build against Cloudera's releases, just use a version like `$apacheRelease-cd
 
 #### Hortonworks
 
-To build against a Hortonworks release, just use a version like `$apacheRelease.$hortonRelease`
+To build against a Hortonworks release, just use a version like `$apacheRelease.$hortonworksRelease`
 
 ```properties
 -Phadoop-2 -Dhadoop.version=2.1.0.2.0.5.0-67

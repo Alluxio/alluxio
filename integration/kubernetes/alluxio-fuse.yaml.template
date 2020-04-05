@@ -11,14 +11,13 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: alluxio-fuse
   labels:
     app: alluxio
-    chart: alluxio-0.5.3
+    chart: alluxio-0.5.7
     release: alluxio
     heritage: Tiller
     role: alluxio-fuse
@@ -26,7 +25,7 @@ spec:
   selector:
     matchLabels:
       app: alluxio
-      chart: alluxio-0.5.3
+      chart: alluxio-0.5.7
       release: alluxio
       heritage: Tiller
       role: alluxio-fuse
@@ -34,7 +33,7 @@ spec:
     metadata:
       labels:
         app: alluxio
-        chart: alluxio-0.5.3
+        chart: alluxio-0.5.7
         release: alluxio
         heritage: Tiller
         role: alluxio-fuse
@@ -61,7 +60,7 @@ spec:
                 - alluxio-worker
       containers:
         - name: alluxio-fuse
-          image: alluxio/alluxio-fuse:2.2.0-SNAPSHOT
+          image: alluxio/alluxio-fuse:2.3.0-SNAPSHOT
           imagePullPolicy: IfNotPresent
           resources:
             limits:

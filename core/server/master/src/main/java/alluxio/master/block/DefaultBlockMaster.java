@@ -49,6 +49,8 @@ import alluxio.master.metastore.BlockStore;
 import alluxio.master.metastore.BlockStore.Block;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
@@ -70,6 +72,9 @@ import alluxio.wire.WorkerNetAddress;
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.Striped;
@@ -93,7 +98,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -119,6 +126,9 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
    * the journal.
    */
   private static final long CONTAINER_ID_RESERVATION_SIZE = 1000;
+
+  /** The only valid key for {@link #mWorkerInfoCache}. */
+  private static final String WORKER_INFO_CACHE_KEY = "WorkerInfoKey";
 
   // Worker metadata management.
   private static final IndexDefinition<MasterWorkerInfo, Long> ID_INDEX =
@@ -226,6 +236,12 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   private long mJournaledNextContainerId = 0;
 
   /**
+   * A loading cache for worker info list, refresh periodically.
+   * This cache only has a single key {@link  #WORKER_INFO_CACHE_KEY}.
+   */
+  private LoadingCache<String, List<WorkerInfo>> mWorkerInfoCache;
+
+  /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
    * @param metricsMaster the metrics master
@@ -253,6 +269,16 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
     mMetricsMaster = metricsMaster;
     Metrics.registerGauges(this);
+
+    mWorkerInfoCache = CacheBuilder.newBuilder()
+        .refreshAfterWrite(ServerConfiguration
+            .getMs(PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME), TimeUnit.MILLISECONDS)
+        .build(new CacheLoader<String, List<WorkerInfo>>() {
+          @Override
+          public List<WorkerInfo> load(String key) {
+            return constructWorkerInfoList();
+          }
+        });
   }
 
   @Override
@@ -405,6 +431,14 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
+    try {
+      return mWorkerInfoCache.get(WORKER_INFO_CACHE_KEY);
+    } catch (ExecutionException e) {
+      throw new UnavailableException("Unable to get worker info list from cache", e);
+    }
+  }
+
+  private List<WorkerInfo> constructWorkerInfoList() {
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
     for (MasterWorkerInfo worker : mWorkers) {
       synchronized (worker) {
@@ -427,6 +461,19 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     }
     Collections.sort(workerInfoList, new WorkerInfo.LastContactSecComparator());
     return workerInfoList;
+  }
+
+  @Override
+  public Set<WorkerNetAddress> getWorkerAddresses() throws UnavailableException {
+    if (mSafeModeManager.isInSafeMode()) {
+      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
+    }
+    Set<WorkerNetAddress> workerAddresses = new HashSet<>(mWorkers.size());
+    for (MasterWorkerInfo worker : mWorkers) {
+      // worker net address is unmodifiable after initialization, no locking is needed
+      workerAddresses.add(worker.getWorkerAddress());
+    }
+    return workerAddresses;
   }
 
   @Override
@@ -857,7 +904,8 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     }
 
     registerWorkerInternal(workerId);
-
+    // Invalidate cache to trigger new build of worker info list
+    mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
     LOG.info("registerWorker(): {}", worker);
   }
 
@@ -1049,13 +1097,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
           if (lastUpdate > masterWorkerTimeoutMs) {
             LOG.error("The worker {}({}) timed out after {}ms without a heartbeat!", worker.getId(),
                 worker.getWorkerAddress(), lastUpdate);
-            mLostWorkers.add(worker);
-            mWorkers.remove(worker);
-            WorkerNetAddress workerAddress = worker.getWorkerAddress();
-            for (Consumer<Address> function : mWorkerLostListeners) {
-              function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
-            }
-            processWorkerRemovedBlocks(worker, worker.getBlocks());
+            processLostWorker(worker);
           }
         }
       }
@@ -1065,6 +1107,33 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     public void close() {
       // Nothing to clean up
     }
+  }
+
+  /**
+   * Forces all workers to be lost. This should only be used for testing.
+   */
+  @VisibleForTesting
+  public void forgetAllWorkers() {
+    for (MasterWorkerInfo worker : mWorkers) {
+      synchronized (worker) {
+        processLostWorker(worker);
+      }
+    }
+  }
+
+  /**
+   * Updates the metadata for the specified lost worker.
+   *
+   * @param worker the worker metadata
+   */
+  private void processLostWorker(MasterWorkerInfo worker) {
+    mLostWorkers.add(worker);
+    mWorkers.remove(worker);
+    WorkerNetAddress workerAddress = worker.getWorkerAddress();
+    for (Consumer<Address> function : mWorkerLostListeners) {
+      function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
+    }
+    processWorkerRemovedBlocks(worker, worker.getBlocks());
   }
 
   private LockResource lockBlock(long blockId) {
@@ -1127,11 +1196,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
    * Class that contains metrics related to BlockMaster.
    */
   public static final class Metrics {
-    public static final String CAPACITY_TOTAL = "CapacityTotal";
-    public static final String CAPACITY_USED = "CapacityUsed";
-    public static final String CAPACITY_FREE = "CapacityFree";
-    public static final String WORKERS = "Workers";
-    public static final String TIER = "Tier";
 
     /**
      * Registers metric gauges.
@@ -1140,19 +1204,21 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
      */
     @VisibleForTesting
     public static void registerGauges(final BlockMaster master) {
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_TOTAL),
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_CAPACITY_TOTAL.getName(),
           master::getCapacityBytes);
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_USED),
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_CAPACITY_USED.getName(),
           master::getUsedBytes);
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(CAPACITY_FREE),
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_CAPACITY_FREE.getName(),
           () -> master.getCapacityBytes() - master.getUsedBytes());
 
       for (int i = 0; i < master.getGlobalStorageTierAssoc().size(); i++) {
         String alias = master.getGlobalStorageTierAssoc().getAlias(i);
+        // TODO(lu) Add template to dynamically construct metric key
         MetricsSystem.registerGaugeIfAbsent(
-            MetricsSystem.getMetricName(CAPACITY_TOTAL + TIER + alias), new Gauge<Long>() {
+            MetricKey.CLUSTER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + alias,
+            new Gauge<Long>() {
               @Override
               public Long getValue() {
                 return master.getTotalBytesOnTiers().getOrDefault(alias, 0L);
@@ -1160,14 +1226,14 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
             });
 
         MetricsSystem.registerGaugeIfAbsent(
-            MetricsSystem.getMetricName(CAPACITY_USED + TIER + alias), new Gauge<Long>() {
+            MetricKey.CLUSTER_CAPACITY_USED.getName() + MetricInfo.TIER + alias, new Gauge<Long>() {
               @Override
               public Long getValue() {
                 return master.getUsedBytesOnTiers().getOrDefault(alias, 0L);
               }
             });
         MetricsSystem.registerGaugeIfAbsent(
-            MetricsSystem.getMetricName(CAPACITY_FREE + TIER + alias), new Gauge<Long>() {
+            MetricKey.CLUSTER_CAPACITY_FREE.getName() + MetricInfo.TIER + alias, new Gauge<Long>() {
               @Override
               public Long getValue() {
                 return master.getTotalBytesOnTiers().getOrDefault(alias, 0L)
@@ -1176,7 +1242,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
             });
       }
 
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(WORKERS),
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_WORKERS.getName(),
           new Gauge<Integer>() {
             @Override
             public Integer getValue() {

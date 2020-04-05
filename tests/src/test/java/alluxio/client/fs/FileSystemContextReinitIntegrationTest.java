@@ -13,6 +13,7 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
+import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -26,6 +27,7 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterClientContext;
+import alluxio.resource.CloseableResource;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
@@ -112,6 +114,17 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
     updateHash();
     triggerAndWaitSync();
     checkHash(false, false);
+  }
+
+  @Test
+  public void blockWorkerClientReinit() throws Exception {
+    FileSystemContext fsContext = FileSystemContext.create(ServerConfiguration.global());
+    try (CloseableResource<BlockWorkerClient> client =
+        fsContext.acquireBlockWorkerClient(mLocalAlluxioClusterResource.get().getWorkerAddress())) {
+      fsContext.reinit(true, true);
+      fsContext.acquireBlockWorkerClient(mLocalAlluxioClusterResource.get().getWorkerAddress())
+          .close();
+    }
   }
 
   @Test

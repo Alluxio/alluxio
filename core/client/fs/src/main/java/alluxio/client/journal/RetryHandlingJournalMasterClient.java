@@ -22,12 +22,15 @@ import alluxio.grpc.RemoveQuorumServerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A wrapper for the gRPC client to interact with the journal master, used by alluxio clients.
  */
 public class RetryHandlingJournalMasterClient extends AbstractMasterClient
     implements JournalMasterClient {
-
+  private static final Logger RPC_LOG = LoggerFactory.getLogger(JournalMasterClient.class);
   private JournalMasterClientServiceGrpc.JournalMasterClientServiceBlockingStub mClient = null;
 
   /**
@@ -61,12 +64,14 @@ public class RetryHandlingJournalMasterClient extends AbstractMasterClient
 
   @Override
   public GetQuorumInfoPResponse getQuorumInfo() throws AlluxioStatusException {
-    return retryRPC(() -> mClient.getQuorumInfo(GetQuorumInfoPRequest.getDefaultInstance()));
+    return retryRPC(() -> mClient.getQuorumInfo(GetQuorumInfoPRequest.getDefaultInstance()),
+        RPC_LOG, "GetQuorumInfo",  "");
   }
 
   @Override
   public void removeQuorumServer(NetAddress serverAddress) throws AlluxioStatusException {
     retryRPC(() -> mClient.removeQuorumServer(
-        RemoveQuorumServerPRequest.newBuilder().setServerAddress(serverAddress).build()));
+        RemoveQuorumServerPRequest.newBuilder().setServerAddress(serverAddress).build()),
+        RPC_LOG, "RemoveQuorumServer",  "serverAddress=%s", serverAddress);
   }
 }

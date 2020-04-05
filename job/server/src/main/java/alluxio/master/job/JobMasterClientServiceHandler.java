@@ -19,6 +19,8 @@ import alluxio.grpc.GetAllWorkerHealthPRequest;
 import alluxio.grpc.GetAllWorkerHealthPResponse;
 import alluxio.grpc.GetJobServiceSummaryPRequest;
 import alluxio.grpc.GetJobServiceSummaryPResponse;
+import alluxio.grpc.GetJobStatusDetailedPRequest;
+import alluxio.grpc.GetJobStatusDetailedPResponse;
 import alluxio.grpc.GetJobStatusPRequest;
 import alluxio.grpc.GetJobStatusPResponse;
 import alluxio.grpc.JobMasterClientServiceGrpc;
@@ -69,8 +71,19 @@ public class JobMasterClientServiceHandler
                            StreamObserver<GetJobStatusPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobStatusPResponse>) () -> {
       return GetJobStatusPResponse.newBuilder()
-          .setJobInfo(mJobMaster.getStatus(request.getJobId()).toProto()).build();
+          .setJobInfo(mJobMaster.getStatus(request.getJobId(), false).toProto()).build();
     }, "getJobStatus", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getJobStatusDetailed(GetJobStatusDetailedPRequest request,
+                                   StreamObserver<GetJobStatusDetailedPResponse>
+                                       responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobStatusDetailedPResponse>) () ->
+    {
+      return GetJobStatusDetailedPResponse.newBuilder()
+          .setJobInfo(mJobMaster.getStatus(request.getJobId(), true).toProto()).build();
+    }, "getJobStatusDetailed", "request=%s", responseObserver, request);
   }
 
   @Override

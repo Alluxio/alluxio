@@ -32,19 +32,16 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
-import alluxio.grpc.MetricType;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.meta.MountTable;
-import alluxio.metrics.ClientMetrics;
-import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.WorkerMetrics;
+import alluxio.metrics.MetricInfo;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
@@ -152,24 +149,6 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String LOG_LEVEL = "logLevel";
   public static final String LOG_ARGUMENT_NAME = "logName";
   public static final String LOG_ARGUMENT_LEVEL = "level";
-
-  // the following endpoints are deprecated
-  public static final String GET_RPC_ADDRESS = "rpc_address";
-  public static final String GET_CONFIGURATION = "configuration";
-  public static final String GET_CAPACITY_BYTES = "capacity_bytes";
-  public static final String GET_USED_BYTES = "used_bytes";
-  public static final String GET_FREE_BYTES = "free_bytes";
-  public static final String GET_CAPACITY_BYTES_ON_TIERS = "capacity_bytes_on_tiers";
-  public static final String GET_USED_BYTES_ON_TIERS = "used_bytes_on_tiers";
-  public static final String GET_UFS_CAPACITY_BYTES = "ufs_capacity_bytes";
-  public static final String GET_UFS_USED_BYTES = "ufs_used_bytes";
-  public static final String GET_UFS_FREE_BYTES = "ufs_free_bytes";
-  public static final String GET_METRICS = "metrics";
-  public static final String GET_START_TIME_MS = "start_time_ms";
-  public static final String GET_UPTIME_MS = "uptime_ms";
-  public static final String GET_VERSION = "version";
-  public static final String GET_WORKER_COUNT = "worker_count";
-  public static final String GET_WORKER_INFO_LIST = "worker_info_list";
 
   private final AlluxioMasterProcess mMasterProcess;
   private final BlockMaster mBlockMaster;
@@ -417,7 +396,7 @@ public final class AlluxioMasterRestServiceHandler {
               OpenFilePOptions options =
                   OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
               try (FileInStream is = fs.openFile(absolutePath, options)) {
-                int len = (int) Math.min(5 * Constants.KB, status.getLength() - offset);
+                int len = (int) Math.min(5L * Constants.KB, status.getLength() - offset);
                 byte[] data = new byte[len];
                 long skipped = is.skip(offset);
                 if (skipped < 0) {
@@ -735,7 +714,7 @@ public final class AlluxioMasterRestServiceHandler {
           String fileData;
           try (InputStream is = new FileInputStream(logFile)) {
             fileSize = logFile.length();
-            int len = (int) Math.min(5 * Constants.KB, fileSize - offset);
+            int len = (int) Math.min(5L * Constants.KB, fileSize - offset);
             byte[] data = new byte[len];
             long skipped = is.skip(offset);
             if (skipped < 0) {
@@ -852,23 +831,23 @@ public final class AlluxioMasterRestServiceHandler {
       MasterWebUIMetrics response = new MasterWebUIMetrics();
 
       MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
+      SortedMap<String, Gauge> gauges = mr.getGauges();
+      SortedMap<String, Counter> counters = mr.getCounters();
 
-      Long masterCapacityTotal = (Long) mr.getGauges()
-          .get(MetricsSystem.getMetricName(DefaultBlockMaster.Metrics.CAPACITY_TOTAL)).getValue();
-      Long masterCapacityUsed = (Long) mr.getGauges()
-          .get(MetricsSystem.getMetricName(DefaultBlockMaster.Metrics.CAPACITY_USED)).getValue();
+      Long masterCapacityTotal = (Long) gauges
+          .get(MetricKey.CLUSTER_CAPACITY_TOTAL.getName()).getValue();
+      Long masterCapacityUsed = (Long) gauges
+          .get(MetricKey.CLUSTER_CAPACITY_USED.getName()).getValue();
 
       int masterCapacityUsedPercentage =
           (masterCapacityTotal > 0) ? (int) (100L * masterCapacityUsed / masterCapacityTotal) : 0;
       response.setMasterCapacityUsedPercentage(masterCapacityUsedPercentage)
           .setMasterCapacityFreePercentage(100 - masterCapacityUsedPercentage);
 
-      Long masterUnderfsCapacityTotal =
-          (Long) mr.getGauges().get(MetricsSystem.getMetricName(MasterMetrics.UFS_CAPACITY_TOTAL))
-              .getValue();
-      Long masterUnderfsCapacityUsed =
-          (Long) mr.getGauges().get(MetricsSystem.getMetricName(MasterMetrics.UFS_CAPACITY_USED))
-              .getValue();
+      Long masterUnderfsCapacityTotal = (Long) gauges
+          .get(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName()).getValue();
+      Long masterUnderfsCapacityUsed = (Long) gauges
+          .get(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_USED.getName()).getValue();
 
       int masterUnderfsCapacityUsedPercentage =
           (masterUnderfsCapacityTotal > 0) ? (int) (100L * masterUnderfsCapacityUsed
@@ -877,14 +856,14 @@ public final class AlluxioMasterRestServiceHandler {
           .setMasterUnderfsCapacityFreePercentage(100 - masterUnderfsCapacityUsedPercentage);
 
       // cluster read size
-      Long bytesReadLocal = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL)).getValue();
-      Long bytesReadRemote = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO)).getValue();
-      Long bytesReadDomainSocket = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN)).getValue();
-      Long bytesReadUfs = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_ALL)).getValue();
+      Long bytesReadLocal = counters.get(
+          MetricKey.CLUSTER_BYTES_READ_LOCAL.getName()).getCount();
+      Long bytesReadRemote = counters.get(
+          MetricKey.CLUSTER_BYTES_READ_ALLUXIO.getName()).getCount();
+      Long bytesReadDomainSocket = counters.get(
+          MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()).getCount();
+      Long bytesReadUfs = counters.get(
+          MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName()).getCount();
       response.setTotalBytesReadLocal(FormatUtils.getSizeFromBytes(bytesReadLocal))
           .setTotalBytesReadDomainSocket(FormatUtils.getSizeFromBytes(bytesReadDomainSocket))
           .setTotalBytesReadRemote(FormatUtils.getSizeFromBytes(bytesReadRemote))
@@ -905,32 +884,28 @@ public final class AlluxioMasterRestServiceHandler {
           .setCacheMiss(String.format("%.2f", cacheMissPercentage));
 
       // cluster write size
-      Long bytesWrittenLocal = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_WRITTEN_LOCAL)).getValue();
-      Long bytesWrittenAlluxio = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO)).getValue();
-      Long bytesWrittenDomainSocket = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_DOMAIN)).getValue();
-      Long bytesWrittenUfs = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_ALL)).getValue();
+      Long bytesWrittenLocal = counters
+          .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount();
+      Long bytesWrittenAlluxio = counters
+          .get(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO.getName()).getCount();
+      Long bytesWrittenDomainSocket = counters.get(
+          MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN.getName()).getCount();
+      Long bytesWrittenUfs = counters
+          .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()).getCount();
       response.setTotalBytesWrittenLocal(FormatUtils.getSizeFromBytes(bytesWrittenLocal))
           .setTotalBytesWrittenAlluxio(FormatUtils.getSizeFromBytes(bytesWrittenAlluxio))
           .setTotalBytesWrittenDomainSocket(FormatUtils.getSizeFromBytes(bytesWrittenDomainSocket))
           .setTotalBytesWrittenUfs(FormatUtils.getSizeFromBytes(bytesWrittenUfs));
 
       // cluster read throughput
-      Long bytesReadLocalThroughput = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT))
-          .getValue();
-      Long bytesReadDomainSocketThroughput = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_DOMAIN_THROUGHPUT))
-          .getValue();
-      Long bytesReadRemoteThroughput = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT))
-          .getValue();
-      Long bytesReadUfsThroughput = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT))
-          .getValue();
+      Long bytesReadLocalThroughput = (Long) gauges.get(
+          MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName()).getValue();
+      Long bytesReadDomainSocketThroughput = (Long) gauges
+          .get(MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName()).getValue();
+      Long bytesReadRemoteThroughput = (Long) gauges
+          .get(MetricKey.CLUSTER_BYTES_READ_ALLUXIO_THROUGHPUT.getName()).getValue();
+      Long bytesReadUfsThroughput = (Long) gauges
+          .get(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName()).getValue();
       response
           .setTotalBytesReadLocalThroughput(FormatUtils.getSizeFromBytes(bytesReadLocalThroughput))
           .setTotalBytesReadDomainSocketThroughput(
@@ -940,18 +915,15 @@ public final class AlluxioMasterRestServiceHandler {
           .setTotalBytesReadUfsThroughput(FormatUtils.getSizeFromBytes(bytesReadUfsThroughput));
 
       // cluster write throughput
-      Long bytesWrittenLocalThroughput = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(ClientMetrics.BYTES_WRITTEN_LOCAL_THROUGHPUT))
+      Long bytesWrittenLocalThroughput = (Long) gauges
+          .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName())
           .getValue();
-      Long bytesWrittenAlluxioThroughput = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT))
-          .getValue();
-      Long bytesWrittenDomainSocketThroughput = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_DOMAIN_THROUGHPUT))
-          .getValue();
-      Long bytesWrittenUfsThroughput = (Long) mr.getGauges()
-          .get(MetricsSystem.getClusterMetricName(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT))
-          .getValue();
+      Long bytesWrittenAlluxioThroughput = (Long) gauges
+          .get(MetricKey.CLUSTER_BYTES_WRITTEN_ALLUXIO_THROUGHPUT.getName()).getValue();
+      Long bytesWrittenDomainSocketThroughput = (Long) gauges.get(
+          MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()).getValue();
+      Long bytesWrittenUfsThroughput = (Long) gauges
+          .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName()).getValue();
       response.setTotalBytesWrittenLocalThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenLocalThroughput))
           .setTotalBytesWrittenAlluxioThroughput(
@@ -969,242 +941,60 @@ public final class AlluxioMasterRestServiceHandler {
 
       // cluster per UFS read
       Map<String, String> ufsReadSizeMap = new TreeMap<>();
-      for (Map.Entry<String, Gauge> entry : mr
-          .getGauges((name, metric) -> name.contains(WorkerMetrics.BYTES_READ_UFS)).entrySet()) {
-        alluxio.metrics.Metric metric =
-            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue(),
-                MetricType.GAUGE);
-        String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
-        if (isMounted(ufs)) {
-          ufsReadSizeMap.put(ufs, FormatUtils.getSizeFromBytes((long) metric.getValue()));
-        }
-      }
-      response.setUfsReadSize(ufsReadSizeMap);
-
-      // cluster per UFS write
       Map<String, String> ufsWriteSizeMap = new TreeMap<>();
-      for (Map.Entry<String, Gauge> entry : mr
-          .getGauges((name, metric) -> name.contains(WorkerMetrics.BYTES_WRITTEN_UFS)).entrySet()) {
-        alluxio.metrics.Metric metric =
-            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue(),
-                MetricType.GAUGE);
-        String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
-        if (isMounted(ufs)) {
-          ufsWriteSizeMap.put(ufs, FormatUtils.getSizeFromBytes((long) metric.getValue()));
+      Map<String, Counter> rpcInvocations = new TreeMap<>();
+      Map<String, Metric> operations = new TreeMap<>();
+      for (Map.Entry<String, Counter> entry : counters.entrySet()) {
+        String metricName = entry.getKey();
+        long value = entry.getValue().getCount();
+        if (metricName.contains(MetricKey.CLUSTER_BYTES_READ_UFS.getName())) {
+          String ufs = alluxio.metrics.Metric.getTagUfsValueFromFullName(metricName);
+          if (ufs != null && isMounted(ufs)) {
+            ufsReadSizeMap.put(ufs, FormatUtils.getSizeFromBytes(value));
+          }
+        } else if (metricName.contains(MetricKey.CLUSTER_BYTES_WRITTEN_UFS.getName())) {
+          String ufs = alluxio.metrics.Metric.getTagUfsValueFromFullName(metricName);
+          if (ufs != null && isMounted(ufs)) {
+            ufsWriteSizeMap.put(ufs, FormatUtils.getSizeFromBytes(value));
+          }
+        } else if (metricName.endsWith("Ops")) {
+          rpcInvocations
+              .put(MetricsSystem.stripInstanceAndHost(metricName), entry.getValue());
+        } else {
+          operations
+              .put(MetricsSystem.stripInstanceAndHost(metricName), entry.getValue());
         }
       }
+
+      String filesPinnedProperty = MetricKey.MASTER_FILES_PINNED.getName();
+      operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
+          gauges.get(filesPinnedProperty));
+
+      response.setOperationMetrics(operations).setRpcInvocationMetrics(rpcInvocations);
+
+      response.setUfsReadSize(ufsReadSizeMap);
       response.setUfsWriteSize(ufsWriteSizeMap);
 
       // per UFS ops
       Map<String, Map<String, Long>> ufsOpsMap = new TreeMap<>();
-      for (Map.Entry<String, Gauge> entry : mr
-          .getGauges((name, metric) -> name.contains(WorkerMetrics.UFS_OP_PREFIX)).entrySet()) {
-        alluxio.metrics.Metric metric =
-            alluxio.metrics.Metric.from(entry.getKey(), (long) entry.getValue().getValue(),
-                MetricType.GAUGE);
-        if (!metric.getTags().containsKey(WorkerMetrics.TAG_UFS)) {
-          continue;
-        }
-        String ufs = metric.getTags().get(WorkerMetrics.TAG_UFS);
-        if (isMounted(ufs)) {
-          // Unescape the URI for display
-          String ufsUnescaped = MetricsSystem.unescape(ufs);
-          Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
-          perUfsMap.put(ufsUnescaped, (long) metric.getValue());
-          ufsOpsMap.put(ufsUnescaped, perUfsMap);
+      for (Map.Entry<String, Gauge> entry : gauges.entrySet()) {
+        String metricName = entry.getKey();
+        if (metricName.contains(MetricInfo.UFS_OP_PREFIX)) {
+          String ufs = alluxio.metrics.Metric.getTagUfsValueFromFullName(metricName);
+          if (ufs != null && isMounted(ufs)) {
+            // Unescape the URI for display
+            String ufsUnescaped = MetricsSystem.unescape(ufs);
+            Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufs, new TreeMap<>());
+            perUfsMap.put(ufsUnescaped, (Long) entry.getValue().getValue());
+            ufsOpsMap.put(ufsUnescaped, perUfsMap);
+          }
         }
       }
       response.setUfsOps(ufsOpsMap);
 
-      Map<String, Counter> counters = mr.getCounters((name, metric) -> !(name.endsWith("Ops")));
-      Map<String, Counter> rpcInvocations = mr.getCounters((name, metric) -> name.endsWith("Ops"));
-
-      Map<String, Metric> operations = new TreeMap<>();
-      // Remove the instance name from the metrics.
-      for (Map.Entry<String, Counter> entry : counters.entrySet()) {
-        operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
-      }
-      String filesPinnedProperty = MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
-      operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
-          mr.getGauges().get(filesPinnedProperty));
-
-      Map<String, Counter> rpcInvocationsUpdated = new TreeMap<>();
-      for (Map.Entry<String, Counter> entry : rpcInvocations.entrySet()) {
-        rpcInvocationsUpdated
-            .put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
-      }
-
-      response.setOperationMetrics(operations).setRpcInvocationMetrics(rpcInvocationsUpdated);
-
       response.setTimeSeriesMetrics(mFileSystemMaster.getTimeSeries());
 
       return response;
-    }, ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the configuration map, the keys are ordered alphabetically.
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_CONFIGURATION)
-  @Deprecated
-  public Response getConfiguration() {
-    return RestUtils.call(() -> getConfigurationInternal(true), ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the master metrics, the keys are ordered alphabetically.
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_METRICS)
-  @Deprecated
-  public Response getMetrics() {
-    return RestUtils.call(this::getMetricsInternal, ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the master rpc address
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_RPC_ADDRESS)
-  @Deprecated
-  public Response getRpcAddress() {
-    return RestUtils
-        .call(() -> mMasterProcess.getRpcAddress().toString(), ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the start time of the master in milliseconds
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_START_TIME_MS)
-  @Deprecated
-  public Response getStartTimeMs() {
-    return RestUtils.call(() -> mMasterProcess.getStartTimeMs(), ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the uptime of the master in milliseconds
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_UPTIME_MS)
-  @Deprecated
-  public Response getUptimeMs() {
-    return RestUtils.call(() -> mMasterProcess.getUptimeMs(), ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the version of the master
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_VERSION)
-  @Deprecated
-  public Response getVersion() {
-    return RestUtils.call(() -> RuntimeConstants.VERSION, ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the total capacity of all workers in bytes
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_CAPACITY_BYTES)
-  @Deprecated
-  public Response getCapacityBytes() {
-    return RestUtils.call(() -> mBlockMaster.getCapacityBytes(), ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the used capacity
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_USED_BYTES)
-  @Deprecated
-  public Response getUsedBytes() {
-    return RestUtils.call(() -> mBlockMaster.getUsedBytes(), ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the free capacity
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_FREE_BYTES)
-  @Deprecated
-  public Response getFreeBytes() {
-    return RestUtils.call(() -> mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes(),
-        ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the total ufs capacity in bytes, a negative value means the capacity is
-   * unknown.
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_UFS_CAPACITY_BYTES)
-  @Deprecated
-  public Response getUfsCapacityBytes() {
-    return RestUtils.call(() -> getUfsCapacityInternal().getTotal(), ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the used disk capacity, a negative value means the capacity is unknown.
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_UFS_USED_BYTES)
-  @Deprecated
-  public Response getUfsUsedBytes() {
-    return RestUtils.call(() -> getUfsCapacityInternal().getUsed(), ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the free ufs capacity in bytes, a negative value means the capacity is unknown.
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_UFS_FREE_BYTES)
-  @Deprecated
-  public Response getUfsFreeBytes() {
-    return RestUtils.call(() -> {
-      Capacity capacity = getUfsCapacityInternal();
-      if (capacity.getTotal() >= 0 && capacity.getUsed() >= 0 && capacity.getTotal() >= capacity
-          .getUsed()) {
-        return capacity.getTotal() - capacity.getUsed();
-      }
-      return -1;
     }, ServerConfiguration.global());
   }
 
@@ -1219,72 +1009,6 @@ public final class AlluxioMasterRestServiceHandler {
         return Integer.compare(ordinal1, ordinal2);
       }
     };
-  }
-
-  /**
-   * @summary get the mapping from tier alias to total capacity of the tier in bytes, keys are in
-   *    the order from tier alias with smaller ordinal to those with larger ones.
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_CAPACITY_BYTES_ON_TIERS)
-  @Deprecated
-  public Response getCapacityBytesOnTiers() {
-    return RestUtils.call((RestUtils.RestCallable<Map<String, Long>>) () -> {
-      SortedMap<String, Long> capacityBytesOnTiers = new TreeMap<>(getTierAliasComparator());
-      for (Map.Entry<String, Long> tierBytes : mBlockMaster.getTotalBytesOnTiers().entrySet()) {
-        capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
-      }
-      return capacityBytesOnTiers;
-    }, ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the mapping from tier alias to the used bytes of the tier, keys are in the
-   *          order from tier alias with smaller ordinal to those with larger ones.
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_USED_BYTES_ON_TIERS)
-  @Deprecated
-  public Response getUsedBytesOnTiers() {
-    return RestUtils.call((RestUtils.RestCallable<Map<String, Long>>) () -> {
-      SortedMap<String, Long> usedBytesOnTiers = new TreeMap<>(getTierAliasComparator());
-      for (Map.Entry<String, Long> tierBytes : mBlockMaster.getUsedBytesOnTiers().entrySet()) {
-        usedBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
-      }
-      return usedBytesOnTiers;
-    }, ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the count of workers
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_WORKER_COUNT)
-  @Deprecated
-  public Response getWorkerCount() {
-    return RestUtils.call(() -> mBlockMaster.getWorkerCount(), ServerConfiguration.global());
-  }
-
-  /**
-   * @summary get the list of worker descriptors
-   * @return the response object
-   * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
-   */
-  @GET
-  @Path(GET_WORKER_INFO_LIST)
-  @Deprecated
-  public Response getWorkerInfoList() {
-    return RestUtils.call(() -> mBlockMaster.getWorkerInfoList(), ServerConfiguration.global());
   }
 
   private Capacity getCapacityInternal() {
@@ -1305,7 +1029,7 @@ public final class AlluxioMasterRestServiceHandler {
     // Only the gauge for pinned files is retrieved here, other gauges are statistics of
     // free/used
     // spaces, those statistics can be gotten via other REST apis.
-    String filesPinnedProperty = MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
+    String filesPinnedProperty = MetricKey.MASTER_FILES_PINNED.getName();
     @SuppressWarnings("unchecked") Gauge<Integer> filesPinned =
         (Gauge<Integer>) MetricsSystem.METRIC_REGISTRY.getGauges().get(filesPinnedProperty);
 

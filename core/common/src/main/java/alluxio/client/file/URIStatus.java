@@ -22,6 +22,7 @@ import alluxio.wire.FileInfo;
 import com.google.common.base.Preconditions;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -93,11 +94,19 @@ public class URIStatus {
   }
 
   /**
-   * @return the unique identifier of the entity referenced by this uri used by Alluxio servers,
-   *         immutable
+   * @return the unique long identifier of the entity referenced by this uri used by Alluxio
+   *         servers, immutable
    */
   public long getFileId() {
     return mInfo.getFileId();
+  }
+
+  /**
+   * @return the unique string identifier of the entity referenced by this uri used by Alluxio
+   *         servers, immutable
+   */
+  public String getFileIdentifier() {
+    return mInfo.getFileIdentifier();
   }
 
   /**
@@ -289,6 +298,23 @@ public class URIStatus {
    */
   public String getUfsFingerprint() {
     return mInfo.getUfsFingerprint();
+  }
+
+  /**
+   * @return the extended attributes
+   */
+  public Map<String, byte[]> getXAttr() {
+    return mInfo.getXAttr();
+  }
+
+  /**
+   * This is an experimental API. The returned {@link FileInfo} object does not have a stable API.
+   * Make modifications to the returned file info object at your own risk.
+   *
+   * @return the underlying file info object
+   */
+  public FileInfo getFileInfo() {
+    return mInfo;
   }
 
   @Override

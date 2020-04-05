@@ -16,7 +16,7 @@ import { connect } from 'react-redux';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import { AnyAction, compose, Dispatch } from 'redux';
 
-import { Footer, withErrors, withLoadingMessage, Header } from '@alluxio/common-ui/src/components';
+import { Footer, withErrors, withLoadingMessage, Header, withFetchData } from '@alluxio/common-ui/src/components';
 import { triggerRefresh } from '@alluxio/common-ui/src/store/refresh/actions';
 import { BlockInfo, WorkerLogs, Metrics, Overview } from '..';
 import { footerNavigationData, headerNavigationData, routePaths } from '../../constants';
@@ -123,6 +123,7 @@ export default compose(
     mapStateToProps,
     mapDispatchToProps,
   ),
+  withFetchData,
   withErrors,
   withLoadingMessage,
 )(App);

@@ -21,6 +21,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.junit.Test;
 
 import java.net.InetSocketAddress;
@@ -140,6 +141,16 @@ public final class ConfigurationUtilsTest {
             + ".job.master.embedded.journal.addresses=[comma-separated alluxio job master "
             + "addresses]",
         ConfigurationUtils.getJobMasterHostNotConfiguredMessage("test service 2"));
+  }
+
+  @Test
+  public void parseAsList() {
+    assertEquals(Lists.newArrayList("a"), ConfigurationUtils.parseAsList("a", ","));
+    assertEquals(Lists.newArrayList("a", "b", "c"), ConfigurationUtils.parseAsList("a,b,c", ","));
+    assertEquals(Lists.newArrayList("a", "b", "c"),
+        ConfigurationUtils.parseAsList(" a , b , c ", ","));
+    assertEquals(Lists.newArrayList("a,b,c"), ConfigurationUtils.parseAsList("a,b,c", ";"));
+    assertEquals(Lists.newArrayList("a", "c"), ConfigurationUtils.parseAsList(",,a,,c,,", ","));
   }
 
   private AlluxioConfiguration createConf(Map<PropertyKey, String> properties) {

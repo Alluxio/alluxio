@@ -35,7 +35,7 @@ Alluxio可以帮助解决深度学习的数据访问问题。Alluxio最简单的
 Azure和GCS等云存储系统。由于Alluxio已经与存储系统集成了，因此深度学习框架只需与Alluxio进行交互即可访问所有存储中的数据。这为从任何数据源获得
 数据并进行训练打开了大门，从而可以提高深度学习学得的模型的性能。
 
-Alluxio还包括一个可以提供便利和人性化的使用体验的FUSE界面。使用[Alluxio POSIX API]({{ '/cn/core-services/POSIX-API.html' | relativize_url }})，可以将Alluxio实
+Alluxio还包括一个可以提供便利和人性化的使用体验的FUSE界面。使用[Alluxio POSIX API]({{ '/cn/api/POSIX-API.html' | relativize_url }})，可以将Alluxio实
 例挂载到本地文件系统，因此与Alluxio的交互就跟与本地文件或者目录的交互一样简单。这使用户能够继续使用熟悉的工具和范例与其数据进行交互。Alluxio
 可以连接到多个不同的存储系统，这意味着来自任何存储的任何数据看起来都跟本地文件或目录一样。
 

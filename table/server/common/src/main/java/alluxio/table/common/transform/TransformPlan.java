@@ -13,9 +13,9 @@ package alluxio.table.common.transform;
 
 import alluxio.job.JobConfig;
 import alluxio.table.common.Layout;
+import alluxio.table.common.transform.action.TransformAction;
 
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 
 /**
  * The plan for a transformation.
@@ -42,16 +42,29 @@ public class TransformPlan {
    * @param definition the transformation definition
    */
   public TransformPlan(Layout baseLayout, Layout transformedLayout,
-      TransformDefinition definition) {
+                       TransformDefinition definition) {
     mBaseLayout = baseLayout;
     mTransformedLayout = transformedLayout;
     mJobConfigs = computeJobConfigs(definition);
   }
 
   private ArrayList<JobConfig> computeJobConfigs(TransformDefinition definition) {
-    return definition.getActions().stream()
-        .map(action -> action.generateJobConfig(mBaseLayout, mTransformedLayout))
-        .collect(Collectors.toCollection(ArrayList::new));
+    ArrayList<JobConfig> actions = new ArrayList<>();
+    Layout baseLayout = mBaseLayout;
+    boolean deleteSrc = false;
+
+    for (TransformAction action : definition.getActions()) {
+      actions.add(action.generateJobConfig(baseLayout, mTransformedLayout, deleteSrc));
+      baseLayout = mTransformedLayout;
+      deleteSrc = true;
+    }
+
+    if (actions.isEmpty()) {
+      throw new IllegalArgumentException(
+          "At least one action should be defined for the transformation");
+    }
+
+    return actions;
   }
 
   /**

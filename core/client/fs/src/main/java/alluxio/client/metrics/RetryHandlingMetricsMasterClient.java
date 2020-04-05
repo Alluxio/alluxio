@@ -25,6 +25,9 @@ import alluxio.grpc.MetricsMasterClientServiceGrpc;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +40,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class RetryHandlingMetricsMasterClient extends AbstractMasterClient
     implements MetricsMasterClient {
+  private static final Logger LOG =
+      LoggerFactory.getLogger(RetryHandlingMetricsMasterClient.class);
   private MetricsMasterClientServiceGrpc.MetricsMasterClientServiceBlockingStub mClient = null;
 
   /**
@@ -70,7 +75,8 @@ public class RetryHandlingMetricsMasterClient extends AbstractMasterClient
 
   @Override
   public void clearMetrics() throws IOException {
-    retryRPC(() -> mClient.clearMetrics(ClearMetricsPRequest.newBuilder().build()));
+    retryRPC(() -> mClient.clearMetrics(ClearMetricsPRequest.newBuilder().build()),
+        LOG, "ClearMetrics", "");
   }
 
   @Override
@@ -90,6 +96,7 @@ public class RetryHandlingMetricsMasterClient extends AbstractMasterClient
   @Override
   public Map<String, MetricValue> getMetrics() throws AlluxioStatusException {
     return retryRPC(
-        () -> mClient.getMetrics(GetMetricsPOptions.getDefaultInstance()).getMetricsMap());
+        () -> mClient.getMetrics(GetMetricsPOptions.getDefaultInstance()).getMetricsMap(),
+        LOG, "GetMetrics", "");
   }
 }

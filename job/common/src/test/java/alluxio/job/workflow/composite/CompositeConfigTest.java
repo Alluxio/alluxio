@@ -22,6 +22,7 @@ import alluxio.job.util.SerializationUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -41,7 +42,7 @@ public final class CompositeConfigTest {
     jobs.add(new CompositeConfig(new ArrayList<>(), true));
     jobs.add(new CompositeConfig(new ArrayList<>(), false));
     jobs.add(new CompositeConfig(Lists.newArrayList(new LoadConfig("/", 1)), true));
-    jobs.add(new CompactConfig(pInfo, "/input", "/output", "hive", 100));
+    jobs.add(new CompactConfig(pInfo, "/input", pInfo, "/output", 100, FileUtils.ONE_GB));
     CONFIG = new CompositeConfig(jobs, true);
   }
 
