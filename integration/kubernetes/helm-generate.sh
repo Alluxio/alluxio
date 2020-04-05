@@ -55,6 +55,7 @@ function generateMasterTemplates {
 function generateWorkerTemplates {
   echo "Generating worker templates into $dir"
   helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-daemonset.yaml.template"
+  helm template --name ${RELEASE_NAME} helm-chart/alluxio/ -x templates/worker/domain-socket-pvc.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-pvc.yaml.template"
 }
 
 function generateFuseTemplates {

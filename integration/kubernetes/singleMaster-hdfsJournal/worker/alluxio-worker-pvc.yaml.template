@@ -1,5 +1,5 @@
 ---
-# Source: alluxio/templates/master/service.yaml
+# Source: alluxio/templates/worker/domain-socket-pvc.yaml
 #
 # The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
 # (the "License"). You may not use this work except in compliance with the License, which is
@@ -11,36 +11,21 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-
 apiVersion: v1
-kind: Service
+kind: PersistentVolumeClaim
 metadata:
-  name: alluxio-master-0
+  name: alluxio-worker-domain-socket
   labels:
     app: alluxio
     chart: alluxio-0.5.8
     release: alluxio
     heritage: Tiller
-    role: alluxio-master
+    role: alluxio-worker
 spec:
-  ports:
-    - port: 19998
-      name: rpc
-    - port: 19999
-      name: web
-    - port: 20001
-      name: job-rpc
-    - port: 20002
-      name: job-web
-    - port: 19200
-      name: embedded
-    - port: 20003
-      name: job-embedded
-  type: NodePort
-  selector:
-    role: alluxio-master
-    app: alluxio
-    release: alluxio
-    statefulset.kubernetes.io/pod-name: alluxio-master-0
----
-
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Mi
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
