@@ -25,6 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -73,6 +75,24 @@ public class BlockMetadataEvictorView extends BlockMetadataView {
       mTierViews.add(tierView);
       mAliasToTierViews.put(tier.getTierAlias(), tierView);
     }
+  }
+
+  /**
+   * Gets all dir views that belongs to a given location.
+   *
+   * @param location the location
+   * @return the list of dir views
+   */
+  public List<StorageDirView> getDirs(BlockStoreLocation location) {
+    List<StorageDirView> dirs = new LinkedList<>();
+    for (StorageTierView tier : mTierViews) {
+      for (StorageDirView dir : tier.getDirViews()) {
+        if (dir.toBlockStoreLocation().belongsTo(location)) {
+          dirs.add(dir);
+        }
+      }
+    }
+    return dirs;
   }
 
   /**

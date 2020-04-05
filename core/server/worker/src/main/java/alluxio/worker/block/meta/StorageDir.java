@@ -301,7 +301,7 @@ public final class StorageDir {
     long blockId = blockMeta.getBlockId();
     long blockSize = blockMeta.getBlockSize();
 
-    if (getAvailableBytes() < blockSize) {
+    if (getAvailableBytes() + getReservedBytes() < blockSize) {
       throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId,
           blockSize, getAvailableBytes(), blockMeta.getBlockLocation().tierAlias());
     }
@@ -327,7 +327,7 @@ public final class StorageDir {
     long blockId = tempBlockMeta.getBlockId();
     long blockSize = tempBlockMeta.getBlockSize();
 
-    if (getAvailableBytes() + mReservedBytes.get() < blockSize) {
+    if (getAvailableBytes() + getReservedBytes() < blockSize) {
       throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId,
           blockSize, getAvailableBytes(), tempBlockMeta.getBlockLocation().tierAlias());
     }

@@ -338,13 +338,13 @@ public interface BlockStore extends SessionCleanable, Closeable {
    * Frees space to make a specific amount of bytes available in a best-effort way in the location.
    *
    * @param sessionId the session id
-   * @param minAvailableBytes the minimum amount of free space in bytes
-   * @param maxAvailableBytes the maximum amount of free space in bytes
+   * @param minContigiousBytes the minimum amount of contigious free space in bytes
+   * @param minAvailableBytes the maximum amount of free space in bytes
    * @param location the location to free space
    * @throws WorkerOutOfSpaceException if there is not enough space to fulfill minimum requirement
    * @throws BlockDoesNotExistException if blocks in {@link EvictionPlan} can not be found
    */
-  void freeSpace(long sessionId, long minAvailableBytes, long maxAvailableBytes,
+  void freeSpace(long sessionId, long minContigiousBytes, long minAvailableBytes,
       BlockStoreLocation location)
       throws WorkerOutOfSpaceException, BlockDoesNotExistException, IOException;
 

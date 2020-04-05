@@ -330,6 +330,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       createdBlock = mBlockStore.createBlock(sessionId, blockId,
           AllocateOptions.forCreate(initialBytes, loc));
     } catch (WorkerOutOfSpaceException e) {
+      LOG.error(
+          "Failed to create block. SessionId: {}, BlockId: {}, "
+              + "TierAlias:{}, Medium:{}, InitialBytes:{}, Error:{}",
+          sessionId, blockId, tierAlias, medium, initialBytes, e);
+
       InetSocketAddress address =
           InetSocketAddress.createUnresolved(mAddress.getHost(), mAddress.getRpcPort());
       throw new WorkerOutOfSpaceException(ExceptionMessage.CANNOT_REQUEST_SPACE

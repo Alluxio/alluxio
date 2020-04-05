@@ -424,12 +424,12 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public synchronized void freeSpace(long sessionId, long minAvailableBytes, long maxAvailableBytes,
-      BlockStoreLocation location)
+  public synchronized void freeSpace(long sessionId, long minContigiousBytes,
+      long minAvailableBytes, BlockStoreLocation location)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
-    LOG.debug("freeSpace: sessionId={}, minAvailableBytes={}, maxAvailableBytes={}, location={}",
-        sessionId, minAvailableBytes, maxAvailableBytes, location);
-    freeSpaceInternal(sessionId, minAvailableBytes, maxAvailableBytes, location);
+    LOG.debug("freeSpace: sessionId={}, minContigiousBytes={}, minAvailableBytes={}, location={}",
+        sessionId, minAvailableBytes, minAvailableBytes, location);
+    freeSpaceInternal(sessionId, minContigiousBytes, minAvailableBytes, location);
   }
 
   @Override
@@ -716,31 +716,55 @@ public class TieredBlockStore implements BlockStore {
    * Tries to free a certain amount of space in the given location.
    *
    * @param sessionId the session id
+   * @param minContigiousBytes the minimum amount of contigious space in bytes to set available
    * @param minAvailableBytes the minimum amount of space in bytes to set available
-   * @param maxAvailableBytes the maximum amount of space in bytes to set available
    * @param location location of space
    * @throws WorkerOutOfSpaceException if it is impossible to achieve minimum space requirement
    */
-  private void freeSpaceInternal(long sessionId, long minAvailableBytes, long maxAvailableBytes,
+  private void freeSpaceInternal(long sessionId, long minContigiousBytes, long minAvailableBytes,
       BlockStoreLocation location) throws WorkerOutOfSpaceException, IOException {
     // TODO(ggezer): TV2 - Too much memory pressure when pinned-inodes list is large.
     BlockMetadataEvictorView evictorView = getUpdatedView();
-    long minBytesToFree = minAvailableBytes - evictorView.getAvailableBytes(location);
-    long maxBytesToFree = maxAvailableBytes - evictorView.getAvailableBytes(location);
+    LOG.debug(
+        "freeSpaceInternal - locAvailableBytes: {}, minContigiousBytes: {}, minAvailableBytes: {}",
+        evictorView.getAvailableBytes(location), minContigiousBytes, minAvailableBytes);
+    boolean contigiousSpaceFound = false;
+    boolean availableBytesFound = false;
 
     int blocksIterated = 0;
     int blocksRemoved = 0;
     int spaceFreed = 0;
 
-    LOG.debug(
-        "Failed to free space. Space requested: {}-{}, Blocks iterated: {}, Blocks removed: {},"
-            + " Freed Space: {}, Remaining: {}",
-        minAvailableBytes, maxAvailableBytes, blocksIterated, blocksRemoved, spaceFreed,
-        maxBytesToFree);
+    // List of all dirs that belong to the given location.
+    List<StorageDirView> dirViews = evictorView.getDirs(location);
 
-    Iterator<Long> evictionCandidates =
-        mBlockIterator.getIterator(location, BlockOrder.Natural);
-    while (evictionCandidates.hasNext() && maxBytesToFree > 0) {
+    Iterator<Long> evictionCandidates = mBlockIterator.getIterator(location, BlockOrder.Natural);
+    while (true) {
+      // Check if minContigiousBytes is satisfied.
+      if (!contigiousSpaceFound) {
+        for (StorageDirView dirView : dirViews) {
+          if (dirView.getAvailableBytes() >= minContigiousBytes) {
+            contigiousSpaceFound = true;
+            break;
+          }
+        }
+      }
+
+      // Check minAvailableBytes is satisfied.
+      if (!availableBytesFound) {
+        if (evictorView.getAvailableBytes(location) >= minAvailableBytes) {
+          availableBytesFound = true;
+        }
+      }
+
+      if (contigiousSpaceFound && availableBytesFound) {
+        break;
+      }
+
+      if (!evictionCandidates.hasNext()) {
+        break;
+      }
+
       long blockToDelete = evictionCandidates.next();
       blocksIterated++;
       if (evictorView.isBlockEvictable(blockToDelete)) {
@@ -755,8 +779,6 @@ public class TieredBlockStore implements BlockStore {
                   blockMeta.getBlockLocation());
             }
           }
-          minBytesToFree -= blockMeta.getBlockSize();
-          maxBytesToFree -= blockMeta.getBlockSize();
           spaceFreed += blockMeta.getBlockSize();
         } catch (BlockDoesNotExistException e) {
           LOG.warn("Failed to evict blockId {}, it could be already deleted", blockToDelete);
@@ -765,11 +787,11 @@ public class TieredBlockStore implements BlockStore {
       }
     }
 
-    if (minBytesToFree > 0) {
-      LOG.debug("Failed to free minimum requested space. "
-              + "Space requested: {}, Blocks iterated: {}, Blocks removed: {}, "
-              + "Freed Space: {}, Remaining: {}",
-          minAvailableBytes, blocksIterated, blocksRemoved, spaceFreed, minBytesToFree);
+    if (!contigiousSpaceFound || !availableBytesFound) {
+      LOG.error(
+          "Failed to free space. Min contigious requested: {}, Min available requested: {}, "
+              + "Blocks iterated: {}, Blocks removed: {}, " + "Space freed: {}",
+          minContigiousBytes, minAvailableBytes, blocksIterated, blocksRemoved, spaceFreed);
 
       throw new WorkerOutOfSpaceException(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE
           .getMessage(minAvailableBytes, location.tierAlias()));
