@@ -18,6 +18,7 @@ import alluxio.resource.RefCountLockResource;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -205,18 +206,17 @@ public class LockPool<K> implements Closeable {
    */
   public LockResource get(K key, LockMode mode, boolean useTryLock) {
     Resource resource = getResource(key);
-    Lock lock;
+    ReentrantReadWriteLock lock = resource.mLock;
     switch (mode) {
       case READ:
-        lock = resource.mLock.readLock();
-        break;
+        return new RefCountLockResource(
+            lock.readLock(), true, resource.mRefCount, useTryLock);
       case WRITE:
-        lock = resource.mLock.writeLock();
-        break;
+        return new RefCountLockResource(
+            lock.writeLock(), true, resource.mRefCount, useTryLock);
       default:
         throw new IllegalStateException("Unknown lock mode: " + mode);
     }
-    return new RefCountLockResource(lock, true, resource.mRefCount, useTryLock);
   }
 
   /**
@@ -277,6 +277,14 @@ public class LockPool<K> implements Closeable {
       }
     }
     return resource;
+  }
+
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("lowWatermark", mLowWatermark)
+        .add("highWatermark", mHighWatermark)
+        .add("size", mPool.size())
+        .toString();
   }
 
   /**
