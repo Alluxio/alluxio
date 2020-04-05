@@ -279,6 +279,7 @@ public class LockPool<K> implements Closeable {
     return resource;
   }
 
+  @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("lowWatermark", mLowWatermark)

@@ -378,7 +378,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
   private AccessTimeUpdater mAccessTimeUpdater;
 
   final ThreadPoolExecutor mSyncPrefetchExecutor = new ThreadPoolExecutor(
-      ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_PARALLELISM),
+      ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
       Runtime.getRuntime().availableProcessors(), 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
       ThreadFactoryUtils.build("alluxio-ufs-sync-prefetch-%d", false));
 

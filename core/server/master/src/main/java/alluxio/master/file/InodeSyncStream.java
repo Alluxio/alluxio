@@ -14,6 +14,8 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.collections.Pair;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -101,7 +103,8 @@ public class InodeSyncStream {
   private final Queue<Future<Boolean>> mSyncPathJobs;
   private final ExecutorService mMetadataSyncService;
 
-  private final int mConcurrencyLevel = Runtime.getRuntime().availableProcessors();
+  private final int mConcurrencyLevel =
+      ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL);
 
   /**
    * Create a new instance of {@link InodeSyncStream}.

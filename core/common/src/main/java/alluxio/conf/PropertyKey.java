@@ -2132,18 +2132,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
-      new Builder(Name.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE)
-          .setDefaultValue(4)
-          .setDescription("The number of threads used to execute any kind of metadata sync"
+  public static final PropertyKey MASTER_METADATA_SYNC_CONCURRENCY_LEVEL =
+      new Builder(Name.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL)
+          .setDefaultValue(6)
+          .setDescription("The maximum number of concurrent sync tasks running for a given sync "
               + "operation")
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
-  public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_PARALLELISM =
-      new Builder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_PARALLELISM)
-          .setDefaultValue(4)
-          .setDescription("The number of threads used to fetch UFS objects while syncing metadata")
+  public static final PropertyKey MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
+      new Builder(Name.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE)
+          .setDefaultValue(32)
+          .setDescription("The number of threads used to execute all metadata sync"
+              + "operations")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
+      new Builder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
+          .setDefaultValue(32)
+          .setDescription("The number of threads used to fetch UFS objects for all metadata sync"
+              + "operations")
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
@@ -4715,10 +4724,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE =
         "alluxio.master.embedded.journal.transport.max.inbound.message.size";
     public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
-    public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_PARALLELISM =
-        "alluxio.master.metadata.sync.ufs.prefetch.parallelism";
+    public static final String MASTER_METADATA_SYNC_CONCURRENCY_LEVEL =
+        "alluxio.master.metadata.sync.concurrency.level";
     public static final String MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
         "alluxio.master.metadata.sync.executor.pool.size";
+    public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
+        "alluxio.master.metadata.sync.ufs.prefetch.parallelism";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
