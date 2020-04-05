@@ -702,7 +702,7 @@ See sections below for how to configure short-circuit access.
 To disable short-circuit operations, the operation depends on how you deploy Alluxio.
 
 > Note: As mentioned, disabling short-circuit access for Alluxio workers will result in 
-worse throughput 
+worse I/O throughput 
 
 ***Using `helm`***
 You can disable short circuit by setting the properties as below:
@@ -714,7 +714,6 @@ shortCircuit:
 
 ***Using `kubectl`***
 You should set the property `alluxio.user.short.circuit.enabled` to `false` in your `ALLUXIO_WORKER_JAVA_OPTS`.
-
 ```properties
 -Dalluxio.user.short.circuit.enabled=false
 ```
@@ -744,11 +743,13 @@ shortCircuit:
 In your `alluxio-configmap.yaml` you should add the following properties to `ALLUXIO_WORKER_JAVA_OPTS`:
 
 ```properties
--Dalluxio.user.short.circuit.enabled=true -Dalluxio.worker.data.server.domain.socket.address= -Dalluxio.worker.data.server.domain.socket.as.uuid=false
+-Dalluxio.user.short.circuit.enabled=true -Dalluxio.worker.data.server.domain.socket.as.uuid=false
 ```
 
+Also you should remove the property `-Dalluxio.worker.data.server.domain.socket.address`.
+
 ##### `uuid`
-This is the **default** policy used for short-circuit.
+This is the **default** policy used for short-circuit in Kubernetes.
 
 If the client or worker container is using virtual networking, their hostnames may not match.
 In such a scenario, set the following property to use filesystem inspection to enable short-circuit
@@ -762,9 +763,9 @@ The domain socket is a volume which should be mounted on:
 - All Alluxio workers
 - All application containers which intend to read/write through Alluxio
 
-This domain socket volume refers to a `PersistentVolumeClaim` by its name.
-You should provision to the `PersistenceVolumeClaim` with a `PersistentVolume` of kind being either
-`hostPath` or `local`.
+This domain socket volume is a `PersistentVolumeClaim`.
+You need to provision a `PersistentVolume` to this `PersistentVolumeClaim`.
+And this `PersistentVolume` should be either `local` or `hostPath`.
 
 ***Using `helm`***
 You can use `uuid` policy by setting the properties as below:
@@ -782,6 +783,7 @@ shortCircuit:
 ```
 
 The field `shortCircuit.pvcName` defines the name of the `PersistentVolumeClaim` for domain socket.
+This PVC will be created as part of `helm install`.
 
 ***Using `kubectl`***
 You should verify the following properties in `ALLUXIO_WORKER_JAVA_OPTS`.
@@ -803,7 +805,7 @@ volumes:
 > Note: Compute application containers **MUST** mount the domain socket volume to the same path
 (`/opt/domain`) as configured for the Alluxio workers.
 
-The `PersistenceVolumeClaim` is defined in `worker/alluxio-worker-pvc.yaml`.
+The `PersistenceVolumeClaim` is defined in `worker/alluxio-worker-pvc.yaml.template`.
 
 #### Verify
 
