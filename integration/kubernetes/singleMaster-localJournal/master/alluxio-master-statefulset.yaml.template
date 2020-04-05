@@ -18,7 +18,7 @@ metadata:
   labels:
     name: alluxio-master
     app: alluxio
-    chart: alluxio-0.5.7
+    chart: alluxio-0.5.8
     release: alluxio
     heritage: Tiller
     role: alluxio-master
@@ -35,7 +35,7 @@ spec:
       labels:
         name: alluxio-master
         app: alluxio
-        chart: alluxio-0.5.7
+        chart: alluxio-0.5.8
         release: alluxio
         heritage: Tiller
         role: alluxio-master
