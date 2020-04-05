@@ -88,7 +88,7 @@ function umount_ramfs_linux() {
 }
 
 function check_space_freebsd() {
-  local total_mem=$(($(sysctl -h hw.usermem | awk 'NR==1{print $2}' | sed 's/,//g')))
+  local total_mem=$(sysctl -n hw.usermem)
   if [[ ${total_mem} -lt ${MEM_SIZE} ]]; then
     echo "ERROR: Memory(${total_mem}) is less than requested ramdisk size(${MEM_SIZE}). Please
     reduce alluxio.worker.memory.size in alluxio-site.properties" >&2
