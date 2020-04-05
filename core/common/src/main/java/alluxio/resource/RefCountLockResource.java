@@ -31,9 +31,12 @@ public class RefCountLockResource extends LockResource {
    * @param lock the lock to acquire
    * @param acquireLock whether to lock the lock
    * @param refCount ref count for the lock
+   * @param useTryLock applicable only if acquireLock is true. Determines whether or not to use
+   *                   {@link Lock#tryLock()} or {@link Lock#lock()} to acquire the lock
    */
-  public RefCountLockResource(Lock lock, boolean acquireLock, AtomicInteger refCount) {
-    super(lock, acquireLock);
+  public RefCountLockResource(Lock lock, boolean acquireLock, AtomicInteger refCount,
+      boolean useTryLock) {
+    super(lock, acquireLock, useTryLock);
     mRefCount = Preconditions.checkNotNull(refCount, "Reference Counter can not be null");
   }
 

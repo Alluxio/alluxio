@@ -69,6 +69,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
@@ -348,6 +349,24 @@ public class InodeTree implements DelegatingJournaled {
    * Locks existing inodes on the path and with the pattern defined by
    * {@link LockingScheme#getPath()} and {@link LockingScheme#getPattern()}.
    *
+   * This method uses the {@link Lock#tryLock()} method to gain ownership of the locks. The reason
+   * one might want to use this is to avoid the fairness heuristics within the
+   * {@link java.util.concurrent.locks.ReentrantReadWriteLock}'s NonFairSync which may block reader
+   * threads if a writer if the first in the queue.
+   *
+   * @param scheme the locking scheme to lock the path with
+   * @return the {@link LockedInodePath} representing the locked path of inodes
+   * @throws InvalidPathException if the path is invalid
+   */
+  public LockedInodePath tryLockInodePath(LockingScheme scheme)
+      throws InvalidPathException {
+    return lockInodePath(scheme.getPath(), scheme.getPattern(), true);
+  }
+
+  /**
+   * Locks existing inodes on the path and with the pattern defined by
+   * {@link LockingScheme#getPath()} and {@link LockingScheme#getPattern()}.
+   *
    * @param scheme the locking scheme to lock the path with
    * @return the {@link LockedInodePath} representing the locked path of inodes
    * @throws InvalidPathException if the path is invalid
@@ -368,8 +387,23 @@ public class InodeTree implements DelegatingJournaled {
    */
   public LockedInodePath lockInodePath(AlluxioURI uri, LockPattern lockPattern)
       throws InvalidPathException {
+    return lockInodePath(uri, lockPattern, false);
+  }
+
+  /**
+   * Locks existing inodes on the specified path, in the specified {@link LockPattern}. The target
+   * inode is not required to exist.
+   *
+   * @param uri the uri to lock
+   * @param lockPattern the {@link LockPattern} to lock the inodes with
+   * @param tryLock true to use {@link Lock#tryLock()} or false to use {@link Lock#lock()}
+   * @return the {@link LockedInodePath} representing the locked path of inodes
+   * @throws InvalidPathException if the path is invalid
+   */
+  public LockedInodePath lockInodePath(AlluxioURI uri, LockPattern lockPattern, boolean tryLock)
+      throws InvalidPathException {
     LockedInodePath inodePath =
-        new LockedInodePath(uri, mInodeStore, mInodeLockManager, getRoot(), lockPattern);
+        new LockedInodePath(uri, mInodeStore, mInodeLockManager, getRoot(), lockPattern, tryLock);
     try {
       inodePath.traverse();
     } catch (InvalidPathException e) {
@@ -562,7 +596,7 @@ public class InodeTree implements DelegatingJournaled {
     long id;
     long parentId;
     String name;
-    try (LockResource lr = mInodeLockManager.lockInode(inode, LockMode.READ)) {
+    try (LockResource lr = mInodeLockManager.lockInode(inode, LockMode.READ, false)) {
       id = inode.getId();
       parentId = inode.getParentId();
       name = inode.getName();

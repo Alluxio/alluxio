@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -63,16 +64,21 @@ public class SimpleInodeLockList implements InodeLockList {
    */
   private int mFirstWriteLockIndex;
 
+  /** Whether to use {@link Lock#tryLock()} or {@link Lock#lock()}. */
+  private final boolean mUseTryLock;
+
   /**
    * Creates a new empty lock list.
    *
    * @param inodeLockManager manager for inode locks
+   * @param useTryLock whether or not use {@link Lock#tryLock()} or {@link Lock#lock()}
    */
-  public SimpleInodeLockList(InodeLockManager inodeLockManager) {
+  public SimpleInodeLockList(InodeLockManager inodeLockManager, boolean useTryLock) {
     mInodeLockManager = inodeLockManager;
     mInodes = new LinkedList<>();
     mLocks = new LinkedList<>();
     mFirstWriteLockIndex = NO_WRITE_LOCK_INDEX;
+    mUseTryLock = useTryLock;
   }
 
   @Override
@@ -123,9 +129,10 @@ public class SimpleInodeLockList implements InodeLockList {
       lockEdge(inode, childName, LockMode.WRITE);
     } else {
       Edge lastEdge = lastEdge();
-      LockResource lastEdgeReadLock = mInodeLockManager.lockEdge(lastEdge, LockMode.READ);
-      LockResource inodeLock = mInodeLockManager.lockInode(inode, LockMode.READ);
-      LockResource nextEdgeLock = mInodeLockManager.lockEdge(edge, LockMode.WRITE);
+      LockResource lastEdgeReadLock = mInodeLockManager.lockEdge(lastEdge, LockMode.READ,
+          mUseTryLock);
+      LockResource inodeLock = mInodeLockManager.lockInode(inode, LockMode.READ, mUseTryLock);
+      LockResource nextEdgeLock = mInodeLockManager.lockEdge(edge, LockMode.WRITE, mUseTryLock);
       removeLastLock(); // Remove edge write lock
       addEdgeLock(lastEdge, LockMode.READ, lastEdgeReadLock);
       addInodeLock(inode, LockMode.READ, inodeLock);
@@ -162,7 +169,7 @@ public class SimpleInodeLockList implements InodeLockList {
 
     if (!endsInMultipleWriteLocks()) {
       Inode lastInode = lastInode();
-      LockResource newLock = mInodeLockManager.lockInode(lastInode, LockMode.READ);
+      LockResource newLock = mInodeLockManager.lockInode(lastInode, LockMode.READ, mUseTryLock);
       removeLastLock();
       addInodeLock(lastInode, LockMode.READ, newLock);
     }
@@ -179,7 +186,7 @@ public class SimpleInodeLockList implements InodeLockList {
 
     if (!endsInMultipleWriteLocks()) {
       Edge lastEdge = lastEdge();
-      LockResource newLock = mInodeLockManager.lockEdge(lastEdge, LockMode.READ);
+      LockResource newLock = mInodeLockManager.lockEdge(lastEdge, LockMode.READ, mUseTryLock);
       removeLastLock();
       addEdgeLock(lastEdge, LockMode.READ, newLock);
     }
@@ -204,8 +211,8 @@ public class SimpleInodeLockList implements InodeLockList {
     }
 
     Edge lastEdge = lastEdge();
-    LockResource newEdgeLock = mInodeLockManager.lockEdge(lastEdge, LockMode.READ);
-    LockResource inodeLock = mInodeLockManager.lockInode(inode, mode);
+    LockResource newEdgeLock = mInodeLockManager.lockEdge(lastEdge, LockMode.READ, mUseTryLock);
+    LockResource inodeLock = mInodeLockManager.lockInode(inode, mode, mUseTryLock);
     removeLastLock();
     addEdgeLock(lastEdge, LockMode.READ, newEdgeLock);
     addInodeLock(inode, mode, inodeLock);
@@ -237,7 +244,7 @@ public class SimpleInodeLockList implements InodeLockList {
   }
 
   private void lockAndAddInode(Inode inode, LockMode mode) {
-    addInodeLock(inode, mode, mInodeLockManager.lockInode(inode, mode));
+    addInodeLock(inode, mode, mInodeLockManager.lockInode(inode, mode, mUseTryLock));
   }
 
   private void addEdgeLock(Edge edge, LockMode mode, LockResource lock) {
@@ -246,7 +253,7 @@ public class SimpleInodeLockList implements InodeLockList {
   }
 
   private void lockAndAddEdge(Edge edge, LockMode mode) {
-    addEdgeLock(edge, mode, mInodeLockManager.lockEdge(edge, mode));
+    addEdgeLock(edge, mode, mInodeLockManager.lockEdge(edge, mode, mUseTryLock));
   }
 
   /**

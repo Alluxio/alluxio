@@ -144,10 +144,14 @@ public class InodeLockManager implements Closeable {
    *
    * @param inode the inode to lock
    * @param mode the mode to lock in
+   * @param useTryLock whether to acquire with {@link Lock#tryLock()} or {@link Lock#lock()}. This
+   *                   method differs from {@link #tryLockInode(Long, LockMode)} because it will
+   *                   block until the inode has been successfully locked.
    * @return a lock resource which must be closed to release the lock
+   * @see #tryLockInode(Long, LockMode)
    */
-  public LockResource lockInode(InodeView inode, LockMode mode) {
-    return mInodeLocks.get(inode.getId(), mode);
+  public LockResource lockInode(InodeView inode, LockMode mode, boolean useTryLock) {
+    return mInodeLocks.get(inode.getId(), mode, useTryLock);
   }
 
   /**
@@ -166,10 +170,14 @@ public class InodeLockManager implements Closeable {
    *
    * @param edge the edge to lock
    * @param mode the mode to lock in
+   * @param useTryLock whether to acquire with {@link Lock#tryLock()} or {@link Lock#lock()}. This
+   *                   method differs from {@link #tryLockEdge(Edge, LockMode)} because it will
+   *                   block until the edge has been successfully locked.
    * @return a lock resource which must be closed to release the lock
+   * @see #tryLockEdge(Edge, LockMode)
    */
-  public LockResource lockEdge(Edge edge, LockMode mode) {
-    return mEdgeLocks.get(edge, mode);
+  public LockResource lockEdge(Edge edge, LockMode mode, boolean useTryLock) {
+    return mEdgeLocks.get(edge, mode, useTryLock);
   }
 
   /**

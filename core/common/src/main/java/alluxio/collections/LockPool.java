@@ -189,16 +189,34 @@ public class LockPool<K> implements Closeable {
    * @return a lock resource which must be closed to unlock the key
    */
   public LockResource get(K key, LockMode mode) {
+    return get(key, mode, false);
+  }
+
+  /**
+   * Locks the specified key in the specified mode.
+   *
+   * @param key the key to lock
+   * @param mode the mode to lock in
+   * @param useTryLock Determines whether or not to use {@link Lock#tryLock()} or
+   *                   {@link Lock#lock()} to acquire the lock. Differs from
+   *                   {@link #tryGet(Object, LockMode)} in that it will block until the lock has
+   *                   been acquired.
+   * @return a lock resource which must be closed to unlock the key
+   */
+  public LockResource get(K key, LockMode mode, boolean useTryLock) {
     Resource resource = getResource(key);
-    ReentrantReadWriteLock lock = resource.mLock;
+    Lock lock;
     switch (mode) {
       case READ:
-        return new RefCountLockResource(lock.readLock(), true, resource.mRefCount);
+        lock = resource.mLock.readLock();
+        break;
       case WRITE:
-        return new RefCountLockResource(lock.writeLock(), true, resource.mRefCount);
+        lock = resource.mLock.writeLock();
+        break;
       default:
         throw new IllegalStateException("Unknown lock mode: " + mode);
     }
+    return new RefCountLockResource(lock, true, resource.mRefCount, useTryLock);
   }
 
   /**
@@ -225,7 +243,7 @@ public class LockPool<K> implements Closeable {
     if (!innerLock.tryLock()) {
       return Optional.empty();
     }
-    return Optional.of(new RefCountLockResource(innerLock, false, resource.mRefCount));
+    return Optional.of(new RefCountLockResource(innerLock, false, resource.mRefCount, false));
   }
 
   /**

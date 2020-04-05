@@ -288,7 +288,7 @@ public class InodeSyncStream {
     if (!scheme.shouldSync() && !mShouldSync) {
       return false;
     }
-    try (LockedInodePath inodePath = mInodeTree.lockInodePath(scheme)) {
+    try (LockedInodePath inodePath = mInodeTree.tryLockInodePath(scheme)) {
       if (Thread.currentThread().isInterrupted()) {
         LOG.warn("Thread syncing {} was interrupted before completion", inodePath.getUri());
         return false;

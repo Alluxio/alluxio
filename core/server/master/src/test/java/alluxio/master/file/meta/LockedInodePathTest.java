@@ -42,7 +42,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
   @Test
   public void pathExistsReadLock() throws Exception {
     AlluxioURI uri = new AlluxioURI("/a/b/c");
-    mPath = new LockedInodePath(uri, mInodeStore, mInodeLockManager, mRootDir, LockPattern.READ);
+    mPath =
+        new LockedInodePath(uri, mInodeStore, mInodeLockManager, mRootDir, LockPattern.READ, false);
     assertEquals(uri, mPath.getUri());
     assertEquals(4, mPath.size());
 
@@ -594,7 +595,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   private LockedInodePath create(String path, LockPattern lockPattern) throws InvalidPathException {
     LockedInodePath lockedPath = new LockedInodePath(new AlluxioURI(path), mInodeStore,
-        mInodeLockManager, mRootDir, lockPattern);
+        mInodeLockManager, mRootDir, lockPattern, false);
     lockedPath.traverse();
     return lockedPath;
   }
