@@ -312,6 +312,7 @@ public final class GrpcUtils {
   public static WorkerNetAddress fromProto(alluxio.grpc.WorkerNetAddress workerNetPAddress) {
     WorkerNetAddress workerNetAddress = new WorkerNetAddress();
     workerNetAddress.setHost(workerNetPAddress.getHost());
+    workerNetAddress.setContainerHost(workerNetPAddress.getContainerHost());
     workerNetAddress.setRpcPort(workerNetPAddress.getRpcPort());
     workerNetAddress.setDataPort(workerNetPAddress.getDataPort());
     workerNetAddress.setWebPort(workerNetPAddress.getWebPort());
@@ -582,8 +583,11 @@ public final class GrpcUtils {
    */
   public static alluxio.grpc.WorkerNetAddress toProto(WorkerNetAddress workerNetAddress) {
     alluxio.grpc.WorkerNetAddress.Builder address = alluxio.grpc.WorkerNetAddress.newBuilder()
-        .setHost(workerNetAddress.getHost()).setRpcPort(workerNetAddress.getRpcPort())
-        .setDataPort(workerNetAddress.getDataPort()).setWebPort(workerNetAddress.getWebPort())
+        .setHost(workerNetAddress.getHost())
+        .setContainerHost(workerNetAddress.getContainerHost())
+        .setRpcPort(workerNetAddress.getRpcPort())
+        .setDataPort(workerNetAddress.getDataPort())
+        .setWebPort(workerNetAddress.getWebPort())
         .setDomainSocketPath(workerNetAddress.getDomainSocketPath());
     if (workerNetAddress.getTieredIdentity() != null) {
       address.setTieredIdentity(toProto(workerNetAddress.getTieredIdentity()));

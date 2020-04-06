@@ -121,6 +121,7 @@ message WorkerNetAddress {
   optional int32 webPort = 4;
   optional string domainSocketPath = 5;
   optional TieredIdentity tieredIdentity = 6;
+  optional string containerHost = 7;
 }
 
 message BlockStoreLocationProto {
