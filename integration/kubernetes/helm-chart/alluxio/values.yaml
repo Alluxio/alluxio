@@ -152,8 +152,8 @@ worker:
   # JVM options specific to the worker container
   jvmOptions: ""
   nodeSelector: {}
-  hostNetwork: true
-  dnsPolicy: ClusterFirstWithHostNet
+  hostNetwork: false
+  dnsPolicy: ClusterFirst
 
 jobWorker:
   args:
