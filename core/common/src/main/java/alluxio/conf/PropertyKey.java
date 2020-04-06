@@ -3106,9 +3106,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("120sec")
           .setDescription("A fs master client is closed if it has been idle for more than this "
               + "threshold.")
-          .setDefaultValue(10)
-          .setDescription("The number of threads used by a file master client to talk to the "
-              + "file master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
