@@ -295,8 +295,8 @@ public class DefaultBlockIterator implements BlockIterator {
       }
     }
 
-    return (srcItem != null && dstItem != null
-        && order.comparator().compare(srcItem.getSecond(), dstItem.getSecond()) >= 0);
+    return srcItem == null || dstItem == null
+        || order.comparator().compare(srcItem.getSecond(), dstItem.getSecond()) >= 0;
   }
 
   /**

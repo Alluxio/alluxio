@@ -88,7 +88,7 @@ public class TierSwapTask extends AbstractBlockManagementTask {
         }
       };
 
-      // Execute swap transfers.
+      // Execute transfers.
       mTransferExecutor.executeTransferList(generateSwapTransferInfos(swapLists), excHandler);
     }
   }

@@ -76,6 +76,10 @@ public class BlockTransferExecutor {
    */
   public void executeTransferList(List<BlockTransferInfo> transferInfos,
       Consumer<Exception> exceptionHandler) {
+    // Return immediately for an empty transfer list.
+    if (transferInfos.isEmpty()) {
+      return;
+    }
     // Partition executions into sub-lists.
     List<List<BlockTransferInfo>> executionPartitions =
         partitionTransfers(transferInfos, mMaxConcurrency);
