@@ -87,6 +87,65 @@ function umount_ramfs_linux() {
   fi
 }
 
+function check_space_freebsd() {
+  local total_mem=$(sysctl -n hw.usermem)
+  if [[ ${total_mem} -lt ${MEM_SIZE} ]]; then
+    echo "ERROR: Memory(${total_mem}) is less than requested ramdisk size(${MEM_SIZE}). Please
+    reduce alluxio.worker.memory.size in alluxio-site.properties" >&2
+    exit 1
+  fi
+}
+
+function mount_ramfs_freebsd() {
+  TIER_PATH=${1}
+  echo "Formatting RamFS: ${TIER_PATH} (${MEM_SIZE})"
+  if [[ ${USE_SUDO} == true ]]; then
+    sudo mkdir -p ${TIER_PATH}
+  else
+    mkdir -p ${TIER_PATH}
+  fi
+  if [[ $? -ne 0 ]]; then
+    echo "ERROR: mkdir ${TIER_PATH} failed" >&2
+    exit 1
+  fi
+
+  if [[ ${USE_SUDO} == true ]]; then
+    sudo mount -t tmpfs -o size=${MEM_SIZE} tmpfs ${TIER_PATH}
+  else
+    mount -t tmpfs -o size=${MEM_SIZE} tmpfs ${TIER_PATH}
+  fi
+  if [[ $? -ne 0 ]]; then
+    echo "ERROR: mount RamFS ${TIER_PATH} failed" >&2
+    exit 1
+  fi
+
+  if [[ ${USE_SUDO} == true ]]; then
+    sudo chmod a+w ${TIER_PATH}
+  else
+    chmod a+w ${TIER_PATH}
+  fi
+  if [[ $? -ne 0 ]]; then
+    echo "ERROR: chmod RamFS ${TIER_PATH} failed" >&2
+    exit 1
+  fi
+}
+
+function umount_ramfs_freebsd() {
+  TIER_PATH=${1}
+  if mount | grep -E "(^|[[:space:]])${TIER_PATH}($|[[:space:]])" > /dev/null; then
+    echo "Unmounting ${TIER_PATH}"
+    if [[ ${USE_SUDO} == true ]]; then
+      sudo umount -f ${TIER_PATH}
+    else
+      umount -f ${TIER_PATH}
+    fi
+    if [[ $? -ne 0 ]]; then
+      echo "ERROR: umount RamFS ${TIER_PATH} failed" >&2
+      exit 1
+    fi
+  fi
+}
+
 function mount_ramfs_mac() {
   TIER_PATH=${1}
   # Convert the memory size to number of sectors. Each sector is 512 Byte.
@@ -121,6 +180,11 @@ function mount_ramfs_local() {
     # Assuming Mac OS X
     umount_ramfs_mac $1
     mount_ramfs_mac $1
+  elif [[ $(uname -a) == FreeBSD* ]]; then
+    # Assuming FreeBSD
+    check_space_freebsd
+    umount_ramfs_freebsd $1
+    mount_ramfs_freebsd $1
   else
     # Assuming Linux
     check_space_linux
