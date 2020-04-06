@@ -62,9 +62,8 @@ public abstract class BaseTierManagementTest {
     // Use LRU for stronger overlap guarantee.
     ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS, LRUAnnotator.class.getName());
     ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
-    // Set timeouts for faster task execution.
+    // Set timeout for faster task execution.
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME, "100ms");
-    ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_IDLE_SLEEP_TIME, "100ms");
 
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());

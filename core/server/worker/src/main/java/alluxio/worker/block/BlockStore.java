@@ -335,7 +335,7 @@ public interface BlockStore extends SessionCleanable, Closeable {
   void cleanupSession(long sessionId);
 
   /**
-   * Frees space to make a specific amount of bytes available in a best-effort way in the location.
+   * Frees space to make a specific amount of bytes available in the location.
    *
    * @param sessionId the session id
    * @param minContigiousBytes the minimum amount of contigious free space in bytes

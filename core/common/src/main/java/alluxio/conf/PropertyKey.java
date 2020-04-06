@@ -2373,14 +2373,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_MANAGEMENT_IDLE_SLEEP_TIME =
-      new Builder(Name.WORKER_MANAGEMENT_IDLE_SLEEP_TIME)
-          .setDefaultValue("10sec")
-          .setDescription("Management task coordinator will back-off for specified duration when"
-              + "no management task is pending.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
   public static final PropertyKey WORKER_MANAGEMENT_TASK_THREAD_COUNT =
       new Builder(Name.WORKER_MANAGEMENT_TASK_THREAD_COUNT)
           .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
@@ -4994,8 +4986,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.management.global.load.detection.enabled";
     public static final String WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME =
         "alluxio.worker.management.load.detection.cool.down.time";
-    public static final String WORKER_MANAGEMENT_IDLE_SLEEP_TIME =
-        "alluxio.worker.management.idle.sleep.time";
     public static final String WORKER_MANAGEMENT_TASK_THREAD_COUNT =
         "alluxio.worker.management.task.thread.count";
     public static final String WORKER_MANAGEMENT_TIER_TASK_DISK_PARALLELISM =

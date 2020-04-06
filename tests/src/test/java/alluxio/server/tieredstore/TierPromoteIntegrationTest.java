@@ -78,7 +78,6 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
         .setProperty(PropertyKey.WORKER_MEMORY_SIZE, CAPACITY_BYTES)
         .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, shortCircuitEnabled)
         .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
-        .setProperty(PropertyKey.WORKER_MANAGEMENT_IDLE_SLEEP_TIME, "1s")
         .setProperty(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME, "2s")
         .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_MOVE_ENABLED, "false")
         .setProperty(PropertyKey.WORKER_MANAGEMENT_RESERVED_SPACE_BYTES, BLOCK_SIZE_BYTES)

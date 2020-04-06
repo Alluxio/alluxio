@@ -423,6 +423,22 @@ public class TieredBlockStore implements BlockStore {
     }
   }
 
+  /**
+   * Free space is the entry for immediate block deletion in order to open up space for
+   * new or ongoing blocks.
+   *
+   * - New blocks creations will not try to free space until all tiers are out of space.
+   * - Ongoing blocks could end up freeing space oftenly, when the file's origin location is
+   * low on space.
+   *
+   * This method is synchronized in order to prevent race in its only client, allocations.
+   * If not synchronized, new allocations could steal space reserved by ongoing ones.
+   * Removing synchronized requires implementing retries to this call along with an optimal
+   * locking strategy for fairness.
+   *
+   * TODO(ggezer): Remove synchronized.
+   * TODO(ggezer): Make it a private API.
+   */
   @Override
   public synchronized void freeSpace(long sessionId, long minContigiousBytes,
       long minAvailableBytes, BlockStoreLocation location)

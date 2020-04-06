@@ -42,6 +42,11 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Represents a directory in a storage tier. It has a fixed capacity allocated to it on
  * instantiation. It contains the set of blocks currently in the storage directory.
+ *
+ * Portion of capacity will be accounted as reserved space.
+ * Through {@link StorageDirView}, this space will be reflected as:
+ * - committed for user I/Os
+ * - available for internal I/Os.
  */
 @NotThreadSafe
 public final class StorageDir {

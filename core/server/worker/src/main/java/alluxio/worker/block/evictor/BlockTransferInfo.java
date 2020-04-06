@@ -102,7 +102,8 @@ public class BlockTransferInfo {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("blockId", mSrcBlockId)
+        .add("srcBlockId", mSrcBlockId)
+        .add("dstBlockId", mDstBlockId)
         .add("srcLocation", mSrcLocation)
         .add("dstLocation", mDstLocation).toString();
   }

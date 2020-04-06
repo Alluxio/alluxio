@@ -136,8 +136,13 @@ public class BlockMetadataEvictorView extends BlockMetadataView {
     boolean pinned = isBlockPinned(blockId);
     boolean locked = isBlockLocked(blockId);
     boolean marked = isBlockMarked(blockId);
-    LOG.debug("Block: {}. Pinned: {}, Locked: {}, Marked: {}", blockId, pinned, locked, marked);
-    return !pinned && !locked && !marked;
+    boolean isEvictable = !pinned && !locked && !marked;
+    if (!isEvictable) {
+      LOG.debug("Block not evictable: {}. Pinned: {}, Locked: {}, Marked: {}", blockId, pinned,
+          locked, marked);
+    }
+
+    return isEvictable;
   }
 
   /**

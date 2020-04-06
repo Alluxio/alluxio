@@ -207,12 +207,13 @@ public class AllocateOptions {
     return mSize == other.mSize
         && mLocation.equals(other.mLocation)
         && mForceLocation == other.mForceLocation
-        && mEvictionAllowed == other.mEvictionAllowed;
+        && mEvictionAllowed == other.mEvictionAllowed
+        && mUseReservedSpace == other.mUseReservedSpace;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mSize, mLocation, mForceLocation, mEvictionAllowed);
+    return Objects.hashCode(mSize, mLocation, mForceLocation, mEvictionAllowed, mUseReservedSpace);
   }
 
   @Override
@@ -222,6 +223,7 @@ public class AllocateOptions {
         .add("Size", mSize)
         .add("ForceLocation", mForceLocation)
         .add("EvictionAllowed", mEvictionAllowed)
+        .add("UseReservedSpace", mUseReservedSpace)
         .toString();
   }
 }

@@ -76,6 +76,7 @@ public class BlockTransferExecutor {
    */
   public void executeTransferList(List<BlockTransferInfo> transferInfos,
       Consumer<Exception> exceptionHandler) {
+    LOG.debug("Executing transfer list of size:{}", transferInfos.size());
     // Return immediately for an empty transfer list.
     if (transferInfos.isEmpty()) {
       return;
@@ -83,6 +84,8 @@ public class BlockTransferExecutor {
     // Partition executions into sub-lists.
     List<List<BlockTransferInfo>> executionPartitions =
         partitionTransfers(transferInfos, mMaxConcurrency);
+    LOG.debug("Partitioned transfer list of size:{} to {} partitions.", transferInfos.size(),
+        executionPartitions.size());
     // Execute to-be-transferred blocks from the plan.
     Collection<Callable<Void>> executionTasks = new LinkedList<>();
     for (List<BlockTransferInfo> executionPartition : executionPartitions) {
@@ -111,7 +114,7 @@ public class BlockTransferExecutor {
     TransferPartitionKey key = findTransferBucketKey(transferInfos);
     // Can't bucketize transfers.
     if (key == TransferPartitionKey.NONE) {
-      LOG.warn("Unoptimizable transfer list encountered.");
+      LOG.debug("Un-optimizable transfer list encountered.");
       return new ArrayList<List<BlockTransferInfo>>() {
         {
           add(transferInfos);

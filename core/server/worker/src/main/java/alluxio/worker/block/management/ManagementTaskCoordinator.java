@@ -35,10 +35,7 @@ import java.util.function.Supplier;
  */
 public class ManagementTaskCoordinator implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(ManagementTaskCoordinator.class);
-
-  /** Duration to sleep when there is no pending task. */
-  private final long mIdleSleepMs;
-  /** Duration to sleep when load detected on worker. */
+  /** Duration to sleep when a) load detected on worker. b) no work to do. */
   private final long mLoadDetectionCoolDownMs;
   /** Whether to stop all tasks when any user activity is detected. */
   private final boolean mGlobalLoadDetectionEnabled;
@@ -79,7 +76,6 @@ public class ManagementTaskCoordinator implements Closeable {
     // Read configs.
     mLoadDetectionCoolDownMs =
         ServerConfiguration.getMs(PropertyKey.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME);
-    mIdleSleepMs = ServerConfiguration.getMs(PropertyKey.WORKER_MANAGEMENT_IDLE_SLEEP_TIME);
     mGlobalLoadDetectionEnabled =
         ServerConfiguration.getBoolean(PropertyKey.WORKER_MANAGEMENT_GLOBAL_LOAD_DETECTION_ENABLED);
 
@@ -156,6 +152,7 @@ public class ManagementTaskCoordinator implements Closeable {
     while (true) {
       if (Thread.interrupted()) {
         // Coordinator closed.
+        LOG.debug("Coordinator interrupted.");
         break;
       }
 
@@ -164,20 +161,23 @@ public class ManagementTaskCoordinator implements Closeable {
         // Back off if any load detected.
         if (mGlobalLoadDetectionEnabled
             && mLoadTracker.loadDetected(BlockStoreLocation.anyTier())) {
-          LOG.info("Load detected.");
+          LOG.debug("Load detected under global load detection mode. Sleeping {}ms.",
+              mLoadDetectionCoolDownMs);
           Thread.sleep(mLoadDetectionCoolDownMs);
           continue;
         }
 
         final BlockManagementTask nextTask = getNextTask();
         if (nextTask == null) {
-          LOG.info("No management task pending.");
-          Thread.sleep(mIdleSleepMs);
+          LOG.debug("No management task pending. Sleeping {}ms.",
+              mLoadDetectionCoolDownMs);
+          Thread.sleep(mLoadDetectionCoolDownMs);
           continue;
         }
 
         // Submit and wait for the task.
         currentTask = nextTask;
+        LOG.debug("Running task of type:{}", currentTask.getClass().getSimpleName());
         // Run the current task on coordinator thread.
         try {
           currentTask.run();
@@ -185,7 +185,7 @@ public class ManagementTaskCoordinator implements Closeable {
           LOG.error("Management task failed: {}. Error: {}", currentTask.getClass().getSimpleName(),
               e);
         }
-        LOG.info("Management task finished: {}", currentTask.getClass().getSimpleName());
+        LOG.debug("Management task finished: {}", currentTask.getClass().getSimpleName());
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         break;
@@ -193,6 +193,6 @@ public class ManagementTaskCoordinator implements Closeable {
         LOG.error("Unexpected error during block management: {}", t);
       }
     }
-    LOG.info("Block management coordinator exited.");
+    LOG.debug("Block management coordinator exited.");
   }
 }

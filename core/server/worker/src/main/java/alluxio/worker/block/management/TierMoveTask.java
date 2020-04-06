@@ -59,6 +59,7 @@ public class TierMoveTask extends AbstractBlockManagementTask {
 
   @Override
   public void run() {
+    LOG.debug("Running tier-move task.");
     // Iterate each tier intersection and move to upper tier whenever required.
     for (Pair<BlockStoreLocation, BlockStoreLocation> intersection : mMetadataManager
         .getStorageTierAssoc().intersectionList()) {
@@ -70,7 +71,8 @@ public class TierMoveTask extends AbstractBlockManagementTask {
           mMetadataManager.getBlockIterator().getIterator(tierDownLocation, BlockOrder.Reverse);
 
       // Acquire and execute transfers.
-      mTransferExecutor.executeTransferList(getTransferInfos(tierDownIterator, tierUpLocation));
+      mTransferExecutor.executeTransferList(
+          getTransferInfos(tierDownIterator, tierUpLocation, tierDownLocation));
     }
   }
 
@@ -78,7 +80,7 @@ public class TierMoveTask extends AbstractBlockManagementTask {
    * @return list of block transfers
    */
   private List<BlockTransferInfo> getTransferInfos(Iterator<Long> iterator,
-      BlockStoreLocation tierUpLocation) {
+      BlockStoreLocation tierUpLocation, BlockStoreLocation tierDownLocation) {
     // Acquire move range from the configuration.
     // This will limit move operations in single task run.
     final int moveRange = ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_MOVE_RANGE);
@@ -114,6 +116,8 @@ public class TierMoveTask extends AbstractBlockManagementTask {
         continue;
       }
     }
+    LOG.debug("Generated {} transfer to promote blocks from {} to {}",
+        transferInfos.size(), tierUpLocation, tierDownLocation);
     return transferInfos;
   }
 }

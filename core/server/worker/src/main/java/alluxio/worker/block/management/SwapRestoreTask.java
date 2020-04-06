@@ -61,8 +61,11 @@ public class SwapRestoreTask extends AbstractBlockManagementTask {
 
   @Override
   public void run() {
+    LOG.debug("Running swap-restore task.");
     // Generate swap-restore plan.
     Pair<List<Long>, List<BlockTransferInfo>> swapRestorePlan = getSwapRestorePlan();
+    LOG.debug("Generated swap-restore plan with {} deletions and {} transfers.",
+        swapRestorePlan.getFirst().size(), swapRestorePlan.getSecond().size());
 
     // Execute to-be-removed blocks from the plan.
     for (Long blockId : swapRestorePlan.getFirst()) {

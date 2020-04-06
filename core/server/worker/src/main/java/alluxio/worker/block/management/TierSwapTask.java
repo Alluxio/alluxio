@@ -64,6 +64,7 @@ public class TierSwapTask extends AbstractBlockManagementTask {
 
   @Override
   public void run() {
+    LOG.debug("Running tier-swap task.");
     // Acquire swap range from the configuration.
     // This will limit swap operations in a single run.
     final int swapRange = ServerConfiguration.getInt(PropertyKey.WORKER_MANAGEMENT_TIER_SWAP_RANGE);
@@ -79,6 +80,8 @@ public class TierSwapTask extends AbstractBlockManagementTask {
           tierUpLocation, BlockOrder.Natural, tierDownLocation, BlockOrder.Reverse, swapRange,
           BlockOrder.Reverse, (blockId) -> !mEvictorView.isBlockEvictable(blockId));
       Preconditions.checkArgument(swapLists.getFirst().size() == swapLists.getSecond().size());
+      LOG.debug("Acquired {} swaps to align tiers {} - {}", swapLists.getFirst().size(),
+          tierUpLocation.tierAlias(), tierDownLocation.tierAlias());
 
       // Create exception handler to trigger swap-restore task when swap fails due to space.
       Consumer<Exception> excHandler = (e) -> {
