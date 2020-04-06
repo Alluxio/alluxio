@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.GetAllWorkerHealthPRequest;
 import alluxio.grpc.GetJobServiceSummaryPRequest;
+import alluxio.grpc.GetJobStatusDetailedPRequest;
 import alluxio.grpc.GetJobStatusPRequest;
 import alluxio.grpc.JobMasterClientServiceGrpc;
 import alluxio.grpc.ListAllPRequest;
@@ -93,6 +94,14 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
     return ProtoUtils.fromProto(
         retryRPC(() -> mClient.getJobStatus(GetJobStatusPRequest.newBuilder().setJobId(id).build())
             .getJobInfo(), RPC_LOG, "GetJobStatus", "id=%d", id));
+  }
+
+  @Override
+  public JobInfo getJobStatusDetailed(long id) throws IOException {
+    return ProtoUtils.fromProto(
+        retryRPC(() -> mClient.getJobStatusDetailed(
+            GetJobStatusDetailedPRequest.newBuilder().setJobId(id).build())
+            .getJobInfo(), RPC_LOG, "GetJobStatusDetailed", "id=%d", id));
   }
 
   @Override

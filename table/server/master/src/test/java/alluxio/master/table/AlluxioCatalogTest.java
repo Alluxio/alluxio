@@ -33,6 +33,7 @@ import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
+import alluxio.table.common.transform.action.TransformActionUtils;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabaseRegistry;
@@ -330,6 +331,28 @@ public class AlluxioCatalogTest {
     plans = mCatalog.getTransformPlan(dbName, tableName, TRANSFORM_DEFINITION);
     assertEquals("alluxio://zk@host:1000/",
         plans.get(0).getTransformedLayout().getLocation().getRootPath());
+  }
+
+  @Test
+  public void getTransformPlanTransformedLayout() throws Exception {
+    String dbName = "testdb";
+    TestDatabase.genTable(1, 1, false);
+    mCatalog.attachDatabase(NoopJournalContext.INSTANCE,
+        TestUdbFactory.TYPE, "connect_URI", TestDatabase.TEST_UDB_NAME, dbName,
+        Collections.emptyMap(), false);
+    String tableName = TestDatabase.getTableName(0);
+
+    ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+
+    final TransformDefinition transformDefinition =
+        TransformDefinition.parse("file.count.max=100;file.parquet.compression=uncompressed");
+
+    List<TransformPlan> plans = mCatalog.getTransformPlan(dbName, tableName, transformDefinition);
+    assertEquals(1, plans.size());
+    alluxio.job.plan.transform.PartitionInfo transformedPartitionInfo =
+        TransformActionUtils.generatePartitionInfo(plans.get(0).getTransformedLayout());
+    assertEquals("uncompressed",
+        transformedPartitionInfo.getSerdeProperties().get("file.parquet.compression"));
   }
 
   @Test

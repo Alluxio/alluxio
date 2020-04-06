@@ -12,6 +12,7 @@
 package alluxio.job.plan.transform.format.parquet;
 
 import alluxio.AlluxioURI;
+import alluxio.job.plan.transform.PartitionInfo;
 import alluxio.job.plan.transform.format.JobPath;
 import alluxio.job.plan.transform.format.ReadWriterUtils;
 import alluxio.job.plan.transform.format.TableRow;
@@ -28,6 +29,7 @@ import org.apache.parquet.hadoop.util.HadoopOutputFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 
 /**
@@ -40,6 +42,7 @@ public final class ParquetWriter implements TableWriter {
   private static final int MAX_IN_MEMORY_RECORDS = 10000;
   private static final int ROW_GROUP_SIZE =
       org.apache.parquet.hadoop.ParquetWriter.DEFAULT_BLOCK_SIZE;
+  private static final String DEFAULT_COMPRESSION_CODEC = CompressionCodecName.SNAPPY.name();
 
   private final org.apache.parquet.hadoop.ParquetWriter<Record> mWriter;
   private long mRecordSize; // bytes
@@ -55,11 +58,43 @@ public final class ParquetWriter implements TableWriter {
    * @param schema the schema
    * @param uri the URI to the output
    * @return the writer
-   * @throws IOException when failed to create the writer
    */
   public static ParquetWriter create(TableSchema schema, AlluxioURI uri)
       throws IOException {
-    return ParquetWriter.create(schema, uri, ROW_GROUP_SIZE, true);
+    return ParquetWriter.create(schema, uri, ROW_GROUP_SIZE, true, DEFAULT_COMPRESSION_CODEC);
+  }
+
+  /**
+   * Creates a parquet writer based on the partitionInfo.
+   *
+   * @param schema the schema
+   * @param uri the URI to the output
+   * @param partitionInfo the partitionInfo (default configuration is used if null)
+   * @return the writer
+   */
+  public static ParquetWriter create(TableSchema schema, AlluxioURI uri,
+                                     @Nullable PartitionInfo partitionInfo) throws IOException {
+    String compressionCodec = DEFAULT_COMPRESSION_CODEC;
+    if (partitionInfo != null) {
+      compressionCodec = partitionInfo.getSerdeProperties().getOrDefault(
+          PartitionInfo.PARQUET_COMPRESSION, DEFAULT_COMPRESSION_CODEC);
+    }
+    return ParquetWriter.create(schema, uri, ROW_GROUP_SIZE, true, compressionCodec);
+  }
+
+  /**
+   * Creates a Parquet writer specifying a row group size and whether to have dictionary enabled.
+   *
+   * @param schema the schema
+   * @param uri the URI to the output
+   * @param rowGroupSize the row group size
+   * @param enableDictionary whether to enable dictionary
+   * @return the writer
+   */
+  public static ParquetWriter create(TableSchema schema, AlluxioURI uri, int rowGroupSize,
+                                     boolean enableDictionary) throws IOException {
+    return ParquetWriter.create(schema, uri, rowGroupSize, enableDictionary,
+        DEFAULT_COMPRESSION_CODEC);
   }
 
   /**
@@ -69,11 +104,11 @@ public final class ParquetWriter implements TableWriter {
    * @param uri the URI to the output
    * @param rowGroupSize the row group size
    * @param enableDictionary whether to enable dictionary
+   * @param compressionCodec the compression codec name
    * @return the writer
-   * @throws IOException when failed to create the writer
    */
   public static ParquetWriter create(TableSchema schema, AlluxioURI uri, int rowGroupSize,
-                                     boolean enableDictionary)
+                                     boolean enableDictionary, String compressionCodec)
       throws IOException {
     Configuration conf = ReadWriterUtils.writeThroughConf();
     ParquetSchema parquetSchema = schema.toParquet();
@@ -82,7 +117,7 @@ public final class ParquetWriter implements TableWriter {
             new JobPath(uri.getScheme(), uri.getAuthority().toString(), uri.getPath()), conf))
         .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_2_0)
         .withConf(conf)
-        .withCompressionCodec(CompressionCodecName.SNAPPY)
+        .withCompressionCodec(CompressionCodecName.fromConf(compressionCodec))
         .withRowGroupSize(rowGroupSize)
         .withDictionaryPageSize(org.apache.parquet.hadoop.ParquetWriter.DEFAULT_PAGE_SIZE)
         .withDictionaryEncoding(enableDictionary)

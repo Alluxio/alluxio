@@ -1,7 +1,7 @@
 ---
 layout: global
 title: 配置项设置
-group: Basic
+group: Operations
 priority: 0
 ---
 

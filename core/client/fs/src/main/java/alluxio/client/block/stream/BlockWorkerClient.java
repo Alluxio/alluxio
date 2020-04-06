@@ -49,7 +49,7 @@ public interface BlockWorkerClient extends Closeable {
     /**
      * Creates a new block worker client.
      *
-     * @param subject the user subject
+     * @param userState the user subject
      * @param address the address of the worker
      * @return a new {@link BlockWorkerClient}
      */
