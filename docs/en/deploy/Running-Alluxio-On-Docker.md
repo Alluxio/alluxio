@@ -81,8 +81,8 @@ Alluxio UFS root mount point in the Alluxio docker image:
   ```
 Of course, you can choose to mount a different path instead of `/alluxio_ufs`.
 Please make sure it is writable by the user the Docker image is run as.
-> Note: From version 2.1 on, Alluxio Docker image runs as user `alluxio` by default. 
-It has UID 1000 and GID 1000.  
+> Note: From version 2.1 on, Alluxio Docker image runs as user `alluxio` by default.
+It has UID 1000 and GID 1000.
 
 ## Launch Alluxio Containers for Master and Worker
 
@@ -98,12 +98,15 @@ In order to make sure this works for either local or remote clients, we have to 
 Docker network and expose the required ports correctly.
 
 There are two ways to launch Alluxio Docker containers on the Docker host:
- + A. Use host network
- + B. Use user-defined bridge network
+ + Use [host network](https://docs.docker.com/network/host/) to
+  share ip-address and networking namespace between the container and the Docker host.
+ + Use [user-defined bridge network](https://docs.docker.com/network/bridge/) to
+  allow containers connected to communicate, while providing isolation from containers which are
+  not connected to that bridge network.
 
-### A. Launch Docker Alluxio Containers Using Host Network
+### Option: Launch Docker Alluxio Containers Using Host Network
 
-```
+```console
 # Launch the Alluxio Master
 $ docker run -d --rm \
     --net=host \
@@ -138,7 +141,7 @@ Notes:
   1. The argument `-v /alluxio_ufs:/opt/alluxio/underFSStorage` tells Docker to use the host volume
    and persist the Alluxio UFS root data in the host directory `/alluxio_ufs`, as explained above in the Docker volume section.
 
-### B. Launch Docker Alluxio Containers Using User-Defined Network
+### Option: Launch Docker Alluxio Containers Using User-Defined Network
 
 Using host network is simple, but it has disadvantages. For example
 
