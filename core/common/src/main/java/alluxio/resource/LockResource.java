@@ -57,8 +57,6 @@ public class LockResource implements Closeable {
   public LockResource(Lock lock, boolean acquireLock, boolean useTryLock) {
     mLock = lock;
     if (acquireLock) {
-      LOG.info("Thread {} (id: {}) attempting to acquire lock {}",
-          Thread.currentThread(), Thread.currentThread().getId(), mLock);
       if (useTryLock) {
         while (!mLock.tryLock()) { // returns immediately
           // The reason we don't use #tryLock(int, TimeUnit) here is because we found there is a bug
@@ -70,8 +68,6 @@ public class LockResource implements Closeable {
         mLock.lock();
       }
     }
-    LOG.info("Thread {} (id: {}) acquired lock {}",
-        Thread.currentThread(), Thread.currentThread().getId(), mLock);
   }
 
   /**
@@ -91,7 +87,5 @@ public class LockResource implements Closeable {
   @Override
   public void close() {
     mLock.unlock();
-    LOG.info("Thread {} (id: {}) unlocked lock {}",
-        Thread.currentThread(), Thread.currentThread().getId(), mLock);
   }
 }

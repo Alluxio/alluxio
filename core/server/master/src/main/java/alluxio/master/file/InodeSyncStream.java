@@ -395,13 +395,13 @@ public class InodeSyncStream {
             short mode = Short.parseShort(ufsFpParsed.getTag(Fingerprint.Tag.MODE));
             long opTimeMs = System.currentTimeMillis();
             SetAttributePOptions.Builder builder = SetAttributePOptions.newBuilder()
-              .setMode(new Mode(mode).toProto());
-            String owner = ufsFpParsed.getTag(Tag.OWNER);
+                .setMode(new Mode(mode).toProto());
+            String owner = ufsFpParsed.getTag(Fingerprint.Tag.OWNER);
             if (!owner.equals(Fingerprint.UNDERSCORE)) {
               // Only set owner if not empty
               builder.setOwner(owner);
             }
-            String group = ufsFpParsed.getTag(Tag.GROUP);
+            String group = ufsFpParsed.getTag(Fingerprint.Tag.GROUP);
             if (!group.equals(Fingerprint.UNDERSCORE)) {
               // Only set group if not empty
               builder.setGroup(group);
