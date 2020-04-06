@@ -68,3 +68,5 @@
 
 - Added option to disable worker short-circuit
 - Changed worker domain socket volume from hostPath to PVC
+- Changed hostNetwork to false
+- Added alluxio.worker.container.hostname property to use podIP
