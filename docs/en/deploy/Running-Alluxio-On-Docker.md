@@ -98,13 +98,13 @@ In order to make sure this works for either local or remote clients, we have to 
 Docker network and expose the required ports correctly.
 
 There are two ways to launch Alluxio Docker containers on the Docker host:
-+ A: Use [host network](https://docs.docker.com/network/host/)
++ A: Use [host network](https://docs.docker.com/network/host/) or
 + B: Use [user-defined bridge network](https://docs.docker.com/network/bridge/)
 
 Host network shares ip-address and networking namespace between the container and the Docker host.
 User-defined bridge network allows containers connected to communicate,
 while providing isolation from containers not connected to that bridge network.
-For the purpose of test, using host network is sufficient.
+It is recommended to use host network, option A, for testing.
 
 ### Option A: Launch Docker Alluxio Containers Using Host Network
 
