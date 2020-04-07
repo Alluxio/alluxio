@@ -80,9 +80,9 @@ Alluxio UFS root mount point in the Alluxio docker image:
   $ docker run -v /alluxio_ufs:/opt/alluxio/underFSStorage   ...
   ```
 Of course, you can choose to mount a different path instead of `/alluxio_ufs`.
-Please make sure it is writable by the user the Docker image is run as.
-> Note: From version 2.1 on, Alluxio Docker image runs as user `alluxio` by default.
+From version 2.1 on, Alluxio Docker image runs as user `alluxio` by default.
 It has UID 1000 and GID 1000.
+Please make sure it is writable by the user the Docker image is run as.
 
 ## Launch Alluxio Containers for Master and Worker
 
@@ -98,13 +98,15 @@ In order to make sure this works for either local or remote clients, we have to 
 Docker network and expose the required ports correctly.
 
 There are two ways to launch Alluxio Docker containers on the Docker host:
- + Use [host network](https://docs.docker.com/network/host/) to
-  share ip-address and networking namespace between the container and the Docker host.
- + Use [user-defined bridge network](https://docs.docker.com/network/bridge/) to
-  allow containers connected to communicate, while providing isolation from containers which are
-  not connected to that bridge network.
++ A: Use [host network](https://docs.docker.com/network/host/)
++ B: Use [user-defined bridge network](https://docs.docker.com/network/bridge/)
 
-### Option: Launch Docker Alluxio Containers Using Host Network
+Host network shares ip-address and networking namespace between the container and the Docker host.
+User-defined bridge network allows containers connected to communicate,
+while providing isolation from containers not connected to that bridge network.
+For the purpose of test, using host network is sufficient.
+
+### Option A: Launch Docker Alluxio Containers Using Host Network
 
 ```console
 # Launch the Alluxio Master
@@ -112,7 +114,9 @@ $ docker run -d --rm \
     --net=host \
     --name=alluxio-master \
     -v /alluxio_ufs:/opt/alluxio/underFSStorage \
-    -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.hostname=$(hostname -i) -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage" \
+    -e ALLUXIO_JAVA_OPTS=" \
+       -Dalluxio.master.hostname=$(hostname -i) \
+       -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage" \
     alluxio/alluxio master
 
 #Launch the Alluxio Worker
@@ -121,7 +125,9 @@ $ docker run -d --rm \
     --name=alluxio-worker \
     --shm-size=1G \
     -v /alluxio_ufs:/opt/alluxio/underFSStorage \
-    -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G -Dalluxio.master.hostname=$(hostname -i)" \
+    -e ALLUXIO_JAVA_OPTS=" \
+       -Dalluxio.worker.memory.size=1G \
+       -Dalluxio.master.hostname=$(hostname -i)" \
     alluxio/alluxio worker
 ```
 
@@ -141,7 +147,7 @@ Notes:
   1. The argument `-v /alluxio_ufs:/opt/alluxio/underFSStorage` tells Docker to use the host volume
    and persist the Alluxio UFS root data in the host directory `/alluxio_ufs`, as explained above in the Docker volume section.
 
-### Option: Launch Docker Alluxio Containers Using User-Defined Network
+### Option B: Launch Docker Alluxio Containers Using User-Defined Network
 
 Using host network is simple, but it has disadvantages. For example
 
@@ -162,7 +168,9 @@ $ docker run -d  --rm \
     -p 19998:19998 \
     --net=alluxio_network \
     --name=alluxio-master \
-    -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.hostname=alluxio-master -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage" \
+    -e ALLUXIO_JAVA_OPTS=" \
+       -Dalluxio.master.hostname=alluxio-master \
+       -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage" \
     -v /alluxio_ufs:/opt/alluxio/underFSStorage \
     alluxio/alluxio master
 
@@ -174,7 +182,10 @@ $ docker run -d --rm \
     --name=alluxio-worker \
     --shm-size=1G \
     -v /alluxio_ufs:/opt/alluxio/underFSStorage \
-    -e ALLUXIO_JAVA_OPTS="-Dalluxio.worker.memory.size=1G  -Dalluxio.master.hostname=alluxio-master  -Dalluxio.worker.hostname=alluxio-worker" \
+    -e ALLUXIO_JAVA_OPTS=" \
+       -Dalluxio.worker.memory.size=1G \
+       -Dalluxio.master.hostname=alluxio-master \
+       -Dalluxio.worker.hostname=alluxio-worker" \
     alluxio/alluxio worker
 ```
 
