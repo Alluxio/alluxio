@@ -58,7 +58,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.job.plan.persist.PersistConfig;
+import alluxio.job.persist.PersistConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;

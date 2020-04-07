@@ -33,7 +33,7 @@ import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.MasterWorkerInfo;
 import alluxio.job.meta.JobIdGenerator;
-import alluxio.job.plan.PlanConfig;
+import alluxio.job.PlanConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobWorkerHealth;

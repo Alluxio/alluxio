@@ -13,6 +13,7 @@ package alluxio.job.plan;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.job.PlanConfig;
 import alluxio.job.TestPlanConfig;
 
 import org.junit.Assert;

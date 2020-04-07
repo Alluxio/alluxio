@@ -15,7 +15,7 @@ import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
-import alluxio.job.plan.meta.PlanInfo;
+import alluxio.job.meta.PlanInfo;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.workflow.WorkflowConfig;

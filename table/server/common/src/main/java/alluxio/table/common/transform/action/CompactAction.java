@@ -13,7 +13,7 @@ package alluxio.table.common.transform.action;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.job.JobConfig;
-import alluxio.job.plan.transform.CompactConfig;
+import alluxio.job.transform.CompactConfig;
 import alluxio.table.common.Layout;
 
 import com.google.common.base.Preconditions;
@@ -89,9 +89,9 @@ public class CompactAction implements TransformAction {
 
   @Override
   public JobConfig generateJobConfig(Layout base, Layout transformed, boolean deleteSrc) {
-    alluxio.job.plan.transform.PartitionInfo basePartitionInfo =
+    alluxio.job.transform.PartitionInfo basePartitionInfo =
         TransformActionUtils.generatePartitionInfo(base);
-    alluxio.job.plan.transform.PartitionInfo transformedPartitionInfo =
+    alluxio.job.transform.PartitionInfo transformedPartitionInfo =
         TransformActionUtils.generatePartitionInfo(transformed);
     return new CompactConfig(basePartitionInfo, base.getLocation().toString(),
         transformedPartitionInfo, transformed.getLocation().toString(), mNumFiles, mFileSize);

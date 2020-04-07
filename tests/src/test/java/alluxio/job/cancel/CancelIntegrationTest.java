@@ -14,7 +14,7 @@ package alluxio.job.cancel;
 import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
-import alluxio.job.plan.PlanConfig;
+import alluxio.job.PlanConfig;
 import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.JobIntegrationTest;
 import alluxio.job.RunTaskContext;

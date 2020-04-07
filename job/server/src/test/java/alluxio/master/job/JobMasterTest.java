@@ -28,7 +28,7 @@ import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.TestPlanConfig;
 import alluxio.exception.JobDoesNotExistException;
-import alluxio.job.plan.PlanConfig;
+import alluxio.job.PlanConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.workflow.composite.CompositeConfig;
