@@ -177,6 +177,16 @@ public final class ServerConfiguration {
   }
 
   /**
+   * Checks if the configuration contains a value for the given key that is set by a user.
+   *
+   * @param key the key to check
+   * @return true if there is value for the key by a user, false otherwise
+   */
+  public static boolean isSetByUser(PropertyKey key) {
+    return sConf.isSetByUser(key);
+  }
+
+  /**
    * @return the keys configured by the configuration
    */
   public static Set<PropertyKey> keySet() {
