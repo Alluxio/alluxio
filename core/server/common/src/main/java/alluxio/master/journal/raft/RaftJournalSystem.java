@@ -211,7 +211,7 @@ public final class RaftJournalSystem extends AbstractJournalSystem {
     // if election timeout is not set explicitly.
     // This is to speed up single master cluster boot-up.
     if (conf.getClusterAddresses().size() == 1
-        && !ServerConfiguration.isSet(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)) {
+        && !ServerConfiguration.isSetByUser(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)) {
       LOG.debug("Overriding election timeout to {}ms for single master cluster.",
           SINGLE_MASTER_ELECTION_TIMEOUT_MS);
       conf.setElectionTimeoutMs(SINGLE_MASTER_ELECTION_TIMEOUT_MS);
