@@ -109,7 +109,8 @@ $ docker run -d --rm \
     --net=host \
     --name=alluxio-master \
     -v /alluxio_ufs:/opt/alluxio/underFSStorage \
-    -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.hostname=$(hostname -i) -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage" \
+    -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.hostname=$(hostname -i) -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage -
+Dalluxio.worker.memory.size=1G" \
     alluxio/alluxio master
 
 #Launch the Alluxio Worker
@@ -159,7 +160,8 @@ $ docker run -d  --rm \
     -p 19998:19998 \
     --net=alluxio_network \
     --name=alluxio-master \
-    -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.hostname=alluxio-master -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage" \
+    -e ALLUXIO_JAVA_OPTS="-Dalluxio.master.hostname=alluxio-master -Dalluxio.master.mount.table.root.ufs=/opt/alluxio/underFSStorage -
+Dalluxio.worker.memory.size=1G" \
     -v /alluxio_ufs:/opt/alluxio/underFSStorage \
     alluxio/alluxio master
 
