@@ -27,6 +27,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.net.URI;
 import java.util.Collections;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Unit tests for {@link UfsJournal}.
@@ -86,7 +87,7 @@ public final class UfsJournalTest {
     mJournal.start();
     mJournal.close();
     mThrown.expect(UnavailableException.class);
-    mJournal.createJournalContext();
+    mJournal.createJournalContext(new ReentrantReadWriteLock().readLock());
   }
 
   @Test

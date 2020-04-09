@@ -18,6 +18,7 @@ import alluxio.master.journal.NoopJournalContext;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.locks.Lock;
 
 /**
  * Implementation of {@link Journal} that does nothing.
@@ -39,7 +40,7 @@ public class NoopJournal implements Journal {
   }
 
   @Override
-  public JournalContext createJournalContext() {
+  public JournalContext createJournalContext(Lock stateLock) {
     return NoopJournalContext.INSTANCE;
   }
 

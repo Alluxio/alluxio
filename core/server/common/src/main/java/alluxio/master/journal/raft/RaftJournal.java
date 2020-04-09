@@ -16,6 +16,7 @@ import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
+import alluxio.master.journal.MasterJournalContext;
 
 import java.io.IOException;
 import java.net.URI;
@@ -33,20 +34,17 @@ public class RaftJournal implements Journal {
   private final Journaled mStateMachine;
   private final AtomicReference<AsyncJournalWriter> mJournalWriter;
   private final URI mLocation;
-  private final Lock mStateReadLock;
 
   /**
    * @param stateMachine the state machine for this journal
    * @param location the location of the raft journal
    * @param journalWriter reference to the journal writer to use for writing to the journal
-   * @param stateReadLock lock to acquire before exposing the journal for modification
    */
   public RaftJournal(Journaled stateMachine, URI location,
-      AtomicReference<AsyncJournalWriter> journalWriter, Lock stateReadLock) {
+      AtomicReference<AsyncJournalWriter> journalWriter) {
     mStateMachine = stateMachine;
     mJournalWriter = journalWriter;
     mLocation = location;
-    mStateReadLock = stateReadLock;
   }
 
   /**
@@ -62,12 +60,12 @@ public class RaftJournal implements Journal {
   }
 
   @Override
-  public JournalContext createJournalContext() throws UnavailableException {
+  public JournalContext createJournalContext(Lock stateLock) throws UnavailableException {
     AsyncJournalWriter journalWriter = mJournalWriter.get();
     if (journalWriter == null) {
       throw new UnavailableException("Journal has been closed");
     }
-    return new RaftJournalContext(journalWriter, mStateReadLock);
+    return new MasterJournalContext(journalWriter, stateLock);
   }
 
   @Override

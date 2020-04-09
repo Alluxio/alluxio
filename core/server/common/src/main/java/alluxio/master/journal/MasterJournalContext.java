@@ -11,12 +11,13 @@
 
 package alluxio.master.journal;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.LockResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
 
@@ -25,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.locks.Lock;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -41,15 +43,21 @@ public final class MasterJournalContext implements JournalContext {
       (int) ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_FLUSH_RETRY_INTERVAL);
 
   private final AsyncJournalWriter mAsyncJournalWriter;
+  private final LockResource mLockResource;
   private long mFlushCounter;
 
   /**
    * Constructs a {@link MasterJournalContext}.
    *
    * @param asyncJournalWriter a {@link AsyncJournalWriter}
+   * @param stateLock the state lock to hold for the duration of the journal context
    */
-  public MasterJournalContext(AsyncJournalWriter asyncJournalWriter) {
+  public MasterJournalContext(AsyncJournalWriter asyncJournalWriter, Lock stateLock) {
     Preconditions.checkNotNull(asyncJournalWriter, "asyncJournalWriter");
+    // All modifications to journaled state must happen inside of a journal context so that we can
+    // persist the state change. As a mechanism to allow for state pauses, we acquire the state
+    // change lock before entering any code paths that could modify journaled state.
+    mLockResource = new LockResource(stateLock);
     mAsyncJournalWriter = asyncJournalWriter;
     mFlushCounter = INVALID_FLUSH_COUNTER;
   }
@@ -88,6 +96,11 @@ public final class MasterJournalContext implements JournalContext {
 
   @Override
   public void close() throws UnavailableException {
-    waitForJournalFlush();
+    try {
+      waitForJournalFlush();
+    } finally {
+      // must release the state lock after the journal writes.
+      mLockResource.close();
+    }
   }
 }

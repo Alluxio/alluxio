@@ -46,6 +46,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -195,7 +196,8 @@ public class UfsJournal implements Journal {
   }
 
   @Override
-  public synchronized JournalContext createJournalContext() throws UnavailableException {
+  public synchronized JournalContext createJournalContext(Lock stateLock)
+      throws UnavailableException {
     if (mState != State.PRIMARY) {
       // We throw UnavailableException here so that clients will retry with the next primary master.
       throw new UnavailableException("Failed to write to journal: journal is in state " + mState);
@@ -204,7 +206,7 @@ public class UfsJournal implements Journal {
     if (writer == null) {
       throw new UnavailableException("Failed to write to journal: journal is shutdown.");
     }
-    return new MasterJournalContext(writer);
+    return new MasterJournalContext(writer, stateLock);
   }
 
   private synchronized UfsJournalLogWriter writer() {
