@@ -12,6 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.TtlAction;
 import alluxio.master.ProtobufUtils;
 import alluxio.proto.journal.File.UpdateInodeEntry;
@@ -560,7 +562,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     if (entry.hasCreationTimeMs()) {
       setCreationTimeMs(entry.getCreationTimeMs());
     }
-    if (entry.hasGroup()) {
+    if (entry.hasGroup() && !entry.getGroup().isEmpty()) {
       setGroup(entry.getGroup());
     }
     if (entry.hasLastModificationTimeMs()) {
@@ -580,7 +582,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     if (entry.hasName()) {
       setName(entry.getName());
     }
-    if (entry.hasOwner()) {
+    if (entry.hasOwner() && !entry.getOwner().isEmpty()) {
       setOwner(entry.getOwner());
     }
     if (entry.hasParentId()) {

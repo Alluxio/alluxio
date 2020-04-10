@@ -1159,33 +1159,6 @@ public final class FileSystemMasterTest {
   }
 
   @Test
-  public void listStatusWithSyncMetadata() throws Exception {
-    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryContext.defaults());
-
-    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,
-        MountContext.defaults());
-    assertEquals(3, countPaths());
-
-    // Create directory in Alluxio only
-    AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
-    mFileSystemMaster.createDirectory(uri, CreateDirectoryContext.defaults());
-    assertEquals(4, countPaths());
-
-    // Create a the same path and nested file in UFS only
-    Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
-    Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
-
-    // List with sync.interval=0
-    List<FileInfo> fileInfoList =
-        mFileSystemMaster.listStatus(uri, ListStatusContext.mergeFrom(
-            ListStatusPOptions.newBuilder().setCommonOptions(
-                FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())));
-    assertEquals(1, fileInfoList.size());
-    assertEquals(5, countPaths());
-  }
-
-  @Test
   public void getFileBlockInfoList() throws Exception {
     createFileWithSingleBlock(ROOT_FILE_URI);
     createFileWithSingleBlock(NESTED_FILE_URI);
