@@ -18,8 +18,8 @@ import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.master.journal.AbstractCatchupThread;
-import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.AsyncJournalWriter;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalReader;
@@ -195,7 +195,8 @@ public class UfsJournal implements Journal {
   }
 
   @Override
-  public synchronized JournalContext createJournalContext() throws UnavailableException {
+  public synchronized JournalContext createJournalContext()
+      throws UnavailableException {
     if (mState != State.PRIMARY) {
       // We throw UnavailableException here so that clients will retry with the next primary master.
       throw new UnavailableException("Failed to write to journal: journal is in state " + mState);
