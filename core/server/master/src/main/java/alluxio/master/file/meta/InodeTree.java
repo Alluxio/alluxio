@@ -792,7 +792,6 @@ public class InodeTree implements DelegatingJournaled {
       MutableInodeFile newFile = MutableInodeFile.create(mContainerIdGenerator.getNewContainerId(),
           currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileContext);
 
-
       // if the parent has a default ACL, copy that default ACL ANDed with the umask as the new
       // file's access ACL.
       // If it is a metadata load operation, do not consider the umask.
