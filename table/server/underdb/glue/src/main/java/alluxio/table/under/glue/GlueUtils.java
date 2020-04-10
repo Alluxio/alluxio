@@ -16,7 +16,7 @@ import alluxio.grpc.table.layout.hive.HiveBucketProperty;
 import alluxio.grpc.table.layout.hive.SortingColumn;
 import alluxio.grpc.table.layout.hive.Storage;
 import alluxio.grpc.table.layout.hive.StorageFormat;
-import alluxio.table.under.glue.util.PathTranslator;
+import alluxio.table.common.udb.PathTranslator;
 
 import com.amazonaws.services.glue.model.Column;
 import com.amazonaws.services.glue.model.Order;

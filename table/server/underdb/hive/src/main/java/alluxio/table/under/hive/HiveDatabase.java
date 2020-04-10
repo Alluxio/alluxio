@@ -25,12 +25,12 @@ import alluxio.master.table.DatabaseInfo;
 import alluxio.resource.CloseableResource;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
+import alluxio.table.common.udb.PathTranslator;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.table.under.hive.util.HiveClientPool;
-import alluxio.table.under.hive.util.PathTranslator;
 import alluxio.util.io.PathUtils;
 
 import org.apache.hadoop.hive.common.FileUtils;

@@ -27,6 +27,7 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.parent.basedir}/build</build.path>
     <failIfNoTests>false</failIfNoTests>
+    <hive.version>2.2.0</hive.version>
   </properties>
 
   <dependencies>
@@ -56,5 +57,11 @@
       <version>${project.version}</version>
       <scope>compile</scope>
     </dependency>
+      <dependency>
+          <groupId>org.apache.hive</groupId>
+          <artifactId>hive-common</artifactId>
+          <version>${hive.version}</version>
+          <scope>compile</scope>
+      </dependency>
   </dependencies>
 </project>
