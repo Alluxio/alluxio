@@ -65,7 +65,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class AlluxioMasterProcess implements MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
 
-<<<<<<< HEAD
   /** Maximum number of threads to serve the rpc server. */
   private final int mMaxWorkerThreads;
 
@@ -74,12 +73,6 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   /** The port for the RPC server. */
   private final int mPort;
-
-  /**
-   * Lock for pausing modifications to master state. Holding the this lock allows a thread to
-   * guarantee that no other threads will modify master state.
-   */
-  private final Lock mPauseStateLock;
 
   /** The socket for thrift rpc server. */
   private TServerSocket mRpcServerSocket;
@@ -93,15 +86,6 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The connect address for the rpc server. */
   private final InetSocketAddress mRpcConnectAddress;
 
-||||||| parent of 67c4e96803... Keep state lock for duration of journal context
-  /**
-   * Lock for pausing modifications to master state. Holding the this lock allows a thread to
-   * guarantee that no other threads will modify master state.
-   */
-  private final Lock mPauseStateLock;
-
-=======
->>>>>>> 67c4e96803... Keep state lock for duration of journal context
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
   private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
       MetricsSystem.METRIC_REGISTRY);
@@ -180,40 +164,8 @@ public class AlluxioMasterProcess implements MasterProcess {
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
       mBackupManager = new BackupManager(mRegistry);
-<<<<<<< HEAD
       MasterContext context =
           new MasterContext(mJournalSystem, mSafeModeManager, mBackupManager, mStartTimeMs, mPort);
-      mPauseStateLock = context.pauseStateLock();
-||||||| parent of 67c4e96803... Keep state lock for duration of journal context
-      String baseDir = ServerConfiguration.get(PropertyKey.MASTER_METASTORE_DIR);
-      mUfsManager = new MasterUfsManager();
-      MasterContext context = CoreMasterContext.newBuilder()
-          .setJournalSystem(mJournalSystem)
-          .setSafeModeManager(mSafeModeManager)
-          .setBackupManager(mBackupManager)
-          .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))
-          .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(baseDir))
-          .setStartTimeMs(mStartTimeMs)
-          .setPort(NetworkAddressUtils
-              .getPort(ServiceType.MASTER_RPC, ServerConfiguration.global()))
-          .setUfsManager(mUfsManager)
-          .build();
-      mPauseStateLock = context.pauseStateLock();
-=======
-      String baseDir = ServerConfiguration.get(PropertyKey.MASTER_METASTORE_DIR);
-      mUfsManager = new MasterUfsManager();
-      MasterContext context = CoreMasterContext.newBuilder()
-          .setJournalSystem(mJournalSystem)
-          .setSafeModeManager(mSafeModeManager)
-          .setBackupManager(mBackupManager)
-          .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))
-          .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(baseDir))
-          .setStartTimeMs(mStartTimeMs)
-          .setPort(NetworkAddressUtils
-              .getPort(ServiceType.MASTER_RPC, ServerConfiguration.global()))
-          .setUfsManager(mUfsManager)
-          .build();
->>>>>>> 67c4e96803... Keep state lock for duration of journal context
       MasterUtils.createMasters(mRegistry, context);
     } catch (Exception e) {
       throw new RuntimeException(e);

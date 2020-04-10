@@ -151,25 +151,9 @@ public abstract class AbstractMaster implements Master {
 
   @Override
   public JournalContext createJournalContext() throws UnavailableException {
-<<<<<<< HEAD
     // All modifications to journaled state must happen inside of a journal context so that we can
     // persist the state change. As a mechanism to allow for state pauses, we acquire the state
     // change lock before entering any code paths that could modify journaled state.
-    try (LockResource l = new LockResource(mStateChangeLock)) {
-      return mJournal.createJournalContext();
-    }
-||||||| parent of 67c4e96803... Keep state lock for duration of journal context
-    // All modifications to journaled state must happen inside of a journal context so that we can
-    // persist the state change. As a mechanism to allow for state pauses, we acquire the state
-    // change lock before entering any code paths that could modify journaled state.
-    try (LockResource l = new LockResource(mMasterContext.stateChangeLock())) {
-      return mJournal.createJournalContext();
-    }
-=======
-    // Use the state change lock for the journal context, since all modifications to journaled
-    // state must happen inside of a journal context.
-    return new StateChangeJournalContext(mJournal.createJournalContext(),
-        mMasterContext.stateChangeLock());
->>>>>>> 67c4e96803... Keep state lock for duration of journal context
+    return new StateChangeJournalContext(mJournal.createJournalContext(), mStateChangeLock);
   }
 }

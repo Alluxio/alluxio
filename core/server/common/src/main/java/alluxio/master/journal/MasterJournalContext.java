@@ -11,21 +11,9 @@
 
 package alluxio.master.journal;
 
-<<<<<<< HEAD
 import alluxio.Configuration;
-||||||| parent of 67c4e96803... Keep state lock for duration of journal context
-import alluxio.conf.ServerConfiguration;
-=======
->>>>>>> 67c4e96803... Keep state lock for duration of journal context
 import alluxio.ProcessUtils;
-<<<<<<< HEAD
 import alluxio.PropertyKey;
-||||||| parent of 67c4e96803... Keep state lock for duration of journal context
-import alluxio.conf.PropertyKey;
-=======
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
->>>>>>> 67c4e96803... Keep state lock for duration of journal context
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.Journal.JournalEntry;

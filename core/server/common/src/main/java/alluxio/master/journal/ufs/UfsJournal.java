@@ -16,17 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.UnavailableException;
-<<<<<<< HEAD
-||||||| parent of 67c4e96803... Keep state lock for duration of journal context
-import alluxio.master.Master;
-import alluxio.master.journal.AbstractCatchupThread;
-import alluxio.master.journal.CatchupFuture;
-=======
-import alluxio.master.Master;
-import alluxio.master.journal.AbstractCatchupThread;
->>>>>>> 67c4e96803... Keep state lock for duration of journal context
 import alluxio.master.journal.AsyncJournalWriter;
-import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryStateMachine;

@@ -14,11 +14,12 @@ package alluxio.master.journal;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.PropertyKey;
 import alluxio.exception.status.UnavailableException;
-import alluxio.master.CoreMasterContext;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
@@ -26,8 +27,8 @@ import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.util.executor.ExecutorServiceFactories;
 
 import org.junit.After;
 import org.junit.Before;
@@ -40,6 +41,7 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -50,14 +52,13 @@ public class JournalContextTest {
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
         {JournalType.UFS.name()},
-        {JournalType.EMBEDDED.name()}
     });
   }
 
   private final String mJournalType;
 
   private JournalSystem mJournalSystem;
-  private CoreMasterContext mMasterContext;
+  private MasterContext mMasterContext;
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
 
@@ -70,7 +71,7 @@ public class JournalContextTest {
 
   @Before
   public void before() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, mJournalType);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, mJournalType);
 
     mRegistry = new MasterRegistry();
     mJournalSystem = JournalTestUtils.createJournalSystem(mTemporaryFolder);
@@ -89,7 +90,7 @@ public class JournalContextTest {
   public void after() throws Exception {
     mRegistry.stop();
     mJournalSystem.stop();
-    ServerConfiguration.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Test
@@ -112,7 +113,7 @@ public class JournalContextTest {
 
       // after closing the journal context, the pause lock should succeed
       journalContext.close();
-      CommonUtils.waitFor("pause lock to succeed", paused::get,
+      CommonUtils.waitFor("pause lock to succeed", (input) -> paused.get(),
           WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS).setInterval(10));
     } finally {
       thread.interrupt();
@@ -143,7 +144,7 @@ public class JournalContextTest {
 
       // after un-pausing, new journal contexts can be created
       lock.close();
-      CommonUtils.waitFor("journal context created", journalContextCreated::get,
+      CommonUtils.waitFor("journal context created", (input) -> journalContextCreated.get(),
           WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS).setInterval(10));
     } finally {
       thread.interrupt();
@@ -157,8 +158,8 @@ public class JournalContextTest {
 
     AtomicBoolean paused = new AtomicBoolean(false);
 
-    ExecutorService service =
-        ExecutorServiceFactories.cachedThreadPool("stateChangeFairness").create();
+    ExecutorService service = Executors.newCachedThreadPool(ThreadFactoryUtils
+        .build("stateChangeFairness-%d", true));
 
     // create tasks that continually create journal contexts
     for (int i = 0; i < 100; i++) {
@@ -189,7 +190,7 @@ public class JournalContextTest {
       // after closing the journal context, the pause lock should succeed, even when there are many
       // threads creating journal contexts.
       journalContext.close();
-      CommonUtils.waitFor("pause lock to succeed", paused::get,
+      CommonUtils.waitFor("pause lock to succeed", (input) -> paused.get(),
           WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS).setInterval(10));
     } finally {
       service.shutdownNow();
