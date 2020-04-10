@@ -152,8 +152,8 @@ public final class FileSystemMasterSyncMetadataTest {
     mFileSystemMaster.createDirectory(dir1, CreateDirectoryContext.defaults());
 
     // Create a the same path and nested file in UFS only
-//    Mockito.when(mUfs.listStatus(eq(ufsMount.getPath()), any())).thenReturn(new UfsStatus[]{new UfsDirectoryStatus("dir1", "", "", mode)});
-    Mockito.when(mUfs.listStatus(eq(dir1Path.toString()), any())).thenReturn(new UfsStatus[]{new UfsFileStatus("file1", "dummy", 0,
+    Mockito.when(mUfs.listStatus(eq(dir1Path.toString()), any()))
+        .thenReturn(new UfsStatus[]{new UfsFileStatus("file1", "dummy", 0,
         0, "", "", mode, 1024)});
 
     // List with sync.interval=0
