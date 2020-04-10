@@ -151,7 +151,7 @@ public final class FileSystemMasterSyncMetadataTest {
     AlluxioURI dir1 = new AlluxioURI("/mnt/local/dir1");
     mFileSystemMaster.createDirectory(dir1, CreateDirectoryContext.defaults());
 
-    // Create a the same path and nested file in UFS only
+    // Mock creating the same directory and nested file in UFS out of band
     Mockito.when(mUfs.listStatus(eq(dir1Path.toString()), any()))
         .thenReturn(new UfsStatus[]{new UfsFileStatus("file1", "dummy", 0,
         0, "", "", mode, 1024)});
