@@ -784,7 +784,7 @@ public class InodeTree implements DelegatingJournaled {
           syncPersistNewDirectory(newDir);
         }
       }
-      // Note: Do NOT call setOwner/Group after inheriting from parent if empty
+      // Do NOT call setOwner/Group after inheriting from parent if empty
       inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
       newInode = newDir;
     } else if (context instanceof CreateFileContext) {
@@ -809,7 +809,7 @@ public class InodeTree implements DelegatingJournaled {
         newFile.setPersistenceState(PersistenceState.TO_BE_PERSISTED);
       }
 
-      // Note: Do NOT call setOwner/Group after inheriting from parent if empty
+      // Do NOT call setOwner/Group after inheriting from parent if empty
       inheritOwnerAndGroupIfEmpty(newFile, currentInodeDirectory);
       newInode = newFile;
     } else {
