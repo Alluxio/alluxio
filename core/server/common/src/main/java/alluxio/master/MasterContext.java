@@ -46,11 +46,29 @@ public final class MasterContext {
   public MasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager,
       BackupManager backupManager, long startTimeMs, int port) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
+<<<<<<< HEAD
     mSafeModeManager = Preconditions.checkNotNull(safeModeManager, "safeModeManager");
     mBackupManager = Preconditions.checkNotNull(backupManager, "backupManager");
     mStateLock = new ReentrantReadWriteLock();
     mStartTimeMs = startTimeMs;
     mPort = port;
+||||||| parent of 67c4e96803... Keep state lock for duration of journal context
+    if (userState == null) {
+      mUserState = ServerUserState.global();
+    } else {
+      mUserState = userState;
+    }
+    mStateLock = new ReentrantReadWriteLock();
+=======
+    if (userState == null) {
+      mUserState = ServerUserState.global();
+    } else {
+      mUserState = userState;
+    }
+    // Use a fair state lock, so that when a backup is triggered, acquiring the write lock does not
+    // block indefinitely.
+    mStateLock = new ReentrantReadWriteLock(true);
+>>>>>>> 67c4e96803... Keep state lock for duration of journal context
   }
 
   /**

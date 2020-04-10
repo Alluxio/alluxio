@@ -543,11 +543,13 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    * @return a {@link JournalEntry} representing the state of the container id generator
    */
   private JournalEntry getContainerIdJournalEntry() {
-    BlockContainerIdGeneratorEntry blockContainerIdGenerator =
-        BlockContainerIdGeneratorEntry.newBuilder().setNextContainerId(mJournaledNextContainerId)
-            .build();
-    return JournalEntry.newBuilder().setBlockContainerIdGenerator(blockContainerIdGenerator)
-        .build();
+    synchronized (mBlockContainerIdGenerator) {
+      BlockContainerIdGeneratorEntry blockContainerIdGenerator =
+          BlockContainerIdGeneratorEntry.newBuilder().setNextContainerId(mJournaledNextContainerId)
+              .build();
+      return JournalEntry.newBuilder().setBlockContainerIdGenerator(blockContainerIdGenerator)
+          .build();
+    }
   }
 
   // TODO(binfan): check the logic is correct or not when commitBlock is a retry
