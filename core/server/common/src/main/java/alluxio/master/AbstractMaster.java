@@ -16,7 +16,7 @@ import alluxio.Server;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
-import alluxio.resource.LockResource;
+import alluxio.master.journal.StateChangeJournalContext;
 import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.google.common.base.Preconditions;
@@ -154,8 +154,6 @@ public abstract class AbstractMaster implements Master {
     // All modifications to journaled state must happen inside of a journal context so that we can
     // persist the state change. As a mechanism to allow for state pauses, we acquire the state
     // change lock before entering any code paths that could modify journaled state.
-    try (LockResource l = new LockResource(mStateChangeLock)) {
-      return mJournal.createJournalContext();
-    }
+    return new StateChangeJournalContext(mJournal.createJournalContext(), mStateChangeLock);
   }
 }

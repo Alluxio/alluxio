@@ -48,7 +48,9 @@ public final class MasterContext {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
     mSafeModeManager = Preconditions.checkNotNull(safeModeManager, "safeModeManager");
     mBackupManager = Preconditions.checkNotNull(backupManager, "backupManager");
-    mStateLock = new ReentrantReadWriteLock();
+    // Use a fair state lock, so that when a backup is triggered, acquiring the write lock does not
+    // block indefinitely.
+    mStateLock = new ReentrantReadWriteLock(true);
     mStartTimeMs = startTimeMs;
     mPort = port;
   }

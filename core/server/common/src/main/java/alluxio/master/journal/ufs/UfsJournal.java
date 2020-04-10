@@ -172,7 +172,8 @@ public class UfsJournal implements Journal {
   }
 
   @Override
-  public synchronized JournalContext createJournalContext() throws UnavailableException {
+  public synchronized JournalContext createJournalContext()
+      throws UnavailableException {
     if (mState != State.PRIMARY) {
       // We throw UnavailableException here so that clients will retry with the next primary master.
       throw new UnavailableException("Failed to write to journal: journal is in state " + mState);

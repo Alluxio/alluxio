@@ -54,7 +54,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -74,12 +73,6 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   /** The port for the RPC server. */
   private final int mPort;
-
-  /**
-   * Lock for pausing modifications to master state. Holding the this lock allows a thread to
-   * guarantee that no other threads will modify master state.
-   */
-  private final Lock mPauseStateLock;
 
   /** The socket for thrift rpc server. */
   private TServerSocket mRpcServerSocket;
@@ -173,7 +166,6 @@ public class AlluxioMasterProcess implements MasterProcess {
       mBackupManager = new BackupManager(mRegistry);
       MasterContext context =
           new MasterContext(mJournalSystem, mSafeModeManager, mBackupManager, mStartTimeMs, mPort);
-      mPauseStateLock = context.pauseStateLock();
       MasterUtils.createMasters(mRegistry, context);
     } catch (Exception e) {
       throw new RuntimeException(e);
