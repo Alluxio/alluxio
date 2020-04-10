@@ -17,7 +17,6 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -53,7 +52,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -116,7 +114,7 @@ public final class FileSystemMasterSyncMetadataTest {
     Mockito.when(mUfs.getExistingDirectoryStatus(ufsMount.toString()))
         .thenReturn(new UfsDirectoryStatus(ufsMount.toString(), "", "", mode));
     Mockito.when(mUfs.resolveUri(Mockito.eq(ufsMount), anyString()))
-        .thenAnswer( invocation -> new AlluxioURI(ufsMount,
+        .thenAnswer(invocation -> new AlluxioURI(ufsMount,
             PathUtils.concatPath(ufsMount.getPath(),
                 invocation.getArgumentAt(1, String.class)), false));
 
