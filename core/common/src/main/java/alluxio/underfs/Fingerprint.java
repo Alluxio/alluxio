@@ -45,7 +45,7 @@ public final class Fingerprint {
 
   private static final Pattern SANITIZE_REGEX = Pattern.compile("[" + KVDELIMTER
       + TAGDELIMTER + "]");
-  private static final String UNDERSCORE = "_";
+  public static final String UNDERSCORE = "_";
 
   private final Map<Tag, String> mValues;
 

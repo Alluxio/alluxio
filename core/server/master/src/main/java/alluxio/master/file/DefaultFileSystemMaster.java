@@ -3564,10 +3564,20 @@ public final class DefaultFileSystemMaster extends CoreMaster
         if (ufsFpParsed.isValid()) {
           short mode = Short.parseShort(ufsFpParsed.getTag(Tag.MODE));
           long opTimeMs = System.currentTimeMillis();
-          setAttributeSingleFile(rpcContext, inodePath, false, opTimeMs, SetAttributeContext
-              .mergeFrom(SetAttributePOptions.newBuilder().setOwner(ufsFpParsed.getTag(Tag.OWNER))
-                  .setGroup(ufsFpParsed.getTag(Tag.GROUP)).setMode(new Mode(mode).toProto()))
-              .setUfsFingerprint(ufsFingerprint));
+          SetAttributePOptions.Builder builder = SetAttributePOptions.newBuilder()
+              .setMode(new Mode(mode).toProto());
+          String owner = ufsFpParsed.getTag(Tag.OWNER);
+          if (!owner.equals(Fingerprint.UNDERSCORE)) {
+            // Only set owner if not empty
+            builder.setOwner(owner);
+          }
+          String group = ufsFpParsed.getTag(Tag.GROUP);
+          if (!group.equals(Fingerprint.UNDERSCORE)) {
+            // Only set group if not empty
+            builder.setGroup(group);
+          }
+          setAttributeSingleFile(rpcContext, inodePath, false, opTimeMs,
+              SetAttributeContext.mergeFrom(builder).setUfsFingerprint(ufsFingerprint));
         }
       }
       if (syncPlan.toDelete()) {
