@@ -752,8 +752,6 @@ public class InodeTree implements DelegatingJournaled {
           mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
           currentInodeDirectory.getId(), name, directoryContext);
 
-      inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
-
       // if the parent has default ACL, take the default ACL ANDed with the umask as the new
       // directory's default and access acl
       // When it is a metadata load operation, do not take the umask into account
@@ -786,13 +784,13 @@ public class InodeTree implements DelegatingJournaled {
           syncPersistNewDirectory(newDir);
         }
       }
+      // Do NOT call setOwner/Group after inheriting from parent if empty
+      inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
       newInode = newDir;
     } else if (context instanceof CreateFileContext) {
       CreateFileContext fileContext = (CreateFileContext) context;
       MutableInodeFile newFile = MutableInodeFile.create(mContainerIdGenerator.getNewContainerId(),
           currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileContext);
-
-      inheritOwnerAndGroupIfEmpty(newFile, currentInodeDirectory);
 
       // if the parent has a default ACL, copy that default ACL ANDed with the umask as the new
       // file's access ACL.
@@ -810,6 +808,8 @@ public class InodeTree implements DelegatingJournaled {
         newFile.setPersistenceState(PersistenceState.TO_BE_PERSISTED);
       }
 
+      // Do NOT call setOwner/Group after inheriting from parent if empty
+      inheritOwnerAndGroupIfEmpty(newFile, currentInodeDirectory);
       newInode = newFile;
     } else {
       throw new IllegalStateException(String.format("Unrecognized create options: %s", context));
