@@ -56,7 +56,9 @@ public class MasterContext {
     } else {
       mUserState = userState;
     }
-    mStateLock = new ReentrantReadWriteLock();
+    // Use a fair state lock, so that when a backup is triggered, acquiring the write lock does not
+    // block indefinitely.
+    mStateLock = new ReentrantReadWriteLock(true);
   }
 
   /**
