@@ -27,7 +27,7 @@
     "start-js": "BROWSER=none react-scripts start --watch --recursive",
     "build-js": "react-scripts build --production",
     "start": "npm-run-all --parallel watch-css start-js",
-    "build": "NODE_ENV=production npm-run-all --parallel build-css build-js && eslint 'src/**/*.tsx'",
+    "build": "NODE_ENV=production npm-run-all --parallel build-css build-js",
     "test": "npm run build-css && npm run build-css && react-scripts test --env=jsdom --watch",
     "test-ci": "npm run build-css && npm run build-css && CI=true react-scripts test --env=jsdom",
     "coverage": "npm run build-css && npm run build-css && react-scripts test --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx --watch",
