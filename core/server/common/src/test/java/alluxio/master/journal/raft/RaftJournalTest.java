@@ -39,8 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 public class RaftJournalTest {
@@ -52,7 +50,6 @@ public class RaftJournalTest {
 
   private JournalSystem mLeaderJournalSystem;
   private JournalSystem mFollowerJournalSystem;
-  private Lock mStateLock = new ReentrantReadWriteLock().readLock();
 
   @Before
   public void before() throws Exception {
@@ -105,7 +102,7 @@ public class RaftJournalTest {
     // These will be replicated to follower journal context.
     final int entryCount = 10;
     try (JournalContext journalContext =
-        mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext(mStateLock)) {
+        mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       for (int i = 0; i < entryCount; i++) {
         journalContext.append(
             alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
@@ -126,7 +123,7 @@ public class RaftJournalTest {
 
     // Write more entries and validate they are replicated to follower.
     try (JournalContext journalContext =
-        mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext(mStateLock)) {
+        mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       journalContext
           .append(alluxio.proto.journal.Journal.JournalEntry.newBuilder()
               .setInodeLastModificationTime(
@@ -151,7 +148,7 @@ public class RaftJournalTest {
     final int entryBatchCount = 5;
     // Create batch of entries on the leader journal context.
     try (JournalContext journalContext =
-        mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext(mStateLock)) {
+        mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       for (int i = 0; i < entryBatchCount; i++) {
         journalContext.append(
             alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
@@ -166,7 +163,7 @@ public class RaftJournalTest {
 
     // Create next batch of entries on the leader journal context.
     try (JournalContext journalContext =
-        mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext(mStateLock)) {
+        mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       for (int i = 0; i < entryBatchCount; i++) {
         journalContext.append(
             alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
@@ -195,7 +192,7 @@ public class RaftJournalTest {
     final int entryBatchCount = 5;
     // Create 2 batches of entries on the leader journal context.
     try (JournalContext journalContext =
-        mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext(mStateLock)) {
+        mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       for (int i = 0; i < entryBatchCount * 2; i++) {
         journalContext.append(
             alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
@@ -229,7 +226,7 @@ public class RaftJournalTest {
     // These will be replicated to follower journal context.
     final int entryCount = 10;
     try (JournalContext journalContext =
-        mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext(mStateLock)) {
+        mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       for (int i = 0; i < entryCount; i++) {
         journalContext.append(
             alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
@@ -266,7 +263,7 @@ public class RaftJournalTest {
     // These will be replicated to follower journal context.
     final int entryCount = 10;
     try (JournalContext journalContext =
-        mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext(mStateLock)) {
+        mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       for (int i = 0; i < entryCount; i++) {
         journalContext.append(
             alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
@@ -309,7 +306,7 @@ public class RaftJournalTest {
     // These will be replicated to follower journal context.
     ForkJoinPool.commonPool().submit(() -> {
       try (JournalContext journalContext =
-          mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext(mStateLock)) {
+          mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
         for (int i = 0; i < entryCount; i++) {
           journalContext
               .append(

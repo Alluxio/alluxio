@@ -21,7 +21,6 @@ import alluxio.master.journal.MasterJournalContext;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -60,12 +59,12 @@ public class RaftJournal implements Journal {
   }
 
   @Override
-  public JournalContext createJournalContext(Lock stateLock) throws UnavailableException {
+  public JournalContext createJournalContext() throws UnavailableException {
     AsyncJournalWriter journalWriter = mJournalWriter.get();
     if (journalWriter == null) {
       throw new UnavailableException("Journal has been closed");
     }
-    return new MasterJournalContext(journalWriter, stateLock);
+    return new MasterJournalContext(journalWriter);
   }
 
   @Override

@@ -15,7 +15,6 @@ import alluxio.exception.status.UnavailableException;
 
 import java.io.Closeable;
 import java.net.URI;
-import java.util.concurrent.locks.Lock;
 
 /**
  * A journal for persisting journal entries.
@@ -27,10 +26,9 @@ public interface Journal extends Closeable {
   URI getLocation();
 
   /**
-   * @param stateLock the lock to hold for the duration of the journal context
    * @return a journal context for appending journal entries
    * @throws UnavailableException if a context cannot be created because the journal has been
    *         closed.
    */
-  JournalContext createJournalContext(Lock stateLock) throws UnavailableException;
+  JournalContext createJournalContext() throws UnavailableException;
 }

@@ -161,7 +161,7 @@ public class JournalContextTest {
         ExecutorServiceFactories.cachedThreadPool("stateChangeFairness").create();
 
     // create tasks that continually create journal contexts
-    for (int i = 0; i < 500; i++) {
+    for (int i = 0; i < 100; i++) {
       service.submit(() -> {
         while (!Thread.currentThread().isInterrupted()) {
           try {

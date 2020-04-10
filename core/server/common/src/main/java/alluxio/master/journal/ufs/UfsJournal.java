@@ -18,8 +18,8 @@ import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.master.journal.AbstractCatchupThread;
-import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.AsyncJournalWriter;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalReader;
@@ -46,7 +46,6 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -196,7 +195,7 @@ public class UfsJournal implements Journal {
   }
 
   @Override
-  public synchronized JournalContext createJournalContext(Lock stateLock)
+  public synchronized JournalContext createJournalContext()
       throws UnavailableException {
     if (mState != State.PRIMARY) {
       // We throw UnavailableException here so that clients will retry with the next primary master.
@@ -206,7 +205,7 @@ public class UfsJournal implements Journal {
     if (writer == null) {
       throw new UnavailableException("Failed to write to journal: journal is shutdown.");
     }
-    return new MasterJournalContext(writer, stateLock);
+    return new MasterJournalContext(writer);
   }
 
   private synchronized UfsJournalLogWriter writer() {
