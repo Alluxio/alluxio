@@ -96,6 +96,7 @@ public final class InodeTreeTest {
       new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
           .put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
           .put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup")
+          .put(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP, "false")
           .build());
 
   /**
