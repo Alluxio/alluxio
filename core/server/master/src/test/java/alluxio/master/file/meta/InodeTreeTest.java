@@ -96,7 +96,6 @@ public final class InodeTreeTest {
       new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
           .put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
           .put(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup")
-          .put(PropertyKey.MASTER_METASTORE_INODE_INHERIT_OWNER_AND_GROUP, "false")
           .build());
 
   /**
@@ -638,11 +637,10 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests if mode is set correctly in the {@link InodeTree#addInodeFileFromJournal} and
-   * {@link InodeTree#addInodeDirectoryFromJournal} methods for empty owner/group.
+   * Tests if mode is set correctly in the {@link InodeTree#addInodeFileFromJournal}.
    */
   @Test
-  public void addInodeModeFromJournalWithEmptyOwnership() throws Exception {
+  public void addInodeModeFromJournal() throws Exception {
     createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
     InodeDirectory root = mTree.getRoot();
     InodeDirectory nested = (InodeDirectory) root.getChild("nested");
@@ -650,8 +648,6 @@ public final class InodeTreeTest {
     Inode<?> file = test.getChild("file");
     Inode[] inodeChildren = {nested, test, file};
     for (Inode child : inodeChildren) {
-      child.setOwner("");
-      child.setGroup("");
       child.setMode((short) 0600);
     }
 
@@ -677,8 +673,6 @@ public final class InodeTreeTest {
         for (LockedInodePath childPath : descendants.getInodePathList()) {
           Inode<?> child = childPath.getInodeOrNull();
           Assert.assertNotNull(child);
-          Assert.assertEquals("", child.getOwner());
-          Assert.assertEquals("", child.getGroup());
           Assert.assertEquals((short) 0600, child.getMode());
         }
       }
