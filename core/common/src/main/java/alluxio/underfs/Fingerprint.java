@@ -38,7 +38,7 @@ public final class Fingerprint {
   private static final Tag[] CONTENT_TAGS = {Tag.TYPE, Tag.UFS, Tag.CONTENT_HASH};
 
   private static final Pattern SANITIZE_REGEX = Pattern.compile("[ :]");
-  private static final String UNDERSCORE = "_";
+  public static final String UNDERSCORE = "_";
 
   private final Map<Tag, String> mValues;
 

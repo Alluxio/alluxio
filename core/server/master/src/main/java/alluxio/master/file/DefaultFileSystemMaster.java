@@ -3508,11 +3508,19 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // It works by calling SetAttributeInternal on the inodePath.
         if (ufsFpParsed.isValid()) {
           short mode = Short.parseShort(ufsFpParsed.getTag(Tag.MODE));
-          SetAttributeOptions options =
-              SetAttributeOptions.defaults().setOwner(ufsFpParsed.getTag(Tag.OWNER))
-                  .setGroup(ufsFpParsed.getTag(Tag.GROUP))
-                  .setMode(mode)
-                  .setUfsFingerprint(ufsFingerprint);
+          SetAttributeOptions options = SetAttributeOptions.defaults()
+              .setMode(mode)
+              .setUfsFingerprint(ufsFingerprint);
+          String owner = ufsFpParsed.getTag(Tag.OWNER);
+          if (!owner.equals(Fingerprint.UNDERSCORE)) {
+            // Only set owner if not empty
+            options.setOwner(owner);
+          }
+          String group = ufsFpParsed.getTag(Tag.GROUP);
+          if (!group.equals(Fingerprint.UNDERSCORE)) {
+            // Only set group if not empty
+            options.setGroup(group);
+          }
           long opTimeMs = System.currentTimeMillis();
           // use replayed, since updating UFS is not desired.
           setAttributeInternal(inodePath, true, opTimeMs, options);

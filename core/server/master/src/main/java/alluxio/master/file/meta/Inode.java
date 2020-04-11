@@ -233,7 +233,9 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the updated object
    */
   public T setGroup(String group) {
-    mGroup = group;
+    if (!group.isEmpty()) {
+      mGroup = group;
+    }
     return getThis();
   }
 
@@ -322,7 +324,9 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the updated object
    */
   public T setOwner(String owner) {
-    mOwner = owner;
+    if (!owner.isEmpty()) {
+      mOwner = owner;
+    }
     return getThis();
   }
 

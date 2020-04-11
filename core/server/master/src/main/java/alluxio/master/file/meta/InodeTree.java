@@ -615,11 +615,12 @@ public class InodeTree implements JournalEntryIterable {
           try {
             // Successfully added the child, while holding the write lock.
             dir.setPinned(currentInodeDirectory.isPinned());
-            inheritOwnerAndGroupIfEmpty(dir, currentInodeDirectory);
             if (options.isPersisted()) {
               // Do not journal the persist entry, since a creation entry will be journaled instead.
               syncPersistDirectory(RpcContext.NOOP, dir);
             }
+            // Do NOT call setOwner/Group after inheriting from parent if empty
+            inheritOwnerAndGroupIfEmpty(dir, currentInodeDirectory);
           } catch (Throwable e) {
             // The inode was temporarily in the child list of its parent, so another thread could
             // have access to the inode. We must mark it as deleted so that the other thread knows
@@ -722,6 +723,7 @@ public class InodeTree implements JournalEntryIterable {
           }
         }
         lastInode.setPinned(currentInodeDirectory.isPinned());
+        // Do NOT call setOwner/Group after inheriting from parent if empty
         inheritOwnerAndGroupIfEmpty(lastInode, currentInodeDirectory);
 
         // Update state while holding the write lock.
