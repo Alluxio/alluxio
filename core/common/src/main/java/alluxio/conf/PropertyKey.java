@@ -2972,6 +2972,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_BLOCK_WORKER_MAX_STREAMING_CONNECTIONS =
+          new Builder(Name.USER_BLOCK_WORKER_MAX_STREAMING_CONNECTIONS)
+          .setDefaultValue(Integer.MAX_VALUE)
+          .setDescription("The maximum number of physical connections to be "
+              + "used by block worker clients for streaming data.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS)
           .setDefaultValue("300sec")
@@ -4721,6 +4729,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.worker.client.pool.gc.threshold";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
         "alluxio.user.block.worker.client.pool.size";
+    public static final String USER_BLOCK_WORKER_MAX_STREAMING_CONNECTIONS =
+        "alluxio.user.block.worker.max.streaming.connections";
     public static final String USER_BLOCK_WORKER_CLIENT_READ_RETRY =
         "alluxio.user.block.worker.client.read.retry";
     public static final String USER_BLOCK_WRITE_LOCATION_POLICY =

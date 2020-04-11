@@ -39,9 +39,13 @@ import java.util.concurrent.TimeUnit;
 public class GrpcChannelKey {
   private static final Random RANDOM = new Random();
 
+  private final AlluxioConfiguration mConf;
+
+  @IdentityField
+  MultiplexGroup mMultiplexGroup = MultiplexGroup.DEFAULT;
   @IdentityField
   @SuppressFBWarnings(value = "URF_UNREAD_FIELD")
-  Long mPoolKey = 0L;
+  int mMultiplexGroupBucket;
   @IdentityField
   private GrpcServerAddress mServerAddress;
   @IdentityField
@@ -66,6 +70,7 @@ public class GrpcChannelKey {
   private final String mLocalHostName;
 
   private GrpcChannelKey(AlluxioConfiguration conf) {
+    mConf = conf;
     // Try to get local host name.
     String localHostName;
     try {
@@ -229,23 +234,26 @@ public class GrpcChannelKey {
   }
 
   /**
-   *
-   * @param strategy the pooling strategy
+   * @param group the multiplexing group membership card
    * @return the modified {@link GrpcChannelKey}
    */
-  public GrpcChannelKey setPoolingStrategy(PoolingStrategy strategy) {
-    // TODO(feng): implement modularized pooling strategies
-    switch (strategy) {
+  public GrpcChannelKey setMultiplexGroup(MultiplexGroup group) {
+    mMultiplexGroup = group;
+
+    int groupSize = 1;
+    switch (mMultiplexGroup) {
       case DEFAULT:
-        mPoolKey = 0L;
+        groupSize = 1;
         break;
-      case DISABLED:
-        mPoolKey = RANDOM.nextLong();
+      case STREAMING:
+        groupSize = mConf.getInt(PropertyKey.USER_BLOCK_WORKER_MAX_STREAMING_CONNECTIONS);
         break;
       default:
-        throw new IllegalArgumentException(
-            String.format("Invalid pooling strategy %s", strategy.name()));
+        throw new IllegalStateException(
+            String.format("Unrecognized multiplex group: %s", mMultiplexGroup.name()));
     }
+
+    mMultiplexGroupBucket = RANDOM.nextInt(groupSize) + mMultiplexGroup.ordinal();
     return this;
   }
 
@@ -329,11 +337,20 @@ public class GrpcChannelKey {
   }
 
   /**
-   * Enumeration to determine the pooling strategy.
+   * Used to define connection level multiplexing groups.
    */
-  public enum PoolingStrategy {
+  public enum MultiplexGroup {
+    /**
+     * Multiplexing will be enforced.
+     */
     DEFAULT,
-    DISABLED
+    /**
+     * Multiplexing will be enforced in a separate
+     * group for increasing streaming bandwidth.
+     *
+     * Pool size is controlled by {@code PropertyKey.USER_BLOCK_WORKER_MAX_STREAMING_CONNECTIONS}.
+     */
+    STREAMING
   }
 
   @Retention(RetentionPolicy.RUNTIME)
