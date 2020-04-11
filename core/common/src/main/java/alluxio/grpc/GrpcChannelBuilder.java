@@ -184,11 +184,11 @@ public final class GrpcChannelBuilder {
   /**
    * Sets the pooling strategy.
    *
-   * @param strategy the pooling strategy
+   * @param multiplexGroup the connection multiplexing group
    * @return a new instance of {@link GrpcChannelBuilder}
    */
-  public GrpcChannelBuilder setPoolingStrategy(GrpcChannelKey.PoolingStrategy strategy) {
-    mChannelKey.setPoolingStrategy(strategy);
+  public GrpcChannelBuilder setMultiplexGroup(GrpcChannelKey.MultiplexGroup multiplexGroup) {
+    mChannelKey.setMultiplexGroup(multiplexGroup);
     return this;
   }
 
