@@ -21,23 +21,23 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.DeadlineExceededException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.resource.CloseableResource;
-import alluxio.retry.CountingRetry;
+import alluxio.retry.RetryPolicy;
+import alluxio.retry.RetryUtils;
 import alluxio.util.CommonUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.ConnectException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -66,7 +66,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class AlluxioFileInStream extends FileInStream {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFileInStream.class);
 
-  private final int mBlockWorkerClientReadRetry;
+  private Supplier<RetryPolicy> mRetryPolicySupplier;
   private final URIStatus mStatus;
   private final InStreamOptions mOptions;
   private final AlluxioBlockStore mBlockStore;
@@ -107,7 +107,14 @@ public class AlluxioFileInStream extends FileInStream {
     try {
       AlluxioConfiguration conf = mContext.getPathConf(new AlluxioURI(status.getPath()));
       mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
-      mBlockWorkerClientReadRetry = conf.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
+      final Duration blockReadRetryMaxDuration =
+          conf.getDuration(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION);
+      final Duration blockReadRetrySleepBase =
+          conf.getDuration(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN);
+      final Duration blockReadRetrySleepMax =
+          conf.getDuration(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MAX);
+      mRetryPolicySupplier = () -> RetryUtils.defaultBlockReadRetry(
+          blockReadRetryMaxDuration, blockReadRetrySleepBase, blockReadRetrySleepMax);
       mStatus = status;
       mOptions = options;
       mBlockStore = AlluxioBlockStore.create(mContext);
@@ -131,7 +138,7 @@ public class AlluxioFileInStream extends FileInStream {
     if (mPosition == mLength) { // at end of file
       return -1;
     }
-    CountingRetry retry = new CountingRetry(mBlockWorkerClientReadRetry);
+    RetryPolicy retry = mRetryPolicySupplier.get();
     IOException lastException = null;
     while (retry.attempt()) {
       try {
@@ -141,7 +148,7 @@ public class AlluxioFileInStream extends FileInStream {
           mPosition++;
         }
         return result;
-      } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
+      } catch (IOException e) {
         lastException = e;
         if (mBlockInStream != null) {
           handleRetryableException(mBlockInStream, e);
@@ -171,7 +178,7 @@ public class AlluxioFileInStream extends FileInStream {
 
     int bytesLeft = len;
     int currentOffset = off;
-    CountingRetry retry = new CountingRetry(mBlockWorkerClientReadRetry);
+    RetryPolicy retry = mRetryPolicySupplier.get();
     IOException lastException = null;
     while (bytesLeft > 0 && mPosition != mLength && retry.attempt()) {
       try {
@@ -182,9 +189,9 @@ public class AlluxioFileInStream extends FileInStream {
           currentOffset += bytesRead;
           mPosition += bytesRead;
         }
-        retry.reset();
+        retry = mRetryPolicySupplier.get();
         lastException = null;
-      } catch (UnavailableException | ConnectException | DeadlineExceededException e) {
+      } catch (IOException e) {
         lastException = e;
         if (mBlockInStream != null) {
           handleRetryableException(mBlockInStream, e);
@@ -238,7 +245,7 @@ public class AlluxioFileInStream extends FileInStream {
       mOptions.setPositionShort(true);
     }
     int lenCopy = len;
-    CountingRetry retry = new CountingRetry(mBlockWorkerClientReadRetry);
+    RetryPolicy retry = mRetryPolicySupplier.get();
     IOException lastException = null;
     while (len > 0 && retry.attempt()) {
       if (pos >= mLength) {
@@ -261,10 +268,10 @@ public class AlluxioFileInStream extends FileInStream {
         pos += bytesRead;
         off += bytesRead;
         len -= bytesRead;
-        retry.reset();
+        retry = mRetryPolicySupplier.get();
         lastException = null;
         triggerAsyncCaching(mCachedPositionedReadStream);
-      } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
+      } catch (IOException e) {
         lastException = e;
         if (mCachedPositionedReadStream != null) {
           handleRetryableException(mCachedPositionedReadStream, e);
