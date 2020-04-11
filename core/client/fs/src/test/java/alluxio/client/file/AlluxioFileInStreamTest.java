@@ -35,6 +35,7 @@ import alluxio.client.block.stream.TestBlockInStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.OpenFilePOptions;
@@ -121,6 +122,9 @@ public final class AlluxioFileInStreamTest {
     mInfo = new FileInfo().setBlockSizeBytes(BLOCK_LENGTH).setLength(FILE_LENGTH);
 
     ClientTestUtils.setSmallBufferSizes(sConf);
+    sConf.set(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "1ms");
+    sConf.set(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "5ms");
+    sConf.set(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION, "10ms");
 
     mContext = PowerMockito.mock(FileSystemContext.class);
     when(mContext.getClientContext()).thenReturn(ClientContext.create(sConf));

@@ -32,19 +32,26 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class ExponentialTimeBoundedRetry extends TimeBoundedRetry {
   private final Duration mMaxSleep;
   private Duration mNextSleep;
+  boolean mSkipInitialSleep;
+  boolean mSleepSkipped;
 
   /**
    * See {@link Builder}.
    */
   private ExponentialTimeBoundedRetry(TimeContext timeCtx, Duration maxDuration,
-      Duration initialSleep, Duration maxSleep) {
+      Duration initialSleep, Duration maxSleep, boolean skipInitialSleep) {
     super(timeCtx, maxDuration);
     mMaxSleep = maxSleep;
     mNextSleep = initialSleep;
+    mSkipInitialSleep = skipInitialSleep;
   }
 
   @Override
   protected Duration computeNextWaitTime() {
+    if (mSkipInitialSleep && !mSleepSkipped) {
+      mSleepSkipped = true;
+      return Duration.ofNanos(0);
+    }
     Duration next = mNextSleep;
     mNextSleep = mNextSleep.multipliedBy(2);
     if (mNextSleep.compareTo(mMaxSleep) > 0) {
@@ -70,6 +77,7 @@ public final class ExponentialTimeBoundedRetry extends TimeBoundedRetry {
     private Duration mMaxDuration;
     private Duration mInitialSleep;
     private Duration mMaxSleep;
+    private boolean mSkipInitialSleep = false;
 
     /**
      * @param timeCtx time context
@@ -108,10 +116,21 @@ public final class ExponentialTimeBoundedRetry extends TimeBoundedRetry {
     }
 
     /**
+     * first sleep will be skipped.
+     *
+     * @return the builder
+     */
+    public Builder withSkipInitialSleep() {
+      mSkipInitialSleep = true;
+      return this;
+    }
+
+    /**
      * @return the built retry mechanism
      */
     public ExponentialTimeBoundedRetry build() {
-      return new ExponentialTimeBoundedRetry(mTimeCtx, mMaxDuration, mInitialSleep, mMaxSleep);
+      return new ExponentialTimeBoundedRetry(
+          mTimeCtx, mMaxDuration, mInitialSleep, mMaxSleep, mSkipInitialSleep);
     }
   }
 }
