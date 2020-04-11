@@ -178,7 +178,7 @@ public final class GrpcManagedChannelPoolTest {
   }
 
   @Test
-  public void testEqualKeysNoPooling() throws Exception {
+  public void testEqualKeysStreaming() throws Exception {
     GrpcChannelKey key1 = GrpcChannelKey.create(sConf)
         .setMultiplexGroup(GrpcChannelKey.MultiplexGroup.STREAMING);
     GrpcChannelKey key2 = GrpcChannelKey.create(sConf)
@@ -202,6 +202,41 @@ public final class GrpcManagedChannelPoolTest {
         HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
 
     assertTrue(channel1 != channel2);
+
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1, SHUTDOWN_TIMEOUT);
+    GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2, SHUTDOWN_TIMEOUT);
+
+    server1.shutdown();
+  }
+
+  @Test
+  public void testEqualKeysStreamingDisabled() throws Exception {
+    // Soft disable streaming by setting max connection count to 1.
+    sConf.set(PropertyKey.USER_BLOCK_WORKER_MAX_STREAMING_CONNECTIONS, "1");
+
+    GrpcChannelKey key1 =
+        GrpcChannelKey.create(sConf).setMultiplexGroup(GrpcChannelKey.MultiplexGroup.STREAMING);
+    GrpcChannelKey key2 =
+        GrpcChannelKey.create(sConf).setMultiplexGroup(GrpcChannelKey.MultiplexGroup.STREAMING);
+
+    InetSocketAddress bindAddress = new InetSocketAddress("0.0.0.0", 0);
+
+    UserState us = UserState.Factory.create(sConf);
+    GrpcServer server1 = GrpcServerBuilder
+        .forAddress(GrpcServerAddress.create("localhost", bindAddress), sConf, us).build().start();
+
+    GrpcServerAddress address =
+        GrpcServerAddress.create(new InetSocketAddress("localhost", server1.getBindPort()));
+
+    key1.setServerAddress(address);
+    key2.setServerAddress(address);
+
+    ManagedChannel channel1 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key1,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
+    ManagedChannel channel2 = GrpcManagedChannelPool.INSTANCE().acquireManagedChannel(key2,
+        HEALTH_CHECK_TIMEOUT, SHUTDOWN_TIMEOUT);
+
+    assertTrue(channel1 == channel2);
 
     GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key1, SHUTDOWN_TIMEOUT);
     GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(key2, SHUTDOWN_TIMEOUT);
