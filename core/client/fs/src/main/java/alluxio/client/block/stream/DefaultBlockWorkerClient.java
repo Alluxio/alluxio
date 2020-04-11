@@ -95,11 +95,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
         // Disables channel pooling for data streaming to achieve better throughput.
         // Channel is still reused due to client pooling.
         mStreamingChannel = buildChannel(userState.getSubject(), address,
-            GrpcChannelKey.PoolingStrategy.DISABLED, alluxioConf, workerGroup);
+            GrpcChannelKey.MultiplexGroup.STREAMING, alluxioConf, workerGroup);
         mStreamingChannel.intercept(new StreamSerializationClientInterceptor());
         // Uses default pooling strategy for RPC calls for better scalability.
         mRpcChannel = buildChannel(userState.getSubject(), address,
-            GrpcChannelKey.PoolingStrategy.DEFAULT, alluxioConf, workerGroup);
+            GrpcChannelKey.MultiplexGroup.DEFAULT, alluxioConf, workerGroup);
         lastException = null;
         break;
       } catch (StatusRuntimeException e) {
@@ -237,13 +237,13 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   private GrpcChannel buildChannel(Subject subject, GrpcServerAddress address,
-      GrpcChannelKey.PoolingStrategy poolingStrategy, AlluxioConfiguration alluxioConf,
+      GrpcChannelKey.MultiplexGroup multiplexGroup, AlluxioConfiguration alluxioConf,
       EventLoopGroup workerGroup)
       throws AlluxioStatusException {
     return GrpcChannelBuilder.newBuilder(address, alluxioConf).setSubject(subject)
+        .setMultiplexGroup(multiplexGroup)
         .setChannelType(NettyUtils.getClientChannelClass(
             !(address.getSocketAddress() instanceof InetSocketAddress), alluxioConf))
-        .setPoolingStrategy(poolingStrategy)
         .setEventLoopGroup(workerGroup)
         .setKeepAliveTime(alluxioConf.getMs(PropertyKey.USER_NETWORK_KEEPALIVE_TIME_MS),
             TimeUnit.MILLISECONDS)

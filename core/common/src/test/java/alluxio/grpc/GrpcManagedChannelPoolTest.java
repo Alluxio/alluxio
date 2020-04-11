@@ -180,9 +180,9 @@ public final class GrpcManagedChannelPoolTest {
   @Test
   public void testEqualKeysNoPooling() throws Exception {
     GrpcChannelKey key1 = GrpcChannelKey.create(sConf)
-        .setPoolingStrategy(GrpcChannelKey.PoolingStrategy.DISABLED);
+        .setMultiplexGroup(GrpcChannelKey.MultiplexGroup.STREAMING);
     GrpcChannelKey key2 = GrpcChannelKey.create(sConf)
-        .setPoolingStrategy(GrpcChannelKey.PoolingStrategy.DISABLED);
+        .setMultiplexGroup(GrpcChannelKey.MultiplexGroup.STREAMING);
 
     InetSocketAddress bindAddress = new InetSocketAddress("0.0.0.0", 0);
 
