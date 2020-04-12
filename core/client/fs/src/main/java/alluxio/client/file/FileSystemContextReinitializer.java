@@ -173,8 +173,6 @@ public final class FileSystemContextReinitializer implements Closeable {
    * If already closed, this is a noop.
    */
   public void close() {
-    if (!REINIT_EXECUTOR.isShutdown()) {
-      REINIT_EXECUTOR.shutdownNow();
-    }
+    // Do not close static executor shared across context instances
   }
 }
