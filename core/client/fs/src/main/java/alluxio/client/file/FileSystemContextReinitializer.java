@@ -41,9 +41,11 @@ import java.util.concurrent.Executors;
 public final class FileSystemContextReinitializer implements Closeable {
   private final FileSystemContext mContext;
   private final ConfigHashSync mExecutor;
-  private final ExecutorService mExecutorService;
-
   private CountingLatch mLatch = new CountingLatch();
+
+  private static final ExecutorService REINIT_EXECUTOR =
+      Executors.newSingleThreadExecutor(ThreadFactoryUtils.build(
+          "config-hash-master-heartbeat-%d", true));
 
   /**
    * Creates a new reinitializer for the context.
@@ -55,9 +57,7 @@ public final class FileSystemContextReinitializer implements Closeable {
   public FileSystemContextReinitializer(FileSystemContext context) {
     mContext = context;
     mExecutor = new ConfigHashSync(context);
-    mExecutorService = Executors.newSingleThreadExecutor(ThreadFactoryUtils.build(
-        "config-hash-master-heartbeat-%d", true));
-    mExecutorService.submit(
+    REINIT_EXECUTOR.submit(
         new HeartbeatThread(HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC, mContext.getId(),
             mExecutor, mContext.getClientContext().getClusterConf().getMs(
                 PropertyKey.USER_CONF_SYNC_INTERVAL),
@@ -173,8 +173,8 @@ public final class FileSystemContextReinitializer implements Closeable {
    * If already closed, this is a noop.
    */
   public void close() {
-    if (!mExecutorService.isShutdown()) {
-      mExecutorService.shutdownNow();
+    if (!REINIT_EXECUTOR.isShutdown()) {
+      REINIT_EXECUTOR.shutdownNow();
     }
   }
 }
