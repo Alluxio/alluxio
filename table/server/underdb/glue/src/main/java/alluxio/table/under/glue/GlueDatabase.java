@@ -233,16 +233,18 @@ public class GlueDatabase implements UnderDatabase {
 
       for (Partition partition : partitions) {
         AlluxioURI partitionUri;
+        String partitionName;
         if (partition.getStorageDescriptor() != null
             && partition.getStorageDescriptor().getLocation() != null
             && ufsUri.isAncestorOf(
             partitionUri = new AlluxioURI(
                 partition.getStorageDescriptor().getLocation()))) {
           glueUfsUri = partition.getStorageDescriptor().getLocation();
-          String partitionName = partition.getValues().toString();
-          // Glue does not provide makePartName as Hive, use a simple conveter for place holder
+          partitionName = partition.getValues().toString();
           try {
-            partitionName = GlueUtils.makePartitionName(table, partition);
+            partitionName = GlueUtils.makePartitionName(
+                table.getPartitionKeys(),
+                partition.getValues());
           } catch (IOException e) {
             LOG.warn("Error making partition name for table {}, partition {}", tableName,
                 partition.getValues().toString());

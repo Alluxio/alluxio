@@ -17,12 +17,11 @@ import alluxio.grpc.table.layout.hive.SortingColumn;
 import alluxio.grpc.table.layout.hive.Storage;
 import alluxio.grpc.table.layout.hive.StorageFormat;
 import alluxio.table.common.udb.PathTranslator;
+import alluxio.table.common.udb.UdbUtil;
 
 import com.amazonaws.services.glue.model.Column;
 import com.amazonaws.services.glue.model.Order;
-import com.amazonaws.services.glue.model.Partition;
 import com.amazonaws.services.glue.model.StorageDescriptor;
-import com.amazonaws.services.glue.model.Table;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -122,25 +121,30 @@ public class GlueUtils {
   }
 
   /**
-   * Convert glue partion information to alluxio partition name.
+   * Align to hive makePartName, convert glue partition information to alluxio partition name.
    *
-   * @param table glue table
-   * @param partition glue partition
+   * @param columns glue table partition keys
+   * @param partitionValues glue partition values
    * @return partition name
    * @throws IOException
    */
-  public static String makePartitionName(Table table, Partition partition) throws IOException {
-    // TODO(shouwei): make makePartitionName work both for hive and glue
-    String partitionName;
-    if (table.getName().isEmpty()) {
-      throw new IOException("Table name cannot be null.");
+  public static String makePartitionName(List<Column> columns, List<String> partitionValues)
+      throws IOException {
+    if ((columns.size() != partitionValues.size()) || columns.size() == 0) {
+      String errorMesg = "Invalid partition key & values; key [";
+      for (Column column : columns) {
+        errorMesg += (column.getName() + ",");
+      }
+      errorMesg += "], values [";
+      for (String partitionValue : partitionValues) {
+        errorMesg += (partitionValue + ",");
+      }
+      throw new IOException(errorMesg);
     }
-    if (partition.getValues().toString().isEmpty()) {
-      throw new IOException("Error making partition name for table {"
-          + table.getName()
-          + "}, partition {" + partition.getValues().toString() + "}.");
+    List<String> columnNames = new ArrayList<>();
+    for (Column column : columns) {
+      columnNames.add(column.getName());
     }
-    partitionName = partition.getValues().toString();
-    return partitionName;
+    return UdbUtil.makePartName(columnNames, partitionValues);
   }
 }
