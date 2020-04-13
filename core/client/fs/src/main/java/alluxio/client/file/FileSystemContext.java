@@ -237,7 +237,9 @@ public class FileSystemContext implements Closeable {
   private synchronized void init(ClientContext clientContext,
       MasterInquireClient masterInquireClient) {
     initContext(clientContext, masterInquireClient);
-    mReinitializer = new FileSystemContextReinitializer(this);
+    if (getClusterConf().getBoolean(PropertyKey.USER_CONF_SYNC_ENABLED)) {
+      mReinitializer = new FileSystemContextReinitializer(this);
+    }
   }
 
   private synchronized void initContext(ClientContext ctx,
@@ -317,8 +319,13 @@ public class FileSystemContext implements Closeable {
    *
    * @return the resource
    */
-  public ReinitBlockerResource blockReinit() {
+  @Nullable
+  public Closeable blockReinit() {
     try {
+      if (mReinitializer == null) {
+        // Reinitialization is disabled
+        return null;
+      }
       return mReinitializer.block();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -344,6 +351,10 @@ public class FileSystemContext implements Closeable {
    */
   public void reinit(boolean updateClusterConf, boolean updatePathConf)
       throws UnavailableException, IOException {
+    if (mReinitializer == null) {
+      LOG.warn("Reinitialization is not enabled");
+      return;
+    }
     try (Closeable r = mReinitializer.allow()) {
       InetSocketAddress masterAddr;
       try {
@@ -432,8 +443,9 @@ public class FileSystemContext implements Closeable {
    *
    * @return the acquired file system master client resource
    */
-  public CloseableResource<FileSystemMasterClient> acquireMasterClientResource() {
-    try (ReinitBlockerResource r = blockReinit()) {
+  public CloseableResource<FileSystemMasterClient> acquireMasterClientResource()
+      throws IOException {
+    try (Closeable r = blockReinit()) {
       return acquireClosableClientResource(mFileSystemMasterClientPool);
     }
   }
@@ -444,8 +456,9 @@ public class FileSystemContext implements Closeable {
    *
    * @return the acquired block master client resource
    */
-  public CloseableResource<BlockMasterClient> acquireBlockMasterClientResource() {
-    try (ReinitBlockerResource r = blockReinit()) {
+  public CloseableResource<BlockMasterClient> acquireBlockMasterClientResource()
+      throws IOException {
+    try (Closeable r = blockReinit()) {
       return acquireClosableClientResource(mBlockMasterClientPool);
     }
   }
@@ -501,7 +514,7 @@ public class FileSystemContext implements Closeable {
   public CloseableResource<BlockWorkerClient> acquireBlockWorkerClient(
       final WorkerNetAddress workerNetAddress)
       throws IOException {
-    try (ReinitBlockerResource r = blockReinit()) {
+    try (Closeable r = blockReinit()) {
       return acquireBlockWorkerClientInternal(workerNetAddress, getClientContext());
     }
   }

@@ -2996,6 +2996,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CONF_SYNC_ENABLED =
+      new Builder(Name.USER_CONF_SYNC_ENABLED)
+          .setDefaultValue("true")
+          .setDescription("Whether to enable the client-master heartbeat to "
+              + "update the configuration if necessary from meta master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CONF_SYNC_INTERVAL =
       new Builder(Name.USER_CONF_SYNC_INTERVAL)
           .setDefaultValue("1min")
@@ -4757,6 +4765,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.store.type";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
+    public static final String USER_CONF_SYNC_ENABLED = "alluxio.user.conf.sync.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";

@@ -18,7 +18,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
@@ -72,6 +71,7 @@ import com.google.common.net.HostAndPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -511,7 +511,7 @@ public class BaseFileSystem implements FileSystem {
    */
   private <R> R rpc(RpcCallable<FileSystemMasterClient, R> fn)
       throws IOException, AlluxioException {
-    try (ReinitBlockerResource r = mFsContext.blockReinit();
+    try (Closeable r = mFsContext.blockReinit();
          CloseableResource<FileSystemMasterClient> client =
              mFsContext.acquireMasterClientResource()) {
       // Explicitly connect to trigger loading configuration from meta master.

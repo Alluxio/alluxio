@@ -24,6 +24,7 @@ import alluxio.retry.ExponentialBackoffRetry;
 
 import org.apache.commons.cli.CommandLine;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.List;
@@ -54,7 +55,7 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public int run(CommandLine cl) {
+  public int run(CommandLine cl) throws IOException {
     try (CloseableResource<FileSystemMasterClient> client =
         mFsContext.acquireMasterClientResource()) {
       try {
