@@ -9,36 +9,48 @@ priority: 5
 * Table of Contents
 {:toc}
 
-Alluxio is fault-tolerant: force-killing the system will not lose metadata.
-To achieve this, the master writes edit logs of all metadata changes (e.g., creating files,
-renaming directories).
-On startup, a recovering master will read the edit logs to restore itself back to its previous state.
-We use the term "journal" to refer to the system of edit logs used to support fault-tolerance.
+Alluxio keeps the history of all metadata related changes, such as creating files or renaming directories,
+in edit logs referred to as "journal".
+Upon startup, the Alluxio master will replay all the steps recorded in the journal to recover its last saved state.
+Also when the leading master falls back to a different master for
+[high availability (HA)]({{ 'en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}) mode,
+the new leading master also replays the journal to recover the last state of the leading master.
 The purpose of this documentation is to help Alluxio administrators understand and manage the Alluxio journal.
 
-## UFS Journal vs Embedded Journal
+## Embedded Journal vs UFS Journal
 
-By setting property "`alluxio.master.journal.type`" to "`UFS`" or "`EMBEDDED`" (default since 2.2),
-Alluxio can switch between using UFS journal and using embedded journal as explained below.
+There are two types of journals that Alluxio supports, `EMBEDDED` or `UFS`.
+The embedded journal stores edit logs on each master's local file system and
+coordinates multiple masters in HA mode to access the logs
+based on a self-managed consensus protocal;
+whereas UFS journal stores edit logs in an external shared UFS storage,
+and relies on external Zookeeper for coordination for HA mode.
+Starting from 2.2, the default journal type is `EMBEDDED`.
+This can be changed by setting the property "`alluxio.master.journal.type`" to "`UFS`"
+instead of "`EMBEDDED`".
 
-- The **UFS journal** stores edit logs in a UFS storage.
-When using a single Alluxio master, this UFS can be a local storage;
-when using multiple Alluxio masters for high availablity (HA mode),
-this UFS storage must be shared among masters for read and write access.
-UFS journal simplifies certain aspects of Alluxio operation, but it relies on
-an external Zookeeper cluster for coordination (for HA mode), and relies on a UFS for persistent storage.
-To get reasonable performance, the UFS journal requires a UFS that supports fast streaming writes,
-such as HDFS or NFS. In contrast, S3 is not recommended to be used for UFS journal.
+To choose between the default Embedded Journal and UFS journal,
+here are some aspects to consider:
 
-- The **embedded journal** stores edit logs on each master's local persistent storage with its own
- coordination, which comes with a limitation on fault tolerance.
-`n` masters using the embedded journal can tolerate only `floor(n/2)` master failures,
-compared to `n-1` for UFS journal. For example, With `3` masters, UFS journal can tolerate `2` failures,
-while embedded journal can only tolerate `1`. However, UFS journal depends on Zookeeper,
+- **External Dependency:**
+Embedded journal does not rely on extra services.
+UFS journal requires an external Zookeeper cluster in HA mode to coordinate who is the leading
+master writing the journal, and requires on a UFS for persistent storage.
+If UFS and Zookeeper cluster are not readily available and stable,
+it is recommended to use the embedded journal over UFS journal.
+- **Fault tolerance:**
+With `n` masters, using the embedded journal can tolerate only `floor(n/2)` master failures,
+compared to `n-1` for UFS journal.
+For example, With `3` masters, UFS journal can tolerate `2` failures,
+while embedded journal can only tolerate `1`.
+However, UFS journal depends on Zookeeper,
 which similarly only supports `floor(#zookeeper_nodes / 2)` failures.
-
-If a fast UFS and Zookeeper cluster are readily available and stable, it is recommended to use the UFS journal.
-Otherwise, we recommend using the embedded journal.
+- **Journal Storage Type:**
+When using a single Alluxio master, UFS journal can be a local storage;
+when using multiple Alluxio masters for HA mode,
+this UFS storage must be shared among masters for read and write access.
+To get reasonable performance, the UFS journal requires a UFS that supports fast streaming writes,
+such as HDFS or NFS. In contrast, S3 is not recommended for UFS journal.
 
 ## Configuring UFS Journal
 
