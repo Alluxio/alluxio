@@ -33,6 +33,7 @@
     "coverage": "npm run build-css && npm run build-css && react-scripts test --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx --watch",
     "coverage-ci": "npm run build-css && npm run build-css && CI=true react-scripts test --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx",
     "eject": "react-scripts eject",
+    "eslint": "eslint 'src/**/*.tsx'",
     "format": "eslint --fix 'src/**/*.tsx'"
   },
   "devDependencies": {

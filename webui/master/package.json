@@ -42,6 +42,7 @@
     "coverage": "npm run build-css && react-app-rewired test --scripts-version react-scripts --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx --watch",
     "coverage-ci": "npm run build-css && CI=true react-app-rewired test --scripts-version react-scripts --env=jsdom --coverage --collectCoverageFrom=src/**/*tsx --collectCoverageFrom=!src/*tsx",
     "eject": "react-scripts eject",
+    "eslint": "eslint 'src/**/*.tsx'",
     "format": "eslint --fix 'src/**/*.tsx'"
   },
   "devDependencies": {
