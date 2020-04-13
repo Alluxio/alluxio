@@ -25,7 +25,7 @@ import org.junit.rules.ExpectedException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TestGlueDatabase {
+public class GlueDatabaseTest {
 
   private static final String DB_NAME = "test";
   private static final Map<String, String> CONF = new HashMap<>();

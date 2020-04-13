@@ -59,7 +59,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Glue database implementation.
@@ -212,6 +211,7 @@ public class GlueDatabase implements UnderDatabase {
     }
   }
 
+  @VisibleForTesting
   private PathTranslator mountAlluxioPaths(Table table, List<Partition> partitions)
       throws IOException {
     String tableName = table.getName();
@@ -306,9 +306,7 @@ public class GlueDatabase implements UnderDatabase {
           .setLayoutData(partitionInfo.toByteString())
           .build();
 
-      List<String> partitionColumns = table.getPartitionKeys().stream()
-          .map(Column::getName)
-          .collect(Collectors.toList());
+      List<Column> partitionColumns = table.getPartitionKeys();
 
       List<UdbPartition> udbPartitions = new ArrayList<>();
       if (partitionColumns.isEmpty()) {
@@ -323,7 +321,7 @@ public class GlueDatabase implements UnderDatabase {
             new HiveLayout(partitionInfoBuilder.build(), Collections.emptyList())));
       } else {
         for (Partition partition : partitions) {
-          String partName = UdbUtil.makePartName(partitionColumns, partition.getValues());
+          String partName = GlueUtils.makePartitionName(partitionColumns, partition.getValues());
           PartitionInfo.Builder pib = PartitionInfo.newBuilder()
               .setDbName(getUdbContext().getDbName())
               .setTableName(tableName)

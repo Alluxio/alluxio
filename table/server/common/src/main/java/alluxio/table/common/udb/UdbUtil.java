@@ -18,13 +18,10 @@ import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.MountPOptions;
 
-import org.apache.hadoop.hive.common.FileUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -35,17 +32,6 @@ public class UdbUtil {
   private UdbUtil() {}
 
   private static final Logger LOG = LoggerFactory.getLogger(UdbUtil.class);
-
-  /**
-   * Make partition name for glue, wrapper of hive makePartName.
-   *
-   * @param partCols partition columns
-   * @param vals partition values
-   * @return partition name
-   */
-  public static String makePartName(List<String> partCols, List<String> vals) {
-    return FileUtils.makePartName(partCols, vals);
-  }
 
   /**
    * Mount ufs path to alluxio path.

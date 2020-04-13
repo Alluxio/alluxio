@@ -17,11 +17,11 @@ import alluxio.grpc.table.layout.hive.SortingColumn;
 import alluxio.grpc.table.layout.hive.Storage;
 import alluxio.grpc.table.layout.hive.StorageFormat;
 import alluxio.table.common.udb.PathTranslator;
-import alluxio.table.common.udb.UdbUtil;
 
 import com.amazonaws.services.glue.model.Column;
 import com.amazonaws.services.glue.model.Order;
 import com.amazonaws.services.glue.model.StorageDescriptor;
+import org.apache.hadoop.hive.common.FileUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -137,14 +137,25 @@ public class GlueUtils {
       }
       errorMesg += "], values [";
       for (String partitionValue : partitionValues) {
-        errorMesg += (partitionValue + ",");
+        errorMesg += (partitionValue + ", ");
       }
-      throw new IOException(errorMesg);
+      throw new IOException(errorMesg + "]");
     }
     List<String> columnNames = new ArrayList<>();
     for (Column column : columns) {
       columnNames.add(column.getName());
     }
-    return UdbUtil.makePartName(columnNames, partitionValues);
+    return makePartName(columnNames, partitionValues);
+  }
+
+  /**
+   * Make partition name for glue, wrapper of hive makePartName.
+   *
+   * @param partCols partition columns
+   * @param vals partition values
+   * @return partition name
+   */
+  public static String makePartName(List<String> partCols, List<String> vals) {
+    return FileUtils.makePartName(partCols, vals);
   }
 }
