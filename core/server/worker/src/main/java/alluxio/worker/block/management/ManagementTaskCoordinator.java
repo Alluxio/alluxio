@@ -115,7 +115,7 @@ public class ManagementTaskCoordinator implements Closeable {
   /**
    * Register known task providers by priority order.
    *
-   * TODO(ggezer): TV2 - Re-implement async-cache as {@link BlockManagementTask}.
+   * TODO(ggezer): Re-implement async-cache as {@link BlockManagementTask}.
    */
   private void initializeTaskProviders() {
     mTaskProviders = new ArrayList<>(1);

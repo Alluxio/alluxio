@@ -137,7 +137,7 @@ public class DefaultBlockIterator implements BlockIterator {
    */
   private void blockMoved(long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
-    // TODO(ggezer): TV2 - Fix callback logic to not called with the same locations.
+    // TODO(ggezer): Fix callback logic to not called with the same locations.
     if (!oldLocation.equals(newLocation)) {
       // Acquire the sorted-set for the block's current location.
       SortedBlockSet oldSortedSet = mPerDirOrderedSets.get(oldLocation);
@@ -344,7 +344,7 @@ public class DefaultBlockIterator implements BlockIterator {
    *
    * This will invoke order provider with the full list in order to satisfy this requirement.
    *
-   * TODO(ggezer): TV2 - Consider adding new Sorter API to extract logical time.
+   * TODO(ggezer): Consider adding new Sorter API to extract logical time.
    */
   private synchronized void updateTotalOrder(List<BlockStoreLocation> locations) {
     // No need if there is no unordered locations.

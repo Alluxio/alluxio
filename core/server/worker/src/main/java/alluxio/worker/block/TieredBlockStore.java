@@ -739,7 +739,7 @@ public class TieredBlockStore implements BlockStore {
    */
   private void freeSpaceInternal(long sessionId, long minContigiousBytes, long minAvailableBytes,
       BlockStoreLocation location) throws WorkerOutOfSpaceException, IOException {
-    // TODO(ggezer): TV2 - Too much memory pressure when pinned-inodes list is large.
+    // TODO(ggezer): Too much memory pressure when pinned-inodes list is large.
     BlockMetadataEvictorView evictorView = getUpdatedView();
     LOG.debug(
         "freeSpaceInternal - locAvailableBytes: {}, minContigiousBytes: {}, minAvailableBytes: {}",

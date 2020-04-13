@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
  * Default {@link StoreLoadTracker} that reports load based on open reader/writer streams to the
  * local block store.
  *
- * TODO(ggezer): TV2 - Add a safety net against close calls not being called.
+ * TODO(ggezer): Add a safety net against close calls not being called.
  */
 public class DefaultStoreLoadTracker implements StoreLoadTracker, BlockStreamListener {
   /** Used to keep reference to stream readers/writers per location. */
