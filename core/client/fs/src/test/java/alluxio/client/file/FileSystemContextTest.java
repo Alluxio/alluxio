@@ -24,6 +24,8 @@ import com.google.common.io.Closer;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+
 /**
  * Tests {@link FileSystemContext}.
  */
@@ -87,8 +89,10 @@ public final class FileSystemContextTest {
 
     @Override
     public void run() {
-      CloseableResource<FileSystemMasterClient> client = mFsCtx.acquireMasterClientResource();
-      client.close();
+      try (CloseableResource<FileSystemMasterClient> client = mFsCtx.acquireMasterClientResource()) {
+      } catch (IOException e) {
+        fail(e.getMessage());
+      }
     }
   }
 }
