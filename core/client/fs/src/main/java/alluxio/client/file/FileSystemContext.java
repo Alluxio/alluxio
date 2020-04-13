@@ -227,6 +227,7 @@ public class FileSystemContext implements Closeable {
     mId = IdUtils.createFileSystemContextId();
     mWorkerRefreshPolicy =
         new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
+    LOG.debug("Created context with id: {}", mId);
   }
 
   /**
@@ -266,8 +267,10 @@ public class FileSystemContext implements Closeable {
    * the {@link FileSystem} associated with this {@link FileSystemContext}.
    */
   public synchronized void close() throws IOException {
+    LOG.debug("Closing context with id: {}", mId);
     mReinitializer.close();
     closeContext();
+    LOG.debug("Closed context with id: {}", mId);
   }
 
   private synchronized void closeContext() throws IOException {
@@ -279,11 +282,16 @@ public class FileSystemContext implements Closeable {
       // developers should first mark their resources as closed prior to any exceptions being
       // thrown.
       mClosed.set(true);
+      LOG.debug("Closing fs master client pool with current size: {} for id: {}",
+          mFileSystemMasterClientPool.size(), mId);
       mFileSystemMasterClientPool.close();
       mFileSystemMasterClientPool = null;
+      LOG.debug("Closing block master client pool with size: {} for id: {}",
+          mBlockMasterClientPool.size(), mId);
       mBlockMasterClientPool.close();
       mBlockMasterClientPool = null;
       for (BlockWorkerClientPool pool : mBlockWorkerClientPoolMap.values()) {
+        LOG.debug("Closing block worker client pool with size: {} for id: {}", pool.size(), mId);
         pool.close();
       }
       // Close worker group after block master clients in order to allow
