@@ -54,6 +54,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,7 +89,7 @@ public final class BaseFileSystemTest {
    * Sets up the file system and the context before a test runs.
    */
   @Before
-  public void before() {
+  public void before() throws IOException {
     mClientContext = ClientContext.create(mConf);
     mFileContext = PowerMockito.mock(FileSystemContext.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
@@ -114,7 +115,7 @@ public final class BaseFileSystemTest {
   /**
    * Verifies and releases the master client after a test with a filesystem operation.
    */
-  public void verifyFilesystemContextAcquiredAndReleased() {
+  public void verifyFilesystemContextAcquiredAndReleased() throws IOException {
     verify(mFileContext).acquireMasterClientResource();
   }
 
@@ -651,7 +652,7 @@ public final class BaseFileSystemTest {
     return mTestLogger.wasLogged("The URI scheme .* is ignored");
   }
 
-  private void configureZk(String addrs) {
+  private void configureZk(String addrs) throws IOException {
     mConf.set(PropertyKey.ZOOKEEPER_ENABLED, true);
     mConf.set(PropertyKey.ZOOKEEPER_ADDRESS, addrs);
     before(); // Resets the filesystem and contexts to use proper configuration
