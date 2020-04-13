@@ -129,7 +129,7 @@
           </execution>
           <execution>
             <id>run-linter</id>
-            <phase>test</phase>
+            <phase>verify</phase>
             <goals>
               <goal>exec</goal>
             </goals>
