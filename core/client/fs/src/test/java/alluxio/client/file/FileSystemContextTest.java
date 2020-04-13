@@ -89,8 +89,8 @@ public final class FileSystemContextTest {
 
     @Override
     public void run() {
-      try (CloseableResource<FileSystemMasterClient> c = mFsCtx.acquireMasterClientResource()) {
-        // Do nothing
+      try {
+        CloseableResource<FileSystemMasterClient> c = mFsCtx.acquireMasterClientResource();
       } catch (IOException e) {
         fail(e.getMessage());
       }
