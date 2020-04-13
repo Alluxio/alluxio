@@ -93,7 +93,7 @@ func chdir(path string) {
 }
 
 func getCommonMvnArgs(hadoopVersion version) []string {
-	args := []string{"-T", "2C", "-am", "clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pmesos"}
+	args := []string{"-T", "2C", "-am", "clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pmesos", "-Pno-webui-linter"}
 	if mvnArgsFlag != "" {
 		for _, arg := range strings.Split(mvnArgsFlag, ",") {
 			args = append(args, arg)
