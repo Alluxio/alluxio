@@ -267,7 +267,9 @@ public class FileSystemContext implements Closeable {
    * the {@link FileSystem} associated with this {@link FileSystemContext}.
    */
   public synchronized void close() throws IOException {
-    mReinitializer.close();
+    if (mReinitializer != null) {
+      mReinitializer.close();
+    }
     closeContext();
   }
 
