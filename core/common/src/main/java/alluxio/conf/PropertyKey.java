@@ -3018,12 +3018,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_READ_RETRY =
-      new Builder(Name.USER_BLOCK_WORKER_CLIENT_READ_RETRY)
-          .setDefaultValue(5)
-          .setDescription("The maximum number of workers to retry before the client gives up on "
-              + "reading a block")
+  public static final PropertyKey USER_BLOCK_READ_RETRY_SLEEP_MIN =
+          new Builder(Name.USER_BLOCK_READ_RETRY_SLEEP_MIN)
+          .setDefaultValue("250ms")
           .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_BLOCK_READ_RETRY_SLEEP_MAX =
+          new Builder(Name.USER_BLOCK_READ_RETRY_SLEEP_MAX)
+          .setDefaultValue("2sec")
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_BLOCK_READ_RETRY_MAX_DURATION =
+      new Builder(Name.USER_BLOCK_READ_RETRY_MAX_DURATION)
+          .setDefaultValue("2min")
           .build();
   // TODO(cc): remove this since configuration propagation is always enabled?
   public static final PropertyKey USER_CONF_CLUSTER_DEFAULT_ENABLED =
@@ -4669,6 +4676,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.remote.read.buffer.size.bytes";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
         "alluxio.user.block.size.bytes.default";
+    public static final String USER_BLOCK_READ_RETRY_SLEEP_MIN =
+        "alluxio.user.block.read.retry.sleep.base";
+    public static final String USER_BLOCK_READ_RETRY_SLEEP_MAX =
+        "alluxio.user.block.read.retry.sleep.max";
+    public static final String USER_BLOCK_READ_RETRY_MAX_DURATION =
+        "alluxio.user.block.read.retry.max.duration";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
         "alluxio.user.block.worker.client.pool.gc.threshold";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
