@@ -109,9 +109,9 @@ public class BlockWorkerImpl extends BlockWorkerGrpc.BlockWorkerImplBase {
       callStreamObserver =
           new DataMessageServerStreamObserver<>(callStreamObserver, mReadResponseMarshaller);
     }
-    BlockReadHandler readHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR,
-        mWorkerProcess.getWorker(BlockWorker.class), callStreamObserver,
-        getAuthenticatedUserInfo(), mDomainSocketEnabled);
+    BlockReadHandler readHandler =
+        new BlockReadHandler(mWorkerProcess.getWorker(BlockWorker.class), callStreamObserver,
+            getAuthenticatedUserInfo(), mDomainSocketEnabled);
     callStreamObserver.setOnReadyHandler(readHandler::onReady);
     return readHandler;
   }
