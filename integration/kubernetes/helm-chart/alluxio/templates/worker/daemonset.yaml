@@ -66,10 +66,12 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
+          {{- if not .Values.worker.hostNetwork }}
           - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
             valueFrom:
               fieldRef:
                 fieldPath: status.podIP
+          {{- end }}
           envFrom:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
@@ -115,10 +117,12 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
+          {{- if not .Values.worker.hostNetwork }}
           - name: ALLUXIO_WORKER_CONTAINER_HOSTNAME
             valueFrom:
               fieldRef:
                 fieldPath: status.podIP
+          {{- end }}
           envFrom:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
