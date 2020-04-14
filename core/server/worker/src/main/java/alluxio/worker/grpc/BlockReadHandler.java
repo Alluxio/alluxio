@@ -43,7 +43,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.channels.FileChannel;
-import java.util.concurrent.ExecutorService;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -206,16 +205,14 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   /**
    * Creates an instance of {@link AbstractReadHandler}.
    *
-   * @param executorService the executor service to run {@link DataReader}s
    * @param blockWorker the block worker
    * @param responseObserver the response observer of the gRPC stream
    * @param userInfo the authenticated user info
    * @param domainSocketEnabled whether reading block over domain socket
    */
-  public BlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
-      StreamObserver<ReadResponse> responseObserver, AuthenticatedUserInfo userInfo,
-      boolean domainSocketEnabled) {
-    super(executorService, responseObserver, userInfo);
+  public BlockReadHandler(BlockWorker blockWorker, StreamObserver<ReadResponse> responseObserver,
+      AuthenticatedUserInfo userInfo, boolean domainSocketEnabled) {
+    super(responseObserver, userInfo);
     mWorker = blockWorker;
     mDomainSocketEnabled = domainSocketEnabled;
   }

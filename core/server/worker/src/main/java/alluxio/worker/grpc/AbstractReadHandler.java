@@ -37,8 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -76,10 +74,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   private static final long MAX_BYTES_IN_FLIGHT =
       ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_READER_BUFFER_SIZE_BYTES);
 
-  /** The executor to run {@link DataReader}. */
-  private final ExecutorService mDataReaderExecutor;
   /** A serializing executor for sending responses. */
-  protected Executor mSerializingExecutor;
+  protected Executor mDataReaderExecutor;
 
   private final ReentrantLock mLock = new ReentrantLock();
 
@@ -96,17 +92,15 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   /**
    * Creates an instance of {@link AbstractReadHandler}.
    *
-   * @param executorService the executor service to run {@link DataReader}s
    * @param responseObserver the response observer of the
    * @param userInfo the authenticated user info
    */
-  AbstractReadHandler(ExecutorService executorService,
-      StreamObserver<ReadResponse> responseObserver, AuthenticatedUserInfo userInfo) {
-    mDataReaderExecutor = executorService;
+  AbstractReadHandler(StreamObserver<ReadResponse> responseObserver,
+      AuthenticatedUserInfo userInfo) {
     mResponseObserver = responseObserver;
     mUserInfo = userInfo;
-    mSerializingExecutor =
-        new SerializingExecutor(GrpcExecutors.BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR);
+    mDataReaderExecutor =
+        new SerializingExecutor(GrpcExecutors.BLOCK_READER_EXECUTOR);
   }
 
   @Override
@@ -128,11 +122,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       validateReadRequest(request);
       mContext.setPosToQueue(mContext.getRequest().getStart());
       mContext.setPosReceived(mContext.getRequest().getStart());
-      mDataReaderExecutor.submit(createDataReader(mContext, mResponseObserver));
+      mDataReaderExecutor.execute(createDataReader(mContext, mResponseObserver));
       mContext.setDataReaderActive(true);
-    } catch (RejectedExecutionException e) {
-      handleStreamEndingException(Status.RESOURCE_EXHAUSTED.withCause(e)
-          .withDescription("Failed to create a new data reader"));
     } catch (Exception e) {
       handleStreamEndingException(
           AlluxioStatusException.fromThrowable(e).toGrpcStatusException());
@@ -269,13 +260,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   public void onReady() {
     try (LockResource lr = new LockResource(mLock)) {
       if (shouldRestartDataReader()) {
-        try {
-          mDataReaderExecutor.submit(createDataReader(mContext, mResponseObserver));
-          mContext.setDataReaderActive(true);
-        } catch (RejectedExecutionException e) {
-          handleStreamEndingException(Status.RESOURCE_EXHAUSTED.withCause(e)
-              .withDescription("Failed to create a new data reader"));
-        }
+        mDataReaderExecutor.execute(createDataReader(mContext, mResponseObserver));
+        mContext.setDataReaderActive(true);
       }
     }
   }
@@ -379,27 +365,25 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
 
           if (chunk != null) {
             DataBuffer finalChunk = chunk;
-            mSerializingExecutor.execute(() -> {
-              try {
-                ReadResponse response = ReadResponse.newBuilder().setChunk(Chunk.newBuilder()
-                    .setData(UnsafeByteOperations.unsafeWrap(finalChunk.getReadOnlyByteBuffer()))
-                ).build();
-                if (mResponse instanceof DataMessageServerStreamObserver) {
-                  ((DataMessageServerStreamObserver<ReadResponse>) mResponse)
-                      .onNext(new DataMessage<>(response, finalChunk));
-                } else {
-                  mResponse.onNext(response);
-                }
-                incrementMetrics(finalChunk.getLength());
-              } catch (Exception e) {
-                LogUtils.warnWithException(LOG,
-                    "Exception occurred while sending data for read request {}.",
-                    mContext.getRequest(), e);
-                setError(new Error(AlluxioStatusException.fromThrowable(e), true));
-              } finally {
-                finalChunk.release();
+            try {
+              ReadResponse response = ReadResponse.newBuilder().setChunk(Chunk.newBuilder()
+                  .setData(UnsafeByteOperations.unsafeWrap(finalChunk.getReadOnlyByteBuffer()))
+              ).build();
+              if (mResponse instanceof DataMessageServerStreamObserver) {
+                ((DataMessageServerStreamObserver<ReadResponse>) mResponse)
+                    .onNext(new DataMessage<>(response, finalChunk));
+              } else {
+                mResponse.onNext(response);
               }
-            });
+              incrementMetrics(finalChunk.getLength());
+            } catch (Exception e) {
+              LogUtils.warnWithException(LOG,
+                  "Exception occurred while sending data for read request {}.",
+                  mContext.getRequest(), e);
+              setError(new Error(AlluxioStatusException.fromThrowable(e), true));
+            } finally {
+              finalChunk.release();
+            }
           }
         } catch (Exception e) {
           LogUtils.warnWithException(LOG,
@@ -460,7 +444,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
      * Writes an error read response to the channel and closes the channel after that.
      */
     private void replyError(Error error) {
-      mSerializingExecutor.execute(() -> {
+      mDataReaderExecutor.execute(() -> {
         try {
           if (!mContext.isDoneUnsafe()) {
             mResponse.onError(error.getCause().toGrpcStatusException());
@@ -482,7 +466,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
      * Writes a success response.
      */
     private void replyEof() {
-      mSerializingExecutor.execute(() -> {
+      mDataReaderExecutor.execute(() -> {
         try {
           if (!mContext.isDoneUnsafe()) {
             mContext.setDoneUnsafe(true);
@@ -502,7 +486,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
      * Writes a cancel response.
      */
     private void replyCancel() {
-      mSerializingExecutor.execute(() -> {
+      mDataReaderExecutor.execute(() -> {
         try {
           if (!mContext.isDoneUnsafe()) {
             mContext.setDoneUnsafe(true);
