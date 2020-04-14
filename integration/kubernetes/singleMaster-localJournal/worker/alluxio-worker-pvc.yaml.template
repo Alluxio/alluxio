@@ -28,4 +28,9 @@ spec:
       storage: 1Mi
   storageClassName: standard
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteOnceselector:
+    matchLabels:
+      app: alluxio
+      release: alluxio
+      heritage: Tiller
+      role: alluxio-worker
