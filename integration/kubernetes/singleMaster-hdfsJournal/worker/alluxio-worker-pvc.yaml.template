@@ -28,7 +28,8 @@ spec:
       storage: 1Mi
   storageClassName: standard
   accessModes:
-    - ReadWriteOnceselector:
+    - ReadWriteOnce
+  selector:
     matchLabels:
       app: alluxio
       release: alluxio
