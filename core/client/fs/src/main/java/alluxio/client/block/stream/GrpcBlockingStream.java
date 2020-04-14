@@ -16,6 +16,8 @@ import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.resource.LockResource;
+import alluxio.retry.ExponentialTimeBoundedRetry;
+import alluxio.retry.RetryPolicy;
 
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -26,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -145,6 +148,20 @@ public class GrpcBlockingStream<ReqT, ResT> {
    * @throws IOException if any error occurs
    */
   public ResT receive(long timeoutMs) throws IOException {
+    return receive(timeoutMs, null);
+  }
+
+  /**
+   * Receives a response from the server. Will wait until a response is received, or
+   * throw an exception if times out.
+   *
+   * @param timeoutMs maximum time to wait before giving up and throwing
+   *                  a {@link DeadlineExceededException}
+   * @param request   the request
+   * @return the response message, or null if the inbound stream is completed
+   * @throws IOException if any error occurs
+   */
+  public ResT receive(long timeoutMs, ReqT request) throws IOException {
     if (mCompleted) {
       return null;
     }
@@ -152,7 +169,25 @@ public class GrpcBlockingStream<ReqT, ResT> {
       throw new CancelledException(formatErrorMessage("Stream is already canceled."));
     }
     try {
-      Object response = mResponses.poll(timeoutMs, TimeUnit.MILLISECONDS);
+      Object response = null;
+      if (request == null) {
+        response = mResponses.poll(timeoutMs, TimeUnit.MILLISECONDS);
+      } else {
+        RetryPolicy retry = ExponentialTimeBoundedRetry.builder()
+            .withInitialSleep(Duration.ofMillis(10))
+            .withMaxSleep(Duration.ofMillis(1000))
+            .withMaxDuration(Duration.ofMillis(timeoutMs))
+            .build();
+        while (retry.attempt()) {
+          response = mResponses.poll();
+          if (response != null) {
+            break;
+          } else {
+            send(request);
+          }
+        }
+      }
+
       if (response == null) {
         throw new DeadlineExceededException(
             formatErrorMessage("Timeout waiting for response after %dms.", timeoutMs));

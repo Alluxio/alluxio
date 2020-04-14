@@ -108,7 +108,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64KB"})
+      confParams = {PropertyKey.Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "1MB"})
   public void readTest1() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFilePOptions op : getOptionSet()) {
@@ -392,11 +392,11 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   /**
    * Read large file remotely. Make sure the test does not timeout.
    */
-  @Test(timeout = 30000)
+  @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
           PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
-          PropertyKey.Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64KB",
+          PropertyKey.Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "1MB",
           PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
   public void remoteReadLargeFile() throws Exception {
     // write a file outside of Alluxio
@@ -495,8 +495,6 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       FileInStream is = mFileSystem.openFile(uri,
           OpenFilePOptions.newBuilder().setReadType(readType.toProto()).build());
       is.read();
-      URIStatus status = mFileSystem.getStatus(uri);
-      Assert.assertEquals(0, status.getInAlluxioPercentage());
       is.close();
       if (readType.isCache()) {
         CommonUtils.waitFor("First block to be cached.", () -> {
@@ -519,7 +517,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
         });
       } else {
         Thread.sleep(1000);
-        status = mFileSystem.getStatus(uri);
+        URIStatus status = mFileSystem.getStatus(uri);
         Assert.assertEquals(0, status.getInAlluxioPercentage());
       }
     }
