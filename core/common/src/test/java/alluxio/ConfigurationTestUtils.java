@@ -143,6 +143,11 @@ public final class ConfigurationTestUtils {
     // faster refresh
     conf.put(PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME, "20ms");
 
+    // faster I/O retries.
+    conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "1ms");
+    conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "5ms");
+    conf.put(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION, "10ms");
+
     return conf;
   }
 
