@@ -25,7 +25,7 @@ import alluxio.table.common.udb.PathTranslator;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
-import alluxio.table.common.udb.UdbUtil;
+import alluxio.table.common.udb.UdbUtils;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.table.under.hive.util.HiveClientPool;
 import alluxio.util.io.PathUtils;
@@ -149,7 +149,7 @@ public class HiveDatabase implements UnderDatabase {
       PathTranslator pathTranslator = new PathTranslator();
       ufsUri = new AlluxioURI(table.getSd().getLocation());
       pathTranslator.addMapping(
-          UdbUtil.mountAlluxioPath(tableName,
+          UdbUtils.mountAlluxioPath(tableName,
               ufsUri,
               alluxioUri,
               mUdbContext,
@@ -173,7 +173,7 @@ public class HiveDatabase implements UnderDatabase {
 
           // mount partition path if it is not already mounted as part of the table path mount
           pathTranslator.addMapping(
-              UdbUtil.mountAlluxioPath(tableName,
+              UdbUtils.mountAlluxioPath(tableName,
                   partitionUri,
                   alluxioUri,
                   mUdbContext,

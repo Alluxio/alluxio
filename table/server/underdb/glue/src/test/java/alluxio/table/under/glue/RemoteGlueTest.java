@@ -18,18 +18,18 @@ import alluxio.table.common.udb.UdbContext;
 
 import com.amazonaws.services.glue.AWSGlueAsync;
 import com.amazonaws.services.glue.model.GetDatabaseRequest;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
+@Ignore
 public class RemoteGlueTest {
 
-  private static final String DB_NAME = "test";
-  private static final Map<String, String> CONF = new HashMap<>();
+  private static final String DB_NAME = "<PUT_YOUR_DB_NAME_HERE>";
 
   private UdbContext mUdbContext;
   private UdbConfiguration mUdbConfiguration;
@@ -41,22 +41,22 @@ public class RemoteGlueTest {
   private static final String CATALOG_ID = "<PUT_YOUR_CATALOG_ID_HERE>";
   private static final String AWS_REGION = "<PUT_GLUE_REGION_HERE>";
 
-  @Ignore
   @Before
   /**
    * Integration test with remote glue service.
    */
   public void connect() {
-    CONF.put("aws.accesskey", AWS_ACCESS_KEY_ID);
-    CONF.put("aws.secretkey", AWS_SECRET_KEY);
-    CONF.put("aws.region", AWS_REGION);
-    CONF.put("aws.catalog.id", CATALOG_ID);
-    mUdbConfiguration = new UdbConfiguration(CONF);
+    Map<String, String> conf = ImmutableMap.of(
+        "aws.accesskey", AWS_ACCESS_KEY_ID,
+        "aws.secretkey", AWS_SECRET_KEY,
+        "aws.region", AWS_REGION,
+        "aws.catalog.id", CATALOG_ID
+    );
+    mUdbConfiguration = new UdbConfiguration(conf);
     mGlueDatabase = new GlueDatabase(mUdbContext, mUdbConfiguration, DB_NAME);
     mGlueClient = mGlueDatabase.getClient();
   }
 
-  @Ignore
   @Test
   public void getDatabase() {
     GetDatabaseRequest dbRequest = new GetDatabaseRequest()
@@ -65,7 +65,6 @@ public class RemoteGlueTest {
     assertEquals(DB_NAME, mGlueDatabase.getClient().getDatabase(dbRequest).getDatabase().getName());
   }
 
-  @Ignore
   @Test
   public void getTables() throws IOException {
     for (String tableName : mGlueDatabase.getTableNames()) {

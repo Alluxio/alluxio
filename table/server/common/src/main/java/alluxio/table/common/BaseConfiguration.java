@@ -60,17 +60,17 @@ public abstract class BaseConfiguration<T extends BaseProperty> {
   /**
    * Return the int value of this property , or the default value if the property is not defined.
    *
-   * @param udbProperty the udb property to get the int value
-   * @return the int value of udb property
+   * @param property the property to get the int value
+   * @return the int value of property
    */
-  public int getInt(T udbProperty) {
-    String rawValue = get(udbProperty);
+  public int getInt(T property) {
+    String rawValue = get(property);
 
     try {
       return Integer.parseInt(rawValue);
     } catch (NumberFormatException e) {
       throw new RuntimeException(
-          ExceptionMessage.KEY_NOT_INTEGER.getMessage(rawValue, udbProperty));
+          ExceptionMessage.KEY_NOT_INTEGER.getMessage(rawValue, property));
     }
   }
 

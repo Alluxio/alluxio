@@ -27,7 +27,6 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.parent.basedir}/build</build.path>
     <failIfNoTests>false</failIfNoTests>
-    <hive.version>2.2.0</hive.version>
   </properties>
 
   <dependencies>

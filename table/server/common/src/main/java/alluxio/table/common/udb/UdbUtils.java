@@ -28,10 +28,10 @@ import java.util.Objects;
 /**
  * Udb related utils.
  */
-public class UdbUtil {
-  private UdbUtil() {}
+public class UdbUtils {
+  private UdbUtils() {}
 
-  private static final Logger LOG = LoggerFactory.getLogger(UdbUtil.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UdbUtils.class);
 
   /**
    * Mount ufs path to alluxio path.

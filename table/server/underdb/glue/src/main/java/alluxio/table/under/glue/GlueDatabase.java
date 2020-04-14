@@ -24,7 +24,7 @@ import alluxio.table.common.udb.PathTranslator;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
-import alluxio.table.common.udb.UdbUtil;
+import alluxio.table.common.udb.UdbUtils;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.util.io.PathUtils;
 
@@ -97,6 +97,7 @@ public class GlueDatabase implements UnderDatabase {
       throw new IllegalArgumentException(
           "Glue database name cannot be empty: " + glueDbName);
     } else if (configuration.get(Property.GLUE_REGION) == null) {
+      System.out.println("Glue Region:" + Property.GLUE_REGION);
       throw new IllegalArgumentException("GlueUdb Error: AWS region cannot be empty.");
     }
 
@@ -110,7 +111,6 @@ public class GlueDatabase implements UnderDatabase {
 
   @Override
   public DatabaseInfo getDatabaseInfo() throws IOException {
-    LOG.info("Getting Glue database information from database: " + mGlueDbName + ".");
     try {
       GetDatabaseRequest dbRequest = new GetDatabaseRequest()
           .withCatalogId(mGlueConfiguration.get(Property.CATALOG_ID))
@@ -120,9 +120,9 @@ public class GlueDatabase implements UnderDatabase {
       String glueDbLocation = glueDatabase.getLocationUri();
       String glueDbDescription = glueDatabase.getDescription();
       Map<String, String> glueParameters = new HashMap<>();
-      // Returned parameter can be null while Alluxio require non-null hash map for parameters
-      if (glueDatabase.getParameters() != null) {
-        glueParameters = glueDatabase.getParameters();
+      Map<String, String> parameters = glueDatabase.getParameters();
+      for (Map.Entry parameter : parameters.entrySet()) {
+        glueParameters.put(parameter.getKey().toString(), parameter.getValue().toString());
       }
       return new DatabaseInfo(
           glueDbLocation,
@@ -131,8 +131,9 @@ public class GlueDatabase implements UnderDatabase {
           glueDbDescription,
           glueParameters);
     } catch (EntityNotFoundException e) {
-      throw new IOException("Cannot find glue database" + mGlueDbName
-          + "." + e.getMessage(), e);
+      throw new IOException("Cannot find glue database: " + mGlueDbName
+          + "Catalog ID: " + mGlueConfiguration.get(Property.CATALOG_ID)
+          + ". " + e.getMessage(), e);
     }
   }
 
@@ -142,7 +143,6 @@ public class GlueDatabase implements UnderDatabase {
    * @param config udbconfiguration
    * @return glue async client
    */
-  @VisibleForTesting
   protected static AWSGlueAsync createAsyncGlueClient(UdbConfiguration config) {
     ClientConfiguration clientConfig = new ClientConfiguration()
         .withMaxConnections(config.getInt(Property.MAX_GLUE_CONNECTION));
@@ -223,7 +223,7 @@ public class GlueDatabase implements UnderDatabase {
       PathTranslator pathTranslator = new PathTranslator();
       ufsUri = new AlluxioURI(table.getStorageDescriptor().getLocation());
       pathTranslator.addMapping(
-          UdbUtil.mountAlluxioPath(
+          UdbUtils.mountAlluxioPath(
               tableName,
               ufsUri,
               alluxioUri,
@@ -256,7 +256,7 @@ public class GlueDatabase implements UnderDatabase {
           // mount partition path if it is not already mounted as part of the table path mount
           pathTranslator
               .addMapping(
-                  UdbUtil.mountAlluxioPath(
+                  UdbUtils.mountAlluxioPath(
                       tableName,
                       partitionUri,
                       alluxioUri,
@@ -351,11 +351,15 @@ public class GlueDatabase implements UnderDatabase {
     } catch (EntityNotFoundException e) {
       throw new NotFoundException("Table " + tableName + " does not exist.", e);
     } catch (ValidationException e) {
-      e.printStackTrace();
-      throw new IOException("Failed to get table: "
-          + tableName + " with validation error: " + e.getMessage(), e);
+      throw new IOException("Failed to get table: " + tableName
+          + " in Database: " + mGlueDbName
+          + "; Catalog ID: " + mGlueConfiguration.get(Property.CATALOG_ID)
+          + " with validation error: " + e.getMessage(), e);
     } catch (GlueEncryptionException e) {
-      throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
+      throw new IOException("Failed to get table: " + tableName
+          + " in Database: " + mGlueDbName
+          + "; Catalog ID: " + mGlueConfiguration.get(Property.CATALOG_ID)
+          + " error: " + e.getMessage(), e);
     }
   }
 
@@ -373,8 +377,10 @@ public class GlueDatabase implements UnderDatabase {
       }
       return partitions;
     } catch (AWSGlueException e) {
-      throw new IOException("WARNING: Cannot get partition information for table: "
-          + tableName + ". error: " + e.getMessage(), e);
+      throw new IOException("Cannot get partition information for table: " + tableName
+          + " in Database: " + mGlueDbName
+          + "; Catalog ID: " + mGlueConfiguration.get(Property.CATALOG_ID)
+          + ". error: " + e.getMessage(), e);
     }
   }
 
