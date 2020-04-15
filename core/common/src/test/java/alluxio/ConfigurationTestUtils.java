@@ -81,8 +81,8 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.MASTER_METASTORE_DIR, PathUtils.concatPath(workDirectory, "metastore"));
 
     conf.put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1KB");
-    conf.put(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "64");
-    conf.put(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64");
+    conf.put(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "64KB");
+    conf.put(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB");
     conf.put(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "1sec");
     conf.put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "1sec");
     // This cannot be too short, since sometimes there are grpc channel startup delays, which

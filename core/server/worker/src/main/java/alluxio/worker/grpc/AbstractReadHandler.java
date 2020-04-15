@@ -159,7 +159,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
    */
   @GuardedBy("mLock")
   public boolean tooManyPendingChunks() {
-    return mContext.getPosToQueue() - mContext.getPosReceived() >= MAX_BYTES_IN_FLIGHT;
+    return BufferAllocator.DEFAULT.isOverLimit()
+       || mContext.getPosToQueue() - mContext.getPosReceived() >= MAX_BYTES_IN_FLIGHT;
   }
 
   @Override

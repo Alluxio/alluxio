@@ -126,7 +126,8 @@ public final class GrpcDataReader implements DataReader {
     if (mStream instanceof GrpcDataMessageBlockingStream) {
       DataMessage<ReadResponse, DataBuffer> message =
           ((GrpcDataMessageBlockingStream<ReadRequest, ReadResponse>) mStream)
-              .receiveDataMessage(mDataTimeoutMs);
+              .retryReceiveDataMessage(mDataTimeoutMs,
+                  mReadRequest.toBuilder().setOffsetReceived(mPosToRead).build());
       if (message != null) {
         response = message.getMessage();
         buffer = message.getBuffer();
@@ -138,7 +139,8 @@ public final class GrpcDataReader implements DataReader {
         Preconditions.checkState(buffer != null, "response should always contain chunk");
       }
     } else {
-      response = mStream.receive(mDataTimeoutMs);
+      response = mStream.retryReceive(mDataTimeoutMs,
+          mReadRequest.toBuilder().setOffsetReceived(mPosToRead).build());
       if (response != null) {
         Preconditions.checkState(response.hasChunk() && response.getChunk().hasData(),
             "response should always contain chunk");

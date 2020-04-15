@@ -38,7 +38,6 @@ import alluxio.worker.block.io.BlockReader;
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,7 +106,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       openBlock(context);
       BlockReader blockReader = context.getBlockReader();
       Preconditions.checkState(blockReader != null);
-      ByteBuf buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
+      ByteBuf buf = BufferAllocator.DEFAULT.buffer(len);
       try {
         while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
         }
