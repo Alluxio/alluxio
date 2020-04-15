@@ -16,8 +16,6 @@ import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.resource.LockResource;
-import alluxio.retry.ExponentialTimeBoundedRetry;
-import alluxio.retry.RetryPolicy;
 
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -28,7 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -169,20 +169,30 @@ public class GrpcBlockingStream<ReqT, ResT> {
       throw new CancelledException(formatErrorMessage("Stream is already canceled."));
     }
     try {
-      Object response = null;
+      Object response;
       if (request == null) {
         response = mResponses.poll(timeoutMs, TimeUnit.MILLISECONDS);
       } else {
-        RetryPolicy retry = ExponentialTimeBoundedRetry.builder()
-            .withInitialSleep(Duration.ofMillis(10))
-            .withMaxSleep(Duration.ofSeconds(3))
-            .withMaxDuration(Duration.ofMillis(timeoutMs))
-            .build();
-        while (retry.attempt()) {
-          response = mResponses.poll(10, TimeUnit.MILLISECONDS);
+        Clock clock = Clock.systemUTC();
+        Duration maxWaitTime = Duration.ofSeconds(3);
+        Duration nextWaitTime = Duration.ofMillis(32);
+        Instant endTime = Clock.systemUTC().instant().plus(Duration.ofMillis(timeoutMs));
+        while (true) {
+          response = mResponses.poll(nextWaitTime.toMillis(), TimeUnit.MILLISECONDS);
           if (response != null) {
             break;
           } else {
+            Instant now = clock.instant();
+            if (now.isAfter(endTime) || now.equals(endTime)) {
+              break;
+            }
+            nextWaitTime = nextWaitTime.multipliedBy(2);
+            if (nextWaitTime.compareTo(maxWaitTime) > 0) {
+              nextWaitTime = maxWaitTime;
+            }
+            if (now.plus(nextWaitTime).isAfter(endTime)) {
+              nextWaitTime = Duration.between(now, endTime);
+            }
             send(request);
           }
         }
