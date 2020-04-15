@@ -114,7 +114,7 @@ public final class RemovedKey {
       put("alluxio.user.network.netty.reader.buffer.size.packets", removedSince(V2_0_0));
       put("alluxio.user.network.netty.reader.packet.size.bytes", removedSince(V2_0_0));
       put("alluxio.user.network.netty.timeout", replacedSince(V2_0_0,
-          PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS.getName()));
+          PropertyKey.USER_STREAMING_DATA_TIMEOUT_MS.getName()));
       put("alluxio.user.network.netty.writer.buffer.size.packets", removedSince(V2_0_0));
       put("alluxio.user.network.netty.writer.close.timeout", removedSince(V2_0_0));
       put("alluxio.user.network.netty.writer.packet.size.bytes", removedSince(V2_0_0));

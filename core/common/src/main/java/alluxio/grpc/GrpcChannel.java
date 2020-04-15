@@ -34,14 +34,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class GrpcChannel extends Channel {
-  /** Key that is used to create given managed channel. */
-  private final GrpcChannelKey mChannelKey;
-  /** Original channel. */
-  private final Channel mOriginalChannel;
-  /** Used to determine how long to wait during shutdown. */
-  private final long mShutdownTimeoutMs;
+  private final GrpcConnection mConnection;
 
-  /** Effective intercepted channel. */
+  /** The channel. */
   private Channel mTrackedChannel;
   /** Interceptor for tracking responses on the channel. */
   private ChannelResponseTracker mResponseTracker;
@@ -55,22 +50,18 @@ public final class GrpcChannel extends Channel {
   /**
    * Create a new instance of {@link GrpcChannel}.
    *
-   * @param channelKey the channel key
-   * @param channel the gRPC channel
-   * @param shutdownTimeoutMs shutdown timeout in milliseconds
+   * @param connection the grpc connection
    * @param authDriver nullable client-side authentication driver
    */
-  public GrpcChannel(GrpcChannelKey channelKey, Channel channel,
-      long shutdownTimeoutMs, @Nullable AuthenticatedChannelClientDriver authDriver) {
-    mChannelKey = channelKey;
-    mShutdownTimeoutMs = shutdownTimeoutMs;
-    mOriginalChannel = channel;
+  public GrpcChannel(GrpcConnection connection,
+      @Nullable AuthenticatedChannelClientDriver authDriver) {
+    mConnection = connection;
     mAuthDriver = authDriver;
 
-    // Response tracking interceptor for monitoring call health.
+    // Intercept with response tracking interceptor for monitoring call health.
     mResponseTracker = new ChannelResponseTracker();
-    // Intercept given channel with response tracker.
-    mTrackedChannel = ClientInterceptors.intercept(mOriginalChannel, mResponseTracker);
+    mConnection.interceptChannel(mResponseTracker);
+    mTrackedChannel = mConnection.getChannel();
   }
 
   @Override
@@ -106,7 +97,11 @@ public final class GrpcChannel extends Channel {
       mAuthDriver = null;
     }
     if (!mChannelReleased) {
-      GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey, mShutdownTimeoutMs);
+      try {
+        mConnection.close();
+      } catch (Exception e) {
+        throw new RuntimeException("Failed to release the connection.", e);
+      }
       mChannelReleased = true;
     }
   }
@@ -132,7 +127,7 @@ public final class GrpcChannel extends Channel {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("ChannelKey", mChannelKey)
+        .add("ChannelKey", mConnection.getChannelKey())
         .add("ChannelHealthy", isHealthy())
         .add("ChannelReleased", mChannelReleased)
         .toString();
@@ -142,7 +137,7 @@ public final class GrpcChannel extends Channel {
    * @return a short identifier for the channel
    */
   public String toStringShort() {
-    return mChannelKey.toStringShort();
+    return mConnection.getChannelKey().toStringShort();
   }
 
   /**

@@ -78,9 +78,9 @@ public final class LocalFileDataWriter implements DataWriter {
           context.acquireBlockWorkerClient(address);
       closer.register(blockWorker);
       int writerBufferSizeMessages =
-          conf.getInt(PropertyKey.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES);
+          conf.getInt(PropertyKey.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES);
       long fileBufferBytes = conf.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
-      long dataTimeout = conf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
+      long dataTimeout = conf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT_MS);
 
       CreateLocalBlockRequest.Builder builder =
           CreateLocalBlockRequest.newBuilder().setBlockId(blockId).setTier(options.getWriteTier())

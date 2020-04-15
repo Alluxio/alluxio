@@ -38,7 +38,6 @@ import alluxio.resource.CloseableResource;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.security.authentication.AuthenticationUserUtils;
 import alluxio.util.IdUtils;
-import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -47,7 +46,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import io.netty.channel.EventLoopGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +56,6 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
@@ -130,10 +127,6 @@ public class FileSystemContext implements Closeable {
   private volatile ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
       mBlockWorkerClientPoolMap;
 
-  /**
-   * Used in {@link #mBlockWorkerClientPoolMap}.
-   */
-  private volatile EventLoopGroup mWorkerGroup;
   /**
    * Indicates whether the {@link #mLocalWorker} field has been lazily initialized yet.
    */
@@ -254,9 +247,6 @@ public class FileSystemContext implements Closeable {
     mFileSystemMasterClientPool = new FileSystemMasterClientPool(mMasterClientContext);
     mBlockMasterClientPool = new BlockMasterClientPool(mMasterClientContext);
     mBlockWorkerClientPoolMap = new ConcurrentHashMap<>();
-    mWorkerGroup = NettyUtils.createEventLoop(NettyUtils.getUserChannel(getClusterConf()),
-        getClusterConf().getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS),
-        String.format("alluxio-client-nettyPool-%s-%%d", mId), true);
     mUriValidationEnabled = ctx.getUriValidationEnabled();
   }
 
@@ -296,7 +286,6 @@ public class FileSystemContext implements Closeable {
       }
       // Close worker group after block master clients in order to allow
       // clean termination for open streams.
-      mWorkerGroup.shutdownGracefully(1L, 10L, TimeUnit.SECONDS);
       mBlockWorkerClientPoolMap.clear();
       mBlockWorkerClientPoolMap = null;
       mLocalWorkerInitialized = false;
@@ -526,7 +515,7 @@ public class FileSystemContext implements Closeable {
     return new CloseableResource<BlockWorkerClient>(poolMap.computeIfAbsent(key,
         k -> new BlockWorkerClientPool(context.getUserState(), serverAddress,
             context.getClusterConf().getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_SIZE),
-            context.getClusterConf(), mWorkerGroup))
+            context.getClusterConf()))
         .acquire()) {
       // Save the reference to the original pool map.
       @Override

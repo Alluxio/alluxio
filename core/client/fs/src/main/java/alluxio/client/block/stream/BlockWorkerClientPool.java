@@ -18,7 +18,6 @@ import alluxio.resource.DynamicResourcePool;
 import alluxio.security.user.UserState;
 import alluxio.util.ThreadFactoryUtils;
 
-import io.netty.channel.EventLoopGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +42,6 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
       new ScheduledThreadPoolExecutor(WORKER_CLIENT_POOL_GC_THREADPOOL_SIZE,
           ThreadFactoryUtils.build("BlockWorkerClientPoolGcThreads-%d", true));
   private final AlluxioConfiguration mConf;
-  private final EventLoopGroup mWorkerGroup;
 
   /**
    * Creates a new block master client pool.
@@ -52,16 +50,13 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
    * @param address address of the worker
    * @param maxCapacity the maximum capacity of the pool
    * @param alluxioConf Alluxio configuration
-   * @param workerGroup netty event loop group to create clients with is above the minimum
-   *        capacity(1), it is closed and removed from the pool.
    */
   public BlockWorkerClientPool(UserState userState, GrpcServerAddress address, int maxCapacity,
-      AlluxioConfiguration alluxioConf, EventLoopGroup workerGroup) {
+      AlluxioConfiguration alluxioConf) {
     super(Options.defaultOptions().setMaxCapacity(maxCapacity).setGcExecutor(GC_EXECUTOR));
     mUserState = userState;
     mAddress = address;
     mConf = alluxioConf;
-    mWorkerGroup = workerGroup;
   }
 
   @Override
@@ -72,7 +67,7 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
 
   @Override
   protected BlockWorkerClient createNewResource() throws IOException {
-    return BlockWorkerClient.Factory.create(mUserState, mAddress, mConf, mWorkerGroup);
+    return BlockWorkerClient.Factory.create(mUserState, mAddress, mConf);
   }
 
   /**

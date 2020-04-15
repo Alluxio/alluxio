@@ -77,13 +77,13 @@ public final class GrpcDataReader implements DataReader {
     mReadRequest = readRequest;
     AlluxioConfiguration alluxioConf = context.getClusterConf();
     mReaderBufferSizeMessages = alluxioConf
-        .getInt(PropertyKey.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES);
-    mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
+        .getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
+    mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT_MS);
     mMarshaller = new ReadResponseMarshaller();
     mClient = mContext.acquireBlockWorkerClient(address);
 
     try {
-      if (alluxioConf.getBoolean(PropertyKey.USER_NETWORK_ZEROCOPY_ENABLED)) {
+      if (alluxioConf.getBoolean(PropertyKey.USER_STREAMING_ZEROCOPY_ENABLED)) {
         String desc = "Zero Copy GrpcDataReader";
         if (LOG.isDebugEnabled()) { // More detailed description when debug logging is enabled
           desc = MoreObjects.toStringHelper(this)
