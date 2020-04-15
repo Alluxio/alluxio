@@ -495,6 +495,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       FileInStream is = mFileSystem.openFile(uri,
           OpenFilePOptions.newBuilder().setReadType(readType.toProto()).build());
       is.read();
+      URIStatus status = mFileSystem.getStatus(uri);
+      Assert.assertEquals(0, status.getInAlluxioPercentage());
       is.close();
       if (readType.isCache()) {
         CommonUtils.waitFor("First block to be cached.", () -> {
@@ -517,7 +519,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
         });
       } else {
         Thread.sleep(1000);
-        URIStatus status = mFileSystem.getStatus(uri);
+        status = mFileSystem.getStatus(uri);
         Assert.assertEquals(0, status.getInAlluxioPercentage());
       }
     }
