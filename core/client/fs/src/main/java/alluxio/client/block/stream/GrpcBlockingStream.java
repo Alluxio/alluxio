@@ -176,7 +176,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
         Clock clock = Clock.systemUTC();
         Duration maxWaitTime = Duration.ofSeconds(3);
         Duration nextWaitTime = Duration.ofMillis(32);
-        Instant endTime = Clock.systemUTC().instant().plus(Duration.ofMillis(timeoutMs));
+        Instant endTime = clock.instant().plus(Duration.ofMillis(timeoutMs));
         while (true) {
           response = mResponses.poll(nextWaitTime.toMillis(), TimeUnit.MILLISECONDS);
           if (response != null) {
