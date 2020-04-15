@@ -72,7 +72,8 @@ public class SaslHandlersTest {
 
   @Test
   public void testCreateServerSimple() throws UnauthenticatedException, SaslException {
-    SaslServerHandler serverHandler = new SaslServerHandlerPlain("test", mConfiguration);
+    SaslServerHandler serverHandler = new SaslServerHandlerPlain("test", mConfiguration,
+        new ImpersonationAuthenticator(mConfiguration));
     Assert.assertNotNull(serverHandler);
     Assert.assertEquals(PlainSaslServerProvider.MECHANISM,
         serverHandler.getSaslServer().getMechanismName());

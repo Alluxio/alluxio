@@ -50,6 +50,9 @@ public final class ImpersonationAuthenticator {
   /**
    * Constructs a new {@link ImpersonationAuthenticator}.
    *
+   * Note the constructor for this object is expensive. Take care with how many of these are
+   * instantiated.
+   *
    * @param conf conf Alluxio configuration
    */
   public ImpersonationAuthenticator(AlluxioConfiguration conf) {
