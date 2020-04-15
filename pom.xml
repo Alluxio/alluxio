@@ -130,7 +130,7 @@
     <copycat.version>1.2.14</copycat.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <grpc.version>1.27.0</grpc.version>
-    <netty.version>4.1.42.Final</netty.version>
+    <netty.version>4.1.48.Final</netty.version>
     <rocksdb.version>5.15.10</rocksdb.version>
     <hadoop.version>2.7.3</hadoop.version>
     <jacoco.version>0.8.5</jacoco.version>
