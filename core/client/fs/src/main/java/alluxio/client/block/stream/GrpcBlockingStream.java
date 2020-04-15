@@ -175,11 +175,11 @@ public class GrpcBlockingStream<ReqT, ResT> {
       } else {
         RetryPolicy retry = ExponentialTimeBoundedRetry.builder()
             .withInitialSleep(Duration.ofMillis(10))
-            .withMaxSleep(Duration.ofMillis(1000))
+            .withMaxSleep(Duration.ofSeconds(3))
             .withMaxDuration(Duration.ofMillis(timeoutMs))
             .build();
         while (retry.attempt()) {
-          response = mResponses.poll();
+          response = mResponses.poll(10, TimeUnit.MILLISECONDS);
           if (response != null) {
             break;
           } else {
