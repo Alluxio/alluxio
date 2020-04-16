@@ -29,3 +29,9 @@ spec:
   storageClassName: standard
   accessModes:
     - ReadWriteOnce
+  selector:
+    matchLabels:
+      app: alluxio
+      release: alluxio
+      heritage: Tiller
+      role: alluxio-worker
