@@ -320,7 +320,8 @@ public class AlluxioMasterProcess extends MasterProcess {
       serverBuilder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
           new GrpcService(new JournalMasterClientServiceHandler(
               new DefaultJournalMaster(JournalDomain.MASTER, mJournalSystem))));
-
+      serverBuilder.maxInboundMessageSize(
+          (int) ServerConfiguration.getBytes(PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();
       LOG.info("Started Alluxio master gRPC server on address {}", mRpcConnectAddress);
