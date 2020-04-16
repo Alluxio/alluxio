@@ -47,11 +47,7 @@ public class GrpcConnectionPool {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcConnectionPool.class);
 
   // Singleton instance.
-  private static GrpcConnectionPool sInstance;
-
-  static {
-    sInstance = new GrpcConnectionPool();
-  }
+  public static final GrpcConnectionPool INSTANCE = new GrpcConnectionPool();
 
   /** gRPC Managed channels/connections. */
   private ConcurrentMap<GrpcConnectionKey, CountingReference<ManagedChannel>> mChannels;
@@ -73,13 +69,6 @@ public class GrpcConnectionPool {
     for (GrpcChannelKey.NetworkGroup group : GrpcChannelKey.NetworkGroup.values()) {
       mNetworkGroupCounters.put(group, new AtomicLong());
     }
-  }
-
-  /**
-   * @return the singleton pool instance
-   */
-  public static GrpcConnectionPool INSTANCE() {
-    return sInstance;
   }
 
   /**
@@ -158,11 +147,11 @@ public class GrpcConnectionPool {
     // Assign index within the network group.
     long groupIndex = mNetworkGroupCounters.get(channelKey.getNetworkGroup()).incrementAndGet();
     switch (channelKey.getNetworkGroup()) {
-      case DEFAULT:
-        groupIndex %= conf.getLong(PropertyKey.USER_NETWORK_DEFAULT_MAX_CONNECTIONS);
+      case RPC:
+        groupIndex %= conf.getLong(PropertyKey.USER_NETWORK_RPC_MAX_CONNECTIONS);
         break;
       case STREAMING:
-        groupIndex %= conf.getLong(PropertyKey.USER_NETWORK_STREAMING_DEFAULT_MAX_CONNECTIONS);
+        groupIndex %= conf.getLong(PropertyKey.USER_NETWORK_STREAMING_MAX_CONNECTIONS);
         break;
       default:
         throw new IllegalStateException(
@@ -189,13 +178,16 @@ public class GrpcConnectionPool {
       channelBuilder = NettyChannelBuilder.forAddress(address);
     }
     // Apply default channel options for the multiplex group.
-    applyGroupDefaults(channelKey, channelBuilder, conf);
+    channelBuilder = applyGroupDefaults(channelKey, channelBuilder, conf);
     // Build netty managed channel.
     return channelBuilder.build();
   }
 
-  private void applyGroupDefaults(GrpcChannelKey key, NettyChannelBuilder channelBuilder,
-      AlluxioConfiguration conf) {
+  /**
+   * It updates and returns the given {@link NettyChannelBuilder} based on network group settings.
+   */
+  private NettyChannelBuilder applyGroupDefaults(GrpcChannelKey key,
+      NettyChannelBuilder channelBuilder, AlluxioConfiguration conf) {
     long keepAliveTimeMs = conf.getMs(PropertyKey.Template.USER_NETWORK_KEEPALIVE_TIME_MS
         .format(key.getNetworkGroup().getPropertyCode()));
     long keepAliveTimeoutMs = conf.getMs(PropertyKey.Template.USER_NETWORK_KEEPALIVE_TIMEOUT_MS
@@ -221,6 +213,8 @@ public class GrpcConnectionPool {
     channelBuilder.eventLoopGroup(eventLoopGroup);
     // Use plaintext
     channelBuilder.usePlaintext();
+
+    return channelBuilder;
   }
 
   /**

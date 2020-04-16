@@ -97,8 +97,8 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
         // Uses default pooling strategy for RPC calls for better scalability.
         mRpcChannel = GrpcChannelBuilder.newBuilder(address, alluxioConf)
             .setSubject(userState.getSubject())
-            .setNetworkGroup(GrpcChannelKey.NetworkGroup.DEFAULT)
-            .setClientType("DefaultBlockWorkerClient")
+            .setNetworkGroup(GrpcChannelKey.NetworkGroup.RPC)
+            .setClientType("DefaultBlockWorkerClient-Rpc")
             .build();
         lastException = null;
         break;

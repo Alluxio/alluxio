@@ -34,7 +34,7 @@ public class GrpcChannelKey {
   private static final Random RANDOM = new Random();
 
   @IdentityField
-  NetworkGroup mNetworkGroup = NetworkGroup.DEFAULT;
+  NetworkGroup mNetworkGroup = NetworkGroup.RPC;
   @IdentityField
   private GrpcServerAddress mServerAddress;
 
@@ -121,12 +121,11 @@ public class GrpcChannelKey {
    */
   public enum NetworkGroup {
     /**
-     * Multiplexing will be enforced.
+     * Networking group for RPC traffic.
      */
-    DEFAULT,
+    RPC,
     /**
-     * Multiplexing will be enforced in a separate group for increasing streaming bandwidth.
-     * Pool size is controlled by {@code PropertyKey.USER_BLOCK_WORKER_MAX_STREAMING_CONNECTIONS}.
+     * Networking group for Streaming traffic.
      */
     STREAMING,
     ;
@@ -136,8 +135,8 @@ public class GrpcChannelKey {
      */
     public String getPropertyCode() {
       switch (this) {
-        case DEFAULT:
-          return "default";
+        case RPC:
+          return "rpc";
         case STREAMING:
           return "streaming";
         default:

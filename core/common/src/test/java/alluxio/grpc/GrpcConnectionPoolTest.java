@@ -56,8 +56,8 @@ public final class GrpcConnectionPoolTest {
       GrpcChannelKey key2 =
           GrpcChannelKey.create(sConf).setServerAddress(server.getConnectAddress());
 
-      GrpcConnection conn1 = GrpcConnectionPool.INSTANCE().acquireConnection(key1, sConf);
-      GrpcConnection conn2 = GrpcConnectionPool.INSTANCE().acquireConnection(key2, sConf);
+      GrpcConnection conn1 = GrpcConnectionPool.INSTANCE.acquireConnection(key1, sConf);
+      GrpcConnection conn2 = GrpcConnectionPool.INSTANCE.acquireConnection(key2, sConf);
 
       assertEquals(conn1, conn2);
     }
@@ -72,8 +72,8 @@ public final class GrpcConnectionPoolTest {
     GrpcServerAddress address = GrpcServerAddress.create(new InetSocketAddress("localhost", 1));
     key.setServerAddress(address);
 
-    GrpcConnection conn1 = GrpcConnectionPool.INSTANCE().acquireConnection(key, sConf);
-    GrpcConnection conn2 = GrpcConnectionPool.INSTANCE().acquireConnection(key, sConf);
+    GrpcConnection conn1 = GrpcConnectionPool.INSTANCE.acquireConnection(key, sConf);
+    GrpcConnection conn2 = GrpcConnectionPool.INSTANCE.acquireConnection(key, sConf);
 
     assertNotEquals(conn1, conn2);
   }
@@ -87,8 +87,8 @@ public final class GrpcConnectionPoolTest {
       GrpcChannelKey key2 =
           GrpcChannelKey.create(sConf).setServerAddress(server2.getConnectAddress());
 
-      GrpcConnection conn1 = GrpcConnectionPool.INSTANCE().acquireConnection(key1, sConf);
-      GrpcConnection conn2 = GrpcConnectionPool.INSTANCE().acquireConnection(key2, sConf);
+      GrpcConnection conn1 = GrpcConnectionPool.INSTANCE.acquireConnection(key1, sConf);
+      GrpcConnection conn2 = GrpcConnectionPool.INSTANCE.acquireConnection(key2, sConf);
 
       assertNotEquals(conn1, conn2);
     }
@@ -97,7 +97,7 @@ public final class GrpcConnectionPoolTest {
   @Test
   public void testRoundRobin() throws Exception {
     int streamingGroupSize =
-        sConf.getInt(PropertyKey.USER_NETWORK_STREAMING_DEFAULT_MAX_CONNECTIONS);
+        sConf.getInt(PropertyKey.USER_NETWORK_STREAMING_MAX_CONNECTIONS);
 
     try (CloseableTestServer server = createServer()) {
       List<GrpcChannelKey> keys = new ArrayList(streamingGroupSize);
@@ -108,7 +108,7 @@ public final class GrpcConnectionPoolTest {
       }
       // Acquire connections.
       List<GrpcConnection> connections =
-          keys.stream().map((key) -> GrpcConnectionPool.INSTANCE().acquireConnection(key, sConf))
+          keys.stream().map((key) -> GrpcConnectionPool.INSTANCE.acquireConnection(key, sConf))
               .collect(Collectors.toList());
 
       // Validate all are different.
@@ -120,7 +120,7 @@ public final class GrpcConnectionPoolTest {
   @Test
   public void testGroupSize() throws Exception {
     int streamingGroupSize =
-        sConf.getInt(PropertyKey.USER_NETWORK_STREAMING_DEFAULT_MAX_CONNECTIONS);
+        sConf.getInt(PropertyKey.USER_NETWORK_STREAMING_MAX_CONNECTIONS);
     int acquireCount = streamingGroupSize * 100;
 
     try (CloseableTestServer server = createServer()) {
@@ -132,7 +132,7 @@ public final class GrpcConnectionPoolTest {
       }
       // Acquire connections.
       List<GrpcConnection> connections =
-          keys.stream().map((key) -> GrpcConnectionPool.INSTANCE().acquireConnection(key, sConf))
+          keys.stream().map((key) -> GrpcConnectionPool.INSTANCE.acquireConnection(key, sConf))
               .collect(Collectors.toList());
 
       // Validate all are different.

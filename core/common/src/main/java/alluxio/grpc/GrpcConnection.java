@@ -99,6 +99,6 @@ public class GrpcConnection implements AutoCloseable {
   @Override
   public void close() throws Exception {
     // Release the connection back.
-    GrpcConnectionPool.INSTANCE().releaseConnection(mKey, mConfiguration);
+    GrpcConnectionPool.INSTANCE.releaseConnection(mKey, mConfiguration);
   }
 }

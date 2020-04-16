@@ -118,7 +118,7 @@ public final class GrpcChannelBuilder {
   public GrpcChannel build() throws AlluxioStatusException {
     // Acquire a connection from the pool.
     GrpcConnection connection =
-        GrpcConnectionPool.INSTANCE().acquireConnection(mChannelKey, mConfiguration);
+        GrpcConnectionPool.INSTANCE.acquireConnection(mChannelKey, mConfiguration);
     try {
       AuthenticatedChannelClientDriver authDriver = null;
       if (mAuthenticateChannel) {
