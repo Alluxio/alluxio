@@ -1572,6 +1572,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
+      new Builder(Name.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
+          .setDefaultValue("4M")
+          .setDescription("The maximum size of a message that can be sent to the Alluxio master")
+          .build();
   public static final PropertyKey MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
       new Builder(Name.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)
           .setAlias("alluxio.master.worker.heartbeat.interval")
@@ -4430,6 +4435,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metrics.service.threads";
     public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =
         "alluxio.master.metrics.time.series.interval";
+    public static final String MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
+        "alluxio.master.network.max.inbound.message.size";
     public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
         "alluxio.master.persistence.initial.interval";
     public static final String MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS =
