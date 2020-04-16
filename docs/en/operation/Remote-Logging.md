@@ -16,6 +16,8 @@ Alluxio supports sending logs to a remote log server over the network. This feat
 to system administrators who have to perform the task of log collection. With remote logging, the
 log files, e.g. master.log, worker.log, etc. on all Alluxio servers will be readily available on
 a designated and configurable directory on the log server.
+Alternatively, users can use [basic logging]({{ '/en/operation/Basic-Logging.html' | relativize_url }})
+functions provided by Alluxio rather than using remote logging.
 
 ## Deploying the Log Server
 
