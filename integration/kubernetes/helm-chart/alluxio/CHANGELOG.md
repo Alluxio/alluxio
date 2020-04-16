@@ -70,3 +70,4 @@
 - Changed worker domain socket volume from hostPath to PVC
 - Changed hostNetwork to false
 - Added alluxio.worker.container.hostname property to use podIP
+- Added selector labels to worker domain socket PVC

@@ -29,5 +29,11 @@ spec:
       storage: {{ .Values.shortCircuit.pvcSize }}
   storageClassName: {{ .Values.shortCircuit.pvcStorageClass }}
   accessModes:
-{{ toYaml .Values.shortCircuit.pvcAccessModes | trim | indent 4 -}}
+{{ toYaml .Values.shortCircuit.pvcAccessModes | trim | indent 4 }}
+  selector:
+    matchLabels:
+      app: {{ template "alluxio.name" . }}
+      release: {{ .Release.Name }}
+      heritage: {{ .Release.Service }}
+      role: alluxio-worker
 {{- end -}}
