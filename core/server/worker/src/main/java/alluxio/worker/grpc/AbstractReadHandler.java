@@ -11,6 +11,7 @@
 
 package alluxio.worker.grpc;
 
+import alluxio.client.block.stream.DataReader;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
@@ -164,22 +165,35 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     handleStreamEndingException(e, e.getStatus());
   }
 
-  // In this case, we hit an exception that does not allow us to proceed further
-  private void handleStreamEndingException(Exception e, Status status) {
-    // The executor is too busy to handle our requests. The stream should error.
+  /**
+   * Handle any exception which should abort the client's read request.
+   *
+   * @param exception the exception thrown
+   * @param status the type of {@link Status} exception which should be returned to the user
+   */
+  private void handleStreamEndingException(Exception exception, Status status) {
     Long sessionId = mContext.getRequest() == null ? null : mContext.getRequest().getSessionId();
-    LogUtils.warnWithException(LOG, "handling RejectedExecutionException: sessionId: {}",
-        sessionId, e);
-    AlluxioStatusException statusExc =
-        new AlluxioStatusException(status);
-    if (mContext == null) {
-      mContext = createRequestContext(alluxio.grpc.ReadRequest.newBuilder().build());
+    LogUtils.warnWithException(LOG, "fatal error occurred while handling read. sessionId: {}",
+        sessionId, exception);
+    AlluxioStatusException statusExc = new AlluxioStatusException(status);
+    try (LockResource lr = new LockResource(mLock)) {
+      if (mContext == null) {
+        mContext = createRequestContext(alluxio.grpc.ReadRequest.newBuilder().build());
+      }
+      setError(new Error(statusExc, true));
     }
-    setError(new Error(statusExc, true));
     // After calling setError, this will run the data reader to complete the request and close
     // any possibly opened blocks, then replies to the client with onError, and should eventually
     // shut down the serializing executor.
-    createDataReader(mContext, mResponseObserver).run();
+    // If possible, we should free up this thread immediately by running the data reader in a
+    // separate thread because we want to avoid the possibility of blocking the `onNext` method
+    // from finishing. However, if submitting the task fails, we still  need to guarantee cleanup
+    // In that case, we must run the reader in the current thread.
+    try {
+      mDataReaderExecutor.execute(createDataReader(mContext, mResponseObserver));
+    } catch (RejectedExecutionException ex) {
+      createDataReader(mContext, mResponseObserver).run();
+    }
   }
 
   /**
