@@ -24,15 +24,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
-import java.util.Random;
 import java.util.UUID;
 
 /**
  * Used to identify a unique {@link GrpcChannel}.
  */
 public class GrpcChannelKey {
-  private static final Random RANDOM = new Random();
-
   @IdentityField
   NetworkGroup mNetworkGroup = NetworkGroup.RPC;
   @IdentityField

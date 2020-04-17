@@ -22,6 +22,10 @@ public class GrpcConnectionKey {
 
   /**
    * Creates a new gRPC connection key.
+   * Connection-ID key format is:
+   * - {@link GrpcChannelKey}
+   * - Group Index:
+   *   The order of channel in slots that are allocated for its network group.
    *
    * @param channelKey the gRPC channel key
    * @param groupIndex the group index

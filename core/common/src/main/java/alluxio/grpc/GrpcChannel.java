@@ -100,6 +100,7 @@ public final class GrpcChannel extends Channel {
       try {
         mConnection.close();
       } catch (Exception e) {
+        // TODO(ggezer): Don't throw once stabilized, just trace.
         throw new RuntimeException("Failed to release the connection.", e);
       }
       mChannelReleased = true;
