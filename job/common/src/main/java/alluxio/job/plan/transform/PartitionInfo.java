@@ -73,6 +73,8 @@ public class PartitionInfo implements Serializable {
         return Format.GZIP_CSV;
       }
       return Format.CSV;
+    } else if (mSerdeClass.equals(HiveConstants.ORC_SERDE_CLASS)) {
+      return Format.ORC;
     }
     // failed to get format from serde info, try to get it from extension
     if (filename.endsWith(Format.CSV.getSuffix())) {
