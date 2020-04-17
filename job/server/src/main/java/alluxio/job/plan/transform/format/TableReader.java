@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.job.plan.transform.Format;
 import alluxio.job.plan.transform.PartitionInfo;
 import alluxio.job.plan.transform.format.csv.CsvReader;
+import alluxio.job.plan.transform.format.orc.OrcReader;
 import alluxio.job.plan.transform.format.parquet.ParquetReader;
 
 import java.io.Closeable;
@@ -40,6 +41,8 @@ public interface TableReader extends Closeable {
         return CsvReader.create(uri, pInfo);
       case PARQUET:
         return ParquetReader.create(uri);
+      case ORC:
+        return OrcReader.create(uri);
       default:
         throw new IOException("Unsupported format: " + format);
     }

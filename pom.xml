@@ -141,6 +141,7 @@
     <log4j.version>1.2.17</log4j.version>
     <maven.version>3.3.9</maven.version>
     <metrics.version>3.1.2</metrics.version>
+    <orc.version>1.6.2</orc.version>
     <oshi.version>4.2.0</oshi.version>
     <powermock.version>1.6.2</powermock.version>
     <prometheus.version>0.8.0</prometheus.version>
@@ -507,6 +508,11 @@
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
         <version>4.4.6</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.orc</groupId>
+        <artifactId>orc-core</artifactId>
+        <version>${orc.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.parquet</groupId>
