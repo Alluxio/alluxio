@@ -33,10 +33,10 @@ properties:
 # Recommended JVM Heap options for running in Docker
 # Ref: https://developers.redhat.com/blog/2017/03/14/java-inside-docker/
 # These JVM options are common to all Alluxio services
-jvmOptions:
-  - "-XX:+UnlockExperimentalVMOptions"
-  - "-XX:+UseCGroupMemoryLimitForHeap"
-  - "-XX:MaxRAMFraction=2"
+# jvmOptions:
+#   - "-XX:+UnlockExperimentalVMOptions"
+#   - "-XX:+UseCGroupMemoryLimitForHeap"
+#   - "-XX:MaxRAMFraction=2"
 
 # Mount Persistent Volumes to all components
 # mounts:
