@@ -270,8 +270,3 @@ fuse:
 #     alluxio-hdfs-config: hdfsConfig
 #   worker: # Shared by worker and jobWorker containers
 #     alluxio-hdfs-config: hdfsConfig
-
-alluxioJava: |-
-  -Dalluxio.master.journal.type={{ .Values.journal.type }}
-  -Dalluxio.master.journal.folder={{ .Values.journal.folder }}
-
