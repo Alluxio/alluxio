@@ -11,7 +11,7 @@ module Jekyll
 
         uuid = SecureRandom.uuid
         template = ERB.new <<-EOF
-<ul class="nav nav-tabs" id="<%= uuid %>" role="tablist">
+<ul class="nav nav-tabs nav-tab-margin" id="<%= uuid %>" role="tablist">
 <% environment['navtabs'].each_with_index do |(key, _), index| %>
   <li class="nav-item">
     <a <%= index == 0 ? 'class="nav-link active"' : 'class="nav-link"'%> id="<%= key %>-tab" data-toggle="tab" href="#<%= key %>" role="tab" aria-controls="<%= key %>" <%= index == 0 ? 'aria-selected="true"' : 'aria-selected="false"'%>><%= key %></a>
