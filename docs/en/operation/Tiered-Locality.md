@@ -61,7 +61,7 @@ alluxio.locality.rack=rack2
 This will assign this worker a tiered identity of `(node=host1, rack=rack2)`.
 
 To verify that the configuration is working, check the
-[master, worker, and application logs]({{ '/en/operation//Server-Logging.html' | relativize_url }}#log-location).
+[master, worker, and application logs]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#log-location).
 A log entry should appear of the format:
 
 ```log
