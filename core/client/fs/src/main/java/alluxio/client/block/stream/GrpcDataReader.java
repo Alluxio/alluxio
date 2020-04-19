@@ -78,7 +78,7 @@ public final class GrpcDataReader implements DataReader {
     AlluxioConfiguration alluxioConf = context.getClusterConf();
     mReaderBufferSizeMessages = alluxioConf
         .getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
-    mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT_MS);
+    mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
     mMarshaller = new ReadResponseMarshaller();
     mClient = mContext.acquireBlockWorkerClient(address);
 

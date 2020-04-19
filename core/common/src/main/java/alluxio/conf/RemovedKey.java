@@ -36,7 +36,6 @@ public final class RemovedKey {
 
   private static final String V2_0_0 = "v2.0.0";
   private static final String V2_1_0 = "v2.1.0";
-  private static final String V2_2_3 = "v2.2.3";
 
   /**
    * @param version the version since which a property has been removed
@@ -114,8 +113,6 @@ public final class RemovedKey {
       put("alluxio.user.network.netty.channel.pool.size.min", removedSince(V2_0_0));
       put("alluxio.user.network.netty.reader.buffer.size.packets", removedSince(V2_0_0));
       put("alluxio.user.network.netty.reader.packet.size.bytes", removedSince(V2_0_0));
-      put("alluxio.user.network.netty.timeout", replacedSince(V2_2_3,
-          PropertyKey.USER_STREAMING_DATA_TIMEOUT_MS.getName()));
       put("alluxio.user.network.netty.writer.buffer.size.packets", removedSince(V2_0_0));
       put("alluxio.user.network.netty.writer.close.timeout", removedSince(V2_0_0));
       put("alluxio.user.network.netty.writer.packet.size.bytes", removedSince(V2_0_0));

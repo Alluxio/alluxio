@@ -118,7 +118,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     mRpcBlockingStub = BlockWorkerGrpc.newBlockingStub(mRpcChannel);
     mRpcAsyncStub = BlockWorkerGrpc.newStub(mRpcChannel);
     mAddress = address;
-    mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT_MS);
+    mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
   }
 
   @Override

@@ -404,8 +404,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey NETWORK_CONNECTION_SHUTDOWN_TIMEOUT =
       new Builder(Name.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT)
           .setDefaultValue("15sec")
-          .setDescription("Maximum time to wait for connections (gRPC channels) to stop on "
-              + "shutdown")
+          .setDescription("Maximum time to wait for connections (gRPC channels) to stop after "
+              + "graceful shutdown attempt.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
@@ -3412,9 +3412,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "aggregated, so different applications must set their own ids or leave this value "
               + "unset to use a randomly generated id.")
           .build();
-  public static final PropertyKey USER_STREAMING_DATA_TIMEOUT_MS =
-      new Builder(Name.USER_STREAMING_DATA_TIMEOUT_MS)
-          .setAlias("alluxio.user.network.data.timeout.ms")
+  public static final PropertyKey USER_STREAMING_DATA_TIMEOUT =
+      new Builder(Name.USER_STREAMING_DATA_TIMEOUT)
+          .setAlias("alluxio.user.network.data.timeout.ms", Name.USER_NETWORK_DATA_TIMEOUT_MS)
           .setDefaultValue("30sec")
           .setDescription("The maximum time for an Alluxio client to wait for a data response "
               + "(e.g. block reads and block writes) from Alluxio worker.")
@@ -3423,6 +3423,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_STREAMING_READER_BUFFER_SIZE_MESSAGES =
       new Builder(Name.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES)
+          .setAlias(Name.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES)
           .setDefaultValue(16)
           .setDescription("When a client reads from a remote worker, the maximum number of "
               + "messages to buffer by the client. A message can be either a command response, "
@@ -3432,6 +3433,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_STREAMING_READER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES)
+          .setAlias(Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES)
           .setDefaultValue("1MB")
           .setDescription("When a client reads from a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3439,6 +3441,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES =
       new Builder(Name.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES)
+          .setAlias(Name.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
           .setDefaultValue(16)
           .setDescription("When a client writes to a remote worker, the maximum number of messages "
               + "to buffer by the client. A message can be either a command response, a data "
@@ -3448,6 +3451,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_STREAMING_WRITER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_STREAMING_WRITER_CHUNK_SIZE_BYTES)
+          .setAlias(Name.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES)
           .setDefaultValue("1MB")
           .setDescription("When a client writes to a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3455,6 +3459,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_STREAMING_WRITER_CLOSE_TIMEOUT_MS =
       new Builder(Name.USER_STREAMING_WRITER_CLOSE_TIMEOUT_MS)
+          .setAlias(Name.USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS)
           .setAlias("alluxio.user.network.writer.close.timeout.ms")
           .setDefaultValue("30min")
           .setDescription("The timeout to close a writer client.")
@@ -3463,6 +3468,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_STREAMING_WRITER_FLUSH_TIMEOUT =
       new Builder(Name.USER_STREAMING_WRITER_FLUSH_TIMEOUT)
+          .setAlias(Name.USER_NETWORK_WRITER_FLUSH_TIMEOUT)
           .setDefaultValue("30min")
           .setDescription("The timeout to wait for flush to finish in a data writer.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3470,23 +3476,190 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_STREAMING_ZEROCOPY_ENABLED =
       new Builder(Name.USER_STREAMING_ZEROCOPY_ENABLED)
+          .setAlias(Name.USER_NETWORK_ZEROCOPY_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether zero copy is enabled on client when processing data streams.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_NETWORK_RPC_FLOWCONTROL_WINDOW =
-      new Builder(Name.USER_NETWORK_RPC_FLOWCONTROL_WINDOW)
+  /**
+   * @deprecated use {@link #USER_STREAMING_DATA_TIMEOUT} instead
+   */
+  @Deprecated
+  public static final PropertyKey USER_NETWORK_DATA_TIMEOUT_MS =
+      new Builder(Name.USER_NETWORK_DATA_TIMEOUT_MS)
+          .setAlias("alluxio.user.network.data.timeout.ms")
+          .setDefaultValue("30sec")
+          .setDescription("The maximum time for an Alluxio client to wait for a data response "
+              + "(e.g. block reads and block writes) from Alluxio worker.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  /**
+   * @deprecated use {@link #USER_STREAMING_READER_BUFFER_SIZE_MESSAGES} instead
+   */
+  @Deprecated
+  public static final PropertyKey USER_NETWORK_READER_BUFFER_SIZE_MESSAGES =
+      new Builder(Name.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES)
+          .setDefaultValue(16)
+          .setDescription("When a client reads from a remote worker, the maximum number of "
+              + "messages to buffer by the client. A message can be either a command response, "
+              + "a data chunk, or a gRPC stream event such as complete or error.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  /**
+   * @deprecated use {@link #USER_STREAMING_READER_CHUNK_SIZE_BYTES} instead
+   */
+  @Deprecated
+  public static final PropertyKey USER_NETWORK_READER_CHUNK_SIZE_BYTES =
+      new Builder(Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES)
+          .setDefaultValue("1MB")
+          .setDescription("When a client reads from a remote worker, the maximum chunk size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  /**
+   * @deprecated use {@link #USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES} instead
+   */
+  @Deprecated
+  public static final PropertyKey USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
+      new Builder(Name.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
+          .setDefaultValue(16)
+          .setDescription("When a client writes to a remote worker, the maximum number of messages "
+              + "to buffer by the client. A message can be either a command response, a data "
+              + "chunk, or a gRPC stream event such as complete or error.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  /**
+   * @deprecated use {@link #USER_STREAMING_WRITER_CHUNK_SIZE_BYTES} instead
+   */
+  @Deprecated
+  public static final PropertyKey USER_NETWORK_WRITER_CHUNK_SIZE_BYTES =
+      new Builder(Name.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES)
+          .setDefaultValue("1MB")
+          .setDescription("When a client writes to a remote worker, the maximum chunk size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  /**
+   * @deprecated use {@link #USER_STREAMING_WRITER_CLOSE_TIMEOUT_MS} instead
+   */
+  @Deprecated
+  public static final PropertyKey USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS =
+      new Builder(Name.USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS)
+          .setAlias("alluxio.user.network.writer.close.timeout.ms")
+          .setDefaultValue("30min")
+          .setDescription("The timeout to close a writer client.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  /**
+   * @deprecated use {@link #USER_STREAMING_WRITER_FLUSH_TIMEOUT} instead
+   */
+  @Deprecated
+  public static final PropertyKey USER_NETWORK_WRITER_FLUSH_TIMEOUT =
+      new Builder(Name.USER_NETWORK_WRITER_FLUSH_TIMEOUT)
+          .setDefaultValue("30min")
+          .setDescription("The timeout to wait for flush to finish in a data writer.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  /**
+   * @deprecated use {@link #USER_STREAMING_ZEROCOPY_ENABLED} instead
+   */
+  @Deprecated
+  public static final PropertyKey USER_NETWORK_ZEROCOPY_ENABLED =
+      new Builder(Name.USER_NETWORK_ZEROCOPY_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether zero copy is enabled on client when processing data streams.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  /**
+   * @deprecated use {@link #USER_NETWORK_STREAMING_FLOWCONTROL_WINDOW} instead
+   */
+  @Deprecated
+  public static final PropertyKey USER_NETWORK_FLOWCONTROL_WINDOW =
+      new Builder(Name.USER_NETWORK_FLOWCONTROL_WINDOW)
           .setDefaultValue("2MB")
           .setDescription("The HTTP2 flow control window used by user gRPC connections. Larger "
               + "value will allow more data to be buffered but will use more memory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  /**
+   * @deprecated use {@link #USER_NETWORK_STREAMING_KEEPALIVE_TIME} instead
+   */
+  @Deprecated
+  public static final PropertyKey USER_NETWORK_KEEPALIVE_TIME =
+      new Builder(Name.USER_NETWORK_KEEPALIVE_TIME)
+          .setDefaultValue(Long.MAX_VALUE)
+          .setDescription("The amount of time for a gRPC client (for block reads and block writes) "
+              + "to wait for a response before pinging the server to see if it is still alive.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  /**
+   * @deprecated use {@link #USER_NETWORK_STREAMING_KEEPALIVE_TIMEOUT} instead
+   */
+  @Deprecated
+  public static final PropertyKey USER_NETWORK_KEEPALIVE_TIMEOUT =
+      new Builder(Name.USER_NETWORK_KEEPALIVE_TIMEOUT)
+          .setDefaultValue("30sec")
+          .setDescription("The maximum time for a gRPC client (for block reads and block writes) "
+              + "to wait for a keepalive response before closing the connection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  /**
+   * @deprecated use {@link #USER_NETWORK_STREAMING_MAX_INBOUND_MESSAGE_SIZE} instead
+   */
+  @Deprecated
+  public static final PropertyKey USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
+      new Builder(Name.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
+          .setDefaultValue("100MB")
+          .setDescription("The max inbound message size used by user gRPC connections.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  /**
+   * @deprecated use {@link #USER_NETWORK_STREAMING_FLOWCONTROL_WINDOW} instead
+   */
+  @Deprecated
+  public static final PropertyKey USER_NETWORK_NETTY_CHANNEL =
+      new Builder(Name.USER_NETWORK_NETTY_CHANNEL)
+          .setDescription("Type of netty channels. If EPOLL is not available, this will "
+              + "automatically fall back to NIO.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue("EPOLL")
+          .build();
+  /**
+   * @deprecated use {@link #USER_NETWORK_STREAMING_NETTY_WORKER_THREADS} instead
+   */
+  @Deprecated
+  public static final PropertyKey USER_NETWORK_NETTY_WORKER_THREADS =
+      new Builder(Name.USER_NETWORK_NETTY_WORKER_THREADS)
+          .setDefaultValue(0)
+          .setDescription("How many threads to use for remote block worker client to read "
+              + "from remote block workers.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_RPC_FLOWCONTROL_WINDOW =
+      new Builder(Name.USER_NETWORK_RPC_FLOWCONTROL_WINDOW)
+          .setDefaultValue("2MB")
+          .setDescription("The HTTP2 flow control window used by user rpc connections. "
+              + "Larger value will allow more data to be buffered but will use more memory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_NETWORK_RPC_KEEPALIVE_TIME =
       new Builder(Name.USER_NETWORK_RPC_KEEPALIVE_TIME)
           .setDefaultValue(Long.MAX_VALUE)
-          .setDescription("The amount of time for a gRPC client (for block reads and block writes) "
+          .setDescription("The amount of time for a rpc client "
               + "to wait for a response before pinging the server to see if it is still alive.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3494,7 +3667,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_NETWORK_RPC_KEEPALIVE_TIMEOUT =
       new Builder(Name.USER_NETWORK_RPC_KEEPALIVE_TIMEOUT)
           .setDefaultValue("30sec")
-          .setDescription("The maximum time for a gRPC client (for block reads and block writes) "
+          .setDescription("The maximum time for a rpc client "
               + "to wait for a keepalive response before closing the connection.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3502,14 +3675,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_NETWORK_RPC_MAX_INBOUND_MESSAGE_SIZE =
       new Builder(Name.USER_NETWORK_RPC_MAX_INBOUND_MESSAGE_SIZE)
           .setDefaultValue("100MB")
-          .setDescription("The max inbound message size used by user gRPC connections.")
+          .setDescription("The max inbound message size used by user rpc connections.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_RPC_NETTY_CHANNEL =
       new Builder(Name.USER_NETWORK_RPC_NETTY_CHANNEL)
-          .setDescription("Type of netty channels. If EPOLL is not available, this will "
-              + "automatically fall back to NIO.")
+          .setDescription("Type of netty channels used by rpc connections. "
+              + "If EPOLL is not available, this will automatically fall back to NIO.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .setDefaultValue("EPOLL")
@@ -3517,8 +3690,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_NETWORK_RPC_NETTY_WORKER_THREADS =
       new Builder(Name.USER_NETWORK_RPC_NETTY_WORKER_THREADS)
           .setDefaultValue(0)
-          .setDescription("How many threads to use for remote block worker client to read "
-              + "from remote block workers.")
+          .setDescription("How many threads to use for rpc client to read "
+              + "from remote workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -3533,48 +3706,54 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_STREAMING_FLOWCONTROL_WINDOW =
       new Builder(Name.USER_NETWORK_STREAMING_FLOWCONTROL_WINDOW)
+          .setAlias(Name.USER_NETWORK_FLOWCONTROL_WINDOW)
           .setDefaultValue("2MB")
-          .setDescription("The HTTP2 flow control window used by user gRPC connections. Larger "
-              + "value will allow more data to be buffered but will use more memory.")
+          .setDescription("The HTTP2 flow control window used by user streaming connections. "
+              + "Larger value will allow more data to be buffered but will use more memory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_STREAMING_KEEPALIVE_TIME =
       new Builder(Name.USER_NETWORK_STREAMING_KEEPALIVE_TIME)
+          .setAlias(Name.USER_NETWORK_KEEPALIVE_TIME)
           .setDefaultValue(Long.MAX_VALUE)
-          .setDescription("The amount of time for a gRPC client (for block reads and block writes) "
+          .setDescription("The amount of time for a streaming client "
               + "to wait for a response before pinging the server to see if it is still alive.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_STREAMING_KEEPALIVE_TIMEOUT =
       new Builder(Name.USER_NETWORK_STREAMING_KEEPALIVE_TIMEOUT)
+          .setAlias(Name.USER_NETWORK_KEEPALIVE_TIMEOUT)
           .setDefaultValue("30sec")
-          .setDescription("The maximum time for a gRPC client (for block reads and block writes) "
+          .setDescription("The maximum time for a streaming client "
               + "to wait for a keepalive response before closing the connection.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_STREAMING_MAX_INBOUND_MESSAGE_SIZE =
       new Builder(Name.USER_NETWORK_STREAMING_MAX_INBOUND_MESSAGE_SIZE)
+          .setAlias(Name.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
           .setDefaultValue("100MB")
-          .setDescription("The max inbound message size used by user gRPC connections.")
+          .setDescription("The max inbound message size used by user streaming connections.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_NETWORK_STREAMING_NETTY_CHANNEL =
       new Builder(Name.USER_NETWORK_STREAMING_NETTY_CHANNEL)
-          .setDescription("Type of netty channels. If EPOLL is not available, this will "
-              + "automatically fall back to NIO.")
+          .setAlias(Name.USER_NETWORK_NETTY_CHANNEL)
+          .setDescription("Type of netty channels used by streaming connections. "
+              + "If EPOLL is not available, this will automatically fall back to NIO.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .setDefaultValue("EPOLL")
           .build();
   public static final PropertyKey USER_NETWORK_STREAMING_NETTY_WORKER_THREADS =
       new Builder(Name.USER_NETWORK_STREAMING_NETTY_WORKER_THREADS)
+          .setAlias(Name.USER_NETWORK_NETTY_WORKER_THREADS)
           .setDefaultValue(0)
-          .setDescription("How many threads to use for remote block worker client to read "
-              + "from remote block workers.")
+          .setDescription("How many threads to use for streaming client to read "
+              + "from remote workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -4873,8 +5052,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_METRICS_HEARTBEAT_INTERVAL_MS =
         "alluxio.user.metrics.heartbeat.interval";
     public static final String USER_APP_ID = "alluxio.user.app.id";
-    public static final String USER_STREAMING_DATA_TIMEOUT_MS =
+    public static final String USER_NETWORK_DATA_TIMEOUT_MS =
         "alluxio.user.network.data.timeout";
+    public static final String USER_NETWORK_READER_BUFFER_SIZE_MESSAGES =
+        "alluxio.user.network.reader.buffer.size.messages";
+    public static final String USER_NETWORK_READER_CHUNK_SIZE_BYTES =
+        "alluxio.user.network.reader.chunk.size.bytes";
+    public static final String USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
+        "alluxio.user.network.writer.buffer.size.messages";
+    public static final String USER_NETWORK_WRITER_CHUNK_SIZE_BYTES =
+        "alluxio.user.network.writer.chunk.size.bytes";
+    public static final String USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS =
+        "alluxio.user.network.writer.close.timeout";
+    public static final String USER_NETWORK_WRITER_FLUSH_TIMEOUT =
+        "alluxio.user.network.writer.flush.timeout";
+    public static final String USER_NETWORK_ZEROCOPY_ENABLED =
+        "alluxio.user.network.zerocopy.enabled";
+    public static final String USER_STREAMING_DATA_TIMEOUT =
+        "alluxio.user.streaming.data.timeout";
     public static final String USER_STREAMING_READER_BUFFER_SIZE_MESSAGES =
         "alluxio.user.streaming.reader.buffer.size.messages";
     public static final String USER_STREAMING_READER_CHUNK_SIZE_BYTES =
@@ -4889,6 +5084,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.streaming.writer.flush.timeout";
     public static final String USER_STREAMING_ZEROCOPY_ENABLED =
         "alluxio.user.streaming.zerocopy.enabled";
+    public static final String USER_NETWORK_FLOWCONTROL_WINDOW =
+        "alluxio.user.network.flowcontrol.window";
+    public static final String USER_NETWORK_KEEPALIVE_TIME =
+        "alluxio.user.network.keepalive.time";
+    public static final String USER_NETWORK_KEEPALIVE_TIMEOUT =
+        "alluxio.user.network.keepalive.timeout";
+    public static final String USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
+        "alluxio.user.network.max.inbound.message.size";
+    public static final String USER_NETWORK_NETTY_CHANNEL =
+        "alluxio.user.network.netty.channel";
+    public static final String USER_NETWORK_NETTY_WORKER_THREADS =
+        "alluxio.user.network.netty.worker.threads";
     public static final String USER_NETWORK_RPC_FLOWCONTROL_WINDOW =
         "alluxio.user.network.rpc.flowcontrol.window";
     public static final String USER_NETWORK_RPC_KEEPALIVE_TIME =
