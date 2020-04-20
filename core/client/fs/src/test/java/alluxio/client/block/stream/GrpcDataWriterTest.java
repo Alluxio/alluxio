@@ -193,7 +193,7 @@ public final class GrpcDataWriterTest {
     FileSystemContext context = PowerMockito.mock(FileSystemContext.class);
     when(context.acquireBlockWorkerClient(any(WorkerNetAddress.class))).thenReturn(resource);
     when(context.getClusterConf()).thenReturn(mConf);
-    mConf.set(PropertyKey.USER_STREAMING_WRITER_CLOSE_TIMEOUT_MS, "1");
+    mConf.set(PropertyKey.USER_STREAMING_WRITER_CLOSE_TIMEOUT, "1");
     GrpcDataWriter writer = GrpcDataWriter.create(context, mAddress, BLOCK_ID, 0,
         RequestType.ALLUXIO_BLOCK,
         OutStreamOptions.defaults(mClientContext).setWriteTier(0));

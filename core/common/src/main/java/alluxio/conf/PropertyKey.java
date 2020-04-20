@@ -3414,7 +3414,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_STREAMING_DATA_TIMEOUT =
       new Builder(Name.USER_STREAMING_DATA_TIMEOUT)
-          .setAlias("alluxio.user.network.data.timeout.ms", Name.USER_NETWORK_DATA_TIMEOUT_MS)
+          .setAlias("alluxio.user.network.data.timeout.ms", Name.USER_NETWORK_DATA_TIMEOUT)
           .setDefaultValue("30sec")
           .setDescription("The maximum time for an Alluxio client to wait for a data response "
               + "(e.g. block reads and block writes) from Alluxio worker.")
@@ -3457,10 +3457,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_STREAMING_WRITER_CLOSE_TIMEOUT_MS =
-      new Builder(Name.USER_STREAMING_WRITER_CLOSE_TIMEOUT_MS)
-          .setAlias(Name.USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS)
-          .setAlias("alluxio.user.network.writer.close.timeout.ms")
+  public static final PropertyKey USER_STREAMING_WRITER_CLOSE_TIMEOUT =
+      new Builder(Name.USER_STREAMING_WRITER_CLOSE_TIMEOUT)
+          .setAlias("alluxio.user.network.writer.close.timeout.ms",
+              Name.USER_NETWORK_WRITER_CLOSE_TIMEOUT)
           .setDefaultValue("30min")
           .setDescription("The timeout to close a writer client.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3487,7 +3487,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @Deprecated
   public static final PropertyKey USER_NETWORK_DATA_TIMEOUT_MS =
-      new Builder(Name.USER_NETWORK_DATA_TIMEOUT_MS)
+      new Builder(Name.USER_NETWORK_DATA_TIMEOUT)
           .setAlias("alluxio.user.network.data.timeout.ms")
           .setDefaultValue("30sec")
           .setDescription("The maximum time for an Alluxio client to wait for a data response "
@@ -3544,11 +3544,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   /**
-   * @deprecated use {@link #USER_STREAMING_WRITER_CLOSE_TIMEOUT_MS} instead
+   * @deprecated use {@link #USER_STREAMING_WRITER_CLOSE_TIMEOUT} instead
    */
   @Deprecated
   public static final PropertyKey USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS =
-      new Builder(Name.USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS)
+      new Builder(Name.USER_NETWORK_WRITER_CLOSE_TIMEOUT)
           .setAlias("alluxio.user.network.writer.close.timeout.ms")
           .setDefaultValue("30min")
           .setDescription("The timeout to close a writer client.")
@@ -5052,7 +5052,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_METRICS_HEARTBEAT_INTERVAL_MS =
         "alluxio.user.metrics.heartbeat.interval";
     public static final String USER_APP_ID = "alluxio.user.app.id";
-    public static final String USER_NETWORK_DATA_TIMEOUT_MS =
+    public static final String USER_NETWORK_DATA_TIMEOUT =
         "alluxio.user.network.data.timeout";
     public static final String USER_NETWORK_READER_BUFFER_SIZE_MESSAGES =
         "alluxio.user.network.reader.buffer.size.messages";
@@ -5062,7 +5062,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.network.writer.buffer.size.messages";
     public static final String USER_NETWORK_WRITER_CHUNK_SIZE_BYTES =
         "alluxio.user.network.writer.chunk.size.bytes";
-    public static final String USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS =
+    public static final String USER_NETWORK_WRITER_CLOSE_TIMEOUT =
         "alluxio.user.network.writer.close.timeout";
     public static final String USER_NETWORK_WRITER_FLUSH_TIMEOUT =
         "alluxio.user.network.writer.flush.timeout";
@@ -5078,7 +5078,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.streaming.writer.buffer.size.messages";
     public static final String USER_STREAMING_WRITER_CHUNK_SIZE_BYTES =
         "alluxio.user.streaming.writer.chunk.size.bytes";
-    public static final String USER_STREAMING_WRITER_CLOSE_TIMEOUT_MS =
+    public static final String USER_STREAMING_WRITER_CLOSE_TIMEOUT =
         "alluxio.user.streaming.writer.close.timeout";
     public static final String USER_STREAMING_WRITER_FLUSH_TIMEOUT =
         "alluxio.user.streaming.writer.flush.timeout";
