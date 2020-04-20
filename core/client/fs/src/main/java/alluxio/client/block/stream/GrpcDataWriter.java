@@ -94,7 +94,7 @@ public final class GrpcDataWriter implements DataWriter {
       long id, long length, RequestType type, OutStreamOptions options)
       throws IOException {
     long chunkSize = context.getClusterConf()
-        .getBytes(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES);
+        .getBytes(PropertyKey.USER_STREAMING_WRITER_CHUNK_SIZE_BYTES);
     CloseableResource<BlockWorkerClient> grpcClient = context.acquireBlockWorkerClient(address);
     try {
       return new GrpcDataWriter(context, address, id, length, chunkSize, type, options, grpcClient);
@@ -123,10 +123,10 @@ public final class GrpcDataWriter implements DataWriter {
     mAddress = address;
     mLength = length;
     AlluxioConfiguration conf = context.getClusterConf();
-    mDataTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
-    mWriterBufferSizeMessages = conf.getInt(PropertyKey.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES);
-    mWriterCloseTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS);
-    mWriterFlushTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_WRITER_FLUSH_TIMEOUT);
+    mDataTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
+    mWriterBufferSizeMessages = conf.getInt(PropertyKey.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES);
+    mWriterCloseTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_WRITER_CLOSE_TIMEOUT);
+    mWriterFlushTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_WRITER_FLUSH_TIMEOUT);
 
     WriteRequestCommand.Builder builder =
         WriteRequestCommand.newBuilder().setId(id).setTier(options.getWriteTier()).setType(type)
@@ -161,7 +161,7 @@ public final class GrpcDataWriter implements DataWriter {
     mChunkSize = chunkSize;
     mClient = client;
     mMarshaller = new WriteRequestMarshaller();
-    if (conf.getBoolean(PropertyKey.USER_NETWORK_ZEROCOPY_ENABLED)) {
+    if (conf.getBoolean(PropertyKey.USER_STREAMING_ZEROCOPY_ENABLED)) {
       mStream = new GrpcDataMessageBlockingStream<>(
           mClient.get()::writeBlock, mWriterBufferSizeMessages,
           MoreObjects.toStringHelper(this)

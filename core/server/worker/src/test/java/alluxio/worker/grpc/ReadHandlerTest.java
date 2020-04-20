@@ -46,7 +46,7 @@ import java.util.concurrent.TimeoutException;
 
 public abstract class ReadHandlerTest {
   protected static final long CHUNK_SIZE =
-      ServerConfiguration.getBytes(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES);
+      ServerConfiguration.getBytes(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
   private final Random mRandom = new Random();
 
   protected String mFile;

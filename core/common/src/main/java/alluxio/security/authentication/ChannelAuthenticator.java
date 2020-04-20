@@ -18,13 +18,12 @@ import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.ChannelAuthenticationScheme;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcChannelKey;
+import alluxio.grpc.GrpcConnection;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
 import alluxio.grpc.SaslMessage;
 
 import io.grpc.Channel;
-import io.grpc.ClientInterceptors;
-import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -42,8 +41,8 @@ public class ChannelAuthenticator {
 
   /** Channel-key that is used to acquire the given managed channel. */
   private final GrpcChannelKey mChannelKey;
-  /** Managed channel through which authentication will be established. */
-  private final ManagedChannel mManagedChannel;
+  /** The connection through which authentication will be established. */
+  private final GrpcConnection mConnection;
   /** Subject of authentication. */
   private final Subject mParentSubject;
   /** Requested auth type. */
@@ -61,16 +60,15 @@ public class ChannelAuthenticator {
   /**
    * Creates {@link ChannelAuthenticator} instance.
    *
-   * @param channelKey channel key
-   * @param managedChannel managed gRPC channel
-   * @param subject javax subject to use for authentication
-   * @param authType requested authentication type
-   * @param conf Alluxio configuration
+   * @param connection the gRPC connection
+   * @param subject the javax subject to use for authentication
+   * @param authType the requested authentication type
+   * @param conf the Alluxio configuration
    */
-  public ChannelAuthenticator(GrpcChannelKey channelKey, ManagedChannel managedChannel,
-      Subject subject, AuthType authType, AlluxioConfiguration conf) {
-    mChannelKey = channelKey;
-    mManagedChannel = managedChannel;
+  public ChannelAuthenticator(GrpcConnection connection, Subject subject, AuthType authType,
+      AlluxioConfiguration conf) {
+    mConnection = connection;
+    mChannelKey = mConnection.getChannelKey();
     mParentSubject = subject;
     mAuthType = authType;
     mConfiguration = conf;
@@ -95,7 +93,7 @@ public class ChannelAuthenticator {
 
       // Initialize client-server authentication drivers.
       SaslAuthenticationServiceGrpc.SaslAuthenticationServiceStub serverStub =
-          SaslAuthenticationServiceGrpc.newStub(mManagedChannel);
+          SaslAuthenticationServiceGrpc.newStub(mConnection.getChannel());
 
       StreamObserver<SaslMessage> requestObserver = serverStub.authenticate(mAuthDriver);
       mAuthDriver.setServerObserver(requestObserver);
@@ -105,8 +103,7 @@ public class ChannelAuthenticator {
       mAuthDriver.startAuthenticatedChannel(authTimeout);
 
       // Intercept authenticated channel with channel-id injector.
-      mAuthenticatedChannel = ClientInterceptors.intercept(mManagedChannel,
-          new ChannelIdInjector(mChannelKey.getChannelId()));
+      mConnection.interceptChannel(new ChannelIdInjector(mChannelKey.getChannelId()));
     } catch (Throwable t) {
       AlluxioStatusException e = AlluxioStatusException.fromThrowable(t);
       // Build a pretty message for authentication failure.

@@ -147,7 +147,7 @@ public class UfsFallbackLocalFileDataWriterTest {
 
   @Rule
   public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES,
+      new ConfigurationRule(PropertyKey.USER_STREAMING_WRITER_CHUNK_SIZE_BYTES,
           String.valueOf(CHUNK_SIZE), mConf);
 
   @Before
