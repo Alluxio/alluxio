@@ -24,9 +24,10 @@ import java.util.concurrent.TimeUnit;
  * No guarantees can be made about the timing of how the tasks complete, or what the result of
  * the tasks are.
  *
- * All tasks in the queue are guaranteed to complete before {@link #shutdown(long, TimeUnit)} is
- * called so long as they complete within the provided timeout. At which time the task runner will
- * stop accepting new tasks (all calls to {@link #addTask(Runnable)} will return false).
+ * All tasks in the queue are guaranteed to be added to the queue before
+ * {@link #shutdown(long, TimeUnit)} is called. At which time the task runner will
+ * stop accepting new tasks (all calls to {@link #addTask(Runnable)} will return false). Any
+ * remaining tasks will attempted to be drained from the queue within the timeout.
  *
  */
 public class SerializedTaskRunner implements Runnable {
@@ -68,7 +69,7 @@ public class SerializedTaskRunner implements Runnable {
         Runnable task = mTasks.take();
         try {
           task.run();
-        } catch (RuntimeException e) {
+        } catch (Throwable e) {
           LOG.warn("Exception in serialized task runner: ", e);
         }
       } catch (InterruptedException e) {

@@ -32,7 +32,7 @@ public class SameThreadSerializedTaskRunner extends SerializedTaskRunner {
   public boolean addTask(Runnable r) {
     try {
       r.run();
-    } catch (RuntimeException e) {
+    } catch (Throwable e) {
       LOG.warn("Runtime exception thrown when executing task: ", e);
     }
     return true;
