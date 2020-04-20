@@ -175,7 +175,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       ReadRequest readRequestPartial, long blockSize, InStreamOptions options) {
     ReadRequest.Builder readRequestBuilder = readRequestPartial.toBuilder();
     long chunkSize = context.getClusterConf().getBytes(
-        PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES);
+        PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
     readRequestBuilder.setChunkSize(chunkSize);
     DataReader.Factory factory =
         new GrpcDataReader.Factory(context, address, readRequestBuilder.build());
@@ -201,7 +201,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       Protocol.OpenUfsBlockOptions ufsOptions) {
     long chunkSize =
         context.getClusterConf()
-            .getBytes(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES);
+            .getBytes(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
     ReadRequest readRequest = ReadRequest.newBuilder().setBlockId(blockId)
         .setOpenUfsBlockOptions(ufsOptions).setChunkSize(chunkSize).buildPartial();
     DataReader.Factory factory = new GrpcDataReader.Factory(context, address,

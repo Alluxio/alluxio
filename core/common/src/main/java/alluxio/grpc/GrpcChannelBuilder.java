@@ -19,12 +19,6 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedChannelClientDriver;
 import alluxio.security.authentication.ChannelAuthenticator;
 
-import io.grpc.Channel;
-import io.grpc.ManagedChannel;
-import io.netty.channel.EventLoopGroup;
-
-import java.util.concurrent.TimeUnit;
-
 import javax.security.auth.Subject;
 
 /**
@@ -43,8 +37,6 @@ public final class GrpcChannelBuilder {
 
   // Configuration constants.
   private final AuthType mAuthType;
-  private final long mShutdownTimeoutMs;
-  private final long mHealthCheckTimeoutMs;
 
   private AlluxioConfiguration mConfiguration;
 
@@ -54,16 +46,10 @@ public final class GrpcChannelBuilder {
     // Read constants.
     mAuthType =
         mConfiguration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
-    mShutdownTimeoutMs =
-        mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT);
-    mHealthCheckTimeoutMs =
-        mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT);
 
     // Set default overrides for the channel.
     mChannelKey = GrpcChannelKey.create(conf);
     mChannelKey.setServerAddress(address);
-    mChannelKey.setMaxInboundMessageSize(
-        (int) mConfiguration.getBytes(PropertyKey.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
 
     // Determine if authentication required.
     mAuthenticateChannel = mAuthType != AuthType.NOSASL;
@@ -114,81 +100,13 @@ public final class GrpcChannelBuilder {
   }
 
   /**
-   * Sets the time to wait after receiving last message before pinging the server.
-   *
-   * @param keepAliveTime the time to wait after receiving last message before pinging server
-   * @param timeUnit unit of the time
-   * @return the updated {@link GrpcChannelBuilder} instance
-   */
-  public GrpcChannelBuilder setKeepAliveTime(long keepAliveTime, TimeUnit timeUnit) {
-    mChannelKey.setKeepAliveTime(keepAliveTime, timeUnit);
-    return this;
-  }
-
-  /**
-   * Sets the maximum time waiting for response after pinging server before closing connection.
-   *
-   * @param keepAliveTimeout the time to wait after pinging server before closing the connection
-   * @param timeUnit unit of the timeout
-   * @return the updated {@link GrpcChannelBuilder} instance
-   */
-  public GrpcChannelBuilder setKeepAliveTimeout(long keepAliveTimeout, TimeUnit timeUnit) {
-    mChannelKey.setKeepAliveTimeout(keepAliveTimeout, timeUnit);
-    return this;
-  }
-
-  /**
-   * Sets the maximum message size allowed for a single gRPC frame.
-   *
-   * @param maxInboundMessaageSize the maximum inbound message size in bytes
-   * @return a new instance of {@link GrpcChannelBuilder}
-   */
-  public GrpcChannelBuilder setMaxInboundMessageSize(int maxInboundMessaageSize) {
-    mChannelKey.setMaxInboundMessageSize(maxInboundMessaageSize);
-    return this;
-  }
-
-  /**
-   * Sets the flow control window.
-   *
-   * @param flowControlWindow the flow control window in bytes
-   * @return a new instance of {@link GrpcChannelBuilder}
-   */
-  public GrpcChannelBuilder setFlowControlWindow(int flowControlWindow) {
-    mChannelKey.setFlowControlWindow(flowControlWindow);
-    return this;
-  }
-
-  /**
-   * Sets the channel type.
-   *
-   * @param channelType the channel type
-   * @return a new instance of {@link GrpcChannelBuilder}
-   */
-  public GrpcChannelBuilder setChannelType(Class<? extends io.netty.channel.Channel> channelType) {
-    mChannelKey.setChannelType(channelType);
-    return this;
-  }
-
-  /**
-   * Sets the event loop group.
-   *
-   * @param group the event loop group
-   * @return a new instance of {@link GrpcChannelBuilder}
-   */
-  public GrpcChannelBuilder setEventLoopGroup(EventLoopGroup group) {
-    mChannelKey.setEventLoopGroup(group);
-    return this;
-  }
-
-  /**
    * Sets the pooling strategy.
    *
-   * @param multiplexGroup the connection multiplexing group
+   * @param group the networking group
    * @return a new instance of {@link GrpcChannelBuilder}
    */
-  public GrpcChannelBuilder setMultiplexGroup(GrpcChannelKey.MultiplexGroup multiplexGroup) {
-    mChannelKey.setMultiplexGroup(multiplexGroup);
+  public GrpcChannelBuilder setNetworkGroup(GrpcChannelKey.NetworkGroup group) {
+    mChannelKey.setNetworkGroup(group);
     return this;
   }
 
@@ -198,28 +116,28 @@ public final class GrpcChannelBuilder {
    * @return the built {@link GrpcChannel}
    */
   public GrpcChannel build() throws AlluxioStatusException {
-    // Acquire a managed channel from the pool.
-    ManagedChannel managedChannel = GrpcManagedChannelPool.INSTANCE()
-        .acquireManagedChannel(mChannelKey, mHealthCheckTimeoutMs, mShutdownTimeoutMs);
+    // Acquire a connection from the pool.
+    GrpcConnection connection =
+        GrpcConnectionPool.INSTANCE.acquireConnection(mChannelKey, mConfiguration);
     try {
-      Channel logicalChannel = managedChannel;
       AuthenticatedChannelClientDriver authDriver = null;
       if (mAuthenticateChannel) {
         // Create channel authenticator based on provided content.
-        ChannelAuthenticator channelAuthenticator = new ChannelAuthenticator(mChannelKey,
-            managedChannel, mParentSubject, mAuthType, mConfiguration);
+        ChannelAuthenticator channelAuthenticator = new ChannelAuthenticator(
+            connection, mParentSubject, mAuthType, mConfiguration);
         // Authenticate a new logical channel.
         channelAuthenticator.authenticate();
-        // Acquire the authenticated logical channel.
-        logicalChannel = channelAuthenticator.getAuthenticatedChannel();
         // Acquire authentication driver.
         authDriver = channelAuthenticator.getAuthenticationDriver();
       }
       // Return a wrapper over logical channel.
-      return new GrpcChannel(mChannelKey, logicalChannel, mShutdownTimeoutMs, authDriver);
+      return new GrpcChannel(connection, authDriver);
     } catch (Throwable t) {
-      // Release the managed channel to the pool.
-      GrpcManagedChannelPool.INSTANCE().releaseManagedChannel(mChannelKey, mShutdownTimeoutMs);
+      try {
+        connection.close();
+      } catch (Exception e) {
+        throw new RuntimeException("Failed release the connection.", e);
+      }
       // Pretty print unavailable cases.
       if (t instanceof UnavailableException) {
         throw new UnavailableException(

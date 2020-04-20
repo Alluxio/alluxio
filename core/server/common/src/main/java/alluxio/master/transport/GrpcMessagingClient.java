@@ -86,8 +86,6 @@ public class GrpcMessagingClient implements Client {
         GrpcChannel channel = GrpcChannelBuilder
             .newBuilder(GrpcServerAddress.create(address.host(), address.socketAddress()), mConf)
             .setClientType(mClientType).setSubject(mUserState.getSubject())
-            .setMaxInboundMessageSize((int) mConf
-                .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
             .build();
 
         // Create stub for receiving stream from server.
