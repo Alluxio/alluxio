@@ -11,7 +11,6 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.client.block.stream.DataReader;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
@@ -23,8 +22,6 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.resource.LockResource;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.LogUtils;
-import alluxio.util.executor.SameThreadSerializedTaskRunner;
-import alluxio.util.executor.SerializedTaskRunner;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
@@ -33,15 +30,15 @@ import com.google.protobuf.UnsafeByteOperations;
 import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
+import io.grpc.internal.SerializingExecutor;
 import io.grpc.stub.CallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -79,30 +76,14 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   private static final long MAX_BYTES_IN_FLIGHT =
       ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_READER_BUFFER_SIZE_BYTES);
 
-  private static final SerializedTaskRunner.Factory TASK_RUNNER_FACTORY =
-      new SerializedTaskRunner.Factory(GrpcExecutors.BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR);
-
   /** The executor to run {@link DataReader}. */
   private final ExecutorService mDataReaderExecutor;
   /** A serializing executor for sending responses. */
-  protected SerializedTaskRunner mSerializingExecutor;
+  protected Executor mSerializingExecutor;
 
   private final ReentrantLock mLock = new ReentrantLock();
 
   protected AuthenticatedUserInfo mUserInfo;
-
-  /**
-   * This variable denotes whether or not we should process any more requests from the client.
-   *
-   * This should be set as soon as {@link StreamObserver#onError(Throwable)} or
-   * {@link StreamObserver#onCompleted()} has been called on the {@link #mResponseObserver}.
-   * Typically, this will should be set at the end of the {@link DataReader#replyCancel()},
-   * {@link DataReader#replyEof()} or {@link DataReader#replyError(Error)}.
-   *
-   * If {@link #onNext(alluxio.grpc.ReadRequest)} after this is set, we will ignore
-   *
-   */
-  private final AtomicBoolean mFinished = new AtomicBoolean(false);
 
   /**
    * This is only created in the gRPC event thread when a read request is received.
@@ -124,12 +105,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     mDataReaderExecutor = executorService;
     mResponseObserver = responseObserver;
     mUserInfo = userInfo;
-    try {
-      mSerializingExecutor = TASK_RUNNER_FACTORY.create();
-    } catch (RejectedExecutionException e) {
-      mSerializingExecutor = new SameThreadSerializedTaskRunner();
-      handleStreamEndingException(e, Status.RESOURCE_EXHAUSTED);
-    }
+    mSerializingExecutor =
+        new SerializingExecutor(GrpcExecutors.BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR);
   }
 
   @Override
@@ -154,7 +131,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       mDataReaderExecutor.submit(createDataReader(mContext, mResponseObserver));
       mContext.setDataReaderActive(true);
     } catch (RejectedExecutionException e) {
-      handleStreamEndingException(e, Status.RESOURCE_EXHAUSTED);
+      handleStreamEndingException(Status.RESOURCE_EXHAUSTED.withCause(e));
     } catch (Exception e) {
       handleStreamEndingException(
           AlluxioStatusException.fromThrowable(e).toGrpcStatusException());
@@ -162,37 +139,26 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   }
 
   private void handleStreamEndingException(StatusException e) {
-    handleStreamEndingException(e, e.getStatus());
+    handleStreamEndingException(e.getStatus());
   }
 
   /**
    * Handle any exception which should abort the client's read request.
    *
-   * @param exception the exception thrown
+   * @param status the exception thrown
    * @param status the type of {@link Status} exception which should be returned to the user
    */
-  private void handleStreamEndingException(Exception exception, Status status) {
-    Long sessionId = mContext.getRequest() == null ? null : mContext.getRequest().getSessionId();
-    LogUtils.warnWithException(LOG, "fatal error occurred while handling read. sessionId: {}",
-        sessionId, exception);
-    AlluxioStatusException statusExc = new AlluxioStatusException(status);
+  private void handleStreamEndingException(Status status) {
+    Long sessionId = mContext.getRequest() == null ? -1 : mContext.getRequest().getSessionId();
+    LogUtils.warnWithException(LOG, "Error occurred while handling read. sessionId: {}. Ending "
+            + "stream",
+        sessionId, status);
+    AlluxioStatusException statusExc = AlluxioStatusException.from(status);
     try (LockResource lr = new LockResource(mLock)) {
       if (mContext == null) {
         mContext = createRequestContext(alluxio.grpc.ReadRequest.newBuilder().build());
       }
       setError(new Error(statusExc, true));
-    }
-    // After calling setError, this will run the data reader to complete the request and close
-    // any possibly opened blocks, then replies to the client with onError, and should eventually
-    // shut down the serializing executor.
-    // If possible, we should free up this thread immediately by running the data reader in a
-    // separate thread because we want to avoid the possibility of blocking the `onNext` method
-    // from finishing. However, if submitting the task fails, we still  need to guarantee cleanup
-    // In that case, we must run the reader in the current thread.
-    try {
-      mDataReaderExecutor.execute(createDataReader(mContext, mResponseObserver));
-    } catch (RejectedExecutionException ex) {
-      createDataReader(mContext, mResponseObserver).run();
     }
   }
 
@@ -301,12 +267,12 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
 
   public void onReady() {
     try (LockResource lr = new LockResource(mLock)) {
-      if (shouldRestartDataReader() && !mFinished.get()) {
+      if (shouldRestartDataReader()) {
         try {
           mDataReaderExecutor.submit(createDataReader(mContext, mResponseObserver));
           mContext.setDataReaderActive(true);
         } catch (RejectedExecutionException e) {
-          handleStreamEndingException(e, Status.RESOURCE_EXHAUSTED);
+          handleStreamEndingException(Status.RESOURCE_EXHAUSTED.withCause(e));
         }
       }
     }
@@ -408,7 +374,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
 
           if (chunk != null) {
             DataBuffer finalChunk = chunk;
-            mSerializingExecutor.addTask(() -> {
+            mSerializingExecutor.execute(() -> {
               try {
                 ReadResponse response = ReadResponse.newBuilder().setChunk(Chunk.newBuilder()
                     .setData(UnsafeByteOperations.unsafeWrap(finalChunk.getReadOnlyByteBuffer()))
@@ -426,9 +392,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
                     mContext.getRequest(), e);
                 setError(new Error(AlluxioStatusException.fromThrowable(e), true));
               } finally {
-                if (finalChunk != null) {
-                  finalChunk.release();
-                }
+                finalChunk.release();
               }
             });
           }
@@ -491,9 +455,15 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
      * Writes an error read response to the channel and closes the channel after that.
      */
     private void replyError(Error error) {
-      mSerializingExecutor.addTask(() -> {
+      mSerializingExecutor.execute(() -> {
         try {
-          mResponse.onError(error.getCause().toGrpcStatusException());
+          if (!mContext.isDoneUnsafe()) {
+            mResponse.onError(error.getCause().toGrpcStatusException());
+            mContext.setDoneUnsafe(true);
+          } else  {
+            LOG.warn("Tried to replyError when stream was already completed. context: {}",
+                mContext);
+          }
         } catch (StatusRuntimeException e) {
           // Ignores the error when client already closed the stream.
           if (e.getStatus().getCode() != Status.Code.CANCELLED) {
@@ -501,46 +471,48 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
           }
         }
       });
-      mFinished.set(true);
-      mSerializingExecutor.shutdown(5, TimeUnit.SECONDS);
     }
 
     /**
      * Writes a success response.
      */
     private void replyEof() {
-      mSerializingExecutor.addTask(() -> {
+      mSerializingExecutor.execute(() -> {
         try {
           Preconditions.checkState(!mContext.isDoneUnsafe());
-          mContext.setDoneUnsafe(true);
-          mResponse.onCompleted();
+          if (!mContext.isDoneUnsafe()) {
+            mContext.setDoneUnsafe(true);
+            mResponse.onCompleted();
+          } else {
+            LOG.warn("Tried to replyEof when stream was already finished. context: {}", mContext);
+          }
         } catch (StatusRuntimeException e) {
           if (e.getStatus().getCode() != Status.Code.CANCELLED) {
             throw e;
           }
         }
       });
-      mFinished.set(true);
-      mSerializingExecutor.shutdown(5, TimeUnit.SECONDS);
     }
 
     /**
      * Writes a cancel response.
      */
     private void replyCancel() {
-      mSerializingExecutor.addTask(() -> {
+      mSerializingExecutor.execute(() -> {
         try {
-          Preconditions.checkState(!mContext.isDoneUnsafe());
-          mContext.setDoneUnsafe(true);
-          mResponse.onCompleted();
+          if (!mContext.isDoneUnsafe()) {
+            mContext.setDoneUnsafe(true);
+            mResponse.onCompleted();
+          } else {
+            LOG.warn("Tried to replyCancel when stream was already finished. context: {}",
+                mContext);
+          }
         } catch (StatusRuntimeException e) {
           if (e.getStatus().getCode() != Status.Code.CANCELLED) {
             throw e;
           }
         }
       });
-      mFinished.set(true);
-      mSerializingExecutor.shutdown(5, TimeUnit.SECONDS);
     }
   }
 }
