@@ -75,7 +75,7 @@ public final class MetricsSystem {
   private static final Map<String, Long> LAST_REPORTED_METRICS = new HashMap<>();
   // A map that records all the metrics that should be reported and aggregated at leading master
   // from full metric name to its metric type
-  private static final Map<String, MetricType> SHOULD_REPORT_METRICS = new HashMap<>();
+  private static final Map<String, MetricType> SHOULD_REPORT_METRICS = new ConcurrentHashMap<>();
   // A pattern to get the <instance_type>.<metric_name> from the full metric name
   private static final Pattern METRIC_NAME_PATTERN = Pattern.compile("^(.*?[.].*?)[.].*");
   // A flag telling whether metrics have been reported yet.
