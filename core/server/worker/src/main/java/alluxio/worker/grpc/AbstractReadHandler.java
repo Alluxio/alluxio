@@ -131,7 +131,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       mDataReaderExecutor.submit(createDataReader(mContext, mResponseObserver));
       mContext.setDataReaderActive(true);
     } catch (RejectedExecutionException e) {
-      handleStreamEndingException(Status.RESOURCE_EXHAUSTED.withCause(e));
+      handleStreamEndingException(Status.RESOURCE_EXHAUSTED.withCause(e)
+          .withDescription("Failed to create a new data reader"));
     } catch (Exception e) {
       handleStreamEndingException(
           AlluxioStatusException.fromThrowable(e).toGrpcStatusException());
@@ -272,7 +273,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
           mDataReaderExecutor.submit(createDataReader(mContext, mResponseObserver));
           mContext.setDataReaderActive(true);
         } catch (RejectedExecutionException e) {
-          handleStreamEndingException(Status.RESOURCE_EXHAUSTED.withCause(e));
+          handleStreamEndingException(Status.RESOURCE_EXHAUSTED.withCause(e)
+              .withDescription("Failed to create a new data reader"));
         }
       }
     }
@@ -339,6 +341,9 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
         final long start;
         final int chunkSize;
         try (LockResource lr = new LockResource(mLock)) {
+          if (mContext.isDoneUnsafe()) {
+            return;
+          }
           start = mContext.getPosToQueue();
           eof = mContext.isEof();
           cancel = mContext.isCancel();
