@@ -33,6 +33,7 @@ var (
 	targetFlag             string
 	mvnArgsFlag            string
 	skipUIFlag             bool
+	skipHelmFlag           bool
 )
 
 func Single(args []string) error {
@@ -41,6 +42,7 @@ func Single(args []string) error {
 	singleCmd.StringVar(&hadoopDistributionFlag, "hadoop-distribution", defaultHadoopClient, "the hadoop distribution to build this Alluxio distribution tarball")
 	singleCmd.BoolVar(&skipUIFlag, "skip-ui", false, fmt.Sprintf("set this flag to skip building the webui. This will speed up the build times "+
 		"but the generated tarball will have no Alluxio WebUI although REST services will still be available."))
+	singleCmd.BoolVar(&skipHelmFlag, "skip-helm", true, fmt.Sprintf("set this flag to skip using Helm to generate YAML templates for K8s deployment scenarios"))
 	generateFlags(singleCmd)
 	additionalFlags(singleCmd)
 	singleCmd.Parse(args[2:]) // error handling by flag.ExitOnError
@@ -194,38 +196,6 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/conf/alluxio-site.properties.template",
 		"integration/docker/conf/alluxio-env.sh.template",
 		"integration/fuse/bin/alluxio-fuse",
-		"integration/kubernetes/alluxio-fuse.yaml.template",
-		"integration/kubernetes/alluxio-fuse-client.yaml.template",
-		"integration/kubernetes/helm-generate.sh",
-		"integration/kubernetes/helm-chart/alluxio/.helmignore",
-		"integration/kubernetes/helm-chart/alluxio/Chart.yaml",
-		"integration/kubernetes/helm-chart/alluxio/values.yaml",
-		"integration/kubernetes/helm-chart/alluxio/templates/_helpers.tpl",
-		"integration/kubernetes/helm-chart/alluxio/templates/config/alluxio-conf.yaml",
-		"integration/kubernetes/helm-chart/alluxio/templates/fuse/client-daemonset.yaml",
-		"integration/kubernetes/helm-chart/alluxio/templates/fuse/daemonset.yaml",
-		"integration/kubernetes/helm-chart/alluxio/templates/master/service.yaml",
-		"integration/kubernetes/helm-chart/alluxio/templates/master/statefulset.yaml",
-		"integration/kubernetes/helm-chart/alluxio/templates/worker/daemonset.yaml",
-		"integration/kubernetes/helm-chart/alluxio/templates/worker/domain-socket-pvc.yaml",
-		"integration/kubernetes/multiMaster-embeddedJournal/alluxio-configmap.yaml.template",
-		"integration/kubernetes/multiMaster-embeddedJournal/config.yaml",
-		"integration/kubernetes/multiMaster-embeddedJournal/master/alluxio-master-service.yaml.template",
-		"integration/kubernetes/multiMaster-embeddedJournal/master/alluxio-master-statefulset.yaml.template",
-		"integration/kubernetes/multiMaster-embeddedJournal/worker/alluxio-worker-daemonset.yaml.template",
-		"integration/kubernetes/multiMaster-embeddedJournal/worker/alluxio-worker-pvc.yaml.template",
-		"integration/kubernetes/singleMaster-hdfsJournal/alluxio-configmap.yaml.template",
-		"integration/kubernetes/singleMaster-hdfsJournal/config.yaml",
-		"integration/kubernetes/singleMaster-hdfsJournal/master/alluxio-master-service.yaml.template",
-		"integration/kubernetes/singleMaster-hdfsJournal/master/alluxio-master-statefulset.yaml.template",
-		"integration/kubernetes/singleMaster-hdfsJournal/worker/alluxio-worker-daemonset.yaml.template",
-		"integration/kubernetes/singleMaster-hdfsJournal/worker/alluxio-worker-pvc.yaml.template",
-		"integration/kubernetes/singleMaster-localJournal/alluxio-configmap.yaml.template",
-		"integration/kubernetes/singleMaster-localJournal/config.yaml",
-		"integration/kubernetes/singleMaster-localJournal/master/alluxio-master-service.yaml.template",
-		"integration/kubernetes/singleMaster-localJournal/master/alluxio-master-statefulset.yaml.template",
-		"integration/kubernetes/singleMaster-localJournal/worker/alluxio-worker-daemonset.yaml.template",
-		"integration/kubernetes/singleMaster-localJournal/worker/alluxio-worker-pvc.yaml.template",
 		"integration/mesos/bin/alluxio-env-mesos.sh",
 		"integration/mesos/bin/alluxio-mesos-start.sh",
 		"integration/mesos/bin/alluxio-master-mesos.sh",
@@ -324,6 +294,9 @@ func generateTarball(hadoopClients []string) error {
 	if skipUIFlag {
 		versionString = versionString + "-noUI"
 	}
+	if skipHelmFlag {
+		versionString = versionString + "-noHelm"
+	}
 	tarball := strings.Replace(targetFlag, versionMarker, versionString, 1)
 
 	dstDir := strings.TrimSuffix(filepath.Base(tarball), ".tar.gz")
@@ -333,7 +306,7 @@ func generateTarball(hadoopClients []string) error {
 	fmt.Printf("Creating %s:\n", tarball)
 
 	for _, dir := range []string{
-		"assembly", "client", "logs", "integration/fuse", "integration/checker", "logs/user",
+		"assembly", "client", "logs", "integration/fuse", "integration/checker", "integration/kubernetes", "logs/user",
 	} {
 		mkdir(filepath.Join(dstPath, dir))
 	}
@@ -347,8 +320,14 @@ func generateTarball(hadoopClients []string) error {
 	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
 	run("adding Alluxio checker jar", "mv", fmt.Sprintf("integration/checker/target/alluxio-checker-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "checker", fmt.Sprintf("alluxio-checker-%v.jar", version)))
 
-	// Generate Helm templates
-	run("generate Helm templates", "bash", fmt.Sprintf("integration/kubernetes/helm-generate.sh"), "all")
+	// Generate Helm templates in the dstPath
+	run("adding Helm chart", "cp", "-r", filepath.Join(srcPath, "integration/kubernetes/helm-chart"), filepath.Join(dstPath, "integration/kubernetes/helm-chart"))
+	run("adding YAML generator script", "cp", filepath.Join(srcPath, "integration/kubernetes/helm-generate.sh"), filepath.Join(dstPath, "integration/kubernetes/helm-generate.sh"))
+	if !skipHelmFlag {
+		chdir(filepath.Join(dstPath, "integration/kubernetes/"))
+		run("generate Helm templates", "bash", "helm-generate.sh", "all")
+		chdir(srcPath)
+	}
 
 	if !skipUIFlag {
 		masterWebappDir := "webui/master"
