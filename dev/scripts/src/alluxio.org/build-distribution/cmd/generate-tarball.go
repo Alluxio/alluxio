@@ -53,7 +53,7 @@ func Single(args []string) error {
 	if err := checkRootFlags(); err != nil {
 		return err
 	}
-	if err := generateTarball([]string{}); err != nil {
+	if err := generateTarball([]string{}, skipUIFlag, skipHelmFlag); err != nil {
 		return err
 	}
 	return nil
@@ -236,7 +236,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 	addModules(srcPath, dstPath, "underfs", ufsModulesFlag, version, ufsModules)
 }
 
-func generateTarball(hadoopClients []string) error {
+func generateTarball(hadoopClients []string, skipUI bool, skipHelm bool) error {
 	hadoopVersion, ok := hadoopDistributions[hadoopDistributionFlag]
 	if !ok {
 		return fmt.Errorf("hadoop distribution %s not recognized\n", hadoopDistributionFlag)
@@ -280,7 +280,7 @@ func generateTarball(hadoopClients []string) error {
 	}
 
 	mvnArgs := getCommonMvnArgs(hadoopVersion)
-	if skipUIFlag {
+	if skipUI {
 		mvnArgsNoUI := append(mvnArgs, "-pl", "!webui")
 		run("compiling repo without UI", "mvn", mvnArgsNoUI...)
 	} else {
@@ -291,10 +291,10 @@ func generateTarball(hadoopClients []string) error {
 	buildModules(srcPath, "underfs", "hdfs", ufsModulesFlag, version, ufsModules, mvnArgs)
 
 	versionString := version
-	if skipUIFlag {
+	if skipUI {
 		versionString = versionString + "-noUI"
 	}
-	if skipHelmFlag {
+	if skipHelm {
 		versionString = versionString + "-noHelm"
 	}
 	tarball := strings.Replace(targetFlag, versionMarker, versionString, 1)
@@ -323,13 +323,13 @@ func generateTarball(hadoopClients []string) error {
 	// Generate Helm templates in the dstPath
 	run("adding Helm chart", "cp", "-r", filepath.Join(srcPath, "integration/kubernetes/helm-chart"), filepath.Join(dstPath, "integration/kubernetes/helm-chart"))
 	run("adding YAML generator script", "cp", filepath.Join(srcPath, "integration/kubernetes/helm-generate.sh"), filepath.Join(dstPath, "integration/kubernetes/helm-generate.sh"))
-	if !skipHelmFlag {
+	if !skipHelm {
 		chdir(filepath.Join(dstPath, "integration/kubernetes/"))
 		run("generate Helm templates", "bash", "helm-generate.sh", "all")
 		chdir(srcPath)
 	}
 
-	if !skipUIFlag {
+	if !skipUI {
 		masterWebappDir := "webui/master"
 		run("creating webui master webapp directory", "mkdir", "-p", filepath.Join(dstPath, masterWebappDir))
 		run("copying webui master webapp build directory", "cp", "-r", filepath.Join(masterWebappDir, "build"), filepath.Join(dstPath, masterWebappDir))
