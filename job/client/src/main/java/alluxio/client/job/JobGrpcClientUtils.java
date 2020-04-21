@@ -44,8 +44,9 @@ public final class JobGrpcClientUtils {
    * @param config configuration for the job to run
    * @param attempts number of times to try running the job before giving up
    * @param alluxioConf Alluxio configuration
+   * @return the verbose JobInfo for the completed job
    */
-  public static void run(JobConfig config, int attempts, AlluxioConfiguration alluxioConf)
+  public static JobInfo run(JobConfig config, int attempts, AlluxioConfiguration alluxioConf)
       throws InterruptedException {
     CountingRetry retryPolicy = new CountingRetry(attempts);
     String errorMessage = "";
@@ -65,7 +66,7 @@ public final class JobGrpcClientUtils {
         break;
       }
       if (jobInfo.getStatus() == Status.COMPLETED || jobInfo.getStatus() == Status.CANCELED) {
-        return;
+        return jobInfo;
       }
       errorMessage = jobInfo.getErrorMessage();
       LOG.warn("Job {} failed to complete with attempt {}. error: {}",
@@ -76,14 +77,14 @@ public final class JobGrpcClientUtils {
 
   /**
    * @param jobId the ID of the job to wait for
-   * @return the job info once it finishes or null if the status cannot be fetched
+   * @return the verbose JobInfo once it finishes or null if the status cannot be fetched
    */
   private static JobInfo waitFor(final long jobId, AlluxioConfiguration alluxioConf)
       throws InterruptedException {
     try (final JobMasterClient client =
         JobMasterClient.Factory.create(JobMasterClientContext
             .newBuilder(ClientContext.create(alluxioConf)).build())) {
-      return CommonUtils.waitForResult("Job to finish", ()-> {
+      JobInfo resultInfo = CommonUtils.waitForResult("Job to finish", ()-> {
         try {
           return client.getJobStatus(jobId);
         } catch (Exception e) {
@@ -106,6 +107,10 @@ public final class JobGrpcClientUtils {
           }
           return true;
         }, WaitForOptions.defaults().setInterval(1000));
+      if (resultInfo != null) {
+        resultInfo = client.getJobStatusDetailed(resultInfo.getId());
+      }
+      return resultInfo;
     } catch (IOException e) {
       LOG.warn("Failed to close job master client: {}", e.toString());
       return null;
