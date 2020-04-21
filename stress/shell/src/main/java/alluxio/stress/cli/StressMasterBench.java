@@ -1,0 +1,382 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.stress.cli;
+
+import alluxio.Constants;
+import alluxio.conf.PropertyKey;
+import alluxio.stress.BaseParameters;
+import alluxio.stress.master.MasterBenchParameters;
+import alluxio.stress.master.MasterBenchTaskResult;
+import alluxio.stress.master.Operation;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
+import alluxio.util.WaitForOptions;
+import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.io.PathUtils;
+
+import com.beust.jcommander.ParametersDelegate;
+import com.google.common.util.concurrent.RateLimiter;
+import org.HdrHistogram.Histogram;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+
+/**
+ * Single node stress test.
+ */
+public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
+  private static final Logger LOG = LoggerFactory.getLogger(StressMasterBench.class);
+
+  @ParametersDelegate
+  private MasterBenchParameters mParameters = new MasterBenchParameters();
+
+  private byte[] mFiledata;
+  private FileSystem[] mCachedFs;
+
+  /**
+   * Creates instance.
+   */
+  public StressMasterBench() {
+  }
+
+  /**
+   * @param args command-line arguments
+   */
+  public static void main(String[] args) {
+    mainInternal(args, new StressMasterBench());
+  }
+
+  @Override
+  public void prepare() throws Exception {
+    if (mParameters.mFixedCount <= 0) {
+      throw new IllegalStateException(
+          "fixed count must be > 0. fixedCount: " + mParameters.mFixedCount);
+    }
+
+    if (!mBaseParameters.mDistributed) {
+      // set hdfs conf for preparation client
+      Configuration hdfsConf = new Configuration();
+      // force delete, create dirs through to UFS
+      hdfsConf.set(PropertyKey.Name.USER_FILE_DELETE_UNCHECKED, "true");
+      hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+      FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
+
+      // initialize the base, for only the non-distributed task (the cluster launching task)
+      Path path = new Path(mParameters.mBasePath);
+
+      // the base path depends on the operation
+      Path basePath;
+      if (mParameters.mOperation == Operation.CreateDir) {
+        basePath = new Path(path, "dirs");
+      } else {
+        basePath = new Path(path, "files");
+      }
+
+      if (mParameters.mOperation == Operation.CreateFile
+          || mParameters.mOperation == Operation.CreateDir) {
+        prepareFs.delete(basePath, true);
+        prepareFs.mkdirs(basePath);
+      } else {
+        // these are read operations. the directory must exist
+        if (!prepareFs.exists(basePath)) {
+          throw new IllegalStateException(String
+              .format("base path (%s) must exist for operation (%s)", basePath,
+                  mParameters.mOperation));
+        }
+      }
+      if (!prepareFs.isDirectory(basePath)) {
+        throw new IllegalStateException(String
+            .format("base path (%s) must be a directory for operation (%s)", basePath,
+                mParameters.mOperation));
+      }
+    }
+
+    // set hdfs conf for all test clients
+    Configuration hdfsConf = new Configuration();
+    // do not cache these clients
+    hdfsConf.set(
+        String.format("fs.%s.impl.disable.cache", (new URI(mParameters.mBasePath)).getScheme()),
+        "true");
+    for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
+      hdfsConf.set(entry.getKey(), entry.getValue());
+    }
+    mCachedFs = new FileSystem[mParameters.mClients];
+    for (int i = 0; i < mCachedFs.length; i++) {
+      mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
+    }
+  }
+
+  @Override
+  public MasterBenchTaskResult runLocal() throws Exception {
+    ExecutorService service =
+        ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mThreads).create();
+
+    RateLimiter rateLimiter = RateLimiter.create(mParameters.mTargetThroughput);
+
+    mFiledata = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mCreateFileSize)];
+    Arrays.fill(mFiledata, (byte) 0x7A);
+
+    long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
+    long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
+    long startMs = mBaseParameters.mStartMs;
+    if (mBaseParameters.mStartMs == BaseParameters.UNDEFINED_START_MS) {
+      startMs = CommonUtils.getCurrentMs() + 1000;
+    }
+    long endMs = startMs + warmupMs + durationMs;
+    BenchContext context = new BenchContext(rateLimiter, startMs, endMs);
+    for (int i = 0; i < mParameters.mThreads; i++) {
+      service.submit(new BenchThread(context, mCachedFs[i % mCachedFs.length]));
+    }
+
+    WaitForOptions waitOptions = WaitForOptions.defaults().setInterval(5000)
+        .setTimeoutMs((int) (endMs - CommonUtils.getCurrentMs()) + 60000);
+    if (mParameters.mStopCount != MasterBenchParameters.STOP_COUNT_INVALID) {
+      waitOptions =
+          WaitForOptions.defaults().setInterval(5000).setTimeoutMs(10 * Constants.MINUTE_MS);
+    }
+    CommonUtils.waitFor("Threads to terminate",
+        () -> context.getTerminated().get() == mParameters.mThreads, waitOptions);
+
+    service.shutdownNow();
+    service.awaitTermination(30, TimeUnit.SECONDS);
+
+    return context.getResult();
+  }
+
+  private final class BenchContext {
+    private final RateLimiter mRateLimiter;
+    private final long mStartMs;
+    private final long mEndMs;
+    private final AtomicInteger mTerminated;
+    private final AtomicLong mCounter;
+
+    /** The results. Access must be synchronized for thread safety. */
+    private MasterBenchTaskResult mResult;
+
+    public BenchContext(RateLimiter rateLimiter, long startMs, long endMs) {
+      mRateLimiter = rateLimiter;
+      mStartMs = startMs;
+      mEndMs = endMs;
+      mTerminated = new AtomicInteger();
+      mCounter = new AtomicLong();
+    }
+
+    public RateLimiter getRateLimiter() {
+      return mRateLimiter;
+    }
+
+    public long getStartMs() {
+      return mStartMs;
+    }
+
+    public long getEndMs() {
+      return mEndMs;
+    }
+
+    public AtomicInteger getTerminated() {
+      return mTerminated;
+    }
+
+    public AtomicLong getCounter() {
+      return mCounter;
+    }
+
+    public synchronized void mergeThreadResult(MasterBenchTaskResult threadResult) {
+      if (mResult == null) {
+        mResult = threadResult;
+        return;
+      }
+      try {
+        mResult.merge(threadResult);
+      } catch (Exception e) {
+        mResult.addErrorMessage(e.getMessage());
+      }
+    }
+
+    public synchronized MasterBenchTaskResult getResult() {
+      return mResult;
+    }
+  }
+
+  private final class BenchThread extends Thread {
+    private final BenchContext mContext;
+    private final Histogram mResponseTimeNs;
+    private final Path mBasePath;
+    private final Path mFixedBasePath;
+    private final FileSystem mFs;
+
+    private final MasterBenchTaskResult mResult = new MasterBenchTaskResult();
+
+    private BenchThread(BenchContext context, FileSystem fs) {
+      mContext = context;
+      mResponseTimeNs = new Histogram(MasterBenchTaskResult.RESPONSE_TIME_HISTOGRAM_MAX,
+          MasterBenchTaskResult.RESPONSE_TIME_HISTOGRAM_PRECISION);
+      if (mParameters.mOperation == Operation.CreateDir) {
+        mBasePath =
+            new Path(PathUtils.concatPath(mParameters.mBasePath, "dirs", mBaseParameters.mId));
+      } else {
+        mBasePath =
+            new Path(PathUtils.concatPath(mParameters.mBasePath, "files", mBaseParameters.mId));
+      }
+      mFixedBasePath = new Path(mBasePath, "fixed");
+      mFs = fs;
+    }
+
+    @Override
+    public void run() {
+      try {
+        runInternal();
+      } catch (Exception e) {
+        mResult.addErrorMessage(e.getMessage());
+      } finally {
+        mContext.getTerminated().incrementAndGet();
+      }
+
+      // Update local thread result
+      mResult.setEndMs(CommonUtils.getCurrentMs());
+      mResult.encodeResponseTimeNsRaw(mResponseTimeNs);
+      mResult.setParameters(mParameters);
+      mResult.setBaseParameters(mBaseParameters);
+
+      // merge local thread result with full result
+      mContext.mergeThreadResult(mResult);
+    }
+
+    private void runInternal() throws Exception {
+      // When to start recording measurements
+      long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
+      mResult.setRecordStartMs(recordMs);
+
+      boolean useStopCount = mParameters.mStopCount != MasterBenchParameters.STOP_COUNT_INVALID;
+
+      long bucketSize =
+          (mContext.getEndMs() - recordMs) / MasterBenchTaskResult.MAX_RESPONSE_TIME_COUNT;
+
+      long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
+      if (waitMs < 0) {
+        throw new IllegalStateException(String.format(
+            "Thread missed barrier. Set the start time to a later time. start: %d current: %d",
+            mContext.getStartMs(), CommonUtils.getCurrentMs()));
+      }
+      CommonUtils.sleepMs(waitMs);
+
+      while (!Thread.currentThread().isInterrupted()
+          && ((!useStopCount && CommonUtils.getCurrentMs() < mContext.getEndMs())
+              || (useStopCount && mContext.mCounter.get() < mParameters.mStopCount))) {
+        mContext.getRateLimiter().acquire();
+        long startNs = System.nanoTime();
+        applyOperation();
+        long endNs = System.nanoTime();
+
+        long currentMs = CommonUtils.getCurrentMs();
+        // Start recording after the warmup
+        if (currentMs > recordMs) {
+          mResult.incrementNumSuccess(1);
+
+          // record response times
+          long responseTimeNs = endNs - startNs;
+          mResponseTimeNs.recordValue(responseTimeNs);
+
+          // track max response time
+          long[] maxResponseTimeNs = mResult.getMaxResponseTimeNs();
+          int bucket =
+              Math.min(maxResponseTimeNs.length - 1, (int) ((currentMs - recordMs) / bucketSize));
+          if (responseTimeNs > maxResponseTimeNs[bucket]) {
+            maxResponseTimeNs[bucket] = responseTimeNs;
+          }
+        }
+      }
+    }
+
+    private void applyOperation() throws IOException {
+      long counter = mContext.getCounter().getAndIncrement();
+
+      Path path;
+      switch (mParameters.mOperation) {
+        case CreateDir:
+          if (counter < mParameters.mFixedCount) {
+            path = new Path(mFixedBasePath, Long.toString(counter));
+          } else {
+            path = new Path(mBasePath, Long.toString(counter));
+          }
+          mFs.mkdirs(path);
+          break;
+        case CreateFile:
+          if (counter < mParameters.mFixedCount) {
+            path = new Path(mFixedBasePath, Long.toString(counter));
+          } else {
+            path = new Path(mBasePath, Long.toString(counter));
+          }
+          mFs.create(path).close();
+          break;
+        case GetBlockLocations:
+          counter = counter % mParameters.mFixedCount;
+          path = new Path(mFixedBasePath, Long.toString(counter));
+          mFs.getFileBlockLocations(path, 0, 0);
+          break;
+        case GetFileStatus:
+          counter = counter % mParameters.mFixedCount;
+          path = new Path(mFixedBasePath, Long.toString(counter));
+          mFs.getFileStatus(path);
+          break;
+        case ListDir:
+          FileStatus[] files = mFs.listStatus(mFixedBasePath);
+          if (files.length != mParameters.mFixedCount) {
+            throw new IOException(String
+                .format("listing `%s` expected %d files but got %d files", mFixedBasePath,
+                    mParameters.mFixedCount, files.length));
+          }
+          break;
+        case OpenFile:
+          counter = counter % mParameters.mFixedCount;
+          path = new Path(mFixedBasePath, Long.toString(counter));
+          mFs.open(path).close();
+          break;
+        case RenameFile:
+          if (counter < mParameters.mFixedCount) {
+            path = new Path(mFixedBasePath, Long.toString(counter));
+          } else {
+            path = new Path(mBasePath, Long.toString(counter));
+          }
+          Path dst = new Path(path.toString() + "-renamed");
+          if (!mFs.rename(path, dst)) {
+            throw new IOException(String.format("Failed to rename (%s) to (%s)", path, dst));
+          }
+          break;
+        case DeleteFile:
+          if (counter < mParameters.mFixedCount) {
+            path = new Path(mFixedBasePath, Long.toString(counter));
+          } else {
+            path = new Path(mBasePath, Long.toString(counter));
+          }
+          if (!mFs.delete(path, false)) {
+            throw new IOException(String.format("Failed to delete (%s)", path));
+          }
+          break;
+        default:
+          throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
+      }
+    }
+  }
+}
