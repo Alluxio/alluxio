@@ -27,6 +27,10 @@ function printUsage {
 
 function generateTemplates {
   echo "Generating templates into $dir"
+  if [[ ! -d "$dir" ]]; then
+    mkdir -p ${dir}
+  fi
+
   config=./$dir/config.yaml
   if [[ ! -f "$config" ]]; then
     echo "A config file $config is needed in $dir!"
