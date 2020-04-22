@@ -384,6 +384,7 @@ Each Alluxio master writes journal to its own journal volume requested by `volum
 set of workers.
 The journal is in a shared UFS location. In this template we use HDFS as the UFS.
 
+
 #### Configuration
 
 Once the deployment option is chosen, copy the template from the desired sub-directory:
