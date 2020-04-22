@@ -109,7 +109,7 @@ fuse_stat() {
   fi
   local fuse_info=$("${jps}" | grep AlluxioFuse)
   if [[ -z ${fuse_info} ]]; then
-    echo "AlluxioFuse process is not runing."
+    echo "AlluxioFuse process is not running."
     echo -e "${USAGE_USAGE}"
     return 1
   else
