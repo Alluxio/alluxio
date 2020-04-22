@@ -154,8 +154,10 @@ public class GrpcBlockingStream<ReqT, ResT> {
     try {
       Object response = mResponses.poll(timeoutMs, TimeUnit.MILLISECONDS);
       if (response == null) {
-        throw new DeadlineExceededException(
+        checkError(); // The stream could have errored while we were waiting
+        DeadlineExceededException e = new DeadlineExceededException(
             formatErrorMessage("Timeout waiting for response after %dms.", timeoutMs));
+        throw e;
       }
       if (response == mResponseObserver) {
         mCompleted = true;
