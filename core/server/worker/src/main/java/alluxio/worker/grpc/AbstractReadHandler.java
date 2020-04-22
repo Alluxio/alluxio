@@ -29,13 +29,11 @@ import com.google.common.base.Preconditions;
 import com.google.protobuf.UnsafeByteOperations;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import io.grpc.internal.SerializingExecutor;
 import io.grpc.stub.CallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -75,8 +73,6 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
 
   /** The executor to run {@link DataReader}. */
   private final ExecutorService mDataReaderExecutor;
-  /** A serializing executor for sending responses. */
-  private Executor mSerializingExecutor;
 
   private final ReentrantLock mLock = new ReentrantLock();
 
@@ -100,7 +96,6 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   AbstractReadHandler(ExecutorService executorService,
       StreamObserver<ReadResponse> responseObserver, AuthenticatedUserInfo userInfo) {
     mDataReaderExecutor = executorService;
-    mSerializingExecutor = new SerializingExecutor(executorService);
     mResponseObserver = responseObserver;
     mUserInfo = userInfo;
   }
@@ -129,8 +124,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     } catch (Exception e) {
       LogUtils.warnWithException(LOG, "Exception occurred while processing read request {}.",
           request, e);
-      mSerializingExecutor.execute(() -> mResponseObserver
-          .onError(AlluxioStatusException.fromCheckedException(e).toGrpcStatusException()));
+      mResponseObserver
+          .onError(AlluxioStatusException.fromCheckedException(e).toGrpcStatusException());
     }
   }
 
@@ -337,29 +332,28 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
 
           if (chunk != null) {
             DataBuffer finalChunk = chunk;
-            mSerializingExecutor.execute(() -> {
-              try {
-                ReadResponse response = ReadResponse.newBuilder().setChunk(Chunk.newBuilder()
-                    .setData(UnsafeByteOperations.unsafeWrap(finalChunk.getReadOnlyByteBuffer()))
-                ).build();
-                if (mResponse instanceof DataMessageServerStreamObserver) {
-                  ((DataMessageServerStreamObserver<ReadResponse>) mResponse)
-                      .onNext(new DataMessage<>(response, finalChunk));
-                } else {
-                  mResponse.onNext(response);
-                }
-                incrementMetrics(finalChunk.getLength());
-              } catch (Exception e) {
-                LogUtils.warnWithException(LOG,
-                    "Exception occurred while sending data for read request {}.",
-                    mContext.getRequest(), e);
-                setError(new Error(AlluxioStatusException.fromThrowable(e), true));
-              } finally {
-                if (finalChunk != null) {
-                  finalChunk.release();
-                }
+            try {
+              ReadResponse response = ReadResponse.newBuilder()
+                  .setChunk(Chunk.newBuilder()
+                      .setData(UnsafeByteOperations.unsafeWrap(finalChunk.getReadOnlyByteBuffer())))
+                  .build();
+              if (mResponse instanceof DataMessageServerStreamObserver) {
+                ((DataMessageServerStreamObserver<ReadResponse>) mResponse)
+                    .onNext(new DataMessage<>(response, finalChunk));
+              } else {
+                mResponse.onNext(response);
               }
-            });
+              incrementMetrics(finalChunk.getLength());
+            } catch (Exception e) {
+              LogUtils.warnWithException(LOG,
+                  "Exception occurred while sending data for read request {}.",
+                  mContext.getRequest(), e);
+              setError(new Error(AlluxioStatusException.fromThrowable(e), true));
+            } finally {
+              if (finalChunk != null) {
+                finalChunk.release();
+              }
+            }
           }
         } catch (Exception e) {
           LogUtils.warnWithException(LOG,
@@ -420,50 +414,44 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
      * Writes an error read response to the channel and closes the channel after that.
      */
     private void replyError(Error error) {
-      mSerializingExecutor.execute(() -> {
-        try {
-          mResponse.onError(error.getCause().toGrpcStatusException());
-        } catch (StatusRuntimeException e) {
-          // Ignores the error when client already closed the stream.
-          if (e.getStatus().getCode() != Status.Code.CANCELLED) {
-            throw e;
-          }
+      try {
+        mResponse.onError(error.getCause().toGrpcStatusException());
+      } catch (StatusRuntimeException e) {
+        // Ignores the error when client already closed the stream.
+        if (e.getStatus().getCode() != Status.Code.CANCELLED) {
+          throw e;
         }
-      });
+      }
     }
 
     /**
      * Writes a success response.
      */
     private void replyEof() {
-      mSerializingExecutor.execute(() -> {
-        try {
-          Preconditions.checkState(!mContext.isDoneUnsafe());
-          mContext.setDoneUnsafe(true);
-          mResponse.onCompleted();
-        } catch (StatusRuntimeException e) {
-          if (e.getStatus().getCode() != Status.Code.CANCELLED) {
-            throw e;
-          }
+      try {
+        Preconditions.checkState(!mContext.isDoneUnsafe());
+        mContext.setDoneUnsafe(true);
+        mResponse.onCompleted();
+      } catch (StatusRuntimeException e) {
+        if (e.getStatus().getCode() != Status.Code.CANCELLED) {
+          throw e;
         }
-      });
+      }
     }
 
     /**
      * Writes a cancel response.
      */
     private void replyCancel() {
-      mSerializingExecutor.execute(() -> {
-        try {
-          Preconditions.checkState(!mContext.isDoneUnsafe());
-          mContext.setDoneUnsafe(true);
-          mResponse.onCompleted();
-        } catch (StatusRuntimeException e) {
-          if (e.getStatus().getCode() != Status.Code.CANCELLED) {
-            throw e;
-          }
+      try {
+        Preconditions.checkState(!mContext.isDoneUnsafe());
+        mContext.setDoneUnsafe(true);
+        mResponse.onCompleted();
+      } catch (StatusRuntimeException e) {
+        if (e.getStatus().getCode() != Status.Code.CANCELLED) {
+          throw e;
         }
-      });
+      }
     }
   }
 }
