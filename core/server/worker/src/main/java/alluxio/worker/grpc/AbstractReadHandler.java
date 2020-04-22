@@ -466,7 +466,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
             mResponse.onError(error.getCause().toGrpcStatusException());
             mContext.setDoneUnsafe(true);
           } else  {
-            LOG.warn("Tried to replyError when stream was already completed. context: {}",
+            LOG.debug("Tried to replyError when stream was already completed. context: {}",
                 mContext);
           }
         } catch (StatusRuntimeException e) {
@@ -489,7 +489,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
             mContext.setDoneUnsafe(true);
             mResponse.onCompleted();
           } else {
-            LOG.warn("Tried to replyEof when stream was already finished. context: {}", mContext);
+            LOG.debug("Tried to replyEof when stream was already finished. context: {}", mContext);
           }
         } catch (StatusRuntimeException e) {
           if (e.getStatus().getCode() != Status.Code.CANCELLED) {
@@ -509,7 +509,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
             mContext.setDoneUnsafe(true);
             mResponse.onCompleted();
           } else {
-            LOG.warn("Tried to replyCancel when stream was already finished. context: {}",
+            LOG.debug("Tried to replyCancel when stream was already finished. context: {}",
                 mContext);
           }
         } catch (StatusRuntimeException e) {
