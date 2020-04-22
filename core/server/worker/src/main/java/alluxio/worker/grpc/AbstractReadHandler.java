@@ -484,7 +484,6 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     private void replyEof() {
       mSerializingExecutor.execute(() -> {
         try {
-          Preconditions.checkState(!mContext.isDoneUnsafe());
           if (!mContext.isDoneUnsafe()) {
             mContext.setDoneUnsafe(true);
             mResponse.onCompleted();
