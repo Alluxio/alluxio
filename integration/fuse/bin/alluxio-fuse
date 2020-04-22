@@ -45,7 +45,7 @@ check_fuse_jar() {
 set_java_opt() {
   JAVA_OPTS+=" -server -Xms1G -Xmx1G -XX:MaxDirectMemorySize=4g"
 
-  ALLUXIO_FUSE_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
+  ALLUXIO_FUSE_JAVA_OPTS+=" ${ALLUXIO_JAVA_OPTS}"
   ALLUXIO_FUSE_JAVA_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER"
 }
 
@@ -109,7 +109,8 @@ fuse_stat() {
   fi
   local fuse_info=$("${jps}" | grep AlluxioFuse)
   if [[ -z ${fuse_info} ]]; then
-    echo "AlluxioFuse: not running"
+    echo "AlluxioFuse process is not running."
+    echo -e "${USAGE_USAGE}"
     return 1
   else
     echo -e "pid\tmount_point\talluxio_path"
@@ -118,7 +119,19 @@ fuse_stat() {
   fi
 }
 
-USAGE_MSG="Usage:\n\talluxio-fuse [mount|umount|stat]"
+USAGE_MSG="Usage:\n\talluxio-fuse [mount|umount|stat]
+
+mount \tmount an Alluxio path to local file system
+umount \tunmount an Alluxio path from local file system
+stat \tshow status of Alluxio mount points
+"
+
+MOUNT_USAGE="Usage:\n\talluxio-fuse mount [-n] [-o <mount option>] <mount_point> [alluxio_path]
+\talluxio_path defaults to the root of the namespace("/")
+
+-o \tmount options for the fuse daemon
+-n \tno-daemon. This launches the process in the foreground and logs to stdout
+"
 
 if [[ $# -lt 1 ]]; then
   echo -e "${USAGE_MSG}" >&2
@@ -144,7 +157,7 @@ case $1 in
           NO_DAEMON="1"
           ;;
         *)
-          echo -e "${USAGE_MSG}" >&2
+          echo -e "${MOUNT_USAGE}" >&2
           exit 1
           ;;
       esac
@@ -162,13 +175,6 @@ case $1 in
       mount_fuse $1 $2
       exit $?
     fi
-    MOUNT_USAGE="Usage: \talluxio-fuse mount [-n] [-o <mount option>] <mount_point> [alluxio_path]
-\talluxio_path defaults to the root of the namespace("/")
-
--o \tmount options for the fuse daemon
-
--n \tno-daemon. This launches the process in the foreground and logs to stdout
-    "
     echo -e "${MOUNT_USAGE}" >&2
     exit 1
     ;;
