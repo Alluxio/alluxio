@@ -384,10 +384,6 @@ Each Alluxio master writes journal to its own journal volume requested by `volum
 set of workers.
 The journal is in a shared UFS location. In this template we use HDFS as the UFS.
 
-> Note: Please make sure your Alluxio tarball contains these sample templates. 
-If your Alluxio tarball name ends with "noHelm", it does not contain these sample templates
-generated from Alluxio Helm chart. 
-
 #### Configuration
 
 Once the deployment option is chosen, copy the template from the desired sub-directory:
