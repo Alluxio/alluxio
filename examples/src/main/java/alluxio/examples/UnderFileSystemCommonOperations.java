@@ -751,11 +751,20 @@ public final class UnderFileSystemCommonOperations {
     }
     // lsr from sub1 should return paths relative to sub1
     String[] expectedResSub1 = {"sub11", "sub11/file11"};
-    String[] actualResSub1 =
-        UfsStatus.convertToNames(mUfs.listStatus(sub1, ListOptions.defaults().setRecursive(true)));
     Arrays.sort(expectedResSub1);
-    Arrays.sort(actualResSub1);
-    if (!Arrays.equals(expectedResSub1, actualResSub1)
+    // Case A: the path sub1 does not end with a trailing /
+    String[] actualResSub1a =
+        UfsStatus.convertToNames(mUfs.listStatus(sub1, ListOptions.defaults().setRecursive(true)));
+    Arrays.sort(actualResSub1a);
+    if (!Arrays.equals(expectedResSub1, actualResSub1a)
+        || (mUfs.listStatus(file, ListOptions.defaults().setRecursive(true)) != null)) {
+      throw new IOException(LIST_STATUS_RESULT_INCORRECT);
+    }
+    // Case B: the path sub1 ends with a trailing /
+    String[] actualResSub1b = UfsStatus.convertToNames(
+        mUfs.listStatus(sub1 + "/", ListOptions.defaults().setRecursive(true)));
+    Arrays.sort(actualResSub1b);
+    if (!Arrays.equals(expectedResSub1, actualResSub1b)
         || (mUfs.listStatus(file, ListOptions.defaults().setRecursive(true)) != null)) {
       throw new IOException(LIST_STATUS_RESULT_INCORRECT);
     }
