@@ -16,7 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
-import alluxio.grpc.GrpcChannelKey;
+import alluxio.grpc.GrpcConnection;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
@@ -171,8 +171,8 @@ public class GrpcSecurityTest {
               .setSubject(us.getSubject()).build();
 
       // Grab internal channel-Id.
-      GrpcChannelKey channelKey = Whitebox.getInternalState(channel, "mChannelKey");
-      UUID channelId = channelKey.getChannelId();
+      GrpcConnection connection = Whitebox.getInternalState(channel, "mConnection");
+      UUID channelId = connection.getChannelKey().getChannelId();
       // Assert that authentication server has a login info for the channel.
       Assert.assertNotNull(server.getAuthenticationServer().getUserInfoForChannel(channelId));
       // Shutdown channel.
