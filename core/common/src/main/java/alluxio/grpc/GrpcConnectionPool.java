@@ -146,18 +146,11 @@ public class GrpcConnectionPool {
   private GrpcConnectionKey getConnectionKey(GrpcChannelKey channelKey, AlluxioConfiguration conf) {
     // Assign index within the network group.
     long groupIndex = mNetworkGroupCounters.get(channelKey.getNetworkGroup()).incrementAndGet();
-    switch (channelKey.getNetworkGroup()) {
-      case RPC:
-        groupIndex %= conf.getLong(PropertyKey.USER_NETWORK_RPC_MAX_CONNECTIONS);
-        break;
-      case STREAMING:
-        groupIndex %= conf.getLong(PropertyKey.USER_NETWORK_STREAMING_MAX_CONNECTIONS);
-        break;
-      default:
-        throw new IllegalStateException(
-            String.format("Unrecognized network group: %s", channelKey.getNetworkGroup()));
-    }
-
+    // Find the next slot index within the group.
+    long maxConnectionsForGroup = conf.getLong(PropertyKey.Template.USER_NETWORK_MAX_CONNECTIONS
+        .format(channelKey.getNetworkGroup().getPropertyCode()));
+    groupIndex %= maxConnectionsForGroup;
+    // Create the connection key for the chosen slot.
     return new GrpcConnectionKey(channelKey, (int) groupIndex);
   }
 

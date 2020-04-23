@@ -5086,7 +5086,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_NETWORK_STREAMING_NETTY_WORKER_THREADS =
         "alluxio.user.network.streaming.netty.worker.threads";
     public static final String USER_NETWORK_STREAMING_MAX_CONNECTIONS =
-        "alluxio.user.streaming.default.max.connections";
+        "alluxio.user.network.streaming.max.connections";
     public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
         "alluxio.user.rpc.retry.base.sleep";
     public static final String USER_RPC_RETRY_MAX_DURATION =
