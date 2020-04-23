@@ -201,7 +201,7 @@ spec:
       spec:
         storageClassName: {{ .Values.journal.storageClass }}
         accessModes:
-{{ toYaml .Values.journal.accessModes | indent 8 -}}
+{{ toYaml .Values.journal.accessModes | indent 8 }}
         resources:
           requests:
             storage: {{ .Values.journal.size }}
