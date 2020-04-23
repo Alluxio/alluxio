@@ -3764,7 +3764,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_STREAMING_MAX_CONNECTIONS =
       new Builder(Name.USER_NETWORK_STREAMING_MAX_CONNECTIONS)
-          .setDefaultValue(3)
+          .setDefaultValue(64)
           .setDescription(
               "The maximum number of physical connections to be "
               + "used per target host.")
