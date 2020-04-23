@@ -207,7 +207,7 @@ public class GrpcConnectionPool {
     // Update the builder.
     channelBuilder.keepAliveTime(keepAliveTimeMs, TimeUnit.MILLISECONDS);
     channelBuilder.keepAliveTimeout(keepAliveTimeoutMs, TimeUnit.MILLISECONDS);
-    channelBuilder.maxInboundMetadataSize((int) inboundMessageSizeBytes);
+    channelBuilder.maxInboundMessageSize((int) inboundMessageSizeBytes);
     channelBuilder.flowControlWindow((int) flowControlWindow);
     channelBuilder.channelType(channelType);
     channelBuilder.eventLoopGroup(eventLoopGroup);
