@@ -65,13 +65,12 @@ public final class FileSystemContextReinitializer implements Closeable {
     mContext = context;
     mExecutor = new ConfigHashSync(context);
     mFuture = REINIT_EXECUTOR.scheduleAtFixedRate(() -> {
-          try {
-            mExecutor.heartbeat();
-          } catch (Exception e) {
-            LOG.error("Uncaught exception in config hearbeat executor, shutting down", e);
-          }
-        }, 0,
-        mContext.getClientContext().getClusterConf().getMs(PropertyKey.USER_CONF_SYNC_INTERVAL),
+      try {
+        mExecutor.heartbeat();
+      } catch (Exception e) {
+        LOG.error("Uncaught exception in config hearbeat executor, shutting down", e);
+      }
+    }, 0, mContext.getClientContext().getClusterConf().getMs(PropertyKey.USER_CONF_SYNC_INTERVAL),
         TimeUnit.MILLISECONDS);
   }
 
