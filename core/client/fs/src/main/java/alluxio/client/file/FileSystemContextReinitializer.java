@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -45,6 +46,7 @@ public final class FileSystemContextReinitializer implements Closeable {
 
   private final FileSystemContext mContext;
   private final ConfigHashSync mExecutor;
+  private Future mFuture;
   private CountingLatch mLatch = new CountingLatch();
 
   private static final int REINIT_EXECUTOR_THREADPOOL_SIZE = 1;
@@ -62,15 +64,15 @@ public final class FileSystemContextReinitializer implements Closeable {
   public FileSystemContextReinitializer(FileSystemContext context) {
     mContext = context;
     mExecutor = new ConfigHashSync(context);
-    REINIT_EXECUTOR.scheduleAtFixedRate(() -> {
-      try {
-        mExecutor.heartbeat();
-      } catch (Exception e) {
-        LOG.error("Uncaught exception in config hearbeat executor, shutting down", e);
-      } finally {
-        mExecutor.close();
-      }
-    }, 0,
+    mFuture = REINIT_EXECUTOR.scheduleAtFixedRate(() -> {
+          try {
+            mExecutor.heartbeat();
+          } catch (Exception e) {
+            LOG.error("Uncaught exception in config hearbeat executor, shutting down", e);
+          } finally {
+            mExecutor.close();
+          }
+        }, 0,
         mContext.getClientContext().getClusterConf().getMs(PropertyKey.USER_CONF_SYNC_INTERVAL),
         TimeUnit.MILLISECONDS);
   }
@@ -183,6 +185,9 @@ public final class FileSystemContextReinitializer implements Closeable {
    * If already closed, this is a noop.
    */
   public void close() {
-    // Do not close static executor shared across context instances
+    if (mFuture != null) {
+      mFuture.cancel(false);
+      mFuture = null;
+    }
   }
 }
