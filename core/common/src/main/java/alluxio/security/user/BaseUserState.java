@@ -52,7 +52,7 @@ public abstract class BaseUserState implements UserState {
       if (!LOG.isDebugEnabled()) {
         LOG.warn("Subject login failed from {}: {}", this.getClass().getName(), e.getMessage());
       } else {
-        LOG.warn("Subject login failed from {}: {}", this.getClass().getName(), e);
+        LOG.error("Subject login failed from {}: ", this.getClass().getName(), e);
       }
     }
     return mSubject;
