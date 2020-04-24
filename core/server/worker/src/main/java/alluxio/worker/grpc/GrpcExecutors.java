@@ -48,6 +48,13 @@ final class GrpcExecutors {
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
           ThreadFactoryUtils.build("BlockDataReaderExecutor-%d", true)));
 
+  public static final ExecutorService BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR =
+      new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
+          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
+          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(32),
+          ThreadFactoryUtils.build("BlockDataReaderSerializedExecutor-%d", true),
+          new ThreadPoolExecutor.CallerRunsPolicy()));
+
   public static final ExecutorService BLOCK_WRITER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
           ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX),
