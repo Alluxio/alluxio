@@ -231,16 +231,14 @@ public class BlockTransferExecutor {
 
         boolean useReservedSpace = transferInfo.isSwap();
 
-        synchronized (this) {
-          mBlockStore.moveBlock(Sessions.createInternalSessionId(), transferInfo.getSrcBlockId(),
-              AllocateOptions.forTierMove(transferInfo.getDstLocation())
+        mBlockStore.moveBlock(Sessions.createInternalSessionId(), transferInfo.getSrcBlockId(),
+            AllocateOptions.forTierMove(transferInfo.getDstLocation())
+                .setUseReservedSpace(useReservedSpace));
+        if (transferInfo.isSwap()) {
+          // TODO(ggezer): Implement external allocations to guarantee a swap.
+          mBlockStore.moveBlock(Sessions.createInternalSessionId(), transferInfo.getDstBlockId(),
+              AllocateOptions.forTierMove(transferInfo.getSrcLocation())
                   .setUseReservedSpace(useReservedSpace));
-          if (transferInfo.isSwap()) {
-            // TODO(ggezer): Implement external allocations to guarantee a swap.
-            mBlockStore.moveBlock(Sessions.createInternalSessionId(), transferInfo.getDstBlockId(),
-                AllocateOptions.forTierMove(transferInfo.getSrcLocation())
-                    .setUseReservedSpace(useReservedSpace));
-          }
         }
       } catch (Exception e) {
         LOG.warn("Transfer-order: {} failed. {}. ", transferInfo, e);

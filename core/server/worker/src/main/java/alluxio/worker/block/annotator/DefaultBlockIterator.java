@@ -28,9 +28,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -42,10 +44,10 @@ public class DefaultBlockIterator implements BlockIterator {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockIterator.class);
 
   /** Map of sorted block set collections per directory. */
-  private final HashMap<BlockStoreLocation, SortedBlockSet<BlockSortedField>> mPerDirOrderedSets;
+  private final Map<BlockStoreLocation, SortedBlockSet<BlockSortedField>> mPerDirOrderedSets;
 
   /** Used to update total order for offline sorting schemes. */
-  private final ConcurrentHashSet<BlockStoreLocation> mUnorderedLocations;
+  private final Set<BlockStoreLocation> mUnorderedLocations;
 
   /** Configured block annotator class. */
   private final BlockAnnotator mBlockAnnotator;
@@ -66,7 +68,7 @@ public class DefaultBlockIterator implements BlockIterator {
     mMetaManager = metaManager;
     mBlockAnnotator = blockAnnotator;
 
-    mPerDirOrderedSets = new HashMap<>();
+    mPerDirOrderedSets = new ConcurrentHashMap<>();
     mUnorderedLocations = new ConcurrentHashSet<>();
     mListener = new Listener();
 
