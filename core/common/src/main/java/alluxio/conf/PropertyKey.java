@@ -680,7 +680,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "are remote with respect to Alluxio worker nodes. If set to true, Alluxio "
               + "will not attempt to discover locality information from the under storage "
               + "because locality is impossible. This will improve performance. The default "
-              + "value is false.")
+              + "value is true.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
