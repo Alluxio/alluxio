@@ -22,13 +22,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class GlueDatabaseTest {
 
   private static final String DB_NAME = "test";
-  private static final Map<String, String> CONF = new HashMap<>();
 
   @Rule
   public ExpectedException mExpection = ExpectedException.none();
@@ -38,8 +36,8 @@ public class GlueDatabaseTest {
 
   @Before
   public void before() {
-    CONF.put("aws.region", "us-east-1");
-    mUdbConfiguration = new UdbConfiguration(CONF);
+    Map<String, String> conf = ImmutableMap.of("aws.region", "us-east-1");
+    mUdbConfiguration = new UdbConfiguration(conf);
     mUdbContext = new UdbContext(null, null, "glue", "null", DB_NAME, DB_NAME);
   }
 

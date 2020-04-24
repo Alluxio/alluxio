@@ -97,8 +97,7 @@ public class GlueDatabase implements UnderDatabase {
       throw new IllegalArgumentException(
           "Glue database name cannot be empty: " + glueDbName);
     } else if (configuration.get(Property.GLUE_REGION) == null) {
-      System.out.println("Glue Region:" + Property.GLUE_REGION);
-      throw new IllegalArgumentException("GlueUdb Error: AWS region cannot be empty.");
+      throw new IllegalArgumentException("GlueUdb Error: Please setup aws region.");
     }
 
     return new GlueDatabase(udbContext, configuration, glueDbName);
@@ -121,8 +120,10 @@ public class GlueDatabase implements UnderDatabase {
       String glueDbDescription = glueDatabase.getDescription();
       Map<String, String> glueParameters = new HashMap<>();
       Map<String, String> parameters = glueDatabase.getParameters();
-      for (Map.Entry parameter : parameters.entrySet()) {
-        glueParameters.put(parameter.getKey().toString(), parameter.getValue().toString());
+      if (parameters != null) {
+        for (Map.Entry parameter : parameters.entrySet()) {
+          glueParameters.put(parameter.getKey().toString(), parameter.getValue().toString());
+        }
       }
       return new DatabaseInfo(
           glueDbLocation,
@@ -153,14 +154,16 @@ public class GlueDatabase implements UnderDatabase {
     if (!config.get(Property.GLUE_REGION).isEmpty()) {
       LOG.info("Set Glue region: {}.", config.get(Property.GLUE_REGION));
       asyncClientBuilder.setRegion(config.get(Property.GLUE_REGION));
+    } else {
+      LOG.warn("GlueDatabase: Please setup the AWS region.");
     }
 
-    if (!config.get(Property.AWS_GLUE_ACCESS_KEY).isEmpty()) {
-      LOG.warn("Please setup the AWS access key id.");
+    if (config.get(Property.AWS_GLUE_ACCESS_KEY).isEmpty()) {
+      LOG.warn("GlueDatabase: Please setup the AWS access key id.");
     }
 
-    if (!config.get(Property.AWS_GLUE_SECRET_KEY).isEmpty()) {
-      LOG.warn("Please setup the AWS access secret key.");
+    if (config.get(Property.AWS_GLUE_SECRET_KEY).isEmpty()) {
+      LOG.warn("GlueDatabase: Please setup the AWS access secret key.");
     }
 
     asyncClientBuilder.setCredentials(getAWSCredentialsProvider(config));
@@ -207,7 +210,9 @@ public class GlueDatabase implements UnderDatabase {
       } while (nextToken != null);
       return tableNames;
     } catch (EntityNotFoundException e) {
-      throw new IOException("Failed to get glue tables: " + e.getMessage(), e);
+      throw new IOException("Failed to get glue tables: " + e.getMessage()
+          + " in Database: " + mGlueDbName
+          + "; with Catalog ID: " + mGlueConfiguration.get(Property.CATALOG_ID) + ".", e);
     }
   }
 
@@ -246,8 +251,12 @@ public class GlueDatabase implements UnderDatabase {
                 table.getPartitionKeys(),
                 partition.getValues());
           } catch (IOException e) {
-            LOG.warn("Error making partition name for table {}, partition {}", tableName,
-                partition.getValues().toString());
+            LOG.warn("Error making partition name for table {},"
+                    + " partition {} in database {} with CatalogID {}.",
+                tableName,
+                partition.getValues().toString(),
+                mGlueDbName,
+                mGlueConfiguration.get(Property.CATALOG_ID));
           }
           alluxioUri = new AlluxioURI(
               PathUtils.concatPath(
@@ -349,7 +358,10 @@ public class GlueDatabase implements UnderDatabase {
           layout,
           table);
     } catch (EntityNotFoundException e) {
-      throw new NotFoundException("Table " + tableName + " does not exist.", e);
+      throw new NotFoundException("Table " + tableName
+          + " does not exist in Database: " + mGlueDbName
+          + "; Catalog ID: " + mGlueConfiguration.get(Property.CATALOG_ID)
+          + ".", e);
     } catch (ValidationException e) {
       throw new IOException("Failed to get table: " + tableName
           + " in Database: " + mGlueDbName
