@@ -111,8 +111,8 @@ public class GrpcMessagingServer implements Server {
       mGrpcServer = GrpcServerBuilder
           .forAddress(GrpcServerAddress.create(bindAddress.host(),
               new InetSocketAddress(bindAddress.host(), bindAddress.port())), mConf, mUserState)
-          .maxInboundMessageSize(
-              (int) mConf.getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE) * 2)
+          .maxInboundMessageSize((int) mConf.getBytes(
+              PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
           .addService(new GrpcService(ServerInterceptors.intercept(
               new GrpcMessagingServiceClientHandler(address, forkListener, threadContext,
                   mExecutor, mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)),
