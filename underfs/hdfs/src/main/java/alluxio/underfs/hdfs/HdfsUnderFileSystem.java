@@ -560,10 +560,11 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     if (hdfs instanceof DistributedFileSystem) {
       dfs = (DistributedFileSystem) hdfs;
     }
+    boolean remote = mUfsConf.getBoolean(PropertyKey.UNDERFS_HDFS_REMOTE);
     while (retryPolicy.attempt()) {
       try {
         FSDataInputStream inputStream = hdfs.open(new Path(path));
-        if (options.getPositionShort()) {
+        if (remote || options.getPositionShort()) {
           LOG.debug("Using pread API to HDFS");
           // pread API instead of seek is more efficient for FSDataInputStream.
           // A seek on FSDataInputStream uses a skip op which is implemented as read + discard
