@@ -33,6 +33,7 @@ Each instance can report to zero or more sinks.
 * `JmxSink`: Registers metrics for viewing in a JMX console.
 * `GraphiteSink`: Sends metrics to a Graphite server.
 * `MetricsServlet`: Adds a servlet in Web UI to serve metrics data as JSON data.
+* `PrometheusMetricsServlet`: Adds a servlet in Web UI to serve metrics data in prometheus format
 
 The metrics system is configured via a configuration file that Alluxio expects to be present at `$ALLUXIO_HOME/conf/metrics.properties`. 
 A custom file location can be specified via the `alluxio.metrics.conf.file` configuration property. 
@@ -64,9 +65,9 @@ $ curl <WORKER_HOSTNAME>:<WORKER_WEB_PORT>/metrics/json
 $ curl 127.0.0.1:30000/metrics/json/
 ``` 
 
-### Sample CSV Sink Setup
+### CSV Sink Setup
 
-This section gives an example of writing collected metrics to a CSV file.
+This section gives an example of writing collected metrics to CSV files.
 
 First, create the polling directory for `CsvSink` (if it does not already exist):
 
@@ -95,6 +96,43 @@ After starting Alluxio, the CSV files containing metrics will be found in the `s
 The filename will correspond with the metric name.
 
 Refer to `metrics.properties.template` for all possible sink specific configurations. 
+
+### Prometheus Sink Setup
+
+[Prometheus](https://prometheus.io/) is a monitoring tool that can help monitoring Alluxio metrics changes.
+
+In the metrics property file, `$ALLUXIO_HOME/conf/metrics.properties` by default, add the following properties:
+
+```
+# Enable PrometheusMetricsServlet
+sink.prometheus.class=alluxio.metrics.sink.PrometheusMetricsServlet
+```
+
+You can send an HTTP request to `/metrics/prometheus/` of the Alluxio leading master or workers to get a snapshot of metrics in Prometheus format. 
+
+```console
+# Get the metrics in JSON format from Alluxio leading master or workers
+$ curl <LEADING_MASTER_HOSTNAME>:<MASTER_WEB_PORT>/metrics/prometheus/
+$ curl <WORKER_HOSTNAME>:<WORKER_WEB_PORT>/metrics/prometheus/
+
+# For example, get the metrics from alluxio processes running locally with default web port
+$ curl 127.0.0.1:19999/metrics/prometheus/
+$ curl 127.0.0.1:30000/metrics/prometheus/
+```
+
+Then configure `prometheus.yml` pointing to those endpoints to get Alluxio metrics
+
+```
+scrape_configs:
+  - job_name: "alluxio master"
+      metrics_path: '/metrics/prometheus/'
+      static_configs:
+      - targets: ['<LEADING_MASTER_HOSTNAME>:<MASTER_WEB_PORT>' ]
+  - job_name: "alluxio worker"
+      metrics_path: '/metrics/prometheus/'
+      static_configs:
+      - targets: ['<WORKER_HOSTNAME>:<WORKER_WEB_PORT>' ]
+```
 
 ## Metric Types
 
