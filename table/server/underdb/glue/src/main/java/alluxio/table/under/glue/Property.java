@@ -148,6 +148,7 @@ public class Property extends UdbProperty {
         .setDescription("The regional endpoint for client service calls.")
         .build();
 
+  // TODO(shouwei): check the necessity of catalogid
   public static final Property CATALOG_ID =
       new Builder(Name.CATALOG_ID)
           .setDefaultValue("")
