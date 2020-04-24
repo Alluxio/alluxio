@@ -2344,13 +2344,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_MANAGEMENT_GLOBAL_LOAD_DETECTION_ENABLED =
-      new Builder(Name.WORKER_MANAGEMENT_GLOBAL_LOAD_DETECTION_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("Whether to postpone all management tasks under any user activity."
-              + "When enabled, background tier management tasks will not as long as "
-              + "there is any active user I/O. When disabled, background tasks might interfere "
-              + "with user I/O for a short while until back-off individually.")
+  public static final PropertyKey WORKER_MANAGEMENT_BACKOFF_STRATEGY =
+      new Builder(Name.WORKER_MANAGEMENT_BACKOFF_STRATEGY)
+          .setDefaultValue("ANY")
+          .setDescription("Defines the backoff strategy used by background tasks. "
+              + "Supported values are ANY / DIRECTORY. "
+              + "ANY: Background tasks will backoff when there is any load on worker, "
+              + "regardless of which tier/dir/medium the load is in. "
+              + "DIRECTORY: Background tasks will backoff only on directories with load.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -4982,6 +4983,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.annotator.lrfu.step.factor";
     public static final String WORKER_MANAGEMENT_RESERVED_SPACE_BYTES =
         "alluxio.worker.management.reserved.space.bytes";
+    public static final String WORKER_MANAGEMENT_BACKOFF_STRATEGY =
+        "alluxio.worker.management.backoff.strategy";
     public static final String WORKER_MANAGEMENT_GLOBAL_LOAD_DETECTION_ENABLED =
         "alluxio.worker.management.global.load.detection.enabled";
     public static final String WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME =
