@@ -675,7 +675,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_HDFS_REMOTE =
       new Builder(Name.UNDERFS_HDFS_REMOTE)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Boolean indicating whether or not the under storage worker nodes "
               + "are remote with respect to Alluxio worker nodes. If set to true, Alluxio "
               + "will not attempt to discover locality information from the under storage "
