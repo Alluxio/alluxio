@@ -1433,6 +1433,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE)
+          .setDefaultValue("4MB")
+          .setDescription("The maximum size of a message that can be sent to the Alluxio master")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_RPC_ADDRESSES =
       new Builder(Name.MASTER_RPC_ADDRESSES).setDescription(
           "A list of comma-separated host:port RPC addresses where the client should look for "
@@ -1593,8 +1600,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
       new Builder(Name.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
-          .setDefaultValue("4M")
+          .setDefaultValue("4MB")
           .setDescription("The maximum size of a message that can be sent to the Alluxio master")
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
       new Builder(Name.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)
