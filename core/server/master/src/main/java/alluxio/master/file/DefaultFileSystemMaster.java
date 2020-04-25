@@ -1584,7 +1584,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
       if (!failedUris.isEmpty()) {
         Collection<String> messages = failedUris.stream()
-            .map(pair -> String.format("%s (%s)", pair.getFirst(), pair.getSecond()))
+            .map(pair -> pair.getFirst() + " (" + pair.getSecond() + ")")
             .collect(Collectors.toList());
         throw new FailedPreconditionException(
             ExceptionMessage.DELETE_FAILED_UFS.getMessage(StringUtils.join(messages, ", ")));
