@@ -11,6 +11,8 @@
 
 package alluxio.table.common;
 
+import alluxio.exception.ExceptionMessage;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +55,23 @@ public abstract class BaseConfiguration<T extends BaseProperty> {
       return property.getDefaultValue();
     }
     return value;
+  }
+
+  /**
+   * Return the int value of this property , or the default value if the property is not defined.
+   *
+   * @param property the property to get the int value
+   * @return the int value of property
+   */
+  public int getInt(T property) {
+    String rawValue = get(property);
+
+    try {
+      return Integer.parseInt(rawValue);
+    } catch (NumberFormatException e) {
+      throw new RuntimeException(
+          ExceptionMessage.KEY_NOT_INTEGER.getMessage(rawValue, property));
+    }
   }
 
   /**

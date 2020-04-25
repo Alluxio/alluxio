@@ -27,7 +27,7 @@ import alluxio.grpc.table.layout.hive.HiveBucketProperty;
 import alluxio.grpc.table.layout.hive.SortingColumn;
 import alluxio.grpc.table.layout.hive.Storage;
 import alluxio.grpc.table.layout.hive.StorageFormat;
-import alluxio.table.under.hive.util.PathTranslator;
+import alluxio.table.common.udb.PathTranslator;
 
 import com.google.protobuf.ByteString;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
