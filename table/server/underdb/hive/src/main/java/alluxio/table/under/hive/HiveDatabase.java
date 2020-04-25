@@ -12,12 +12,8 @@
 package alluxio.table.under.hive;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.NotFoundException;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.MountPOptions;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
@@ -25,12 +21,13 @@ import alluxio.master.table.DatabaseInfo;
 import alluxio.resource.CloseableResource;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
+import alluxio.table.common.udb.PathTranslator;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
+import alluxio.table.common.udb.UdbUtils;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.table.under.hive.util.HiveClientPool;
-import alluxio.table.under.hive.util.PathTranslator;
 import alluxio.util.io.PathUtils;
 
 import org.apache.hadoop.hive.common.FileUtils;
@@ -141,42 +138,6 @@ public class HiveDatabase implements UnderDatabase {
     }
   }
 
-  private String mountAlluxioPath(String tableName, AlluxioURI ufsUri, AlluxioURI tableUri)
-      throws IOException, AlluxioException {
-    if (Objects.equals(ufsUri.getScheme(), Constants.SCHEME)) {
-      // already an alluxio uri, return the alluxio uri
-      return ufsUri.toString();
-    }
-    try {
-      tableUri = mUdbContext.getFileSystem().reverseResolve(ufsUri);
-      LOG.debug("Trying to mount table {} location {}, but it is already mounted at location {}",
-          tableName, ufsUri, tableUri);
-      return tableUri.getPath();
-    } catch (InvalidPathException e) {
-      // ufs path not mounted, continue
-    }
-    // make sure the parent exists
-    mUdbContext.getFileSystem().createDirectory(tableUri.getParent(),
-        CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
-    Map<String, String> mountOptionMap = mConfiguration.getMountOption(
-        String.format("%s://%s/", ufsUri.getScheme(), ufsUri.getAuthority().toString()));
-    MountPOptions.Builder option = MountPOptions.newBuilder();
-    for (Map.Entry<String, String> entry : mountOptionMap.entrySet()) {
-      if (entry.getKey().equals(UdbConfiguration.READ_ONLY_OPTION)) {
-        option.setReadOnly(Boolean.parseBoolean(entry.getValue()));
-      } else if (entry.getKey().equals(UdbConfiguration.SHARED_OPTION)) {
-        option.setShared(Boolean.parseBoolean(entry.getValue()));
-      } else {
-        option.putProperties(entry.getKey(), entry.getValue());
-      }
-    }
-    mUdbContext.getFileSystem().mount(tableUri, ufsUri, option.build());
-
-    LOG.info("mounted table {} location {} to Alluxio location {} with mountOption {}",
-        tableName, ufsUri, tableUri, option.build());
-    return tableUri.getPath();
-  }
-
   private PathTranslator mountAlluxioPaths(Table table, List<Partition> partitions)
       throws IOException {
     String tableName = table.getTableName();
@@ -187,7 +148,13 @@ public class HiveDatabase implements UnderDatabase {
     try {
       PathTranslator pathTranslator = new PathTranslator();
       ufsUri = new AlluxioURI(table.getSd().getLocation());
-      pathTranslator.addMapping(mountAlluxioPath(tableName, ufsUri, alluxioUri), hiveUfsUri);
+      pathTranslator.addMapping(
+          UdbUtils.mountAlluxioPath(tableName,
+              ufsUri,
+              alluxioUri,
+              mUdbContext,
+              mConfiguration),
+          hiveUfsUri);
 
       for (Partition part : partitions) {
         AlluxioURI partitionUri;
@@ -205,7 +172,12 @@ public class HiveDatabase implements UnderDatabase {
               mUdbContext.getTableLocation(tableName).getPath(), partName));
 
           // mount partition path if it is not already mounted as part of the table path mount
-          pathTranslator.addMapping(mountAlluxioPath(tableName, partitionUri, alluxioUri),
+          pathTranslator.addMapping(
+              UdbUtils.mountAlluxioPath(tableName,
+                  partitionUri,
+                  alluxioUri,
+                  mUdbContext,
+                  mConfiguration),
               hiveUfsUri);
         }
       }
