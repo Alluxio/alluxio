@@ -25,8 +25,8 @@ import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshallerProvider;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
-import alluxio.grpc.GrpcChannelKey;
 import alluxio.grpc.DataMessageMarshaller;
+import alluxio.grpc.GrpcNetworkGroup;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
@@ -90,14 +90,14 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
         // Channel is still reused due to client pooling.
         mStreamingChannel = GrpcChannelBuilder.newBuilder(address, alluxioConf)
             .setSubject(userState.getSubject())
-            .setNetworkGroup(GrpcChannelKey.NetworkGroup.STREAMING)
+            .setNetworkGroup(GrpcNetworkGroup.STREAMING)
             .setClientType("DefaultBlockWorkerClient-Stream")
             .build();
         mStreamingChannel.intercept(new StreamSerializationClientInterceptor());
         // Uses default pooling strategy for RPC calls for better scalability.
         mRpcChannel = GrpcChannelBuilder.newBuilder(address, alluxioConf)
             .setSubject(userState.getSubject())
-            .setNetworkGroup(GrpcChannelKey.NetworkGroup.RPC)
+            .setNetworkGroup(GrpcNetworkGroup.RPC)
             .setClientType("DefaultBlockWorkerClient-Rpc")
             .build();
         lastException = null;
