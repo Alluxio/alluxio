@@ -129,7 +129,6 @@ public class GrpcMessagingServer implements Server {
     LOG.debug("Closing messaging server: {}", mGrpcServer);
 
     return CompletableFuture.runAsync(() -> {
-      // Shut down gRPC server once all connections are closed.
       try {
         mGrpcServer.shutdown();
       } catch (Exception e) {
