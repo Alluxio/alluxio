@@ -2976,6 +2976,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The minimum number of block worker clients cached in the block "
               + "worker client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setIsHidden(true)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_MAX =
@@ -3106,7 +3107,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "client pool. For long running processes, this should be set to zero.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX =
       new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX)
