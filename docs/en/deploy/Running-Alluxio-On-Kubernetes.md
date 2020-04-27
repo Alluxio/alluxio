@@ -32,7 +32,7 @@ additional deployment customization is desired, `kubectl` can be used directly u
 Kubernetes resource specifications.
 
 > Note: From Alluxio 2.3 on, Alluxio only supports helm 3.
-> See how to upgrade from helm 2 to 3 [here](https://helm.sh/docs/topics/v2_v3_migration/).
+> See how to migrate from helm 2 to 3 [here](https://helm.sh/docs/topics/v2_v3_migration/).
 
 
 ### (Optional) Extract Kubernetes Specifications
