@@ -2955,13 +2955,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
-      new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_SIZE)
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_MIN =
+      new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_MIN)
+          .setDefaultValue(0)
+          .setDescription("The minimum number of block worker clients cached in the block "
+              + "worker client pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setIsHidden(true)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_MAX =
+      new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_MAX)
           .setDefaultValue(1024)
           .setDescription("The maximum number of block worker clients cached in the block "
               + "worker client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
+          .setAlias(new String[] {"alluxio.user.block.worker.client.pool.size"})
           .build();
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS)
@@ -4939,6 +4949,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.read.retry.max.duration";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
         "alluxio.user.block.worker.client.pool.gc.threshold";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_MIN =
+        "alluxio.user.block.worker.client.pool.min";
+    public static final String USER_BLOCK_WORKER_CLIENT_POOL_MAX =
+        "alluxio.user.block.worker.client.pool.max";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_SIZE =
         "alluxio.user.block.worker.client.pool.size";
     public static final String USER_BLOCK_WORKER_CLIENT_READ_RETRY =

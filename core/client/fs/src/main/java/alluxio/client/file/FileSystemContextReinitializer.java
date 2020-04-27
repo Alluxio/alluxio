@@ -13,15 +13,18 @@ package alluxio.client.file;
 
 import alluxio.concurrent.CountingLatch;
 import alluxio.conf.PropertyKey;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatThread;
 import alluxio.util.ThreadFactoryUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Reinitializes {@link FileSystemContext} inside {@link BaseFileSystem}.
@@ -39,11 +42,17 @@ import java.util.concurrent.Executors;
  * {@link #block()}.
  */
 public final class FileSystemContextReinitializer implements Closeable {
+  private static final Logger LOG = LoggerFactory.getLogger(FileSystemContextReinitializer.class);
+
   private final FileSystemContext mContext;
   private final ConfigHashSync mExecutor;
-  private final ExecutorService mExecutorService;
-
+  private Future mFuture;
   private CountingLatch mLatch = new CountingLatch();
+
+  private static final int REINIT_EXECUTOR_THREADPOOL_SIZE = 1;
+  private static final ScheduledExecutorService REINIT_EXECUTOR =
+      new ScheduledThreadPoolExecutor(REINIT_EXECUTOR_THREADPOOL_SIZE,
+          ThreadFactoryUtils.build("config-hash-master-heartbeat-%d", true));
 
   /**
    * Creates a new reinitializer for the context.
@@ -55,14 +64,14 @@ public final class FileSystemContextReinitializer implements Closeable {
   public FileSystemContextReinitializer(FileSystemContext context) {
     mContext = context;
     mExecutor = new ConfigHashSync(context);
-    mExecutorService = Executors.newSingleThreadExecutor(ThreadFactoryUtils.build(
-        "config-hash-master-heartbeat-%d", true));
-    mExecutorService.submit(
-        new HeartbeatThread(HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC, mContext.getId(),
-            mExecutor, mContext.getClientContext().getClusterConf().getMs(
-                PropertyKey.USER_CONF_SYNC_INTERVAL),
-            mContext.getClientContext().getClusterConf(),
-            mContext.getClientContext().getUserState()));
+    mFuture = REINIT_EXECUTOR.scheduleAtFixedRate(() -> {
+      try {
+        mExecutor.heartbeat();
+      } catch (Exception e) {
+        LOG.error("Uncaught exception in config hearbeat executor, shutting down", e);
+      }
+    }, 0, mContext.getClientContext().getClusterConf().getMs(PropertyKey.USER_CONF_SYNC_INTERVAL),
+        TimeUnit.MILLISECONDS);
   }
 
   /**
@@ -173,8 +182,11 @@ public final class FileSystemContextReinitializer implements Closeable {
    * If already closed, this is a noop.
    */
   public void close() {
-    if (!mExecutorService.isShutdown()) {
-      mExecutorService.shutdownNow();
+    if (mFuture != null) {
+      mFuture.cancel(true);
+      mFuture = null;
+
+      mExecutor.close();
     }
   }
 }
