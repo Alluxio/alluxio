@@ -55,7 +55,6 @@ public final class HeartbeatContext {
   public static final String MASTER_TABLE_TRANSFORMATION_MONITOR =
       "Master Table Transformation Monitor";
   public static final String META_MASTER_SYNC = "Meta Master Sync";
-  public static final String META_MASTER_CONFIG_HASH_SYNC = "Meta Master Config Hash Sync";
   public static final String WORKER_BLOCK_SYNC = "Worker Block Sync";
   public static final String WORKER_CLIENT = "Worker Client";
   public static final String WORKER_FILESYSTEM_MASTER_SYNC = "Worker FileSystemMaster Sync";
@@ -85,7 +84,6 @@ public final class HeartbeatContext {
     sTimerClasses.put(MASTER_ACTIVE_UFS_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_TABLE_TRANSFORMATION_MONITOR, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(META_MASTER_SYNC, SLEEPING_TIMER_CLASS);
-    sTimerClasses.put(META_MASTER_CONFIG_HASH_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_FILESYSTEM_MASTER_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_BLOCK_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_CLIENT, SLEEPING_TIMER_CLASS);
