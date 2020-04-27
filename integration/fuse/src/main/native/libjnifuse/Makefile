@@ -1,27 +1,32 @@
-
-# tool macros
 CC := gcc
-CCFLAGS := -Wall -shared -fPIC
+UNAME := $(shell uname)
+INCDIR = -I /usr/include -I $(JAVA_HOME)/include
+FUSE_LIBS = $(shell pkg-config fuse --libs)
+FUSE_CFLAGS = $(shell pkg-config fuse --cflags)
 
-INC = -I /usr/include -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux  -I $(JAVA_HOME)/include/darwin
+# Linux
+ifeq ($(UNAME), Linux)
+	INCDIR += -I $(JAVA_HOME)/include/linux
+	TARGET_LIB := libjnifuse.so
+endif
+# MacOS
+ifeq ($(UNAME), Darwin)
+	INCDIR += -I $(JAVA_HOME)/include/darwin
+	TARGET_LIB := libjnifuse.dylib
+endif
 
-LIBS = `pkg-config fuse --cflags --libs`
-
-CXXFLAGS = ${CCFLAGS} ${INC} ${LIBS}
-
-TARGET := libjnifuse.so
-
+CFLAGS = -Wall -fPIC ${INCDIR} ${FUSE_CFLAGS}
+LDFLAGS = -shared ${FUSE_LIBS}
 OBJS = JniFuseHelper.o
 
-${TARGET}: ${OBJS}
-	${CC} ${CXXFLAGS} ${INC} -o $@ -c $<
+${TARGET_LIB}: ${OBJS}
+	${CC} ${LDFLAGS} -o $@ $<
 
-install:
-	${CC} ${CXXFLAGS} -o ${TARGET} JniFuseHelper.c
-	sudo mv ${TARGET} /usr/lib/
+install: ${TARGET_LIB}
+	sudo mv ${TARGET_LIB} /usr/lib/
 
 clean:
-	rm -rf ${OBJS}
+	rm -rf ${OBJS} ${TARGET_LIB}
 
 %.o: %.c
-	${CC} ${CXXFLAGS} ${INC} -o $@ -c $<
+	${CC} ${CFLAGS} -o $@ -c $<
