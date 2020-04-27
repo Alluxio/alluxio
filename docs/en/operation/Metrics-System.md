@@ -109,7 +109,7 @@ sink.prometheus.class=alluxio.metrics.sink.PrometheusMetricsServlet
 ```
 
 If Alluxio is deployed in a cluster, this file needs to be distributed to all the nodes.
-Restart the Alluxio servers to active new configuration changes.
+Restart the Alluxio servers to activate new configuration changes.
 
 You can send a HTTP request to `/metrics/prometheus/` of the Alluxio leading master or workers to get a snapshot of metrics in Prometheus format. 
 
