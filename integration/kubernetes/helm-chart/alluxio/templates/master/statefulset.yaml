@@ -212,7 +212,7 @@ spec:
       spec:
         storageClassName: {{ .Values.master.metastore.storageClass }}
         accessModes:
-{{ toYaml .Values.master.metastore.accessModes | indent 8 -}}
+{{ toYaml .Values.master.metastore.accessModes | indent 8 }}
         resources:
           requests:
             storage: {{ .Values.master.metastore.size }}
