@@ -3106,6 +3106,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "client pool. For long running processes, this should be set to zero.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX =
       new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX)
