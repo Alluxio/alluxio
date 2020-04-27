@@ -2972,7 +2972,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_MIN =
       new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_MIN)
-          .setDefaultValue(1)
+          .setDefaultValue(0)
           .setDescription("The minimum number of block worker clients cached in the block "
               + "worker client pool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
