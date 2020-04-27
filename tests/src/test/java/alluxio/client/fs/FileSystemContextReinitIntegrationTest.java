@@ -14,18 +14,16 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.file.ConfigHashSync;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemContextReinitializer;
 import alluxio.client.meta.MetaMasterConfigClient;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatScheduler;
-import alluxio.heartbeat.HeartbeatThread;
-import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterClientContext;
 import alluxio.resource.CloseableResource;
 import alluxio.testutils.BaseIntegrationTest;
@@ -33,11 +31,13 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.powermock.reflect.Whitebox;
 
-import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -49,25 +49,23 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   private static final String UPDATED_VALUE = ReadType.NO_CACHE.toString();
 
   private FileSystemContext mContext;
-  private String mConfSyncHeartbeatThreadName;
   private String mClusterConfHash;
   private String mPathConfHash;
-
-  @ClassRule
-  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
-      HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC);
+  private ConfigHashSync mExecutor;
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
 
   @Before
-  public void before() throws IOException {
+  public void before() throws Exception {
     mContext = FileSystemContext.create(ServerConfiguration.global());
     mContext.getClientContext().loadConf(mContext.getMasterAddress(), true, true);
-    mConfSyncHeartbeatThreadName = HeartbeatThread.generateThreadName(
-        HeartbeatContext.META_MASTER_CONFIG_HASH_SYNC, mContext.getId());
     updateHash();
+
+    FileSystemContextReinitializer reinit = Whitebox.getInternalState(mContext,
+        "mReinitializer");
+    mExecutor = Whitebox.getInternalState(reinit, "mExecutor");
   }
 
   @Test
@@ -138,18 +136,19 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
       checkPathConfBeforeUpdate();
       updateClusterConf();
       updatePathConf();
-      triggerSync();
-      try {
-        HeartbeatScheduler.await(mConfSyncHeartbeatThreadName, 1, TimeUnit.SECONDS);
-        Assert.fail("await should timeout");
-      } catch (RuntimeException e) {
-        // Expected timeout.
-      }
+
+      ExecutorService service = Executors.newSingleThreadExecutor();
+      Future future = service.submit(() -> {
+        mExecutor.heartbeat();
+      });
+      TimeUnit.SECONDS.sleep(1);
       // Stream is open, so reinitialization should block until the stream is closed.
+      Assert.assertFalse(future.isDone());
+      future.cancel(true);
       checkHash(false, false);
       os.close();
       // Stream is closed, reinitialization should not be blocked.
-      HeartbeatScheduler.await(mConfSyncHeartbeatThreadName);
+      triggerAndWaitSync();
       checkClusterConfAfterUpdate();
       checkPathConfAfterUpdate();
       checkHash(true, true);
@@ -160,15 +159,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
    * Triggers ConfigHashSync heartbeat and waits for it to finish.
    */
   private void triggerAndWaitSync() throws Exception {
-    HeartbeatScheduler.execute(mConfSyncHeartbeatThreadName);
-  }
-
-  /**
-   * Just triggers ConfigHashSync heartbeat without waiting for it to finish.
-   */
-  private void triggerSync() throws Exception {
-    HeartbeatScheduler.await(mConfSyncHeartbeatThreadName);
-    HeartbeatScheduler.schedule(mConfSyncHeartbeatThreadName);
+    mExecutor.heartbeat();
   }
 
   private void restartMasters() throws Exception {
