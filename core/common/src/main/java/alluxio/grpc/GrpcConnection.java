@@ -25,7 +25,7 @@ import java.util.Objects;
  */
 public class GrpcConnection implements AutoCloseable {
 
-  private GrpcConnectionKey mKey;
+  private GrpcResourceKey mKey;
   private ManagedChannel mManagedChannel;
   private Channel mChannel;
   private AlluxioConfiguration mConfiguration;
@@ -37,8 +37,8 @@ public class GrpcConnection implements AutoCloseable {
    * @param managedChannel the underlying gRPC {@link ManagedChannel}
    * @param conf the Alluxio configuration
    */
-  public GrpcConnection(GrpcConnectionKey key, ManagedChannel managedChannel,
-      AlluxioConfiguration conf) {
+  public GrpcConnection(GrpcResourceKey key, ManagedChannel managedChannel,
+                        AlluxioConfiguration conf) {
     mConfiguration = conf;
     mKey = key;
     mManagedChannel = managedChannel;
@@ -49,7 +49,7 @@ public class GrpcConnection implements AutoCloseable {
    * @return the hannel key that owns the connection
    */
   public GrpcChannelKey getChannelKey() {
-    return mKey.getChannelKey();
+    return mKey.getClientChannelKey();
   }
 
   /**

@@ -3728,6 +3728,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_NETWORK_RPC_MAX_EVENTLOOP_GROUPS =
+      new Builder(Name.USER_NETWORK_RPC_MAX_EVENTLOOP_GROUPS)
+          .setDefaultValue(1)
+          .setDescription("The maximum number of event-loop groups per network group.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_NETWORK_STREAMING_FLOWCONTROL_WINDOW =
       new Builder(Name.USER_NETWORK_STREAMING_FLOWCONTROL_WINDOW)
           .setAlias(Name.USER_NETWORK_FLOWCONTROL_WINDOW)
@@ -3787,6 +3794,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription(
               "The maximum number of physical connections to be "
               + "used per target host.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_NETWORK_STREAMING_MAX_EVENTLOOP_GROUPS =
+      new Builder(Name.USER_NETWORK_STREAMING_MAX_EVENTLOOP_GROUPS)
+          .setDefaultValue(4)
+          .setDescription("The maximum number of event-loop groups per network group.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -5140,6 +5154,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.network.rpc.netty.worker.threads";
     public static final String USER_NETWORK_RPC_MAX_CONNECTIONS =
         "alluxio.user.network.rpc.max.connections";
+    public static final String USER_NETWORK_RPC_MAX_EVENTLOOP_GROUPS =
+        "alluxio.user.network.rpc.max.eventloop.groups";
     public static final String USER_NETWORK_STREAMING_FLOWCONTROL_WINDOW =
         "alluxio.user.network.streaming.flowcontrol.window";
     public static final String USER_NETWORK_STREAMING_KEEPALIVE_TIME =
@@ -5154,6 +5170,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.network.streaming.netty.worker.threads";
     public static final String USER_NETWORK_STREAMING_MAX_CONNECTIONS =
         "alluxio.user.network.streaming.max.connections";
+    public static final String USER_NETWORK_STREAMING_MAX_EVENTLOOP_GROUPS =
+        "alluxio.user.network.streaming.max.eventloop.groups";
     public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
         "alluxio.user.rpc.retry.base.sleep";
     public static final String USER_RPC_RETRY_MAX_DURATION =
@@ -5344,6 +5362,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.user\\.network\\.(\\w+)\\.netty\\.worker\\.threads"),
     USER_NETWORK_MAX_CONNECTIONS("alluxio.user.network.%s.max.connections",
         "alluxio\\.user\\.network\\.(\\w+)\\.max\\.connections"),
+    USER_NETWORK_MAX_EVENTLOOP_GROUPS("alluxio.user.network.%s.max.eventloop.groups",
+        "alluxio\\.user\\.network\\.(\\w+)\\.max\\.eventloop\\.groups"),
 
     /**
      * @deprecated This template is always deprecated. It is used only for testing.
