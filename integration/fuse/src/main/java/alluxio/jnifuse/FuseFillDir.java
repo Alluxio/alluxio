@@ -12,27 +12,29 @@
 
 package alluxio.jnifuse;
 
+import alluxio.jnifuse.struct.FileStat;
+
 import java.nio.ByteBuffer;
 
-public class FuseFiller {
-  long address;
+public class FuseFillDir {
+    long address;
 
-  FuseFiller(long address) {
-    this.address = address;
-  }
-
-  public native int doFill(long bufaddr, String name, ByteBuffer stbuf, long off);
-
-  public int fill(long bufaddr, String name, FileStat stbuf, long off) {
-    if (stbuf != null) {
-      return doFill(bufaddr, name, stbuf.bb, off);
-    } else {
-      return doFill(bufaddr, name, null, off);
+    FuseFillDir(long address) {
+        this.address = address;
     }
-  }
 
-  static {
-    System.loadLibrary("jnifuse");
-  }
+    public native int fill(long bufaddr, String name, ByteBuffer stbuf, long off);
+
+    public int apply(long bufaddr, String name, FileStat stbuf, long off) {
+        if (stbuf != null) {
+            return fill(bufaddr, name, stbuf.buffer, off);
+        } else {
+            return fill(bufaddr, name, null, off);
+        }
+    }
+
+    static {
+        System.loadLibrary("jnifuse");
+    }
 
 }
