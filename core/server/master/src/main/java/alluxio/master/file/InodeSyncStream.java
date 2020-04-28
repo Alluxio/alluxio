@@ -36,6 +36,7 @@ import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.meta.Inode;
@@ -78,31 +79,91 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 /**
- * The purpose of this class is to sync Inode metadata in a stream-like fashion.
+ * This class is responsible for maintaining the logic which surrounds syncing metadata between
+ * Alluxio and its UFSes.
+ *
+ * This implementation uses a BFS-based approach to crawl the inode tree. In order to speed up
+ * the sync process we use an {@link ExecutorService} which we submit inode paths to using
+ * {@link #processSyncPath(AlluxioURI)}. The processing of inode paths will discover new paths to
+ * sync depending on the {@link #mDescendantType}. Syncing is finished when all submitted tasks
+ * are completed and there are no new inodes left in the queue.
+ *
+ * Syncing inode metadata requires making calls to the UFS. This implementation will schedule UFS
+ * RPCs with the {@link UfsStatusCache#prefetchChildren(AlluxioURI, MountTable)}. Then, once the
+ * inode begins processing, it can retrieve the results. After processing, it can then remove its
+ * {@link UfsStatus} from the cache. This strategy helps reduce memory pressure on the master
+ * while performing a sync for a large tree. Additionally, by using a prefetch mechanism we can
+ * concurrently process other inodes while waiting for UFS RPCs to complete.
+ *
+ * With regards to locking, this class expects to be able to take a write lock on any inode, and
+ * then subsequently downgrades or unlocks after the sync is finished. Even though we use
+ * {@link java.util.concurrent.locks.ReentrantReadWriteLock}, because we concurrently process
+ * inodes on separate threads, we cannot utilize the reetrnant behavior. The implications of
+ * that mean the caller of this class must not hold a write while calling {@link #sync()}.
+ *
+ * A user of this class is expected to create a new instance for each path that they would like
+ * to process. This is because the Lock on the {@link #mRootPath} may be changed after calling
+ * {@link #sync()}.
  *
  */
 public class InodeSyncStream {
   private static final Logger LOG = LoggerFactory.getLogger(InodeSyncStream.class);
 
+  /** The root path. Should be locked with a write lock. */
   private final LockedInodePath mRootPath;
+
+  /** A {@link UfsSyncPathCache} maintained from the {@link DefaultFileSystemMaster}. */
   private final UfsSyncPathCache mUfsSyncPathCache;
+
+  /** Object holding the {@link UfsStatus}es which may be required for syncing. */
   private final UfsStatusCache mStatusCache;
+
+  /** Inode tree to lock new paths. */
   private final InodeTree mInodeTree;
+
+  /** Determines how deep in the tree we need to load. */
   private final DescendantType mDescendantType;
+
+  /** The {@link RpcContext} from the caller. */
   private final RpcContext mRpcContext;
+
+  /** The inode store to look up children. */
   private final ReadOnlyInodeStore mInodeStore;
+
+  /** The mount table for looking up the proper UFS client based on the Alluxio path. */
   private final MountTable mMountTable;
+
+  /** The lock manager used to try acquiring the persisting lock. */
   private final InodeLockManager mInodeLockManager;
+
+  /** The FS master creating this object. */
   private final DefaultFileSystemMaster mFsMaster;
+
+  /** Set this to true to force a sync regardless of the UfsPathCache. */
   private final boolean mShouldSync;
+
+  /** The sync options on the RPC.  */
   private final FileSystemMasterCommonPOptions mSyncOptions;
+
+  /**
+   * Whether the caller is {@link FileSystemMaster#getFileInfo(AlluxioURI, GetStatusContext)}.
+   * This is used for the {@link #mUfsSyncPathCache}.
+   */
   private final boolean mIsGetFileInfo;
+
+  /** Whether to only read+create metadata from the UFS, or to update metadata as well. */
   private final boolean mLoadOnly;
 
+  /** Queue used to keep track of paths that still need to be synced. */
   private final ConcurrentLinkedQueue<AlluxioURI> mSyncMetadataQ;
+
+  /** Queue of paths that have been submitted to the executor. */
   private final Queue<Future<Boolean>> mSyncPathJobs;
+
+  /** The executor enabling concurrent processing. */
   private final ExecutorService mMetadataSyncService;
 
+  /** The maximum number of concurrent paths that can be syncing at any moment. */
   private final int mConcurrencyLevel =
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_CONCURRENCY_LEVEL);
 
@@ -114,22 +175,22 @@ public class InodeSyncStream {
    * {@link LockPattern#READ}.
    *
    * It is an error to initiate sync without a WRITE_EDGE lock when loadOnly is {@code false}.
-   * If loadOnly is set to {@code true}
+   * If loadOnly is set to {@code true}, then the the root path may have a read lock.
    *
-   * @param rootPath a
-   * @param concurrencyService a
-   * @param fsMaster a
-   * @param inodeTree a
-   * @param inodeStore a
-   * @param inodeLockManager a
-   * @param mountTable a
-   * @param rpcContext a
-   * @param descendantType a
-   * @param ufsSyncPathCache a
-   * @param options a
-   * @param isGetFileInfo a
-   * @param forceSync a
-   * @param loadOnly a
+   * @param rootPath The root path to begin syncing
+   * @param concurrencyService executor used to process paths concurrently
+   * @param fsMaster the {@link FileSystemMaster} calling this method
+   * @param inodeTree the {@link InodeTree}
+   * @param inodeStore the {@link alluxio.master.metastore.InodeStore}
+   * @param inodeLockManager the {@link InodeLockManager}
+   * @param mountTable the master's {@link MountTable}
+   * @param rpcContext the caller's {@link RpcContext}
+   * @param descendantType determines the number of descendant inodes to sync
+   * @param ufsSyncPathCache the sync path cache to determine when inodes should be synced
+   * @param options the RPC's {@link FileSystemMasterCommonPOptions}
+   * @param isGetFileInfo whether the caller is {@link FileSystemMaster#getFileInfo}
+   * @param forceSync whether to sync inode metadata no matter what
+   * @param loadOnly whether to only load new metadata, rather than update existing metadata
    */
   public InodeSyncStream(LockedInodePath rootPath, ExecutorService concurrencyService,
       DefaultFileSystemMaster fsMaster, InodeTree inodeTree, ReadOnlyInodeStore inodeStore,
