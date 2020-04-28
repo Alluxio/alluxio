@@ -11,6 +11,8 @@
 
 package alluxio.grpc;
 
+import com.google.common.base.MoreObjects;
+
 import java.util.Objects;
 
 /**
@@ -63,5 +65,14 @@ public class GrpcConnectionKey {
   @Override
   public int hashCode() {
     return Objects.hash(mChannelKey, mGroupIndex);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("ChannelKey", mChannelKey)
+        .add("GroupIndex", mGroupIndex)
+        .omitNullValues()
+        .toString();
   }
 }
