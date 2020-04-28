@@ -1,11 +1,12 @@
 #include <stdio.h>
 
-// #define DEBUG 
+#define DEBUG 
 
 #ifdef DEBUG
 #define LOGD(format, ...) \
 do { \
-    printf(format, ##__VA_ARGS__); \
+    fprintf(stdout, "DEBUG %s:%d " format "\n", \
+        __FILE__, __LINE__, ##__VA_ARGS__); \
 } while (0)
 #else
 #define LOGD(format, ...)
@@ -13,5 +14,6 @@ do { \
 
 #define LOGE(format, ...) \
 do { \
-    fprintf(stderr, "ERROR: " format, ##__VA_ARGS__); \
+    fprintf(stderr, "ERROR %s:%d " format "\n", \
+        __FILE__, __LINE__, ##__VA_ARGS__); \
 } while (0)

@@ -1,4 +1,4 @@
-CC := gcc
+CC := g++
 UNAME := $(shell uname)
 INCDIR = -I /usr/include -I $(JAVA_HOME)/include
 FUSE_LIBS = $(shell pkg-config fuse --libs)
@@ -20,7 +20,7 @@ LDFLAGS = -shared ${FUSE_LIBS}
 OBJS = JniFuseHelper.o
 
 ${TARGET_LIB}: ${OBJS}
-	${CC} ${LDFLAGS} -o $@ $<
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $<
 
 install: ${TARGET_LIB}
 	sudo mv ${TARGET_LIB} /usr/lib/
@@ -28,5 +28,5 @@ install: ${TARGET_LIB}
 clean:
 	rm -rf ${OBJS} ${TARGET_LIB}
 
-%.o: %.c
+%.o: %.cc
 	${CC} ${CFLAGS} -o $@ -c $<
