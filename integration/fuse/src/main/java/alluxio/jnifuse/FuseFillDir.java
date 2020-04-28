@@ -23,13 +23,13 @@ public class FuseFillDir {
         this.address = address;
     }
 
-    public native int fill(long bufaddr, String name, ByteBuffer stbuf, long off);
+    public native int fill(long address, long bufaddr, String name, ByteBuffer stbuf, long off);
 
     public int apply(long bufaddr, String name, FileStat stbuf, long off) {
         if (stbuf != null) {
-            return fill(bufaddr, name, stbuf.buffer, off);
+            return fill(address, bufaddr, name, stbuf.buffer, off);
         } else {
-            return fill(bufaddr, name, null, off);
+            return fill(address, bufaddr, name, null, off);
         }
     }
 

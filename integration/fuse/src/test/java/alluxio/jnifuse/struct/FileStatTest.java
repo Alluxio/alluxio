@@ -1,5 +1,6 @@
 package alluxio.jnifuse.struct;
 
+import alluxio.proto.journal.File;
 import jnr.ffi.Runtime;
 import org.junit.Test;
 import ru.serce.jnrfuse.LibFuse;
@@ -27,5 +28,20 @@ public class FileStatTest {
         assertEquals(jnrstat.st_size.offset(), jnistat.st_size.offset());
         assertEquals(jnrstat.st_blksize.offset(), jnistat.st_blksize.offset());
         assertEquals(jnrstat.st_blocks.offset(), jnistat.st_blocks.offset());
+    }
+
+    @Test
+    public void dataConsistency() {
+        FileStat stat = new FileStat(ByteBuffer.allocateDirect(256));
+        int mode = FileStat.ALL_READ | FileStat.ALL_WRITE | FileStat.S_IFDIR;
+        long size = 0x123456789888721L;
+        stat.st_mode.set(mode);
+        stat.st_size.set(size);
+        assertEquals(mode, stat.st_mode.get());
+        assertEquals(size, stat.st_size.get());
+
+        ByteBuffer buf = stat.buffer;
+        assertEquals(mode, buf.getInt(0x18));
+        assertEquals(size, buf.getLong(0x30));
     }
 }

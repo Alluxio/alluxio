@@ -1,6 +1,7 @@
 package alluxio.jnifuse.struct;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -30,6 +31,7 @@ public abstract class Struct {
     protected Struct(ByteBuffer bb) {
         this._info = new Info();
         this.buffer = bb;
+        bb.order(ByteOrder.LITTLE_ENDIAN);
     }
 
     protected abstract class Member {
