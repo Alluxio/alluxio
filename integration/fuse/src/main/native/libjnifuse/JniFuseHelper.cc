@@ -9,36 +9,17 @@
 #include <jni.h>
 
 #include "debug.h"
+#include "JniFuseFileSystem.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-static JavaVM* g_jvm;   // global jvm
-static jobject g_jffs;    // global JniFuseFileSystem
-
-static JNIEnv* get_env()
-{
-    JNIEnv* env;
-    // (*global_jvm)->GetEnv(global_jvm, &env, JNI_VERSION_1_8);
-    g_jvm->AttachCurrentThreadAsDaemon((void **)&env, NULL);
-    return env;
-}
-
 static int getattr_wrapper(const char *path, struct stat* stbuf)
 {
   LOGD("getattr %s", path);
 
-  JNIEnv* env = get_env();
-
-  jstring jspath = env->NewStringUTF(path);
-  size_t buflen = sizeof(struct stat);
-  jobject buffer = env->NewDirectByteBuffer((void *)stbuf, buflen);
-
-  jclass clazz = env->GetObjectClass(g_jffs);
-  static const char * signature = "(Ljava/lang/String;Ljava/nio/ByteBuffer;)I";
-  jmethodID methodid = env->GetMethodID(clazz, "getattrCallback", signature);
-  int ret = env->CallIntMethod(g_jffs, methodid, jspath, buffer);
+  int ret = jnifuse::JniFuseFileSystem::getInstance()->getattrOper->call(path, stbuf);
 
   LOGD("file %s: size=%ld, mod=%d", path, stbuf->st_size, stbuf->st_mode);
 
@@ -49,15 +30,7 @@ static int open_wrapper(const char *path, struct fuse_file_info *fi)
 {
   LOGD("open %s\n", path);
 
-  JNIEnv* env = get_env();
-
-  jstring jspath = env->NewStringUTF(path);
-  jobject fibuf = env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
-
-  jclass clazz = env->GetObjectClass(g_jffs);
-  static const char* signature = "(Ljava/lang/String;Ljava/nio/ByteBuffer;)I";
-  jmethodID methodid = env->GetMethodID(clazz, "openCallback", signature);
-  int ret = env->CallIntMethod(g_jffs,  methodid, jspath, fibuf);
+  int ret = jnifuse::JniFuseFileSystem::getInstance()->openOper->call(path, fi);
 
   return ret;
 }
@@ -67,16 +40,7 @@ static int read_wrapper(const char *path, char *buf, size_t size, off_t offset,
 {
     LOGD("read: %s\n", path);
 
-    JNIEnv* env = get_env();
-
-    jstring jspath = env->NewStringUTF(path);
-    jobject buffer = env->NewDirectByteBuffer((void *)buf, size);
-    jobject fibuf = env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
-
-    jclass clazz = env->GetObjectClass(g_jffs);
-    static const char* signature = "(Ljava/lang/String;Ljava/nio/ByteBuffer;JJLjava/nio/ByteBuffer;)I";
-    jmethodID methodid = env->GetMethodID(clazz, "readCallback", signature);
-    int ret = env->CallIntMethod(g_jffs,  methodid, jspath, buffer, size, offset, fibuf);
+    int ret = jnifuse::JniFuseFileSystem::getInstance()->readOper->call(path, buf, size, offset, fi);
 
     LOGD("nread=%d\n", ret);
 
@@ -88,18 +52,7 @@ static int readdir_wrapper(const char* path, void* buf, fuse_fill_dir_t filler,
 {
     LOGD("readdir: %s\n", path);
 
-    JNIEnv* env = get_env();
-
-    jstring jspath = env->NewStringUTF(path);
-    jclass fillerclazz = env->FindClass("alluxio/jnifuse/FuseFillDir");
-    jmethodID fillerconstructor = env->GetMethodID(fillerclazz, "<init>", "(J)V");
-    jobject fillerobj = env->NewObject(fillerclazz, fillerconstructor, (void *)filler);
-    jobject fibuf = env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
-
-    jclass clazz = env->GetObjectClass(g_jffs);
-    static const char* signature = "(Ljava/lang/String;JLalluxio/jnifuse/FuseFillDir;JLjava/nio/ByteBuffer;)I";
-    jmethodID methodid = env->GetMethodID(clazz, "readdirCallback", signature);
-    int ret = env->CallIntMethod(g_jffs,  methodid, jspath, buf, fillerobj, offset, fibuf);
+    int ret = jnifuse::JniFuseFileSystem::getInstance()->readdirOper->call(path, buf, filler, offset, fi);
 
     return ret;
 }
@@ -118,10 +71,8 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real
 {
   LOGD("enter fuse_main_real");
 
-  env->GetJavaVM(&g_jvm);
-
-  g_jffs = env->NewGlobalRef(obj);
-  env->DeleteLocalRef(obj);
+  jnifuse::JniFuseFileSystem* fs = jnifuse::JniFuseFileSystem::getInstance();
+  fs->init(env, obj);
 
   int argc = jargc;
   LOGD("argc=%d", argc);
