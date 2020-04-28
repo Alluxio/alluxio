@@ -31,6 +31,9 @@ When available, `helm` is the preferred way to install Alluxio. If `helm` is not
 additional deployment customization is desired, `kubectl` can be used directly using native
 Kubernetes resource specifications.
 
+> Note: From Alluxio 2.3 on, Alluxio only supports helm 3.
+> See how to migrate from helm 2 to 3 [here](https://helm.sh/docs/topics/v2_v3_migration/).
+
 
 ### (Optional) Extract Kubernetes Specifications
 
@@ -91,8 +94,8 @@ There are other ways to create Persistent Volumes as documented [here](https://k
 
 A. Install Helm
 
-You should have helm 2.X installed.
-You can install helm following instructions [here](https://v2.helm.sh/docs/using_helm/#install-helm).
+You should have helm 3.X installed.
+You can install helm following instructions [here](https://helm.sh/docs/intro/install/).
 
 B. A helm repo with the Alluxio helm chart must be available.
 
@@ -335,7 +338,7 @@ tieredstore:
 
 Once the configuration is finalized in a file named `config.yaml`, install as follows:
 ```console
-$ helm install --name alluxio -f config.yaml alluxio-charts/alluxio
+$ helm install alluxio -f config.yaml alluxio-charts/alluxio
 ```
 
 #### Uninstall
@@ -361,7 +364,7 @@ $ helm upgrade alluxio -f config.yaml --set journal.format.runFormat=true alluxi
 
 Or you can trigger the journal formatting at deployment.
 ```console
-$ helm install --name alluxio -f config.yaml --set journal.format.runFormat=true alluxio-charts/alluxio
+$ helm install alluxio -f config.yaml --set journal.format.runFormat=true alluxio-charts/alluxio
 ```
 
 ### Deploy Using `kubectl`
