@@ -443,7 +443,6 @@ public class InodeSyncStream {
           }
           ufsFingerprint = ufsFpParsed.serialize();
         }
-
         boolean containsMountPoint = mMountTable.containsMountPoint(inodePath.getUri(), true);
 
         UfsSyncUtils.SyncPlan syncPlan =
@@ -469,8 +468,6 @@ public class InodeSyncStream {
             }
             mFsMaster.setAttributeSingleFile(mRpcContext, inodePath, false, opTimeMs,
                 SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
-                    .setOwner(ufsFpParsed.getTag(Fingerprint.Tag.OWNER))
-                    .setGroup(ufsFpParsed.getTag(Fingerprint.Tag.GROUP))
                     .setMode(new Mode(mode).toProto())).setUfsFingerprint(ufsFingerprint));
           }
         }

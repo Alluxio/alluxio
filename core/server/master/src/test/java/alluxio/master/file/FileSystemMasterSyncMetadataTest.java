@@ -150,7 +150,7 @@ public final class FileSystemMasterSyncMetadataTest {
     mFileSystemMaster.createDirectory(dir1, CreateDirectoryContext.defaults());
 
     // Mock creating the same directory and nested file in UFS out of band
-    Mockito.when(mUfs.listStatus(eq(dir1Path.toString()), any()))
+    Mockito.when(mUfs.listStatus(eq(dir1Path.toString())))
         .thenReturn(new UfsStatus[]{new UfsFileStatus("file1", "dummy", 0,
         0, "", "", mode, 1024)});
 
