@@ -147,6 +147,10 @@ public abstract class Struct {
     public final void set(long value) {
       buffer.putInt(offset(), (int) value);
     }
+
+    public final int intValue() {
+      return (int) get();
+    }
   }
 
   public class Signed64 extends NumberField {
@@ -210,6 +214,14 @@ public abstract class Struct {
     public final void set(long value) {
       buffer.putLong(offset(), value);
     }
+
+    public final int intValue() {
+      return (int) get();
+    }
+
+    public final long longValue() {
+      return get();
+    }
   }
 
   public class UnsignedLong extends NumberField {
@@ -230,6 +242,14 @@ public abstract class Struct {
 
     public final void set(long value) {
       buffer.putLong(offset(), value);
+    }
+
+    public final int intValue() {
+      return (int) get();
+    }
+
+    public final long longValue() {
+      return get();
     }
   }
 

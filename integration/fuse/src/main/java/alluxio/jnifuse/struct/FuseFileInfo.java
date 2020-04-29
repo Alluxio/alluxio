@@ -31,4 +31,8 @@ public class FuseFileInfo extends Struct {
   public final Padding pad1;
   public final u_int64_t fh;
   public final u_int64_t lock_owner;
+
+  public static FuseFileInfo wrap(ByteBuffer buffer) {
+    return new FuseFileInfo(buffer);
+  }
 }

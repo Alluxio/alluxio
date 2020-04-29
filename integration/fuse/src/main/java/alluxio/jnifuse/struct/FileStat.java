@@ -109,4 +109,8 @@ public class FileStat extends Struct {
   public final SignedLong st_atim;
   public final SignedLong st_mtim;
   public final SignedLong st_ctim;
+
+  public static FileStat wrap(ByteBuffer buffer) {
+    return new FileStat(buffer);
+  }
 }

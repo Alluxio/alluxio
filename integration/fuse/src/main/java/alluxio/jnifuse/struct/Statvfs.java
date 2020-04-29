@@ -57,4 +57,8 @@ public class Statvfs extends Struct {
   public final UnsignedLong f_flag;
   public final UnsignedLong f_namemax;
   // __f_spare
+
+  public static Statvfs wrap(ByteBuffer buffer) {
+    return new Statvfs(buffer);
+  }
 }
