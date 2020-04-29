@@ -1153,6 +1153,8 @@ Here are the additional properties possible for the `-o` options:
   the sync may overload the UDB, and if set too low, syncing a database with many tables make take
   a long time. The default is `4`.
 
+
+### Hive UDB
 For the `hive` udb type, during the attach process, the Alluxio catalog will auto-mount all the
 table/partition locations in the specified database, to Alluxio. You can supply the mount options
 for the possible table locations with the
@@ -1168,6 +1170,31 @@ This command will attach the database `hive_db_name` (of type `hive`) from the U
 `thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `alluxio_db_name`.
 When paths are mounted for `s3a://bucket1`, the mount option `aws.accessKeyId=abc` will be used,
 and when paths are mounted for `s3a://bucket2`, the mount option `aws.accessKeyId=123` will be used.
+
+### Glue UDB
+For `glue` udb type, there are some additional properties with the `-o` options:
+  * `udb-glue.<UDB_PROPERTY>`: specify the UDB options for the Glue UDB. The options
+  are as follows:
+    * `aws.region`: the glue aws region
+    * `aws.catalog.id`: the aws catalog id
+    * `aws.accesskey`: the aws access key id
+    * `aws.secretkey`: the aws secret key
+
+You can supply the mount options for the `glue` as follows:
+
+```console
+$ ./bin/alluxio table attachdb --db alluxio_db_name glue null glue_db_name \
+    -o udb-glue.aws.region=<AWS_GLUE_REGION> \
+    -o udb-glue.aws.catalog.id=<AWS_CATALOGID> \
+    -o udb-glue.aws.accesskey=<AWS_ACCESSKEY_ID> \
+    -o udb-glue.aws.secretkey=<AWS_SERCRETKEY_ID>
+```
+
+This command will attach the database `glue_db_name` (of type `glue`) to the Alluxio catalog,
+using the same database name `alluxio_db_name`. Please notice that `glue` udb does not need the
+URI as `hive` udb. When `glue` udb access to AWS glue, the aws region `udb-glue.aws.region`, AWS 
+catalog id `udb-glue.aws.catalog.id` and AWS credentials, `udb-glue.aws.accesskey` and 
+`udb-glue.aws.secretkey` , need to be provided.
 
 ### detachdb
 
