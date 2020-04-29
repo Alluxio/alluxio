@@ -45,11 +45,10 @@ public final class AlluxioFuse {
   private AlluxioFuse() {}
 
   /**
-   * Running this class will mount the file system according to
-   * the options passed to this function {@link #parseOptions(String[], AlluxioConfiguration)}.
-   * The user-space fuse application will stay on the foreground and keep
-   * the file system mounted. The user can unmount the file system by
-   * gracefully killing (SIGINT) the process.
+   * Running this class will mount the file system according to the options passed to this function
+   * {@link #parseOptions(String[], AlluxioConfiguration)}. The user-space fuse application will
+   * stay on the foreground and keep the file system mounted. The user can unmount the file system
+   * by gracefully killing (SIGINT) the process.
    *
    * @param args arguments to run the command line
    */
@@ -71,8 +70,8 @@ public final class AlluxioFuse {
     try {
       fs.mount(Paths.get(opts.getMountPoint()), true, opts.isDebug(),
           fuseOpts.toArray(new String[0]));
-      LOG.info("Mounted Alluxio: mount point=\"{}\", opts=\"{}\"",
-          opts.getMountPoint(), fuseOpts.toArray(new String[0]));
+      LOG.info("Mounted Alluxio: mount point=\"{}\", opts=\"{}\"", opts.getMountPoint(),
+          fuseOpts.toArray(new String[0]));
     } catch (FuseException e) {
       LOG.error("Failed to mount {}", opts.getMountPoint(), e);
       // only try to umount file system when exception occurred.
@@ -97,32 +96,18 @@ public final class AlluxioFuse {
    */
   private static AlluxioFuseOptions parseOptions(String[] args, AlluxioConfiguration alluxioConf) {
     final Options opts = new Options();
-    final Option mntPoint = Option.builder("m")
-        .hasArg()
-        .required(true)
-        .longOpt("mount-point")
-        .desc("Desired local mount point for alluxio-fuse.")
-        .build();
+    final Option mntPoint = Option.builder("m").hasArg().required(true).longOpt("mount-point")
+        .desc("Desired local mount point for alluxio-fuse.").build();
 
-    final Option alluxioRoot = Option.builder("r")
-        .hasArg()
-        .required(true)
-        .longOpt("alluxio-root")
+    final Option alluxioRoot = Option.builder("r").hasArg().required(true).longOpt("alluxio-root")
         .desc("Path within alluxio that will be used as the root of the FUSE mount "
             + "(e.g., /users/foo; defaults to /)")
         .build();
 
-    final Option help = Option.builder("h")
-        .required(false)
-        .desc("Print this help")
-        .build();
+    final Option help = Option.builder("h").required(false).desc("Print this help").build();
 
-    final Option fuseOption = Option.builder("o")
-        .valueSeparator(',')
-        .required(false)
-        .hasArgs()
-        .desc("FUSE mount options")
-        .build();
+    final Option fuseOption = Option.builder("o").valueSeparator(',').required(false).hasArgs()
+        .desc("FUSE mount options").build();
 
     opts.addOption(mntPoint);
     opts.addOption(alluxioRoot);
@@ -147,7 +132,7 @@ public final class AlluxioFuse {
       if (cli.hasOption("o")) {
         String[] fopts = cli.getOptionValues("o");
         // keep the -o
-        for (final String fopt: fopts) {
+        for (final String fopt : fopts) {
           fuseOpts.add("-o" + fopt);
           if (noUserMaxWrite && fopt.startsWith("max_write")) {
             noUserMaxWrite = false;

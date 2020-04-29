@@ -29,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * getOut will be null, while the other will be non-null. It is up to the user of this class
  * (currently, only {@link AlluxioFuseFileSystem}) to check that.
  *
- * This mechanism is preferred over more complex sub-classing to avoid useless casts or type checks
+ * Thimechanism is preferred over more complex sub-classing to avoid useless casts or type checks
  * for every read/write call, which happen quite often.
  */
 @NotThreadSafe
@@ -40,7 +40,7 @@ final class OpenFileEntry implements Closeable {
 
   // Path is likely to be changed when fuse rename() is called
   private String mPath;
-  /** the next write offset.  */
+  /** the next write offset. */
   private long mOffset;
 
   /**
@@ -105,8 +105,7 @@ final class OpenFileEntry implements Closeable {
   }
 
   /**
-   * Sets the path of the file. The file path can be changed
-   * if fuse rename() is called.
+   * Sets the path of the file. The file path can be changed if fuse rename() is called.
    *
    * @param path the new path of the file
    */
