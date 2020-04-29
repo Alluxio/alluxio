@@ -103,7 +103,7 @@ public final class GrpcConnectionPoolTest {
       List<GrpcChannelKey> keys = new ArrayList(streamingGroupSize);
       // Create channel keys.
       for (int i = 0; i < streamingGroupSize; i++) {
-        keys.add(GrpcChannelKey.create(sConf).setNetworkGroup(GrpcChannelKey.NetworkGroup.STREAMING)
+        keys.add(GrpcChannelKey.create(sConf).setNetworkGroup(GrpcNetworkGroup.STREAMING)
             .setServerAddress(server.getConnectAddress()));
       }
       // Acquire connections.
@@ -127,7 +127,7 @@ public final class GrpcConnectionPoolTest {
       List<GrpcChannelKey> keys = new ArrayList(acquireCount);
       // Create channel keys.
       for (int i = 0; i < acquireCount; i++) {
-        keys.add(GrpcChannelKey.create(sConf).setNetworkGroup(GrpcChannelKey.NetworkGroup.STREAMING)
+        keys.add(GrpcChannelKey.create(sConf).setNetworkGroup(GrpcNetworkGroup.STREAMING)
             .setServerAddress(server.getConnectAddress()));
       }
       // Acquire connections.
