@@ -28,10 +28,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.FuseException;
 
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -40,6 +42,39 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioFuse {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuse.class);
+
+  private static final Option MOUNT_POINT_OPTION = Option.builder("m")
+      .hasArg()
+      .required(true)
+      .longOpt("mount-point")
+      .desc("Desired local mount point for alluxio-fuse.")
+      .build();
+
+  private static final Option ALLUXIO_ROOT_OPTION = Option.builder("r")
+      .hasArg()
+      .required(true)
+      .longOpt("alluxio-root")
+      .desc("Path within alluxio that will be used as the root of the FUSE mount "
+          + "(e.g., /users/foo; defaults to /)")
+      .build();
+
+  private static final Option HELP_OPTION = Option.builder("h")
+      .required(false)
+      .desc("Print this HELP_OPTION")
+      .build();
+
+  private static final Option FUSE_MOUNT_OPTION = Option.builder("o")
+      .valueSeparator(',')
+      .required(false)
+      .hasArgs()
+      .desc("FUSE mount options")
+      .build();
+
+  private static final Options OPTIONS = new Options()
+      .addOption(MOUNT_POINT_OPTION)
+      .addOption(ALLUXIO_ROOT_OPTION)
+      .addOption(HELP_OPTION)
+      .addOption(FUSE_MOUNT_OPTION);
 
   // prevent instantiation
   private AlluxioFuse() {}
@@ -59,32 +94,29 @@ public final class AlluxioFuse {
       System.exit(1);
     }
 
-    final FileSystem tfs = FileSystem.Factory.create(conf);
-    final AlluxioFuseFileSystem fs = new AlluxioFuseFileSystem(tfs, opts, conf);
-    final List<String> fuseOpts = opts.getFuseOpts();
-    // Force direct_io in FUSE: writes and reads bypass the kernel page
-    // cache and go directly to alluxio. This avoids extra memory copies
-    // in the write path.
-    fuseOpts.add("-odirect_io");
+    try (final FileSystem fs = FileSystem.Factory.create(conf)) {
+      final AlluxioFuseFileSystem fuseFs = new AlluxioFuseFileSystem(fs, opts, conf);
+      final List<String> fuseOpts = opts.getFuseOpts();
+      // Force direct_io in FUSE: writes and reads bypass the kernel page
+      // cache and go directly to alluxio. This avoids extra memory copies
+      // in the write path.
+      // TODO: support kernel_cache (https://github.com/Alluxio/alluxio/issues/10840)
+      fuseOpts.add("-odirect_io");
 
-    try {
-      fs.mount(Paths.get(opts.getMountPoint()), true,
-          opts.isDebug(), fuseOpts.toArray(new String[0]));
-      LOG.info("Mounted Alluxio: mount point=\"{}\", opts=\"{}\"", opts.getMountPoint(),
-          fuseOpts.toArray(new String[0]));
-    } catch (FuseException e) {
-      LOG.error("Failed to mount {}", opts.getMountPoint(), e);
-      // only try to umount file system when exception occurred.
-      // jnr-fuse registers JVM shutdown hook to ensure fs.umount()
-      // will be executed when this process is exiting.
-      fs.umount();
-    } finally {
       try {
-        tfs.close();
-        LOG.info("Closed Alluxio file system.");
-      } catch (Exception e) {
-        LOG.error("Failed to close Alluxio file system", e);
+        fuseFs.mount(Paths.get(opts.getMountPoint()), true, opts.isDebug(),
+            fuseOpts.toArray(new String[0]));
+        LOG.info("Mounted Alluxio: mount point=\"{}\", OPTIONS=\"{}\"",
+            opts.getMountPoint(), fuseOpts.toArray(new String[0]));
+      } catch (FuseException e) {
+        LOG.error("Failed to mount {}", opts.getMountPoint(), e);
+        // only try to umount file system when exception occurred.
+        // jni-fuse registers JVM shutdown hook to ensure fs.umount()
+        // will be executed when this process is exiting.
+        fuseFs.umount();
       }
+    } catch (IOException e){
+      LOG.error("Failed to mount Alluxio file system", e);
     }
   }
 
@@ -94,47 +126,15 @@ public final class AlluxioFuse {
    * @param args CLI args
    * @return Alluxio-FUSE configuration options
    */
+  @Nullable
   private static AlluxioFuseOptions parseOptions(String[] args, AlluxioConfiguration alluxioConf) {
-    final Options opts = new Options();
-    final Option mntPoint = Option.builder("m")
-        .hasArg()
-        .required(true)
-        .longOpt("mount-point")
-        .desc("Desired local mount point for alluxio-fuse.")
-        .build();
-
-    final Option alluxioRoot = Option.builder("r")
-        .hasArg()
-        .required(true)
-        .longOpt("alluxio-root")
-        .desc("Path within alluxio that will be used as the root of the FUSE mount "
-            + "(e.g., /users/foo; defaults to /)")
-        .build();
-
-    final Option help = Option.builder("h")
-        .required(false)
-        .desc("Print this help")
-        .build();
-
-    final Option fuseOption = Option.builder("o")
-        .valueSeparator(',')
-        .required(false)
-        .hasArgs()
-        .desc("FUSE mount options")
-        .build();
-
-    opts.addOption(mntPoint);
-    opts.addOption(alluxioRoot);
-    opts.addOption(help);
-    opts.addOption(fuseOption);
-
     final CommandLineParser parser = new DefaultParser();
     try {
-      CommandLine cli = parser.parse(opts, args);
+      CommandLine cli = parser.parse(OPTIONS, args);
 
       if (cli.hasOption("h")) {
         final HelpFormatter fmt = new HelpFormatter();
-        fmt.printHelp(AlluxioFuse.class.getName(), opts);
+        fmt.printHelp(AlluxioFuse.class.getName(), OPTIONS);
         return null;
       }
 
@@ -166,7 +166,7 @@ public final class AlluxioFuse {
     } catch (ParseException e) {
       System.err.println("Error while parsing CLI: " + e.getMessage());
       final HelpFormatter fmt = new HelpFormatter();
-      fmt.printHelp(AlluxioFuse.class.getName(), opts);
+      fmt.printHelp(AlluxioFuse.class.getName(), OPTIONS);
       return null;
     }
   }

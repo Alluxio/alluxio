@@ -15,8 +15,8 @@ import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
+import alluxio.util.OSUtils;
 
-import jnr.posix.util.Platform;
 import org.apache.commons.lang.NotImplementedException;
 import ru.serce.jnrfuse.ErrorCodes;
 import ru.serce.jnrfuse.FuseException;
@@ -33,6 +33,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Abstract class for Fuse FS Stub.
+ */
 public abstract class FuseStubFS {
 
   private static final int TIMEOUT = 2000; // ms
@@ -104,7 +107,7 @@ public abstract class FuseStubFS {
     if (!mounted.get()) {
       return;
     }
-    if (Platform.IS_WINDOWS) {
+    if (OSUtils.isWindows()) {
       // Pointer fusePointer = this.fusePointer;
       // if (fusePointer != null) {
       // libFuse.fuse_exit(fusePointer);

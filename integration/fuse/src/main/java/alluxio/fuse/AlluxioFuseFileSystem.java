@@ -74,7 +74,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Main FUSE implementation class.
  * <p>
- * Implements the FUSE callbacks defined by jnr-fuse.
+ * Implements the FUSE callbacks defined by jni-fuse.
  */
 @ThreadSafe
 public final class AlluxioFuseFileSystem extends FuseStubFS {
@@ -96,9 +96,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       new InstancedConfiguration(ConfigurationUtils.defaults());
 
   /**
-   * 4294967295 is unsigned long -1, -1 means that uid or gid is not set. 4294967295 or -1 occurs
-   * when chown without user name or group name. Please view
-   * https://github.com/SerCeMan/jnr-fuse/issues/67 for more details.
+   * 4294967295 is unsigned long -1, -1 means that uid or gid is not set.
+   * 4294967295 or -1 occurs when chown without user name or group name.
+   * Please view https://github.com/SerCeMan/jnr-fuse/issues/67 for more details.
    */
   @VisibleForTesting
   public static final long ID_NOT_SET_VALUE = -1;
@@ -148,8 +148,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * @param opts options
    * @param conf Alluxio configuration
    */
-  public AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts,
-                               AlluxioConfiguration conf) {
+  public AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts, AlluxioConfiguration conf) {
     super();
     mFsName = conf.get(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
@@ -182,8 +181,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int chmod(String path, @mode_t long mode) {
-    return AlluxioFuseUtils.call(LOG, () -> chmodInternal(path, mode), "chmod", "path=%s,mode=%o",
-        path, mode);
+    return AlluxioFuseUtils.call(LOG, () -> chmodInternal(path, mode),
+        "chmod", "path=%s,mode=%o", path, mode);
   }
 
   private int chmodInternal(String path, @mode_t long mode) {
@@ -211,8 +210,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int chown(String path, @uid_t long uid, @gid_t long gid) {
-    return AlluxioFuseUtils.call(LOG, () -> chownInternal(path, uid, gid), "chown",
-        "path=%s,uid=%o,gid=%o", path, uid, gid);
+    return AlluxioFuseUtils.call(LOG, () -> chownInternal(path, uid, gid),
+        "chown", "path=%s,uid=%o,gid=%o", path, uid, gid);
   }
 
   private int chownInternal(String path, @uid_t long uid, @gid_t long gid) {
@@ -281,8 +280,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int create(String path, @mode_t long mode, FuseFileInfo fi) {
-    return AlluxioFuseUtils.call(LOG, () -> createInternal(path, mode, fi), "create",
-        "path=%s,mode=%o", path, mode);
+    return AlluxioFuseUtils.call(LOG, () -> createInternal(path, mode, fi),
+        "create", "path=%s,mode=%o", path, mode);
   }
 
   private int createInternal(String path, @mode_t long mode, FuseFileInfo fi) {
@@ -294,8 +293,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     }
     try {
       if (mOpenFiles.size() >= MAX_OPEN_FILES) {
-        LOG.error("Cannot create {}: too many open files (MAX_OPEN_FILES: {})", path,
-            MAX_OPEN_FILES);
+        LOG.error("Cannot create {}: too many open files (MAX_OPEN_FILES: {})",
+            path, MAX_OPEN_FILES);
         return -ErrorCodes.EMFILE();
       }
       SetAttributePOptions.Builder attributeOptionsBuilder = SetAttributePOptions.newBuilder();
@@ -389,8 +388,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int getattr(String path, FileStat stat) {
-    return AlluxioFuseUtils.call(LOG, () -> getattrInternal(path, stat), "getattr", "path=%s",
-        path);
+    return AlluxioFuseUtils.call(
+        LOG, () -> getattrInternal(path, stat), "getattr", "path=%s", path);
   }
 
   private int getattrInternal(String path, FileStat stat) {
@@ -471,8 +470,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int mkdir(String path, @mode_t long mode) {
-    return AlluxioFuseUtils.call(LOG, () -> mkdirInternal(path, mode), "mkdir", "path=%s,mode=%o,",
-        path, mode);
+    return AlluxioFuseUtils.call(LOG, () -> mkdirInternal(path, mode),
+        "mkdir", "path=%s,mode=%o,", path, mode);
   }
 
   private int mkdirInternal(String path, @mode_t long mode) {
@@ -585,8 +584,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int read(String path, ByteBuffer buf, @size_t long size, @off_t long offset,
       FuseFileInfo fi) {
-    return AlluxioFuseUtils.call(LOG, () -> readInternal(path, buf, size, offset, fi), "read",
-        "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
+    return AlluxioFuseUtils.call(LOG, () -> readInternal(path, buf, size, offset, fi),
+        "read", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
   }
 
   private int readInternal(String path, ByteBuffer buf, @size_t long size, @off_t long offset,
@@ -644,7 +643,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int readdir(String path, long buff, FuseFillDir filter, @off_t long offset,
-                     FuseFileInfo fi) {
+      FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> readdirInternal(path, buff, filter, offset, fi),
         "readdir", "path=%s,buf=%s", path, buff);
   }
@@ -712,8 +711,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int rename(String oldPath, String newPath) {
-    return AlluxioFuseUtils.call(LOG, () -> renameInternal(oldPath, newPath), "rename",
-        "oldPath=%s,newPath=%s,", oldPath, newPath);
+    return AlluxioFuseUtils.call(LOG, () -> renameInternal(oldPath, newPath),
+        "rename", "oldPath=%s,newPath=%s,", oldPath, newPath);
   }
 
   private int renameInternal(String oldPath, String newPath) {
@@ -853,8 +852,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   @Override
   public int write(String path, ByteBuffer buf, @size_t long size, @off_t long offset,
       FuseFileInfo fi) {
-    return AlluxioFuseUtils.call(LOG, () -> writeInternal(path, buf, size, offset, fi), "write",
-        "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
+    return AlluxioFuseUtils.call(LOG, () -> writeInternal(path, buf, size, offset, fi),
+        "write", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
   }
 
   private int writeInternal(String path, ByteBuffer buf, @size_t long size, @off_t long offset,

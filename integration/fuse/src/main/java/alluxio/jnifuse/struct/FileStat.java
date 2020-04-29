@@ -11,7 +11,7 @@
 
 package alluxio.jnifuse.struct;
 
-import jnr.posix.util.Platform;
+import alluxio.util.OSUtils;
 
 import java.nio.ByteBuffer;
 
@@ -72,9 +72,9 @@ public class FileStat extends Struct {
   public FileStat(ByteBuffer buffer) {
     super(buffer);
     // TODO: support Mac & Windows platform
-    if (Platform.IS_MAC) {
+    if (OSUtils.isMacOS()) {
       System.exit(-1);
-    } else if (Platform.IS_WINDOWS) {
+    } else if (OSUtils.isWindows()) {
       System.exit(-1);
     } else {
       // Linux platform
