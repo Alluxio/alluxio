@@ -15,6 +15,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.jnifuse.FuseException;
 import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -26,7 +27,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.serce.jnrfuse.FuseException;
 
 import java.io.IOException;
 import java.nio.file.Paths;

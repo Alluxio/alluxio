@@ -15,18 +15,15 @@ import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
+import alluxio.jnifuse.utils.MountUtils;
+import alluxio.jnifuse.utils.SecurityUtils;
 import alluxio.util.OSUtils;
 
 import org.apache.commons.lang.NotImplementedException;
-import ru.serce.jnrfuse.ErrorCodes;
-import ru.serce.jnrfuse.FuseException;
-import ru.serce.jnrfuse.utils.MountUtils;
-import ru.serce.jnrfuse.utils.SecurityUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
