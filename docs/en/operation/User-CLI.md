@@ -1173,17 +1173,17 @@ and when paths are mounted for `s3a://bucket2`, the mount option `aws.accessKeyI
 
 ### Glue UDB
 For `glue` udb type, there are some additional properties with the `-o` options:
-  * `udb-glue.aws.<MOUNT_PROPERTY>`: specify the mount option for the Glue udb, the mount options
+  * `udb-glue.<UDB_PROPERTY>`: specify the UDB options for the Glue UDB. The options
   are as follows:
-    * `region`: the glue aws region
-    * `catalog.id`: the aws catalog id
-    * `accesskey`: the aws access key id
-    * `secretkey`: the aws secret key
+    * `aws.region`: the glue aws region
+    * `aws.catalog.id`: the aws catalog id
+    * `aws.accesskey`: the aws access key id
+    * `aws.secretkey`: the aws secret key
 
 You can supply the mount options for the `glue` as follows:
 
 ```console
-$ ./bin/alluxio table attachdb --db alluxio_db_name Glue null glue_db_name \
+$ ./bin/alluxio table attachdb --db alluxio_db_name glue null glue_db_name \
     -o udb-glue.aws.region=<AWS_GLUE_REGION> \
     -o udb-glue.aws.catalog.id=<AWS_CATALOGID> \
     -o udb-glue.aws.accesskey=<AWS_ACCESSKEY_ID> \
