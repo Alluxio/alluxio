@@ -1152,6 +1152,12 @@ Here are the additional properties possible for the `-o` options:
   * `catalog.db.sync.threads`: number of parallel threads to use to sync with the UDB. If too large,
   the sync may overload the UDB, and if set too low, syncing a database with many tables make take
   a long time. The default is `4`.
+  * `udb-glue.aws.<MOUNT_PROPERTY>`: specify the mount option for the Glue udb, the mount options
+  are as follows:
+    * `region`: the glue aws region
+    * `catalog.id`: the aws catalog id
+    * `accesskey`: the aws access key id
+    * `secretkey`: the aws secret key
 
 For the `hive` udb type, during the attach process, the Alluxio catalog will auto-mount all the
 table/partition locations in the specified database, to Alluxio. You can supply the mount options
@@ -1168,6 +1174,23 @@ This command will attach the database `hive_db_name` (of type `hive`) from the U
 `thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `alluxio_db_name`.
 When paths are mounted for `s3a://bucket1`, the mount option `aws.accessKeyId=abc` will be used,
 and when paths are mounted for `s3a://bucket2`, the mount option `aws.accessKeyId=123` will be used.
+
+Different from `hive` udb type, the `glue` udb require the some extra mount options to access the AWS
+glue service. You can supply the mount options for the `glue` as follows:
+
+```console
+$ ./bin/alluxio table attachdb --db alluxio_db_name Glue null glue_db_name \
+    -o udb-glue.aws.region=<AWS_GLUE_REGION> \
+    -o udb-glue.aws.catalog.id=<AWS_CATALOGID> \
+    -o udb-glue.aws.accesskey=<AWS_ACCESSKEY_ID> \
+    -o udb-glue.aws.secretkey=<AWS_SERCRETKEY_ID>
+```
+
+This command will attach the database `glue_db_name` (of type `glue`) to the Alluxio catalog,
+using the same database name `alluxio_db_name`. Please notice that `glue` udb does not need the
+URI as `hive` udb. When `glue` udb access to AWS glue, the aws region `udb-glue.aws.region`, AWS 
+catalog id `udb-glue.aws.catalog.id` and AWS credentials, `udb-glue.aws.accesskey` and 
+`udb-glue.aws.secretkey` , need to be provided.
 
 ### detachdb
 
