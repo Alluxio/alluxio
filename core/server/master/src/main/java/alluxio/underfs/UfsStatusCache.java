@@ -42,7 +42,7 @@ public class UfsStatusCache {
 
   private final ConcurrentHashMap<AlluxioURI, UfsStatus> mStatuses;
   private final ConcurrentHashMap<AlluxioURI, Future<Collection<UfsStatus>>> mActivePrefetchJobs;
-  private final ConcurrentHashMap<UfsStatus, Collection<UfsStatus>> mChildren;
+  private final ConcurrentHashMap<AlluxioURI, Collection<UfsStatus>> mChildren;
   private final ExecutorService mPrefetchExecutor;
 
   /**
@@ -92,7 +92,7 @@ public class UfsStatusCache {
     // If this path doesn't yet exist, we can't keep track of the parent-child relationship
     // We can still add statuses to the cache regardless
     if (status != null) {
-      mChildren.computeIfAbsent(status, ufsStatus -> new ConcurrentHashSet<>()).addAll(children);
+      mChildren.computeIfAbsent(path, ufsStatus -> new ConcurrentHashSet<>()).addAll(children);
     }
     children.forEach(child -> {
       AlluxioURI childPath = path.joinUnsafe(child.getName());
@@ -114,7 +114,7 @@ public class UfsStatusCache {
       return null;
     }
 
-    mChildren.remove(removed); // ok if there aren't any children
+    mChildren.remove(path); // ok if there aren't any children
     return removed;
   }
 
@@ -129,44 +129,31 @@ public class UfsStatusCache {
   }
 
   /**
-   * Retrieves the status for the given Alluxio path. If the path doesn't exist yet, fetch it from
-   * the UFS, store it in the cache, then return it.
+   * Fetches children of a given alluxio path, stores them in the cache, then returns them.
+   *
+   * Children can be returned in a few ways
+   * 1. Children already exist in the internal index. We simply return them
+   * 2. If children did not already exist in the index, then check if there was a scheduled
+   * prefetch job running for this path. If so, wait for the job to finish and return the result.
+   * 3. If no prefetch job, and children don't yet exist in the cache, then if the fallback
+   * parameter is true, fetch them from the UFS and store them in the cache. Otherwise, simply
+   * return null.
+   *
+   * @param path the Alluxio path to get the children of
+   * @param mountTable the Alluxio mount table
+   * @param useFallback whether or not to fall back to calling the UFS
+   * @return child UFS statuses of the alluxio path, or null if no prefetch job and fallback
+   *         specified as false
+   * @throws InvalidPathException if the alluxio path can't be resolved to a UFS mount
    */
   @Nullable
-  private UfsStatus fetchIfAbsent(AlluxioURI path, MountTable mountTable)
+  public Collection<UfsStatus> fetchChildrenIfAbsent(AlluxioURI path, MountTable mountTable,
+      boolean useFallback)
       throws IOException, InvalidPathException {
-    UfsStatus status = getStatus(path);
-    if (status != null) {
-      return status;
+    Collection<UfsStatus> children = getChildren(path);
+    if (children != null) {
+      return children;
     }
-    MountTable.Resolution resolution = mountTable.resolve(path);
-    AlluxioURI ufsUri = resolution.getUri();
-    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
-      UnderFileSystem ufs = ufsResource.get();
-      status = ufs.getStatus(ufsUri.toString());
-      if (status == null) {
-        return null;
-      }
-      // This will remove the any authority information and simply retrieve the last path
-      // component
-      status.setName(new AlluxioURI(status.getName()).getName());
-      addStatus(path, status);
-    } catch (IllegalArgumentException e) {
-      LOG.warn("Failed to add status to cache", e);
-    }
-    return status;
-  }
-
-  /**
-   * Fetches children of a given alluxio path stores them in the cache, then returns them.
-   *
-   * @param path the Alluxio path
-   * @param mountTable the Alluxio mount table
-   * @return child UFS statuses of the alluxio path
-   * @throws InvalidPathException
-   */
-  public Collection<UfsStatus> fetchChildrenIfAbsent(AlluxioURI path, MountTable mountTable)
-      throws IOException, InvalidPathException {
     Future<Collection<UfsStatus>> prefetchJob = mActivePrefetchJobs.remove(path);
     if (prefetchJob != null) {
       try {
@@ -179,17 +166,42 @@ public class UfsStatusCache {
         throw new IOException(e);
       }
     }
-    return getChildrenIfAbsent(path, mountTable);
+    if (useFallback) {
+      return getChildrenIfAbsent(path, mountTable);
+    }
+    return null;
+  }
+
+  /**
+   * Fetches children of a given alluxio path stores them in the cache, then returns them.
+   *
+   * Will always return statuses from the UFS whether or not they exist in the cache, and whether
+   * a prefetch job was scheduled or not.
+   *
+   * @param path the Alluxio path
+   * @param mountTable the Alluxio mount table
+   * @return child UFS statuses of the alluxio path
+   * @throws InvalidPathException if the alluxio path can't be resolved to a UFS mount
+   * @see {@link #fetchChildrenIfAbsent(AlluxioURI, MountTable, boolean)}
+   */
+  public Collection<UfsStatus> fetchChildrenIfAbsent(AlluxioURI path, MountTable mountTable)
+      throws IOException, InvalidPathException {
+    return fetchChildrenIfAbsent(path, mountTable, true);
   }
 
   /**
    * Retrieves the child UFS statuses for a given path and stores them in the cache.
+   *
+   * This method first checks if the children have already been retrieved, and if not, then
+   * retrieves them.
+
    * @param path the path to get the children for
    * @param mountTable the Alluxio mount table
    * @return the child statuses that were stored in the cache, or null if the UFS couldn't list the
    *         statuses
    * @throws InvalidPathException when the table can't resolve the mount for the given URI
    */
+  @Nullable
   private Collection<UfsStatus> getChildrenIfAbsent(AlluxioURI path, MountTable mountTable)
       throws InvalidPathException {
     Collection<UfsStatus> children = getChildren(path);
@@ -220,11 +232,7 @@ public class UfsStatusCache {
    */
   @Nullable
   public Collection<UfsStatus> getChildren(AlluxioURI path) {
-    UfsStatus stat = getStatus(path);
-    if (stat == null) {
-      return null;
-    }
-    return mChildren.get(stat);
+    return mChildren.get(path);
   }
 
   /**
