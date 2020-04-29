@@ -3482,7 +3482,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_NETWORK_DATA_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_DATA_TIMEOUT)
           .setAlias("alluxio.user.network.data.timeout.ms")
-          .setDefaultValue("30sec")
           .setDescription("The maximum time for an Alluxio client to wait for a data response "
               + "(e.g. block reads and block writes) from Alluxio worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3494,7 +3493,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_READER_BUFFER_SIZE_MESSAGES =
       new Builder(Name.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES)
-          .setDefaultValue(16)
           .setDescription("When a client reads from a remote worker, the maximum number of "
               + "messages to buffer by the client. A message can be either a command response, "
               + "a data chunk, or a gRPC stream event such as complete or error.")
@@ -3507,7 +3505,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_READER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES)
-          .setDefaultValue("1MB")
           .setDescription("When a client reads from a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3518,7 +3515,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
       new Builder(Name.USER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
-          .setDefaultValue(16)
           .setDescription("When a client writes to a remote worker, the maximum number of messages "
               + "to buffer by the client. A message can be either a command response, a data "
               + "chunk, or a gRPC stream event such as complete or error.")
@@ -3531,7 +3527,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_WRITER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES)
-          .setDefaultValue("1MB")
           .setDescription("When a client writes to a remote worker, the maximum chunk size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3543,7 +3538,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_NETWORK_WRITER_CLOSE_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_WRITER_CLOSE_TIMEOUT)
           .setAlias("alluxio.user.network.writer.close.timeout.ms")
-          .setDefaultValue("30min")
           .setDescription("The timeout to close a writer client.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3554,7 +3548,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_WRITER_FLUSH_TIMEOUT =
       new Builder(Name.USER_NETWORK_WRITER_FLUSH_TIMEOUT)
-          .setDefaultValue("30min")
           .setDescription("The timeout to wait for flush to finish in a data writer.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3565,7 +3558,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_ZEROCOPY_ENABLED =
       new Builder(Name.USER_NETWORK_ZEROCOPY_ENABLED)
-          .setDefaultValue(true)
           .setDescription("Whether zero copy is enabled on client when processing data streams.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3576,7 +3568,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_FLOWCONTROL_WINDOW =
       new Builder(Name.USER_NETWORK_FLOWCONTROL_WINDOW)
-          .setDefaultValue("2MB")
           .setDescription("The HTTP2 flow control window used by user gRPC connections. Larger "
               + "value will allow more data to be buffered but will use more memory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3588,7 +3579,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_KEEPALIVE_TIME =
       new Builder(Name.USER_NETWORK_KEEPALIVE_TIME)
-          .setDefaultValue(Long.MAX_VALUE)
           .setDescription("The amount of time for a gRPC client (for block reads and block writes) "
               + "to wait for a response before pinging the server to see if it is still alive.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3600,7 +3590,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_KEEPALIVE_TIMEOUT =
       new Builder(Name.USER_NETWORK_KEEPALIVE_TIMEOUT)
-          .setDefaultValue("30sec")
           .setDescription("The maximum time for a gRPC client (for block reads and block writes) "
               + "to wait for a keepalive response before closing the connection.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3612,7 +3601,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
       new Builder(Name.USER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
-          .setDefaultValue("100MB")
           .setDescription("The max inbound message size used by user gRPC connections.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -3627,7 +3615,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "automatically fall back to NIO.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
-          .setDefaultValue("EPOLL")
           .build();
   /**
    * @deprecated use {@link #USER_NETWORK_STREAMING_NETTY_WORKER_THREADS} instead
@@ -3635,7 +3622,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @Deprecated
   public static final PropertyKey USER_NETWORK_NETTY_WORKER_THREADS =
       new Builder(Name.USER_NETWORK_NETTY_WORKER_THREADS)
-          .setDefaultValue(0)
           .setDescription("How many threads to use for remote block worker client to read "
               + "from remote block workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
