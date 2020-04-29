@@ -1152,13 +1152,9 @@ Here are the additional properties possible for the `-o` options:
   * `catalog.db.sync.threads`: number of parallel threads to use to sync with the UDB. If too large,
   the sync may overload the UDB, and if set too low, syncing a database with many tables make take
   a long time. The default is `4`.
-  * `udb-glue.aws.<MOUNT_PROPERTY>`: specify the mount option for the Glue udb, the mount options
-  are as follows:
-    * `region`: the glue aws region
-    * `catalog.id`: the aws catalog id
-    * `accesskey`: the aws access key id
-    * `secretkey`: the aws secret key
 
+
+### Hive UDB
 For the `hive` udb type, during the attach process, the Alluxio catalog will auto-mount all the
 table/partition locations in the specified database, to Alluxio. You can supply the mount options
 for the possible table locations with the
@@ -1175,8 +1171,16 @@ This command will attach the database `hive_db_name` (of type `hive`) from the U
 When paths are mounted for `s3a://bucket1`, the mount option `aws.accessKeyId=abc` will be used,
 and when paths are mounted for `s3a://bucket2`, the mount option `aws.accessKeyId=123` will be used.
 
-Different from `hive` udb type, the `glue` udb require the some extra mount options to access the AWS
-glue service. You can supply the mount options for the `glue` as follows:
+### Glue UDB
+For `glue` udb type, there are some additional properties with the `-o` options:
+  * `udb-glue.aws.<MOUNT_PROPERTY>`: specify the mount option for the Glue udb, the mount options
+  are as follows:
+    * `region`: the glue aws region
+    * `catalog.id`: the aws catalog id
+    * `accesskey`: the aws access key id
+    * `secretkey`: the aws secret key
+
+You can supply the mount options for the `glue` as follows:
 
 ```console
 $ ./bin/alluxio table attachdb --db alluxio_db_name Glue null glue_db_name \
