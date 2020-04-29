@@ -68,8 +68,8 @@ public final class AlluxioFuse {
     fuseOpts.add("-odirect_io");
 
     try {
-      fs.mount(Paths.get(opts.getMountPoint()), true, opts.isDebug(),
-          fuseOpts.toArray(new String[0]));
+      fs.mount(Paths.get(opts.getMountPoint()), true,
+          opts.isDebug(), fuseOpts.toArray(new String[0]));
       LOG.info("Mounted Alluxio: mount point=\"{}\", opts=\"{}\"", opts.getMountPoint(),
           fuseOpts.toArray(new String[0]));
     } catch (FuseException e) {
@@ -96,18 +96,32 @@ public final class AlluxioFuse {
    */
   private static AlluxioFuseOptions parseOptions(String[] args, AlluxioConfiguration alluxioConf) {
     final Options opts = new Options();
-    final Option mntPoint = Option.builder("m").hasArg().required(true).longOpt("mount-point")
-        .desc("Desired local mount point for alluxio-fuse.").build();
+    final Option mntPoint = Option.builder("m")
+        .hasArg()
+        .required(true)
+        .longOpt("mount-point")
+        .desc("Desired local mount point for alluxio-fuse.")
+        .build();
 
-    final Option alluxioRoot = Option.builder("r").hasArg().required(true).longOpt("alluxio-root")
+    final Option alluxioRoot = Option.builder("r")
+        .hasArg()
+        .required(true)
+        .longOpt("alluxio-root")
         .desc("Path within alluxio that will be used as the root of the FUSE mount "
             + "(e.g., /users/foo; defaults to /)")
         .build();
 
-    final Option help = Option.builder("h").required(false).desc("Print this help").build();
+    final Option help = Option.builder("h")
+        .required(false)
+        .desc("Print this help")
+        .build();
 
-    final Option fuseOption = Option.builder("o").valueSeparator(',').required(false).hasArgs()
-        .desc("FUSE mount options").build();
+    final Option fuseOption = Option.builder("o")
+        .valueSeparator(',')
+        .required(false)
+        .hasArgs()
+        .desc("FUSE mount options")
+        .build();
 
     opts.addOption(mntPoint);
     opts.addOption(alluxioRoot);
