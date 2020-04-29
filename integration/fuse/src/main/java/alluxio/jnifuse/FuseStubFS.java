@@ -36,17 +36,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Abstract class for Fuse FS Stub.
  */
-public abstract class FuseStubFS {
+public class FuseStubFS {
 
   private static final int TIMEOUT = 2000; // ms
-  private static final String[] osxFuseLibraries = {"fuse4x", "osxfuse", "macfuse", "fuse"};
 
-  private Set<String> notImplementedMethods;
   protected final LibFuse libFuse;
-  // protected final FuseOperations fuseOperations;
   protected final AtomicBoolean mounted = new AtomicBoolean();
   protected Path mountPoint;
-  // private volatile Pointer fusePointer;
 
   public FuseStubFS() {
     this.libFuse = new LibFuse();
@@ -120,83 +116,82 @@ public abstract class FuseStubFS {
 
   public int getattr(String path, FileStat stat) {
     throw new NotImplementedException("getattr");
-    // return 0;
   }
 
   public int mkdir(String path, long mode) {
-    return 0;
+    throw new NotImplementedException("mkdir");
   }
 
   public int unlink(String path) {
-    return 0;
+    throw new NotImplementedException("unlink");
   }
 
   public int rmdir(String path) {
-    return 0;
+    throw new NotImplementedException("rmdir");
   }
 
   public int symlink(String oldpath, String newpath) {
-    return 0;
+    throw new NotImplementedException("symlink");
   }
 
   public int rename(String oldpath, String newpath) {
-    return 0;
+    throw new NotImplementedException("rename");
   }
 
   public int link(String oldpath, String newpath) {
-    return 0;
+    throw new NotImplementedException("link");
   }
 
   public int chmod(String path, long mode) {
-    return 0;
+    throw new NotImplementedException("chmod");
   }
 
   public int chown(String path, long uid, long gid) {
-    return 0;
+    throw new NotImplementedException("chown");
   }
 
   public int truncate(String path, long size) {
-    return 0;
+    throw new NotImplementedException("truncate");
   }
 
   public int open(String path, FuseFileInfo fi) {
-    return 0;
+    throw new NotImplementedException("open");
   }
 
   public int read(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
-    return 0;
+    throw new NotImplementedException("read");
   }
 
   public int write(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
-    return 0;
+    throw new NotImplementedException("write");
   }
 
   public int statfs(String path, Statvfs stbuf) {
-    return 0;
+    throw new NotImplementedException("statfs");
   }
 
   public int flush(String path, FuseFileInfo fi) {
-    return 0;
+    throw new NotImplementedException("flush");
   }
 
   public int release(String path, FuseFileInfo fi) {
-    return 0;
+    throw new NotImplementedException("release");
   }
 
   public int opendir(String path, FuseFileInfo fi) {
-    return 0;
+    throw new NotImplementedException("opendir");
   }
 
   public int readdir(String path, long bufaddr, FuseFillDir filter, long offset, FuseFileInfo fi) {
-    return 0;
+    throw new NotImplementedException("readdir");
   }
 
   public int releasedir(String path, FuseFileInfo fi) {
-    return 0;
+    throw new NotImplementedException("releasedir");
   }
 
   public int create(String path, long mode, FuseFileInfo fi) {
-    return -ErrorCodes.ENOSYS();
+    throw new NotImplementedException("create");
   }
 
   public int openCallback(String path, ByteBuffer buf) {
