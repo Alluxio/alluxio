@@ -90,9 +90,9 @@ public class FileStat extends Struct {
     st_size = new SignedLong();
     st_blksize = new SignedLong();
     st_blocks = new SignedLong();
-    st_atim = new SignedLong();
-    st_mtim = new SignedLong();
-    st_ctim = new SignedLong();
+    st_atim = new Timespec();
+    st_mtim = new Timespec();
+    st_ctim = new Timespec();
   }
 
   public final Unsigned64 st_dev;
@@ -106,9 +106,9 @@ public class FileStat extends Struct {
   public final SignedLong st_size;
   public final SignedLong st_blksize;
   public final SignedLong st_blocks;
-  public final SignedLong st_atim;
-  public final SignedLong st_mtim;
-  public final SignedLong st_ctim;
+  public final Timespec st_atim;
+  public final Timespec st_mtim;
+  public final Timespec st_ctim;
 
   public static FileStat wrap(ByteBuffer buffer) {
     return new FileStat(buffer);

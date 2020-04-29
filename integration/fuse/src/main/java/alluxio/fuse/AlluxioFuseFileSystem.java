@@ -418,10 +418,10 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       // Keeps only the "residual" nanoseconds not caputred in citme_sec
       final long ctime_nsec = (status.getLastModificationTimeMs() % 1000) * 1000;
 
-      // stat.st_ctim.tv_sec.set(ctime_sec);
-      // stat.st_ctim.tv_nsec.set(ctime_nsec);
-      // stat.st_mtim.tv_sec.set(ctime_sec);
-      // stat.st_mtim.tv_nsec.set(ctime_nsec);
+       stat.st_ctim.tv_sec.set(ctime_sec);
+       stat.st_ctim.tv_nsec.set(ctime_nsec);
+       stat.st_mtim.tv_sec.set(ctime_sec);
+       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
       if (mIsUserGroupTranslation) {
         // Translate the file owner/group to unix uid/gid

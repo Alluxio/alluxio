@@ -37,6 +37,12 @@ public class FileStatTest {
     assertEquals(jnrstat.st_size.offset(), jnistat.st_size.offset());
     assertEquals(jnrstat.st_blksize.offset(), jnistat.st_blksize.offset());
     assertEquals(jnrstat.st_blocks.offset(), jnistat.st_blocks.offset());
+    assertEquals(jnrstat.st_atim.tv_sec.offset(), jnistat.st_atim.tv_sec.offset());
+    assertEquals(jnrstat.st_atim.tv_nsec.offset(), jnistat.st_atim.tv_nsec.offset());
+    assertEquals(jnrstat.st_mtim.tv_sec.offset(), jnistat.st_mtim.tv_sec.offset());
+    assertEquals(jnrstat.st_mtim.tv_nsec.offset(), jnistat.st_mtim.tv_nsec.offset());
+    assertEquals(jnrstat.st_ctim.tv_sec.offset(), jnistat.st_ctim.tv_sec.offset());
+    assertEquals(jnrstat.st_ctim.tv_nsec.offset(), jnistat.st_ctim.tv_nsec.offset());
   }
 
   @Test

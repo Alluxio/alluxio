@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.sql.Time;
 
 public abstract class Struct {
   static final Charset ASCII = StandardCharsets.US_ASCII;
@@ -290,6 +291,32 @@ public abstract class Struct {
   public final class Padding extends AbstrctMember {
     public Padding(int size) {
       super(size);
+    }
+  }
+
+  public final class Timespec extends Member {
+    public final SignedLong tv_sec;
+    public final SignedLong tv_nsec;
+    public final int offset;
+
+    protected Timespec() {
+      // TODO: this may cause error
+      tv_sec = new SignedLong();
+      tv_nsec = new SignedLong();
+      offset = tv_sec.offset();
+    }
+
+    @Override
+    int offset() {
+      return offset;
+    }
+
+    protected int getSize() {
+      return tv_sec.getSize() + tv_nsec.getSize();
+    }
+
+    protected int getAlignment() {
+      return Math.max(tv_sec.getAlignment(), tv_nsec.getAlignment());
     }
   }
 }
