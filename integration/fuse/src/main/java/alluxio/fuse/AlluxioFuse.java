@@ -100,7 +100,7 @@ public final class AlluxioFuse {
       // Force direct_io in FUSE: writes and reads bypass the kernel page
       // cache and go directly to alluxio. This avoids extra memory copies
       // in the write path.
-      // TODO: support kernel_cache (https://github.com/Alluxio/alluxio/issues/10840)
+      // TODO(binfan): support kernel_cache (issues#10840)
       fuseOpts.add("-odirect_io");
 
       try {
@@ -115,7 +115,7 @@ public final class AlluxioFuse {
         // will be executed when this process is exiting.
         fuseFs.umount();
       }
-    } catch (IOException e){
+    } catch (IOException e) {
       LOG.error("Failed to mount Alluxio file system", e);
     }
   }

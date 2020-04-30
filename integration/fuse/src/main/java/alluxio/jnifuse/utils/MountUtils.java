@@ -16,9 +16,11 @@ import alluxio.jnifuse.FuseException;
 import java.io.IOException;
 import java.nio.file.Path;
 
-public class MountUtils {
+public final class MountUtils {
   /**
-   * Perform/force a umount at the provided Path
+   * Perform/force a umount at the provided Path.
+   *
+   * @param mountPoint mount point
    */
   public static void umount(Path mountPoint) {
     String mountPath = mountPoint.toAbsolutePath().toString();
@@ -36,4 +38,6 @@ public class MountUtils {
       }
     }
   }
+
+  private MountUtils() {} // prevent instantiation
 }

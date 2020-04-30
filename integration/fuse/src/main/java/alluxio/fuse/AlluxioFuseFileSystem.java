@@ -298,11 +298,9 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         return -ErrorCodes.EMFILE();
       }
       SetAttributePOptions.Builder attributeOptionsBuilder = SetAttributePOptions.newBuilder();
-
       FuseContext fc = getContext();
       long uid = fc.uid.get();
       long gid = fc.gid.get();
-
       if (gid != GID) {
         String groupName = AlluxioFuseUtils.getGroupName(gid);
         if (groupName.isEmpty()) {
@@ -418,10 +416,10 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       // Keeps only the "residual" nanoseconds not caputred in citme_sec
       final long ctime_nsec = (status.getLastModificationTimeMs() % 1000) * 1000;
 
-       stat.st_ctim.tv_sec.set(ctime_sec);
-       stat.st_ctim.tv_nsec.set(ctime_nsec);
-       stat.st_mtim.tv_sec.set(ctime_sec);
-       stat.st_mtim.tv_nsec.set(ctime_nsec);
+      stat.st_ctim.tv_sec.set(ctime_sec);
+      stat.st_ctim.tv_nsec.set(ctime_nsec);
+      stat.st_mtim.tv_sec.set(ctime_sec);
+      stat.st_mtim.tv_nsec.set(ctime_nsec);
 
       if (mIsUserGroupTranslation) {
         // Translate the file owner/group to unix uid/gid
@@ -477,8 +475,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private int mkdirInternal(String path, @mode_t long mode) {
     final AlluxioURI turi = mPathResolverCache.getUnchecked(path);
     if (turi.getName().length() > MAX_NAME_LENGTH) {
-      LOG.error("Failed to create directory {}, directory name is longer than {} characters", path,
-          MAX_NAME_LENGTH);
+      LOG.error("Failed to create directory {}, directory name is longer than {} characters",
+          path, MAX_NAME_LENGTH);
       return -ErrorCodes.ENAMETOOLONG();
     }
     FuseContext fc = getContext();

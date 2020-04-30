@@ -25,6 +25,5 @@ public final class SecurityUtils {
     }
   }
 
-  private SecurityUtils() {
-  }
+  private SecurityUtils() {} // prevent instantiation
 }
